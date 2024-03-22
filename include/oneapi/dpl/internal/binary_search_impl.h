@@ -68,36 +68,42 @@ struct custom_brick
     }
 };
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
-lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+OutputIterator
+lower_bound_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
+
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                       return ::std::lower_bound(start, end, val, comp) - start;
                                   });
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
-upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+OutputIterator
+upper_bound_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
+
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                       return ::std::upper_bound(start, end, val, comp) - start;
                                   });
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
-binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+OutputIterator
+binary_search_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
+
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                       return ::std::binary_search(start, end, val, comp);
@@ -105,11 +111,11 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
-                 InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename StrictWeakOrdering>
+OutputIterator
+lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
+                 InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
@@ -128,18 +134,18 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
     return result + value_size;
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
-                 InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename StrictWeakOrdering>
+OutputIterator
+upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
+                 InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
@@ -158,18 +164,18 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
     return result + value_size;
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
-                   InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename StrictWeakOrdering>
+OutputIterator
+binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
+                   InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
@@ -188,7 +194,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -204,8 +210,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    return internal::lower_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
-                                      oneapi::dpl::__internal::__pstl_less());
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::lower_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                      value_end, result, oneapi::dpl::__internal::__pstl_less());
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -214,7 +222,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::lower_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::lower_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                      value_end, result, comp);
 }
 //Lower Bound end
 
@@ -225,8 +236,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    return internal::upper_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
-                                      oneapi::dpl::__internal::__pstl_less());
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::upper_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                      value_end, result, oneapi::dpl::__internal::__pstl_less());
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -235,7 +248,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::upper_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::upper_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                      value_end, result, comp);
 }
 
 //Upper Bound end
@@ -247,8 +263,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result)
 {
-    return internal::binary_search_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
-                                        oneapi::dpl::__internal::__pstl_less());
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::binary_search_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                        value_end, result, oneapi::dpl::__internal::__pstl_less());
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -257,8 +275,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::binary_search_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
-                                        comp);
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
+
+    return internal::binary_search_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
+                                        value_end, result, comp);
 }
 
 //Binary search end

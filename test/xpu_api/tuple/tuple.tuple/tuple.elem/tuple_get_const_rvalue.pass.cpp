@@ -24,6 +24,7 @@
 
 class KernelGetConstRvTest;
 
+#if !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 void
 kernel_test()
 {
@@ -47,11 +48,14 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::get(dpl::tuple&&) check");
 }
+#endif // !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
 int
 main()
 {
+#if !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
     kernel_test();
+#endif // !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
-    return TestUtils::done();
+    return TestUtils::done(!_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN);
 }

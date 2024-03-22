@@ -20,14 +20,10 @@
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
 
 #include <iterator>
-#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
-#if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50400
-#        include <sycl/ext/intel/fpga_extensions.hpp>
-#    else
-#        include <CL/sycl/INTEL/fpga_extensions.hpp>
-#    endif
-#endif
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#include "utils_sycl_defs.h"
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #include "test_config.h"
 
@@ -79,6 +75,11 @@ auto async_handler = [](sycl::exception_list ex_list) {
     }
 };
 
+//Check that type is device copyable including types which are deprecated in sycl 2020
+template <typename T>
+static constexpr bool check_if_device_copyable_by_sycl2020_or_by_old_definition  =
+    sycl::is_device_copyable_v<T> || (std::is_trivially_copy_constructible_v<T> && std::is_trivially_destructible_v<T>);
+
 //function is needed to wrap kernel name into another class
 template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
@@ -105,9 +106,9 @@ make_new_policy(_Policy&& __policy)
 #if ONEDPL_FPGA_DEVICE
 inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
-        __dpl_sycl::__fpga_emulator_selector();
+        sycl::ext::intel::fpga_emulator_selector{};
 #    else
-        __dpl_sycl::__fpga_selector();
+        sycl::ext::intel::fpga_selector{};
 #    endif // ONEDPL_FPGA_EMULATOR
 
 inline auto&& default_dpcpp_policy =
@@ -118,7 +119,7 @@ inline auto&& default_dpcpp_policy =
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
 inline auto default_selector =
-#    if _ONEDPL_LIBSYCL_VERSION >= 60000
+#    if TEST_LIBSYCL_VERSION >= 60000
         sycl::default_selector_v;
 #    else
         sycl::default_selector{};

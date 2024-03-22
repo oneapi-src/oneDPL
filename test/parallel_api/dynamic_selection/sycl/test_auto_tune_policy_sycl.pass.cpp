@@ -7,13 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
+#include "oneapi/dpl/dynamic_selection"
 #include <iostream>
 #include <thread>
-#include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
-#include "support/test_config.h"
+#include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-#    include "support/sycl_sanity.h"
 
 int
 test_auto_initialization(const std::vector<sycl::queue>& u)
@@ -22,22 +23,15 @@ test_auto_initialization(const std::vector<sycl::queue>& u)
     oneapi::dpl::experimental::auto_tune_policy p{u};
     auto u2 = oneapi::dpl::experimental::get_resources(p);
     auto u2s = u2.size();
-    if (!std::equal(std::begin(u2), std::end(u2), std::begin(u)))
-    {
-        std::cout << "ERROR: provided resources and queried resources are not equal\n";
-        return 1;
-    }
+    EXPECT_TRUE(std::equal(std::begin(u2), std::end(u2), std::begin(u)),
+                "ERROR: provided resources and queried resources are not equal\n");
 
     // deferred initialization
     oneapi::dpl::experimental::auto_tune_policy p2{oneapi::dpl::experimental::deferred_initialization};
     try
     {
         auto u3 = oneapi::dpl::experimental::get_resources(p2);
-        if (!u3.empty())
-        {
-            std::cout << "ERROR: deferred initialization not respected\n";
-            return 1;
-        }
+        EXPECT_TRUE(u3.empty(), "ERROR: deferred initialization not respected\n");
     }
     catch (...)
     {
@@ -45,11 +39,8 @@ test_auto_initialization(const std::vector<sycl::queue>& u)
     p2.initialize(u);
     auto u3 = oneapi::dpl::experimental::get_resources(p);
     auto u3s = u3.size();
-    if (!std::equal(std::begin(u3), std::end(u3), std::begin(u)))
-    {
-        std::cout << "ERROR: reported resources and queried resources are not equal after deferred initialization\n";
-        return 1;
-    }
+    EXPECT_TRUE(std::equal(std::begin(u3), std::end(u3), std::begin(u)),
+                "ERROR: reported resources and queried resources are not equal after deferred initialization\n");
 
     std::cout << "initialization: OK\n" << std::flush;
     return 0;
@@ -117,8 +108,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune1, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -164,8 +154,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune2, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
@@ -179,17 +168,9 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
         }
 
         int count = ecount.load();
-        if (count != i * (i + 1) / 2)
-        {
-            std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
-            return 1;
-        }
+        EXPECT_EQ(i * (i + 1) / 2, count, "ERROR: scheduler did not execute all tasks exactly once\n");
     }
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
+    EXPECT_TRUE(pass, "ERROR: did not select expected resources\n");
     if constexpr (call_select_before_submit)
     {
         std::cout << "select then submit and wait on event: OK\n";
@@ -263,8 +244,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune3, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -310,8 +290,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune4, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
@@ -325,17 +304,9 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
         }
 
         int count = ecount.load();
-        if (count != i * (i + 1) / 2)
-        {
-            std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
-            return 1;
-        }
+        EXPECT_EQ(i * (i + 1) / 2, count, "ERROR: scheduler did not execute all tasks exactly once\n");
     }
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
+    EXPECT_TRUE(pass, "ERROR: did not select expected resources\n");
     if constexpr (call_select_before_submit)
     {
         std::cout << "select then submit and wait on group: OK\n";
@@ -346,6 +317,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     }
     return 0;
 }
+
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer>
 int
@@ -409,8 +381,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune5, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune5, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -455,8 +426,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune6, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
@@ -469,17 +439,9 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
         }
 
         int count = ecount.load();
-        if (count != i * (i + 1) / 2)
-        {
-            std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
-            return 1;
-        }
+        EXPECT_EQ(i * (i + 1) / 2, count, "ERROR: scheduler did not execute all tasks exactly once\n");
     }
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
+    EXPECT_TRUE(pass, "ERROR: did not select expected resources\n");
     if constexpr (call_select_before_submit)
     {
         std::cout << "select then submit_and_wait: OK\n";
@@ -543,12 +505,15 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     }
 }
 
-#endif
+#endif //TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()
 {
+    bool bProcessed = false;
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
+    std::cout<<"HERE\n";
     using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u1;
     std::vector<sycl::queue> u2;
@@ -556,83 +521,75 @@ main()
     build_auto_tune_universe(u1);
     build_auto_tune_universe<use_event_profiling>(u2);
 
-    //If building the universe is not a success, return
-    if (u1.size() == 0 || u2.size()==0)
-        return 0;
-
-    auto f = [u1](int i) {
-        if (i <= 8)
-            return u1[(i - 1) % 4];
-        else
-            return u1[0];
-    };
-
-    constexpr bool just_call_submit = false;
-    constexpr bool call_select_before_submit = true;
-
-    if (test_auto_initialization(u1) ||  test_select<policy_t, decltype(u1), const decltype(f)&, true>(u1, f) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 0) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 1) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 2) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 3) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 0) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 1) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 2) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 3) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 0) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 1) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 2) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 3) ||
-        // now select then submits
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 0) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 1) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 2) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 3) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 0) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 1) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 2) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 3) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 0) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 1) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 2) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 3) ||
-        //Use event profiling
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 0) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 1) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 2) ||
-        test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 3) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 0) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 1) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 2) ||
-        test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 3) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 0) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 1) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 2) ||
-        test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 3) ||
-        // now select then submits
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 0) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 1) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 2) ||
-        test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 3) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 0) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 1) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 2) ||
-        test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 3) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 0) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 1) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 2) ||
-        test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 3))
+    if (u1.size() != 0 || u2.size() !=0 )
     {
-        std::cout << "FAIL\n";
-        return 1;
+        auto f = [u1](int i) {
+            if (i <= 8)
+                return u1[(i - 1) % 4];
+            else
+                return u1[0];
+        };
+
+        constexpr bool just_call_submit = false;
+        constexpr bool call_select_before_submit = true;
+
+        auto actual = test_auto_initialization(u1);
+        actual = test_select<policy_t, decltype(u1), const decltype(f)&, true>(u1, f);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 3);
+        // now select then submits
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 3);
+        // Use event profiling
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 3);
+        // now select then submits
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 3);
+
+        bProcessed = true;
     }
-    else
-    {
-        std::cout << "PASS\n";
-        return 0;
-    }
-#else
-    std::cout << "SKIPPED\n";
-    return 0;
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
+
+    return TestUtils::done(bProcessed);
 }

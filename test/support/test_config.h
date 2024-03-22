@@ -54,6 +54,8 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
+// GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
@@ -134,12 +136,17 @@
 #define _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
 #define _PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
 #define _PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
+#define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
+
+// Known limitation:
+// Due to specifics of Microsoft* Visual C++, some standard floating-point math functions require device support for double precision.
+#define _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ _MSC_VER
 
 #define _PSTL_CLANG_TEST_COMPLEX_ACOS_IS_NAN_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN __clang__
 
-#define TEST_DYNAMIC_SELECTION_AVAILABLE (__INTEL_LLVM_COMPILER >= 20230000)
+#define TEST_DYNAMIC_SELECTION_AVAILABLE (TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER >= 20230000)
 
 // oneAPI DPC++ compiler in 2023.2 release build crashes during optimization of reduce_by_segment.pass.cpp
 // with TBB backend.
@@ -147,6 +154,14 @@
 #   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH ((__INTEL_LLVM_COMPILER >= 20230200) && (__INTEL_LLVM_COMPILER <= 20240100))
 #else
 #   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH 0
+#endif
+
+// If the workaround macro for the 64-bit type bug is not defined by the user, then exclude 64-bit type testing
+// in reduce_by_segment.pass.cpp.
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#if !PSTL_USE_DEBUG && defined(__INTEL_LLVM_COMPILER)
+#    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
 #endif
 
 #endif // _TEST_CONFIG_H

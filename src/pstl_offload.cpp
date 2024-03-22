@@ -86,14 +86,14 @@ __original_free(void* __ptr_to_free)
     __orig_free(__ptr_to_free);
 }
 
-static auto
-__get_original_msize()
+static std::size_t
+__original_msize(void* __user_ptr)
 {
     using __msize_func_type = std::size_t (*)(void*);
 
     static __msize_func_type __orig_msize =
         __msize_func_type(dlsym(RTLD_NEXT, "malloc_usable_size"));
-    return __orig_msize;
+    return __orig_msize(__user_ptr);
 }
 
 static void
@@ -145,7 +145,7 @@ __internal_msize(void* __user_ptr)
         }
         else
         {
-            __res = __get_original_msize()(__user_ptr);
+            __res = __original_msize(__user_ptr);
         }
     }
     return __res;

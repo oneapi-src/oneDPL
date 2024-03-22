@@ -60,6 +60,7 @@ class sycl_backend
       public:
         async_waiter(sycl::event e) : e_(e){}
         async_waiter(sycl::event e, Selection* selection, std::optional<std::chrono::steady_clock::time_point> t=std::nullopt) : e_(e), s(selection), timing(t) {}
+
         sycl::event
         unwrap()
         {
