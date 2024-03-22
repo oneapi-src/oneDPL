@@ -51,7 +51,8 @@ namespace __internal
 // Buffer allocators
 //------------------------------------------------------------------------
 template <typename _T>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__tbb_backend_tag)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__tbb_backend_tag)
 {
     // Some of our algorithms need to start with raw memory buffer,
     // not an initialize array, because initialization/destruction

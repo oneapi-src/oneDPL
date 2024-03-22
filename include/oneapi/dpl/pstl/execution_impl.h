@@ -164,13 +164,15 @@ inline constexpr bool __is_host_dispatch_tag_v =
 //------------------------------------------------------------------------
 
 template <typename _T, typename _IsVector>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>)
 {
     return ::std::allocator<_T>{};
 }
 
 template <typename _T, typename _IsVector>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__parallel_tag<_IsVector>)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__parallel_tag<_IsVector>)
 {
     using __backend_tag = typename oneapi::dpl::__internal::__parallel_tag<_IsVector>::__backend_tag;
 
@@ -178,7 +180,8 @@ constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__paral
 }
 
 template <typename _T>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__parallel_forward_tag)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__parallel_forward_tag)
 {
     using __backend_tag = typename oneapi::dpl::__internal::__parallel_forward_tag::__backend_tag;
 
