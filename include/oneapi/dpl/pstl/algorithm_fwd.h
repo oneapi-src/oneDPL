@@ -102,7 +102,7 @@ _RandomAccessIterator __brick_walk1_n(_RandomAccessIterator, _DifferenceType, _F
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
 _ForwardIterator
-__pattern_walk1_n(_Tag, _ExecutionPolicy&&, _ForwardIterator, _Size, _Function) noexcept;
+__pattern_walk1_n(_Tag, _ExecutionPolicy&&, _ForwardIterator, _Size, _Function);
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Function>
 _RandomAccessIterator
