@@ -100,13 +100,13 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
     return __ptr;
 }
 
-inline auto
-__get_original_realloc()
+inline void*
+__original_realloc(void* __user_ptr, std::size_t __new_size)
 {
     using __realloc_func_type = void* (*)(void*, std::size_t);
 
     static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
-    return __orig_realloc;
+    return __orig_realloc(__user_ptr, __new_size);
 }
 
 inline void
@@ -156,7 +156,7 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
     else
     {
         // __user_ptr is not a USM pointer, use original realloc function
-        __result = __get_original_realloc()(__user_ptr, __new_size);
+        __result = __original_realloc(__user_ptr, __new_size);
     }
     return __result;
 }

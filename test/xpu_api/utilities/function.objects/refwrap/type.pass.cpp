@@ -20,7 +20,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class C
 {
 };
@@ -46,7 +45,7 @@ kernel_test()
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (*)(float*)>::type, int* (*)(float*)>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::type, int* (C::*)(float*)>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
-                                     int (C::*)(float*) const volatile>::value);
+                                       int (C::*)(float*) const volatile>::value);
             // Runtime check...
 
             ret_access[0] = dpl::is_same<dpl::reference_wrapper<C>::type, C>::value;
@@ -54,23 +53,21 @@ kernel_test()
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int*(float*)>::type, int*(float*)>::value;
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<void (*)()>::type, void (*)()>::value;
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int* (*)(float*)>::type, int* (*)(float*)>::value;
-            ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::type, int* (C::*)(float*)>::value;
+            ret_access[0] &=
+                dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::type, int* (C::*)(float*)>::value;
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
-                                        int (C::*)(float*) const volatile>::value;
+                                          int (C::*)(float*) const volatile>::value;
         });
     });
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::reference_wrapper and type checks");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

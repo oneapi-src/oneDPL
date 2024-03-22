@@ -175,10 +175,10 @@ Use it to create customized policy objects or pass directly when invoking an alg
 
    Specifying the unroll factor for a policy enables loop unrolling in the implementation of
    your algorithms. The default value is 1.
-   To find out how to choose a more precise value, refer to the `unroll Pragma <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/unroll-pragma.html>`_
-   and `Loop Analysis <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/loop-analysis.html>`_ chapters of
-   the `Intel® oneAPI DPC++ FPGA Optimization Guide
-   <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/overview.html>`_.
+   To find out how to choose a more precise value, refer to the `unroll Pragma <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/current/unroll-pragma.html>`_
+   and `Loop Analysis <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/current/loop-analysis.html>`_ content in
+   the `Intel® oneAPI FPGA Handbook
+   <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2024-0/intel-oneapi-fpga-handbook.html>`_.
 
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 

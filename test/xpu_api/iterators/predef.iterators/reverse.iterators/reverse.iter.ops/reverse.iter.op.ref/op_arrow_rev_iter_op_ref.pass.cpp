@@ -34,7 +34,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class A
 {
     int data_;
@@ -83,8 +82,16 @@ class B
     {
         return x.data_ == y.data_;
     }
-    const B* operator&() const { return nullptr; }
-    B* operator&() { return nullptr; }
+    const B*
+    operator&() const
+    {
+        return nullptr;
+    }
+    B*
+    operator&()
+    {
+        return nullptr;
+    }
 };
 
 class C
@@ -92,23 +99,22 @@ class C
     int data_;
 
   public:
-    TEST_CONSTEXPR
-    C() : data_(1) {}
+    constexpr C() : data_(1) {}
 
-    TEST_CONSTEXPR int
+    constexpr int
     get() const
     {
         return data_;
     }
 
-    friend TEST_CONSTEXPR bool
+    friend constexpr bool
     operator==(const C& x, const C& y)
     {
         return x.data_ == y.data_;
     }
 };
 
-TEST_CONSTEXPR C gC;
+constexpr C gC;
 
 bool
 kernel_test()
@@ -138,15 +144,12 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of work with reverse iterator and reference in kernel_test()");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -8,6 +8,32 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.4.0
+===============
+
+New Features
+------------
+- Added experimental ``radix_sort`` and ``radix_sort_by_key`` algorithms residing in
+  the ``oneapi::dpl::experimental::kt::esimd`` namespace. These algorithms are first
+  in the family of _kernel templates_ that allow configuring a variety of parameters
+  including the number of elements to process by a work item, and the size of a workgroup.
+  The algorithms only work with Intel® Data Center GPU Max Series.
+- Added new ``transform_if`` algorithm for applying a transform function conditionally
+  based on a predicate, with overloads provided for one and two input sequences
+  that use correspondingly unary and binary operations and predicates.
+- Optimizations used with Intel® oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` kernel templates fail to compile when a program
+  is built with -g, -O0, -O1 compiler options.
+- ``esimd::radix_sort_by_key`` kernel template produces wrong results with the following combinations
+  of ``kernel_param`` and types of keys and values:
+    - ``sizeof(key_type) + sizeof(val_type) == 12``, ``kernel_param::workgroup_size == 64``, and ``kernel_param::data_per_workitem == 96``
+    - ``sizeof(key_type) + sizeof(val_type) == 16``, ``kernel_param::workgroup_size == 64``, and ``kernel_param::data_per_workitem == 64``
+
 New in 2022.3.0
 ===============
 
@@ -36,6 +62,10 @@ New in This Release
   ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
   standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
   in accordance with the ``-fsycl-pstl-offload`` option value.
+- When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
+  option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
+  containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
+  environment to avoid the issue.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
   where elements are copied from the second input range rather than the first input range. 
@@ -53,6 +83,9 @@ New in This Release
   with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
   with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
+- Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
+  with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
+  and executed on GPU devices.
 
 Existing Issues
 ^^^^^^^^^^^^^^^

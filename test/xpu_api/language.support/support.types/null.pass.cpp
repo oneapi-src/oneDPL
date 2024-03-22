@@ -21,14 +21,11 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class Test1;
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
         sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
@@ -46,7 +43,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result: NULL is not defined in Kernel");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

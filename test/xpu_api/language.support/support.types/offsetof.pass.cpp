@@ -25,26 +25,22 @@
 #    error offsetof not defined
 #endif
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     int x;
 };
 
 class KernelTest1;
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     {
         sycl::queue q = TestUtils::get_test_queue();
         q.submit([&](sycl::handler& cgh) {
-            cgh.single_task<class KernelTest1>([=]() { static_assert(noexcept(offsetof(A, x))); });
+            cgh.single_task<class KernelTest1>([=]() { ASSERT_NOEXCEPT(offsetof(A, x)); });
         });
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -14,7 +14,56 @@
 #include <chrono>
 #include <random>
 #include <algorithm>
+#include <iostream>
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 
+namespace TestUtils
+{
+template <typename Op, ::std::size_t CallNumber>
+struct unique_kernel_name;
+
+template <typename Policy, int idx>
+using new_kernel_name = unique_kernel_name<typename ::std::decay_t<Policy>, idx>;
+} // namespace TestUtils
+
+static inline void
+build_universe(std::vector<sycl::queue>& u)
+{
+    try
+    {
+        auto device_default = sycl::device(sycl::default_selector_v);
+        sycl::queue default_queue(device_default);
+        u.push_back(default_queue);
+    }
+    catch (const sycl::exception&)
+    {
+        std::cout << "SKIPPED: Unable to run with default_selector\n";
+    }
+
+    try
+    {
+        auto device_gpu = sycl::device(sycl::gpu_selector_v);
+        sycl::queue gpu_queue(device_gpu);
+        u.push_back(gpu_queue);
+    }
+    catch (const sycl::exception&)
+    {
+        std::cout << "SKIPPED: Unable to run with gpu_selector\n";
+    }
+
+    try
+    {
+        auto device_cpu = sycl::device(sycl::cpu_selector_v);
+        sycl::queue cpu_queue(device_cpu);
+        u.push_back(cpu_queue);
+    }
+    catch (const sycl::exception&)
+    {
+        std::cout << "SKIPPED: Unable to run with cpu_selector\n";
+    }
+}
+
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 template <typename Policy, typename T>
 int
 test_initialization(const std::vector<T>& u)
@@ -317,5 +366,6 @@ test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset = 0)
     std::cout << "submit_and_wait: OK\n";
     return 0;
 }
+
 
 #endif /* _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H */

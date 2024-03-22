@@ -26,7 +26,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     A(dpl::nullptr_t) {}
@@ -93,12 +92,9 @@ test_nullptr_conversions(cl_int& i)
 #    pragma clang diagnostic pop
 #endif
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     const dpl::size_t N = 1;
     bool ret = true;
 
@@ -133,7 +129,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with null_ptr in Kernel");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

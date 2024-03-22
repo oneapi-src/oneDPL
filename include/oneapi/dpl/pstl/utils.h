@@ -70,19 +70,6 @@ __except_handler(_Fp __f) -> decltype(__f())
     }
 }
 
-template <typename _Op>
-struct __invoke_unary_op
-{
-    mutable _Op __op;
-
-    template <typename _Input, typename _Output>
-    void
-    operator()(_Input&& __x, _Output&& __y) const
-    {
-        __y = __op(::std::forward<_Input>(__x));
-    }
-};
-
 //! Unary operator that returns reference to its argument.
 struct __no_op
 {
@@ -273,19 +260,81 @@ class __not_equal_value
     }
 };
 
+//TODO: to do the same fix  for output type (by re-using __transform_functor if applicable) for the other functor below:
+// __transform_if_unary_functor, __transform_if_binary_functor, __replace_functor, __replace_copy_functor
+//TODO: to make input type consistently: const T& or T&&; to think which way is preferable
 template <typename _Pred>
 class __transform_functor
 {
-    _Pred _M_pred;
+    mutable _Pred _M_pred;
 
   public:
-    explicit __transform_functor(_Pred __pred) : _M_pred(__pred) {}
+    explicit __transform_functor(_Pred __pred) : _M_pred(::std::move(__pred)) {}
+
+    template <typename _Input1Type, typename _Input2Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& __x, const _Input2Type& __y, _OutputType&& __output) const
+    {
+        __transform_impl(::std::forward<_OutputType>(__output), __x, __y);
+    }
+
+    template <typename _InputType, typename _OutputType>
+    void
+    operator()(_InputType&& __x, _OutputType&& __output) const
+    {
+        __transform_impl(::std::forward<_OutputType>(__output), ::std::forward<_InputType>(__x));
+    }
+
+  private:
+    template <typename _OutputType, typename... _Args>
+    void
+    __transform_impl(_OutputType&& __output, _Args&&... __args) const
+    {
+        static_assert(sizeof...(_Args) < 3, "A predicate supports either unary or binary transformation");
+        static_assert(::std::is_invocable_v<_Pred, _Args...>, "A predicate cannot be called with the passed arguments");
+        ::std::forward<_OutputType>(__output) = _M_pred(::std::forward<_Args>(__args)...);
+    }
+};
+
+template <typename _UnaryOper, typename _UnaryPred>
+class __transform_if_unary_functor
+{
+    mutable _UnaryOper _M_oper;
+    mutable _UnaryPred _M_pred;
+
+  public:
+    explicit __transform_if_unary_functor(_UnaryOper&& __op, _UnaryPred&& __pred)
+        : _M_oper(::std::forward<_UnaryOper>(__op)), _M_pred(::std::forward<_UnaryPred>(__pred))
+    {
+    }
+
+    template <typename _Input1Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, _OutputType& y) const
+    {
+        if (_M_pred(x))
+            y = _M_oper(x);
+    }
+};
+
+template <typename _BinaryOper, typename _BinaryPred>
+class __transform_if_binary_functor
+{
+    mutable _BinaryOper _M_oper;
+    mutable _BinaryPred _M_pred;
+
+  public:
+    explicit __transform_if_binary_functor(_BinaryOper&& __op, _BinaryPred&& __pred)
+        : _M_oper(::std::forward<_BinaryOper>(__op)), _M_pred(::std::forward<_BinaryPred>(__pred))
+    {
+    }
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
     operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
     {
-        z = _M_pred(x, y);
+        if (_M_pred(x, y))
+            z = _M_oper(x, y);
     }
 };
 
@@ -652,6 +701,21 @@ __iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
         return false;
     }
 }
+
+// Conditionally sets type to _SpirvT if oneDPL is being compiled to a SPIR-V target with the SYCL backend and _NonSpirvT otherwise.
+template <typename _SpirvT, typename _NonSpirvT>
+struct __spirv_target_conditional :
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+    _SpirvT
+#else
+    _NonSpirvT
+#endif
+{
+};
+
+// Trait that has a true value if _ONEDPL_DETECT_SPIRV_COMPILATION is set and false otherwise. This may be used within kernels
+// to determine SPIR-V targets.
+inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
 
 } // namespace __internal
 } // namespace dpl
