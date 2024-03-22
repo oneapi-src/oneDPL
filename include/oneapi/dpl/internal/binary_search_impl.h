@@ -230,7 +230,7 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    auto run_binary_search = [&comp, &value_size, &zip_vw](auto&& policy, auto size) {
+    auto run_binary_search = [comp, value_size, zip_vw](auto&& policy, auto size) {
         __bknd::__parallel_for(
             _BackendTag{}, ::std::forward<decltype(policy)>(policy),
             custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::binary_search>{comp, size}, value_size,
