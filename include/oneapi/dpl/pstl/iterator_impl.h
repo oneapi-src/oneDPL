@@ -91,13 +91,6 @@ class zip_forward_iterator
 
     zip_forward_iterator() : __my_it_() {}
     explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    zip_forward_iterator(const zip_forward_iterator& __input) : __my_it_(__input.__my_it_) {}
-    zip_forward_iterator&
-    operator=(const zip_forward_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
 
     reference operator*() const
     {
@@ -159,7 +152,6 @@ class counting_iterator
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -279,13 +271,6 @@ class zip_iterator
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
-    zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
-    zip_iterator&
-    operator=(const zip_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
 
     reference operator*() const
     {
@@ -433,6 +418,10 @@ class transform_iterator
     transform_iterator&
     operator=(const transform_iterator& __input)
     {
+        //TODO: Investigate making transform_iterator trivially_copyable. This custom copy assignment operator prevents
+        // transform_iterator, and therefore permutation_iterator from being trivially_copyable.  Not being trivially
+        // copyable makes their device_copyable trait deprecated in SYCL2020. However, defaulting this function implies
+        // an extra requirement that __my_unary_func_ implements a copy assignment operator.
         __my_it_ = __input.__my_it_;
         return *this;
     }
@@ -776,7 +765,6 @@ class discard_iterator
     typedef void* pointer;
     typedef value_type reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
     using is_discard = ::std::true_type;
 
     discard_iterator() : __my_position_() {}

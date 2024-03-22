@@ -11,9 +11,24 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+add_subdirectory(kt)
+
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
+
+# If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
+# The undefined symbol error arises only with GCC compiler.
+# There is no known way to limit the workaround to libstdc++ only.
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
+    if (ONEDPL_BACKEND MATCHES "^(serial|omp|dpcpp_only)$")
+        find_package(TBB 2021 QUIET COMPONENTS tbb OPTIONAL_COMPONENTS tbbmalloc)
+        if (TBB_FOUND)
+            message(STATUS "Tests are linked against TBB to avoid undefined symbol errors due to TBB usage in libstdc++")
+            set(_gcc_link_tbb TRUE)
+        endif()
+    endif()
+endif()
 
 # disable fast math for ALL TESTS
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
@@ -57,18 +72,13 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file switch_off_checked_iterators)
-
-    set(_build_type_in_lower "unknown")
-    if (CMAKE_BUILD_TYPE)
-        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
-    endif()
-
-    get_filename_component(_test_name ${test_source_file} NAME)
-    string(REPLACE "\.cpp" "" _test_name ${_test_name})
-
+macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define)
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
+
+    if (NOT ${custom_define} STREQUAL "")
+        target_compile_definitions(${_test_name} PRIVATE ${custom_define})
+    endif()
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
     endif()
@@ -91,6 +101,9 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
+    if (_gcc_link_tbb)
+        target_link_libraries(${_test_name} PRIVATE TBB::tbb)
+    endif()
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
@@ -154,8 +167,31 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|parallel_api/dynamic_selection/sycl)")
-set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/parallel_api/dynamic_selection|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
+macro(onedpl_add_test test_source_file switch_off_checked_iterators)
+    set(_build_type_in_lower "unknown")
+    if (CMAKE_BUILD_TYPE)
+        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    endif()
+
+    get_filename_component(_test_name ${test_source_file} NAME)
+    string(REPLACE "\.cpp" "" _test_name ${_test_name})
+
+    set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass" "sycl_iterator_reduce.pass" "minmax_element.pass")
+    set(workaround_for_igpu_64bit_reduction_tests "reduce_by_segment.pass")
+    if (_test_name IN_LIST coal_tests)
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1")
+        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=0")
+    elseif (_test_name IN_LIST workaround_for_igpu_64bit_reduction_tests)
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
+        string(REPLACE "\.pass" "_workaround_64bit_reduction\.pass" _test_name ${_test_name})
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1")
+    else()
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
+    endif()
+endmacro()
+
+set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|test/xpu_api/cmath/nearbyint|test/xpu_api/containers|xpu_api/functional|test/xpu_api/iterators|test/xpu_api/language.support/support.initlist|test/xpu_api/language.support/support.types|xpu_api/numerics|test/xpu_api/random|test/xpu_api/ratio|test/xpu_api/tuple|test/xpu_api/utilities|parallel_api/dynamic_selection/sycl)")
+set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/parallel_api/dynamic_selection|test/xpu_api/iterators/iterator.primitives|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
 
 set(_regexp_pstl_offload_only "(test/pstl_offload)")
 set(_regexp_pstl_offload_parallel_api "(test/xpu_api|test/parallel_api/algorithm|test/parallel_api/memory|test/parallel_api/numeric)")

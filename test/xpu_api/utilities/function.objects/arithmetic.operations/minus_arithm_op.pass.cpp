@@ -19,7 +19,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelMinusTest;
 
 void
@@ -36,21 +35,18 @@ kernel_test()
             ret_access[0] = (f1(3, 7) == -4);
 
             const dpl::minus<float> f2;
-            ret_access[0] &= (f2(3, 2.5) == 0.5);
+            ret_access[0] &= (f2(3.f, 2.5f) == 0.5f);
         });
     });
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::minus");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -24,11 +24,11 @@
 
 #include "has_type_member.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct S
 {
 };
-union U {
+union U
+{
     int i;
     float f;
 };
@@ -93,10 +93,12 @@ kernel_test1(sycl::queue& deviceQueue)
             check<J, int>();
             check<K, short>();
 
-//  SFINAE-able underlying_type
+            //  SFINAE-able underlying_type
             static_assert(has_underlying_type_member<E>::value);
             static_assert(has_underlying_type_member<G>::value);
 
+            // Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
             static_assert(!has_underlying_type_member<void>::value);
             static_assert(!has_underlying_type_member<int>::value);
             static_assert(!has_underlying_type_member<int[]>::value);
@@ -110,35 +112,35 @@ kernel_test1(sycl::queue& deviceQueue)
             static_assert(!has_underlying_type_member<int&&>::value);
             static_assert(!has_underlying_type_member<int*>::value);
             static_assert(!has_underlying_type_member<dpl::nullptr_t>::value);
+#endif // TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
         });
     });
 }
 
+// Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
 void
 kernel_test2(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
-        cgh.single_task<class KernelTest2>([=]() {
-            static_assert(!has_underlying_type_member<double>::value);
-        });
+        cgh.single_task<class KernelTest2>([=]() { static_assert(!has_underlying_type_member<double>::value); });
     });
 }
-
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
 
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
     const auto device = deviceQueue.get_device();
     if (TestUtils::has_type_support<double>(device))
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

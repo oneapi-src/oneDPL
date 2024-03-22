@@ -46,7 +46,6 @@ struct sycl_iterator
     using pointer = T*;
     using reference = T&;
     using iterator_category = ::std::random_access_iterator_tag;
-    using is_hetero = ::std::true_type;
     static constexpr access_mode mode = Mode;
 
     // required for make_sycl_iterator
@@ -114,10 +113,20 @@ struct sycl_iterator
         return *this - it < 0;
     }
 
+    // This function is required for types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true to ensure proper
+    //  handling by oneapi::dpl::__ranges::__get_sycl_range
     sycl::buffer<T, dim, Allocator>
     get_buffer() const
     {
         return buffer;
+    }
+
+    // This function is required for types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true to ensure proper
+    //  handling by oneapi::dpl::__ranges::__get_sycl_range
+    Size
+    get_idx() const
+    {
+        return idx;
     }
 };
 

@@ -18,6 +18,7 @@
 
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+#include "../../iterator_defs.h"
 
 #include "sycl_defs.h"
 
@@ -59,24 +60,6 @@ class device_policy
         return q;
     }
 
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    // __allow_vector is needed for __is_vectorization_preferred
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
-
   private:
     sycl::queue q;
 };
@@ -98,7 +81,7 @@ class fpga_policy : public device_policy<KernelName>
 #    else
               __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-              ))
+                  ))
     {
     }
 
@@ -203,13 +186,13 @@ inline namespace v1
 
 // 2.3, Execution policy type trait
 template <typename... PolicyParams>
-struct is_execution_policy<__dpl::device_policy<PolicyParams...>> : ::std::true_type
+struct is_execution_policy<device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct is_execution_policy<__dpl::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
+struct is_execution_policy<fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 #endif
@@ -219,20 +202,11 @@ struct is_execution_policy<__dpl::fpga_policy<unroll_factor, PolicyParams...>> :
 
 namespace __internal
 {
+template <typename Policy>
+using __policy_kernel_name = typename ::std::decay_t<Policy>::kernel_name;
 
-// Extension: hetero execution policy type trait
-template <typename _T>
-struct __is_hetero_execution_policy : ::std::false_type
-{
-};
-
-template <typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
-{
-};
-
-template <typename... PolicyParams>
-inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<PolicyParams...>::value;
+template <typename Policy>
+inline constexpr unsigned int __policy_unroll_factor = ::std::decay_t<Policy>::unroll_factor;
 
 template <typename _T>
 struct __is_device_execution_policy : ::std::false_type
@@ -244,8 +218,8 @@ struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> :
 {
 };
 
-template <typename... PolicyParams>
-inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<PolicyParams...>::value;
+template <typename _T>
+inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
 struct __is_fpga_execution_policy : ::std::false_type
@@ -253,11 +227,6 @@ struct __is_fpga_execution_policy : ::std::false_type
 };
 
 #if _ONEDPL_FPGA_DEVICE
-template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
-{
-};
-
 template <unsigned int unroll_factor, typename... PolicyParams>
 struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
@@ -276,6 +245,14 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
     using type = _T;
 };
 
+// Extension: hetero execution policy type trait
+template <typename _T>
+using __is_hetero_execution_policy =
+    ::std::disjunction<__is_device_execution_policy<_T>, __is_fpga_execution_policy<_T>>;
+
+template <typename _T>
+inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<_T>::value;
+
 // Extension: check if parameter pack is convertible to events
 template <class... _Ts>
 inline constexpr bool __is_convertible_to_event = (::std::is_convertible_v<::std::decay_t<_Ts>, sycl::event> && ...);
@@ -285,32 +262,89 @@ using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
-using __enable_if_device_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
-                           oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
-                       _T>;
+using __enable_if_device_execution_policy = ::std::enable_if_t<
+    __is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> && __is_convertible_to_event<_Events...>, _T>;
 
 template <typename _ExecPolicy, typename _T = void>
 using __enable_if_hetero_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
+    ::std::enable_if_t<__is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
 template <typename _ExecPolicy, typename _T = void>
 using __enable_if_fpga_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
+    ::std::enable_if_t<__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
-                           !::std::is_convertible_v<_Op1, sycl::event> &&
-                           oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
+    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
+                           !::std::is_convertible_v<_Op1, sycl::event> && __is_convertible_to_event<_Events...>,
                        _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename _Op2, typename... _Events>
 using __enable_if_device_execution_policy_double_no_default =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
+    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
                            !::std::is_convertible_v<_Op1, sycl::event> && !::std::is_convertible_v<_Op2, sycl::event> &&
-                           oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
+                           __is_convertible_to_event<_Events...>,
                        _T>;
+
+template <typename _BackendTag>
+struct __hetero_tag
+{
+    using __backend_tag = _BackendTag;
+};
+
+struct __device_backend_tag
+{
+};
+
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
+template <class... _IteratorTypes, typename _KernelName>
+__hetero_tag<__device_backend_tag>
+__select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)
+{
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
+    return {};
+}
+
+#if _ONEDPL_FPGA_DEVICE
+struct __fpga_backend_tag : __device_backend_tag
+{
+};
+
+template <class... _IteratorTypes, unsigned int _Factor, typename _KernelName>
+__hetero_tag<__fpga_backend_tag>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorTypes&&...)
+{
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
+    return {};
+}
+#endif
+
+//----------------------------------------------------------
+// __is_hetero_backend_tag, __is_hetero_backend_tag_v
+//----------------------------------------------------------
+
+template <typename _BackendTag>
+struct __is_hetero_backend_tag : ::std::false_type
+{
+};
+
+template <>
+struct __is_hetero_backend_tag<__device_backend_tag> : ::std::true_type
+{
+};
+
+#if _ONEDPL_FPGA_DEVICE
+template <>
+struct __is_hetero_backend_tag<__fpga_backend_tag> : ::std::true_type
+{
+};
+#endif
+
+template <typename _BackendTag>
+inline constexpr bool __is_hetero_backend_tag_v = __is_hetero_backend_tag<_BackendTag>::value;
 
 } // namespace __internal
 

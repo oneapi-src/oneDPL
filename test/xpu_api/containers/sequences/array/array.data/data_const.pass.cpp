@@ -22,7 +22,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class Test1;
 
 struct NoDefault
@@ -30,12 +29,10 @@ struct NoDefault
     NoDefault() {}
     NoDefault(int) {}
 };
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
 
     {
@@ -71,7 +68,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with dpl::array::data (const)");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
