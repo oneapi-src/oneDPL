@@ -47,7 +47,8 @@ namespace __internal
 // Buffer allocators
 //------------------------------------------------------------------------
 template <typename _T>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__omp_backend_tag)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__omp_backend_tag)
 {
     return ::std::allocator<_T>{};
 }

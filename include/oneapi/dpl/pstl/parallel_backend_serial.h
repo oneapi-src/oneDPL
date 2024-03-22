@@ -34,11 +34,12 @@ namespace dpl
 namespace __internal
 {
 template <typename _T>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag)
+constexpr decltype(auto)
+__get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag)
 {
     return ::std::allocator<_T>{};
 }
-};
+}; // namespace __internal
 
 namespace __serial_backend
 {
