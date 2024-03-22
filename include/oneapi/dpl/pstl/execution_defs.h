@@ -169,9 +169,6 @@ struct __parallel_forward_tag;
 // Buffer allocator selectors
 //------------------------------------------------------------------------
 
-template <typename _T>
-constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag);
-
 template <typename _T, typename _IsVector>
 constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>);
 
