@@ -723,14 +723,14 @@ _Size1
 __shars_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
 {
     static_assert(::std::is_unsigned_v<_Size1>, "__shars_lower_bound requires an unsigned size type");
-    _Size1 __n = __last - __first;
+    const _Size1 __n = __last - __first;
     if (__n == 0)
         return __first;
     _Size1 __cur_pow2 = __dpl_bit_floor(__n);
-    _Size1 __midpoint = __n / 2;
+    const _Size1 __midpoint = __n / 2;
     // Check the middle element to determine if we should search the first or last
     // 2^(bit_floor(__n)) - 1 elements.
-    _Size1 __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
+    const _Size1 __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
     // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
     // bit must be set in the result.
     _Size1 __search_offset{0};
