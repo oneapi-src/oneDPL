@@ -1315,9 +1315,8 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2(
-        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
-        __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+    __pattern_walk2(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result,
+                    copy_result.first, __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
     __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
@@ -1486,9 +1485,9 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     {
         // If our output buffer is larger than the input buffer, simply copy elements to the output and use
         // full sort on them.
-        auto __out_end = __pattern_walk2(
-            __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
-            __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+        auto __out_end =
+            __pattern_walk2(__tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last,
+                            __out_first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
         // Use regular sort as partial_sort isn't required to be stable
         __pattern_sort(
@@ -1632,7 +1631,8 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__rotate_wrapper>(__exec),
         unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
-        __buf.all_view(), __temp_rng_w).wait();
+        __buf.all_view(), __temp_rng_w)
+        .wait();
 
     using _Function = __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
     auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
