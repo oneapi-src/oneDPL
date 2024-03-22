@@ -92,8 +92,6 @@ __parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& _
 }
 
 //------------------------------------------------------------------------
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, _Commutative>(
-                                                                          /*vec_size*/ 4>(
 // parallel_histogram
 //-----------------------------------------------------------------------
 
