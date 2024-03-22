@@ -157,15 +157,13 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     ecount += i;
                     if (*j == 0)
                     {
-                         auto x = q.submit([=](sycl::handler& h){
+                         return q.submit([=](sycl::handler& h){
                             h.single_task([](){});
                          });
-                         return x;
-
                     }
                     else
                     {
-                        auto x = q.submit([=](sycl::handler& h) {
+                        return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<
                                 class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
                                 1000000, [=](sycl::id<1> idx) {
@@ -175,7 +173,6 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                                     }
                                 });
                         });
-                        return x;
                     }
                 });
             oneapi::dpl::experimental::wait(s);
@@ -451,14 +448,13 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     ecount += i;
                     if (*j == 0)
                     {
-                         auto x = q.submit([=](sycl::handler& h){
+                         return q.submit([=](sycl::handler& h){
                             h.single_task([](){});
                          });
-                        return x;
                     }
                     else
                     {
-                        auto x =  q.submit([=](sycl::handler& h) {
+                        return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<
                                 class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
                                 1000000, [=](sycl::id<1> idx) {
@@ -468,7 +464,6 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                                     }
                                 });
                         });
-                        return x;
                     }
                 });
         }
@@ -562,7 +557,7 @@ main()
     build_auto_tune_universe<use_event_profiling>(u2);
 
     //If building the universe is not a success, return
-    if (u1.size() == 0)
+    if (u1.size() == 0 || u2.size()==0)
         return 0;
 
     auto f = [u1](int i) {

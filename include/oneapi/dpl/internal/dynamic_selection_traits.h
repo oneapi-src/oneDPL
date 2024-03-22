@@ -127,7 +127,7 @@ has_lazy_report_impl(...) -> std::false_type;
 
 template <typename Backend>
 auto
-has_lazy_report_impl() -> decltype(std::declval<Backend>().lazy_report(), std::true_type{});
+has_lazy_report_impl(int) -> decltype(std::declval<Backend>().lazy_report(), std::true_type{});
 
 template <typename Backend>
 struct has_lazy_report : decltype(has_lazy_report_impl<Backend>(0))
@@ -311,7 +311,7 @@ struct report_value
 template <typename S, typename Info>
 inline constexpr bool report_value_v = report_value<S, Info>::value;
 
-template <typename T>
+/*template <typename T>
 auto
 has_lazy_report_impl(...) -> std::false_type;
 
@@ -322,7 +322,15 @@ has_lazy_report_impl(int) -> decltype(std::declval<T>().lazy_report(), std::true
 template <typename T>
 struct has_lazy_report : decltype(has_lazy_report_impl<T>(0))
 {
+};*/
+
+template <typename S>
+struct lazy_report_value
+{
+    static constexpr bool value = internal::has_lazy_report<S>::value;
 };
+template <typename S>
+inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
 
 } // namespace experimental
 } // namespace dpl

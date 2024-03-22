@@ -19,7 +19,6 @@
 #include <vector>
 #include <memory>
 #include <utility>
-#include <atomic>
 
 namespace oneapi
 {
@@ -37,22 +36,22 @@ class sycl_backend
     using resource_container_t = std::vector<execution_resource_t>;
 
   private:
-    class storage_base{
+    class async_waiter_base{
         public:
             virtual void wait() = 0;
             virtual void report() = 0;
             virtual bool is_complete() = 0;
     };
 
-    std::vector<storage_base*> storage_arr;
+    std::vector<async_waiter_base*> async_waiter_arr;
 
     template<typename T>
-    void addStorage(T *t){
-        storage_arr.push_back(t);
+    void add_waiter(T *t){
+        async_waiter_arr.push_back(t);
     }
 
     template<typename Selection>
-    class async_waiter : public storage_base
+    class async_waiter : public async_waiter_base
     {
         sycl::event e_;
         Selection* s;
@@ -123,7 +122,6 @@ class sycl_backend
     {
         initialize_default_resources();
         sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
-        number_of_resources=global_rank_.size();
     }
 
     template <typename NativeUniverseVector>
@@ -172,12 +170,12 @@ class sycl_backend
                 if (use_event_profiling)
                 {
                     auto waiter = async_waiter{e1, new SelectionHandle(s)};
-                    addStorage(new async_waiter(waiter));
+                    add_waiter(new async_waiter(waiter));
                     return waiter;
                 }
                 else{
                     auto waiter = async_waiter{e1, new SelectionHandle(s), t0};
-                    addStorage(new async_waiter(waiter));
+                    add_waiter(new async_waiter(waiter));
                     return waiter;
                 }
             }
@@ -201,16 +199,15 @@ class sycl_backend
     }
 
     void lazy_report(){
-        int size = storage_arr.size();
-        for(auto i = storage_arr.begin(); i!=storage_arr.begin()+size; i++){
+        int size = async_waiter_arr.size();
+        for(auto i = async_waiter_arr.begin(); i!=async_waiter_arr.begin()+size; i++){
             if((*i)->is_complete()){
                 (*i)->report();
-                storage_arr.erase(i);
+                async_waiter_arr.erase(i);
             }
         }
     }
   private:
-    std::atomic<int> number_of_resources;;
     resource_container_t global_rank_;
     std::unique_ptr<submission_group> sgroup_ptr_;
 

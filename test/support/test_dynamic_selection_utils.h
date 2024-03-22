@@ -97,7 +97,6 @@ test_select(UniverseContainer u, ResourceFunction&& f)
             return 1;
         }
     }
-
     if (!pass)
     {
         std::cout << "ERROR: did not select expected resources\n";

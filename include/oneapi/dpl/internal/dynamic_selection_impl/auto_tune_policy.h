@@ -125,7 +125,6 @@ class auto_tune_policy
             new_value = (n * td.value_ + t) / (n + 1);
             td.num_timings_ = n + 1;
             td.value_ = new_value;
-
             if (new_value < best_timing_)
             {
                 best_timing_ = new_value;
@@ -144,7 +143,8 @@ class auto_tune_policy
       public:
         auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
             : policy_(p), resource_(r), tuner_(::std::move(t))
-        {}
+        {
+        }
 
         auto
         unwrap()
@@ -219,7 +219,7 @@ class auto_tune_policy
             }
             else
             {
-                if constexpr(has_lazy_report<Backend>::value){
+                if constexpr(lazy_report_v<Backend>){
                         backend_->lazy_report();
                 }
                 auto r = state_->resources_with_index_[index];
