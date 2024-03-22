@@ -24,7 +24,6 @@
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
 #include "scan_by_segment_impl.h"
-#include "../pstl/parallel_backend_utils.h"
 
 namespace oneapi
 {
