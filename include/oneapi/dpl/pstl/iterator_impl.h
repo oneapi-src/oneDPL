@@ -403,7 +403,7 @@ class transform_iterator
     _Iter __my_it_;
     _UnaryFunc __my_unary_func_;
 
-    static_assert(std::is_invocable_v<const _UnaryFunc, typename std::iterator_traits<_Iter>::reference>,
+    static_assert(std::is_invocable_v<const std::decay_t<_UnaryFunc>, typename std::iterator_traits<_Iter>::reference>,
                   "_UnaryFunc is not const callable with the reference type of base iterator.");
 
   public:
