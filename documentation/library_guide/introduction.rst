@@ -148,7 +148,6 @@ Known Limitations
   ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``
   should be called with a device policy when using device data and should be called with a host policy when using host data. Otherwise, the result is undefined.
 * The algorithms that destroy data: ``destroy`` and ``destroy_n`` should be called with a host policy when using host data that was initialized on the host, and should be called with a device policy when using device data that was initialized on the device. Otherwise, the result is undefined.
-* Iterators of ``std::vector`` with ``bool`` value type and any allocator result in undefined behavior when used as input to oneDPL algorithms.
 
 
 Build Your Code with |onedpl_short|
