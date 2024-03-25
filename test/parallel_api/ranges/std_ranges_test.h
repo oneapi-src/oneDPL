@@ -19,7 +19,7 @@
 
 #include "support/utils.h"
 
-#define _ENABLE_STD_RANGES_TESTING (_ENABLE_RANGES_TESTING && _ONEDPL___cplusplus >= 202002L)
+#define _ENABLE_STD_RANGES_TESTING (_ONEDPL___cplusplus >= 202002L)
 #if _ENABLE_STD_RANGES_TESTING
 
 #include <oneapi/dpl/ranges>
