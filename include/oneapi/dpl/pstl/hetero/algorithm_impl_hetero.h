@@ -1319,17 +1319,27 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    auto future1 = __pattern_walk2_async(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
-                                         __true_result, copy_result.first, __first,
-                                         __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+    const auto __n_walk2 = copy_result.first - __true_result;
+    if (__n_walk2 > 0)
+    {
+        auto __future1 = __pattern_walk2_async(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
+                                             __true_result, copy_result.first, __first,
+                                             __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+        __pattern_walk2(
+            __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
+            __false_result, copy_result.second, __first + true_count,
+            __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-    auto future2 = __pattern_walk2_async(
-        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
-        __false_result, copy_result.second, __first + true_count,
-        __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
-
-    future1.wait();
-    future2.wait();
+        __future1.wait();
+    }
+    else
+    {
+        __pattern_walk2(
+            __tag,
+            __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
+            __false_result, copy_result.second, __first + true_count,
+            __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+    }
 
     return __first + true_count;
 }
