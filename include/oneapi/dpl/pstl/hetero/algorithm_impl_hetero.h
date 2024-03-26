@@ -948,7 +948,7 @@ __pattern_copy_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
     auto __res = __par_backend_hetero::__parallel_copy_if(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
                                                           __buf1.all_view(), __buf2.all_view(), __n, __pred);
 
-    ::std::size_t __num_copied = __res.get();
+    ::std::size_t __num_copied = __res.get(); //is a blocking call
     return __result_first + __num_copied;
 }
 
@@ -1028,8 +1028,11 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     auto __copy_last = __pattern_copy_if(__tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
 
-    //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    return __pattern_walk2(
+    //TODO: To optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+    // __pattern_copy_if above may be async due to there is implicit synchronization on sycl::buffer and the accessors
+
+    //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
+    return __pattern_walk2</*_IsSync=*/std::false_type>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 }
@@ -1049,7 +1052,9 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
     auto __copy_last = __pattern_unique_copy(__tag, __exec, __first, __last, __copy_first, __pred);
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+
+    //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
+    return __pattern_walk2</*_IsSync=*/std::false_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
@@ -1230,7 +1235,9 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first), __comp);
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    __pattern_walk2(
+
+    //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
+    __pattern_walk2</*_IsSync=*/std::false_type>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 }
@@ -1315,13 +1322,18 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result,
-                    copy_result.first, __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+    __pattern_walk2</*_IsSync=*/std::false_type>(
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
+        __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-    __pattern_walk2(
+    //We don't need synchronization between these patterns due to the data are being processed independently.
+
+    __pattern_walk2</*_IsSync=*/std::false_type>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
         __false_result, copy_result.second, __first + true_count,
         __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+
+    //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
 
     return __first + true_count;
 }
@@ -1489,7 +1501,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
             __pattern_walk2(__tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last,
                             __out_first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-        // Use regular sort as partial_sort isn't required to be stable
+        // Use regular sort as partial_sort isn't required to be stable.
+        //__pattern_sort is a blocking call.
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
@@ -1513,19 +1526,21 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_mid = __buf_first + __out_size;
 
-        // The wait() call on result of __parallel_partial_sort isn't required here
-        // because our temporary buffer __buf (__par_backend_hetero::__buffer) is implemented on sycl::buffer
-        // and all required synchronization will be done on sycl::accessors level
-        // inside the next __pattern_walk2 call.
+        // An explicit wait between the patterns doesn't need here because we are working with temporary sycl::buffer
+        // and sycl accessors. SYCL runtime makes a dependecny graph to prevent the races between the patterns:
+        // __pattern_walk2, __parallel_partial_sort and __pattern_walk2.
+    
         __par_backend_hetero::__parallel_partial_sort(
             _BackendTag{}, __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
 
-        return __pattern_walk2(
+        return __pattern_walk2</*_IsSync=*/std::false_type>(
             __tag, __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
             __buf_first, __buf_mid, __out_first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+
+        //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
     }
 }
 
