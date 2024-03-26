@@ -1513,10 +1513,11 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_first = __buf.get();
 
-        auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
+        auto __future = __pattern_walk2_async(
             __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
             __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
+        auto __buf_last = __future.get();
         auto __buf_mid = __buf_first + __out_size;
 
         // The wait() call on result of __parallel_partial_sort isn't required here
