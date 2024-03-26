@@ -84,7 +84,7 @@ __pattern_walk1_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _F
 //------------------------------------------------------------------------
 
 // TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
-// Probably it should be re-designed by a pipeline approach, when a pattern returns some sync obejects
+// Probably it should be re-designed by a pipeline approach, when a pattern returns some sync objects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
 template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
