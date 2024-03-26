@@ -72,14 +72,23 @@ int main() {
         ptr = realloc(ptr, size);
         EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with realloc");
         std::strcpy(static_cast<char*>(ptr), test_string);
+#if __linux__
+        EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Invalid reported size");
+#endif
 
         ptr = realloc(ptr, size * 2);
         EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating more memory with realloc");
         EXPECT_TRUE(std::strcmp(static_cast<const char*>(ptr), test_string) == 0, "Memory was not copied into new memory while doing realloc");
+#if __linux__
+        EXPECT_TRUE(malloc_usable_size(ptr) >= size * 2, "Invalid reported size");
+#endif
 
         ptr = realloc(ptr, size);
         EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating less memory with realloc");
         EXPECT_TRUE(std::strcmp(static_cast<const char*>(ptr), test_string) == 0, "Memory was not copied into new memory while doing realloc");
+#if __linux__
+        EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Invalid reported size");
+#endif
         free(ptr);
     }
 #if __linux__

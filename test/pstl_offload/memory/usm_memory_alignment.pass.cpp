@@ -13,6 +13,7 @@
 
 #include <new>
 #include <cstdlib>
+#include <malloc.h> // for malloc_usable_size
 
 #include "support/utils.h"
 
@@ -23,7 +24,7 @@ static std::size_t get_page_size() {
 
 template <typename AllocatingFunction, typename DeallocatingFunction>
 void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction deallocate) {
-    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+    for (std::size_t alignment = 1; alignment < 16*get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { 1, 2, 8, 24, alignment / 2, alignment, alignment * 2};
 
         for (std::size_t size : sizes) {
@@ -38,12 +39,23 @@ void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction
 // test_alignment_allocation tests different sizes values because other functions
 // only requires the alignment to be power of two
 void test_aligned_alloc_alignment() {
-    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+    int cnt = 0;
+    for (std::size_t alignment = 1; alignment < 16*get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { alignment, alignment * 2, alignment * 3};
 
         for (std::size_t size : sizes) {
             void* ptr = aligned_alloc(alignment, size);
+            EXPECT_TRUE(ptr, "The returned pointer is nullptr");
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Invalid reported size");
+
+            // check that aligned object might be reallocated
+            constexpr std::size_t delta = 13;
+            std::size_t new_size = (++cnt % 2) && size > delta ? size - delta : size + delta;
+            ptr = realloc(ptr, new_size);
+            EXPECT_TRUE(ptr, "The returned pointer is nullptr");
+            EXPECT_TRUE(malloc_usable_size(ptr) >= new_size, "Invalid reported size");
+
             free(ptr);
         }
     }
@@ -85,6 +97,28 @@ void test_new_alignment() {
     test_alignment_allocation(new_array_nothrow_allocate, delete_array_nothrow_deallocate);
 }
 
+// check only presence of the overloads
+void test_page_aligned_allocations() {
+    void* ptr = valloc(8);
+    EXPECT_TRUE(ptr, "The returned pointer is nullptr");
+    EXPECT_TRUE(std::uintptr_t(ptr) % get_page_size() == 0, "The returned pointer is not properly aligned");
+    free(ptr);
+    ptr = __libc_valloc(8);
+    EXPECT_TRUE(ptr, "The returned pointer is nullptr");
+    EXPECT_TRUE(std::uintptr_t(ptr) % get_page_size() == 0, "The returned pointer is not properly aligned");
+    free(ptr);
+
+    ptr = pvalloc(8);
+    EXPECT_TRUE(ptr, "The returned pointer is nullptr");
+    EXPECT_TRUE(std::uintptr_t(ptr) % get_page_size() == 0, "The returned pointer is not properly aligned");
+    free(ptr);
+    ptr = __libc_pvalloc(8);
+    EXPECT_TRUE(ptr, "The returned pointer is nullptr");
+    EXPECT_TRUE(std::uintptr_t(ptr) % get_page_size() == 0, "The returned pointer is not properly aligned");
+    free(ptr);
+}
+
+
 int main() {
     auto memalign_allocate = [](std::size_t size, std::size_t alignment) {
         return memalign(alignment, size);
@@ -108,6 +142,7 @@ int main() {
 #if __linux__
     test_alignment_allocation(posix_memalign_allocate, free_deallocate);
     test_alignment_allocation(__libc_memalign_allocate, free_deallocate);
+    test_page_aligned_allocations();
 #endif
     test_aligned_alloc_alignment();
 
