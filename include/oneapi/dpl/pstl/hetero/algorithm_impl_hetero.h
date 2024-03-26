@@ -1322,7 +1322,7 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     const auto __n_walk2 = copy_result.first - __true_result;
     if (__n_walk2 > 0)
     {
-        auto __future1 = __pattern_walk2_async(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
+        auto __future = __pattern_walk2_async(__tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
                                              __true_result, copy_result.first, __first,
                                              __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
         __pattern_walk2(
@@ -1330,7 +1330,7 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
             __false_result, copy_result.second, __first + true_count,
             __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-        __future1.wait();
+        __future.wait();
     }
     else
     {
