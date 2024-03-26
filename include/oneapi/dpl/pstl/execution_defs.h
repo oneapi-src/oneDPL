@@ -153,6 +153,19 @@ struct __omp_backend_tag
 {
 };
 
+
+//------------------------------------------------------------------------
+// dispatch tags
+//------------------------------------------------------------------------
+
+template <class _IsVector>
+struct __serial_tag;
+
+template <class _IsVector>
+struct __parallel_tag;
+
+struct __parallel_forward_tag;
+
 } // namespace __internal
 
 } // namespace dpl
