@@ -28,6 +28,12 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
+template <typename _Name>
+struct __walk2_brick_wrapper;
+
+template <typename _SourceT>
+struct fill_functor;
+
 #include "../../internal/async_impl/async_impl_hetero.h"
 
 namespace oneapi
