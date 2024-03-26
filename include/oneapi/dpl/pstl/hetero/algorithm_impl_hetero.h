@@ -1631,8 +1631,10 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__rotate_wrapper>(__exec),
         unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
-        __buf.all_view(), __temp_rng_w)
-        .wait();
+        __buf.all_view(), __temp_rng_w);
+
+    //An explicit wait doesn't need here because we are working with temporary sycl::buffer and sycl accessors and
+    //SYCL runtime makes a dependecny graph to prevent the races between two __parallel_for patterns.
 
     using _Function = __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
     auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
@@ -1640,8 +1642,9 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     auto __temp_rng_rw =
         oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::read_write>(__temp_buf.get_buffer());
     oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                      __n, __temp_rng_rw, __buf.all_view())
-        .wait();
+                                                      __n, __temp_rng_rw, __buf.all_view());
+
+    //An explicit wait doesn't need here because we have implicit synchronization (and wait) on sycl::buffer destructor.
 
     return __first + (__last - __new_first);
 }
