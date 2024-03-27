@@ -43,12 +43,29 @@ class sycl_backend
             virtual bool is_complete() = 0;
     };
 
-    std::vector<async_waiter_base*> async_waiter_arr;
+    struct async_waiter_arr{
 
-    template<typename T>
-    void add_waiter(T *t){
-        async_waiter_arr.push_back(t);
-    }
+        std::mutex m_;
+        std::vector<async_waiter_base*> async_waiters;
+
+        template<typename T>
+        void add_waiter(T *t){
+            std::lock_guard<std::mutex> l(m_);
+            async_waiters.push_back(t);
+        }
+
+        void lazy_report(){
+            int size = async_waiters.size();
+            for(auto i = async_waiters.begin(); i!=async_waiters.begin()+size; i++){
+                if((*i)->is_complete()){
+                    (*i)->report();
+                    async_waiters.erase(i);
+                }
+            }
+        }
+    };
+
+    async_waiter_arr async_waiter_arr;
 
     template<typename Selection>
     class async_waiter : public async_waiter_base
@@ -159,11 +176,11 @@ class sycl_backend
                 });
                 return async_waiter{e2, new SelectionHandle(s)};
             }
-            if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>){
+            else if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>){
                 if (use_event_profiling)
                 {
                     auto waiter = async_waiter{e1, new SelectionHandle(s)};
-                    add_waiter(new async_waiter(waiter));
+                    async_waiter_arr.add_waiter(new async_waiter(waiter));
                     return waiter;
                 }
                 else{
@@ -196,14 +213,9 @@ class sycl_backend
     }
 
     void lazy_report(){
-        int size = async_waiter_arr.size();
-        for(auto i = async_waiter_arr.begin(); i!=async_waiter_arr.begin()+size; i++){
-            if((*i)->is_complete()){
-                (*i)->report();
-                async_waiter_arr.erase(i);
-            }
-        }
+        async_waiter_arr.lazy_report();
     }
+
   private:
     resource_container_t global_rank_;
     std::unique_ptr<submission_group> sgroup_ptr_;

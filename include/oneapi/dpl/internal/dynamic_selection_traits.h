@@ -135,6 +135,16 @@ struct has_lazy_report : decltype(has_lazy_report_impl<Backend>(0))
 };
 } //namespace internal
 
+namespace backend_traits {
+    template <typename S>
+    struct lazy_report_value
+    {
+        static constexpr bool value = ::oneapi::dpl::experimental::internal::has_lazy_report<S>::value;
+    };
+    template <typename S>
+    inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
+} //namespace backend_traits
+
 struct deferred_initialization_t
 {
 };
@@ -310,14 +320,6 @@ struct report_value
 };
 template <typename S, typename Info>
 inline constexpr bool report_value_v = report_value<S, Info>::value;
-
-template <typename S>
-struct lazy_report_value
-{
-    static constexpr bool value = internal::has_lazy_report<S>::value;
-};
-template <typename S>
-inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
 
 } // namespace experimental
 } // namespace dpl

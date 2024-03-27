@@ -217,6 +217,9 @@ class auto_tune_policy
     select(Function&& f, Args&&... args)
     {
         static_assert(sizeof...(KeyArgs) == sizeof...(Args));
+        if constexpr(backend_traits::lazy_report_v<Backend>){
+                backend_->lazy_report();
+        }
         if (state_)
         {
             std::lock_guard<std::mutex> l(state_->m_);
@@ -229,9 +232,6 @@ class auto_tune_policy
             }
             else
             {
-                if constexpr(lazy_report_v<Backend>){
-                        backend_->lazy_report();
-                }
                 auto r = state_->resources_with_index_[index];
                 return selection_type{*this, r, t};
             }
