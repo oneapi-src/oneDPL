@@ -58,16 +58,19 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
     auto expected_first = oneapi::dpl::make_zip_iterator(std::begin(expected_keys), std::begin(expected_values));
     std::stable_sort(expected_first, expected_first + size, CompareKey<isAscending>{});
 
-    std::string parameters_msg = ", n: " + std::to_string(size) + ", sizeof(key): " + std::to_string(sizeof(KeyT)) +
-                                 ", sizeof(value): " + std::to_string(sizeof(ValueT)) +
-                                 ", isAscending: " + std::to_string(isAscending) +
-                                 ", RadixBits: " + std::to_string(RadixBits);
-    std::string msg = "input modified with sycl::buffer (keys)" + parameters_msg;
+    std::ostringstream parameters_msg;
+    parameters_msg << ", n: " << size
+                   << ", sizeof(key): " << sizeof(KeyT)
+                   << ", sizeof(value): " << sizeof(ValueT)
+                   << ", isAscending: " << isAscending
+                   << ", RadixBits: " << RadixBits;
+
+    std::string msg = "input modified with sycl::buffer (keys)" + parameters_msg.str();
     EXPECT_EQ_N(input_keys.begin(), actual_keys.begin(), size, msg.c_str());
-    msg = "input modified with sycl::buffer (values)" + parameters_msg;
+    msg = "input modified with sycl::buffer (values)" + parameters_msg.str();
     EXPECT_EQ_N(input_values.begin(), actual_values.begin(), size, msg.c_str());
 
-    std::string msg_out = "wrong results with sycl::buffer (keys)" + parameters_msg;
+    std::string msg_out = "wrong results with sycl::buffer (keys)" + parameters_msg.str();
     EXPECT_EQ_N(expected_keys.begin(), actual_keys_out.begin(), size, msg_out.c_str());
     msg_out = "wrong results with sycl::buffer (values)" + parameters_msg;
     EXPECT_EQ_N(expected_values.begin(), actual_values_out.begin(), size, msg_out.c_str());
@@ -113,21 +116,23 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
     keys.retrieve_data(actual_keys_in.begin());
     values.retrieve_data(actual_values_in.begin());
 
-    std::string parameters_msg = ", n: " + std::to_string(size) + ", sizeof(key): " + std::to_string(sizeof(KeyT)) +
-                                 ", sizeof(value): " + std::to_string(sizeof(ValueT)) +
-                                 ", isAscending: " + std::to_string(isAscending) +
-                                 ", RadixBits: " + std::to_string(RadixBits);
+    std::ostringstream parameters_msg;
+    parameters_msg << ", n: " << size
+                   << ", sizeof(key): " << sizeof(KeyT)
+                   << ", sizeof(value): " << sizeof(ValueT)
+                   << ", isAscending: " << isAscending
+                   << ", RadixBits: " << RadixBits;
 
-    std::string msg = "input modified with USM (keys)" + parameters_msg;
+    std::string msg = "input modified with USM (keys)" + parameters_msg.str();
     EXPECT_EQ_N(input_keys.begin(), actual_keys_in.begin(), size, msg.c_str());
-    msg = "input modified with USM (values)" + parameters_msg;
+    msg = "input modified with USM (values)" + parameters_msg.str();
     EXPECT_EQ_N(input_values.begin(), actual_values_in.begin(), size, msg.c_str());
 
-    std::string msg_out = "wrong results with USM (keys)" + parameters_msg;
+    std::string msg_out = "wrong results with USM (keys)" + parameters_msg.str();
     EXPECT_EQ_N(expected_keys.begin(), actual_keys_out.begin(), size, msg_out.c_str());
-    msg = "wrong results with USM (values)" + parameters_msg;
+    msg_out = "wrong results with USM (values)" + parameters_msg.str();
     EXPECT_EQ_N(expected_values.begin(), actual_values_out.begin(), size, msg_out.c_str());
-}
+    }
 
 int
 main()
