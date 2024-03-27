@@ -1035,12 +1035,14 @@ struct __early_exit_find_or
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
             __shift = __wg_size - __leader;
+
+        //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
+        using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value,
+                                                     decltype(__init_index + std::declval<_IterSize>() * __shift),
+                                                     decltype(__found_local.load())>;
+
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
-            //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                                         decltype(__found_local.load())>;
-
             _IterSize __current_iter = __i;
             if constexpr (_BackwardTagType::value)
                 __current_iter = __n_iter - 1 - __i;
