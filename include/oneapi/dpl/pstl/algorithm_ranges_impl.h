@@ -336,6 +336,47 @@ __pattern_count_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred
         return std::ranges::count_if(std::forward<_R>(__r), __pred, __proj);
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_equal
+//---------------------------------------------------------------------------------------------------------------------
+template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+bool
+__pattern_equal_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                 _Proj1 __proj1, _Proj2 __proj2)
+{
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
+    auto __pred_2 = 
+        [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
+
+    return oneapi::dpl::__internal::pattern_equal(__tag, std::forward<_ExecutionPolicy>(__exec),
+        std::ranges::begin(__r1), std::ranges::begin(__r1) + __r1.size(), std::ranges::begin(__r2),
+        std::ranges::begin(__r2) + __r2.size(), __pred_2);
+}
+
+template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+bool
+__pattern_equal(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                 _Proj1 __proj1, _Proj2 __proj2)
+{
+    return __pattern_equal_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
+                                 std::forward<_R2>(__r2), __pred, __proj1, __proj2);
+}
+
+template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+bool
+__pattern_equal(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2)
+{
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_equal_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
+                                     std::forward<_R2>(__r2), __pred, __proj1, __proj2);
+    else
+        return std::ranges::equal(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1, __proj2);
+}
+
 } // namespace __ranges
 } // namespace __internal
 } // namespace dpl
