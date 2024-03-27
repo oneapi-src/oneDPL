@@ -210,6 +210,8 @@ struct search_n_fn
     }
 }; //search_n_fn
 
+inline constexpr search_n_fn search_n;
+
 } //ranges
 
 #endif //_ONEDPL___cplusplus >= 202002L
