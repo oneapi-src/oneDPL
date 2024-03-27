@@ -341,9 +341,24 @@ struct count_fn
         auto __pred = [__value](auto&& __val) { return ranges::equal_to{}(__val, __value);};
         return count_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
     }
-}; //count_if_fn
+}; //count_fn
 
 inline constexpr count_fn count;
+
+struct equal_fn
+{
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1, typename _Proj2>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_equal(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1,
+                __proj2);
+    }
+}; //equal_fn
+
+inline constexpr equal_fn equal;
 
 } //ranges
 
