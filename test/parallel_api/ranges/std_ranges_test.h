@@ -32,6 +32,7 @@
 namespace test_std_ranges
 {;
 
+#if _ONEDPL_HETERO_BACKEND
 template<int call_id = 0>
 auto dpcpp_policy()
 {
@@ -39,6 +40,7 @@ auto dpcpp_policy()
     using Policy = decltype(exec);
     return TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, call_id>>(TestUtils::default_dpcpp_policy);
 }
+#endif //_ONEDPL_HETERO_BACKEND
 
 auto host_policies() { return std::true_type{};}
 
@@ -217,6 +219,7 @@ private:
     }
 };
 
+#if _ONEDPL_HETERO_BACKEND
 struct sycl_buffer
 {
     using type = sycl::buffer<int>;
@@ -229,6 +232,7 @@ struct sycl_buffer
         return buf;
     }
 };
+#endif //#if _ONEDPL_HETERO_BACKEND
 
 template<typename Type>
 struct host_subrange_impl
@@ -265,6 +269,7 @@ struct host_vector
     }
 };
 
+#if _ONEDPL_HETERO_BACKEND
 struct usm_vector
 {
     using shared_allocator = sycl::usm_allocator<int, sycl::usm::alloc::shared>;
@@ -321,6 +326,8 @@ struct usm_subrange_impl
 using  usm_subrange = usm_subrange_impl<std::ranges::subrange<int*>>;
 using  usm_span = usm_subrange_impl<std::span<int>>;
 
+#endif // _ONEDPL_HETERO_BACKEND
+
 template<TestDataMode TestDataMode = data_in, bool RetTypeCheck = true>
 struct test_range_algo
 {
@@ -343,6 +350,7 @@ struct test_range_algo
         test<host_subrange, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, proj, std::views::all);
         test<host_span, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker,  f, proj, std::views::all);
 
+#if _ONEDPL_HETERO_BACKEND
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj);
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj, oneapi::dpl::views::all);
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj, subrange_view);
@@ -353,6 +361,8 @@ struct test_range_algo
 #if 0 //sycl buffer
         test<sycl_buffer, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, std::identity{}, oneapi::dpl::views::all);
 #endif
+
+#endif //_ONEDPL_HETERO_BACKEND
     }
 };
 
