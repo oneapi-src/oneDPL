@@ -70,7 +70,8 @@ __one_wg(sycl::queue __q, _RngPack1&& __pack_in, _RngPack2&& __pack_out, ::std::
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
 
     return __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
-                                         _EsimRadixSortKernel>()(__q, __pack_in, __pack_out, __n);
+                                         _EsimRadixSortKernel>()(__q, std::forward<_RngPack1>(__pack_in),
+                                                                 std::forward<_RngPack2>(__pack_out), __n);
 }
 
 template <typename _HistT, typename _KeyT, typename _ValT = void>
