@@ -47,7 +47,7 @@ class __reduce_mid_work_group_kernel;
 template <typename... _Name>
 class __reduce_kernel;
 
-// Adjust number of sequential operations per work items based on the vector size. Single elements are kept to
+// Adjust number of sequential operations per work-item based on the vector size. Single elements are kept to
 // improve performance of small arrays or remainder loops.
 template <::std::uint8_t _VecSize, typename _Size>
 inline void
@@ -227,8 +227,8 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, _Commutative, _V
                                                 __rngs...);
                 });
         });
-    } // namespace __par_backend_hetero
-};    // namespace dpl
+    }
+}; // struct __parallel_transform_reduce_device_kernel_submitter
 
 // Submits the second kernel of the parallel_transform_reduce for mid-sized arrays.
 // Uses a single work groups to reduce __n preliminary results stored in __temp and returns a future object with the
@@ -488,15 +488,13 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Use two-step tree reduction.
     // First step reduces __work_group_size * __iters_per_work_item_device_kernel elements.
     // Second step reduces __work_group_size * __iters_per_work_item_work_group_kernel elements.
-    // We can use __max_iters_per_work_item-bit addressing since we have at most
-    // __max_work_group_size * __max_iters_per_work_item * __max_work_group_size * __max_iters_per_work_item elements.
+    // We can use 32-bit addressing since we have at most (__max_work_group_size * __max_iters_per_work_item) ^ 2
+    // elements.
     else if (__iters_per_work_item <= __max_elements_per_wg * __max_elements_per_wg)
     {
         // Fully-utilize the device by running a work-group per compute unit.
         // Add a factor more work-groups than compute units to fully utilizes the device and hide latencies.
-        // The value is empirically tested.
         const ::std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-
         ::std::uint32_t __n_groups = __max_cu * __oversubscription;
         ::std::uint32_t __iters_per_work_item_device_kernel =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, __n_groups * __work_group_size);
