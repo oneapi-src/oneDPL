@@ -126,6 +126,15 @@ struct all_view_fn
     {
         return ::std::forward<_R>(__r);
     }
+#if _ONEDPL___cplusplus >= 202002L
+    template <typename _T>
+    auto
+    operator()(std::vector<_T, sycl::usm_allocator<_T, sycl::usm::alloc::shared>>& __vec) const 
+        -> decltype(std::ranges::subrange(__vec.begin(), __vec.end()))
+    {
+        return std::ranges::subrange(__vec.begin(), __vec.end());
+    }
+#endif
 };
 
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
