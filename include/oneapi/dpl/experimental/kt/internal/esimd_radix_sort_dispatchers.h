@@ -317,7 +317,8 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
     __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
     __mem_holder.__allocate();
 
-    auto __get_tmp_pack = [&]() {
+    auto __get_tmp_pack = [&]()
+    {
         auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
         auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
 
