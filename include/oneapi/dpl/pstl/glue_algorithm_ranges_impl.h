@@ -157,8 +157,8 @@ struct none_of_fn
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
-        return !oneapi::dpl::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred, __proj);
+        return !oneapi::dpl::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            __pred, __proj);
     }
 }; //none_of_fn
 
@@ -204,15 +204,17 @@ struct search_n_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
         _Pred __pred, _Proj __proj) const
     {
-        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r);
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_search_n(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __count, __value, __pred, __proj);
     }
 }; //search_n_fn
 
 } //ranges
-#endif
 
+#endif //_ONEDPL___cplusplus >= 202002L
+
+#if _ONEDPL_HETERO_BACKEND
 namespace experimental
 {
 namespace ranges
@@ -928,6 +930,9 @@ reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __value
 
 } // namespace ranges
 } // namespace experimental
+
+#endif //_ONEDPL_HETERO_BACKEND
+
 } // namespace dpl
 } // namespace oneapi
 
