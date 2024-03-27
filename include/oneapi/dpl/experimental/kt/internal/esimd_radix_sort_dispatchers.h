@@ -249,15 +249,10 @@ __onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pa
     __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(
         __q, __mem_holder.__global_hist_ptr(), __n, __event_chain);
 
-    auto __submit_iteration = [&](auto __input_, auto __output_, auto __p_global_hist_, auto __p_group_hists_,
-                                  auto __stage_, auto __event_chain_) {
-        return __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                               _EsimdRadixSortSweep>()(__q, __input_, __output_, __p_global_hist_,
-                                                                       __p_group_hists_, __sweep_work_group_count, __n,
-                                                                       __stage_, __event_chain_);
-    };
-    __event_chain = __submit_iteration(__input_pack, __virt_pack1, __mem_holder.__global_hist_ptr(),
-                                       __mem_holder.__group_hist_ptr(), 0, __event_chain);
+    __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
+                                                    __work_group_size, _EsimdRadixSortSweep>()(
+        __q, __input_pack, __virt_pack1, __mem_holder.__global_hist_ptr(), __mem_holder.__group_hist_ptr(),
+        __sweep_work_group_count, __n, 0, __event_chain);
 
     for (::std::uint32_t __stage = 1; __stage < __stage_count; __stage++)
     {
@@ -267,13 +262,17 @@ __onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pa
 
         if (__stage % 2 != 0)
         {
-            __event_chain = __submit_iteration(__virt_pack1, __virt_pack2, __p_global_hist, __p_group_hists, __stage,
-                                               __event_chain);
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
+                                                            __work_group_size, _EsimdRadixSortSweep>()(
+                __q, __virt_pack1, __virt_pack2, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __stage, __event_chain);
         }
         else
         {
-            __event_chain = __submit_iteration(__virt_pack2, __virt_pack1, __p_global_hist, __p_group_hists, __stage,
-                                               __event_chain);
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
+                                                            __work_group_size, _EsimdRadixSortSweep>()(
+                __q, __virt_pack2, __virt_pack1, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __stage, __event_chain);
         }
     }
 
