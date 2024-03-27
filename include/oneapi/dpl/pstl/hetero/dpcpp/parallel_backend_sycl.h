@@ -1043,9 +1043,7 @@ struct __early_exit_find_or
 
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
-            _IterSize __current_iter = __i;
-            if constexpr (_BackwardTagType::value)
-                __current_iter = __n_iter - 1 - __i;
+            const _IterSize __current_iter = _BackwardTagType::value ? (__n_iter - 1 - __i) : __i;
 
             const _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
