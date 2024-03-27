@@ -50,6 +50,7 @@ main()
     test_range_algo{}(oneapi::dpl::ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, proj);
 
     test_range_algo<data_in_in>{}(oneapi::dpl::ranges::search,  std::ranges::search, pred_2, proj);
+    test_range_algo<data_in_val_n>{}(oneapi::dpl::ranges::search_n,  std::ranges::search_n, pred_2, proj);
 
 #endif //_ENABLE_STD_RANGES_TESTING
 
