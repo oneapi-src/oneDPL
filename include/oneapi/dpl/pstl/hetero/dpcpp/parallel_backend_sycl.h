@@ -1250,6 +1250,9 @@ _Iterator
 __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                 _Iterator __first, _Iterator __last, _Brick __f, _IsFirst)
 {
+    if (__first == __last)
+        return __last;
+
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
