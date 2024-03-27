@@ -1014,11 +1014,9 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
-              typename _BrickTag, typename... _Ranges>
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare, typename _BrickTag, typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
-               _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp, _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
     {
         using __par_backend_hetero::__parallel_or_tag;
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
@@ -1053,7 +1051,9 @@ struct __early_exit_find_or
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 if constexpr (_OrTagType::value)
+                {
                     __found_local.store(1);
+                }
                 else
                 {
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
@@ -1073,16 +1073,15 @@ struct __early_exit_find_or
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 ::std::conditional_t<
-    ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
+    ::std::is_same_v<_BrickTag, __parallel_or_tag>,
+    bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
                    _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
-    using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _BrickTag, _Ranges...>;
+    using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick, _BrickTag, _Ranges...>;
 
     constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -1127,15 +1126,12 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel,
 #endif
-                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                          sycl::range</*dim=*/1>(__wgroup_size)),
+                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size), sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_local));
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found      (*__dpl_sycl::__get_accessor_ptr(__temp_acc));
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space>  __found_local(*__dpl_sycl::__get_accessor_ptr(__temp_local));
 
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
@@ -1144,7 +1140,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
                     // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
+                    __pred(/* const _NDItemId */ __item_id,
+                           /* const _IterSize */ __n_iter,
+                           /* const _WgSize   */ __wgroup_size,
+                           /* _Compare        */ __comp,
+                           /* _LocalAtomic&   */ __found_local,
+                           /* _BrickTag       */ __brick_tag,
+                           /* _Ranges&&...    */ __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
 
                     // Set local atomic value to global atomic
@@ -1154,8 +1156,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                             __found.store(1);
                         else
                         {
-                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                 __old = __found.load())
+                            for (auto __old = __found.load(); __comp(__found_local.load(), __old); __old = __found.load())
                             {
                                 __found.compare_exchange_strong(__old, __found_local.load());
                             }
