@@ -47,6 +47,7 @@ main()
     bool bProcessed = false;
 
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
+#if !ONEDPL_FPGA_DEVICE || !ONEDPL_FPGA_EMULATOR
     using policy_t = oneapi::dpl::experimental::dynamic_load_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u;
     build_dl_universe(u);
@@ -76,6 +77,7 @@ main()
 
         bProcessed = true;
     }
+#endif // Devices available are CPU and GPU
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
     return TestUtils::done(bProcessed);
