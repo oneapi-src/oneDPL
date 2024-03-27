@@ -355,15 +355,15 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
 
     __allocate_temp<__radix_bits, __data_per_work_item, __work_group_size, _RngPack1>(__mem_holder, __n);
     auto __tmp_pack = __create_temp_pack<_RngPack1>(__mem_holder, __n);
-    auto select_element = [] {
-        if constexpr (__in_place)
-            return 0;
+    auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto& {
+        if constexpr (__in_place || (__stage_count % 2 == 0))
+            return __pack1;
         else
-            return (__stage_count % 2);
+            return __pack2;
     };
 
-    auto __virt_pack1 = ::std::get<select_element()>(::std::tuple(__tmp_pack, __pack_out));
-    auto __virt_pack2 = ::std::get<select_element()>(::std::tuple(__pack_out, __tmp_pack));
+    const auto& __virt_pack1 = __select_pack(__tmp_pack, __pack_out);
+    const auto& __virt_pack2 = __select_pack(__pack_out, __tmp_pack);
     sycl::event __event_chain =
         __onesweep_impl<_KernelName, __is_ascending, __radix_bits, __data_per_work_item, __work_group_size>(
             __q, __pack, __virt_pack1, __virt_pack2, __mem_holder, __n);
