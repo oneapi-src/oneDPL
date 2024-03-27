@@ -274,12 +274,12 @@ __pattern_search_n_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r,
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __pred_2 = [__pred, __proj, __value](auto&& __val1, auto&& __val2) { return __pred(__proj(__val1), __val2);};
+    auto __pred_2 = [__pred, __proj](auto&& __val1, auto&& __val2) { return __pred(__proj(__val1), __val2);};
 
-    auto __res = oneapi::dpl::__internal::__pattern_search_n(std::forward<_ExecutionPolicy>(__exec),
+    auto __res = oneapi::dpl::__internal::__pattern_search_n(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(), __count, __value, __pred_2);
 
-    return std::ranges::borrowed_subrange_t<_R>(__res, __res + __count);
+    return std::ranges::borrowed_subrange_t<_R>(__res, __res == std::ranges::end(__r) ? __res : __res + __count);
 }
 
 template<typename _IsVector, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
