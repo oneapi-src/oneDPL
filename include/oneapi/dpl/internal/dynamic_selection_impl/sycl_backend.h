@@ -35,6 +35,7 @@ class sycl_backend
     using execution_resource_t = resource_type;
     using resource_container_t = std::vector<execution_resource_t>;
 
+    bool has_enable_profiling = false;
   private:
     class async_waiter_base{
         public:
@@ -141,6 +142,9 @@ class sycl_backend
         for (auto e : v)
         {
             global_rank_.push_back(e);
+            if(e.template has_property<sycl::property::queue::enable_profiling>()){
+                has_enable_profiling = true;
+            }
         }
         sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
     }
