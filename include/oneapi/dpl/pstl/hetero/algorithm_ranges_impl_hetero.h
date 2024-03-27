@@ -356,7 +356,8 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search_n(__tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __count, __value, __pred_2);
 
-    return std::ranges::borrowed_subrange_t<_R>(__r.begin() + __idx, __r.begin() + __idx + __count);
+    auto __end = (__idx == __r.size() ? __r.begin() + __idx : __r.begin() + __idx + __count);
+    return std::ranges::borrowed_subrange_t<_R>(__r.begin() + __idx, __end);
 }
 #endif //_ONEDPL___cplusplus >= 202002L
 
