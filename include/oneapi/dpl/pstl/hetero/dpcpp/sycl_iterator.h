@@ -78,6 +78,44 @@ struct sycl_iterator
     {
         return {buffer, idx - backward};
     }
+    sycl_iterator&
+    operator++()
+    {
+        ++idx;
+        return *this;
+    }
+    sycl_iterator
+    operator++(int)
+    {
+        sycl_iterator it(*this);
+        ++(*this);
+        return it;
+    }
+    sycl_iterator&
+    operator--()
+    {
+        --idx;
+        return *this;
+    }
+    sycl_iterator
+    operator--(int)
+    {
+        sycl_iterator it(*this);
+        --(*this);
+        return it;
+    }
+    sycl_iterator&
+    operator+=(difference_type forward)
+    {
+        idx += forward;
+        return *this;
+    }
+    sycl_iterator&
+    operator-=(difference_type backward)
+    {
+        idx -= backward;
+        return *this;
+    }
     friend sycl_iterator
     operator+(difference_type forward, const sycl_iterator& it)
     {
