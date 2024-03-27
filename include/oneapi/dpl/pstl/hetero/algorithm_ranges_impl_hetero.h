@@ -453,6 +453,15 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
         .get();
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+std::ranges::range_difference_t<_R>
+__pattern_count_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    return oneapi::dpl::__internal::__ranges::__pattern_count(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+}
+
 //------------------------------------------------------------------------
 // copy_if
 //------------------------------------------------------------------------
