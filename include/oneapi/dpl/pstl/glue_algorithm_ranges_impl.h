@@ -314,6 +314,33 @@ struct __search_n_fn
 
 inline constexpr __internal::__search_n_fn search_n;
 
+struct count_if_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_count_if(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //count_if_fn
+
+inline constexpr count_if_fn count_if;
+
+struct count_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
+    {
+        auto __pred = [__value](auto&& __val) { return ranges::equal_to{}(__val, __value);};
+        return count_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //count_if_fn
+
+inline constexpr count_fn count;
+
 } //ranges
 
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
