@@ -90,7 +90,7 @@ sycl::event
 radix_sort_out_of_place(sycl::queue __q, _KeysRng1&& __keys_rng, _KeysRng2&& __keys_rng_out, _KernelParam __param = {})
 {
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
-    if (__keys_rng.size() <= 0)
+    if (__keys_rng.size() == 0)
         return {};
 
     auto __pack = __impl::__rng_pack{oneapi::dpl::__ranges::views::all(::std::forward<_KeysRng1>(__keys_rng))};
@@ -108,7 +108,7 @@ radix_sort_out_of_place(sycl::queue __q, _KeysIterator1 __keys_first, _KeysItera
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
 
     auto __n = __keys_last - __keys_first;
-    if (__n <= 0)
+    if (__n == 0)
         return {};
 
     auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeysIterator1>();
@@ -128,7 +128,7 @@ radix_sort_by_key_out_of_place(sycl::queue __q, _KeysRng1&& __keys_rng, _ValsRng
                                _KeysRng2&& __keys_out_rng, _ValsRng2&& __vals_out_rng, _KernelParam __param = {})
 {
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
-    if (__keys_rng.size() <= 0)
+    if (__keys_rng.size() == 0)
         return {};
 
     auto __pack = __impl::__rng_pack{oneapi::dpl::__ranges::views::all(::std::forward<_KeysRng1>(__keys_rng)),
@@ -149,7 +149,7 @@ radix_sort_by_key_out_of_place(sycl::queue __q, _KeysIterator1 __keys_first, _Ke
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
 
     auto __n = __keys_last - __keys_first;
-    if (__n <= 0)
+    if (__n == 0)
         return {};
 
     auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeysIterator1>();
