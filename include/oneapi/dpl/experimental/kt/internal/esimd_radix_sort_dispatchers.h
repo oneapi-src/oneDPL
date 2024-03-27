@@ -279,58 +279,6 @@ __onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pa
     return __event_chain;
 }
 
-template <::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size,
-          typename _RngPack, typename _MemHolder>
-void
-__allocate_temp(_MemHolder& __mem_holder, ::std::size_t __n)
-{
-    using _KeyT = typename ::std::decay_t<_RngPack>::_KeyT;
-    using _ValT = typename ::std::decay_t<_RngPack>::_ValT;
-    constexpr bool __has_values = ::std::decay_t<_RngPack>::__has_values;
-
-    constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
-
-    const ::std::uint32_t __sweep_work_group_count =
-        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
-
-    constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
-    constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
-
-    constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
-    const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
-
-    __mem_holder.__keys_alloc_count(__n);
-    if constexpr (__has_values)
-    {
-        __mem_holder.__vals_alloc_count(__n);
-    }
-    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
-    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
-    __mem_holder.__allocate();
-}
-
-template <typename _RngPack, typename _MemHolder>
-auto
-__create_temp_pack(const _MemHolder& __mem_holder, ::std::size_t __n)
-{
-    using _KeyT = typename ::std::decay_t<_RngPack>::_KeyT;
-    using _ValT = typename ::std::decay_t<_RngPack>::_ValT;
-    constexpr bool __has_values = ::std::decay_t<_RngPack>::__has_values;
-
-    auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
-    auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
-    if constexpr (__has_values)
-    {
-        auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
-        auto __vals_tmp_rng = __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
-        return __rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
-    }
-    else
-    {
-        return __rng_pack(::std::move(__keys_tmp_rng));
-    }
-}
-
 template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
           ::std::uint16_t __work_group_size, bool __in_place, typename _RngPack1, typename _RngPack2>
 sycl::event
@@ -348,13 +296,44 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
 
     constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
+    constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
+    constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
+
+    const ::std::uint32_t __sweep_work_group_count =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
+
+    const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
 
     // Memory is not going to be allocated for void value type
     // TODO: make this more explicit to reduce coupling between __onesweep_memory_holder and __rng_pack
     __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
 
-    __allocate_temp<__radix_bits, __data_per_work_item, __work_group_size, _RngPack1>(__mem_holder, __n);
-    auto __tmp_pack = __create_temp_pack<_RngPack1>(__mem_holder, __n);
+    __mem_holder.__keys_alloc_count(__n);
+    if constexpr (__has_values)
+    {
+        __mem_holder.__vals_alloc_count(__n);
+    }
+    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
+    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
+    __mem_holder.__allocate();
+
+    auto __get_tmp_pack = [&]() {
+        auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
+        auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
+
+        if constexpr (__has_values)
+        {
+            auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
+            auto __vals_tmp_rng =
+                __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
+            return __rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
+        }
+        else
+        {
+            return __rng_pack(::std::move(__keys_tmp_rng));
+        }
+    };
+    auto __tmp_pack = __get_tmp_pack();
     auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto& {
         if constexpr (__in_place || (__stage_count % 2 == 0))
             return __pack1;
