@@ -303,6 +303,39 @@ __pattern_search_n(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, std::ranges:
         return std::ranges::search_n(std::forward<_R>(__r), __count, __value, __pred, __proj);
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_count_if
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+std::ranges::range_difference_t<_R>
+__pattern_count_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    return oneapi::dpl::__internal::__pattern_count(__tag, std::forward<_ExecutionPolicy>(__exec),
+        std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(), __pred_1);
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+std::ranges::range_difference_t<_R>
+__pattern_count_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    return __pattern_count_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+std::ranges::range_difference_t<_R>
+__pattern_count_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_count_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred,
+                                     __proj);
+    else
+        return std::ranges::count_if(std::forward<_R>(__r), __pred, __proj);
+}
+
 } // namespace __ranges
 } // namespace __internal
 } // namespace dpl
