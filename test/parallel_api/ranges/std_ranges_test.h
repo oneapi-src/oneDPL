@@ -19,7 +19,6 @@
 
 #include "support/utils.h"
 
-#define _ENABLE_STD_RANGES_TESTING (_ONEDPL___cplusplus >= 202002L)
 #if _ENABLE_STD_RANGES_TESTING
 
 #include <oneapi/dpl/ranges>
@@ -49,7 +48,8 @@ enum TestDataMode
     data_in,
     data_in_out,
     data_in_in,
-    data_in_in_out
+    data_in_in_out,
+    data_in_val_n,
 };
 
 template<typename Container, TestDataMode Ranges = data_in, bool RetTypeCheck = true>
@@ -159,6 +159,37 @@ struct test
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
                 typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
         }
+    }
+
+    template<typename Policy, typename Algo, typename Checker, typename FunctorOrVal, typename Proj = std::identity,
+             typename Transform = std::identity>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in_val_n>
+    operator()(Policy&& exec, Algo algo, Checker checker, FunctorOrVal f, Proj proj = {}, Transform tr = {})
+    {
+        constexpr int max_n = 10;
+        int data[max_n] = {0, 1, 2, 5, 5, 5, 6, 7, 8, 9};
+        int expected[max_n] = {0, 1, 2, 5, 5, 5, 6, 7, 8, 9};
+        int val = 5, n = 3;
+
+        auto expected_view = tr(std::ranges::subrange(expected, expected + max_n));
+        auto expected_res = checker(expected_view, n, val, f, proj);
+        {
+            Container cont(exec, data, max_n);
+            typename Container::type& A = cont();
+
+            auto res = algo(exec, tr(A), n, val, f, proj);
+
+            //check result
+            if constexpr(RetTypeCheck)
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), n, val, f, proj))>, "Wrong return type");
+
+            auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
+            EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name()).c_str());
+        }
+
+        //check result
+        EXPECT_EQ_N(expected, data, max_n, (std::string("wrong effect algo with ranges: ")
+            + typeid(Algo).name() + typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
     }
 
 private:
