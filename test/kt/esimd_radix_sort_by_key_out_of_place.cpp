@@ -72,7 +72,7 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
 
     std::string msg_out = "wrong results with sycl::buffer (keys)" + parameters_msg.str();
     EXPECT_EQ_N(expected_keys.begin(), actual_keys_out.begin(), size, msg_out.c_str());
-    msg_out = "wrong results with sycl::buffer (values)" + parameters_msg;
+    msg_out = "wrong results with sycl::buffer (values)" + parameters_msg.str();
     EXPECT_EQ_N(expected_values.begin(), actual_values_out.begin(), size, msg_out.c_str());
 }
 
