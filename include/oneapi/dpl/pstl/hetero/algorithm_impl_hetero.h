@@ -28,6 +28,8 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
+#include "numeric_impl_hetero.h"        // for __pattern_transform_reduce
+
 namespace oneapi
 {
 namespace dpl
@@ -709,20 +711,87 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 }
 
 //------------------------------------------------------------------------
+// parallel_find
+//------------------------------------------------------------------------
+
+template <typename _Typle, typename _IsFirst>
+struct __find_if_binary_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (::std::get<0>(op1) && ::std::get<0>(op2))
+        {
+            if constexpr (_IsFirst{})
+                return {true, ::std::min(::std::get<1>(op1), ::std::get<1>(op2))};
+            else
+                return {true, ::std::max(::std::get<1>(op1), ::std::get<1>(op2))};
+        }
+
+        return ::std::get<0>(op1) ? op1 : op2;
+    }
+};
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
+_Iterator
+__pattern_parallel_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                        _Brick __f, _IsFirst)
+{
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
+        return __last;
+
+    constexpr _difference_type __max_portion_size = 1 << 20; // 1'048'576
+    const _difference_type __portion_size = ::std::min(__max_portion_size, __n);
+
+    using ItTransform = oneapi::dpl::transform_iterator<_Iterator, _Brick>;
+
+    const auto __itBegin = oneapi::dpl::make_zip_iterator(ItTransform{/*_Iter*/ __first, /*_UnaryFunc*/ __f},
+                                                          oneapi::dpl::counting_iterator{0});
+    const auto __itEnd = __itBegin + __n;
+
+    using _value_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
+    const auto __binary_op = __find_if_binary_op<_value_type, _IsFirst>{};
+
+    for (auto __portion_begin = __itBegin; __portion_begin < __itEnd; __portion_begin += __portion_size)
+    {
+        auto __portion_end = ::std::min(__portion_begin + __portion_size, __itEnd);
+
+        const _result_type result = oneapi::dpl::__internal::__pattern_transform_reduce(
+            /* __dispatch_tag   */ __tag,
+            /* _ExecutionPolicy */ __exec,
+            /* _ForwardIterator */ __portion_begin,
+            /* _ForwardIterator */ __portion_end,
+            /* _Tp __init       */ _result_type{false, __portion_end - __itBegin},
+            /* _BinaryOperation */ __binary_op,
+            /* _UnaryOperation  */ oneapi::dpl::__internal::__no_op());
+
+        if (::std::get<0>(result))
+            return __first + ::std::get<1>(result);
+    }
+
+    return __last;
+}
+
+//------------------------------------------------------------------------
 // find_if
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 _Iterator
-__pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Pred __pred)
+__pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Pred __pred)
 {
     if (__first == __last)
         return __last;
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+    return __pattern_parallel_find(
+        __tag,
+        ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         __pred,                 //_Predicate{__pred},
