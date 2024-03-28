@@ -722,7 +722,7 @@ __pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R
             [__pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                 return __brick_find_if(__i, __j, __pred, _IsVector{});
             },
-            ::std::true_type{});
+            /*_IsFirst*/ ::std::true_type{});
     });
 }
 
@@ -876,7 +876,7 @@ __pattern_find_end(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                     return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, false,
                                                        _IsVector{});
                 },
-                ::std::false_type{});
+                /*_IsFirst*/ ::std::false_type{});
         });
     }
 }
@@ -924,7 +924,7 @@ __pattern_find_first_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
             [__s_first, __s_last, &__pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, _IsVector{});
             },
-            ::std::true_type{});
+            /*_IsFirst*/ ::std::true_type{});
     });
 }
 
@@ -1034,7 +1034,7 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                 [__last, __count, &__value, __pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                     return __internal::__find_subrange(__i, __j, __last, __count, __value, __pred, _IsVector{});
                 },
-                ::std::true_type{});
+                /*_IsFirst*/ ::std::true_type{});
         });
     }
 }
@@ -3792,7 +3792,7 @@ __pattern_is_heap_until(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
             [__first, __comp](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                 return __internal::__is_heap_until_local(__first, __i - __first, __j - __first, __comp, _IsVector{});
             },
-            ::std::true_type{});
+            /*_IsFirst*/ ::std::true_type{});
     });
 }
 
@@ -4059,7 +4059,7 @@ __pattern_mismatch(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                                                     __pred, _IsVector{})
                     .first;
             },
-            ::std::true_type{});
+            /*_IsFirst*/ ::std::true_type{});
         return ::std::make_pair(__result, __first2 + (__result - __first1));
     });
 }
@@ -4161,7 +4161,7 @@ __pattern_lexicographical_compare(__parallel_tag<_IsVector> __tag, _ExecutionPol
                                _IsVector{})
                         .first;
                 },
-                ::std::true_type{});
+                /*_IsFirst*/ ::std::true_type{});
 
             if (__result == __last1 && __first2 + (__result - __first1) != __last2)
             { // if first sequence shorter than second
