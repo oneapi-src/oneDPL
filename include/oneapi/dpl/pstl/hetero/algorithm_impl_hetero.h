@@ -724,7 +724,8 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
     return __par_backend_hetero::__parallel_find(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred},
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+        __pred,                 //_Predicate{__pred},
         ::std::true_type{});
 }
 
