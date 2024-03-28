@@ -153,6 +153,22 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& 
         oneapi::dpl::__ranges::zip_view(::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2)));
 }
 
+#if _ONEDPL___cplusplus >= 202002L
+template<typename _BackendTag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+bool
+__pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                 _Proj1 __proj1, _Proj2 __proj2)
+{
+    auto __pred_2 = 
+            [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
+
+    return oneapi::dpl::__internal::__ranges::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R1>(__r1)), oneapi::dpl::views::all_read(::std::forward<_R2>(__r2)),
+        __pred_2);
+}
+#endif //_ONEDPL___cplusplus >= 202002L
+
 //------------------------------------------------------------------------
 // find_if
 //------------------------------------------------------------------------
@@ -427,6 +443,18 @@ __pattern_adjacent_find2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+bool
+__pattern_is_sorted(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
+        std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)),
+        oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) == __r.size();
+}
+
 #endif //_ONEDPL___cplusplus >= 202002L
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
@@ -452,6 +480,17 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
                ::std::forward<_Range>(__rng))
         .get();
 }
+
+#if _ONEDPL___cplusplus >= 202002L
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+std::ranges::range_difference_t<_R>
+__pattern_count_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    return oneapi::dpl::__internal::__ranges::__pattern_count(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+}
+#endif //_ONEDPL___cplusplus >= 202002L
 
 //------------------------------------------------------------------------
 // copy_if
