@@ -20,14 +20,6 @@ main()
 {
 #if _ENABLE_STD_RANGES_TESTING
 
-    auto f_mutuable = [](auto&& val) -> decltype(auto) { return val *= val; };
-    auto proj_mutuable = [](auto&& val) -> decltype(auto) { return val *= 2; };
-
-    auto f = [](auto&& val) -> decltype(auto) { return val * val; };
-    auto proj = [](auto&& val) -> decltype(auto) { return val * 2; };
-    auto pred = [](auto&& val) -> decltype(auto) { return val == 5; };
-    auto pred_2 = [](auto&& val1, auto&& val2) -> decltype(auto) { return val1 == val2; };
-
     using namespace test_std_ranges;
 
     // Alias for the oneapi::dpl::ext::ranges namespace
