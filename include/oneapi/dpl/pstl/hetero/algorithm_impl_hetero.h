@@ -28,8 +28,6 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
-#include "numeric_impl_hetero.h"        // for __pattern_transform_reduce
-
 namespace oneapi
 {
 namespace dpl
@@ -732,6 +730,12 @@ struct __find_if_binary_op
         return ::std::get<0>(op1) ? op1 : op2;
     }
 };
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
+          typename _BinaryOperation, typename _UnaryOperation>
+_Tp
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp,
+                           _BinaryOperation, _UnaryOperation);
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 _Iterator
