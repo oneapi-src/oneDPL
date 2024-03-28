@@ -397,6 +397,15 @@ struct test_range_algo
     }
 };
 
+decltype(auto) f_mutuable = [](auto&& val) { return val *= val; };
+decltype(auto) proj_mutuable = [](auto&& val) { return val *= 2; };
+
+auto f = [](auto&& val) { return val * val; };
+auto proj = [](auto&& val){ return val * 2; };
+auto pred = [](auto&& val) { return val == 5; };
+auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
+auto comp = [](auto&& val1, auto&& val2) { return std::less<void>{}(val1, val2); };
+
 }; //namespace test_std_ranges
 
 #endif //_ENABLE_STD_RANGES_TESTING
