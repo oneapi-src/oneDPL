@@ -350,7 +350,7 @@ __pattern_equal_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
     auto __pred_2 = 
         [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
 
-    return oneapi::dpl::__internal::pattern_equal(__tag, std::forward<_ExecutionPolicy>(__exec),
+    return oneapi::dpl::__internal::__pattern_equal(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r1), std::ranges::begin(__r1) + __r1.size(), std::ranges::begin(__r2),
         std::ranges::begin(__r2) + __r2.size(), __pred_2);
 }
@@ -377,6 +377,40 @@ __pattern_equal(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _
         return std::ranges::equal(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1, __proj2);
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_is_sorted
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+bool
+__pattern_is_sorted_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
+    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    return oneapi::dpl::__internal::__pattern_adjacent_find(__tag, std::forward<_ExecutionPolicy>(__exec),
+        std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(),
+        oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) == __r.end();
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+bool
+__pattern_is_sorted(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    return __pattern_is_sorted_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+bool
+__pattern_is_sorted(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_is_sorted_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
+                                     __proj);
+    else
+        return std::ranges::is_sorted(std::forward<_R>(__r), __comp, __proj);
+}
 } // namespace __ranges
 } // namespace __internal
 } // namespace dpl

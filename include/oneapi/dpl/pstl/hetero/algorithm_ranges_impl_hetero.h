@@ -443,6 +443,18 @@ __pattern_adjacent_find2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+bool
+__pattern_is_sorted(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
+        std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)),
+        oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) == __r.size();
+}
+
 #endif //_ONEDPL___cplusplus >= 202002L
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
