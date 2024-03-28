@@ -1223,6 +1223,7 @@ class __find_policy_wrapper
 {
 };
 
+// TODO: Probably , it is better to use __pattern_parallel_find(__hetero_tag<_BackendTag>...) instead of this __parallel_find
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
 _Iterator1
 __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
@@ -1242,62 +1243,25 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
                          __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
 }
 
-template <typename _Typle>
-struct find_if_functor
-{
-    _Typle
-    operator()(const _Typle& op1, const _Typle& op2) const
-    {
-        if (::std::get<0>(op1) && ::std::get<0>(op2))
-            return {true, ::std::min(::std::get<1>(op1), ::std::get<1>(op2))};
-
-        return ::std::get<0>(op1) ? op1 : op2;
-    }
-};
-
 // Special overload for single sequence cases.
 // TODO: check if similar pattern may apply to other algorithms. If so, these overloads should be moved out of
 // backend code.
+// TODO: Probably , it is better to use __pattern_parallel_find(__hetero_tag<_BackendTag>...) instead of this __parallel_find
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 _Iterator
-__parallel_find(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+__parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                 _Iterator __first, _Iterator __last, _Brick __f, _IsFirst)
 {
-    using difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
-    using result_type     = oneapi::dpl::__internal::tuple<bool, difference_type>;
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
 
-    const difference_type __n = __last - __first;
-    if (__n == 0)
-        return __last;
-
-    constexpr difference_type __max_portion_size = 1 << 20;        // 1'048'576
-    const     difference_type __portion_size = ::std::min(__max_portion_size, __n);
-
-    using ItTransform = oneapi::dpl::transform_iterator<_Iterator, _Brick>;
-
-    const auto __itBegin = oneapi::dpl::make_zip_iterator(ItTransform{/*_Iter*/ __first, /*_UnaryFunc*/ __f},
-                                                          oneapi::dpl::counting_iterator{0});
-    const auto __itEnd = __itBegin + __n;
-
-    using value_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
-
-    for (auto __portion_begin = __itBegin; __portion_begin < __itEnd; __portion_begin += __portion_size)
-    {
-        auto __portion_end = ::std::min(__portion_begin + __portion_size, __itEnd);
-
-        result_type result = oneapi::dpl::transform_reduce(
-            /* _ExecutionPolicy */ __exec,
-            /* _ForwardIterator */ __portion_begin,
-            /* _ForwardIterator */ __portion_end,
-            /* _Tp __init       */ result_type{false, __portion_end - __itBegin},
-            /* _BinaryOperation */ find_if_functor<value_type>{},
-            /* _UnaryOperation  */ oneapi::dpl::__internal::__no_op());
-
-        if (::std::get<0>(result))
-            return __first + ::std::get<1>(result);
-    }
-
-    return __last;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+                         __backend_tag,
+                         __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
+                             ::std::forward<_ExecutionPolicy>(__exec)),
+                         __f, _TagType{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
