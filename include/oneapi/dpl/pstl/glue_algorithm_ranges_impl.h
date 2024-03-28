@@ -334,7 +334,7 @@ struct count_fn
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
     {
-        auto __pred = [__value](auto&& __val) { return ranges::equal_to{}(__val, __value);};
+        auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(__val, __value);};
         return count_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
     }
 }; //count_fn
@@ -347,7 +347,7 @@ struct equal_fn
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2) const
     {
-        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_equal(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1,
                 __proj2);
@@ -355,6 +355,20 @@ struct equal_fn
 }; //equal_fn
 
 inline constexpr equal_fn equal;
+
+struct is_sorted_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_is_sorted(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+    }
+}; //is_sorted_fn
+
+inline constexpr is_sorted_fn is_sorted;
 
 } //ranges
 
