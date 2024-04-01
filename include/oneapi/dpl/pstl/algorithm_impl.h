@@ -3553,7 +3553,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
                                                                               __result, __comp,
                                                                               oneapi::dpl::__internal::__op_uninitialized_copy<_ExecutionPolicy>{},
                                                                               /*CopyFromFirstSet = */ ::std::true_type());
-                }, __is_vector);
+                });
         });
     }
 
@@ -3571,7 +3571,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
                                                                               __result, __comp,
                                                                               oneapi::dpl::__internal::__op_uninitialized_copy<_ExecutionPolicy>{},
                                                                               /*CopyFromFirstSet = */ ::std::false_type());
-                }, __is_vector);
+                });
             return __result;
         });
     }
