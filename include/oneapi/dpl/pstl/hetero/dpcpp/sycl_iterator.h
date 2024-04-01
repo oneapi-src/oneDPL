@@ -153,17 +153,17 @@ struct sycl_iterator
     bool
     operator>(const sycl_iterator& it) const
     {
-        return  it < *this;
+        return it < *this;
     }
     bool
     operator<=(const sycl_iterator& it) const
     {
-        return  !(it < *this);
+        return !(it < *this);
     }
     bool
     operator>=(const sycl_iterator& it) const
     {
-        return  !(*this < it);
+        return !(*this < it);
     }
 
     // This function is required for types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true to ensure proper
