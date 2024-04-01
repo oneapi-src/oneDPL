@@ -53,17 +53,17 @@ test_default_constructible()
     //default constructibility of lambdas depends on c++ standard, we want transform iterator to match its template args
     static_assert((std::is_default_constructible_v<decltype(transformation)> ==
                    ::std::is_default_constructible_v<decltype(trans1)>),
-                  "transform_iterator with lambda does not match default constructibility status of the lambda itself");
+                  "transform_iterator with lambda does not match default constructibility trait of the lambda itself");
 
     //both types are default constructible
     oneapi::dpl::transform_iterator<int*, noop> trans2{ptr, noop{}};
     static_assert(::std::is_default_constructible_v<decltype(trans2)>,
-                  "transform_iterator with default constructible lambda is seen to be non-default constructible");
+                  "transform_iterator with default constructible functor is seen to be non-default constructible");
 
     //functor is not default constructible
     oneapi::dpl::transform_iterator<int*, noop_nodefault> trans3{ptr, noop_nodefault{1}};
     static_assert(!::std::is_default_constructible_v<decltype(trans3)>,
-                  "transform_iterator with non-default constructible lambda is seen to be default constructible");
+                  "transform_iterator with non-default constructible functor is seen to be default constructible");
 
     oneapi::dpl::transform_iterator<decltype(trans3), noop> trans4{trans3, noop{}};
     static_assert(

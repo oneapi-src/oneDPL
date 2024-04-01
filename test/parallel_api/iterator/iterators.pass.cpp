@@ -43,7 +43,7 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
-    //Skips check of default constructible which is required by LegacyRandomAccessIterator, but not by oneDPL.
+    // Skips check of default constructible which is required by LegacyRandomAccessIterator, but not by oneDPL.
     // Some types of iterators like transform_iterator and permutation_iterator may not be default constructible
     // depending on their functor (lambda), but can still be treated as a random access iterator by oneDPL algorithms.
 
