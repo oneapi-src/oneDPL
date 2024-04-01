@@ -69,15 +69,40 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::vector<T> input(size);
     generate_scan_data(input.data(), size, 42);
     std::vector<T> ref(input);
+    sycl::buffer<T> buf_out(input.size());
+
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        sycl::buffer<T> buf_out(input.size());
-        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view, bin_op, param).wait();
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op, param).wait();
     }
 
+    auto acc = buf_out.get_host_access();
+
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(ref, acc, msg.c_str());
+}
+
+template <typename T, typename BinOp, typename KernelParam>
+void
+test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+{
+#    if LOG_TEST_INFO
+    std::cout << "\ttest_buffer(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+#    endif
+    std::vector<T> input(size);
+    generate_scan_data(input.data(), size, 42);
+    std::vector<T> ref(input);
+    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
+    {
+        sycl::buffer<T> buf(input.data(), input.size());
+        sycl::buffer<T> buf_out(input.size());
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op, param).wait();
+    }
+
+    std::string msg = "wrong results with buffer, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 #endif
@@ -144,6 +169,7 @@ test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam pa
     test_sycl_iterators<T>(q, size, bin_op, param);
 #if _ENABLE_RANGES_TESTING
     test_all_view<T>(q, size, bin_op, param);
+    //test_buffer<T>(q, size, bin_op, param);
 #endif
 }
 
