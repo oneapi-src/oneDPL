@@ -15,8 +15,8 @@ env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
-  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/64957c0f-37bf-4408-909c-37ff52fe5119/w_tbb_oneapi_p_2021.11.0.49526.exe
-  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/94e15cb5-4bcc-4fdd-91cf-0f819a54e42e/w_dpcpp-cpp-compiler_p_2024.0.2.28_offline.exe
+  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/c0b87e5c-1e1f-431f-b26e-dc250032e586/w_tbb_oneapi_p_2021.12.0.500_offline.exe
+  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a1d6c917-05ab-4883-b67b-4bd60abb74e5/w_dpcpp-cpp-compiler_p_2024.1.0.469_offline.exe
   WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
   # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
