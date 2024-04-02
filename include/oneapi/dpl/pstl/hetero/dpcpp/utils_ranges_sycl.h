@@ -47,7 +47,9 @@ __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 }
 
 // Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
-//  std::vector<value_type>::iterator can be distinguished from std::vector<value_type, usm_allocator>::iterator
+// std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
+// default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
+// could be confused with a usm allocator.
 template <typename Iter, typename Void = void>
 struct __vector_iter_distinguishes_by_allocator : ::std::false_type
 {
@@ -106,11 +108,7 @@ class all_view
     {
         return begin() + size();
     }
-    __return_t&
-    operator[](__diff_type i) const
-    {
-        return begin()[i];
-    }
+    __return_t& operator[](__diff_type i) const { return begin()[i]; }
 
     __diff_type
     size() const
@@ -635,8 +633,6 @@ struct __get_sycl_range
     __process_input_iter(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
-        std::cout<<"passed directly type\n";
-
         return __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>{
             oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first}};
     }
@@ -677,8 +673,6 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
         using _T = val_t<_Iter>;
-        std::cout<<"contig host\n";
-
         return __process_host_iter_impl<_LocalAccMode>(__first, __last, [&]() {
             if constexpr (__is_copy_direct_v<_LocalAccMode>)
             {
@@ -707,7 +701,6 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
         using _T = val_t<_Iter>;
-        std::cout<<"non contig host\n";
         return __process_host_iter_impl<_LocalAccMode>(__first, __last, [&]() {
             if constexpr (__is_copy_direct_v<_LocalAccMode>)
             {
