@@ -673,6 +673,7 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
         using _T = val_t<_Iter>;
+
         return __process_host_iter_impl<_LocalAccMode>(__first, __last, [&]() {
             if constexpr (__is_copy_direct_v<_LocalAccMode>)
             {
@@ -701,6 +702,7 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
         using _T = val_t<_Iter>;
+
         return __process_host_iter_impl<_LocalAccMode>(__first, __last, [&]() {
             if constexpr (__is_copy_direct_v<_LocalAccMode>)
             {
