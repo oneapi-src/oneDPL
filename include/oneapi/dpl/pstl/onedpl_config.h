@@ -297,7 +297,7 @@
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
 #define _ONEDPL_CPP20_CONCEPTS_PRESENT                                                                                 \
-    (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1923 || _GLIBCXX_RELEASE >= 10 || _LIBCPP_VERSION >= 13))
+    (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1923 || _GLIBCXX_RELEASE >= 10 || _LIBCPP_VERSION >= 13000))
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
