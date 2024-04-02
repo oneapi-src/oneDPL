@@ -672,7 +672,7 @@ get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 
 // To enable oneapi::dpl::zip_iterator to satisfy the requirements for the std::input_iterator concept in C++20,
 // we must provide a basic_common_reference specialization for our internal tuple implementation.
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_CONCEPTS_PRESENT
 template <typename... TTypes, typename... UTypes, template <typename> typename TQual,
           template <typename> typename UQual>
 struct basic_common_reference<oneapi::dpl::__internal::tuple<TTypes...>, oneapi::dpl::__internal::tuple<UTypes...>,
