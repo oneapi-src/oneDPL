@@ -85,31 +85,42 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
 int
 main()
 {
-    bool run_tests = TEST_DPCPP_BACKEND_PRESENT;
+    bool run_tests = false;
 #if TEST_DPCPP_BACKEND_PRESENT
-    run_tests = oneapi::dpl::usm_allocated_vector_iterators_supported_v;
+    constexpr size_t n = 10;
 
-    if (run_tests)
+    auto q = TestUtils::get_test_queue();
+
+    auto policy = TestUtils::make_new_policy<class Kernel1>(q);
+
+    auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
+    auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
+    auto policy3 = TestUtils::create_new_policy_idx<decltype(policy), 2>(policy);
+    auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
+    auto policy5 = TestUtils::create_new_policy_idx<decltype(policy), 4>(policy);
+
+    // baseline with no wrapping
+    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<float>)
     {
-        constexpr size_t n = 10;
-
-        auto q = TestUtils::get_test_queue();
-
-        auto policy = TestUtils::make_new_policy<class Kernel1>(q);
-
-        auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
-        auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
-        auto policy3 = TestUtils::create_new_policy_idx<decltype(policy), 2>(policy);
-        auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
-        auto policy5 = TestUtils::create_new_policy_idx<decltype(policy), 4>(policy);
-
-        // baseline with no wrapping
+        run_tests = true;
         test<float, 0>(policy1, -666.0f, n, "float");
+    }
+    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<double>)
+    {
+        run_tests = true;
         test<double, 0>(policy2, -666.0, n, "double");
+    }
+    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<uint64_t>)
+    {
+        run_tests = true;
         test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
-
+    }
+    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<int32_t>)
+    {
+        run_tests = true;
         // big recursion step: 1 and 2 layers of wrapping
         test<std::int32_t, 2>(policy4, -666, n, "int32_t");
+    }
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
     return TestUtils::done(run_tests);
