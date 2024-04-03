@@ -374,6 +374,64 @@ struct is_sorted_fn
 
 inline constexpr is_sorted_fn is_sorted;
 
+struct stable_sort_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_sort2(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+    }
+}; //stable_sort_fn
+
+inline constexpr stable_sort_fn stable_sort;
+
+struct sort_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    {
+        return oneapi::dpl::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
+            __proj);
+    }
+}; //sort_fn
+
+inline constexpr sort_fn sort;
+
+struct min_element_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_min_element(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+    }
+}; //min_element_fn
+
+inline constexpr min_element_fn min_element;
+
+struct max_element_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    {
+        return oneapi::dpl::ranges::min_element(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__reorder_pred(__comp), __proj);
+    }
+}; //max_element_fn
+
+inline constexpr max_element_fn max_element;
+
 } //ranges
 
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
