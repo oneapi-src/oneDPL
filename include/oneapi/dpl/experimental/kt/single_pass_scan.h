@@ -398,7 +398,10 @@ sycl::event
 inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
                _KernelParam __param = {})
 {
-    return __impl::__single_pass_scan<true>(__queue, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __binary_op, __param);
+    auto __in_view = oneapi::dpl::__ranges::views::all(::std::forward<_InRng>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all(::std::forward<_OutRng>(__out_rng));
+
+    return __impl::__single_pass_scan<true>(__queue, ::std::move(__in_view), ::std::move(__out_view), __binary_op, __param);
 }
 
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>

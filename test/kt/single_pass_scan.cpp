@@ -95,15 +95,18 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::vector<T> input(size);
     generate_scan_data(input.data(), size, 42);
     std::vector<T> ref(input);
+    sycl::buffer<T> buf_out(input.size());
+
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        sycl::buffer<T> buf_out(input.size());
         oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op, param).wait();
     }
 
+    auto acc = buf_out.get_host_access();
+
     std::string msg = "wrong results with buffer, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    EXPECT_EQ_RANGES(ref, acc, msg.c_str());
 }
 #endif
 
@@ -169,7 +172,7 @@ test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam pa
     test_sycl_iterators<T>(q, size, bin_op, param);
 #if _ENABLE_RANGES_TESTING
     test_all_view<T>(q, size, bin_op, param);
-    //test_buffer<T>(q, size, bin_op, param);
+    test_buffer<T>(q, size, bin_op, param);
 #endif
 }
 
