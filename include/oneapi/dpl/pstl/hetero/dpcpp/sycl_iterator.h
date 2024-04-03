@@ -170,8 +170,8 @@ struct __vector_iter_distinguishes_by_allocator : std::false_type
 template <typename Iter>
 struct __vector_iter_distinguishes_by_allocator<
     Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
-                             !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
-                             !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
+                           !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
     : std::true_type
 {
 };
@@ -234,7 +234,8 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
                                                                                     __dpl_sycl::__get_buffer_size(buf)};
 }
 
-constexpr static bool usm_allocated_vector_iterators_supported_v = oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<int*>::value;
+constexpr static bool usm_allocated_vector_iterators_supported_v =
+    oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<int*>::value;
 
 } // namespace dpl
 } // namespace oneapi
