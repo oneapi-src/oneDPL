@@ -86,11 +86,12 @@ Note: The ability to appropriately detect USM allocated ``std::vector::iterator`
 on details of the C++ standard library implementation and what information about the
 allocator is included in the ``std::vector::iterator`` type definition. You can check
 if your C++ standard library implementation provides enough information by checking the
-value of ``oneapi::dpl::usm_allocated_vector_iterators_supported_v``. This will evaluate
-to ``true`` for C++ standard library implementations which allow oneDPL to support this
-functionality and ``false`` otherwise. If usm_allocators are not supported with your C++
-standard library, they will still function as inputs to oneDPL, but they will be treated
-as if they were host-side ``std::vector::iterator`` as described in the section below.
+value of ``oneapi::dpl::usm_allocated_vector_iterators_supported_v<ValueType>``. This will
+evaluate to ``true`` for C++ standard library implementations which allow oneDPL to support
+USM allocators with this ValueType and ``false`` otherwise. If usm_allocators are not
+supported with your C++ standard library, they will still function as inputs to oneDPL, but
+they will be treated as if they were host-side ``std::vector::iterator`` as described in
+the section below.
 
 For example:
 
