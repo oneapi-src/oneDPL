@@ -326,9 +326,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
            (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
 
     // Next power of 2 greater than or equal to __n
-    auto __n_uniform = __n;
-    if ((__n_uniform & (__n_uniform - 1)) != 0)
-        __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+    auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(__n);
 
     // Perform a single-work group scan if the input is small
     if (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<_Type>(__queue, __n, __n_uniform))
