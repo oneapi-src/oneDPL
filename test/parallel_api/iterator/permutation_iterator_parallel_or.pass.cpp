@@ -51,12 +51,10 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
                         const auto testing_n = permItEnd - permItBegin;
 
                         const auto resultIsHeap = dpl::is_heap(exec, permItBegin, permItEnd);
-                        wait_and_throw(exec);
 
                         // Copy data back
                         std::vector<TestValueType> expected(testing_n);
                         dpl::copy(exec, permItBegin, permItEnd, expected.begin());
-                        wait_and_throw(exec);
 
                         const auto expectedIsHeap = std::is_heap(expected.begin(), expected.end());
                         EXPECT_EQ(expectedIsHeap, resultIsHeap, "Wrong result of dpl::is_heap");

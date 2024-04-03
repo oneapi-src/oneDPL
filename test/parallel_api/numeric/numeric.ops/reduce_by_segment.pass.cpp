@@ -156,7 +156,6 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 =
             oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
         size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
@@ -171,7 +170,6 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, BinaryPredicate());
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
         size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
@@ -186,7 +184,6 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, BinaryPredicate(), BinaryOperation());
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
         size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);

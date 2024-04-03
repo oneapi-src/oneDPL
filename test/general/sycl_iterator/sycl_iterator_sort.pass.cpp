@@ -34,7 +34,6 @@ DEFINE_TEST(test_sort)
         host_keys.update_data();
 
         ::std::sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1);
-        wait_and_throw(exec);
 
         {
             host_keys.retrieve_data();
@@ -55,7 +54,6 @@ DEFINE_TEST(test_sort)
         }
 
         ::std::sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, ::std::greater<T1>());
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
@@ -92,7 +90,6 @@ DEFINE_TEST(test_stable_sort)
         host_keys.update_data();
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1);
-        wait_and_throw(exec);
 
         {
             host_keys.retrieve_data();
@@ -113,7 +110,6 @@ DEFINE_TEST(test_stable_sort)
         }
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, ::std::greater<T1>());
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
@@ -159,7 +155,6 @@ DEFINE_TEST(test_partial_sort)
         {
             auto end1 = first1 + end_idx;
             ::std::partial_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, end1, last1);
-            wait_and_throw(exec);
 
             // Make sure that elements up to end are sorted and remaining elements are bigger
             // than the last sorted one.
@@ -176,7 +171,6 @@ DEFINE_TEST(test_partial_sort)
         if (end_idx > last1 - first1)
         {
             ::std::partial_sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, last1);
-            wait_and_throw(exec);
 
             host_keys.retrieve_data();
             auto host_first1 = host_keys.get();
@@ -213,7 +207,6 @@ DEFINE_TEST(test_partial_sort_copy)
 
             auto last_sorted =
                 ::std::partial_sort_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, end2);
-            wait_and_throw(exec);
 
             auto host_first1 = host_keys.get();
             auto host_first2 = host_vals.get();
@@ -233,7 +226,6 @@ DEFINE_TEST(test_partial_sort_copy)
         {
             auto last_sorted =
                 ::std::partial_sort_copy(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
-            wait_and_throw(exec);
 
             auto host_first1 = host_keys.get();
             auto host_first2 = host_vals.get();
@@ -271,7 +263,6 @@ DEFINE_TEST(test_inplace_merge)
         host_keys.update_data();
 
         ::std::inplace_merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + (middle - host_keys.get()), last);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         for (size_t i = 0; i < n; ++i)
@@ -311,7 +302,6 @@ DEFINE_TEST(test_nth_element)
         // invoke
         auto comp = ::std::less<T1>{};
         ::std::nth_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, middle1, last1, comp);
-        wait_and_throw(exec);
 
         retrieve_data(host_keys, host_vals);
 
@@ -362,7 +352,6 @@ DEFINE_TEST(test_merge)
         auto exp1 = ::std::merge(host_keys.get(), host_keys.get() + n, host_vals.get(), host_vals.get() + x, exp.begin());
         auto res1 = ::std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first2 + x, first3);
         TestDataTransfer<UDTKind::eRes, Size> host_res(*this, res1 - first3);
-        wait_and_throw(exec);
 
         // Special case, because we have more results then source data
         host_res.retrieve_data();

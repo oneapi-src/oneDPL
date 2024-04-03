@@ -109,7 +109,6 @@ DEFINE_TEST(test_uninitialized_fill)
 
         ::std::uninitialized_fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                                   value);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2),
@@ -132,7 +131,6 @@ DEFINE_TEST(test_uninitialized_fill_n)
         auto value = T1(2);
 
         ::std::uninitialized_fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
@@ -159,7 +157,6 @@ DEFINE_TEST(test_uninitialized_default_construct)
 
         ::std::uninitialized_default_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                              first1 + (n / 3), first1 + (n / 2));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), exp_value),
@@ -185,7 +182,6 @@ DEFINE_TEST(test_uninitialized_default_construct_n)
         host_keys.update_data();
 
         ::std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, exp_value),
@@ -210,7 +206,6 @@ DEFINE_TEST(test_uninitialized_value_construct)
 
         ::std::uninitialized_value_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                            first1 + (n / 3), first1 + (n / 2));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), T1{}),
@@ -235,7 +230,6 @@ DEFINE_TEST(test_uninitialized_value_construct_n)
         host_keys.update_data();
 
         ::std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, T1{}),
@@ -262,7 +256,6 @@ DEFINE_TEST(test_destroy)
                        first1 + (n / 2));
         if (!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value),
@@ -289,7 +282,6 @@ DEFINE_TEST(test_destroy_n)
         ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
         if(!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value),
@@ -311,7 +303,6 @@ DEFINE_TEST(test_fill)
         auto value = T1(2);
 
         ::std::fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), value);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value), "wrong effect from fill");
@@ -332,7 +323,6 @@ DEFINE_TEST(test_fill_n)
         auto value = T1(2);
 
         ::std::fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1), "wrong effect from fill_n");
@@ -354,7 +344,6 @@ DEFINE_TEST(test_generate)
 
         ::std::generate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                       Generator_count<T1>(value));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value),
@@ -376,7 +365,6 @@ DEFINE_TEST(test_generate_n)
         auto value = T1(4);
 
         ::std::generate_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Generator_count<T1>(value + 1));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
@@ -402,7 +390,6 @@ DEFINE_TEST(test_for_each)
         host_keys.update_data();
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), Inc());
-        wait_and_throw(exec);
 
         // We call due to SYCL 1.2.1: 4.7.2.3.
         // If the host memory is modified by the host,
@@ -430,7 +417,6 @@ DEFINE_TEST(test_for_each_n)
         host_keys.update_data();
 
         ::std::for_each_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Inc());
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
@@ -455,7 +441,6 @@ DEFINE_TEST(test_replace)
         host_keys.update_data();
 
         ::std::replace(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, value, T1(value + 1));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
@@ -480,7 +465,6 @@ DEFINE_TEST(test_replace_if)
 
         ::std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                           oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
@@ -506,7 +490,6 @@ DEFINE_TEST(test_reverse)
         ::std::reverse(local_copy.begin(), local_copy.end());
 
         ::std::reverse(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
@@ -533,7 +516,6 @@ DEFINE_TEST(test_rotate)
         ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
         ::std::rotate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last);
-        wait_and_throw(exec);
 
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
@@ -563,8 +545,6 @@ DEFINE_TEST(test_includes)
         host_vals.update_data(b_size);
 
         auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(result, "wrong effect from includes a, b");
 
         host_vals.retrieve_data();
@@ -572,8 +552,6 @@ DEFINE_TEST(test_includes)
         host_vals.update_data(c_size);
 
         result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(!result, "wrong effect from includes a, c");
     }
 };
@@ -597,8 +575,6 @@ DEFINE_TEST(test_swap_ranges)
         update_data(host_keys, host_vals);
 
         Iterator2 actual_return = ::std::swap_ranges(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-
-        wait_and_throw(exec);
 
         bool check_return = (actual_return == last2);
         EXPECT_TRUE(check_return, "wrong result of swap_ranges");
@@ -639,7 +615,6 @@ DEFINE_TEST(test_reverse_copy)
         ::std::reverse(local_copy.begin(), local_copy.end());
 
         ::std::reverse_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, result_first);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         auto host_first2 = host_vals.get();
@@ -668,7 +643,6 @@ DEFINE_TEST(test_rotate_copy)
         ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
         ::std::rotate_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last, result_first);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         for (int i = 0; i < n; ++i)
@@ -695,7 +669,6 @@ DEFINE_TEST(test_uninitialized_copy)
         update_data(host_keys, host_vals);
 
         ::std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value), "wrong effect from uninitialized_copy");
@@ -721,7 +694,6 @@ DEFINE_TEST(test_uninitialized_copy_n)
         update_data(host_keys, host_vals);
 
         ::std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value), "wrong effect from uninitialized_copy_n");
@@ -746,7 +718,6 @@ DEFINE_TEST(test_uninitialized_move)
         update_data(host_keys, host_vals);
 
         ::std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value), "wrong effect from uninitialized_move");
@@ -772,7 +743,6 @@ DEFINE_TEST(test_uninitialized_move_n)
         update_data(host_keys, host_vals);
 
         ::std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value),
@@ -799,7 +769,6 @@ DEFINE_TEST(test_transform_unary)
         update_data(host_keys, host_vals);
 
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n / 2, value + 1),
@@ -827,7 +796,6 @@ DEFINE_TEST(test_transform_binary)
         host_keys.update_data();
 
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, first2, Plus());
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, T1(6)),
@@ -852,7 +820,6 @@ DEFINE_TEST(test_replace_copy)
         host_keys.update_data();
 
         ::std::replace_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, value, T1(value + 1));
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value + 1),
@@ -878,7 +845,6 @@ DEFINE_TEST(test_replace_copy_if)
 
         ::std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
                              oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value + 1),
@@ -904,7 +870,6 @@ DEFINE_TEST(test_copy)
         update_data(host_keys, host_vals);
 
         ::std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value),
@@ -931,7 +896,6 @@ DEFINE_TEST(test_copy_n)
         update_data(host_keys, host_vals);
 
         ::std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value), "wrong effect from copy_n");
@@ -957,7 +921,6 @@ DEFINE_TEST(test_move)
         update_data(host_keys, host_vals);
 
         ::std::move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-        wait_and_throw(exec);
 
         host_vals.retrieve_data();
         EXPECT_TRUE(check_values(host_vals.get(), host_vals.get() + n, value),
@@ -992,7 +955,6 @@ DEFINE_TEST(test_adjacent_difference)
 
         // test with custom functor
         ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, __f);
-        wait_and_throw(exec);
 
         {
             retrieve_data(host_keys, host_vals);
@@ -1012,7 +974,6 @@ DEFINE_TEST(test_adjacent_difference)
         host_vals.update_data();
 
         ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2);
-        wait_and_throw(exec);
 
         retrieve_data(host_keys, host_vals);
 

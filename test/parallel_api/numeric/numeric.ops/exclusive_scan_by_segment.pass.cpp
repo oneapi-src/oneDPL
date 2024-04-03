@@ -135,7 +135,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 =
             oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
         check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, zero);
@@ -147,7 +146,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 =
             oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first, init);
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
         check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init);
@@ -160,7 +158,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
                                                            val_res_first, init, BinaryPredicate());
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
         check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init, BinaryPredicate());
@@ -172,7 +169,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first,
                                                            val_res_first, init, BinaryPredicate(), BinaryOperation());
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
         check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init, BinaryPredicate(),

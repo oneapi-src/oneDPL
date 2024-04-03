@@ -59,12 +59,10 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
                     host_keys.update_data();
 
                     dpl::sort(exec, permItBegin, permItEnd);
-                    wait_and_throw(exec);
 
                     // Copy data back
                     std::vector<TestValueType> resultTest(testing_n);
                     dpl::copy(exec, permItBegin, permItEnd, resultTest.begin());
-                    wait_and_throw(exec);
 
                     // Check results
                     check_results(resultTest.begin(), resultTest.end());

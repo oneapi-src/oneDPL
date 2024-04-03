@@ -73,17 +73,14 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
                     host_vals.update_data();
 
                     auto itResultEnd = dpl::transform(exec, permItBegin, permItEnd, first2, TransformOp{});
-                    wait_and_throw(exec);
 
                     const auto resultSize = itResultEnd - first2;
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
                     dpl::copy(exec1, permItBegin, permItEnd, sourceData.begin());
-                    wait_and_throw(exec1);
                     std::vector<TestValueType> transformedDataResult(testing_n);
                     dpl::copy(exec2, first2, itResultEnd, transformedDataResult.begin());
-                    wait_and_throw(exec2);
 
                     // Check results
                     std::vector<TestValueType> transformedDataExpected(testing_n);

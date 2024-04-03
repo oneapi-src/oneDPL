@@ -39,7 +39,6 @@ DEFINE_TEST(test_adjacent_find)
         // check with no adjacent equal elements
         Iterator result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         Iterator expected = last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #1 no elements)");
 #if _ONEDPL_DEBUG_SYCL
@@ -56,7 +55,6 @@ DEFINE_TEST(test_adjacent_find)
         }
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         expected = max_dis > 1 ? last - 2 : last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #2 the last element)");
 #if _ONEDPL_DEBUG_SYCL
@@ -75,7 +73,6 @@ DEFINE_TEST(test_adjacent_find)
         }
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         expected = max_dis > 1 ? it - 1 : last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #3 middle element)");
 #if _ONEDPL_DEBUG_SYCL
@@ -85,7 +82,6 @@ DEFINE_TEST(test_adjacent_find)
 
         // check with an adjacent element (no predicate)
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #4 middle element (no predicate))");
 #if _ONEDPL_DEBUG_SYCL
@@ -102,7 +98,6 @@ DEFINE_TEST(test_adjacent_find)
         }
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         expected = max_dis > 1 ? first : last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #5 the first element)");
 #if _ONEDPL_DEBUG_SYCL
@@ -134,7 +129,6 @@ DEFINE_TEST(test_is_sorted_until)
         // check sorted
         Iterator result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         Iterator expected = last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected, "wrong effect from is_sorted_until (Test #1 sorted sequence)");
 #if _ONEDPL_DEBUG_SYCL
@@ -151,7 +145,6 @@ DEFINE_TEST(test_is_sorted_until)
         }
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, comp);
         expected = max_dis > 1 ? last - 1 : last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #2 unsorted sequence - the last element)");
@@ -171,7 +164,6 @@ DEFINE_TEST(test_is_sorted_until)
         }
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last, comp);
         expected = it;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #3 unsorted sequence - the middle element)");
@@ -182,7 +174,6 @@ DEFINE_TEST(test_is_sorted_until)
 
         // check unsorted: the middle element (no predicate)
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
-        wait_and_throw(exec);
 
         EXPECT_TRUE(
             result == expected,
@@ -200,7 +191,6 @@ DEFINE_TEST(test_is_sorted_until)
         }
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, comp);
         expected = n > 1 ? first + 1 : last;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #5 unsorted sequence - the first element)");
@@ -233,7 +223,6 @@ DEFINE_TEST(test_is_sorted)
         // check sorted
         bool result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         bool expected_bool = true;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result_bool == expected_bool, "wrong effect from is_sorted (Test #1 sorted sequence)");
 #if _ONEDPL_DEBUG_SYCL
@@ -250,7 +239,6 @@ DEFINE_TEST(test_is_sorted)
         }
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #2 unsorted sequence - the last element)");
@@ -268,7 +256,6 @@ DEFINE_TEST(test_is_sorted)
         }
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #3 unsorted sequence - the middle element)");
@@ -279,7 +266,6 @@ DEFINE_TEST(test_is_sorted)
 
         // check unsorted: the middle element (no predicate)
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #4 unsorted sequence - the middle element (no predicate))");
@@ -297,7 +283,6 @@ DEFINE_TEST(test_is_sorted)
         }
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
-        wait_and_throw(exec);
 
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted Test #5 unsorted sequence - the first element");
@@ -328,48 +313,40 @@ DEFINE_TEST(test_any_all_none_of)
         {
             auto res0 = ::std::any_of(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1,
                                       [n](T1 x) { return x == n - 1; });
-            wait_and_throw(exec);
 
             EXPECT_TRUE(!res0, "wrong effect from any_of_0");
             res0 = ::std::none_of(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, first1,
                                   [](T1 x) { return x == -1; });
-            wait_and_throw(exec);
 
             EXPECT_TRUE(res0, "wrong effect from none_of_0");
             res0 = ::std::all_of(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, first1,
                                  [](T1 x) { return x % 2 == 0; });
-            wait_and_throw(exec);
 
             EXPECT_TRUE(res0, "wrong effect from all_of_0");
         }
         // any_of
         auto res1 = ::std::any_of(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1,
                                   [n](T1 x) { return x == n - 1; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res1, "wrong effect from any_of_1");
         auto res2 = ::std::any_of(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1,
                                   [](T1 x) { return x == -1; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(!res2, "wrong effect from any_of_2");
         auto res3 = ::std::any_of(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1,
                                   [](T1 x) { return x % 2 == 0; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res3, "wrong effect from any_of_3");
 
         //none_of
         auto res4 = ::std::none_of(make_new_policy<new_kernel_name<Policy, 6>>(exec), first1, last1,
                                    [](T1 x) { return x == -1; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res4, "wrong effect from none_of");
 
         //all_of
         auto res5 = ::std::all_of(make_new_policy<new_kernel_name<Policy, 7>>(exec), first1, last1,
                                   [](T1 x) { return x % 2 == 0; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(n == 1 || !res5, "wrong effect from all_of");
     }
@@ -395,36 +372,30 @@ DEFINE_TEST(test_find_if)
         {
             auto res0 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1,
                                        [n](T1 x) { return x == n - 1; });
-            wait_and_throw(exec);
 
             EXPECT_TRUE(res0 == first1, "wrong effect from find_if_0");
             res0 = ::std::find(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, first1, T1(1));
-            wait_and_throw(exec);
 
             EXPECT_TRUE(res0 == first1, "wrong effect from find_0");
         }
         // find_if
         auto res1 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1,
                                    [n](T1 x) { return x == n - 1; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE((res1 - first1) == n - 1, "wrong effect from find_if_1");
 
         auto res2 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1,
                                    [](T1 x) { return x == -1; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res2 == last1, "wrong effect from find_if_2");
 
         auto res3 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1,
                                    [](T1 x) { return x % 2 == 0; });
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res3 == first1, "wrong effect from find_if_3");
 
         //find
         auto res4 = ::std::find(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, T1(-1));
-        wait_and_throw(exec);
 
         EXPECT_TRUE(res4 == last1, "wrong effect from find");
     }
@@ -452,8 +423,6 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, n - start, T(11));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res - first == start, "wrong effect from search_1");
         }
         // Search for sequence in the middle
@@ -465,15 +434,11 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, end - start, T(22));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res - first == start, "wrong effect from search_20");
 
             // Search for sequence of lesser size
             res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last,
                                 ::std::max(end - start - 1, (size_t)1), T(22));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res - first == start, "wrong effect from search_21");
         }
         // Search for sequence at the beginning
@@ -484,8 +449,6 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last, end, T(33));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first, "wrong effect from search_3");
         }
         // Search for sequence that covers the whole range
@@ -494,29 +457,21 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, n, T(44));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first, "wrong effect from search_4");
         }
         // Search for sequence which is not there
         {
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 5>>(exec), first, last, 2, T(55));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last, "wrong effect from search_50");
 
             // Sequence is there but of lesser size(see search_n_3)
             res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 6>>(exec), first, last, (n / 3 + 1), T(33));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last, "wrong effect from search_51");
         }
 
         // empty sequence case
         {
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 7>>(exec), first, first, 1, T(5 + n - 1));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first, "wrong effect from search_6");
         }
         // 2 distinct sequences, must find the first one
@@ -533,9 +488,7 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 8>>(exec), first, last,
-                                     ::std::min(end1 - start1, end2 - start2), T(66));
-            wait_and_throw(exec);
-
+                                       ::std::min(end1 - start1, end2 - start2), T(66));
             EXPECT_TRUE(res - first == start1, "wrong effect from search_7");
         }
 
@@ -548,8 +501,6 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 9>>(exec), first + 1, last, seq_len, T(77));
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last, "wrong effect from search_8");
         }
     }
@@ -573,13 +524,9 @@ DEFINE_TEST(test_is_heap)
 
         auto actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
         // True only when n == 1
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == (n == 1), "wrong result of is_heap_11");
 
         actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, first);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == true, "wrong result of is_heap_12");
 
         if (n <= 5)
@@ -590,14 +537,10 @@ DEFINE_TEST(test_is_heap)
         host_keys.update_data();
 
         actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == false, "wrong result of is_heap_21");
 
         auto end = first + n / 2;
         actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, end);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == true, "wrong result of is_heap_22");
 
         host_keys.retrieve_data();
@@ -605,8 +548,6 @@ DEFINE_TEST(test_is_heap)
         host_keys.update_data();
 
         actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == true, "wrong result of is_heap_3");
     }
 };
@@ -628,8 +569,6 @@ DEFINE_TEST(test_is_heap_until)
         host_keys.update_data();
 
         auto actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
-        wait_and_throw(exec);
-
         // first element is always a heap
         EXPECT_TRUE(actual == first + 1, "wrong result of is_heap_until_1");
 
@@ -641,8 +580,6 @@ DEFINE_TEST(test_is_heap_until)
         host_keys.update_data();
 
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == (first + n / 2), "wrong result of is_heap_until_2");
 
         host_keys.retrieve_data();
@@ -650,8 +587,6 @@ DEFINE_TEST(test_is_heap_until)
         host_keys.update_data();
 
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(actual == last, "wrong result of is_heap_until_3");
     }
 };
@@ -681,13 +616,9 @@ DEFINE_TEST(test_equal)
         auto expected  = new_end - new_start > 0;
         auto result = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + new_start,
                                    first1 + new_end, first2 + new_start);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(expected == result, "wrong effect from equal with 3 iterators");
         result = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1 + new_start, first1 + new_end,
                               first2 + new_start, first2 + new_end);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(expected == result, "wrong effect from equal with 4 iterators");
     }
 };
@@ -716,16 +647,12 @@ DEFINE_TEST(test_find_first_of)
 
             auto res =
                 ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first1, "Wrong effect from find_first_of_1");
         }
         else if (n >= 2 && n < 10)
         {
             auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1,
                                             first2, first2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_2");
 
             // No matches
@@ -733,8 +660,6 @@ DEFINE_TEST(test_find_first_of)
             host_vals.update_data();
 
             res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_3");
         }
         else if (n >= 10)
@@ -750,8 +675,6 @@ DEFINE_TEST(test_find_first_of)
             host_keys.update_data();
 
             auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first1 + pos2, "Wrong effect from find_first_of_4");
 
             // Add second match
@@ -759,8 +682,6 @@ DEFINE_TEST(test_find_first_of)
             host_keys.update_data();
 
             res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first1 + pos1, "Wrong effect from find_first_of_5");
         }
     }
@@ -787,12 +708,8 @@ DEFINE_TEST(test_search)
         if (n == 1)
         {
             auto res0 = ::std::search(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res0 == first1, "wrong effect from search_00");
             res0 = ::std::search(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, first2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res0 == first1, "wrong effect from search_01");
         }
         auto res1 = ::std::search(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
@@ -801,14 +718,10 @@ DEFINE_TEST(test_search)
         {
             // first n-10 elements of the subsequence are at the beginning of first sequence
             auto res2 = ::std::search(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2 + 10, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res2 - first1 == 5, "wrong effect from search_2");
         }
         // subsequence consists of one element (last one)
         auto res3 = ::std::search(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, last1 - 1, last1);
-        wait_and_throw(exec);
-
         EXPECT_TRUE(last1 - res3 == 1, "wrong effect from search_3");
 
         // first sequence contains 2 almost similar parts
@@ -818,8 +731,6 @@ DEFINE_TEST(test_search)
             host_keys.update_data();
 
             auto res4 = ::std::search(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, first2 + 5, first2 + 6);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res4 == first1, "wrong effect from search_4");
         }
     }
@@ -846,12 +757,8 @@ DEFINE_TEST(test_mismatch)
         if (n == 1)
         {
             auto res0 = ::std::mismatch(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res0.first == first1 && res0.second == first2, "wrong effect from mismatch_00");
             res0 = ::std::mismatch(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, first2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res0.first == first1 && res0.second == first2, "wrong effect from mismatch_01");
         }
         auto res1 = ::std::mismatch(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
@@ -860,8 +767,6 @@ DEFINE_TEST(test_mismatch)
         {
             // first n-10 elements of the subsequence are at the beginning of first sequence
             auto res2 = ::std::mismatch(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2 + 5, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res2.first == last1 - 5 && res2.second == last2, "wrong effect from mismatch_2");
         }
     }
@@ -893,8 +798,6 @@ DEFINE_TEST(test_find_end)
 
             // Empty subsequence
             auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last1, "Wrong effect from find_end_1");
 
             return;
@@ -909,8 +812,6 @@ DEFINE_TEST(test_find_end)
 
             // No subsequence
             auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, first2 + n / 2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == last1, "Wrong effect from find_end_2");
 
             // Whole sequence is matched
@@ -918,8 +819,6 @@ DEFINE_TEST(test_find_end)
             host_keys.update_data();
 
             res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
-            wait_and_throw(exec);
-
             EXPECT_TRUE(res == first1, "Wrong effect from find_end_3");
 
             return;
@@ -939,8 +838,6 @@ DEFINE_TEST(test_find_end)
 
                 auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2,
                                            first2 + n / 5);
-                wait_and_throw(exec);
-
                 EXPECT_TRUE(res == first1, "Wrong effect from find_end_4");
             }
 
@@ -954,8 +851,6 @@ DEFINE_TEST(test_find_end)
 
                 auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, first2,
                                            first2 + n / 5);
-                wait_and_throw(exec);
-
                 EXPECT_TRUE(res == first1 + 2 * n / 5, "Wrong effect from find_end_5");
             }
 
@@ -968,8 +863,6 @@ DEFINE_TEST(test_find_end)
 
                 auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, first2,
                                            first2 + n / 5);
-                wait_and_throw(exec);
-
                 EXPECT_TRUE(res == first1 + 4 * n / 5, "Wrong effect from find_end_6");
             }
         }

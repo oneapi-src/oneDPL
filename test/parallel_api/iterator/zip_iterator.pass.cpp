@@ -130,9 +130,6 @@ DEFINE_TEST(test_for_each)
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                       TuplePredicate<decltype(f), 0>{f});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1), "wrong effect from for_each(tuple)");
     }
@@ -174,9 +171,6 @@ DEFINE_TEST(test_for_each_structured_binding)
                             f(x);
                             f(y);
                         });
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 2), "wrong effect from for_each(tuple)");
     }
@@ -210,9 +204,6 @@ DEFINE_TEST(test_transform_reduce_unary)
 
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                                 ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
     }
 };
 
@@ -241,11 +232,8 @@ DEFINE_TEST(test_transform_reduce_binary)
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (reduce_binary) not properly copyable");
         }
 
-        ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
-                                  tuple_last1, tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
+        ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
+                                tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
     }
 };
 
@@ -286,9 +274,6 @@ DEFINE_TEST(test_min_element)
         auto tuple_result =
             ::std::min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
                              TuplePredicate<::std::less<IteratorValueType>, 0>{::std::less<IteratorValueType>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         auto expected_min = ::std::min_element(host_keys.get(), host_keys.get() + n);
 
         EXPECT_TRUE((tuple_result - tuple_first) == (expected_min - host_keys.get()),
@@ -328,10 +313,6 @@ DEFINE_TEST(test_count_if)
 
         auto result = ::std::count_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
                                     TuplePredicate<decltype(comp), 0>{comp});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
-
         EXPECT_TRUE(result == expected, "wrong effect from count_if(tuple)");
     }
 };
@@ -367,9 +348,6 @@ DEFINE_TEST(test_equal)
 
         bool is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                    TuplePredicate<::std::equal_to<T>, 0>{::std::equal_to<T>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         EXPECT_TRUE(is_equal, "wrong effect from equal(tuple) 1");
 
         host_vals.retrieve_data();
@@ -378,9 +356,6 @@ DEFINE_TEST(test_equal)
 
         is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1, tuple_first2,
                               TuplePredicate<::std::equal_to<T>, 0>{::std::equal_to<T>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         EXPECT_TRUE(!is_equal, "wrong effect from equal(tuple) 2");
     }
 };
@@ -432,9 +407,6 @@ DEFINE_TEST(test_equal_structured_binding)
 
         bool is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                      compare);
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         EXPECT_TRUE(is_equal, "wrong effect from equal(tuple with use of structured binding) 1");
 
         host_vals.retrieve_data();
@@ -477,30 +449,20 @@ DEFINE_TEST(test_find_if)
         auto f_for_first = [](T1 x) { return x % 2 == 0; };
 
         auto tuple_res1 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
-                                       TuplePredicate<decltype(f_for_last), 0>{f_for_last});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
+                                         TuplePredicate<decltype(f_for_last), 0>{f_for_last});
         EXPECT_TRUE((tuple_res1 - tuple_first1) == n - 1, "wrong effect from find_if_1 (tuple)");
+
         auto tuple_res2 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1,
-                                       TuplePredicate<decltype(f_for_none), 0>{f_for_none});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
+                                         TuplePredicate<decltype(f_for_none), 0>{f_for_none});
         EXPECT_TRUE(tuple_res2 == tuple_last1, "wrong effect from find_if_2 (tuple)");
+
         auto tuple_res3 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 2>>(exec), tuple_first1, tuple_last1,
-                                       TuplePredicate<decltype(f_for_first), 0>{f_for_first});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
+                                         TuplePredicate<decltype(f_for_first), 0>{f_for_first});
         EXPECT_TRUE(tuple_res3 == tuple_first1, "wrong effect from find_if_3 (tuple)");
 
         // current test doesn't work with zip iterators
         auto tuple_res4 = ::std::find(make_new_policy<new_kernel_name<Policy, 3>>(exec), tuple_first1, tuple_last1,
                                     ::std::make_tuple(T1{-1}, T1{-1}));
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         EXPECT_TRUE(tuple_res4 == tuple_last1, "wrong effect from find (tuple)");
     }
 };
@@ -537,9 +499,6 @@ DEFINE_TEST(test_transform_inclusive_scan)
         auto res = ::std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
                                                    tuple_last1, tuple_first2, TupleNoOp{}, TupleNoOp{},
                                                    ::std::make_tuple(value, value));
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         EXPECT_TRUE(res == tuple_last2, "wrong effect from inclusive_scan(tuple)");
     }
 };
@@ -575,9 +534,6 @@ DEFINE_TEST(test_unique)
         auto tuple_lastnew =
             ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                         TuplePredicate<::std::equal_to<Iterator1ValueType>, 0>{::std::equal_to<Iterator1ValueType>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
 
         bool is_correct = (tuple_lastnew - tuple_first1) == expected_size;
         host_keys.retrieve_data();
@@ -624,9 +580,6 @@ DEFINE_TEST(test_unique_copy)
         auto tuple_last2 = ::std::unique_copy(
             make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
             TuplePredicate<::std::equal_to<Iterator1ValueType>, 0>{::std::equal_to<Iterator1ValueType>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
 
         bool is_correct = (tuple_last2 - tuple_first2) == expected_size;
         host_vals.retrieve_data();
@@ -690,9 +643,6 @@ DEFINE_TEST(test_merge)
 
         auto tuple_last3 = ::std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                       tuple_last2, tuple_first3, TuplePredicate<::std::less<T2>, 0>{::std::less<T2>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
 
         size_t res_size = tuple_last3 - tuple_first3;
         TestDataTransfer<UDTKind::eRes, Size> host_res_merge(*this, res_size);
@@ -743,9 +693,6 @@ DEFINE_TEST(test_stable_sort)
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
                          TuplePredicate<::std::greater<T>, 0>{::std::greater<T>{}});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
 
         retrieve_data(host_keys, host_vals);
         EXPECT_TRUE(::std::is_sorted(host_keys.get(), host_keys.get() + n, ::std::greater<T>()),
@@ -799,9 +746,6 @@ DEFINE_TEST(test_lexicographical_compare)
         bool is_less_res =
             ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                                            tuple_first2, tuple_last2, TuplePredicate<decltype(comp), 0>{comp});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
 
         if (is_less_res != is_less_exp)
             ::std::cout << "N=" << n << ": got " << is_less_res << ", expected " << is_less_exp << ::std::endl;
@@ -861,9 +805,6 @@ DEFINE_TEST(test_counting_zip_transform)
                                                                     return ::std::forward_as_tuple(x1, ::std::ignore);
                                                                 }),
                            Assigner{});
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         host_vals.retrieve_data();
         EXPECT_TRUE(res.base() - first2 == 2, "Incorrect number of elements");
         EXPECT_TRUE(*host_vals.get() == n / 3, "Incorrect 1st element");
@@ -908,9 +849,6 @@ DEFINE_TEST(test_counting_zip_discard)
 
         auto res = ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n, out, Assigner{});
 
-#if _PSTL_SYCL_TEST_USM
-        exec.queue().wait_and_throw();
-#endif
         host_vals.retrieve_data();
         EXPECT_TRUE(res - out == 2, "Incorrect number of elements");
         EXPECT_TRUE(*host_vals.get() == n / 3, "Incorrect 1st element");

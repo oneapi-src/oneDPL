@@ -59,12 +59,10 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
                     for (::std::size_t p = 0; p < testing_n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
                     {
                         dpl::partial_sort(exec, permItBegin, permItBegin + p, permItEnd);
-                        wait_and_throw(exec);
 
                         // Copy data back
                         std::vector<TestValueType> partialSortResult(p);
                         dpl::copy(exec, permItBegin, permItBegin + p, partialSortResult.begin());
-                        wait_and_throw(exec);
 
                         // Check results
                         check_results(partialSortResult.begin(), partialSortResult.end());

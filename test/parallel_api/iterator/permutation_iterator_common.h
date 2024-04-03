@@ -49,18 +49,6 @@ using namespace TestUtils;
 // | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            |     +       |       +       |
 // +------------------------+-----------------------+-----------+--------------------------------------+-------------+---------------+
 
-template <typename ExecutionPolicy>
-void
-wait_and_throw(ExecutionPolicy&& exec)
-{
-#if TEST_DPCPP_BACKEND_PRESENT
-    if constexpr (oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>::value)
-    {
-        exec.queue().wait_and_throw();
-    }
-#endif // _PSTL_SYCL_TEST_USM
-}
-
 // DEFINE_TEST_PERM_IT should be used to declare permutation iterator tests
 #define DEFINE_TEST_PERM_IT(TestClassName, TemplateParams)                                                             \
     template <typename TestValueType, typename TemplateParams>                                                         \

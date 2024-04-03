@@ -52,19 +52,16 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
                     // Copy source data back
                     std::vector<TestValueType> sourceData(testing_n);
                     dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
-                    wait_and_throw(exec);
 
                     const auto op = [](TestValueType val) { return val > 0; };
 
                     auto itEndNewRes = dpl::remove_if(exec, permItBegin, permItEnd, op);
-                    wait_and_throw(exec);
 
                     const auto newSizeResult = itEndNewRes - permItBegin;
 
                     // Copy modified data back
                     std::vector<TestValueType> resultRemoveIf(newSizeResult);
                     dpl::copy(exec, permItBegin, itEndNewRes, resultRemoveIf.begin());
-                    wait_and_throw(exec);
 
                     // Eval expected result
                     auto expectedRemoveIf = sourceData;

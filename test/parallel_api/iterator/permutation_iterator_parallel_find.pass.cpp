@@ -53,17 +53,13 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
                         // Get value to find: the second value
                         TestValueType valueToFind{};
                         dpl::copy(exec, permItBegin + 1, permItBegin + 2, &valueToFind);
-                        wait_and_throw(exec);
 
                         const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind);
-                        wait_and_throw(exec);
-
                         EXPECT_TRUE(result != permItEnd, "Wrong result of dpl::find");
 
                         // Copy data back
                         TestValueType foundedVal{};
                         dpl::copy(exec, result, result + 1, &foundedVal);
-                        wait_and_throw(exec);
                         EXPECT_EQ(foundedVal, valueToFind, "Incorrect value was found in dpl::find");
                     }
                 });

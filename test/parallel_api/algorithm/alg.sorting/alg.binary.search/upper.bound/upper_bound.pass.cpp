@@ -74,7 +74,6 @@ DEFINE_TEST(test_upper_bound)
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::upper_bound(new_policy, first, last, value_first, value_last, result_first);
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_res);
         check_and_clean(host_res.get(), host_vals.get(), n);
@@ -84,7 +83,6 @@ DEFINE_TEST(test_upper_bound)
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::upper_bound(new_policy2, first, last, value_first, value_last, result_first,
                                              [](ValueT first, ValueT second) { return first < second; });
-        exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_res);
         check_and_clean(host_res.get(), host_vals.get(), n);

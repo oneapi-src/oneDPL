@@ -49,12 +49,10 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
 
                     const auto result = dpl::transform_reduce(exec, permItBegin, permItEnd, TestValueType{},
                                                               ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
-                    wait_and_throw(exec);
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
                     dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
-                    wait_and_throw(exec);
 
                     const auto expected =
                         TestUtils::transform_reduce_serial(sourceData.begin(), sourceData.end(), TestValueType{},

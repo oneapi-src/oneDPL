@@ -65,12 +65,10 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                     //ensure list is sorted (not necessarily true after permutation)
                     dpl::sort(exec1, permItBegin1, permItEnd1);
-                    wait_and_throw(exec1);
 
                     // Copy data back
                     std::vector<TestValueType> srcData1(testing_n1);
                     dpl::copy(exec1, permItBegin1, permItEnd1, srcData1.begin());
-                    wait_and_throw(exec1);
 
                     test_through_permutation_iterator<Iterator2, Size, PermItIndexTag>{first2, n}(
                         [&](auto permItBegin2, auto permItEnd2)
@@ -79,20 +77,16 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             //ensure list is sorted (not necessarily true after permutation)
                             dpl::sort(exec2, permItBegin2, permItEnd2);
-                            wait_and_throw(exec2);
 
                             const auto resultEnd = dpl::merge(exec, permItBegin1, permItEnd1, permItBegin2, permItEnd2, first3);
-                            wait_and_throw(exec);
                             const auto resultSize = resultEnd - first3;
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
                             dpl::copy(exec2, permItBegin2, permItEnd2, srcData2.begin());
-                            wait_and_throw(exec2);
 
                             std::vector<TestValueType> mergedDataResult(resultSize);
                             dpl::copy(exec3, first3, resultEnd, mergedDataResult.begin());
-                            wait_and_throw(exec3);
 
                             // Check results
                             std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);

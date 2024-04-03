@@ -47,15 +47,6 @@ struct Plus
 
 using namespace oneapi::dpl::execution;
 
-template <typename Policy>
-void
-wait_and_throw(Policy&& exec)
-{
-#if _PSTL_SYCL_TEST_USM
-    exec.queue().wait_and_throw();
-#endif // _PSTL_SYCL_TEST_USM
-}
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #endif // _TEST_SYCL_ITERATOR_PASS_H
