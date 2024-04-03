@@ -87,7 +87,8 @@ struct test
                 static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), f, proj))>, "Wrong return type");
 
             auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
-            EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name()).c_str());
+            EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
+                typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
         }
 
         //check result
@@ -359,7 +360,7 @@ using  usm_span = usm_subrange_impl<std::span<int>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<TestDataMode TestDataMode = data_in, bool RetTypeCheck = true>
+template<TestDataMode TestDataMode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = true>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto f, auto proj)
@@ -373,7 +374,8 @@ struct test_range_algo
             return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
         };
 
-        test<host_vector, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, std::identity{}, forward_view);
+        if constexpr(ForwardRangeCheck)
+            test<host_vector, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, std::identity{}, forward_view);
 
         test<host_vector, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, std::identity{}, subrange_view);
         test<host_vector, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, std::identity{}, span_view);
@@ -381,7 +383,7 @@ struct test_range_algo
         test<host_subrange, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, f, proj, std::views::all);
         test<host_span, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker,  f, proj, std::views::all);
 
-#if _ONEDPL_HETERO_BACKEND
+#if 1//_ONEDPL_HETERO_BACKEND
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj);
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj, oneapi::dpl::views::all);
         test<usm_vector, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, f, proj, subrange_view);
@@ -404,7 +406,6 @@ auto f = [](auto&& val) { return val * val; };
 auto proj = [](auto&& val){ return val * 2; };
 auto pred = [](auto&& val) { return val == 5; };
 auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
-auto comp = [](auto&& val1, auto&& val2) { return std::less<void>{}(val1, val2); };
 
 }; //namespace test_std_ranges
 
