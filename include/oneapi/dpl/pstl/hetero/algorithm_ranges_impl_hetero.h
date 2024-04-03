@@ -700,6 +700,19 @@ __pattern_sort(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __
             .wait();
 }
 
+#if _ONEDPL___cplusplus >= 202002L
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_sort2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    oneapi::dpl::__internal::__ranges::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all(std::forward<_R>(__r)), __comp, __proj);
+
+    return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __r.size());
+}
+
+#endif //_ONEDPL___cplusplus >= 202002L
+
 //------------------------------------------------------------------------
 // min_element
 //------------------------------------------------------------------------
@@ -739,6 +752,21 @@ __pattern_min_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Ran
     using ::std::get;
     return get<0>(__ret_idx);
 }
+
+#if _ONEDPL___cplusplus >= 202002L
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    auto __idx = oneapi::dpl::__internal::__ranges::__pattern_min_element(__tag, std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(std::forward<_R>(__r)), __comp_2);
+
+    return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
+}
+
+#endif //_ONEDPL___cplusplus >= 202002L
 
 //------------------------------------------------------------------------
 // minmax_element
