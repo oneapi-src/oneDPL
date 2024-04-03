@@ -61,15 +61,15 @@ using __has_known_identity = ::std::conditional_t<
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
-#    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
+#    else               //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
-#    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
-    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
+#    endif              //_ONEDPL_LIBSYCL_VERSION >= 50200
+    ::std::false_type>; // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
@@ -236,8 +236,8 @@ struct transform_reduce
                const _Acc&... __acc) const
     {
         using _Res = typename _AccLocal::value_type;
-        auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __local_idx = __item_id.get_local_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         if (__iters_per_work_item == 1)
         {
             __local_mem[__local_idx] = __unary_op(__global_idx, __acc...);
@@ -249,7 +249,7 @@ struct transform_reduce
 
         _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
         if constexpr (_Commutative{})
-            __stride = __local_range * _VecSize; // coalesced loads with _VecSize-wide vectors
+            __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
         _Size __adjusted_global_id = __global_offset;
         if constexpr (_Commutative{})
         {
@@ -261,9 +261,19 @@ struct transform_reduce
 
         // If n is not evenly divisible by the number of elements processed per work-group, the last work-group might
         // need to process less elements than __iters_per_work_item.
-        const bool __is_last_wg = (__n_groups > 1) && (static_cast<_Size>(__item_id.get_group(0)) != __n_groups - 1);
+        bool __is_full_wg = __is_full;
+        if (!__is_full_wg)
+        {
+            const bool __is_multi_group = __n_groups > 1;
+            if (__is_multi_group)
+            {
+                const bool __is_last_wg = static_cast<_Size>(__item_id.get_group(0)) == __n_groups - (_Size)1;
+                if (!__is_last_wg)
+                    __is_full_wg = true;
+            }
+        }
         // _VecSize-wide vectorized path (__iters_per_work_item are multiples of _VecSize)
-        if (__is_full || __is_last_wg)
+        if (__is_full_wg)
         {
             _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
@@ -272,22 +282,23 @@ struct transform_reduce
             return;
         }
         // At least one vector operation
-        if (__adjusted_global_id + _VecSize - 1 < __adjusted_n)
+        constexpr _Size __vec_size_minus_one = static_cast<_Size>(_VecSize - 1);
+        if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
         {
             _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
             {
-                if (__adjusted_global_id + __i * __stride + _VecSize - 1 < __adjusted_n)
-                    vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
-                else if (__adjusted_global_id + __i * __stride < __adjusted_n)
+                const _Size __base_idx = __adjusted_global_id + __i * __stride;
+                if (__base_idx + __vec_size_minus_one < __adjusted_n)
+                    vectorized_reduction_remainder(__base_idx, __res, __acc...);
+                else if (__base_idx < __adjusted_n)
                 {
-                    for (_Size __idx = 0; __idx < _VecSize - 1; ++__idx)
+                    for (_Size __idx = 0; __idx < __vec_size_minus_one; ++__idx)
                     {
-                        if (__adjusted_global_id + __i * __stride + __idx < __adjusted_n)
-                            __res =
-                                __binary_op(__res, __unary_op(__adjusted_global_id + __i * __stride + __idx, __acc...));
+                        if (__base_idx + __idx >= __adjusted_n)
+                            break;
+                        __res = __binary_op(__res, __unary_op(__base_idx + __idx, __acc...));
                     }
-                    break;
                 }
                 else
                     break;
@@ -299,11 +310,12 @@ struct transform_reduce
         if (__adjusted_global_id < __adjusted_n)
         {
             _Res __res = __unary_op(__adjusted_global_id, __acc...);
-            for (_Size __i = 1; __i < _VecSize - 1; ++__i)
+            for (_Size __i = 1; __i < __vec_size_minus_one; ++__i)
             {
-                if (__adjusted_global_id + __i >= __adjusted_n)
+                const _Size __base_idx = __adjusted_global_id + __i;
+                if (__base_idx >= __adjusted_n)
                     break;
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+                __res = __binary_op(__res, __unary_op(__base_idx, __acc...));
             }
             __local_mem[__local_idx] = __res;
             return;
