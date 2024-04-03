@@ -457,6 +457,80 @@ __pattern_is_sorted(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
     else
         return std::ranges::is_sorted(std::forward<_R>(__r), __comp, __proj);
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_sort
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    using _InputType  = std::ranges::range_value_t<_R>;
+    oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
+        std::ranges::begin(__r) + __r.size(), __comp_2, typename std::is_move_constructible<_InputType>::type{});
+
+    return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + __r.size());
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_sort2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_sort2(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
+                                     __proj);
+    else
+        return std::ranges::stable_sort(std::forward<_R>(__r), __comp, __proj);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_min_element
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_min_element_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+
+    auto __res = oneapi::dpl::__internal::__pattern_min_element(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
+        std::ranges::begin(__r) + __r.size(), __comp_2);
+
+    return std::ranges::borrowed_iterator_t<_R>(__res);
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_min_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    return __pattern_min_element_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+auto
+__pattern_min_element(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+{
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_min_element_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
+                                     __proj);
+    else
+        return std::ranges::min_element(std::forward<_R>(__r), __comp, __proj);
+}
+
 } // namespace __ranges
 } // namespace __internal
 } // namespace dpl
