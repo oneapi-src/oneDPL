@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "sycl_iterator.h"
 #include "sycl_defs.h"
 
 namespace oneapi
@@ -45,35 +46,6 @@ __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 
     return {__buf, sycl::range<1>(__n_acc), __offset};
 }
-
-// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
-// std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
-// default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
-// could be confused with a usm allocator.
-template <typename Iter, typename Void = void>
-struct __vector_iter_distinguishes_by_allocator : std::false_type
-{
-};
-
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
-using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
-
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
-using __usm_shared_alloc_vec_iter =
-    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
-
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
-using __usm_host_alloc_vec_iter =
-    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
-
-template <typename Iter>
-struct __vector_iter_distinguishes_by_allocator<
-    Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
-                             !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
-                             !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
-    : std::true_type
-{
-};
 
 } // namespace __internal
 
@@ -238,12 +210,7 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 
 //support std::vector::iterator with usm host / shared allocator as passed directly
 template <class Iter>
-struct is_passed_directly<
-    Iter,
-    std::enable_if_t<oneapi::dpl::__ranges::__internal::__vector_iter_distinguishes_by_allocator<Iter>::value &&
-                       (std::is_same_v<Iter, oneapi::dpl::__ranges::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
-                        std::is_same_v<Iter, oneapi::dpl::__ranges::__internal::__usm_host_alloc_vec_iter<Iter>>)>>
-    : std::true_type
+struct is_passed_directly<Iter, std::enable_if_t<oneapi::dpl::is_usm_allocator_vector_iterator<Iter>>> : std::true_type
 {
 };
 
