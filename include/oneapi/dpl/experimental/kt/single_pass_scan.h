@@ -340,11 +340,11 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
 
     // Avoid non_uniform n by padding up to a multiple of workgroup_size
-    ::std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    ::std::size_t __elems_in_tile = __workgroup_size * __data_per_workitem;
     ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
 
     constexpr int __status_flag_padding = SUBGROUP_SIZE;
-    ::std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
+    ::std::size_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
     ::std::size_t __status_flags_size_mem_size = __status_flags_size * sizeof(_FlagStorageType) + (__status_flags_size * sizeof(_Type))*2;
     ::std::size_t __status_vals_full_offset = __status_flags_size * sizeof(_FlagStorageType);
