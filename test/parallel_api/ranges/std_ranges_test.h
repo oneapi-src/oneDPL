@@ -483,7 +483,6 @@ auto f = [](auto&& val) { return val * val; };
 auto proj = [](auto&& val){ return val * 2; };
 auto pred = [](auto&& val) { return val == 5; };
 auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
-auto comp = [](auto&& val1, auto&& val2) { return std::less<void>{}(val1, val2); };
 
 }; //namespace test_std_ranges
 

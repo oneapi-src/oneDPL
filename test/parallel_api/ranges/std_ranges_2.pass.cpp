@@ -25,8 +25,23 @@ main()
     test_range_algo{}(oneapi::dpl::ranges::count_if, std::ranges::count_if, pred, proj);
     test_range_algo{}(oneapi::dpl::ranges::count, std::ranges::count, 4, proj);
 
-    test_range_algo{}(oneapi::dpl::ranges::is_sorted, std::ranges::is_sorted, comp, proj);
     test_range_algo<data_in_in>{}(oneapi::dpl::ranges::equal,  std::ranges::equal, pred_2, proj);
+
+    test_range_algo{}(oneapi::dpl::ranges::is_sorted, std::ranges::is_sorted, std::ranges::less{}, proj);
+    test_range_algo{}(oneapi::dpl::ranges::is_sorted, std::ranges::is_sorted, std::ranges::greater{}, proj);
+
+    test_range_algo<data_in, /*RetTypeCheck*/true, /*ForwardRangeCheck*/false> sort_algo_test{};
+
+    sort_algo_test(oneapi::dpl::ranges::sort, std::ranges::sort, std::ranges::less{}, proj);
+    sort_algo_test(oneapi::dpl::ranges::sort, std::ranges::sort, std::ranges::greater{}, proj);
+    sort_algo_test(oneapi::dpl::ranges::stable_sort, std::ranges::stable_sort, std::ranges::less{}, proj);
+    sort_algo_test(oneapi::dpl::ranges::stable_sort, std::ranges::stable_sort, std::ranges::greater{}, proj);
+
+    test_range_algo{}(oneapi::dpl::ranges::min_element, std::ranges::min_element, std::ranges::less{}, proj);
+    test_range_algo{}(oneapi::dpl::ranges::min_element, std::ranges::min_element, std::ranges::greater{}, proj);
+
+    test_range_algo{}(oneapi::dpl::ranges::max_element, std::ranges::max_element, std::ranges::less{}, proj);
+    test_range_algo{}(oneapi::dpl::ranges::max_element, std::ranges::max_element, std::ranges::greater{}, proj);
 
 #endif //_ENABLE_STD_RANGES_TESTING
 
