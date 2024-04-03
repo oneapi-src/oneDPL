@@ -81,7 +81,20 @@ the buffer were created for the same queue. For example:
     return 0;
   }
 
-Alternatively, use ``std::vector`` with a USM allocator. For example:
+Alternatively, use ``std::vector`` with a USM allocator.
+Note: The ability to appropriately detect USM allocated ``std::vector::iterator`` depends
+on details of the C++ standard library implementation and what information about the
+allocator is included in the ``std::vector::iterator`` type definition. You can check
+if your C++ standard library implementation provides enough information by checking the
+value of ``oneapi::dpl::usm_allocator_vector_iterators_supported_v``. This will evaluate
+to ``true`` for C++ standard library implementations which allow oneDPL to support this
+functionality and ``false`` otherwise. You can also specifically check an individual
+iterator using ``oneapi::dpl::is_usm_allocated_vector_iterator_v<Iter>`` with your
+specific iterator. If usm_allocators are not supported with your C++ standard library,
+they will still function as inputs to oneDPL, but they will be treated as if they were
+host-side ``std::vector::iterator`` as described in the section below.
+
+For example:
 
 .. code:: cpp
 
