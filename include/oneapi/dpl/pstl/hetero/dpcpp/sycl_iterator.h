@@ -234,10 +234,6 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
                                                                                     __dpl_sycl::__get_buffer_size(buf)};
 }
 
-template <typename ValueType>
-constexpr static bool usm_allocated_vector_iterators_supported_v =
-    oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<ValueType*>::value;
-
 } // namespace dpl
 } // namespace oneapi
 
