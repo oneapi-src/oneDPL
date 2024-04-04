@@ -84,10 +84,10 @@ the buffer were created for the same queue. For example:
 Alternatively, use ``std::vector`` with a USM allocator.
 Note: The ability to appropriately detect USM allocated ``std::vector::iterator`` depends
 on details of the C++ standard library implementation and what information about the
-allocator is included in the ``std::vector::iterator`` type definition. If usm_allocators
-are not supported with your C++ standard library, they will still function as inputs to
-oneDPL, but they will be treated as if they were host-side ``std::vector::iterator`` as
-described in the section below.
+allocator is included in the ``std::vector::iterator`` type definition. If USM allocated
+vector iterators are not detectable with your C++ standard library, they will still function
+as inputs to oneDPL, but they will be treated as if they were host-side 
+``std::vector::iterator`` as described in the section below.
 
 For example:
 
