@@ -90,7 +90,7 @@ vector iterators are not detectable with your C++ standard library, they will st
 as inputs to oneDPL, but they will be treated as if they were host-side 
 ``std::vector::iterator`` as described in the section below.
 
-For example:
+An example of ``std::vector`` with a USM allocator:
 
 .. code:: cpp
 
