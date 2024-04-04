@@ -211,8 +211,9 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 template <typename Iter>
 struct is_passed_directly<
     Iter, std::enable_if_t<(std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
-                            std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>)&&oneapi::
-                               dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>::value>> : std::true_type
+                            std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>) &&
+                           oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>::value>> :
+                                std::true_type
 {
 };
 
