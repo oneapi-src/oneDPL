@@ -78,13 +78,15 @@ class Reduce3;
 template <typename Name>
 class Reduce4;
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+::std::pair<OutputIterator1, OutputIterator2>
+reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
+    static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
+
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
     // keys for the values are equal to the adjacent key. This function's implementation is a derivative work
     // and responsible for the second copyright notice in this header.
@@ -112,7 +114,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
-    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(n + 1);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(policy, n + 1);
     auto mask = _mask.get();
     mask[0] = 1;
 
@@ -128,11 +130,11 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer stores the sums of values associated with a given key. Sums are copied with
     // a shift into result2, and the shift is computed at the same time as the sums, so the
     // sums can't be written to result2 directly.
-    oneapi::dpl::__par_backend::__buffer<Policy, ValueType> _scanned_values(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, ValueType> _scanned_values(policy, n);
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
-    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _scanned_tail_flags(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
     inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
@@ -188,12 +190,12 @@ template <typename... _Name>
 using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
 } // namespace
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
-          typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys,
+                         _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
+                         _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
                          ::std::false_type /* has_known_identity */)
 {
     return oneapi::dpl::experimental::ranges::reduce_by_segment(
@@ -201,12 +203,12 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
-          typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys,
+                         _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
+                         _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
                          ::std::true_type /* has_known_identity */)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -570,12 +572,12 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     return __end_idx.get_host_access()[0] + 1;
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
-          typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                       OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
-                       BinaryOperator binary_op)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator1, typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
+::std::pair<OutputIterator1, OutputIterator2>
+reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1,
+                       InputIterator1 last1, InputIterator2 first2, OutputIterator1 result1, OutputIterator2 result2,
+                       BinaryPred binary_pred, BinaryOperator binary_op)
 {
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
     // keys for the values are equal to the adjacent key.
@@ -609,9 +611,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
                                                      typename ::std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
-    _CountType __n = __sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-                                              key_output_buf.all_view(), value_output_buf.all_view(), binary_pred,
-                                              binary_op, has_known_identity{});
+    _CountType __n = __sycl_reduce_by_segment(
+        __tag, ::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
+        value_output_buf.all_view(), binary_pred, binary_op, has_known_identity{});
 
     return ::std::make_pair(result1 + __n, result2 + __n);
 }
@@ -624,8 +626,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<Output
 reduce_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                   OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred, BinaryOperator binary_op)
 {
-    return internal::reduce_by_segment_impl(::std::forward<Policy>(policy), first1, last1, first2, result1, result2,
-                                            binary_pred, binary_op);
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, first1, first2, result1, result2);
+
+    return internal::reduce_by_segment_impl(__dispatch_tag, ::std::forward<Policy>(policy), first1, last1, first2,
+                                            result1, result2, binary_pred, binary_op);
 }
 
 template <typename Policy, typename InputIt1, typename InputIt2, typename OutputIt1, typename OutputIt2,
