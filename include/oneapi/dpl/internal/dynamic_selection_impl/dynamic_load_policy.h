@@ -150,6 +150,11 @@ struct dynamic_load_policy
     selection_type
     select(Args&&...)
     {
+        if constexpr(backend_traits::lazy_report_v<Backend> && backend_traits::enable_profiling_v<Backend>){
+            if(backend_->has_enable_profiling == true){
+                backend_->lazy_report();
+            }
+        }
         if (state_)
         {
             std::lock_guard<std::mutex> l(state_->m_);

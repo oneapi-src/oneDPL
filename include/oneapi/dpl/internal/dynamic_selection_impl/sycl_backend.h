@@ -44,30 +44,6 @@ class sycl_backend
             virtual bool is_complete() = 0;
     };
 
-    struct async_waiter_arr{
-
-        std::mutex m_;
-        std::vector<async_waiter_base*> async_waiters;
-
-        template<typename T>
-        void add_waiter(T *t){
-            std::lock_guard<std::mutex> l(m_);
-            async_waiters.push_back(t);
-        }
-
-        void lazy_report(){
-            int size = async_waiters.size();
-            for(auto i = async_waiters.begin(); i!=async_waiters.begin()+size; i++){
-                if((*i)->is_complete()){
-                    (*i)->report();
-                    async_waiters.erase(i);
-                }
-            }
-        }
-    };
-
-    async_waiter_arr async_waiter_arr;
-
     template<typename Selection>
     class async_waiter : public async_waiter_base
     {
@@ -105,6 +81,31 @@ class sycl_backend
         }
 
     };
+
+    struct async_waiter_list_t{
+
+        std::mutex m_;
+        std::vector<async_waiter_base*> async_waiters;
+
+        template<typename T>
+        void add_waiter(T *t){
+            std::lock_guard<std::mutex> l(m_);
+            async_waiters.push_back(t);
+        }
+
+        void lazy_report(){
+            std::lock_guard<std::mutex> l(m_);
+            int size = async_waiters.size();
+            for(auto i = async_waiters.begin(); i!=async_waiters.begin()+size; i++){
+                if((*i)->is_complete()){
+                    (*i)->report();
+                    async_waiters.erase(i);
+                }
+            }
+        }
+    };
+
+    async_waiter_list_t async_waiter_list;
 
 
     class submission_group
@@ -184,7 +185,7 @@ class sycl_backend
                 if (use_event_profiling)
                 {
                     auto waiter = async_waiter{e1, new SelectionHandle(s)};
-                    async_waiter_arr.add_waiter(new async_waiter(waiter));
+                    async_waiter_list.add_waiter(new async_waiter(waiter));
                     return waiter;
                 }
                 else{
@@ -217,7 +218,7 @@ class sycl_backend
     }
 
     void lazy_report(){
-        async_waiter_arr.lazy_report();
+        async_waiter_list.lazy_report();
     }
 
   private:

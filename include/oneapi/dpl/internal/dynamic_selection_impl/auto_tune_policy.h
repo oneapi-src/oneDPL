@@ -22,6 +22,7 @@
 #include <tuple>
 #include <unordered_map>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/backend_traits.h"
 #if _DS_BACKEND_SYCL != 0
 #    include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
