@@ -82,6 +82,7 @@ the buffer were created for the same queue. For example:
   }
 
 Alternatively, use ``std::vector`` with a USM allocator.
+
 Note: The ability to appropriately detect USM allocated ``std::vector::iterator`` depends
 on details of the C++ standard library implementation and what information about the
 allocator is included in the ``std::vector::iterator`` type definition. If USM allocated
