@@ -233,7 +233,6 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
                                                                                     __dpl_sycl::__get_buffer_size(buf)};
 }
-
 } // namespace dpl
 } // namespace oneapi
 
