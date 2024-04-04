@@ -406,116 +406,6 @@ __cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare _
     }
 }
 
-template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
-_Size1
-__pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
-{
-    auto __n = __last - __first;
-    auto __cur = __n;
-    _Size1 __it;
-    while (__n > 0)
-    {
-        __it = __first;
-        __cur = __n / 2;
-        __it += __cur;
-        if (__comp(__acc[__it], __value))
-        {
-            __n -= __cur + 1, __first = ++__it;
-        }
-        else
-            __n = __cur;
-    }
-    return __first;
-}
-
-template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
-_Size1
-__pstl_upper_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
-{
-    return __pstl_lower_bound(__acc, __first, __last, __value,
-                              oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
-                                  oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
-}
-
-// Searching for the first element strongly greater than a passed value - right bound
-template <typename _Buffer, typename _Index, typename _Value, typename _Compare>
-_Index
-__pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __val, _Compare __comp)
-{
-    return __pstl_upper_bound(__a, __first, __last, __val, __comp);
-}
-
-template <typename _IntType, typename _Acc>
-struct _ReverseCounter
-{
-    typedef ::std::make_signed_t<_IntType> difference_type;
-
-    _IntType __my_cn;
-
-    _ReverseCounter&
-    operator++()
-    {
-        --__my_cn;
-        return *this;
-    }
-
-    template <typename _DiffType>
-    _ReverseCounter&
-    operator+=(_DiffType __val)
-    {
-        __my_cn -= __val;
-        return *this;
-    }
-
-    difference_type
-    operator-(const _ReverseCounter& __a)
-    {
-        return __a.__my_cn - __my_cn;
-    }
-
-    operator _IntType() { return __my_cn; }
-
-// TODO: Temporary hotfix. Investigate the necessity of _ReverseCounter
-// Investigate potential user types convertible to integral
-// This is the compile-time trick where we define the conversion operator to sycl::id
-// conditionally. If we can call accessor::operator[] with the type that converts to the
-// same integral type as _ReverseCounter (it means that we can call accessor::operator[]
-// with the _ReverseCounter itself) then we don't need conversion operator to sycl::id.
-// Otherwise, we define conversion operator to sycl::id.
-#if _ONEDPL_BACKEND_SYCL
-    struct __integral
-    {
-        operator _IntType();
-    };
-
-    template <typename _Tp>
-    static auto
-    __check_braces(int) -> decltype(::std::declval<_Tp>()[::std::declval<__integral>()], ::std::false_type{});
-
-    template <typename _Tp>
-    static auto
-    __check_braces(...) -> ::std::true_type;
-
-    class __private_class;
-
-    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
-    {
-        return sycl::id<1>(__my_cn);
-    }
-#endif
-};
-
-// Reverse searching for the first element strongly less than a passed value - left bound
-template <typename _Buffer, typename _Index, typename _Value, typename _Compare>
-_Index
-__pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __val, _Compare __comp)
-{
-    auto __beg = _ReverseCounter<_Index, _Buffer>{__last - 1};
-    auto __end = _ReverseCounter<_Index, _Buffer>{__first - 1};
-
-    return __pstl_upper_bound(__a, __beg, __end, __val, __reorder_pred<_Compare>{__comp});
-}
-
 // Aliases for adjacent_find compile-time dispatching
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
@@ -669,6 +559,151 @@ __dpl_ceiling_div(_T1 __number, _T2 __divisor)
     return (__number - 1) / __divisor + 1;
 }
 
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
+_Size1
+__pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    auto __n = __last - __first;
+    auto __cur = __n;
+    _Size1 __it;
+    while (__n > 0)
+    {
+        __it = __first;
+        __cur = __n / 2;
+        __it += __cur;
+        if (__comp(__acc[__it], __value))
+        {
+            __n -= __cur + 1, __first = ++__it;
+        }
+        else
+            __n = __cur;
+    }
+    return __first;
+}
+
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
+_Size1
+__pstl_upper_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    return __pstl_lower_bound(__acc, __first, __last, __value,
+                              oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
+                                  oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
+}
+
+// Searching for the first element strongly greater than a passed value - right bound
+template <typename _Buffer, typename _Index, typename _Value, typename _Compare>
+_Index
+__pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __val, _Compare __comp)
+{
+    return __pstl_upper_bound(__a, __first, __last, __val, __comp);
+}
+
+template <typename _IntType, typename _Acc>
+struct _ReverseCounter
+{
+    typedef ::std::make_signed_t<_IntType> difference_type;
+
+    _IntType __my_cn;
+
+    _ReverseCounter&
+    operator++()
+    {
+        --__my_cn;
+        return *this;
+    }
+
+    template <typename _DiffType>
+    _ReverseCounter&
+    operator+=(_DiffType __val)
+    {
+        __my_cn -= __val;
+        return *this;
+    }
+
+    difference_type
+    operator-(const _ReverseCounter& __a)
+    {
+        return __a.__my_cn - __my_cn;
+    }
+
+    operator _IntType() { return __my_cn; }
+
+// TODO: Temporary hotfix. Investigate the necessity of _ReverseCounter
+// Investigate potential user types convertible to integral
+// This is the compile-time trick where we define the conversion operator to sycl::id
+// conditionally. If we can call accessor::operator[] with the type that converts to the
+// same integral type as _ReverseCounter (it means that we can call accessor::operator[]
+// with the _ReverseCounter itself) then we don't need conversion operator to sycl::id.
+// Otherwise, we define conversion operator to sycl::id.
+#if _ONEDPL_BACKEND_SYCL
+    struct __integral
+    {
+        operator _IntType();
+    };
+
+    template <typename _Tp>
+    static auto
+    __check_braces(int) -> decltype(::std::declval<_Tp>()[::std::declval<__integral>()], ::std::false_type{});
+
+    template <typename _Tp>
+    static auto
+    __check_braces(...) -> ::std::true_type;
+
+    class __private_class;
+
+    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
+    {
+        return sycl::id<1>(__my_cn);
+    }
+#endif
+};
+
+// Reverse searching for the first element strongly less than a passed value - left bound
+template <typename _Buffer, typename _Index, typename _Value, typename _Compare>
+_Index
+__pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __val, _Compare __comp)
+{
+    auto __beg = _ReverseCounter<_Index, _Buffer>{__last - 1};
+    auto __end = _ReverseCounter<_Index, _Buffer>{__first - 1};
+
+    return __pstl_upper_bound(__a, __beg, __end, __val, __reorder_pred<_Compare>{__comp});
+}
+
+// Lower bound implementation based on Shar's algorithm for binary search.
+template <typename _Acc, typename _Size, typename _Value, typename _Compare>
+_Size
+__shars_lower_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __value, _Compare __comp)
+{
+    static_assert(::std::is_unsigned_v<_Size>, "__shars_lower_bound requires an unsigned size type");
+    const _Size __n = __last - __first;
+    if (__n == 0)
+        return __first;
+    _Size __cur_pow2 = __dpl_bit_floor(__n);
+    const _Size __midpoint = __n / 2;
+    // Check the middle element to determine if we should search the first or last
+    // 2^(bit_floor(__n)) - 1 elements.
+    const _Size __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
+    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
+    // bit must be set in the result.
+    _Size __search_offset{0};
+    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
+    {
+        _Size __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
+        if (__comp(__acc[__search_idx], __value))
+            __search_offset |= __cur_pow2;
+    }
+    return __shifted_first + __search_offset;
+}
+
+template <typename _Acc, typename _Size, typename _Value, typename _Compare>
+_Size
+__shars_upper_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __value, _Compare __comp)
+{
+    return __shars_lower_bound(__acc, __first, __last, __value,
+                               oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
+                                   oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
+}
+
 // TODO In C++20 we may try to use std::equality_comparable
 template <typename _Iterator1, typename _Iterator2, typename = void>
 struct __is_equality_comparable : std::false_type
@@ -716,41 +751,6 @@ struct __spirv_target_conditional :
 // Trait that has a true value if _ONEDPL_DETECT_SPIRV_COMPILATION is set and false otherwise. This may be used within kernels
 // to determine SPIR-V targets.
 inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
-
-// Lower bound implementation based on Shar's algorithm for binary search.
-template <typename _Acc, typename _Size, typename _Value, typename _Compare>
-_Size
-__shars_lower_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __value, _Compare __comp)
-{
-    static_assert(::std::is_unsigned_v<_Size>, "__shars_lower_bound requires an unsigned size type");
-    const _Size __n = __last - __first;
-    if (__n == 0)
-        return __first;
-    _Size __cur_pow2 = __dpl_bit_floor(__n);
-    const _Size __midpoint = __n / 2;
-    // Check the middle element to determine if we should search the first or last
-    // 2^(bit_floor(__n)) - 1 elements.
-    const _Size __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
-    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
-    // bit must be set in the result.
-    _Size __search_offset{0};
-    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
-    {
-        _Size __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
-        if (__comp(__acc[__search_idx], __value))
-            __search_offset |= __cur_pow2;
-    }
-    return __shifted_first + __search_offset;
-}
-
-template <typename _Acc, typename _Size, typename _Value, typename _Compare>
-_Size
-__shars_upper_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __value, _Compare __comp)
-{
-    return __shars_lower_bound(__acc, __first, __last, __value,
-                               oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
-                                   oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
-}
 
 } // namespace __internal
 } // namespace dpl
