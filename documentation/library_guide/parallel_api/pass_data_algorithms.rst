@@ -87,8 +87,11 @@ Note: The ability to appropriately detect USM allocated ``std::vector::iterator`
 on details of the C++ standard library implementation and what information about the
 allocator is included in the ``std::vector::iterator`` type definition. If USM allocated
 vector iterators are not detectable with your C++ standard library, they will still function
-as inputs to oneDPL, but they will be treated as if they were host-side 
-``std::vector::iterator`` as described in the section below.
+as inputs to oneDPL, but they will be treated as if they were host-side
+``std::vector::iterator`` as described in the section below. To guarantee no additional
+host-side copies, you can use ``std::vector::data()`` in combination with ``std::vector::size()``
+with USM allocated vectors to obtain a USM pointers. This will avoid extra host-side copies
+regardless of the C++ standard library implementation.
 
 An example of ``std::vector`` with a USM allocator:
 
@@ -104,6 +107,9 @@ An example of ``std::vector`` with a USM allocator:
     std::vector<int, decltype(alloc)> vec(n, alloc);
 
     std::fill(policy, vec.begin(), vec.end(), 42);
+
+    //alternative to use USM pointers:
+    // std::fill(policy, vec.data(), vec.data() + vec.size(), 42);
 
     return 0;
   }
