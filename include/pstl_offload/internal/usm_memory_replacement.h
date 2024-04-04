@@ -58,7 +58,7 @@ class __offload_policy_holder_type
   public:
     // Since the global object of __offload_policy_holder_type is static but the template constructor
     // of the class is inline, we need to avoid calling static functions inside of the constructor
-    // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
+    // and pass the pointer to exact function as an argument to guarantee that the correct offload device
     // would be stored in each translation unit
     template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
