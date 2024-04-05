@@ -487,27 +487,33 @@ struct tuple<>
     {
         return *this;
     }
-    friend constexpr bool operator==(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator==(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} == tuple_type{};
     }
-    friend constexpr bool operator!=(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator!=(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} != tuple_type{};
     }
-    friend constexpr bool operator<(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator<(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} < tuple_type{};
     }
-    friend constexpr bool operator<=(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator<=(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} <= tuple_type{};
     }
-    friend constexpr bool operator>(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator>(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} > tuple_type{};
     }
-    friend constexpr bool operator>=(const tuple& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator>=(const tuple& __lhs, const tuple& __rhs)
     {
         return tuple_type{} >= tuple_type{};
     }
