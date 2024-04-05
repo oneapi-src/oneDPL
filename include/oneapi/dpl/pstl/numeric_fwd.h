@@ -30,64 +30,64 @@ namespace __internal
 // transform_reduce (version with two binary functions, according to draft N4659)
 //------------------------------------------------------------------------
 
-template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp, class _BinaryOperation1,
-          class _BinaryOperation2>
+template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp, class _BinaryReduceOp,
+          class _BinaryTransformOp>
 _Tp __brick_transform_reduce(_RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2, _Tp,
-                             _BinaryOperation1, _BinaryOperation2,
+                             _BinaryReduceOp, _BinaryTransformOp,
                              /*__is_vector=*/::std::true_type) noexcept;
 
-template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2>
-_Tp __brick_transform_reduce(_ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp, _BinaryOperation1,
-                             _BinaryOperation2,
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryReduceOp, class _BinaryTransformOp>
+_Tp __brick_transform_reduce(_ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp, _BinaryReduceOp,
+                             _BinaryTransformOp,
                              /*__is_vector=*/::std::false_type) noexcept;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp,
-          class _BinaryOperation1, class _BinaryOperation2>
+          class _BinaryReduceOp, class _BinaryTransformOp>
 _Tp
 __pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp,
-                           _BinaryOperation1, _BinaryOperation2) noexcept;
+                           _BinaryReduceOp, _BinaryTransformOp) noexcept;
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
-          class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+          class _Tp, class _BinaryReduceOp, class _BinaryTransformOp>
 _Tp
 __pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
-                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryOperation1, _BinaryOperation2);
+                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryReduceOp, _BinaryTransformOp);
 
 //------------------------------------------------------------------------
 // transform_reduce (version with unary and binary functions)
 //------------------------------------------------------------------------
 
-template <class _RandomAccessIterator, class _Tp, class _UnaryOperation, class _BinaryOperation>
-_Tp __brick_transform_reduce(_RandomAccessIterator, _RandomAccessIterator, _Tp, _BinaryOperation, _UnaryOperation,
+template <class _RandomAccessIterator, class _Tp, class _BinaryReduceOp, class _UnaryTransformOp>
+_Tp __brick_transform_reduce(_RandomAccessIterator, _RandomAccessIterator, _Tp, _BinaryReduceOp, _UnaryTransformOp,
                              /*is_vector=*/::std::true_type) noexcept;
 
-template <class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation>
-_Tp __brick_transform_reduce(_ForwardIterator, _ForwardIterator, _Tp, _BinaryOperation, _UnaryOperation,
+template <class _ForwardIterator, class _Tp, class _BinaryReduceOp, class _UnaryTransformOp>
+_Tp __brick_transform_reduce(_ForwardIterator, _ForwardIterator, _Tp, _BinaryReduceOp, _UnaryTransformOp,
                              /*is_vector=*/::std::false_type) noexcept;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp,
-          class _BinaryOperation1, class _BinaryOperation2>
+          class _BinaryReduceOp, class _BinaryTransformOp>
 _Tp
 __pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp,
-                           _BinaryOperation1, _BinaryOperation2 __bnary_op2) noexcept;
+                           _BinaryReduceOp, _BinaryTransformOp) noexcept;
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
-          class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+          class _Tp, class _BinaryReduceOp, class _BinaryTransformOp>
 _Tp
 __pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
-                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryOperation1, _BinaryOperation2);
+                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryReduceOp, _BinaryTransformOp);
 
-template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation,
-          class _UnaryOperation>
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryReduceOp,
+          class _UnaryTransformOp>
 _Tp
-__pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp, _BinaryOperation,
-                           _UnaryOperation) noexcept;
+__pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp, _BinaryReduceOp,
+                           _UnaryTransformOp) noexcept;
 
-template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _BinaryOperation,
-          class _UnaryOperation>
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _BinaryReduceOp,
+          class _UnaryTransformOp>
 _Tp
 __pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
-                           _Tp, _BinaryOperation, _UnaryOperation);
+                           _Tp, _BinaryReduceOp, _UnaryTransformOp);
 
 //------------------------------------------------------------------------
 // transform_exclusive_scan

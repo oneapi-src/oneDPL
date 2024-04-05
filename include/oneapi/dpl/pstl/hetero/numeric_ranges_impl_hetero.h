@@ -38,20 +38,20 @@ namespace __ranges
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp,
-          typename _BinaryOperation1, typename _BinaryOperation2>
+          typename _BinaryReduceOp, typename _BinaryTransformOp>
 _Tp
 __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                           _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
+                           _Tp __init, _BinaryReduceOp __reduce_op, _BinaryTransformOp __transform_op)
 {
     if (__rng1.empty())
         return __init;
 
-    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _BinaryOperation2>;
+    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _BinaryTransformOp>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
         .get();
@@ -61,21 +61,21 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
 // transform_reduce (with unary and binary functions)
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Tp, typename _BinaryOperation,
-          typename _UnaryOperation>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Tp, typename _BinaryReduceOp,
+          typename _UnaryTransformOp>
 _Tp
 __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init,
-                           _BinaryOperation __binary_op, _UnaryOperation __unary_op)
+                           _BinaryReduceOp __reduce_op, _UnaryTransformOp __transform_op)
 {
     if (__rng.empty())
         return __init;
 
-    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
+    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryTransformOp>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range>(__rng))
         .get();

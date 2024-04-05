@@ -78,28 +78,29 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
         ::std::plus<_InputType>(), ::std::multiplies<_InputType>());
 }
 
-template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1,
-          class _BinaryOperation2>
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryReductionOp,
+          class _BinaryTransformOp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                 _ForwardIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
+                 _ForwardIterator2 __first2, _Tp __init, _BinaryReductionOp __reduce_op,
+                 _BinaryTransformOp __transform_op)
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                               __first1, __last1, __first2, __init, __binary_op1,
-                                                               __binary_op2);
+                                                               __first1, __last1, __first2, __init, __reduce_op,
+                                                               __transform_op);
 }
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation>
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryReduceOp, class _UnaryTransformOp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
-                 _BinaryOperation __binary_op, _UnaryOperation __unary_op)
+                 _BinaryReduceOp __reduce_op, _UnaryTransformOp __transform_op)
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                               __first, __last, __init, __binary_op, __unary_op);
+                                                               __first, __last, __init, __reduce_op, __transform_op);
 }
 
 // [exclusive.scan]

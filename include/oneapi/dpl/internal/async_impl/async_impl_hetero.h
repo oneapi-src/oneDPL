@@ -120,16 +120,16 @@ __pattern_walk2_brick_async(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1,
-          typename _RandomAccessIterator2, typename _Tp, typename _BinaryOperation1, typename _BinaryOperation2>
+          typename _RandomAccessIterator2, typename _Tp, typename _BinaryReduceOp, typename _BinaryTransformOp>
 auto
 __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
-                                 _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
+                                 _BinaryReduceOp __reduce_op, _BinaryTransformOp __transform_op)
 {
     assert(__first1 < __last1);
 
     using _Policy = _ExecutionPolicy;
-    using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
+    using _Functor = unseq_backend::walk_n<_Policy, _BinaryTransformOp>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
     auto __n = __last1 - __first1;
@@ -142,7 +142,7 @@ __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& _
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf1.all_view(), __buf2.all_view());
 }
@@ -152,16 +152,16 @@ __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& _
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
-          typename _BinaryOperation, typename _UnaryOperation>
+          typename _BinaryReduceOp, typename _UnaryTransformOp>
 auto
 __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
-                                 _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
-                                 _UnaryOperation __unary_op)
+                                 _ForwardIterator __last, _Tp __init, _BinaryReduceOp __reduce_op,
+                                 _UnaryTransformOp __transform_op)
 {
     assert(__first < __last);
 
     using _Policy = _ExecutionPolicy;
-    using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
+    using _Functor = unseq_backend::walk_n<_Policy, _UnaryTransformOp>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
@@ -169,7 +169,7 @@ __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& _
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf.all_view());
 }

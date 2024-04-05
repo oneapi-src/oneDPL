@@ -60,13 +60,13 @@ transform_reduce(const execution::parallel_unsequenced_policy&, _ForwardIterator
                                          __first2, __init);
 }
 
-template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryReduceOp, class _BinaryTransformOp>
 static _Tp
 transform_reduce(const execution::parallel_unsequenced_policy&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                 _ForwardIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
+                 _ForwardIterator2 __first2, _Tp __init, _BinaryReduceOp __reduce_op, _BinaryTransformOp __transform_op)
 {
     return oneapi::dpl::transform_reduce(::__pstl_offload::__offload_policy_holder.__get_policy(), __first1, __last1,
-                                         __first2, __init, __binary_op1, __binary_op2);
+                                         __first2, __init, __reduce_op, __transform_op);
 }
 
 template <class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation>

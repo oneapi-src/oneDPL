@@ -76,13 +76,14 @@ auto
 transform_async(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 first2,
                 _ForwardIt3 d_first, _BinaryOperation binary_op, _Events&&... __dependencies);
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2,
-          class... _Events,
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryReduceOp,
+          class _BinaryTransformOp, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<
-              _ExecutionPolicy, int, _BinaryOp1, _BinaryOp2, _Events...> = 0>
+              _ExecutionPolicy, int, _BinaryReduceOp, _BinaryTransformOp, _Events...> = 0>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
-                       _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies);
+                       _T __init, _BinaryReduceOp __reduce_op, _BinaryTransformOp __transform_op,
+                       _Events&&... __dependencies);
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...> = 0>
@@ -90,12 +91,13 @@ auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies);
 
-template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int,
-                                                                                         _UnaryOp, _Events...> = 0>
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryReduceOp, class _UnaryTransformOp,
+          class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<
+              _ExecutionPolicy, int, _UnaryTransformOp, _Events...> = 0>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init,
-                       _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies);
+                       _BinaryReduceOp __reduce_op, _UnaryTransformOp __transform_op, _Events&&... __dependencies);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...> = 0>

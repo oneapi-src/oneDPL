@@ -187,34 +187,36 @@ fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 
 // [async.transform_reduce]
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2,
-          class... _Events,
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryReduceOp,
+          class _BinaryTransformOp, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<
-              _ExecutionPolicy, int, _BinaryOp1, _BinaryOp2, _Events...>>
+              _ExecutionPolicy, int, _BinaryReduceOp, _BinaryTransformOp, _Events...>>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
-                       _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies)
+                       _T __init, _BinaryReduceOp __reduce_op, _BinaryTransformOp __transform_op,
+                       _Events&&... __dependencies)
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1,
-        __binary_op2);
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __reduce_op,
+        __transform_op);
 }
 
-template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events,
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryReduceOp, class _UnaryTransformOp,
+          class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int,
-                                                                                         _UnaryOp, _Events...>>
+                                                                                         _UnaryTransformOp, _Events...>>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init,
-                       _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies)
+                       _BinaryReduceOp __reduce_op, _UnaryTransformOp __transform_op, _Events&&... __dependencies)
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op);
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __reduce_op, __transform_op);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
