@@ -428,6 +428,52 @@ struct max_element_fn
 
 inline constexpr max_element_fn max_element;
 
+struct copy_fn
+{
+    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_copy(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r));
+    }
+};//copy_fn
+
+inline constexpr copy_fn copy;
+
+struct copy_if_fn
+{
+    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_copy_if_2(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __pred, __proj);
+    }
+};//copy_if_fn
+
+inline constexpr copy_if_fn copy_if;
+
+struct merge_fn
+{
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp, typename _Proj1,
+             typename _Proj2, oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp, _Proj1 __proj1,
+               _Proj2 __proj2) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin(), __out_r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_merge(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_R1>(__r1), std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
+    }
+};//merge_fn
+
+inline constexpr merge_fn merge;
+
 } //ranges
 
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
