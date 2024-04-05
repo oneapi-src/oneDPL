@@ -86,15 +86,76 @@ test_tuple(Tuple1 t1, Tuple2 t2)
                 "swap of oneDPL tuple provides incorrect results");
 }
 
+
+constexpr
+void test_compile_time()
+{
+    constexpr std::tuple<int, int, uint64_t> std_tup1{1, 2, 3};
+    constexpr std::tuple<int, uint32_t, int> std_tup2{99, 2, 3};
+    constexpr oneapi::dpl::tuple<int, int, uint64_t> dpl_tup1{1, 2, 3};
+    constexpr oneapi::dpl::tuple<int, uint32_t, int> dpl_tup2{99, 2, 3};
+
+    static_assert((std_tup1 == std_tup2) == (dpl_tup1 == dpl_tup2), "compile time equality comparison does not match std::tuple");
+    static_assert((std_tup1 < std_tup2) == (dpl_tup1 < dpl_tup2), "compile time less than comparison does not match std::tuple");
+    static_assert((std_tup1 <= std_tup2) == (dpl_tup1 <= dpl_tup2), "compile time lt-equal comparison does not match std::tuple");
+    static_assert((std_tup1 > std_tup2) == (dpl_tup1 > dpl_tup2), "compile time greater comparison does not match std::tuple");
+    static_assert((std_tup1 >= std_tup2) == (dpl_tup1 >= dpl_tup2), "compile time gt-equal comparison does not match std::tuple");
+    static_assert((std_tup1 != std_tup2) == (dpl_tup1 != dpl_tup2), "compile time non-equality comparison does not match std::tuple");
+
+    static_assert((std_tup1 == std_tup2) == (std_tup1 == dpl_tup2), "compile time equality comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_tup1 < std_tup2) == (std_tup1 < dpl_tup2), "compile time less than comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_tup1 <= std_tup2) == (std_tup1 <= dpl_tup2), "compile time lt-equal comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_tup1 > std_tup2) == (std_tup1 > dpl_tup2), "compile time greater comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_tup1 >= std_tup2) == (std_tup1 >= dpl_tup2), "compile time gt-equal comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_tup1 != std_tup2) == (std_tup1 != dpl_tup2), "compile time non-equality comparison does not match std::tuple with std::tuple as lhs");
+
+    static_assert((std_tup1 == std_tup2) == (dpl_tup1 == std_tup2), "compile time equality comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_tup1 < std_tup2) == (dpl_tup1 < std_tup2), "compile time less than comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_tup1 <= std_tup2) == (dpl_tup1 <= std_tup2), "compile time lt-equal comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_tup1 > std_tup2) == (dpl_tup1 > std_tup2), "compile time greater comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_tup1 >= std_tup2) == (dpl_tup1 >= std_tup2), "compile time gt-equal comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_tup1 != std_tup2) == (dpl_tup1 != std_tup2), "compile time non-equality comparison does not match std::tuple with std::tuple as rhs");
+
+    constexpr std::tuple<> std_empty1{};
+    constexpr std::tuple<> std_empty2{};
+    constexpr oneapi::dpl::tuple<> dpl_empty1{};
+    constexpr oneapi::dpl::tuple<> dpl_empty2{};
+
+    static_assert((std_empty1 == std_empty2) == (dpl_empty1 == dpl_empty2), "empty compile time equality comparison does not match std::tuple");
+    static_assert((std_empty1 < std_empty2) == (dpl_empty1 < dpl_empty2), "empty compile time less than comparison does not match std::tuple");
+    static_assert((std_empty1 <= std_empty2) == (dpl_empty1 <= dpl_empty2), "empty compile time lt-equal comparison does not match std::tuple");
+    static_assert((std_empty1 > std_empty2) == (dpl_empty1 > dpl_empty2), "empty compile time greater comparison does not match std::tuple");
+    static_assert((std_empty1 >= std_empty2) == (dpl_empty1 >= dpl_empty2), "empty compile time gt-equal comparison does not match std::tuple");
+    static_assert((std_empty1 != std_empty2) == (dpl_empty1 != dpl_empty2), "empty compile time non-equality comparison does not match std::tuple");
+
+    static_assert((std_empty1 == std_empty2) == (std_empty1 == dpl_empty2), "empty compile time equality comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_empty1 < std_empty2) == (std_empty1 < dpl_empty2), "empty compile time less than comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_empty1 <= std_empty2) == (std_empty1 <= dpl_empty2), "empty compile time lt-equal comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_empty1 > std_empty2) == (std_empty1 > dpl_empty2), "empty compile time greater comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_empty1 >= std_empty2) == (std_empty1 >= dpl_empty2), "empty compile time gt-equal comparison does not match std::tuple with std::tuple as lhs");
+    static_assert((std_empty1 != std_empty2) == (std_empty1 != dpl_empty2), "empty compile time non-equality comparison does not match std::tuple with std::tuple as lhs");
+
+    static_assert((std_empty1 == std_empty2) == (dpl_empty1 == std_empty2), "empty compile time equality comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_empty1 < std_empty2) == (dpl_empty1 < std_empty2), "empty compile time less than comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_empty1 <= std_empty2) == (dpl_empty1 <= std_empty2), "empty compile time lt-equal comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_empty1 > std_empty2) == (dpl_empty1 > std_empty2), "empty compile time greater comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_empty1 >= std_empty2) == (dpl_empty1 >= std_empty2), "empty compile time gt-equal comparison does not match std::tuple with std::tuple as rhs");
+    static_assert((std_empty1 != std_empty2) == (dpl_empty1 != std_empty2), "empty compile time non-equality comparison does not match std::tuple with std::tuple as rhs");
+}
+
+
+
 int
 main()
 {
+    test_compile_time();
 
     test_tuple(std::tuple<int, int, int>{1, 2, 3}, std::tuple<int, int, int>{1, 2, 3});
     test_tuple(std::tuple<int, int, int>{1, 2, 3}, std::tuple<int, int, int>{1, 2, 4});
     test_tuple(std::tuple<int, int, int>{1, 2, 3}, std::tuple<int, int, int>{0, 2, 4});
     test_tuple(std::tuple<int, int, uint64_t>{1, 2, 3}, std::tuple<uint32_t, int, int>{1, 2, 3});
     test_tuple(std::tuple<int, int, uint64_t>{1, 2, 3}, std::tuple<uint32_t, int, int>{0, 2, 4});
+    test_tuple(std::tuple<>{}, std::tuple<>{});
 
     return TestUtils::done();
 }
