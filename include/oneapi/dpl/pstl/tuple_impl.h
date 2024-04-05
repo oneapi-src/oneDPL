@@ -424,37 +424,6 @@ struct tuple<T1, T...>
         return *this;
     }
 
-// This macro is used to define binary operators for comparison between oneAPI::dpl::__internal::tuple and
-//  std::tuple when they have the same number of template arguments and the individual elements which are invdividually
-//  comparable. These overloads are required because for overload resolution of template arguments, exact match is
-//  required and the compiler does not consider implicit conversions. We also allow std::tuple implementation to
-//  implement the operators themselves, which guarantees a match with oneAPI::dpl::__internal::tuple
-#define _TUPLE_BINARY_OPERATOR_OVERLOAD(__OPERATOR)                                                                    \
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend constexpr bool operator __OPERATOR(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)  \
-    {                                                                                                                  \
-        return static_cast<std::tuple<T1, T...>>(__lhs) __OPERATOR static_cast<std::tuple<_U...>>(__rhs);              \
-    }                                                                                                                  \
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend constexpr bool operator __OPERATOR(const tuple& __lhs, const std::tuple<_U...>& __rhs)                      \
-    {                                                                                                                  \
-        return static_cast<std::tuple<T1, T...>>(__lhs) __OPERATOR __rhs;                                              \
-    }                                                                                                                  \
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend constexpr bool operator __OPERATOR(const std::tuple<_U...>& __lhs, const tuple& __rhs)                      \
-    {                                                                                                                  \
-        return __lhs __OPERATOR static_cast<std::tuple<T1, T...>>(__rhs);                                              \
-    }
-
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(==)
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(!=)
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(<)
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(<=)
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(>)
-    _TUPLE_BINARY_OPERATOR_OVERLOAD(>=)
-
-#undef _TUPLE_BINARY_OPERATOR_OVERLOAD
-
     template <typename U1, typename... U, ::std::size_t... _Ip>
     static ::std::tuple<U1, U...>
     to_std_tuple(const oneapi::dpl::__internal::tuple<U1, U...>& __t, ::std::index_sequence<_Ip...>)
@@ -487,37 +456,99 @@ struct tuple<>
     {
         return *this;
     }
-    friend constexpr bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} == tuple_type{};
-    }
-    friend constexpr bool
-    operator!=(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} != tuple_type{};
-    }
-    friend constexpr bool
-    operator<(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} < tuple_type{};
-    }
-    friend constexpr bool
-    operator<=(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} <= tuple_type{};
-    }
-    friend constexpr bool
-    operator>(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} > tuple_type{};
-    }
-    friend constexpr bool
-    operator>=(const tuple& __lhs, const tuple& __rhs)
-    {
-        return tuple_type{} >= tuple_type{};
-    }
 };
+
+template <typename T>
+struct __get_std_tuple_t_impl
+{
+    using type = void;
+};
+
+template <typename... T>
+struct __get_std_tuple_t_impl<std::tuple<T...>>
+{
+    using type = std::tuple<T...>;
+};
+
+template <typename... T>
+struct __get_std_tuple_t_impl<oneapi::dpl::__internal::tuple<T...>>
+{
+    using type = std::tuple<T...>;
+};
+
+template <typename T>
+using __get_std_tuple_t = typename __get_std_tuple_t_impl<std::decay_t<T>>::type;
+
+template <typename T>
+using __is_tuple_type = std::negation<std::is_void<__get_std_tuple_t<T>>>;
+
+template <typename T>
+using __is_std_tuple_type = std::is_same<__get_std_tuple_t<T>, std::decay_t<T>>;
+
+// Require that both are tuple types, but at least one type is a oneDPL internal tuple, and that the number of tuple
+// elements are the same
+template <typename Tuple1, typename Tuple2>
+using __comparable_tuple_types = std::conjunction<
+    __is_tuple_type<Tuple1>, __is_tuple_type<Tuple2>,
+    std::negation<std::conjunction<__is_std_tuple_type<Tuple1>, __is_std_tuple_type<Tuple2>>>,
+    std::bool_constant<std::tuple_size<std::decay_t<Tuple1>>::value == std::tuple_size<std::decay_t<Tuple2>>::value>>;
+
+// These binary comparison overloads required because the template arguments require exact matches to participate in
+// overload resolution. Implicit conversion to std::tuple does not provide these for free. The static cast should be
+// without performance penalty if the casting to its own type.
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator==(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) ==
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
+
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator!=(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) !=
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
+
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator<(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) <
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
+
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator<=(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) <=
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
+
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator>(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) >
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
+
+template <typename Tuple1, typename Tuple2,
+          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+constexpr bool
+operator>=(Tuple1&& __lhs, Tuple2&& __rhs)
+{
+    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) >=
+           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+}
 
 inline void
 swap(oneapi::dpl::__internal::tuple<>& /*__x*/, oneapi::dpl::__internal::tuple<>& /*__y*/)
