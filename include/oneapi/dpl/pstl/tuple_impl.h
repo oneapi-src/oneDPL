@@ -485,6 +485,21 @@ using __is_tuple_type = std::negation<std::is_void<__get_std_tuple_t<T>>>;
 template <typename T>
 using __is_std_tuple_type = std::is_same<__get_std_tuple_t<T>, std::decay_t<T>>;
 
+//TODO: fix forwarding, this isn't quite right to minimize copies
+template <typename T, std::enable_if_t<!__is_std_tuple_type<T>::value, int> = 0>
+__get_std_tuple_t<T>
+__to_std_type(T&& tup)
+{
+    return static_cast<__get_std_tuple_t<T>>(std::forward<T>(tup));
+}
+
+template <typename T, std::enable_if_t<__is_std_tuple_type<T>::value, int> = 0>
+T&&
+__to_std_type(T&& tup)
+{
+    return std::forward<T>(tup);
+}
+
 // Require that both are tuple types, but at least one type is a oneDPL internal tuple, and that the number of tuple
 // elements are the same
 template <typename Tuple1, typename Tuple2>
@@ -494,60 +509,47 @@ using __comparable_tuple_types = std::conjunction<
     std::bool_constant<std::tuple_size<std::decay_t<Tuple1>>::value == std::tuple_size<std::decay_t<Tuple2>>::value>>;
 
 // These binary comparison overloads required because the template arguments require exact matches to participate in
-// overload resolution. Implicit conversion to std::tuple does not provide these for free. The static cast should be
-// without performance penalty if the casting to its own type.
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+// overload resolution. Implicit conversion to std::tuple does not provide these for free.
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator==(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) ==
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) == __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator!=(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) !=
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) != __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator<(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) <
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) < __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator<=(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) <=
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) <= __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator>(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) >
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) > __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
-template <typename Tuple1, typename Tuple2,
-          typename = std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value>>
+template <typename Tuple1, typename Tuple2, std::enable_if_t<__comparable_tuple_types<Tuple1, Tuple2>::value, int> = 0>
 constexpr bool
 operator>=(Tuple1&& __lhs, Tuple2&& __rhs)
 {
-    return static_cast<__get_std_tuple_t<Tuple1>>(std::forward<Tuple1>(__lhs)) >=
-           static_cast<__get_std_tuple_t<Tuple2>>(std::forward<Tuple2>(__rhs));
+    return __to_std_type(std::forward<Tuple1>(__lhs)) >= __to_std_type(std::forward<Tuple2>(__rhs));
 }
 
 inline void
