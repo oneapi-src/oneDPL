@@ -476,6 +476,10 @@ struct tuple<>
 
     tuple operator[](tuple) { return {}; }
     tuple operator[](const tuple&) const { return {}; }
+    operator tuple_type() const
+    {
+        return tuple_type{};
+    }
     tuple&
     operator=(const tuple&) = default;
     tuple&
@@ -483,10 +487,29 @@ struct tuple<>
     {
         return *this;
     }
-    friend bool
-    operator==(const tuple& /*__lhs*/, const tuple& /*__rhs*/)
+    friend constexpr bool operator==(const tuple& __lhs, const tuple& __rhs)
     {
-        return true;
+        return tuple_type{} == tuple_type{};
+    }
+    friend constexpr bool operator!=(const tuple& __lhs, const tuple& __rhs)
+    {
+        return tuple_type{} != tuple_type{};
+    }
+    friend constexpr bool operator<(const tuple& __lhs, const tuple& __rhs)
+    {
+        return tuple_type{} < tuple_type{};
+    }
+    friend constexpr bool operator<=(const tuple& __lhs, const tuple& __rhs)
+    {
+        return tuple_type{} <= tuple_type{};
+    }
+    friend constexpr bool operator>(const tuple& __lhs, const tuple& __rhs)
+    {
+        return tuple_type{} > tuple_type{};
+    }
+    friend constexpr bool operator>=(const tuple& __lhs, const tuple& __rhs)
+    {
+        return tuple_type{} >= tuple_type{};
     }
 };
 
