@@ -431,17 +431,17 @@ struct tuple<T1, T...>
 //  implement the operators themselves, which guarantees a match with oneAPI::dpl::__internal::tuple
 #define _TUPLE_BINARY_OPERATOR_OVERLOAD(__OPERATOR)                                                                    \
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend bool operator __OPERATOR(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)            \
+    friend constexpr bool operator __OPERATOR(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)  \
     {                                                                                                                  \
         return static_cast<std::tuple<T1, T...>>(__lhs) __OPERATOR static_cast<std::tuple<_U...>>(__rhs);              \
     }                                                                                                                  \
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend bool operator __OPERATOR(const tuple& __lhs, const std::tuple<_U...>& __rhs)                                \
+    friend constexpr bool operator __OPERATOR(const tuple& __lhs, const std::tuple<_U...>& __rhs)                      \
     {                                                                                                                  \
         return static_cast<std::tuple<T1, T...>>(__lhs) __OPERATOR __rhs;                                              \
     }                                                                                                                  \
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>                        \
-    friend bool operator __OPERATOR(const std::tuple<_U...>& __lhs, const tuple& __rhs)                                \
+    friend constexpr bool operator __OPERATOR(const std::tuple<_U...>& __lhs, const tuple& __rhs)                      \
     {                                                                                                                  \
         return __lhs __OPERATOR static_cast<std::tuple<T1, T...>>(__rhs);                                              \
     }
@@ -482,6 +482,11 @@ struct tuple<>
     operator=(const ::std::tuple<>& /*other*/)
     {
         return *this;
+    }
+    friend bool
+    operator==(const tuple& /*__lhs*/, const tuple& /*__rhs*/)
+    {
+        return true;
     }
 };
 
