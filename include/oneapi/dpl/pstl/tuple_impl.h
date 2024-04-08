@@ -305,42 +305,7 @@ struct __copy_assignable_holder<_Tp, false> : oneapi::dpl::__internal::__value_h
     operator=(__copy_assignable_holder&& other) = default;
 };
 
-template <typename T>
-struct __get_std_tuple_t_impl
-{
-    using type = void;
-};
-
-template <typename... T>
-struct __get_std_tuple_t_impl<std::tuple<T...>>
-{
-    using type = std::tuple<T...>;
-};
-
-template <typename... T>
-struct __get_std_tuple_t_impl<oneapi::dpl::__internal::tuple<T...>>
-{
-    using type = std::tuple<T...>;
-};
-
-template <typename T>
-using __get_std_tuple_t = typename __get_std_tuple_t_impl<std::decay_t<T>>::type;
-
-template <typename T>
-using __is_tuple_type = std::negation<std::is_void<__get_std_tuple_t<T>>>;
-
-template <typename T>
-using __is_std_tuple_type = std::is_same<__get_std_tuple_t<T>, std::decay_t<T>>;
-
-// Require that both are tuple types, but at least one type is a oneDPL internal tuple, and that the number of tuple
-// elements are the same
-template <typename Tuple1, typename Tuple2>
-using __comparable_tuple_types = std::conjunction<
-    oneapi::dpl::__internal::__is_tuple_type<Tuple1>, oneapi::dpl::__internal::__is_tuple_type<Tuple2>,
-    std::negation<std::conjunction<oneapi::dpl::__internal::__is_std_tuple_type<Tuple1>, oneapi::dpl::__internal::__is_std_tuple_type<Tuple2>>>,
-    std::bool_constant<std::tuple_size<std::decay_t<Tuple1>>::value == std::tuple_size<std::decay_t<Tuple2>>::value>>;
-
-template <typename _Tuple1, typename _Tuple2, uint32_t I = 0, std::enable_if_t<oneapi::dpl::__internal::__comparable_tuple_types<_Tuple1, _Tuple2>::value, int> = 0>
+template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
 constexpr bool
 __equal(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
@@ -353,7 +318,7 @@ __equal(const _Tuple1& __lhs, const _Tuple2& __rhs)
         return true;
     }
 }
-template <typename _Tuple1, typename _Tuple2, uint32_t I = 0, std::enable_if_t<oneapi::dpl::__internal::__comparable_tuple_types<_Tuple1, _Tuple2>::value, int> = 0>
+template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
 constexpr bool
 __less(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
