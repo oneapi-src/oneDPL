@@ -187,19 +187,19 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
 
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
 
-const oneapi::dpl::execution::parallel_policy&
+inline const oneapi::dpl::execution::parallel_policy&
 get_unvectorized_policy(const oneapi::dpl::execution::parallel_unsequenced_policy&)
 {
     return oneapi::dpl::execution::par;
 }
 
-const oneapi::dpl::execution::sequenced_policy&
+inline const oneapi::dpl::execution::sequenced_policy&
 get_unvectorized_policy(const oneapi::dpl::execution::unsequenced_policy&)
 {
     return oneapi::dpl::execution::seq;
 }
 
-template <typename _ExecutionPolicy>
+inline template <typename _ExecutionPolicy>
 const _ExecutionPolicy&
 get_unvectorized_policy(const _ExecutionPolicy& __exec)
 {
