@@ -12,7 +12,10 @@
 #
 ##===----------------------------------------------------------------------===##
 add_subdirectory(kt)
-add_subdirectory(distributed-ranges/shp)
+
+if (ONEDPL_USE_DR)
+    add_subdirectory(distributed-ranges/shp)
+endif()
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
@@ -66,10 +69,16 @@ endif()
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
+if (ONEDPL_USE_DR)
+    set(run-onedpl-tests-depends build-onedpl-tests shp-tests shp-tests-3)
+else()
+    set(run-onedpl-tests-depends build-onedpl-tests)
+endif()
+
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
-    DEPENDS build-onedpl-tests
+    DEPENDS ${run-onedpl-tests-depends}
     COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define)
@@ -248,4 +257,9 @@ endforeach()
 if (TARGET interop_allocs.pass)
     target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
                                                "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
+endif()
+
+if (ONEDPL_USE_DR)
+    add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
+    add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
 endif()

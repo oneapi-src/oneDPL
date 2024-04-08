@@ -12,38 +12,30 @@ public:
 TYPED_TEST_SUITE(DistributedVectorAllTypes, AllTypes);
 
 TYPED_TEST(DistributedVectorAllTypes, StaticAsserts) {
-  DRLOG("Running StaticAsserts test");
   TypeParam dv(10);
   static_assert(rng::random_access_range<decltype(dv.segments())>);
   static_assert(rng::random_access_range<decltype(dv.segments()[0])>);
   static_assert(rng::viewable_range<decltype(dv.segments())>);
 
   static_assert(std::forward_iterator<decltype(dv.begin())>);
-  static_assert(dr::distributed_iterator<decltype(dv.begin())>);
+  static_assert(experimental::dr::distributed_iterator<decltype(dv.begin())>);
 
   static_assert(rng::forward_range<decltype(dv)>);
   static_assert(rng::random_access_range<decltype(dv)>);
-  static_assert(dr::distributed_contiguous_range<decltype(dv)>);
+  static_assert(experimental::dr::distributed_contiguous_range<decltype(dv)>);
 }
 
 TYPED_TEST(DistributedVectorAllTypes, getAndPut) {
-  DRLOG("Running getAndPut test");
   TypeParam dv(10);
 
   if (comm_rank == 0) {
-    DRLOG("DV constructed, assign sth on root rank");
     dv[5] = 13;
-    DRLOG("13 assigned on root, now calling fence");
   } else {
-    DRLOG("DV constructed, we are on non-root rank so just call fence");
   }
   fence_on(dv);
-  DRLOG("barrier called now reading");
 
   for (std::size_t idx = 0; idx < 10; ++idx) {
-    DRLOG("reading idx:{}", idx);
     auto val = dv[idx];
-    DRLOG("read idx:{} finished, got:{}", idx, val);
     if (idx == 5) {
       EXPECT_EQ(val, 13);
     } else {
@@ -53,7 +45,6 @@ TYPED_TEST(DistributedVectorAllTypes, getAndPut) {
 }
 
 TYPED_TEST(DistributedVectorAllTypes, Stream) {
-  DRLOG("Running Stream test");
   Ops1<TypeParam> ops(10);
   std::ostringstream os;
   os << ops.dist_vec;
@@ -61,7 +52,6 @@ TYPED_TEST(DistributedVectorAllTypes, Stream) {
 }
 
 TYPED_TEST(DistributedVectorAllTypes, Equality) {
-  DRLOG("Running Equality test");
   Ops1<TypeParam> ops(10);
   iota(ops.dist_vec, 100);
   rng::iota(ops.vec, 100);
@@ -70,7 +60,6 @@ TYPED_TEST(DistributedVectorAllTypes, Equality) {
 }
 
 TYPED_TEST(DistributedVectorAllTypes, Segments) {
-  DRLOG("Running Segments test");
   Ops1<TypeParam> ops(10);
 
   EXPECT_TRUE(check_segments(ops.dist_vec));
@@ -79,7 +68,6 @@ TYPED_TEST(DistributedVectorAllTypes, Segments) {
 }
 
 TEST(DistributedVector, ConstructorBasic) {
-  DRLOG("Running ConstructorBasic test");
   xhp::distributed_vector<int> dist_vec(10);
   iota(dist_vec, 100);
 
@@ -90,7 +78,6 @@ TEST(DistributedVector, ConstructorBasic) {
 }
 
 TEST(DistributedVector, ConstructorFill) {
-  DRLOG("Running ConstructorFill test");
   xhp::distributed_vector<int> dist_vec(10, 1);
 
   std::vector<int> local_vec(10, 1);

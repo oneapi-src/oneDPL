@@ -28,8 +28,8 @@ auto reduce_no_init_async(ExecutionPolicy &&policy, Iter first, Iter last,
 
   std::iter_value_t<Iter> init = *new_last;
 
-  dr::__detail::direct_iterator d_first(first);
-  dr::__detail::direct_iterator d_last(new_last);
+  experimental::dr::__detail::direct_iterator d_first(first);
+  experimental::dr::__detail::direct_iterator d_last(new_last);
 
   return oneapi::dpl::experimental::reduce_async(
       std::forward<ExecutionPolicy>(policy), d_first, d_last,
@@ -41,8 +41,8 @@ template <typename T, typename ExecutionPolicy,
   requires(sycl::has_known_identity_v<Fn, T>)
 auto reduce_no_init_async(ExecutionPolicy &&policy, Iter first, Iter last,
                           Fn &&fn) {
-  dr::__detail::direct_iterator d_first(first);
-  dr::__detail::direct_iterator d_last(last);
+  experimental::dr::__detail::direct_iterator d_first(first);
+  experimental::dr::__detail::direct_iterator d_last(last);
 
   return oneapi::dpl::experimental::reduce_async(
       std::forward<ExecutionPolicy>(policy), d_first, d_last,
@@ -51,9 +51,9 @@ auto reduce_no_init_async(ExecutionPolicy &&policy, Iter first, Iter last,
 
 } // namespace
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
-template <typename ExecutionPolicy, dr::distributed_range R, typename T,
+template <typename ExecutionPolicy, experimental::dr::distributed_range R, typename T,
           typename BinaryOp>
 T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
 
@@ -63,13 +63,13 @@ T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
   if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>,
                                device_policy>) {
     using future_t = decltype(oneapi::dpl::experimental::reduce_async(
-        __detail::dpl_policy(0), dr::ranges::segments(r)[0].begin(),
-        dr::ranges::segments(r)[0].end(), init, binary_op));
+        __detail::dpl_policy(0), experimental::dr::ranges::segments(r)[0].begin(),
+        experimental::dr::ranges::segments(r)[0].end(), init, binary_op));
 
     std::vector<future_t> futures;
 
-    for (auto &&segment : dr::ranges::segments(r)) {
-      auto &&local_policy = __detail::dpl_policy(dr::ranges::rank(segment));
+    for (auto &&segment : experimental::dr::ranges::segments(r)) {
+      auto &&local_policy = __detail::dpl_policy(experimental::dr::ranges::rank(segment));
 
       auto dist = rng::distance(segment);
       if (dist <= 0) {
@@ -95,13 +95,13 @@ T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
   }
 }
 
-template <typename ExecutionPolicy, dr::distributed_range R, typename T>
+template <typename ExecutionPolicy, experimental::dr::distributed_range R, typename T>
 T reduce(ExecutionPolicy &&policy, R &&r, T init) {
   return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), init,
                 std::plus<>());
 }
 
-template <typename ExecutionPolicy, dr::distributed_range R>
+template <typename ExecutionPolicy, experimental::dr::distributed_range R>
 rng::range_value_t<R> reduce(ExecutionPolicy &&policy, R &&r) {
   return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r),
                 rng::range_value_t<R>{}, std::plus<>());
@@ -109,7 +109,7 @@ rng::range_value_t<R> reduce(ExecutionPolicy &&policy, R &&r) {
 
 // Iterator versions
 
-template <typename ExecutionPolicy, dr::distributed_iterator Iter>
+template <typename ExecutionPolicy, experimental::dr::distributed_iterator Iter>
 std::iter_value_t<Iter> reduce(ExecutionPolicy &&policy, Iter first,
                                Iter last) {
   return reduce(std::forward<ExecutionPolicy>(policy),
@@ -117,13 +117,13 @@ std::iter_value_t<Iter> reduce(ExecutionPolicy &&policy, Iter first,
                 std::plus<>());
 }
 
-template <typename ExecutionPolicy, dr::distributed_iterator Iter, typename T>
+template <typename ExecutionPolicy, experimental::dr::distributed_iterator Iter, typename T>
 T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init) {
   return reduce(std::forward<ExecutionPolicy>(policy),
                 rng::subrange(first, last), init, std::plus<>());
 }
 
-template <typename ExecutionPolicy, dr::distributed_iterator Iter, typename T,
+template <typename ExecutionPolicy, experimental::dr::distributed_iterator Iter, typename T,
           typename BinaryOp>
 T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init,
          BinaryOp &&binary_op) {
@@ -134,34 +134,34 @@ T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init,
 
 // Execution policy-less algorithms
 
-template <dr::distributed_range R> rng::range_value_t<R> reduce(R &&r) {
-  return reduce(dr::shp::par_unseq, std::forward<R>(r));
+template <experimental::dr::distributed_range R> rng::range_value_t<R> reduce(R &&r) {
+  return reduce(experimental::dr::shp::par_unseq, std::forward<R>(r));
 }
 
-template <dr::distributed_range R, typename T> T reduce(R &&r, T init) {
-  return reduce(dr::shp::par_unseq, std::forward<R>(r), init);
+template <experimental::dr::distributed_range R, typename T> T reduce(R &&r, T init) {
+  return reduce(experimental::dr::shp::par_unseq, std::forward<R>(r), init);
 }
 
-template <dr::distributed_range R, typename T, typename BinaryOp>
+template <experimental::dr::distributed_range R, typename T, typename BinaryOp>
 T reduce(R &&r, T init, BinaryOp &&binary_op) {
-  return reduce(dr::shp::par_unseq, std::forward<R>(r), init,
+  return reduce(experimental::dr::shp::par_unseq, std::forward<R>(r), init,
                 std::forward<BinaryOp>(binary_op));
 }
 
-template <dr::distributed_iterator Iter>
+template <experimental::dr::distributed_iterator Iter>
 std::iter_value_t<Iter> reduce(Iter first, Iter last) {
-  return reduce(dr::shp::par_unseq, first, last);
+  return reduce(experimental::dr::shp::par_unseq, first, last);
 }
 
-template <dr::distributed_iterator Iter, typename T>
+template <experimental::dr::distributed_iterator Iter, typename T>
 T reduce(Iter first, Iter last, T init) {
-  return reduce(dr::shp::par_unseq, first, last, init);
+  return reduce(experimental::dr::shp::par_unseq, first, last, init);
 }
 
-template <dr::distributed_iterator Iter, typename T, typename BinaryOp>
+template <experimental::dr::distributed_iterator Iter, typename T, typename BinaryOp>
 T reduce(Iter first, Iter last, T init, BinaryOp &&binary_op) {
-  return reduce(dr::shp::par_unseq, first, last, init,
+  return reduce(experimental::dr::shp::par_unseq, first, last, init,
                 std::forward<BinaryOp>(binary_op));
 }
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

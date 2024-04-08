@@ -172,6 +172,12 @@ jobs:
             build_type: release
             backend: serial
             device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 20
+            build_type: release
+            backend: dpcpp
+            device_type: HOST
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository

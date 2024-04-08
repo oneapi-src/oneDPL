@@ -8,10 +8,10 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, rng::random_access_iterator Iter = T *>
-class span : public rng::view_interface<dr::shp::span<T, Iter>> {
+class span : public rng::view_interface<experimental::dr::shp::span<T, Iter>> {
 public:
   static_assert(std::is_same_v<std::iter_value_t<Iter>, T>);
 
@@ -58,4 +58,4 @@ span(R &&) -> span<rng::range_value_t<R>, rng::iterator_t<R>>;
 template <rng::random_access_iterator Iter>
 span(Iter first, std::size_t count) -> span<std::iter_value_t<Iter>, Iter>;
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

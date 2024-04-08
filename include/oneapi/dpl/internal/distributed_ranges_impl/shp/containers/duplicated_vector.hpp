@@ -7,12 +7,12 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
-template <typename T, typename Allocator = dr::shp::device_allocator<T>>
+template <typename T, typename Allocator = experimental::dr::shp::device_allocator<T>>
 class duplicated_vector {
 public:
-  using segment_type = dr::shp::device_vector<T, Allocator>;
+  using segment_type = experimental::dr::shp::device_vector<T, Allocator>;
 
   using value_type = T;
   using size_type = std::size_t;
@@ -25,9 +25,9 @@ public:
     capacity_ = count;
 
     std::size_t rank = 0;
-    for (auto &&device : dr::shp::devices()) {
+    for (auto &&device : experimental::dr::shp::devices()) {
       segments_.emplace_back(
-          segment_type(size(), Allocator(dr::shp::context(), device), rank++));
+          segment_type(size(), Allocator(experimental::dr::shp::context(), device), rank++));
     }
   }
 
@@ -45,4 +45,4 @@ private:
   std::size_t size_ = 0;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

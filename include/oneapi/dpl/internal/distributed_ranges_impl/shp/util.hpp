@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sycl/sycl.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename Selector> sycl::device select_device(Selector &&selector) {
   sycl::device d;
@@ -177,44 +177,45 @@ template <typename Range> void print_range(Range &&r, std::string label = "") {
   std::cout << "]" << std::endl;
 }
 
-template <typename Matrix>
-void print_matrix(Matrix &&m, std::string label = "") {
-  std::cout << m.shape()[0] << " x " << m.shape()[1] << " matrix with "
-            << m.size() << " stored values";
-  if (label != "") {
-    std::cout << " \"" << label << "\"";
-  }
-  std::cout << std::endl;
+// template <typename Matrix>
+// void print_matrix(Matrix &&m, std::string label = "") {
+//   std::cout << m.shape()[0] << " x " << m.shape()[1] << " matrix with "
+//             << m.size() << " stored values";
+//   if (label != "") {
+//     std::cout << " \"" << label << "\"";
+//   }
+//   std::cout << std::endl;
 
-  for (auto &&tuple : m) {
-    auto &&[index, value] = tuple;
-    auto &&[i, j] = index;
+//   for (auto &&tuple : m) {
+//     auto &&[index, value] = tuple;
+//     auto &&[i, j] = index;
 
-    std::cout << "(" << i << ", " << j << "): " << value << std::endl;
-  }
-}
+//     std::cout << "(" << i << ", " << j << "): " << value << std::endl;
+//   }
+// }
 
 template <typename R> void print_range_details(R &&r, std::string label = "") {
   if (label != "") {
     std::cout << "\"" << label << "\" ";
   }
 
-  std::cout << "distributed range with " << rng::size(dr::ranges::segments(r))
-            << " segments." << std::endl;
+  std::cout << "distributed range with "
+            << rng::size(experimental::dr::ranges::segments(r)) << " segments."
+            << std::endl;
 
   std::size_t idx = 0;
-  for (auto &&segment : dr::ranges::segments(r)) {
+  for (auto &&segment : experimental::dr::ranges::segments(r)) {
     std::cout << "Seg " << idx++ << ", size " << segment.size() << " (rank "
-              << dr::ranges::rank(segment) << ")" << std::endl;
+              << experimental::dr::ranges::rank(segment) << ")" << std::endl;
   }
 }
 
-template <dr::distributed_range R>
+template <experimental::dr::distributed_range R>
 void range_details(R &&r, std::size_t width = 80) {
   std::size_t size = rng::size(r);
 
-  for (auto &&[idx, segment] :
-       dr::__detail::enumerate(dr::ranges::segments(r))) {
+  for (auto &&[idx, segment] : experimental::dr::__detail::enumerate(
+           experimental::dr::ranges::segments(r))) {
     std::size_t local_size = rng::size(segment);
 
     double percent = double(local_size) / size;
@@ -228,8 +229,8 @@ void range_details(R &&r, std::size_t width = 80) {
     std::size_t after_whitespace = whitespace - initial_whitespace;
 
     std::cout << "[" << std::string(initial_whitespace, ' ')
-              << dr::ranges::rank(segment) << std::string(after_whitespace, ' ')
-              << "]";
+              << experimental::dr::ranges::rank(segment)
+              << std::string(after_whitespace, ' ') << "]";
   }
   std::cout << std::endl;
 }
@@ -243,4 +244,4 @@ concept sycl_device_selector = requires(T &t, const sycl::device &device) {
 
 }
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp
