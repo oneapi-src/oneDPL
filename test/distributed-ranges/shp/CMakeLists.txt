@@ -65,7 +65,7 @@ add_executable(
   ../common/reduce.cpp ../common/sort.cpp ../common/subrange.cpp
   ../common/take.cpp ../common/transform.cpp ../common/transform_view.cpp
   ../common/zip.cpp ../common/zip_local.cpp containers.cpp algorithms.cpp
-  copy.cpp detail.cpp fill.cpp gemv.cpp transform.cpp)
+  copy.cpp detail.cpp fill.cpp transform.cpp)
 
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 

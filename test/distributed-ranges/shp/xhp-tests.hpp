@@ -8,7 +8,7 @@
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed-ranges>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/logger.hpp>
+// #include <oneapi/dpl/internal/distributed_ranges_impl/detail/logger.hpp>
 
 #define TEST_SHP
 
@@ -23,7 +23,8 @@ inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
-using AllocatorTypes = ::testing::Types<experimental::dr::shp::device_allocator<int>>;
+using AllocatorTypes =
+    ::testing::Types<experimental::dr::shp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = rng::forward_range<V> && requires(V &v) {
