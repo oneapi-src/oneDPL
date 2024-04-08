@@ -424,99 +424,125 @@ struct tuple<T1, T...>
         return *this;
     }
 
-// The following operators are used to define binary operators for comparison between oneAPI::dpl::__internal::tuple and
-// std::tuple when they have the same number of template arguments and the individual elements which are invdividually
-// omparable. These overloads are required because for overload resolution of template arguments, exact match is
-// required and the compiler does not consider implicit conversions. We also allow std::tuple implementation to
-// implement the operators themselves, which guarantees a match with oneAPI::dpl::__internal::tuple
-
+    // The following operators enable support of binary comparison of oneDPL internal tuples with other oneDPL internal
+    // tuples with the same number of types where individual elements are binary comparable
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator==(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator==(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
         return __lhs.holder.value == __rhs.holder.value && __lhs.next == __rhs.next;
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator==(const tuple& __lhs, const std::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator!=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return !(__lhs == __rhs);
+    }
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator<(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return __lhs.holder.value < __rhs.holder.value ||
+               (!(__rhs.holder.value < __lhs.holder.value) && __lhs.next < __rhs.next);
+    }
+
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator<=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return !(__rhs < __lhs);
+    }
+
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator>(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return __rhs < __lhs;
+    }
+
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator>=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return !(__lhs < __rhs);
+    }
+
+    // The following operators enable support of binary comparison of oneDPL internal tuples with std::tuple as rhs
+    // with the same number of types where individual elements are binary comparable
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator==(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
         return __lhs.holder.value == std::get<0>(__rhs) && __lhs.next == oneapi::dpl::__internal::get_tuple_tail(__rhs);
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator==(const std::tuple<_U...>& __lhs, const tuple& __rhs)
-    {
-        return std::get<0>(__lhs) == __rhs.holder.value &&  oneapi::dpl::__internal::get_tuple_tail(__lhs) == __rhs.next;
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator!=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator!=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
         return !(__lhs == __rhs);
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator!=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator<(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return !(__lhs == __rhs);
+        return __lhs.holder.value < std::get<0>(__rhs) || (!(std::get<0>(__rhs) < __lhs.holder.value) &&
+                                                           __lhs.next < oneapi::dpl::__internal::get_tuple_tail(__rhs));
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator!=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
-    {
-        return !(__lhs == __rhs);
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
-    {
-        return __lhs.holder.value < __rhs.holder.value || (!(__rhs.holder.value < __lhs.holder.value) && __lhs.next < __rhs.next);
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<(const tuple& __lhs, const std::tuple<_U...>& __rhs)
-    {
-        return __lhs.holder.value < std::get<0>(__rhs) || (!(std::get<0>(__rhs) < __lhs.holder.value) && __lhs.next < oneapi::dpl::__internal::get_tuple_tail(__rhs));
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<(const std::tuple<_U...>& __lhs, const tuple& __rhs)
-    {
-        return std::get<0>(__lhs) < __rhs.holder.value || (!(__rhs.holder.value < std::get<0>(__lhs)) && oneapi::dpl::__internal::get_tuple_tail(__lhs) < __rhs.next);
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator<=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
         return !(__rhs < __lhs);
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
-    {
-        return !(__rhs < __lhs);
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator<=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
-    {
-        return !(__rhs < __lhs);
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator>(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
         return __rhs < __lhs;
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>(const tuple& __lhs, const std::tuple<_U...>& __rhs)
-    {
-        return __rhs < __lhs;
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>(const std::tuple<_U...>& __lhs, const tuple& __rhs)
-    {
-        return __rhs < __lhs;
-    }
-    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator>=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
         return !(__lhs < __rhs);
     }
+
+    // The following operators enable support of binary comparison of oneDPL internal tuples with std::tuple as lhs
+    // with the same number of types where individual elements are binary comparable
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
+    friend constexpr bool
+    operator==(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return !(__lhs < __rhs);
+        return std::get<0>(__lhs) == __rhs.holder.value && oneapi::dpl::__internal::get_tuple_tail(__lhs) == __rhs.next;
     }
     template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
-    friend constexpr bool operator>=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    friend constexpr bool
+    operator!=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    {
+        return !(__lhs == __rhs);
+    }
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator<(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    {
+        return std::get<0>(__lhs) < __rhs.holder.value || (!(__rhs.holder.value < std::get<0>(__lhs)) &&
+                                                           oneapi::dpl::__internal::get_tuple_tail(__lhs) < __rhs.next);
+    }
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator<=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    {
+        return !(__rhs < __lhs);
+    }
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator>(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    {
+        return __rhs < __lhs;
+    }
+    template <typename... _U, typename = std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1)>>
+    friend constexpr bool
+    operator>=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
         return !(__lhs < __rhs);
     }
@@ -542,10 +568,7 @@ struct tuple<>
 
     tuple operator[](tuple) { return {}; }
     tuple operator[](const tuple&) const { return {}; }
-    operator tuple_type() const
-    {
-        return tuple_type{};
-    }
+    operator tuple_type() const { return tuple_type{}; }
     tuple&
     operator=(const tuple&) = default;
     tuple&
