@@ -199,7 +199,7 @@ get_unvectorized_policy(const oneapi::dpl::execution::unsequenced_policy&)
     return oneapi::dpl::execution::seq;
 }
 
-inline template <typename _ExecutionPolicy>
+template <typename _ExecutionPolicy>
 const _ExecutionPolicy&
 get_unvectorized_policy(const _ExecutionPolicy& __exec)
 {
