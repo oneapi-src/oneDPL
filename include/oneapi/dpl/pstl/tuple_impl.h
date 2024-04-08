@@ -52,7 +52,8 @@ get(oneapi::dpl::__internal::tuple<_Tp...>&&);
 
 template <size_t _Idx, typename... _Tp>
 constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
-get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a);
+get(const oneapi::dpl::__internal::tuple<_Tp...>&&);
+
 template <::std::size_t N, typename T, typename... Rest>
 struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
     : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
