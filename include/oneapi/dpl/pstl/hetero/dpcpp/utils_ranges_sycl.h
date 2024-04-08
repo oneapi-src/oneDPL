@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "sycl_iterator.h"
 #include "sycl_defs.h"
 
 namespace oneapi
@@ -203,6 +204,16 @@ struct is_passed_directly : ::std::is_pointer<Iter>
 //support legacy "is_passed_directly" trait
 template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
+{
+};
+
+//support std::vector::iterator with usm host / shared allocator as passed directly
+template <typename Iter>
+struct is_passed_directly<
+    Iter, std::enable_if_t<(std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
+                            std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>) &&
+                            oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>::value>> :
+                                std::true_type
 {
 };
 
