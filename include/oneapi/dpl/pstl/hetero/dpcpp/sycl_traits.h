@@ -55,7 +55,6 @@ _ONEDPL_DEVICE_COPYABLE(__transform_if_unary_functor)
 _ONEDPL_DEVICE_COPYABLE(__transform_if_binary_functor)
 _ONEDPL_DEVICE_COPYABLE(__replace_functor)
 _ONEDPL_DEVICE_COPYABLE(__replace_copy_functor)
-_ONEDPL_DEVICE_COPYABLE(zip_forward_iterator)
 
 template <typename _SourceT>
 struct fill_functor;
