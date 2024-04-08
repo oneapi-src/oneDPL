@@ -306,7 +306,7 @@ struct __copy_assignable_holder<_Tp, false> : oneapi::dpl::__internal::__value_h
     operator=(__copy_assignable_holder&& other) = default;
 };
 
-template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
+template <typename _Tuple1, typename _Tuple2, int I = 0>
 constexpr bool
 __equal(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
@@ -320,7 +320,7 @@ __equal(const _Tuple1& __lhs, const _Tuple2& __rhs)
         return true;
     }
 }
-template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
+template <typename _Tuple1, typename _Tuple2, int I = 0>
 constexpr bool
 __less(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
