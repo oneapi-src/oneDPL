@@ -309,9 +309,10 @@ template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
 constexpr bool
 __equal(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
-    if constexpr(I < std::tuple_size_v<_Tuple1>)
+    if constexpr (I < std::tuple_size_v<_Tuple1>)
     {
-        return std::get<I>(__lhs) == std::get<I>(__rhs) && oneapi::dpl::__internal::__equal<_Tuple1, _Tuple2, I+1>(__lhs, __rhs);
+        return std::get<I>(__lhs) == std::get<I>(__rhs) &&
+               oneapi::dpl::__internal::__equal<_Tuple1, _Tuple2, I + 1>(__lhs, __rhs);
     }
     else
     {
@@ -322,10 +323,11 @@ template <typename _Tuple1, typename _Tuple2, uint32_t I = 0>
 constexpr bool
 __less(const _Tuple1& __lhs, const _Tuple2& __rhs)
 {
-    if constexpr(I < std::tuple_size_v<_Tuple1>)
+    if constexpr (I < std::tuple_size_v<_Tuple1>)
     {
         return std::get<I>(__lhs) < std::get<I>(__rhs) ||
-            (!(std::get<I>(__rhs) < std::get<I>(__lhs)) && oneapi::dpl::__internal::__less<_Tuple1, _Tuple2, I+1>(__lhs, __rhs));
+               (!(std::get<I>(__rhs) < std::get<I>(__lhs)) &&
+                oneapi::dpl::__internal::__less<_Tuple1, _Tuple2, I + 1>(__lhs, __rhs));
     }
     else
     {
