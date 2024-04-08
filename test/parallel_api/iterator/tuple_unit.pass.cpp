@@ -19,9 +19,6 @@
 
 #include "support/utils.h"
 
-template <typename... T>
-using tuplewrapper = oneapi::dpl::__internal::tuple<typename oneapi::dpl::__internal::__lvref_or_val<T>::__type...>;
-
 template <typename... _T>
 static oneapi::dpl::__internal::tuple<_T...>
 to_onedpl_tuple(const std::tuple<_T...>& __t)
