@@ -40,6 +40,8 @@
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
 
+#include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+
 namespace oneapi
 {
 namespace dpl
