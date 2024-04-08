@@ -31,88 +31,20 @@ inline namespace v1
 // 2.4, Sequential execution policy
 class sequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
 };
 
 // 2.5, Parallel execution policy
 class parallel_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
 };
 
 // 2.6, Parallel+Vector execution policy
 class parallel_unsequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
 };
 
 class unsequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
 };
 
 // 2.8, Execution policy objects
@@ -180,14 +112,6 @@ template <class _ExecPolicy, class _T = void>
 using __enable_if_execution_policy =
     ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
-template <class _ExecPolicy, class _T = void>
-using __enable_if_host_execution_policy =
-    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
-
-template <class _ExecPolicy, const bool __condition, class _T = void>
-using __enable_if_host_execution_policy_conditional =
-    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition, _T>;
-
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
 {
@@ -212,6 +136,22 @@ __check_size(...) -> typename ::std::iterator_traits<_It>::difference_type;
 
 template <typename _R>
 using __difference_t = ::std::make_signed_t<decltype(__check_size<_R>(0))>;
+
+//------------------------------------------------------------------------
+// backend tags
+//------------------------------------------------------------------------
+
+struct __serial_backend_tag
+{
+};
+
+struct __tbb_backend_tag
+{
+};
+
+struct __omp_backend_tag
+{
+};
 
 } // namespace __internal
 

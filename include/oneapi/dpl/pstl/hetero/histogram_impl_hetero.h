@@ -117,11 +117,12 @@ struct __hist_fill_zeros_wrapper
 {
 };
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _BinHash,
-          typename _RandomAccessIterator2>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
-__pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _Size __num_bins, _BinHash&& __func, _RandomAccessIterator2 __histogram_first)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
+          typename _BinHash, typename _RandomAccessIterator2>
+void
+__pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                    _RandomAccessIterator1 __last, _Size __num_bins, _BinHash&& __func,
+                    _RandomAccessIterator2 __histogram_first)
 {
     //If there are no histogram bins there is nothing to do
     if (__num_bins > 0)
@@ -143,7 +144,7 @@ __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _
         //fill histogram bins with zeros
 
         auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
+            _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
             unseq_backend::walk_n<_ExecutionPolicy, decltype(__fill_func)>{__fill_func}, __num_bins, __bins);
 
         if (__n > 0)
@@ -156,8 +157,8 @@ __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _
                                                         _RandomAccessIterator1>();
             auto __input_buf = __keep_input(__first, __last);
 
-            __parallel_histogram(::std::forward<_ExecutionPolicy>(__exec), __init_event, __input_buf.all_view(),
-                                 ::std::move(__bins), __binhash_manager)
+            __parallel_histogram(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+                                 __input_buf.all_view(), ::std::move(__bins), __binhash_manager)
                 .wait();
         }
         else

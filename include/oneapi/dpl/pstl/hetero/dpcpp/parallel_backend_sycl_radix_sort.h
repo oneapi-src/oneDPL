@@ -25,6 +25,8 @@
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 
+#include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
 //To achieve better performance, number of segments and work-group size are variated depending on a number of elements:
 //1. 32K...512K  - number of segments is increased up to 8 times
@@ -757,7 +759,8 @@ struct __parallel_radix_sort_iteration
 //-----------------------------------------------------------------------
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
 auto
-__parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj)
+__parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __in_rng,
+                      _Proj __proj)
 {
     const ::std::size_t __n = __in_rng.size();
     assert(__n > 1);

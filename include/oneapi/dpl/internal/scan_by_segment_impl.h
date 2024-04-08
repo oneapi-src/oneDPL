@@ -46,6 +46,8 @@
 #include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
 #include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
+#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+
 namespace oneapi
 {
 namespace dpl
@@ -103,10 +105,10 @@ struct __sycl_scan_by_segment_impl
     template <typename... _Name>
     using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
 
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -364,11 +366,12 @@ struct __sycl_scan_by_segment_impl
     }
 };
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
-          typename BinaryPredicate, typename Operator, typename Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-__scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                              OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op, Inclusive)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename T, typename BinaryPredicate, typename Operator, typename Inclusive>
+OutputIterator
+__scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1,
+                              InputIterator1 last1, InputIterator2 first2, OutputIterator result, T init,
+                              BinaryPredicate binary_pred, Operator binary_op, Inclusive)
 {
     const auto n = ::std::distance(first1, last1);
 
@@ -389,7 +392,7 @@ __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputItera
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    __sycl_scan_by_segment_impl<Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
+    __sycl_scan_by_segment_impl<Inclusive::value>()(_BackendTag{}, ::std::forward<Policy>(policy), key_buf.all_view(),
                                                     value_buf.all_view(), value_output_buf.all_view(), binary_pred,
                                                     binary_op, init, identity);
     return result + n;

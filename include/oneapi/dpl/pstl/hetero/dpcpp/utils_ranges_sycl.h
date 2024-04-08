@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "sycl_iterator.h"
 #include "sycl_defs.h"
 
 namespace oneapi
@@ -203,6 +204,16 @@ struct is_passed_directly : ::std::is_pointer<Iter>
 //support legacy "is_passed_directly" trait
 template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
+{
+};
+
+//support std::vector::iterator with usm host / shared allocator as passed directly
+template <typename Iter>
+struct is_passed_directly<
+    Iter, std::enable_if_t<(std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
+                            std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>) &&
+                            oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>::value>> :
+                                std::true_type
 {
 };
 
@@ -715,6 +726,32 @@ struct __get_sycl_range
         return __process_input_iter<AccMode>(::std::forward<_ArgTypes>(__args)...);
     }
 };
+
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
+template <typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__device_backend_tag>
+__select_backend(const execution::device_policy<_KernelName>&, _Ranges&&...)
+{
+    return {};
+}
+
+#if _ONEDPL_FPGA_DEVICE
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
+template <unsigned int _Factor, typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__fpga_backend_tag>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _Ranges&&...)
+{
+    return {};
+}
+#endif
 
 } // namespace __ranges
 } // namespace dpl

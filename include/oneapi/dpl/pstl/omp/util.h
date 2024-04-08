@@ -48,7 +48,7 @@ namespace __omp_backend
 // use to cancel execution
 //------------------------------------------------------------------------
 inline void
-__cancel_execution()
+__cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 {
     // TODO: Figure out how to make cancellation work.
 }
@@ -68,9 +68,10 @@ class __buffer_impl
     operator=(const __buffer_impl&) = delete;
 
   public:
-    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
-
-    __buffer_impl(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    __buffer_impl(_ExecutionPolicy /*__exec*/, std::size_t __n)
+        : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n)
+    {
+    }
 
     operator bool() const { return __ptr_ != nullptr; }
 
