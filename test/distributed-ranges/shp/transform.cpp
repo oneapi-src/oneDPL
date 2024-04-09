@@ -6,7 +6,7 @@
 template <typename AllocT> class TransformTest : public testing::Test {
 public:
   using DistVec =
-      experimental::dr::shp::distributed_vector<typename AllocT::value_type, AllocT>;
+      oneapi::dpl::experimental::dr::shp::distributed_vector<typename AllocT::value_type, AllocT>;
   using LocalVec = std::vector<typename AllocT::value_type>;
   constexpr static const auto add_10_func = [](auto x) { return x + 10; };
 };
@@ -16,7 +16,7 @@ TYPED_TEST_SUITE(TransformTest, AllocatorTypes);
 TYPED_TEST(TransformTest, whole_aligned) {
   const typename TestFixture::DistVec a = {0, 1, 2, 3, 4};
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9};
-  auto r = experimental::dr::shp::transform(experimental::dr::shp::par_unseq, a, rng::begin(b),
+  auto r = oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq, a, rng::begin(b),
                               TestFixture::add_10_func);
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(r.out, b.end());
@@ -29,7 +29,7 @@ TYPED_TEST(TransformTest, whole_non_aligned) {
   typename TestFixture::DistVec b = {50, 51, 52, 53, 54, 55,
                                      56, 57, 58, 59, 60};
 
-  auto r = experimental::dr::shp::transform(experimental::dr::shp::par_unseq, a, rng::begin(b),
+  auto r = oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq, a, rng::begin(b),
                               TestFixture::add_10_func);
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(*r.out, 55);
@@ -42,8 +42,8 @@ TYPED_TEST(TransformTest, part_aligned) {
   const typename TestFixture::DistVec a = {0, 1, 2, 3, 4};
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9};
 
-  auto [r_in, r_out] = experimental::dr::shp::transform(
-      experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
+  auto [r_in, r_out] = oneapi::dpl::experimental::dr::shp::transform(
+      oneapi::dpl::experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
       ++rng::begin(b), TestFixture::add_10_func);
   EXPECT_EQ(*r_in, 4);
   EXPECT_EQ(*r_out, 9);
@@ -55,8 +55,8 @@ TYPED_TEST(TransformTest, part_not_aligned) {
   const typename TestFixture::DistVec a = {0, 1, 2, 3};
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9, 9, 9, 9, 9};
 
-  auto [r_in, r_out] = experimental::dr::shp::transform(
-      experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), rng::end(a)),
+  auto [r_in, r_out] = oneapi::dpl::experimental::dr::shp::transform(
+      oneapi::dpl::experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), rng::end(a)),
       rng::begin(b) + 5, TestFixture::add_10_func);
   EXPECT_EQ(r_in, a.end());
   EXPECT_EQ(r_out, rng::begin(b) + 8); // initial shift in b + subrange size
@@ -67,7 +67,7 @@ TYPED_TEST(TransformTest, part_not_aligned) {
 
 TYPED_TEST(TransformTest, inplace_whole) {
   typename TestFixture::DistVec a = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-  auto [r_in, r_out] = experimental::dr::shp::transform(experimental::dr::shp::par_unseq, a, rng::begin(a),
+  auto [r_in, r_out] = oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq, a, rng::begin(a),
                                           TestFixture::add_10_func);
   EXPECT_EQ(r_in, rng::end(a));
   EXPECT_EQ(r_out, rng::end(a));
@@ -77,8 +77,8 @@ TYPED_TEST(TransformTest, inplace_whole) {
 
 TYPED_TEST(TransformTest, inplace_part) {
   typename TestFixture::DistVec a = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-  auto [r_in, r_out] = experimental::dr::shp::transform(
-      experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
+  auto [r_in, r_out] = oneapi::dpl::experimental::dr::shp::transform(
+      oneapi::dpl::experimental::dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
       ++rng::begin(a), TestFixture::add_10_func);
   EXPECT_EQ(*r_in, 8);
   EXPECT_EQ(r_out, --rng::end(a));
@@ -89,7 +89,7 @@ TYPED_TEST(TransformTest, inplace_part) {
 TYPED_TEST(TransformTest, large_aligned_whole) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
-  experimental::dr::shp::transform(experimental::dr::shp::par_unseq, a, rng::begin(b),
+  oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq, a, rng::begin(b),
                      TestFixture::add_10_func);
 
   EXPECT_EQ(b[0], 17);
@@ -110,7 +110,7 @@ TYPED_TEST(TransformTest, large_aligned_whole) {
 TYPED_TEST(TransformTest, large_aligned_part) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
-  experimental::dr::shp::transform(experimental::dr::shp::par_unseq,
+  oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq,
                      rng::subrange(rng::begin(a) + 1000, rng::begin(a) + 1005),
                      rng::begin(b) + 1000, TestFixture::add_10_func);
 
@@ -127,7 +127,7 @@ TYPED_TEST(TransformTest, large_aligned_part) {
 TYPED_TEST(TransformTest, large_aligned_part_shifted) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
-  experimental::dr::shp::transform(experimental::dr::shp::par_unseq,
+  oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq,
                      rng::subrange(rng::begin(a) + 1000, rng::begin(a) + 1005),
                      rng::begin(b) + 999, TestFixture::add_10_func);
 
@@ -144,7 +144,7 @@ TYPED_TEST(TransformTest, large_aligned_part_shifted) {
 TYPED_TEST(TransformTest, large_not_aligned) {
   const typename TestFixture::DistVec a(10000, 7);
   typename TestFixture::DistVec b(17000, 3);
-  experimental::dr::shp::transform(experimental::dr::shp::par_unseq,
+  oneapi::dpl::experimental::dr::shp::transform(oneapi::dpl::experimental::dr::shp::par_unseq,
                      rng::subrange(rng::begin(a) + 2000, rng::begin(a) + 9000),
                      rng::begin(b) + 9000, TestFixture::add_10_func);
 
@@ -164,8 +164,8 @@ TYPED_TEST(TransformTest, large_not_aligned) {
 
 TYPED_TEST(TransformTest, large_inplace) {
   typename TestFixture::DistVec a(77000, 7);
-  auto r = experimental::dr::shp::transform(
-      experimental::dr::shp::par_unseq,
+  auto r = oneapi::dpl::experimental::dr::shp::transform(
+      oneapi::dpl::experimental::dr::shp::par_unseq,
       rng::subrange(rng::begin(a) + 22222, rng::begin(a) + 55555),
       rng::begin(a) + 22222, TestFixture::add_10_func);
 

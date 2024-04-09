@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   }
 
   const unsigned int dev_num = options["devicesCount"].as<unsigned int>();
-  auto devices = experimental::dr::shp::get_numa_devices(sycl::default_selector_v);
+  auto devices = oneapi::dpl::experimental::dr::shp::get_numa_devices(sycl::default_selector_v);
 
   if (dev_num > 0) {
     unsigned int i = 0;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     devices.resize(dev_num); // if too many devices
   }
 
-  experimental::dr::shp::init(devices);
+  oneapi::dpl::experimental::dr::shp::init(devices);
 
   for (auto &device : devices) {
     std::cout << "  Device: " << device.get_info<sycl::info::device::name>()

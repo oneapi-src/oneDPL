@@ -5,7 +5,7 @@
 #include "xhp-tests.hpp"
 #include <oneapi/dpl/internal/distributed_ranges_impl//shp.hpp>
 
-namespace shp = experimental::dr::shp;
+namespace shp = oneapi::dpl::experimental::dr::shp;
 
 TEST(DetailTest, parallel_for) {
   std::size_t size = 2 * 1024 * 1024;
@@ -26,7 +26,7 @@ TEST(DetailTest, parallel_for) {
 
   auto dv = dvec.data();
 
-  experimental::dr::__detail::parallel_for(q, n, [=](auto i) {
+  oneapi::dpl::experimental::dr::__detail::parallel_for(q, n, [=](auto i) {
     sycl::atomic_ref<int, sycl::memory_order::relaxed,
                      sycl::memory_scope::device>
         v(dv[i % size]);

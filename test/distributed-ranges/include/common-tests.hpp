@@ -6,7 +6,7 @@
 constexpr std::size_t EVENLY_DIVIDABLE_SIZE =
     2 * 3 * 5 * 7 * 11 * 13; // good up to 16 processes
 
-template <experimental::dr::distributed_range DR>
+template <oneapi::dpl::experimental::dr::distributed_range DR>
 using LocalVec = std::vector<typename DR::value_type>;
 
 struct AOS_Struct {
@@ -174,7 +174,7 @@ bool contains_empty(auto &&r) {
 }
 
 std::string check_segments_message(auto &&r) {
-  auto segments = experimental::dr::ranges::segments(r);
+  auto segments = oneapi::dpl::experimental::dr::ranges::segments(r);
   auto flat = rng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
     return fmt::format("\n"
@@ -254,7 +254,7 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
 }
 
 auto check_segments(std::forward_iterator auto di) {
-  auto segments = experimental::dr::ranges::segments(di);
+  auto segments = oneapi::dpl::experimental::dr::ranges::segments(di);
   auto flat = rng::join_view(segments);
   if (contains_empty(segments) || !is_equal(di, flat)) {
     return testing::AssertionFailure()
@@ -295,7 +295,7 @@ concept streamable = requires(std::ostream &os, T value) {
   { os << value } -> std::convertible_to<std::ostream &>;
 };
 
-namespace experimental::dr::mhp {
+namespace oneapi::dpl::experimental::dr::mhp {
 
 // gtest relies on ADL to find the printer
 template <typename T, typename B>
@@ -325,9 +325,9 @@ bool operator==(const xhp::distributed_vector<T, B> &dist_vec,
   return is_equal(local_vec, dist_vec);
 }
 
-} // namespace experimental::dr::mhp
+} // namespace oneapi::dpl::experimental::dr::mhp
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 // gtest relies on ADL to find the printer
 template <typename T>
@@ -357,7 +357,7 @@ bool operator==(const xhp::distributed_vector<T> &dist_vec,
   return is_equal(dist_vec, local_vec);
 }
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp
 
 namespace DR_RANGES_NAMESPACE {
 

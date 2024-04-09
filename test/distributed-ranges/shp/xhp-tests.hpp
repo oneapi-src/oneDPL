@@ -18,19 +18,19 @@ const std::size_t comm_rank = 0;
 const std::size_t comm_size = 1;
 
 // Namespace aliases and wrapper functions to make the tests uniform
-namespace xhp = experimental::dr::shp;
+namespace xhp = oneapi::dpl::experimental::dr::shp;
 
 inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
 using AllocatorTypes =
-    ::testing::Types<experimental::dr::shp::device_allocator<int>>;
+    ::testing::Types<oneapi::dpl::experimental::dr::shp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = rng::forward_range<V> && requires(V &v) {
-  experimental::dr::ranges::segments(v);
-  experimental::dr::ranges::rank(experimental::dr::ranges::segments(v)[0]);
+  oneapi::dpl::experimental::dr::ranges::segments(v);
+  oneapi::dpl::experimental::dr::ranges::rank(oneapi::dpl::experimental::dr::ranges::segments(v)[0]);
 };
 
 #include "../include/common-tests.hpp"

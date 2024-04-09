@@ -55,7 +55,7 @@ TYPED_TEST(Zip, RangeSegments) {
 
   auto local = rng::views::zip(ops.vec);
   auto dist = test_zip(ops.dist_vec);
-  auto flat = rng::views::join(experimental::dr::ranges::segments(dist));
+  auto flat = rng::views::join(oneapi::dpl::experimental::dr::ranges::segments(dist));
   EXPECT_TRUE(is_equal(local, flat));
 }
 
@@ -66,7 +66,7 @@ TYPED_TEST(Zip, IterSegments) {
 
   auto local = rng::views::zip(ops.vec);
   auto dist = test_zip(ops.dist_vec);
-  auto flat = rng::views::join(experimental::dr::ranges::segments(dist.begin()));
+  auto flat = rng::views::join(oneapi::dpl::experimental::dr::ranges::segments(dist.begin()));
   EXPECT_TRUE(is_equal(local, flat));
 }
 #endif
@@ -77,7 +77,7 @@ TYPED_TEST(Zip, Drop) {
   auto local = rng::views::drop(rng::views::zip(ops.vec), 2);
   auto dist = xhp::views::drop(test_zip(ops.dist_vec), 2);
 
-  auto flat = rng::views::join(experimental::dr::ranges::segments(dist));
+  auto flat = rng::views::join(oneapi::dpl::experimental::dr::ranges::segments(dist));
   EXPECT_EQ(local, dist);
   EXPECT_TRUE(is_equal(local, flat));
 }
@@ -179,7 +179,7 @@ TYPED_TEST(Zip, IotaStaticAssert) {
   static_assert(std::forward_iterator<decltype(rng::end(dist))>);
   using Dist = decltype(dist);
   static_assert(rng::forward_range<Dist>);
-  static_assert(experimental::dr::distributed_range<Dist>);
+  static_assert(oneapi::dpl::experimental::dr::distributed_range<Dist>);
 }
 
 TYPED_TEST(Zip, Iota) {
