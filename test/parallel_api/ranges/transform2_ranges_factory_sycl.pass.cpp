@@ -13,12 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/execution>
-
 #include "support/test_config.h"
 
+#include _PSTL_TEST_HEADER(execution)
+#include _PSTL_TEST_HEADER(algorithm)
+
 #if _ENABLE_RANGES_TESTING
-#include <oneapi/dpl/ranges>
+#include _PSTL_TEST_HEADER(ranges)
 #endif
 
 #include "support/utils.h"
@@ -37,22 +38,20 @@ main()
     auto lambda1 = [](auto i) { return i * i; };
     auto lambda2 = [](auto i, auto j) { return i + j; };
 
-    using namespace oneapi::dpl::experimental::ranges;
-
     {
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
         sycl::buffer<int> C(data3, sycl::range<1>(max_n));
 
-        auto view = iota_view(0, max_n) | views::transform(lambda1);
-        auto range_res = all_view<int, sycl::access::mode::write>(B);
+        auto view = oneapi::dpl::experimental::ranges::iota_view(0, max_n) | oneapi::dpl::experimental::ranges::views::transform(lambda1);
+        auto range_res = oneapi::dpl::experimental::ranges::all_view<int, sycl::access::mode::write>(B);
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(exec);
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        transform(exec1, view, view, range_res, lambda2);
-        transform(exec2, view, view, C, lambda2); //check passing sycl buffer
+        oneapi::dpl::experimental::ranges::transform(exec1, view, view, range_res, lambda2);
+        oneapi::dpl::experimental::ranges::transform(exec2, view, view, C, lambda2); //check passing sycl buffer
     }
 
     //check result
