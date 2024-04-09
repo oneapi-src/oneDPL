@@ -12,7 +12,7 @@ TYPED_TEST_SUITE(IotaView, AllTypes);
 
 TYPED_TEST(IotaView, ZipWithDR) {
   xhp::distributed_vector<int> dv(10);
-  auto v = experimental::dr::views::iota(1, 10);
+  auto v = dr::views::iota(1, 10);
 
   auto z = xhp::views::zip(dv, v);
 
@@ -26,7 +26,7 @@ TYPED_TEST(IotaView, ZipWithDR) {
 
 TYPED_TEST(IotaView, Copy) {
   TypeParam dv(10);
-  auto v = experimental::dr::views::iota(1, 11);
+  auto v = dr::views::iota(1, 11);
 
   xhp::copy(v, dv.begin());
 
@@ -36,7 +36,7 @@ TYPED_TEST(IotaView, Copy) {
 
 TYPED_TEST(IotaView, Transform) {
   TypeParam dv(10);
-  auto v = experimental::dr::views::iota(1, 11);
+  auto v = dr::views::iota(1, 11);
   auto negate = [](auto v) { return -v; };
 
   xhp::transform(v, dv.begin(), negate);
@@ -47,7 +47,7 @@ TYPED_TEST(IotaView, Transform) {
 
 TYPED_TEST(IotaView, ForEach) {
   TypeParam dv(10);
-  auto v = experimental::dr::views::iota(1, 11);
+  auto v = dr::views::iota(1, 11);
 
   auto negate = [](auto v) {
     auto &[in, out] = v;

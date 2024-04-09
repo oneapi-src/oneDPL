@@ -9,7 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/views.hpp>
 
-namespace experimental::dr::shp::views {
+namespace oneapi::dpl::experimental::dr::shp::views {
 
 inline constexpr auto all = rng::views::all;
 
@@ -17,10 +17,10 @@ inline constexpr auto counted = rng::views::counted;
 
 inline constexpr auto drop = rng::views::drop;
 
-inline constexpr auto iota = experimental::dr::views::iota;
+inline constexpr auto iota = dr::views::iota;
 
 inline constexpr auto take = rng::views::take;
 
-inline constexpr auto transform = experimental::dr::views::transform;
+inline constexpr auto transform = dr::views::transform;
 
-} // namespace experimental::dr::shp::views
+} // namespace oneapi::dpl::experimental::dr::shp::views

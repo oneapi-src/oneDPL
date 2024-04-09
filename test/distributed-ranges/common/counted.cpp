@@ -72,44 +72,44 @@ TYPED_TEST(Counted, countedOfOneElementHasOneSegmentAndSameRank) {
   TypeParam dv(10, 77);
   auto counted_view_result = xhp::views::counted(dv.end() - 1, 1);
 
-  auto counted_view_segments = experimental::dr::ranges::segments(counted_view_result);
-  auto dv_segments = experimental::dr::ranges::segments(dv);
+  auto counted_view_segments = dr::ranges::segments(counted_view_result);
+  auto dv_segments = dr::ranges::segments(dv);
   auto last_segment_index = dv_segments.size() - 1;
 
   EXPECT_TRUE(check_segments(counted_view_result));
   EXPECT_EQ(rng::size(counted_view_segments), 1);
-  EXPECT_EQ(experimental::dr::ranges::rank(counted_view_segments[0]),
-            experimental::dr::ranges::rank(dv_segments[last_segment_index]));
+  EXPECT_EQ(dr::ranges::rank(counted_view_segments[0]),
+            dr::ranges::rank(dv_segments[last_segment_index]));
 }
 
 TYPED_TEST(Counted, countedOfFirstSegementHasOneSegmentAndSameRank) {
   TypeParam dv(123456, 77);
 
-  const auto first_seg_size = experimental::dr::ranges::segments(dv)[0].size();
+  const auto first_seg_size = dr::ranges::segments(dv)[0].size();
   std::size_t bias = 2;
   // test assumes there are not too many ranks
-  assert(experimental::dr::ranges::segments(dv)[0].size() > bias);
+  assert(dr::ranges::segments(dv)[0].size() > bias);
   auto counted_view_result =
       xhp::views::counted(dv.begin() + bias, first_seg_size - bias);
-  auto counted_view_segments = experimental::dr::ranges::segments(counted_view_result);
+  auto counted_view_segments = dr::ranges::segments(counted_view_result);
   EXPECT_EQ(rng::size(counted_view_segments), 1);
-  EXPECT_EQ(experimental::dr::ranges::rank(counted_view_segments[0]),
-            experimental::dr::ranges::rank(experimental::dr::ranges::segments(dv)[0]));
+  EXPECT_EQ(dr::ranges::rank(counted_view_segments[0]),
+            dr::ranges::rank(dr::ranges::segments(dv)[0]));
 }
 
 TYPED_TEST(Counted, countedOfAllButOneSizeHasAllSegmentsWithSameRanks) {
   TypeParam dv(EVENLY_DIVIDABLE_SIZE, 77);
 
-  auto dv_segments = experimental::dr::ranges::segments(dv);
+  auto dv_segments = dr::ranges::segments(dv);
   std::size_t bias = 1;
   // test assumes there are not too many ranks
   assert(dv_segments[0].size() > bias);
   auto counted_view_result =
       xhp::views::counted(dv.begin() + bias, EVENLY_DIVIDABLE_SIZE - bias);
-  auto counted_view_segments = experimental::dr::ranges::segments(counted_view_result);
+  auto counted_view_segments = dr::ranges::segments(counted_view_result);
 
   EXPECT_EQ(rng::size(dv_segments), rng::size(counted_view_segments));
   for (std::size_t i = 0; i < rng::size(dv_segments); ++i)
-    EXPECT_EQ(experimental::dr::ranges::rank(dv_segments[i]),
-              experimental::dr::ranges::rank(counted_view_segments[i]));
+    EXPECT_EQ(dr::ranges::rank(dv_segments[i]),
+              dr::ranges::rank(counted_view_segments[i]));
 }

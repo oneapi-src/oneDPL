@@ -10,7 +10,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ref.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 template <typename T>
   requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>)
@@ -141,4 +141,4 @@ private:
   T *pointer_;
 };
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

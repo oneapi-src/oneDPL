@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/execution_policy.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 namespace __detail {
 
@@ -85,8 +85,8 @@ inline sycl::queue &queue(std::size_t rank) { return queues_[rank]; }
 
 // Retrieve global queues because of CMPLRLLVM-47008
 inline sycl::queue &queue(const sycl::device &device) {
-  for (std::size_t rank = 0; rank < shp::nprocs(); rank++) {
-    if (shp::devices()[rank] == device) {
+  for (std::size_t rank = 0; rank < nprocs(); rank++) {
+    if (devices()[rank] == device) {
       return queue(rank);
     }
   }
@@ -103,4 +103,4 @@ inline auto &dpl_policy(std::size_t rank) {
 
 } // namespace __detail
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

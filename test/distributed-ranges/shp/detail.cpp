@@ -5,7 +5,7 @@
 #include "xhp-tests.hpp"
 #include <oneapi/dpl/internal/distributed_ranges_impl//shp.hpp>
 
-namespace shp = experimental::dr::shp;
+namespace shp = oneapi::dpl::experimental::dr::shp;
 
 TEST(DetailTest, parallel_for) {
   std::size_t size = 2 * 1024 * 1024;
@@ -18,15 +18,15 @@ TEST(DetailTest, parallel_for) {
 
   std::for_each(iota.begin(), iota.end(), [&](auto i) { v[i % size] += 1; });
 
-  auto &&q = shp::__detail::queue(0);
+  auto &&q = dr::shp::__detail::queue(0);
 
-  shp::shared_allocator<int> alloc(q);
+  dr::shp::shared_allocator<int> alloc(q);
 
-  shp::vector<int, shp::shared_allocator<int>> dvec(size, 0, alloc);
+  dr::shp::vector<int, dr::shp::shared_allocator<int>> dvec(size, 0, alloc);
 
   auto dv = dvec.data();
 
-  experimental::dr::__detail::parallel_for(q, n, [=](auto i) {
+  dr::__detail::parallel_for(q, n, [=](auto i) {
     sycl::atomic_ref<int, sycl::memory_order::relaxed,
                      sycl::memory_scope::device>
         v(dv[i % size]);
@@ -34,7 +34,7 @@ TEST(DetailTest, parallel_for) {
   }).wait();
 
   std::vector<int> dvec_local(size);
-  shp::copy(dvec.begin(), dvec.end(), dvec_local.begin());
+  dr::shp::copy(dvec.begin(), dvec.end(), dvec_local.begin());
 
   EXPECT_EQ(v, dvec_local);
 }

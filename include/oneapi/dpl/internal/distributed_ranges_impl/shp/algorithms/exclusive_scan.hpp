@@ -20,10 +20,10 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/views.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
-template <typename ExecutionPolicy, experimental::dr::distributed_contiguous_range R,
-          experimental::dr::distributed_contiguous_range O, typename U, typename BinaryOp>
+template <typename ExecutionPolicy, distributed_contiguous_range R,
+          distributed_contiguous_range O, typename U, typename BinaryOp>
 void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
                           BinaryOp &&binary_op) {
   using T = rng::range_value_t<O>;
@@ -31,14 +31,14 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
   static_assert(
       std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
 
-  auto zipped_view = experimental::dr::shp::views::zip(r, o);
+  auto zipped_view = views::zip(r, o);
   auto zipped_segments = zipped_view.zipped_segments();
 
   if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>,
                                device_policy>) {
 
     U *d_inits = sycl::malloc_device<U>(rng::size(zipped_segments),
-                                        shp::devices()[0], shp::context());
+                                        devices()[0], context());
 
     std::vector<sycl::event> events;
 
@@ -49,7 +49,7 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
       auto last_element = rng::prev(rng::end(__detail::local(in_segment)));
       auto dest = d_inits + segment_id;
 
-      auto &&q = __detail::queue(experimental::dr::ranges::rank(in_segment));
+      auto &&q = __detail::queue(ranges::rank(in_segment));
 
       auto e = q.single_task([=] { *dest = *last_element; });
       events.push_back(e);
@@ -61,23 +61,23 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
     std::vector<U> inits(rng::size(zipped_segments));
 
-    shp::copy(d_inits, d_inits + inits.size(), inits.data() + 1);
+    copy(d_inits, d_inits + inits.size(), inits.data() + 1);
 
-    sycl::free(d_inits, shp::context());
+    sycl::free(d_inits, context());
 
     inits[0] = init;
 
-    auto root = experimental::dr::shp::devices()[0];
-    experimental::dr::shp::device_allocator<T> allocator(experimental::dr::shp::context(), root);
-    experimental::dr::shp::vector<T, experimental::dr::shp::device_allocator<T>> partial_sums(
+    auto root = devices()[0];
+    device_allocator<T> allocator(context(), root);
+    vector<T, device_allocator<T>> partial_sums(
         std::size_t(zipped_segments.size()), allocator);
 
     segment_id = 0;
     for (auto &&segs : zipped_segments) {
       auto &&[in_segment, out_segment] = segs;
 
-      auto &&q = __detail::queue(experimental::dr::ranges::rank(in_segment));
-      auto &&local_policy = __detail::dpl_policy(experimental::dr::ranges::rank(in_segment));
+      auto &&q = __detail::queue(ranges::rank(in_segment));
+      auto &&local_policy = __detail::dpl_policy(ranges::rank(in_segment));
 
       auto dist = rng::distance(in_segment);
       assert(dist > 0);
@@ -88,14 +88,14 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
       auto init = inits[segment_id];
 
-      auto event = oneapi::dpl::experimental::exclusive_scan_async(
-          local_policy, experimental::dr::__detail::direct_iterator(first),
-          experimental::dr::__detail::direct_iterator(last),
-          experimental::dr::__detail::direct_iterator(d_first), init, binary_op);
+      auto event = exclusive_scan_async(
+          local_policy, dr::__detail::direct_iterator(first),
+          dr::__detail::direct_iterator(last),
+          dr::__detail::direct_iterator(d_first), init, binary_op);
 
-      auto dst_iter = experimental::dr::ranges::local(partial_sums).data() + segment_id;
+      auto dst_iter = ranges::local(partial_sums).data() + segment_id;
 
-      auto src_iter = experimental::dr::ranges::local(out_segment).data();
+      auto src_iter = ranges::local(out_segment).data();
       rng::advance(src_iter, dist - 1);
 
       auto e = q.submit([&](auto &&h) {
@@ -116,10 +116,10 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
     auto &&local_policy = __detail::dpl_policy(0);
 
-    auto first = experimental::dr::ranges::local(partial_sums).data();
+    auto first = ranges::local(partial_sums).data();
     auto last = first + partial_sums.size();
 
-    oneapi::dpl::experimental::inclusive_scan_async(local_policy, first, last,
+    inclusive_scan_async(local_policy, first, last,
                                                     first, binary_op)
         .wait();
 
@@ -128,15 +128,15 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
       auto &&[in_segment, out_segment] = segs;
 
       if (idx > 0) {
-        auto &&q = __detail::queue(experimental::dr::ranges::rank(out_segment));
+        auto &&q = __detail::queue(ranges::rank(out_segment));
 
         auto first = rng::begin(out_segment);
-        experimental::dr::__detail::direct_iterator d_first(first);
+        dr::__detail::direct_iterator d_first(first);
 
         auto d_sum =
-            experimental::dr::ranges::__detail::local(partial_sums).begin() + idx - 1;
+            ranges::__detail::local(partial_sums).begin() + idx - 1;
 
-        sycl::event e = experimental::dr::__detail::parallel_for(
+        sycl::event e = dr::__detail::parallel_for(
             q, sycl::range<>(rng::distance(out_segment)),
             [=](auto idx) { d_first[idx] = binary_op(d_first[idx], *d_sum); });
 
@@ -154,8 +154,8 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
 // Ranges versions
 
-template <typename ExecutionPolicy, experimental::dr::distributed_contiguous_range R,
-          experimental::dr::distributed_contiguous_range O, typename T, typename BinaryOp>
+template <typename ExecutionPolicy, distributed_contiguous_range R,
+          distributed_contiguous_range O, typename T, typename BinaryOp>
 void exclusive_scan(ExecutionPolicy &&policy, R &&r, O &&o, T init,
                     BinaryOp &&binary_op) {
   exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy),
@@ -163,33 +163,33 @@ void exclusive_scan(ExecutionPolicy &&policy, R &&r, O &&o, T init,
                        std::forward<BinaryOp>(binary_op));
 }
 
-template <typename ExecutionPolicy, experimental::dr::distributed_contiguous_range R,
-          experimental::dr::distributed_contiguous_range O, typename T>
+template <typename ExecutionPolicy, distributed_contiguous_range R,
+          distributed_contiguous_range O, typename T>
 void exclusive_scan(ExecutionPolicy &&policy, R &&r, O &&o, T init) {
   exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy),
                        std::forward<R>(r), std::forward<O>(o), init,
                        std::plus<>{});
 }
 
-template <experimental::dr::distributed_contiguous_range R,
-          experimental::dr::distributed_contiguous_range O, typename T, typename BinaryOp>
+template <distributed_contiguous_range R,
+          distributed_contiguous_range O, typename T, typename BinaryOp>
 void exclusive_scan(R &&r, O &&o, T init, BinaryOp &&binary_op) {
-  exclusive_scan_impl_(experimental::dr::shp::par_unseq, std::forward<R>(r),
+  exclusive_scan_impl_(par_unseq, std::forward<R>(r),
                        std::forward<O>(o), init,
                        std::forward<BinaryOp>(binary_op));
 }
 
-template <experimental::dr::distributed_contiguous_range R,
-          experimental::dr::distributed_contiguous_range O, typename T>
+template <distributed_contiguous_range R,
+          distributed_contiguous_range O, typename T>
 void exclusive_scan(R &&r, O &&o, T init) {
-  exclusive_scan_impl_(experimental::dr::shp::par_unseq, std::forward<R>(r),
+  exclusive_scan_impl_(par_unseq, std::forward<R>(r),
                        std::forward<O>(o), init, std::plus<>{});
 }
 
 // Iterator versions
 
-template <typename ExecutionPolicy, experimental::dr::distributed_iterator Iter,
-          experimental::dr::distributed_iterator OutputIter, typename T, typename BinaryOp>
+template <typename ExecutionPolicy, distributed_iterator Iter,
+          distributed_iterator OutputIter, typename T, typename BinaryOp>
 void exclusive_scan(ExecutionPolicy &&policy, Iter first, Iter last,
                     OutputIter d_first, T init, BinaryOp &&binary_op) {
   auto dist = rng::distance(first, last);
@@ -200,26 +200,26 @@ void exclusive_scan(ExecutionPolicy &&policy, Iter first, Iter last,
       rng::subrange(d_first, d_last), init, std::forward<BinaryOp>(binary_op));
 }
 
-template <typename ExecutionPolicy, experimental::dr::distributed_iterator Iter,
-          experimental::dr::distributed_iterator OutputIter, typename T>
+template <typename ExecutionPolicy, distributed_iterator Iter,
+          distributed_iterator OutputIter, typename T>
 void exclusive_scan(ExecutionPolicy &&policy, Iter first, Iter last,
                     OutputIter d_first, T init) {
   exclusive_scan(std::forward<ExecutionPolicy>(policy), first, last, d_first,
                  init, std::plus<>{});
 }
 
-template <experimental::dr::distributed_iterator Iter, experimental::dr::distributed_iterator OutputIter,
+template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename T, typename BinaryOp>
 void exclusive_scan(Iter first, Iter last, OutputIter d_first, T init,
                     BinaryOp &&binary_op) {
-  exclusive_scan(experimental::dr::shp::par_unseq, first, last, d_first, init,
+  exclusive_scan(par_unseq, first, last, d_first, init,
                  std::forward<BinaryOp>(binary_op));
 }
 
-template <experimental::dr::distributed_iterator Iter, experimental::dr::distributed_iterator OutputIter,
+template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename T>
 void exclusive_scan(Iter first, Iter last, OutputIter d_first, T init) {
-  exclusive_scan(experimental::dr::shp::par_unseq, first, last, d_first, init);
+  exclusive_scan(par_unseq, first, last, d_first, init);
 }
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

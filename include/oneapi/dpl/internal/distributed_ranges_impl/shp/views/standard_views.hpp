@@ -11,20 +11,20 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 namespace views {
 
-template <experimental::dr::distributed_range R>
-auto slice(R &&r, experimental::dr::index<> slice_indices) {
-  return experimental::dr::shp::distributed_span(
-             experimental::dr::ranges::segments(std::forward<R>(r)))
+template <distributed_range R>
+auto slice(R &&r, index<> slice_indices) {
+  return distributed_span(
+             ranges::segments(std::forward<R>(r)))
       .subspan(slice_indices[0], slice_indices[1] - slice_indices[0]);
 }
 
 class slice_adaptor_closure {
 public:
-  slice_adaptor_closure(experimental::dr::index<> slice_indices)
+  slice_adaptor_closure(index<> slice_indices)
       : idx_(slice_indices) {}
 
   template <rng::random_access_range R> auto operator()(R &&r) const {
@@ -37,13 +37,13 @@ public:
   }
 
 private:
-  experimental::dr::index<> idx_;
+  index<> idx_;
 };
 
-inline auto slice(experimental::dr::index<> slice_indices) {
+inline auto slice(index<> slice_indices) {
   return slice_adaptor_closure(slice_indices);
 }
 
 } // namespace views
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

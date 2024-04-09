@@ -20,7 +20,7 @@ TEST(SYCLUtils, ParalelFor1D) {
   auto seta = [a](auto i) { a[i] = i; };
   auto setb = [b](auto i) { b[i] = i; };
   q.parallel_for(range, seta).wait();
-  experimental::dr::__detail::parallel_for(q, range, setb).wait();
+  dr::__detail::parallel_for(q, range, setb).wait();
 
   EXPECT_EQ(rng::span(a, size), rng::span(b, size));
 }
@@ -45,7 +45,7 @@ TEST(SYCLUtils, ParalelFor2D) {
   auto setb = [mdb](auto index) { mdb(index[0], index[1]) = 22; };
 
   q.parallel_for(range, seta).wait();
-  experimental::dr::__detail::parallel_for(q, range, setb).wait();
+  dr::__detail::parallel_for(q, range, setb).wait();
 
   EXPECT_EQ(rng::span(a, size), rng::span(b, size))
       << fmt::format("a:\n{}b:\n{}", mda, mdb);
@@ -68,7 +68,7 @@ TEST(SYCLUtils, ParalelFor3D) {
   auto setb = [mdb](auto index) { mdb(index[0], index[1], index[2]) = 22; };
 
   q.parallel_for(range, seta).wait();
-  experimental::dr::__detail::parallel_for(q, range, setb).wait();
+  dr::__detail::parallel_for(q, range, setb).wait();
 
   EXPECT_EQ(rng::span(a, size), rng::span(b, size))
       << fmt::format("a:\n{}b:\n{}", mda, mdb);

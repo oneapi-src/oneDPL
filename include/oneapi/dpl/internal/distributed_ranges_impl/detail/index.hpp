@@ -9,7 +9,7 @@
 #include <limits>
 #include <tuple>
 
-namespace experimental::dr {
+namespace oneapi::dpl::experimental::dr {
 
 namespace {
 template <typename T, std::size_t I, typename U = std::any>
@@ -96,19 +96,19 @@ public:
   index_type second;
 };
 
-} // namespace experimental::dr
+} // namespace oneapi::dpl::experimental::dr
 
 namespace std {
 
 template <std::size_t Index, std::integral I>
-struct tuple_element<Index, experimental::dr::index<I>>
+struct tuple_element<Index, oneapi::dpl::experimental::dr::index<I>>
     : tuple_element<Index, std::tuple<I, I>> {};
 
 template <std::integral I>
-struct tuple_size<experimental::dr::index<I>> : integral_constant<std::size_t, 2> {};
+struct tuple_size<oneapi::dpl::experimental::dr::index<I>> : integral_constant<std::size_t, 2> {};
 
 template <std::size_t Index, std::integral I>
-inline constexpr I get(experimental::dr::index<I> index)
+inline constexpr I get(oneapi::dpl::experimental::dr::index<I> index)
   requires(Index <= 1)
 {
   if constexpr (Index == 0) {

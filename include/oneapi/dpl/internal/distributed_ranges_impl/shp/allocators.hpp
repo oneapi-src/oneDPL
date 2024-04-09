@@ -10,7 +10,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 template <typename T>
 using shared_allocator = sycl::usm_allocator<T, sycl::usm::alloc::shared>;
@@ -124,4 +124,4 @@ private:
   std::shared_ptr<std::vector<pointer>> buffers_;
 };
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 // TODO: deal properly with non-trivially destructible types
 //       - constructors, destructors, assign
@@ -245,4 +245,4 @@ private:
   allocator_type allocator_;
 };
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp
