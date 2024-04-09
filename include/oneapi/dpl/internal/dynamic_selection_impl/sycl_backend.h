@@ -42,6 +42,7 @@ class sycl_backend
             virtual void wait() = 0;
             virtual void report() = 0;
             virtual bool is_complete() = 0;
+            virtual ~async_waiter_base(){}
     };
 
     template<typename Selection>
@@ -85,20 +86,20 @@ class sycl_backend
     struct async_waiter_list_t{
 
         std::mutex m_;
-        std::vector<async_waiter_base*> async_waiters;
+        std::vector<std::unique_ptr<async_waiter_base>> async_waiters;
 
         template<typename T>
         void add_waiter(T *t){
             std::lock_guard<std::mutex> l(m_);
-            async_waiters.push_back(t);
+            async_waiters.push_back(std::unique_ptr<T>(t));
         }
 
         void lazy_report(){
             std::lock_guard<std::mutex> l(m_);
             int size = async_waiters.size();
             for(auto i = async_waiters.begin(); i!=async_waiters.begin()+size; i++){
-                if((*i)->is_complete()){
-                    (*i)->report();
+                if(i->get()->is_complete()){
+                    i->get()->report();
                     async_waiters.erase(i);
                 }
             }
