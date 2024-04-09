@@ -224,11 +224,10 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<
 {
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               typename _ExecutionPolicy2,
-              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
-    auto
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, sycl::event& __reduce_event,
-               _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
-               __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container) const
+              auto operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                              sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
+                              _TransformOp __transform_op, _InitType __init,
+                              __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container) const
     {
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
         auto __transform_pattern =
