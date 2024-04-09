@@ -179,9 +179,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
                                                            __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
-              typename _ExecutionPolicy2,
-              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
-              typename... _Ranges>
+              typename _ExecutionPolicy2, typename... _Ranges>
     auto
     operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n,
                _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
