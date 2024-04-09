@@ -6,55 +6,55 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 
-namespace experimental::dr
+namespace oneapi::dpl::experimental::dr
 {
 
 template <typename I>
 concept remote_iterator =
-    std::forward_iterator<I> && requires(I &iter) { experimental::dr::ranges::rank(iter); };
+    std::forward_iterator<I> && requires(I &iter) { oneapi::dpl::experimental::dr::ranges::rank(iter); };
 
 template <typename R>
 concept remote_range =
-    rng::forward_range<R> && requires(R &r) { experimental::dr::ranges::rank(r); };
+    rng::forward_range<R> && requires(R &r) { oneapi::dpl::experimental::dr::ranges::rank(r); };
 
 template <typename R>
 concept distributed_range =
-    rng::forward_range<R> && requires(R &r) { experimental::dr::ranges::segments(r); };
+    rng::forward_range<R> && requires(R &r) { oneapi::dpl::experimental::dr::ranges::segments(r); };
 
 template <typename I>
 concept remote_contiguous_iterator =
     std::random_access_iterator<I> && requires(I &iter) {
-      experimental::dr::ranges::rank(iter);
-      { experimental::dr::ranges::local(iter) } -> std::contiguous_iterator;
+      oneapi::dpl::experimental::dr::ranges::rank(iter);
+      { oneapi::dpl::experimental::dr::ranges::local(iter) } -> std::contiguous_iterator;
     };
 
 template <typename I>
 concept distributed_iterator = std::forward_iterator<I> && requires(I &iter) {
-  experimental::dr::ranges::segments(iter);
+  oneapi::dpl::experimental::dr::ranges::segments(iter);
 };
 
 template <typename R>
 concept remote_contiguous_range =
     remote_range<R> && rng::random_access_range<R> && requires(R &r) {
-      { experimental::dr::ranges::local(r) } -> rng::contiguous_range;
+      { oneapi::dpl::experimental::dr::ranges::local(r) } -> rng::contiguous_range;
     };
 
 template <typename R>
 concept distributed_contiguous_range =
     distributed_range<R> && rng::random_access_range<R> &&
     requires(R &r) {
-      { experimental::dr::ranges::segments(r) } -> rng::random_access_range;
+      { oneapi::dpl::experimental::dr::ranges::segments(r) } -> rng::random_access_range;
     } &&
     remote_contiguous_range<
-        rng::range_value_t<decltype(experimental::dr::ranges::segments(std::declval<R>()))>>;
+        rng::range_value_t<decltype(oneapi::dpl::experimental::dr::ranges::segments(std::declval<R>()))>>;
 
 template <typename Iter>
 concept distributed_contiguous_iterator =
     distributed_iterator<Iter> && rng::random_access_iterator<Iter> &&
     requires(Iter &iter) {
-      { experimental::dr::ranges::segments(iter) } -> rng::random_access_range;
+      { oneapi::dpl::experimental::dr::ranges::segments(iter) } -> rng::random_access_range;
     } &&
-    remote_contiguous_range<rng::range_value_t<decltype(experimental::dr::ranges::segments(
+    remote_contiguous_range<rng::range_value_t<decltype(oneapi::dpl::experimental::dr::ranges::segments(
         std::declval<Iter>()))>>;
 
-} // namespace experimental::dr
+} // namespace oneapi::dpl::experimental::dr

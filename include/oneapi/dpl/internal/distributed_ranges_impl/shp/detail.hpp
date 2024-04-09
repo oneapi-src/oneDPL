@@ -11,11 +11,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <sycl/sycl.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 namespace __detail {
 
-inline constexpr auto local = experimental::dr::ranges::__detail::local;
+inline constexpr auto local = oneapi::dpl::experimental::dr::ranges::__detail::local;
 
 template <typename Src, typename Dest>
 concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest> &&
@@ -87,4 +87,4 @@ inline void wait(const std::vector<sycl::event> &events) {
 
 } // namespace __detail
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp

@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace experimental::dr::__detail {
+namespace oneapi::dpl::experimental::dr::__detail {
 
 inline std::size_t round_up(std::size_t n, std::size_t multiple) {
   if (multiple == 0) {
@@ -27,4 +27,4 @@ inline std::size_t partition_up(std::size_t n, std::size_t multiple) {
   return round_up(n, multiple) / multiple;
 }
 
-} // namespace experimental::dr::__detail
+} // namespace oneapi::dpl::experimental::dr::__detail

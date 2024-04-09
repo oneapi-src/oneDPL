@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
 
-namespace experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 template <int dimensions = 1> class id {
 public:
@@ -92,7 +92,7 @@ private:
   size_type idx_ = 0;
 };
 
-using segment_range_iterator = experimental::dr::iterator_adaptor<segment_range_accessor>;
+using segment_range_iterator = oneapi::dpl::experimental::dr::iterator_adaptor<segment_range_accessor>;
 
 template <int dimensions = 1> class segment_range {
 public:
@@ -130,4 +130,4 @@ private:
 };
 
 
-} // namespace experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::shp
