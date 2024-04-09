@@ -19,7 +19,7 @@
 #include _PSTL_TEST_HEADER(algorithm)
 
 #if _ENABLE_RANGES_TESTING
-#include <oneapi/dpl/ranges>
+#include _PSTL_TEST_HEADER(ranges)
 #endif
 
 #include "support/utils.h"
