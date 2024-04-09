@@ -34,11 +34,10 @@ namespace dpl
 namespace __internal
 {
 template <typename _T>
-constexpr decltype(auto)
-__get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag)
+struct __backend_buffer_allocator_selector<_T, oneapi::dpl::__internal::__serial_backend_tag>
 {
-    return ::std::allocator<_T>{};
-}
+    using allocator_type = ::std::allocator<_T>;
+};
 }; // namespace __internal
 
 namespace __serial_backend
@@ -48,8 +47,8 @@ namespace __serial_backend
 //------------------------------------------------------------------------
 
 template <typename _BackendOrDispatchTag, typename _ExecutionPolicy, typename _Tp,
-          typename _TAllocator =
-              decltype(oneapi::dpl::__internal::__get_buffer_allocator<_Tp>(::std::declval<_BackendOrDispatchTag>()))>
+          typename _TAllocator = typename oneapi::dpl::__internal::__backend_buffer_allocator_selector<
+              _Tp, _BackendOrDispatchTag>::allocator_type>
 using __buffer = oneapi::dpl::__utils::__buffer_impl_host<::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
 
 //------------------------------------------------------------------------

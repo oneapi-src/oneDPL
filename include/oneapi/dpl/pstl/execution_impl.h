@@ -164,29 +164,24 @@ inline constexpr bool __is_host_dispatch_tag_v =
 //------------------------------------------------------------------------
 
 template <typename _T, typename _IsVector>
-constexpr decltype(auto)
-__get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>)
+struct __backend_buffer_allocator_selector<_T, oneapi::dpl::__internal::__serial_tag<_IsVector>>
 {
-    return ::std::allocator<_T>{};
-}
+    using allocator_type = ::std::allocator<_T>;
+};
 
 template <typename _T, typename _IsVector>
-constexpr decltype(auto)
-__get_buffer_allocator(oneapi::dpl::__internal::__parallel_tag<_IsVector>)
+struct __backend_buffer_allocator_selector<_T, oneapi::dpl::__internal::__parallel_tag<_IsVector>>
 {
-    using __backend_tag = typename oneapi::dpl::__internal::__parallel_tag<_IsVector>::__backend_tag;
-
-    return oneapi::dpl::__internal::__get_buffer_allocator<_T>(__backend_tag{});
-}
+    using allocator_type = typename __backend_buffer_allocator_selector<
+        _T, typename oneapi::dpl::__internal::__parallel_tag<_IsVector>::__backend_tag>::allocator_type;
+};
 
 template <typename _T>
-constexpr decltype(auto)
-__get_buffer_allocator(oneapi::dpl::__internal::__parallel_forward_tag)
+struct __backend_buffer_allocator_selector<_T, oneapi::dpl::__internal::__parallel_forward_tag>
 {
-    using __backend_tag = typename oneapi::dpl::__internal::__parallel_forward_tag::__backend_tag;
-
-    return oneapi::dpl::__internal::__get_buffer_allocator<_T>(__backend_tag{});
-}
+    using allocator_type = typename __backend_buffer_allocator_selector<
+        _T, typename oneapi::dpl::__internal::__parallel_forward_tag::__backend_tag>::allocator_type;
+};
 
 } // namespace __internal
 } // namespace dpl
