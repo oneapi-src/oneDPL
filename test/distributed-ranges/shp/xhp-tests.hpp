@@ -8,8 +8,6 @@
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed-ranges>
-// #include <oneapi/dpl/internal/distributed_ranges_impl/detail/logger.hpp>
-
 
 #define TEST_SHP
 
@@ -19,13 +17,14 @@ const std::size_t comm_size = 1;
 
 // Namespace aliases and wrapper functions to make the tests uniform
 namespace xhp = oneapi::dpl::experimental::dr::shp;
+namespace shp = oneapi::dpl::experimental::dr::shp;
 
 inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
 using AllocatorTypes =
-    ::testing::Types<oneapi::dpl::experimental::dr::shp::device_allocator<int>>;
+    ::testing::Types<xhp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = rng::forward_range<V> && requires(V &v) {
