@@ -333,7 +333,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     {
         return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
             oneapi::dpl::__internal::__device_backend_tag{},
-            oneapi::dpl::execution::__dpl::make_device_policy(__queue), ::std::forward<_InRange>(__in_rng),
+            oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue), ::std::forward<_InRange>(__in_rng),
             ::std::forward<_OutRange>(__out_rng), __n, oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op, ::std::true_type{});
     }
 
