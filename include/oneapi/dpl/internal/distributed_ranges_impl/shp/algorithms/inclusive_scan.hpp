@@ -34,7 +34,7 @@ void inclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o,
   static_assert(
       std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
 
-  auto zipped_view = shp::views::zip(r, o);
+  auto zipped_view = views::zip(r, o);
   auto zipped_segments = zipped_view.zipped_segments();
 
   if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>,
@@ -42,9 +42,9 @@ void inclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o,
 
     std::vector<sycl::event> events;
 
-    auto root = shp::devices()[0];
-    shp::device_allocator<T> allocator(shp::context(), root);
-    shp::vector<T, shp::device_allocator<T>> partial_sums(
+    auto root = devices()[0];
+    device_allocator<T> allocator(context(), root);
+    vector<T, device_allocator<T>> partial_sums(
         std::size_t(zipped_segments.size()), allocator);
 
     std::size_t segment_id = 0;
@@ -209,20 +209,20 @@ OutputIter inclusive_scan(ExecutionPolicy &&policy, Iter first, Iter last,
 template <distributed_contiguous_range R,
           distributed_contiguous_range O>
 void inclusive_scan(R &&r, O &&o) {
-  inclusive_scan(shp::par_unseq, std::forward<R>(r), std::forward<O>(o));
+  inclusive_scan(par_unseq, std::forward<R>(r), std::forward<O>(o));
 }
 
 template <distributed_contiguous_range R,
           distributed_contiguous_range O, typename BinaryOp>
 void inclusive_scan(R &&r, O &&o, BinaryOp &&binary_op) {
-  inclusive_scan(shp::par_unseq, std::forward<R>(r), std::forward<O>(o),
+  inclusive_scan(par_unseq, std::forward<R>(r), std::forward<O>(o),
                  std::forward<BinaryOp>(binary_op));
 }
 
 template <distributed_contiguous_range R,
           distributed_contiguous_range O, typename BinaryOp, typename T>
 void inclusive_scan(R &&r, O &&o, BinaryOp &&binary_op, T init) {
-  inclusive_scan(shp::par_unseq, std::forward<R>(r), std::forward<O>(o),
+  inclusive_scan(par_unseq, std::forward<R>(r), std::forward<O>(o),
                  std::forward<BinaryOp>(binary_op), init);
 }
 
@@ -230,14 +230,14 @@ void inclusive_scan(R &&r, O &&o, BinaryOp &&binary_op, T init) {
 
 template <distributed_iterator Iter, distributed_iterator OutputIter>
 OutputIter inclusive_scan(Iter first, Iter last, OutputIter d_first) {
-  return inclusive_scan(shp::par_unseq, first, last, d_first);
+  return inclusive_scan(par_unseq, first, last, d_first);
 }
 
 template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename BinaryOp>
 OutputIter inclusive_scan(Iter first, Iter last, OutputIter d_first,
                           BinaryOp &&binary_op) {
-  return inclusive_scan(shp::par_unseq, first, last, d_first,
+  return inclusive_scan(par_unseq, first, last, d_first,
                         std::forward<BinaryOp>(binary_op));
 }
 
@@ -245,7 +245,7 @@ template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename BinaryOp, typename T>
 OutputIter inclusive_scan(Iter first, Iter last, OutputIter d_first,
                           BinaryOp &&binary_op, T init) {
-  return inclusive_scan(shp::par_unseq, first, last, d_first,
+  return inclusive_scan(par_unseq, first, last, d_first,
                         std::forward<BinaryOp>(binary_op), init);
 }
 

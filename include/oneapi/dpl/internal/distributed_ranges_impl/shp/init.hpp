@@ -85,8 +85,8 @@ inline sycl::queue &queue(std::size_t rank) { return queues_[rank]; }
 
 // Retrieve global queues because of CMPLRLLVM-47008
 inline sycl::queue &queue(const sycl::device &device) {
-  for (std::size_t rank = 0; rank < shp::nprocs(); rank++) {
-    if (shp::devices()[rank] == device) {
+  for (std::size_t rank = 0; rank < nprocs(); rank++) {
+    if (devices()[rank] == device) {
       return queue(rank);
     }
   }

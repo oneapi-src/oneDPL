@@ -23,21 +23,21 @@ concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest> &&
 
 template <std::contiguous_iterator Iter>
 sycl::usm::alloc get_pointer_type(Iter iter) {
-  return sycl::get_pointer_type(std::to_address(iter), shp::context());
+  return sycl::get_pointer_type(std::to_address(iter), context());
 }
 
 template <typename T>
-sycl::usm::alloc get_pointer_type(shp::device_ptr<T> ptr) {
-  return sycl::get_pointer_type(ptr.get_raw_pointer(), shp::context());
+sycl::usm::alloc get_pointer_type(device_ptr<T> ptr) {
+  return sycl::get_pointer_type(ptr.get_raw_pointer(), context());
 }
 
 template <std::contiguous_iterator Iter>
 sycl::device get_pointer_device(Iter iter) {
-  return sycl::get_pointer_device(std::to_address(iter), shp::context());
+  return sycl::get_pointer_device(std::to_address(iter), context());
 }
 
-template <typename T> sycl::device get_pointer_device(shp::device_ptr<T> ptr) {
-  return sycl::get_pointer_device(ptr.get_raw_pointer(), shp::context());
+template <typename T> sycl::device get_pointer_device(device_ptr<T> ptr) {
+  return sycl::get_pointer_device(ptr.get_raw_pointer(), context());
 }
 
 template <typename InputIt> sycl::queue &get_queue_for_pointer(InputIt iter) {

@@ -41,7 +41,7 @@ private:
 */
 
 template <typename T, typename Iter = T *>
-class device_span : public shp::span<T, Iter> {
+class device_span : public span<T, Iter> {
 public:
   constexpr device_span() noexcept {}
 
@@ -53,20 +53,20 @@ public:
   template <rng::random_access_range R>
     requires(remote_range<R>)
   device_span(R &&r)
-      : shp::span<T, Iter>(rng::begin(r), rng::size(r)),
+      : span<T, Iter>(rng::begin(r), rng::size(r)),
         rank_(ranges::rank(r)) {}
 
   template <rng::random_access_range R>
   device_span(R &&r, std::size_t rank)
-      : shp::span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank) {}
+      : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank) {}
 
   template <class It>
   constexpr device_span(It first, std::size_t count, std::size_t rank)
-      : shp::span<T, Iter>(first, count), rank_(rank) {}
+      : span<T, Iter>(first, count), rank_(rank) {}
 
   template <class It, class End>
   constexpr device_span(It first, End last, std::size_t rank)
-      : shp::span<T, Iter>(first, last), rank_(rank) {}
+      : span<T, Iter>(first, last), rank_(rank) {}
 
   constexpr std::size_t rank() const noexcept { return rank_; }
 

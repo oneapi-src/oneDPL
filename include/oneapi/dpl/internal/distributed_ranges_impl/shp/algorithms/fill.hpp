@@ -72,11 +72,11 @@ sycl::event fill_async(DR &&r, const T &value) {
   std::vector<sycl::event> events;
 
   for (auto &&segment : ranges::segments(r)) {
-    auto e = shp::fill_async(segment, value);
+    auto e = fill_async(segment, value);
     events.push_back(e);
   }
 
-  return shp::__detail::combine_events(events);
+  return __detail::combine_events(events);
 }
 
 template <typename T, distributed_contiguous_range DR>

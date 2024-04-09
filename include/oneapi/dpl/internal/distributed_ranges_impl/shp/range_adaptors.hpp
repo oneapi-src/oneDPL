@@ -11,7 +11,7 @@ namespace oneapi::dpl::experimental::dr::shp {
 
 template <rng::range R> auto enumerate(R &&r) {
   auto i = rng::views::iota(uint32_t(0), uint32_t(rng::size(r)));
-  return shp::zip_view(i, r);
+  return zip_view(i, r);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

@@ -31,14 +31,14 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
   static_assert(
       std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
 
-  auto zipped_view = shp::views::zip(r, o);
+  auto zipped_view = views::zip(r, o);
   auto zipped_segments = zipped_view.zipped_segments();
 
   if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>,
                                device_policy>) {
 
     U *d_inits = sycl::malloc_device<U>(rng::size(zipped_segments),
-                                        shp::devices()[0], shp::context());
+                                        devices()[0], context());
 
     std::vector<sycl::event> events;
 
@@ -61,15 +61,15 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
     std::vector<U> inits(rng::size(zipped_segments));
 
-    shp::copy(d_inits, d_inits + inits.size(), inits.data() + 1);
+    copy(d_inits, d_inits + inits.size(), inits.data() + 1);
 
-    sycl::free(d_inits, shp::context());
+    sycl::free(d_inits, context());
 
     inits[0] = init;
 
-    auto root = shp::devices()[0];
-    shp::device_allocator<T> allocator(shp::context(), root);
-    shp::vector<T, shp::device_allocator<T>> partial_sums(
+    auto root = devices()[0];
+    device_allocator<T> allocator(context(), root);
+    vector<T, device_allocator<T>> partial_sums(
         std::size_t(zipped_segments.size()), allocator);
 
     segment_id = 0;
@@ -174,7 +174,7 @@ void exclusive_scan(ExecutionPolicy &&policy, R &&r, O &&o, T init) {
 template <distributed_contiguous_range R,
           distributed_contiguous_range O, typename T, typename BinaryOp>
 void exclusive_scan(R &&r, O &&o, T init, BinaryOp &&binary_op) {
-  exclusive_scan_impl_(shp::par_unseq, std::forward<R>(r),
+  exclusive_scan_impl_(par_unseq, std::forward<R>(r),
                        std::forward<O>(o), init,
                        std::forward<BinaryOp>(binary_op));
 }
@@ -182,7 +182,7 @@ void exclusive_scan(R &&r, O &&o, T init, BinaryOp &&binary_op) {
 template <distributed_contiguous_range R,
           distributed_contiguous_range O, typename T>
 void exclusive_scan(R &&r, O &&o, T init) {
-  exclusive_scan_impl_(shp::par_unseq, std::forward<R>(r),
+  exclusive_scan_impl_(par_unseq, std::forward<R>(r),
                        std::forward<O>(o), init, std::plus<>{});
 }
 
@@ -212,14 +212,14 @@ template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename T, typename BinaryOp>
 void exclusive_scan(Iter first, Iter last, OutputIter d_first, T init,
                     BinaryOp &&binary_op) {
-  exclusive_scan(shp::par_unseq, first, last, d_first, init,
+  exclusive_scan(par_unseq, first, last, d_first, init,
                  std::forward<BinaryOp>(binary_op));
 }
 
 template <distributed_iterator Iter, distributed_iterator OutputIter,
           typename T>
 void exclusive_scan(Iter first, Iter last, OutputIter d_first, T init) {
-  exclusive_scan(shp::par_unseq, first, last, d_first, init);
+  exclusive_scan(par_unseq, first, last, d_first, init);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

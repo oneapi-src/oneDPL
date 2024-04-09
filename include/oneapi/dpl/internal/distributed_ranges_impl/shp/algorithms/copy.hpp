@@ -22,7 +22,7 @@ template <std::contiguous_iterator InputIt, std::contiguous_iterator OutputIt>
   requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>,
                                         std::iter_value_t<OutputIt>>
 sycl::event copy_async(InputIt first, InputIt last, OutputIt d_first) {
-  // auto &&q = shp::__detail::default_queue();
+  // auto &&q = __detail::default_queue();
   auto &&q = __detail::get_queue_for_pointers(first, d_first);
   return q.memcpy(std::to_address(d_first), std::to_address(first),
                   sizeof(std::iter_value_t<InputIt>) * (last - first));
@@ -41,7 +41,7 @@ OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 template <std::contiguous_iterator Iter, typename T>
   requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T>
 sycl::event copy_async(Iter first, Iter last, device_ptr<T> d_first) {
-  // auto &&q = shp::__detail::default_queue();
+  // auto &&q = __detail::default_queue();
   auto &&q = __detail::get_queue_for_pointers(first, d_first);
   return q.memcpy(d_first.get_raw_pointer(), std::to_address(first),
                   sizeof(T) * (last - first));
@@ -58,7 +58,7 @@ device_ptr<T> copy(Iter first, Iter last, device_ptr<T> d_first) {
 template <typename T, std::contiguous_iterator Iter>
   requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>>
 sycl::event copy_async(device_ptr<T> first, device_ptr<T> last, Iter d_first) {
-  // auto &&q = shp::__detail::default_queue();
+  // auto &&q = __detail::default_queue();
   auto &&q = __detail::get_queue_for_pointers(first, d_first);
   return q.memcpy(std::to_address(d_first), first.get_raw_pointer(),
                   sizeof(T) * (last - first));
@@ -77,7 +77,7 @@ template <typename T>
 sycl::event copy_async(device_ptr<std::add_const_t<T>> first,
                        device_ptr<std::add_const_t<T>> last,
                        device_ptr<T> d_first) {
-  // auto &&q = shp::__detail::default_queue();
+  // auto &&q = __detail::default_queue();
   auto &&q = __detail::get_queue_for_pointers(first, d_first);
   return q.memcpy(d_first.get_raw_pointer(), first.get_raw_pointer(),
                   sizeof(T) * (last - first));
@@ -121,13 +121,13 @@ sycl::event copy_async(InputIt first, InputIt last, OutputIt d_first) {
     rng::advance(local_last, n_to_copy);
 
     events.emplace_back(
-        shp::copy_async(first, local_last, rng::begin(segment)));
+        copy_async(first, local_last, rng::begin(segment)));
 
     ++segment_iter;
     rng::advance(first, n_to_copy);
   }
 
-  return shp::__detail::combine_events(events);
+  return __detail::combine_events(events);
 }
 
 auto copy(rng::contiguous_range auto r, distributed_iterator auto d_first) {
@@ -161,12 +161,12 @@ sycl::event copy_async(InputIt first, InputIt last, OutputIt d_first) {
     auto size = rng::distance(segment);
 
     events.emplace_back(
-        shp::copy_async(rng::begin(segment), rng::end(segment), d_first));
+        copy_async(rng::begin(segment), rng::end(segment), d_first));
 
     rng::advance(d_first, size);
   }
 
-  return shp::__detail::combine_events(events);
+  return __detail::combine_events(events);
 }
 
 template <distributed_iterator InputIt, std::forward_iterator OutputIt>
@@ -192,12 +192,12 @@ sycl::event copy_async(InputIt first, InputIt last, OutputIt d_first) {
     auto size = rng::distance(segment);
 
     events.emplace_back(
-        shp::copy_async(rng::begin(segment), rng::end(segment), d_first));
+        copy_async(rng::begin(segment), rng::end(segment), d_first));
 
     rng::advance(d_first, size);
   }
 
-  return shp::__detail::combine_events(events);
+  return __detail::combine_events(events);
 }
 
 template <distributed_iterator InputIt, distributed_iterator OutputIt>

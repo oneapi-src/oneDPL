@@ -129,7 +129,7 @@ public:
   using element_type = T;
   using value_type = std::remove_cv_t<T>;
 
-  using segment_type = shp::device_span<T, L>;
+  using segment_type = device_span<T, L>;
 
   using size_type = rng::range_size_t<segment_type>;
   using difference_type = rng::range_difference_t<segment_type>;

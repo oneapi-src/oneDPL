@@ -30,7 +30,7 @@ public:
     requires(rng::sized_range<R>)
   auto operator()(R &&r) const {
     using W = std::uint32_t;
-    return shp::zip_view(rng::views::iota(W(0), W(rng::size(r))),
+    return zip_view(rng::views::iota(W(0), W(rng::size(r))),
                              std::forward<R>(r));
   }
 

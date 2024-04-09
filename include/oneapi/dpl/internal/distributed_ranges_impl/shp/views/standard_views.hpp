@@ -17,7 +17,7 @@ namespace views {
 
 template <distributed_range R>
 auto slice(R &&r, index<> slice_indices) {
-  return shp::distributed_span(
+  return distributed_span(
              ranges::segments(std::forward<R>(r)))
       .subspan(slice_indices[0], slice_indices[1] - slice_indices[0]);
 }

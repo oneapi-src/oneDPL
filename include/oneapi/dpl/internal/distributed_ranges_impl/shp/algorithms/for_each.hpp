@@ -46,12 +46,12 @@ void for_each(ExecutionPolicy &&policy, Iter begin, Iter end, Fn &&fn) {
 }
 
 template <distributed_range R, typename Fn> void for_each(R &&r, Fn &&fn) {
-  for_each(shp::par_unseq, std::forward<R>(r), std::forward<Fn>(fn));
+  for_each(par_unseq, std::forward<R>(r), std::forward<Fn>(fn));
 }
 
 template <distributed_iterator Iter, typename Fn>
 void for_each(Iter begin, Iter end, Fn &&fn) {
-  for_each(shp::par_unseq, begin, end, std::forward<Fn>(fn));
+  for_each(par_unseq, begin, end, std::forward<Fn>(fn));
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

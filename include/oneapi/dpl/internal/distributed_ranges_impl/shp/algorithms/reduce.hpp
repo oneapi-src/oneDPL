@@ -135,32 +135,32 @@ T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init,
 // Execution policy-less algorithms
 
 template <distributed_range R> rng::range_value_t<R> reduce(R &&r) {
-  return reduce(shp::par_unseq, std::forward<R>(r));
+  return reduce(par_unseq, std::forward<R>(r));
 }
 
 template <distributed_range R, typename T> T reduce(R &&r, T init) {
-  return reduce(shp::par_unseq, std::forward<R>(r), init);
+  return reduce(par_unseq, std::forward<R>(r), init);
 }
 
 template <distributed_range R, typename T, typename BinaryOp>
 T reduce(R &&r, T init, BinaryOp &&binary_op) {
-  return reduce(shp::par_unseq, std::forward<R>(r), init,
+  return reduce(par_unseq, std::forward<R>(r), init,
                 std::forward<BinaryOp>(binary_op));
 }
 
 template <distributed_iterator Iter>
 std::iter_value_t<Iter> reduce(Iter first, Iter last) {
-  return reduce(shp::par_unseq, first, last);
+  return reduce(par_unseq, first, last);
 }
 
 template <distributed_iterator Iter, typename T>
 T reduce(Iter first, Iter last, T init) {
-  return reduce(shp::par_unseq, first, last, init);
+  return reduce(par_unseq, first, last, init);
 }
 
 template <distributed_iterator Iter, typename T, typename BinaryOp>
 T reduce(Iter first, Iter last, T init, BinaryOp &&binary_op) {
-  return reduce(shp::par_unseq, first, last, init,
+  return reduce(par_unseq, first, last, init,
                 std::forward<BinaryOp>(binary_op));
 }
 

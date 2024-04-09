@@ -62,8 +62,8 @@ void sort(R &&r, Compare comp = Compare()) {
   } else if (rng::size(segments) == 1) {
     auto &&segment = *rng::begin(segments);
     auto &&local_policy =
-        shp::__detail::dpl_policy(ranges::rank(segment));
-    auto &&local_segment = shp::__detail::local(segment);
+        __detail::dpl_policy(ranges::rank(segment));
+    auto &&local_segment = __detail::local(segment);
 
     __detail::sort_async(local_policy, rng::begin(local_segment),
                          rng::end(local_segment), comp)
@@ -82,15 +82,15 @@ void sort(R &&r, Compare comp = Compare()) {
   // so `n_segments * n_splitters` medians total.
 
   T *medians = sycl::malloc_device<T>(n_segments * n_splitters,
-                                      shp::devices()[0], shp::context());
+                                      devices()[0], context());
   std::size_t segment_id = 0;
 
   for (auto &&segment : segments) {
-    auto &&q = shp::__detail::queue(ranges::rank(segment));
+    auto &&q = __detail::queue(ranges::rank(segment));
     auto &&local_policy =
-        shp::__detail::dpl_policy(ranges::rank(segment));
+        __detail::dpl_policy(ranges::rank(segment));
 
-    auto &&local_segment = shp::__detail::local(segment);
+    auto &&local_segment = __detail::local(segment);
 
     auto s = __detail::sort_async(local_policy, rng::begin(local_segment),
                                   rng::end(local_segment), comp);
@@ -112,12 +112,12 @@ void sort(R &&r, Compare comp = Compare()) {
     ++segment_id;
   }
 
-  shp::__detail::wait(events);
+  __detail::wait(events);
   events.clear();
 
   // Compute global medians by sorting medians and
   // computing `n_splitters` medians from the medians.
-  auto &&local_policy = shp::__detail::dpl_policy(0);
+  auto &&local_policy = __detail::dpl_policy(0);
   __detail::sort_async(local_policy, medians,
                        medians + n_segments * n_splitters, comp)
       .wait();
@@ -127,7 +127,7 @@ void sort(R &&r, Compare comp = Compare()) {
   // - Collect median of medians to get final splitters.
   // - Write splitters to [0, n_splitters) in `medians`
 
-  auto &&q = shp::__detail::queue(0);
+  auto &&q = __detail::queue(0);
   q.single_task([=] {
      for (std::size_t i = 0; i < n_splitters; i++) {
        medians[i] = medians[std::size_t(step_size * (i + 1) + 0.5)];
@@ -144,19 +144,19 @@ void sort(R &&r, Compare comp = Compare()) {
 
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&q = shp::__detail::queue(ranges::rank(segment));
+    auto &&q = __detail::queue(ranges::rank(segment));
     auto &&local_policy =
-        shp::__detail::dpl_policy(ranges::rank(segment));
+        __detail::dpl_policy(ranges::rank(segment));
 
-    auto &&local_segment = shp::__detail::local(segment);
+    auto &&local_segment = __detail::local(segment);
 
     std::size_t *splitter_i = sycl::malloc_shared<std::size_t>(
-        n_splitters, q.get_device(), shp::context());
+        n_splitters, q.get_device(), context());
     splitter_indices.push_back(splitter_i);
 
     // Local copy `medians_l` necessary due to [GSD-3893]
     T *medians_l =
-        sycl::malloc_device<T>(n_splitters, q.get_device(), shp::context());
+        sycl::malloc_device<T>(n_splitters, q.get_device(), context());
 
     q.memcpy(medians_l, medians, sizeof(T) * n_splitters).wait();
 
@@ -164,7 +164,7 @@ void sort(R &&r, Compare comp = Compare()) {
                           rng::end(local_segment), medians_l,
                           medians_l + n_splitters, splitter_i, comp);
 
-    sycl::free(medians_l, shp::context());
+    sycl::free(medians_l, context());
 
     auto p_first = rng::begin(local_segment);
     auto p_last = p_first;
@@ -194,7 +194,7 @@ void sort(R &&r, Compare comp = Compare()) {
 
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&q = shp::__detail::queue(ranges::rank(segment));
+    auto &&q = __detail::queue(ranges::rank(segment));
 
     T *buffer = sycl::malloc_device<T>(sorted_seg_sizes[segment_id], q);
     sorted_segments.push_back(buffer);
@@ -205,7 +205,7 @@ void sort(R &&r, Compare comp = Compare()) {
   // Copy corresponding elements to each "sorted segment"
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&local_segment = shp::__detail::local(segment);
+    auto &&local_segment = __detail::local(segment);
 
     std::size_t *splitter_i = splitter_indices[segment_id];
 
@@ -216,7 +216,7 @@ void sort(R &&r, Compare comp = Compare()) {
 
       std::size_t pos = push_positions[segment_id][i];
 
-      auto e = shp::copy_async(p_first, p_last, sorted_segments[i] + pos);
+      auto e = copy_async(p_first, p_last, sorted_segments[i] + pos);
       events.push_back(e);
 
       p_first = p_last;
@@ -224,7 +224,7 @@ void sort(R &&r, Compare comp = Compare()) {
 
     std::size_t pos = push_positions[segment_id].back();
 
-    auto e = shp::copy_async(p_first, rng::end(local_segment),
+    auto e = copy_async(p_first, rng::end(local_segment),
                              sorted_segments.back() + pos);
 
     events.push_back(e);
@@ -232,13 +232,13 @@ void sort(R &&r, Compare comp = Compare()) {
     ++segment_id;
   }
 
-  shp::__detail::wait(events);
+  __detail::wait(events);
   events.clear();
 
   // Sort each of these new segments
   for (std::size_t i = 0; i < sorted_segments.size(); i++) {
     auto &&local_policy =
-        shp::__detail::dpl_policy(ranges::rank(segments[i]));
+        __detail::dpl_policy(ranges::rank(segments[i]));
     T *seg = sorted_segments[i];
     std::size_t n_elements = sorted_seg_sizes[i];
 
@@ -247,7 +247,7 @@ void sort(R &&r, Compare comp = Compare()) {
     events.push_back(e);
   }
 
-  shp::__detail::wait(events);
+  __detail::wait(events);
   events.clear();
 
   // Copy the results into the output.
@@ -258,26 +258,26 @@ void sort(R &&r, Compare comp = Compare()) {
     T *seg = sorted_segments[i];
     std::size_t n_elements = sorted_seg_sizes[i];
 
-    auto e = shp::copy_async(seg, seg + n_elements, d_first);
+    auto e = copy_async(seg, seg + n_elements, d_first);
 
     events.push_back(e);
 
     rng::advance(d_first, n_elements);
   }
 
-  shp::__detail::wait(events);
+  __detail::wait(events);
 
   // Free temporary memory.
 
   for (auto &&sorted_seg : sorted_segments) {
-    sycl::free(sorted_seg, shp::context());
+    sycl::free(sorted_seg, context());
   }
 
   for (auto &&splitter_i : splitter_indices) {
-    sycl::free(splitter_i, shp::context());
+    sycl::free(splitter_i, context());
   }
 
-  sycl::free(medians, shp::context());
+  sycl::free(medians, context());
 }
 
 template <distributed_iterator RandomIt, typename Compare = std::less<>>

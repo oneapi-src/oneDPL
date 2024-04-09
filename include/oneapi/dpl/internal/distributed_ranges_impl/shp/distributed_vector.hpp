@@ -113,12 +113,12 @@ using distributed_vector_iterator =
 // TODO: support teams, distributions
 
 /// distributed vector
-template <typename T, typename Allocator = shp::device_allocator<T>>
+template <typename T, typename Allocator = device_allocator<T>>
 struct distributed_vector {
 public:
-  using segment_type = shp::device_vector<T, Allocator>;
+  using segment_type = device_vector<T, Allocator>;
   using const_segment_type =
-      std::add_const_t<shp::device_vector<T, Allocator>>;
+      std::add_const_t<device_vector<T, Allocator>>;
 
   using value_type = T;
   using size_type = std::size_t;
@@ -137,27 +137,27 @@ public:
   using allocator_type = Allocator;
 
   distributed_vector(std::size_t count = 0) {
-    assert(shp::devices().size() > 0);
+    assert(devices().size() > 0);
     size_ = count;
     segment_size_ =
-        (count + shp::devices().size() - 1) / shp::devices().size();
-    capacity_ = segment_size_ * shp::devices().size();
+        (count + devices().size() - 1) / devices().size();
+    capacity_ = segment_size_ * devices().size();
 
     std::size_t rank = 0;
-    for (auto &&device : shp::devices()) {
+    for (auto &&device : devices()) {
       segments_.emplace_back(segment_type(
-          segment_size_, Allocator(shp::context(), device), rank++));
+          segment_size_, Allocator(context(), device), rank++));
     }
   }
 
   distributed_vector(std::size_t count, const T &value)
       : distributed_vector(count) {
-    shp::fill(*this, value);
+    fill(*this, value);
   }
 
   distributed_vector(std::initializer_list<T> init)
       : distributed_vector(init.size()) {
-    shp::copy(rng::begin(init), rng::end(init), begin());
+    copy(rng::begin(init), rng::end(init), begin());
   }
 
   reference operator[](size_type pos) {
@@ -201,7 +201,7 @@ public:
   void resize(size_type count, const value_type &value) {
     distributed_vector<T, Allocator> other(count, value);
     std::size_t copy_size = std::min(other.size(), size());
-    shp::copy(begin(), begin() + copy_size, other.begin());
+    copy(begin(), begin() + copy_size, other.begin());
     *this = std::move(other);
   }
 

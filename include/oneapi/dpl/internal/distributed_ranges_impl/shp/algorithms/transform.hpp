@@ -12,7 +12,7 @@ namespace oneapi::dpl::experimental::dr::shp {
 /**
  * Applies the given function to a range and stores the result in another range,
  * beginning at out.
- * \param policy use `shp::par_unseq` here only
+ * \param policy use `par_unseq` here only
  * \param in the range of elements to transform
  * \param out the beginning of the destination range, may be equal to the
  * beginning of `in` range \param fn operation to apply to input elements
@@ -49,7 +49,7 @@ auto transform(ExecutionPolicy &&policy, distributed_range auto &&in,
       }));
     } else {
       OutT *buffer =
-          sycl::malloc_device<OutT>(seg_size, in_device, shp::context());
+          sycl::malloc_device<OutT>(seg_size, in_device, context());
       buffers.push_back(buffer);
 
       sycl::event compute_event = q.parallel_for(
@@ -61,7 +61,7 @@ auto transform(ExecutionPolicy &&policy, distributed_range auto &&in,
   __detail::wait(events);
 
   for (auto *b : buffers)
-    sycl::free(b, shp::context());
+    sycl::free(b, context());
 
   return rng::unary_transform_result<decltype(rng::end(in)), decltype(out_end)>{
       rng::end(in), out_end};
@@ -69,7 +69,7 @@ auto transform(ExecutionPolicy &&policy, distributed_range auto &&in,
 
 template <distributed_range R, distributed_iterator Iter, typename Fn>
 auto transform(R &&in, Iter out, Fn &&fn) {
-  return transform(shp::par_unseq, std::forward<R>(in),
+  return transform(par_unseq, std::forward<R>(in),
                    std::forward<Iter>(out), std::forward<Fn>(fn));
 }
 
@@ -86,7 +86,7 @@ auto transform(ExecutionPolicy &&policy, Iter1 in_begin, Iter1 in_end,
 template <distributed_iterator Iter1, distributed_iterator Iter2,
           typename Fn>
 auto transform(Iter1 in_begin, Iter1 in_end, Iter2 out_end, Fn &&fn) {
-  return transform(shp::par_unseq, std::forward<Iter1>(in_begin),
+  return transform(par_unseq, std::forward<Iter1>(in_begin),
                    std::forward<Iter1>(in_end), std::forward<Iter2>(out_end),
                    std::forward<Fn>(fn));
 }

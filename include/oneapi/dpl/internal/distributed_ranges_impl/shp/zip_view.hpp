@@ -258,9 +258,9 @@ private:
 
   template <typename T> auto create_view_impl_(T &&t) const {
     if constexpr (remote_range<T>) {
-      return shp::device_span(std::forward<T>(t));
+      return device_span(std::forward<T>(t));
     } else {
-      return shp::span(std::forward<T>(t));
+      return span(std::forward<T>(t));
     }
   }
 
@@ -341,7 +341,7 @@ namespace views {
 
 /// Zip
 template <rng::random_access_range... Rs> auto zip(Rs &&...rs) {
-  return shp::zip_view(std::forward<Rs>(rs)...);
+  return zip_view(std::forward<Rs>(rs)...);
 }
 
 } // namespace views
