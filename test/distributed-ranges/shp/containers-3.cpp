@@ -6,8 +6,8 @@
 TYPED_TEST_SUITE(DistributedVectorTest, AllocatorTypes);
 
 TYPED_TEST(DistributedVectorTest, tests_from_this_file_run_on_3_devices) {
-  EXPECT_EQ(shp::nprocs(), 3);
-  EXPECT_EQ(std::size(shp::devices()), 3);
+  EXPECT_EQ(dr::shp::nprocs(), 3);
+  EXPECT_EQ(std::size(dr::shp::devices()), 3);
 }
 
 TYPED_TEST(DistributedVectorTest, segments_sizes_in_uneven_distribution) {

@@ -87,7 +87,7 @@ TYPED_TEST(DistributedVectorTest, Iterator) {
 TYPED_TEST(DistributedVectorTest, Resize) {
   std::size_t size = 100;
   typename TestFixture::DistVec dv(size);
-  shp::iota(dv.begin(), dv.end(), 20);
+  dr::shp::iota(dv.begin(), dv.end(), 20);
 
   typename TestFixture::LocalVec v(size);
   std::iota(v.begin(), v.end(), 20);
@@ -107,7 +107,7 @@ TYPED_TEST(DistributedVectorTest, Resize) {
 
 template <typename AllocT> class DeviceVectorTest : public testing::Test {
 public:
-  using DeviceVec = shp::device_vector<typename AllocT::value_type, AllocT>;
+  using DeviceVec = dr::shp::device_vector<typename AllocT::value_type, AllocT>;
 };
 
 TYPED_TEST_SUITE(DeviceVectorTest, AllocatorTypes);

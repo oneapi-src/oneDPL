@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     devices.resize(dev_num); // if too many devices
   }
 
-  shp::init(devices);
+  dr::shp::init(devices);
 
   for (auto &device : devices) {
     std::cout << "  Device: " << device.get_info<sycl::info::device::name>()

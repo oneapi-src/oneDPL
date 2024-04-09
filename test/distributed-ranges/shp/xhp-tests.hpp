@@ -16,8 +16,8 @@ const std::size_t comm_rank = 0;
 const std::size_t comm_size = 1;
 
 // Namespace aliases and wrapper functions to make the tests uniform
-namespace xhp = oneapi::dpl::experimental::dr::shp;
-namespace shp = oneapi::dpl::experimental::dr::shp;
+namespace dr = oneapi::dpl::experimental::dr;
+namespace xhp = dr::shp;
 
 inline void barrier() {}
 inline void fence() {}

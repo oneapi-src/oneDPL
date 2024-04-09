@@ -18,11 +18,11 @@ TEST(DetailTest, parallel_for) {
 
   std::for_each(iota.begin(), iota.end(), [&](auto i) { v[i % size] += 1; });
 
-  auto &&q = shp::__detail::queue(0);
+  auto &&q = dr::shp::__detail::queue(0);
 
-  shp::shared_allocator<int> alloc(q);
+  dr::shp::shared_allocator<int> alloc(q);
 
-  shp::vector<int, shp::shared_allocator<int>> dvec(size, 0, alloc);
+  dr::shp::vector<int, dr::shp::shared_allocator<int>> dvec(size, 0, alloc);
 
   auto dv = dvec.data();
 
@@ -34,7 +34,7 @@ TEST(DetailTest, parallel_for) {
   }).wait();
 
   std::vector<int> dvec_local(size);
-  shp::copy(dvec.begin(), dvec.end(), dvec_local.begin());
+  dr::shp::copy(dvec.begin(), dvec.end(), dvec_local.begin());
 
   EXPECT_EQ(v, dvec_local);
 }
