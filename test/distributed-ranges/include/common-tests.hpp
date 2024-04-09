@@ -295,38 +295,6 @@ concept streamable = requires(std::ostream &os, T value) {
   { os << value } -> std::convertible_to<std::ostream &>;
 };
 
-namespace oneapi::dpl::experimental::dr::mhp {
-
-// gtest relies on ADL to find the printer
-template <typename T, typename B>
-std::ostream &operator<<(std::ostream &os,
-                         const xhp::distributed_vector<T, B> &dist) {
-  os << "{ ";
-  bool first = true;
-  for (const auto &val : dist) {
-    if (first) {
-      first = false;
-    } else {
-      os << ", ";
-    }
-    if constexpr (streamable<T>) {
-      os << val;
-    } else {
-      os << "Unstreamable";
-    }
-  }
-  os << " }";
-  return os;
-}
-
-template <typename T, typename B>
-bool operator==(const xhp::distributed_vector<T, B> &dist_vec,
-                const std::vector<T> &local_vec) {
-  return is_equal(local_vec, dist_vec);
-}
-
-} // namespace oneapi::dpl::experimental::dr::mhp
-
 namespace oneapi::dpl::experimental::dr::shp {
 
 // gtest relies on ADL to find the printer
