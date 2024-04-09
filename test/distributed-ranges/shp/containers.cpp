@@ -23,7 +23,7 @@ TYPED_TEST(DistributedVectorTest,
   std::iota(dv.begin(), dv.end(), 20);
 
   auto second = dv.begin() + 2;
-  EXPECT_EQ(second[0], oneapi::dpl::experimental::dr::ranges::segments(second)[0][0]);
+  EXPECT_EQ(second[0], dr::ranges::segments(second)[0][0]);
 }
 
 TYPED_TEST(DistributedVectorTest, fill_constructor) {
@@ -113,5 +113,5 @@ public:
 TYPED_TEST_SUITE(DeviceVectorTest, AllocatorTypes);
 
 TYPED_TEST(DeviceVectorTest, is_remote_contiguous_range) {
-  static_assert(oneapi::dpl::experimental::dr::remote_contiguous_range<typename TestFixture::DeviceVec>);
+  static_assert(dr::remote_contiguous_range<typename TestFixture::DeviceVec>);
 }

@@ -28,8 +28,8 @@ using AllocatorTypes =
 
 template <typename V>
 concept compliant_view = rng::forward_range<V> && requires(V &v) {
-  oneapi::dpl::experimental::dr::ranges::segments(v);
-  oneapi::dpl::experimental::dr::ranges::rank(oneapi::dpl::experimental::dr::ranges::segments(v)[0]);
+  dr::ranges::segments(v);
+  dr::ranges::rank(dr::ranges::segments(v)[0]);
 };
 
 #include "../include/common-tests.hpp"

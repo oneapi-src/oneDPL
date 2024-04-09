@@ -26,7 +26,7 @@ TEST(DetailTest, parallel_for) {
 
   auto dv = dvec.data();
 
-  oneapi::dpl::experimental::dr::__detail::parallel_for(q, n, [=](auto i) {
+  dr::__detail::parallel_for(q, n, [=](auto i) {
     sycl::atomic_ref<int, sycl::memory_order::relaxed,
                      sycl::memory_scope::device>
         v(dv[i % size]);

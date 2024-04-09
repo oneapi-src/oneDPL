@@ -78,48 +78,48 @@ TYPED_TEST(Drop, largeDropOfAllButOneHasSameSegmentAndRank) {
 
   auto drop_view_result = xhp::views::drop(dv, 123456 - 1);
 
-  auto drop_view_segments = oneapi::dpl::experimental::dr::ranges::segments(drop_view_result);
-  auto dv_segments = oneapi::dpl::experimental::dr::ranges::segments(dv);
+  auto drop_view_segments = dr::ranges::segments(drop_view_result);
+  auto dv_segments = dr::ranges::segments(dv);
   auto last_segment_index = dv_segments.size() - 1;
 
   EXPECT_TRUE(check_segments(drop_view_result));
   EXPECT_EQ(rng::size(drop_view_segments), 1);
-  EXPECT_EQ(oneapi::dpl::experimental::dr::ranges::rank(drop_view_segments[0]),
-            oneapi::dpl::experimental::dr::ranges::rank(dv_segments[last_segment_index]));
+  EXPECT_EQ(dr::ranges::rank(drop_view_segments[0]),
+            dr::ranges::rank(dv_segments[last_segment_index]));
 }
 
 TYPED_TEST(Drop, dropOfAllElementsButOneHasOneSegmentAndSameRank) {
   TypeParam dv(10, 77);
   auto drop_view_result = xhp::views::drop(dv, 9);
 
-  auto drop_view_segments = oneapi::dpl::experimental::dr::ranges::segments(drop_view_result);
-  auto dv_segments = oneapi::dpl::experimental::dr::ranges::segments(dv);
+  auto drop_view_segments = dr::ranges::segments(drop_view_result);
+  auto dv_segments = dr::ranges::segments(dv);
   auto last_segment_index = dv_segments.size() - 1;
 
   EXPECT_TRUE(check_segments(drop_view_result));
   EXPECT_EQ(rng::size(drop_view_segments), 1);
-  EXPECT_EQ(oneapi::dpl::experimental::dr::ranges::rank(drop_view_segments[0]),
-            oneapi::dpl::experimental::dr::ranges::rank(dv_segments[last_segment_index]));
+  EXPECT_EQ(dr::ranges::rank(drop_view_segments[0]),
+            dr::ranges::rank(dv_segments[last_segment_index]));
 }
 
 TYPED_TEST(Drop, dropOfFirstSegementHasSameSegmentsSize) {
   TypeParam dv(10, 77);
 
-  const auto first_seg_size = oneapi::dpl::experimental::dr::ranges::segments(dv)[0].size();
+  const auto first_seg_size = dr::ranges::segments(dv)[0].size();
   auto drop_view_result = xhp::views::drop(dv, first_seg_size);
-  auto drop_view_segments = oneapi::dpl::experimental::dr::ranges::segments(drop_view_result);
-  EXPECT_EQ(rng::size(drop_view_segments), oneapi::dpl::experimental::dr::ranges::segments(dv).size() - 1);
+  auto drop_view_segments = dr::ranges::segments(drop_view_result);
+  EXPECT_EQ(rng::size(drop_view_segments), dr::ranges::segments(dv).size() - 1);
 }
 
 TYPED_TEST(Drop, dropOfOneElementHasAllSegmentsWithSameRanks) {
   TypeParam dv(EVENLY_DIVIDABLE_SIZE, 77);
 
-  auto dv_segments = oneapi::dpl::experimental::dr::ranges::segments(dv);
+  auto dv_segments = dr::ranges::segments(dv);
   auto drop_view_result = xhp::views::drop(dv, 1);
-  auto drop_view_segments = oneapi::dpl::experimental::dr::ranges::segments(drop_view_result);
+  auto drop_view_segments = dr::ranges::segments(drop_view_result);
 
   EXPECT_EQ(rng::size(dv_segments), rng::size(drop_view_segments));
   for (std::size_t i = 0; i < rng::size(dv_segments); ++i)
-    EXPECT_EQ(oneapi::dpl::experimental::dr::ranges::rank(dv_segments[i]),
-              oneapi::dpl::experimental::dr::ranges::rank(drop_view_segments[i]));
+    EXPECT_EQ(dr::ranges::rank(dv_segments[i]),
+              dr::ranges::rank(drop_view_segments[i]));
 }
