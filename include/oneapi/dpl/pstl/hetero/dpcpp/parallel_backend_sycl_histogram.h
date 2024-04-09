@@ -285,9 +285,9 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
 template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy,
           typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const sycl::event& __init_event,
-                                              ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                              const _BinHashMgr& __binhash_manager)
+__histogram_general_registers_local_reduction(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                              const sycl::event& __init_event, ::std::uint16_t __work_group_size,
+                                              _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
     using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
@@ -380,9 +380,9 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _BinHashMgr>
 auto
-__histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_event,
-                                  ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                  const _BinHashMgr& __binhash_manager)
+__histogram_general_local_atomics(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                  const sycl::event& __init_event, ::std::uint16_t __work_group_size, _Range1&& __input,
+                                  _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
     using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
@@ -405,11 +405,11 @@ struct __histogram_general_private_global_atomics_submitter;
 template <typename... _KernelName>
 struct __histogram_general_private_global_atomics_submitter<__internal::__optional_kernel_name<_KernelName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
+    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
     auto
-    operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_event, ::std::uint16_t __min_iters_per_work_item,
-               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-               const _BinHashMgr& __binhash_manager)
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, const sycl::event& __init_event,
+               ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size, _Range1&& __input,
+               _Range2&& __bins, const _BinHashMgr& __binhash_manager)
     {
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
@@ -477,9 +477,10 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
 };
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_event,
-                                           ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size,
-                                           _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
+__histogram_general_private_global_atomics(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                           const sycl::event& __init_event, ::std::uint16_t __min_iters_per_work_item,
+                                           ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
+                                           const _BinHashMgr& __binhash_manager)
 {
     using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
@@ -487,14 +488,16 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
         __histo_kernel_private_glocal_atomics<_kernel_base_name>>;
 
     return __histogram_general_private_global_atomics_submitter<_global_atomics_name>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __init_event, __min_iters_per_work_item, __work_group_size,
-        ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+        __min_iters_per_work_item, __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+        __binhash_manager);
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _BinHashMgr>
 auto
-__parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input,
+__parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
+                                   _ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input,
                                    _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
     using _private_histogram_type = ::std::uint16_t;
@@ -513,7 +516,7 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
     {
         return __future(
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
-                ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
+                __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
                 ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
     }
     // if bins fit into SLM, use local atomics
@@ -522,8 +525,8 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
              __local_mem_size)
     {
         return __future(__histogram_general_local_atomics<__iters_per_work_item>(
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size, ::std::forward<_Range1>(__input),
-            ::std::forward<_Range2>(__bins), __binhash_manager));
+            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
+            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
     }
     else // otherwise, use global atomics (private copies per workgroup)
     {
@@ -533,26 +536,27 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
         // private copies of the histogram bins in global memory.  No unrolling is taken advantage of here because it
         // is a runtime argument.
         return __future(__histogram_general_private_global_atomics(
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, __iters_per_work_item, __work_group_size,
-            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
+            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __iters_per_work_item,
+            __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
     }
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__parallel_histogram(_ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input, _Range2&& __bins,
+__parallel_histogram(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                     const sycl::event& __init_event, _Range1&& __input, _Range2&& __bins,
                      const _BinHashMgr& __binhash_manager)
 {
     if (__input.size() < 1048576) // 2^20
     {
         return __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
+            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
             ::std::forward<_Range2>(__bins), __binhash_manager);
     }
     else
     {
         return __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
+            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
             ::std::forward<_Range2>(__bins), __binhash_manager);
     }
 }

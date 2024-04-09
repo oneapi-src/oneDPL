@@ -18,6 +18,7 @@
 
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+#include "../../iterator_defs.h"
 
 #include "sycl_defs.h"
 
@@ -59,24 +60,6 @@ class device_policy
         return q;
     }
 
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    // __allow_vector is needed for __is_vectorization_preferred
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
-
   private:
     sycl::queue q;
 };
@@ -98,7 +81,7 @@ class fpga_policy : public device_policy<KernelName>
 #    else
               __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-              ))
+                  ))
     {
     }
 
@@ -106,14 +89,6 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
-
-    // For internal use only
-
-    const base&
-    __device_policy() const
-    {
-        return static_cast<const base&>(*this);
-    };
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
@@ -310,6 +285,66 @@ using __enable_if_device_execution_policy_double_no_default =
                            !::std::is_convertible_v<_Op1, sycl::event> && !::std::is_convertible_v<_Op2, sycl::event> &&
                            __is_convertible_to_event<_Events...>,
                        _T>;
+
+template <typename _BackendTag>
+struct __hetero_tag
+{
+    using __backend_tag = _BackendTag;
+};
+
+struct __device_backend_tag
+{
+};
+
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
+template <class... _IteratorTypes, typename _KernelName>
+__hetero_tag<__device_backend_tag>
+__select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)
+{
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
+    return {};
+}
+
+#if _ONEDPL_FPGA_DEVICE
+struct __fpga_backend_tag : __device_backend_tag
+{
+};
+
+template <class... _IteratorTypes, unsigned int _Factor, typename _KernelName>
+__hetero_tag<__fpga_backend_tag>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorTypes&&...)
+{
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
+    return {};
+}
+#endif
+
+//----------------------------------------------------------
+// __is_hetero_backend_tag, __is_hetero_backend_tag_v
+//----------------------------------------------------------
+
+template <typename _BackendTag>
+struct __is_hetero_backend_tag : ::std::false_type
+{
+};
+
+template <>
+struct __is_hetero_backend_tag<__device_backend_tag> : ::std::true_type
+{
+};
+
+#if _ONEDPL_FPGA_DEVICE
+template <>
+struct __is_hetero_backend_tag<__fpga_backend_tag> : ::std::true_type
+{
+};
+#endif
+
+template <typename _BackendTag>
+inline constexpr bool __is_hetero_backend_tag_v = __is_hetero_backend_tag<_BackendTag>::value;
 
 } // namespace __internal
 
