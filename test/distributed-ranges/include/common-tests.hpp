@@ -300,7 +300,7 @@ namespace oneapi::dpl::experimental::dr::shp {
 // gtest relies on ADL to find the printer
 template <typename T>
 std::ostream &operator<<(std::ostream &os,
-                         const xhp::distributed_vector<T> &dist) {
+                         const distributed_vector<T> &dist) {
   os << "{ ";
   bool first = true;
   for (const auto &val : dist) {
@@ -320,7 +320,7 @@ std::ostream &operator<<(std::ostream &os,
 }
 
 template <typename T>
-bool operator==(const xhp::distributed_vector<T> &dist_vec,
+bool operator==(const distributed_vector<T> &dist_vec,
                 const std::vector<T> &local_vec) {
   return is_equal(dist_vec, local_vec);
 }
