@@ -363,7 +363,11 @@ struct __parallel_transform_reduce_impl
                         // 1. Initialization (transform part). Fill local memory
                         _Size __n_items;
 
-                        union __storage {_Tp __v; __storage(){} } __result;
+                        union __storage
+                        {
+                            _Tp __v;
+                            __storage() {}
+                        } __result;
                         if (__is_first)
                         {
                             __result.__v = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);

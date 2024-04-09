@@ -218,7 +218,11 @@ struct transform_reduce
         const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
         const _Size __adjusted_n = __global_offset + __n;
         // Sequential load and reduce from global memory
-        union __storage {_Tp __v; __storage(){} } __res;
+        union __storage
+        {
+            _Tp __v;
+            __storage() {}
+        } __res;
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
             // Keep these statements in the same scope to allow for better memory alignment
@@ -250,7 +254,11 @@ struct transform_reduce
         const _Size __adjusted_n = __global_offset + __n;
 
         // Coalesced load and reduce from global memory
-        union __storage {_Tp __v; __storage(){} } __res;
+        union __storage
+        {
+            _Tp __v;
+            __storage() {}
+        } __res;
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
             __res.__v = __unary_op(__adjusted_global_id, __acc...);
