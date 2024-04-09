@@ -138,8 +138,8 @@ struct __lookback_init_submitter<_FlagType, _Type, _BinaryOp,
 {
     template <typename _StatusFlags, typename _PartialValues>
     sycl::event
-    operator()(sycl::queue __q, _StatusFlags&& __status_flags, _PartialValues&& __partial_values, ::std::size_t __status_flags_size,
-               ::std::uint16_t __status_flag_padding) const
+    operator()(sycl::queue __q, _StatusFlags&& __status_flags, _PartialValues&& __partial_values,
+               ::std::size_t __status_flags_size, ::std::uint16_t __status_flag_padding) const
     {
         using _KernelName = __lookback_init_kernel<_Name..., _Type, _BinaryOp>;
 
@@ -293,8 +293,7 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
             __hdl.parallel_for<_KernelName>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
                                             _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
                                                         __status_flags_size, __status_vals_full, __status_vals_partial,
-                                                        __current_num_items, __tile_vals
-                                                        });
+                                                        __current_num_items, __tile_vals});
         });
     }
 };
@@ -333,8 +332,10 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     {
         return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
             oneapi::dpl::__internal::__device_backend_tag{},
-            oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue), ::std::forward<_InRange>(__in_rng),
-            ::std::forward<_OutRange>(__out_rng), __n, oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op, ::std::true_type{});
+            oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue),
+            ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __n,
+            oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op,
+            ::std::true_type{});
     }
 
     constexpr ::std::size_t __workgroup_size = _KernelParam::workgroup_size;
@@ -347,9 +348,10 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr int __status_flag_padding = SUBGROUP_SIZE;
     ::std::size_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
-    ::std::size_t __status_flags_size_mem_size = __status_flags_size * sizeof(_FlagStorageType) + (__status_flags_size * sizeof(_Type))*2;
+    ::std::size_t __status_flags_size_mem_size =
+        __status_flags_size * sizeof(_FlagStorageType) + (__status_flags_size * sizeof(_Type)) * 2;
     ::std::size_t __status_vals_full_offset = __status_flags_size * sizeof(_FlagStorageType);
-    ::std::size_t __status_vals_partial_offset =  __status_vals_full_offset + __status_flags_size * sizeof(_Type);
+    ::std::size_t __status_vals_partial_offset = __status_vals_full_offset + __status_flags_size * sizeof(_Type);
 
     ::std::byte* __device_mem = sycl::malloc_device<::std::byte>(__status_flags_size_mem_size, __queue);
     assert(__device_mem);
@@ -377,9 +379,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     {
         return __queue.submit([=](sycl::handler& __hdl) {
             __hdl.depends_on(__prev_event);
-            __hdl.host_task([=]() {
-                sycl::free(__device_mem, __queue);
-            });
+            __hdl.host_task([=]() { sycl::free(__device_mem, __queue); });
         });
     }
     else
@@ -400,7 +400,8 @@ inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _Bin
     auto __in_view = oneapi::dpl::__ranges::views::all(::std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(::std::forward<_OutRng>(__out_rng));
 
-    return __impl::__single_pass_scan<true>(__queue, ::std::move(__in_view), ::std::move(__out_view), __binary_op, __param);
+    return __impl::__single_pass_scan<true>(__queue, ::std::move(__in_view), ::std::move(__out_view), __binary_op,
+                                            __param);
 }
 
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
