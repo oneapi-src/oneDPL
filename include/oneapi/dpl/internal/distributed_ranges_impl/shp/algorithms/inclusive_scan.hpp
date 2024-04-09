@@ -64,12 +64,12 @@ void inclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o,
       sycl::event event;
 
       if (segment_id == 0 && init.has_value()) {
-        event = oneapi::dpl::experimental::inclusive_scan_async(
+        event = inclusive_scan_async(
             local_policy, dr::__detail::direct_iterator(first),
             dr::__detail::direct_iterator(last),
             dr::__detail::direct_iterator(d_first), binary_op, init.value());
       } else {
-        event = oneapi::dpl::experimental::inclusive_scan_async(
+        event = inclusive_scan_async(
             local_policy, dr::__detail::direct_iterator(first),
             dr::__detail::direct_iterator(last),
             dr::__detail::direct_iterator(d_first), binary_op);
@@ -101,7 +101,7 @@ void inclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o,
     auto first = ranges::local(partial_sums).data();
     auto last = first + partial_sums.size();
 
-    oneapi::dpl::experimental::inclusive_scan_async(local_policy, first, last,
+    inclusive_scan_async(local_policy, first, last,
                                                     first, binary_op)
         .wait();
 

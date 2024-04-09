@@ -24,7 +24,7 @@ sycl::event sort_async(LocalPolicy &&policy, InputIt first, InputIt last,
   if (rng::distance(first, last) >= 2) {
     dr::__detail::direct_iterator d_first(first);
     dr::__detail::direct_iterator d_last(last);
-    return oneapi::dpl::experimental::sort_async(
+    return sort_async(
         std::forward<LocalPolicy>(policy), d_first, d_last,
         std::forward<Compare>(comp));
   } else {

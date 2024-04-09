@@ -88,7 +88,7 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
 
       auto init = inits[segment_id];
 
-      auto event = oneapi::dpl::experimental::exclusive_scan_async(
+      auto event = exclusive_scan_async(
           local_policy, dr::__detail::direct_iterator(first),
           dr::__detail::direct_iterator(last),
           dr::__detail::direct_iterator(d_first), init, binary_op);
@@ -119,7 +119,7 @@ void exclusive_scan_impl_(ExecutionPolicy &&policy, R &&r, O &&o, U init,
     auto first = ranges::local(partial_sums).data();
     auto last = first + partial_sums.size();
 
-    oneapi::dpl::experimental::inclusive_scan_async(local_policy, first, last,
+    inclusive_scan_async(local_policy, first, last,
                                                     first, binary_op)
         .wait();
 
