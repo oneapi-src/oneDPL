@@ -177,23 +177,6 @@ template <typename Range> void print_range(Range &&r, std::string label = "") {
   std::cout << "]" << std::endl;
 }
 
-// template <typename Matrix>
-// void print_matrix(Matrix &&m, std::string label = "") {
-//   std::cout << m.shape()[0] << " x " << m.shape()[1] << " matrix with "
-//             << m.size() << " stored values";
-//   if (label != "") {
-//     std::cout << " \"" << label << "\"";
-//   }
-//   std::cout << std::endl;
-
-//   for (auto &&tuple : m) {
-//     auto &&[index, value] = tuple;
-//     auto &&[i, j] = index;
-
-//     std::cout << "(" << i << ", " << j << "): " << value << std::endl;
-//   }
-// }
-
 template <typename R> void print_range_details(R &&r, std::string label = "") {
   if (label != "") {
     std::cout << "\"" << label << "\" ";
