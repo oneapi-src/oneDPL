@@ -10,11 +10,11 @@
 namespace oneapi::dpl::experimental::dr::shp {
 
 template <typename T, typename Allocator>
-class device_vector : public oneapi::dpl::experimental::dr::shp::vector<T, Allocator> {
+class device_vector : public shp::vector<T, Allocator> {
 public:
   constexpr device_vector() noexcept {}
 
-  using base = oneapi::dpl::experimental::dr::shp::vector<T, Allocator>;
+  using base = shp::vector<T, Allocator>;
 
   using value_type = T;
   using size_type = std::size_t;

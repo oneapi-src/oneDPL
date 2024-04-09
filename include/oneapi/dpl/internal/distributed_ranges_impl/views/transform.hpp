@@ -106,9 +106,9 @@ public:
   }
 
   auto local() const
-    requires(oneapi::dpl::experimental::dr::ranges::__detail::has_local<Iter>)
+    requires(ranges::__detail::has_local<Iter>)
   {
-    auto iter = oneapi::dpl::experimental::dr::ranges::__detail::local(iter_);
+    auto iter = ranges::__detail::local(iter_);
     return transform_iterator<decltype(iter), F>(iter, fn_);
   }
 
@@ -135,10 +135,10 @@ public:
   }
 
   auto segments() const
-    requires(oneapi::dpl::experimental::dr::distributed_range<V>)
+    requires(distributed_range<V>)
   {
     auto fn = fn_;
-    return oneapi::dpl::experimental::dr::ranges::segments(base_) |
+    return ranges::segments(base_) |
            rng::views::transform([fn]<typename T>(T &&segment) {
              return transform_view<rng::views::all_t<decltype(segment)>, F>(
                  std::forward<T>(segment), fn);
@@ -146,9 +146,9 @@ public:
   }
 
   auto rank() const
-    requires(oneapi::dpl::experimental::dr::remote_range<V>)
+    requires(remote_range<V>)
   {
-    return oneapi::dpl::experimental::dr::ranges::rank(base_);
+    return ranges::rank(base_);
   }
 
   V base() const { return base_; }
@@ -168,7 +168,7 @@ public:
   transform_adapter_closure(F fn) : fn_(fn) {}
 
   template <rng::viewable_range R> auto operator()(R &&r) const {
-    return oneapi::dpl::experimental::dr::transform_view(std::forward<R>(r), fn_);
+    return transform_view(std::forward<R>(r), fn_);
   }
 
   template <rng::viewable_range R>

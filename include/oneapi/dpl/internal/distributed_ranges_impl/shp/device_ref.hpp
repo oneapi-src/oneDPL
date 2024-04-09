@@ -24,7 +24,7 @@ public:
 #ifdef __SYCL_DEVICE_ONLY__
     return *pointer_;
 #else
-    auto &&q = oneapi::dpl::experimental::dr::shp::__detail::default_queue();
+    auto &&q = __detail::default_queue();
     char buffer[sizeof(T)] __attribute__((aligned(sizeof(T))));
     q.memcpy(reinterpret_cast<T *>(buffer), pointer_, sizeof(T)).wait();
     return *reinterpret_cast<T *>(buffer);
@@ -37,7 +37,7 @@ public:
 #ifdef __SYCL_DEVICE_ONLY__
     *pointer_ = value;
 #else
-    auto &&q = oneapi::dpl::experimental::dr::shp::__detail::default_queue();
+    auto &&q = __detail::default_queue();
     q.memcpy(pointer_, &value, sizeof(T)).wait();
 #endif
     return *this;

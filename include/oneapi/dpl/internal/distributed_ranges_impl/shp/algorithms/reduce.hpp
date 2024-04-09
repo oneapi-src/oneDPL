@@ -53,7 +53,7 @@ auto reduce_no_init_async(ExecutionPolicy &&policy, Iter first, Iter last,
 
 namespace oneapi::dpl::experimental::dr::shp {
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_range R, typename T,
+template <typename ExecutionPolicy, distributed_range R, typename T,
           typename BinaryOp>
 T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
 
@@ -63,13 +63,13 @@ T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
   if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>,
                                device_policy>) {
     using future_t = decltype(oneapi::dpl::experimental::reduce_async(
-        __detail::dpl_policy(0), oneapi::dpl::experimental::dr::ranges::segments(r)[0].begin(),
-        oneapi::dpl::experimental::dr::ranges::segments(r)[0].end(), init, binary_op));
+        __detail::dpl_policy(0), ranges::segments(r)[0].begin(),
+        ranges::segments(r)[0].end(), init, binary_op));
 
     std::vector<future_t> futures;
 
-    for (auto &&segment : oneapi::dpl::experimental::dr::ranges::segments(r)) {
-      auto &&local_policy = __detail::dpl_policy(oneapi::dpl::experimental::dr::ranges::rank(segment));
+    for (auto &&segment : ranges::segments(r)) {
+      auto &&local_policy = __detail::dpl_policy(ranges::rank(segment));
 
       auto dist = rng::distance(segment);
       if (dist <= 0) {
@@ -95,13 +95,13 @@ T reduce(ExecutionPolicy &&policy, R &&r, T init, BinaryOp &&binary_op) {
   }
 }
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_range R, typename T>
+template <typename ExecutionPolicy, distributed_range R, typename T>
 T reduce(ExecutionPolicy &&policy, R &&r, T init) {
   return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), init,
                 std::plus<>());
 }
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_range R>
+template <typename ExecutionPolicy, distributed_range R>
 rng::range_value_t<R> reduce(ExecutionPolicy &&policy, R &&r) {
   return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r),
                 rng::range_value_t<R>{}, std::plus<>());
@@ -109,7 +109,7 @@ rng::range_value_t<R> reduce(ExecutionPolicy &&policy, R &&r) {
 
 // Iterator versions
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_iterator Iter>
+template <typename ExecutionPolicy, distributed_iterator Iter>
 std::iter_value_t<Iter> reduce(ExecutionPolicy &&policy, Iter first,
                                Iter last) {
   return reduce(std::forward<ExecutionPolicy>(policy),
@@ -117,13 +117,13 @@ std::iter_value_t<Iter> reduce(ExecutionPolicy &&policy, Iter first,
                 std::plus<>());
 }
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_iterator Iter, typename T>
+template <typename ExecutionPolicy, distributed_iterator Iter, typename T>
 T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init) {
   return reduce(std::forward<ExecutionPolicy>(policy),
                 rng::subrange(first, last), init, std::plus<>());
 }
 
-template <typename ExecutionPolicy, oneapi::dpl::experimental::dr::distributed_iterator Iter, typename T,
+template <typename ExecutionPolicy, distributed_iterator Iter, typename T,
           typename BinaryOp>
 T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init,
          BinaryOp &&binary_op) {
@@ -134,33 +134,33 @@ T reduce(ExecutionPolicy &&policy, Iter first, Iter last, T init,
 
 // Execution policy-less algorithms
 
-template <oneapi::dpl::experimental::dr::distributed_range R> rng::range_value_t<R> reduce(R &&r) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, std::forward<R>(r));
+template <distributed_range R> rng::range_value_t<R> reduce(R &&r) {
+  return reduce(shp::par_unseq, std::forward<R>(r));
 }
 
-template <oneapi::dpl::experimental::dr::distributed_range R, typename T> T reduce(R &&r, T init) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, std::forward<R>(r), init);
+template <distributed_range R, typename T> T reduce(R &&r, T init) {
+  return reduce(shp::par_unseq, std::forward<R>(r), init);
 }
 
-template <oneapi::dpl::experimental::dr::distributed_range R, typename T, typename BinaryOp>
+template <distributed_range R, typename T, typename BinaryOp>
 T reduce(R &&r, T init, BinaryOp &&binary_op) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, std::forward<R>(r), init,
+  return reduce(shp::par_unseq, std::forward<R>(r), init,
                 std::forward<BinaryOp>(binary_op));
 }
 
-template <oneapi::dpl::experimental::dr::distributed_iterator Iter>
+template <distributed_iterator Iter>
 std::iter_value_t<Iter> reduce(Iter first, Iter last) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, first, last);
+  return reduce(shp::par_unseq, first, last);
 }
 
-template <oneapi::dpl::experimental::dr::distributed_iterator Iter, typename T>
+template <distributed_iterator Iter, typename T>
 T reduce(Iter first, Iter last, T init) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, first, last, init);
+  return reduce(shp::par_unseq, first, last, init);
 }
 
-template <oneapi::dpl::experimental::dr::distributed_iterator Iter, typename T, typename BinaryOp>
+template <distributed_iterator Iter, typename T, typename BinaryOp>
 T reduce(Iter first, Iter last, T init, BinaryOp &&binary_op) {
-  return reduce(oneapi::dpl::experimental::dr::shp::par_unseq, first, last, init,
+  return reduce(shp::par_unseq, first, last, init,
                 std::forward<BinaryOp>(binary_op));
 }
 

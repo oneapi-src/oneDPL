@@ -26,9 +26,9 @@ auto take_segments(R &&segments, std::size_t last_seg, std::size_t local_id) {
       auto first = rng::begin(segment);
       auto last = rng::begin(segment);
       rng::advance(last, remainder);
-      return oneapi::dpl::experimental::dr::remote_subrange(first, last, oneapi::dpl::experimental::dr::ranges::rank(segment));
+      return remote_subrange(first, last, ranges::rank(segment));
     } else {
-      return oneapi::dpl::experimental::dr::remote_subrange(segment);
+      return remote_subrange(segment);
     }
   };
 
@@ -63,9 +63,9 @@ auto drop_segments(R &&segments, std::size_t first_seg, std::size_t local_id) {
       auto first = rng::begin(segment);
       rng::advance(first, remainder);
       auto last = rng::end(segment);
-      return oneapi::dpl::experimental::dr::remote_subrange(first, last, oneapi::dpl::experimental::dr::ranges::rank(segment));
+      return remote_subrange(first, last, ranges::rank(segment));
     } else {
-      return oneapi::dpl::experimental::dr::remote_subrange(segment);
+      return remote_subrange(segment);
     }
   };
 
@@ -119,7 +119,7 @@ auto segments_(V &&v) {
 
 template <rng::range V>
   requires(oneapi::dpl::experimental::dr::is_drop_view_v<std::remove_cvref_t<V>> &&
-           oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>)
+             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>)
 auto segments_(V &&v) {
   return oneapi::dpl::experimental::dr::__detail::drop_segments(oneapi::dpl::experimental::dr::ranges::segments(v.base()),
                                      v.base().size() - v.size());
@@ -127,7 +127,7 @@ auto segments_(V &&v) {
 
 template <rng::range V>
   requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V>> &&
-           oneapi::dpl::experimental::dr::distributed_iterator<rng::iterator_t<V>>)
+             oneapi::dpl::experimental::dr::distributed_iterator<rng::iterator_t<V>>)
 auto segments_(V &&v) {
   auto first = rng::begin(v);
   auto last = rng::end(v);

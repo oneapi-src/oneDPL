@@ -102,7 +102,7 @@ public:
   }
 
   auto segments() const noexcept {
-    return oneapi::dpl::experimental::dr::__detail::drop_segments(segments_, segment_id_, idx_);
+    return dr::__detail::drop_segments(segments_, segment_id_, idx_);
   }
 
 private:
@@ -121,7 +121,7 @@ private:
 
 template <typename T, typename L>
 using distributed_span_iterator =
-    oneapi::dpl::experimental::dr::iterator_adaptor<distributed_span_accessor<T, L>>;
+    iterator_adaptor<distributed_span_accessor<T, L>>;
 
 template <typename T, typename L>
 class distributed_span : public rng::view_interface<distributed_span<T, L>> {
@@ -129,7 +129,7 @@ public:
   using element_type = T;
   using value_type = std::remove_cv_t<T>;
 
-  using segment_type = oneapi::dpl::experimental::dr::shp::device_span<T, L>;
+  using segment_type = shp::device_span<T, L>;
 
   using size_type = rng::range_size_t<segment_type>;
   using difference_type = rng::range_difference_t<segment_type>;
@@ -154,21 +154,21 @@ public:
   operator=(const distributed_span &) noexcept = default;
 
   template <rng::input_range R>
-    requires(oneapi::dpl::experimental::dr::remote_range<rng::range_reference_t<R>>)
+    requires(remote_range<rng::range_reference_t<R>>)
   constexpr distributed_span(R &&segments) {
     for (auto &&segment : segments) {
       std::size_t size = rng::size(segment);
       segments_.push_back(
-          segment_type(rng::begin(segment), size, oneapi::dpl::experimental::dr::ranges::rank(segment)));
+          segment_type(rng::begin(segment), size, ranges::rank(segment)));
       size_ += size;
     }
   }
 
-  template <oneapi::dpl::experimental::dr::distributed_range R> constexpr distributed_span(R &&r) {
-    for (auto &&segment : oneapi::dpl::experimental::dr::ranges::segments(std::forward<R>(r))) {
+  template <distributed_range R> constexpr distributed_span(R &&r) {
+    for (auto &&segment : ranges::segments(std::forward<R>(r))) {
       std::size_t size = rng::size(segment);
       segments_.push_back(
-          segment_type(rng::begin(segment), size, oneapi::dpl::experimental::dr::ranges::rank(segment)));
+          segment_type(rng::begin(segment), size, ranges::rank(segment)));
       size_ += size;
     }
   }
@@ -249,9 +249,9 @@ distributed_span(R &&segments)
     -> distributed_span<rng::range_value_t<rng::range_value_t<R>>,
                         rng::iterator_t<rng::range_value_t<R>>>;
 
-template <oneapi::dpl::experimental::dr::distributed_contiguous_range R>
+template <distributed_contiguous_range R>
 distributed_span(R &&r) -> distributed_span<
     rng::range_value_t<R>,
-    rng::iterator_t<rng::range_value_t<decltype(oneapi::dpl::experimental::dr::ranges::segments(r))>>>;
+    rng::iterator_t<rng::range_value_t<decltype(ranges::segments(r))>>>;
 
 } // namespace oneapi::dpl::experimental::dr::shp

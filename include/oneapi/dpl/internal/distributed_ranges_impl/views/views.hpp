@@ -10,8 +10,8 @@
 namespace oneapi::dpl::experimental::dr {
 
 // returns range: [(rank, element) ...]
-auto ranked_view(const oneapi::dpl::experimental::dr::distributed_range auto &r) {
-  auto rank = [](auto &&v) { return oneapi::dpl::experimental::dr::ranges::rank(&v); };
+auto ranked_view(const distributed_range auto &r) {
+  auto rank = [](auto &&v) { return ranges::rank(&v); };
   return rng::views::zip(rng::views::transform(r, rank), r);
 }
 

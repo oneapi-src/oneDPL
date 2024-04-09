@@ -183,22 +183,22 @@ template <typename R> void print_range_details(R &&r, std::string label = "") {
   }
 
   std::cout << "distributed range with "
-            << rng::size(oneapi::dpl::experimental::dr::ranges::segments(r)) << " segments."
+            << rng::size(ranges::segments(r)) << " segments."
             << std::endl;
 
   std::size_t idx = 0;
-  for (auto &&segment : oneapi::dpl::experimental::dr::ranges::segments(r)) {
+  for (auto &&segment : ranges::segments(r)) {
     std::cout << "Seg " << idx++ << ", size " << segment.size() << " (rank "
-              << oneapi::dpl::experimental::dr::ranges::rank(segment) << ")" << std::endl;
+              << ranges::rank(segment) << ")" << std::endl;
   }
 }
 
-template <oneapi::dpl::experimental::dr::distributed_range R>
+template <distributed_range R>
 void range_details(R &&r, std::size_t width = 80) {
   std::size_t size = rng::size(r);
 
-  for (auto &&[idx, segment] : oneapi::dpl::experimental::dr::__detail::enumerate(
-           oneapi::dpl::experimental::dr::ranges::segments(r))) {
+  for (auto &&[idx, segment] : __detail::enumerate(
+           ranges::segments(r))) {
     std::size_t local_size = rng::size(segment);
 
     double percent = double(local_size) / size;
@@ -212,7 +212,7 @@ void range_details(R &&r, std::size_t width = 80) {
     std::size_t after_whitespace = whitespace - initial_whitespace;
 
     std::cout << "[" << std::string(initial_whitespace, ' ')
-              << oneapi::dpl::experimental::dr::ranges::rank(segment)
+              << ranges::rank(segment)
               << std::string(after_whitespace, ' ') << "]";
   }
   std::cout << std::endl;

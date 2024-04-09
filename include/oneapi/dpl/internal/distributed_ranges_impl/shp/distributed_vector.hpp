@@ -92,7 +92,7 @@ public:
   }
 
   auto segments() const noexcept {
-    return oneapi::dpl::experimental::dr::__detail::drop_segments(segments_, segment_id_, idx_);
+    return dr::__detail::drop_segments(segments_, segment_id_, idx_);
   }
 
 private:
@@ -108,17 +108,17 @@ private:
 
 template <typename T, typename L>
 using distributed_vector_iterator =
-    oneapi::dpl::experimental::dr::iterator_adaptor<distributed_vector_accessor<T, L>>;
+    iterator_adaptor<distributed_vector_accessor<T, L>>;
 
 // TODO: support teams, distributions
 
 /// distributed vector
-template <typename T, typename Allocator = oneapi::dpl::experimental::dr::shp::device_allocator<T>>
+template <typename T, typename Allocator = shp::device_allocator<T>>
 struct distributed_vector {
 public:
-  using segment_type = oneapi::dpl::experimental::dr::shp::device_vector<T, Allocator>;
+  using segment_type = shp::device_vector<T, Allocator>;
   using const_segment_type =
-      std::add_const_t<oneapi::dpl::experimental::dr::shp::device_vector<T, Allocator>>;
+      std::add_const_t<shp::device_vector<T, Allocator>>;
 
   using value_type = T;
   using size_type = std::size_t;
@@ -137,27 +137,27 @@ public:
   using allocator_type = Allocator;
 
   distributed_vector(std::size_t count = 0) {
-    assert(oneapi::dpl::experimental::dr::shp::devices().size() > 0);
+    assert(shp::devices().size() > 0);
     size_ = count;
     segment_size_ =
-        (count + oneapi::dpl::experimental::dr::shp::devices().size() - 1) / oneapi::dpl::experimental::dr::shp::devices().size();
-    capacity_ = segment_size_ * oneapi::dpl::experimental::dr::shp::devices().size();
+        (count + shp::devices().size() - 1) / shp::devices().size();
+    capacity_ = segment_size_ * shp::devices().size();
 
     std::size_t rank = 0;
-    for (auto &&device : oneapi::dpl::experimental::dr::shp::devices()) {
+    for (auto &&device : shp::devices()) {
       segments_.emplace_back(segment_type(
-          segment_size_, Allocator(oneapi::dpl::experimental::dr::shp::context(), device), rank++));
+          segment_size_, Allocator(shp::context(), device), rank++));
     }
   }
 
   distributed_vector(std::size_t count, const T &value)
       : distributed_vector(count) {
-    oneapi::dpl::experimental::dr::shp::fill(*this, value);
+    shp::fill(*this, value);
   }
 
   distributed_vector(std::initializer_list<T> init)
       : distributed_vector(init.size()) {
-    oneapi::dpl::experimental::dr::shp::copy(rng::begin(init), rng::end(init), begin());
+    shp::copy(rng::begin(init), rng::end(init), begin());
   }
 
   reference operator[](size_type pos) {
@@ -174,10 +174,10 @@ public:
 
   size_type size() const noexcept { return size_; }
 
-  auto segments() { return oneapi::dpl::experimental::dr::__detail::take_segments(segments_, size()); }
+  auto segments() { return dr::__detail::take_segments(segments_, size()); }
 
   auto segments() const {
-    return oneapi::dpl::experimental::dr::__detail::take_segments(segments_, size());
+    return dr::__detail::take_segments(segments_, size());
   }
 
   iterator begin() { return iterator(segments_, 0, 0, segment_size_); }
@@ -201,7 +201,7 @@ public:
   void resize(size_type count, const value_type &value) {
     distributed_vector<T, Allocator> other(count, value);
     std::size_t copy_size = std::min(other.size(), size());
-    oneapi::dpl::experimental::dr::shp::copy(begin(), begin() + copy_size, other.begin());
+    shp::copy(begin(), begin() + copy_size, other.begin());
     *this = std::move(other);
   }
 

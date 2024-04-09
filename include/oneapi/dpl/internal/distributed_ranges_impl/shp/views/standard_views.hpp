@@ -15,16 +15,16 @@ namespace oneapi::dpl::experimental::dr::shp {
 
 namespace views {
 
-template <oneapi::dpl::experimental::dr::distributed_range R>
-auto slice(R &&r, oneapi::dpl::experimental::dr::index<> slice_indices) {
-  return oneapi::dpl::experimental::dr::shp::distributed_span(
-             oneapi::dpl::experimental::dr::ranges::segments(std::forward<R>(r)))
+template <distributed_range R>
+auto slice(R &&r, index<> slice_indices) {
+  return shp::distributed_span(
+             ranges::segments(std::forward<R>(r)))
       .subspan(slice_indices[0], slice_indices[1] - slice_indices[0]);
 }
 
 class slice_adaptor_closure {
 public:
-  slice_adaptor_closure(oneapi::dpl::experimental::dr::index<> slice_indices)
+  slice_adaptor_closure(index<> slice_indices)
       : idx_(slice_indices) {}
 
   template <rng::random_access_range R> auto operator()(R &&r) const {
@@ -37,10 +37,10 @@ public:
   }
 
 private:
-  oneapi::dpl::experimental::dr::index<> idx_;
+  index<> idx_;
 };
 
-inline auto slice(oneapi::dpl::experimental::dr::index<> slice_indices) {
+inline auto slice(index<> slice_indices) {
   return slice_adaptor_closure(slice_indices);
 }
 

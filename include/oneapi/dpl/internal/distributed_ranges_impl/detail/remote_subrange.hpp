@@ -27,9 +27,9 @@ public:
   constexpr remote_subrange(R &&r, std::size_t rank)
       : base(rng::begin(r), rng::end(r)), rank_(rank) {}
 
-  template <oneapi::dpl::experimental::dr::remote_range R>
+  template <remote_range R>
   constexpr remote_subrange(R &&r)
-      : base(rng::begin(r), rng::end(r)), rank_(oneapi::dpl::experimental::dr::ranges::rank(r)) {}
+      : base(rng::begin(r), rng::end(r)), rank_(ranges::rank(r)) {}
 
   constexpr std::size_t rank() const noexcept { return rank_; }
 
@@ -40,7 +40,7 @@ private:
 template <rng::forward_range R>
 remote_subrange(R &&, std::size_t) -> remote_subrange<rng::iterator_t<R>>;
 
-template <oneapi::dpl::experimental::dr::remote_range R>
+template <remote_range R>
 remote_subrange(R &&) -> remote_subrange<rng::iterator_t<R>>;
 
 } // namespace oneapi::dpl::experimental::dr

@@ -17,10 +17,10 @@ inline constexpr auto counted = rng::views::counted;
 
 inline constexpr auto drop = rng::views::drop;
 
-inline constexpr auto iota = oneapi::dpl::experimental::dr::views::iota;
+inline constexpr auto iota = dr::views::iota;
 
 inline constexpr auto take = rng::views::take;
 
-inline constexpr auto transform = oneapi::dpl::experimental::dr::views::transform;
+inline constexpr auto transform = dr::views::transform;
 
 } // namespace oneapi::dpl::experimental::dr::shp::views

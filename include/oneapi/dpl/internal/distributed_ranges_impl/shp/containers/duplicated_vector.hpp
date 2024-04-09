@@ -9,10 +9,10 @@
 
 namespace oneapi::dpl::experimental::dr::shp {
 
-template <typename T, typename Allocator = oneapi::dpl::experimental::dr::shp::device_allocator<T>>
+template <typename T, typename Allocator = shp::device_allocator<T>>
 class duplicated_vector {
 public:
-  using segment_type = oneapi::dpl::experimental::dr::shp::device_vector<T, Allocator>;
+  using segment_type = shp::device_vector<T, Allocator>;
 
   using value_type = T;
   using size_type = std::size_t;
@@ -25,9 +25,9 @@ public:
     capacity_ = count;
 
     std::size_t rank = 0;
-    for (auto &&device : oneapi::dpl::experimental::dr::shp::devices()) {
+    for (auto &&device : shp::devices()) {
       segments_.emplace_back(
-          segment_type(size(), Allocator(oneapi::dpl::experimental::dr::shp::context(), device), rank++));
+          segment_type(size(), Allocator(shp::context(), device), rank++));
     }
   }
 

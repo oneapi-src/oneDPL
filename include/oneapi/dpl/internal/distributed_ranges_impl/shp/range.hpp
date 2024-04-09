@@ -92,7 +92,7 @@ private:
   size_type idx_ = 0;
 };
 
-using segment_range_iterator = oneapi::dpl::experimental::dr::iterator_adaptor<segment_range_accessor>;
+using segment_range_iterator = iterator_adaptor<segment_range_accessor>;
 
 template <int dimensions = 1> class segment_range {
 public:

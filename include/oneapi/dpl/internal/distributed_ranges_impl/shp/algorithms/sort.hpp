@@ -22,8 +22,8 @@ template <typename LocalPolicy, typename InputIt, typename Compare>
 sycl::event sort_async(LocalPolicy &&policy, InputIt first, InputIt last,
                        Compare &&comp) {
   if (rng::distance(first, last) >= 2) {
-    oneapi::dpl::experimental::dr::__detail::direct_iterator d_first(first);
-    oneapi::dpl::experimental::dr::__detail::direct_iterator d_last(last);
+    dr::__detail::direct_iterator d_first(first);
+    dr::__detail::direct_iterator d_last(last);
     return oneapi::dpl::experimental::sort_async(
         std::forward<LocalPolicy>(policy), d_first, d_last,
         std::forward<Compare>(comp));
@@ -37,13 +37,13 @@ template <typename LocalPolicy, typename InputIt1, typename InputIt2,
 OutputIt lower_bound(LocalPolicy &&policy, InputIt1 start, InputIt1 end,
                      InputIt2 value_first, InputIt2 value_last, OutputIt result,
                      Comparator comp = Comparator()) {
-  oneapi::dpl::experimental::dr::__detail::direct_iterator d_start(start);
-  oneapi::dpl::experimental::dr::__detail::direct_iterator d_end(end);
+  dr::__detail::direct_iterator d_start(start);
+  dr::__detail::direct_iterator d_end(end);
 
-  oneapi::dpl::experimental::dr::__detail::direct_iterator d_value_first(value_first);
-  oneapi::dpl::experimental::dr::__detail::direct_iterator d_value_last(value_last);
+  dr::__detail::direct_iterator d_value_first(value_first);
+  dr::__detail::direct_iterator d_value_last(value_last);
 
-  oneapi::dpl::experimental::dr::__detail::direct_iterator d_result(result);
+  dr::__detail::direct_iterator d_result(result);
 
   return oneapi::dpl::lower_bound(std::forward<LocalPolicy>(policy), d_start,
                                   d_end, d_value_first, d_value_last, d_result,
@@ -53,17 +53,17 @@ OutputIt lower_bound(LocalPolicy &&policy, InputIt1 start, InputIt1 end,
 
 } // namespace __detail
 
-template <oneapi::dpl::experimental::dr::distributed_range R, typename Compare = std::less<>>
+template <distributed_range R, typename Compare = std::less<>>
 void sort(R &&r, Compare comp = Compare()) {
-  auto &&segments = oneapi::dpl::experimental::dr::ranges::segments(r);
+  auto &&segments = ranges::segments(r);
 
   if (rng::size(segments) == 0) {
     return;
   } else if (rng::size(segments) == 1) {
     auto &&segment = *rng::begin(segments);
     auto &&local_policy =
-        oneapi::dpl::experimental::dr::shp::__detail::dpl_policy(oneapi::dpl::experimental::dr::ranges::rank(segment));
-    auto &&local_segment = oneapi::dpl::experimental::dr::shp::__detail::local(segment);
+        shp::__detail::dpl_policy(ranges::rank(segment));
+    auto &&local_segment = shp::__detail::local(segment);
 
     __detail::sort_async(local_policy, rng::begin(local_segment),
                          rng::end(local_segment), comp)
@@ -86,11 +86,11 @@ void sort(R &&r, Compare comp = Compare()) {
   std::size_t segment_id = 0;
 
   for (auto &&segment : segments) {
-    auto &&q = oneapi::dpl::experimental::dr::shp::__detail::queue(oneapi::dpl::experimental::dr::ranges::rank(segment));
+    auto &&q = shp::__detail::queue(ranges::rank(segment));
     auto &&local_policy =
-        oneapi::dpl::experimental::dr::shp::__detail::dpl_policy(oneapi::dpl::experimental::dr::ranges::rank(segment));
+        shp::__detail::dpl_policy(ranges::rank(segment));
 
-    auto &&local_segment = oneapi::dpl::experimental::dr::shp::__detail::local(segment);
+    auto &&local_segment = shp::__detail::local(segment);
 
     auto s = __detail::sort_async(local_policy, rng::begin(local_segment),
                                   rng::end(local_segment), comp);
@@ -112,12 +112,12 @@ void sort(R &&r, Compare comp = Compare()) {
     ++segment_id;
   }
 
-  oneapi::dpl::experimental::dr::shp::__detail::wait(events);
+  shp::__detail::wait(events);
   events.clear();
 
   // Compute global medians by sorting medians and
   // computing `n_splitters` medians from the medians.
-  auto &&local_policy = oneapi::dpl::experimental::dr::shp::__detail::dpl_policy(0);
+  auto &&local_policy = shp::__detail::dpl_policy(0);
   __detail::sort_async(local_policy, medians,
                        medians + n_segments * n_splitters, comp)
       .wait();
@@ -127,7 +127,7 @@ void sort(R &&r, Compare comp = Compare()) {
   // - Collect median of medians to get final splitters.
   // - Write splitters to [0, n_splitters) in `medians`
 
-  auto &&q = oneapi::dpl::experimental::dr::shp::__detail::queue(0);
+  auto &&q = shp::__detail::queue(0);
   q.single_task([=] {
      for (std::size_t i = 0; i < n_splitters; i++) {
        medians[i] = medians[std::size_t(step_size * (i + 1) + 0.5)];
@@ -144,11 +144,11 @@ void sort(R &&r, Compare comp = Compare()) {
 
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&q = oneapi::dpl::experimental::dr::shp::__detail::queue(oneapi::dpl::experimental::dr::ranges::rank(segment));
+    auto &&q = shp::__detail::queue(ranges::rank(segment));
     auto &&local_policy =
-        oneapi::dpl::experimental::dr::shp::__detail::dpl_policy(oneapi::dpl::experimental::dr::ranges::rank(segment));
+        shp::__detail::dpl_policy(ranges::rank(segment));
 
-    auto &&local_segment = oneapi::dpl::experimental::dr::shp::__detail::local(segment);
+    auto &&local_segment = shp::__detail::local(segment);
 
     std::size_t *splitter_i = sycl::malloc_shared<std::size_t>(
         n_splitters, q.get_device(), shp::context());
@@ -194,7 +194,7 @@ void sort(R &&r, Compare comp = Compare()) {
 
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&q = oneapi::dpl::experimental::dr::shp::__detail::queue(oneapi::dpl::experimental::dr::ranges::rank(segment));
+    auto &&q = shp::__detail::queue(ranges::rank(segment));
 
     T *buffer = sycl::malloc_device<T>(sorted_seg_sizes[segment_id], q);
     sorted_segments.push_back(buffer);
@@ -205,7 +205,7 @@ void sort(R &&r, Compare comp = Compare()) {
   // Copy corresponding elements to each "sorted segment"
   segment_id = 0;
   for (auto &&segment : segments) {
-    auto &&local_segment = oneapi::dpl::experimental::dr::shp::__detail::local(segment);
+    auto &&local_segment = shp::__detail::local(segment);
 
     std::size_t *splitter_i = splitter_indices[segment_id];
 
@@ -232,13 +232,13 @@ void sort(R &&r, Compare comp = Compare()) {
     ++segment_id;
   }
 
-  oneapi::dpl::experimental::dr::shp::__detail::wait(events);
+  shp::__detail::wait(events);
   events.clear();
 
   // Sort each of these new segments
   for (std::size_t i = 0; i < sorted_segments.size(); i++) {
     auto &&local_policy =
-        oneapi::dpl::experimental::dr::shp::__detail::dpl_policy(oneapi::dpl::experimental::dr::ranges::rank(segments[i]));
+        shp::__detail::dpl_policy(ranges::rank(segments[i]));
     T *seg = sorted_segments[i];
     std::size_t n_elements = sorted_seg_sizes[i];
 
@@ -247,7 +247,7 @@ void sort(R &&r, Compare comp = Compare()) {
     events.push_back(e);
   }
 
-  oneapi::dpl::experimental::dr::shp::__detail::wait(events);
+  shp::__detail::wait(events);
   events.clear();
 
   // Copy the results into the output.
@@ -265,7 +265,7 @@ void sort(R &&r, Compare comp = Compare()) {
     rng::advance(d_first, n_elements);
   }
 
-  oneapi::dpl::experimental::dr::shp::__detail::wait(events);
+  shp::__detail::wait(events);
 
   // Free temporary memory.
 
@@ -280,7 +280,7 @@ void sort(R &&r, Compare comp = Compare()) {
   sycl::free(medians, shp::context());
 }
 
-template <oneapi::dpl::experimental::dr::distributed_iterator RandomIt, typename Compare = std::less<>>
+template <distributed_iterator RandomIt, typename Compare = std::less<>>
 void sort(RandomIt first, RandomIt last, Compare comp = Compare()) {
   sort(rng::subrange(first, last), comp);
 }

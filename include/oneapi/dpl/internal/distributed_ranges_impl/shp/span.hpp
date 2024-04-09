@@ -11,7 +11,7 @@
 namespace oneapi::dpl::experimental::dr::shp {
 
 template <typename T, rng::random_access_iterator Iter = T *>
-class span : public rng::view_interface<oneapi::dpl::experimental::dr::shp::span<T, Iter>> {
+class span : public rng::view_interface<shp::span<T, Iter>> {
 public:
   static_assert(std::is_same_v<std::iter_value_t<Iter>, T>);
 
