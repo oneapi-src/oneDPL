@@ -183,9 +183,9 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op,
-               _InitType __init, __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container,
-               _Ranges&&... __rngs) const
+    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n,
+               _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
+               __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container, _Ranges&&... __rngs) const
     {
         auto __transform_pattern =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp, _Tp,
@@ -228,8 +228,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<
               typename _ExecutionPolicy2,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     auto
-    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
-               _TransformOp __transform_op, _InitType __init,
+    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, sycl::event& __reduce_event,
+               _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
                __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container) const
     {
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;

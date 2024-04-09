@@ -585,7 +585,6 @@ struct __result_and_scratch_storage
         }
     }
 
-<<<<<<< HEAD
     template <typename _Acc>
     static auto
     __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
@@ -597,15 +596,6 @@ struct __result_and_scratch_storage
 #endif
     }
 
-    auto
-    __get_acc(sycl::handler& __cgh)
-    {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
-        return __usm ? __usm_host_or_buffer_accessor<_T>(__cgh, __usm_buf.get())
-                     : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
-#else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
-#endif
     auto
     __get_result_acc(sycl::handler& __cgh)
     {
