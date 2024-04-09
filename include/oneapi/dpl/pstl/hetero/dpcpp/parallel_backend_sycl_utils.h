@@ -564,17 +564,17 @@ struct __result_and_scratch_storage
         if (__use_USM_host && __supports_USM_device)
         {
             // Separate scratch (device) and result (host) allocations on performant backends (i.e. L0)
-            __scratch_buf = std::shared_ptr<_T>(
+            __scratch_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
-            __result_buf = std::shared_ptr<_T>(
+            __result_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
         else if (__supports_USM_device)
         {
             // If we don't use host memory, malloc only a single unified device allocation
-            __scratch_buf = std::shared_ptr<_T>(
+            __scratch_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n + 1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
