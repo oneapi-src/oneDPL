@@ -325,8 +325,13 @@ struct test_permutation_iterator
         auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
 
+#if TEST_STD_VER <= 17
         // c++17 lambdas are not default constructible, therefore this permutation_iterator is not either
         test_random_iterator_skip_default_ctor_check(perm_it_fun_rev);
+#else // c++20 or later
+        // starting at c++20, lambdas are default constructible, therefore this permutation_iterator should be as well
+        test_random_iterator(perm_it_fun_rev);
+#endif
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;
