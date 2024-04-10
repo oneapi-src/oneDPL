@@ -432,11 +432,17 @@ class transform_iterator
     transform_iterator&
     operator=(const transform_iterator& __input)
     {
-        //TODO: Investigate making transform_iterator trivially_copyable. This custom copy assignment operator prevents
-        // transform_iterator, and therefore permutation_iterator from being trivially_copyable.  Not being trivially
-        // copyable makes their device_copyable trait deprecated in SYCL2020. However, defaulting this function implies
-        // an extra requirement that __my_unary_func_ implements a copy assignment operator.
         __my_it_ = __input.__my_it_;
+        
+        // If copy assignment is available, copy the functor, otherwise skip it.
+        // For non-copy assignable functors, this copy assignment operator departs from the sycl 2020 specification
+        // requirement of device copyable types for copy assignment to be the same as a bitwise copy of the object.
+        // TODO: Explore (ABI breaking) change to use std::optional or similar and using copy constructor to implement
+        //       copy assignment to better comply with SYCL 2020 specification.
+        if constexpr (std::is_copy_assignable_v<_UnaryFunc>)
+        {
+            __my_unary_func_ = __input.__my_unary_func_;
+        }
         return *this;
     }
     reference operator*() const { return __my_unary_func_(*__my_it_); }

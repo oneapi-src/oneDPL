@@ -43,6 +43,45 @@ struct noop_nodefault
     }
 };
 
+struct stateful_functor
+{
+    int __x;
+    stateful_functor(int x): __x(x) {}
+    int
+    operator()(int a) const
+    {
+        return a + __x;
+    }
+};
+
+void
+test_copy_assignment()
+{
+    auto transformation = [](int) { return 0; };
+
+    oneapi::dpl::counting_iterator<int> count(0);
+    oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, decltype(transformation)> trans1{count, transformation};
+    static_assert((std::is_copy_assignable_v<decltype(trans1)>),
+                  "transform_iterator with lambda is not copy assignable");
+
+    oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, noop> trans2{count, noop{}};
+    static_assert(::std::is_copy_assignable_v<decltype(trans2)>,
+                  "transform_iterator with noop functor is not copy assignable");
+
+    oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor> trans3{count, stateful_functor{1}};
+    static_assert(::std::is_copy_assignable_v<decltype(trans3)>,
+                  "transform_iterator with stateful functor is not copy assignable");
+
+    oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor> trans4{count, stateful_functor{0}};
+
+    EXPECT_EQ(1, trans4[1], "transform_iterator returns the incorrect result");
+
+    //should copy __x state of functor
+    trans4 = trans3;
+
+    EXPECT_EQ(2, trans4[1], "transform_iterator assignment with copy assignable functor does not successfully copy functor");
+}
+
 void
 test_default_constructible()
 {
@@ -82,6 +121,7 @@ std::int32_t
 main()
 {
     test_default_constructible();
+    test_copy_assignment();
 
     return TestUtils::done();
 }
