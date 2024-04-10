@@ -33,7 +33,9 @@ using namespace TestUtils;
 
 //common checks of a random access iterator functionality which is needed for oneDPL algos
 template <typename RandomIt>
-void test_random_iterator(const RandomIt& it) {
+void
+test_random_iterator_skip_default_ctor_check(const RandomIt& it)
+{
     // check that RandomIt has all necessary publicly accessible member types
     {
         [[maybe_unused]] auto t1 = typename RandomIt::difference_type{};
@@ -42,10 +44,6 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] typename RandomIt::reference ref = *it;
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
-
-    // Skips check of default constructible which is required by LegacyRandomAccessIterator, but not by oneDPL.
-    // Some types of iterators like transform_iterator and permutation_iterator may not be default constructible
-    // depending on their functor (lambda), but can still be treated as a random access iterator by oneDPL algorithms.
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -113,6 +111,14 @@ void test_random_iterator(const RandomIt& it) {
     EXPECT_TRUE(1 + it >= it,    "operator>= returned false negative");
     EXPECT_TRUE(    it >= it,    "operator>= returned false negative");
     EXPECT_TRUE(!(it >= it + 1), "operator>= returned false positive");
+}
+
+template <typename RandomIt>
+void
+test_random_iterator(const RandomIt& it)
+{
+    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
+    test_random_iterator_skip_default_ctor_check(it);
 }
 
 struct test_counting_iterator {
@@ -319,7 +325,8 @@ struct test_permutation_iterator
         auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
 
-        test_random_iterator(perm_it_fun_rev);
+        // c++17 lambdas are not default constructible, therefore this permutation_iterator is not either
+        test_random_iterator_skip_default_ctor_check(perm_it_fun_rev);
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;
