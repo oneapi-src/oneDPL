@@ -75,7 +75,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   the reference type of the base iterator as argument. The functor's call operator should not have any side effects and
   should not modify the state of the functor object.
   
-  The ``transform_iterator`` class provides three constructors:
+  The ``transform_iterator`` class provides the following constructors:
 
   * ``transform_iterator()``: instantiates the iterator using a default constructed base iterator and unary functor.
   This constructor participates in overload resolution only if the base iterator and unary functor are both default constructible.
