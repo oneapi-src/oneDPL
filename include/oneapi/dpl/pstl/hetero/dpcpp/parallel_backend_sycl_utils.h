@@ -599,7 +599,7 @@ struct __result_and_scratch_storage
     auto
     __get_result_acc(sycl::handler& __cgh)
     {
-        if (__use_USM_host)
+        if (__use_USM_host && __supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __result_buf.get());
         else if (__supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
@@ -625,7 +625,7 @@ struct __result_and_scratch_storage
     _T
     __get_value(size_t idx = 0) const
     {
-        if (__use_USM_host)
+        if (__use_USM_host && __supports_USM_device)
         {
             return *(__result_buf.get() + idx);
         }
