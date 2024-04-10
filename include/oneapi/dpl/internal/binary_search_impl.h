@@ -29,14 +29,14 @@ namespace dpl
 namespace internal
 {
 
-enum search_algorithm
+enum class search_algorithm
 {
     lower_bound,
     upper_bound,
     binary_search
 };
 
-template <typename Comp, typename T, int func>
+template <typename Comp, typename T, search_algorithm func>
 struct custom_brick
 {
     Comp comp;
@@ -51,15 +51,15 @@ struct custom_brick
         using ::std::get;
         switch (func)
         {
-        case 0:
+        case search_algorithm::lower_bound:
             get<2>(acc[idx]) = oneapi::dpl::__internal::__pstl_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
                                                                            get<1>(acc[idx]), comp);
             break;
-        case 1:
+        case search_algorithm::upper_bound:
             get<2>(acc[idx]) = oneapi::dpl::__internal::__pstl_upper_bound(get<0>(acc.tuple()), start_orig, end_orig,
                                                                            get<1>(acc[idx]), comp);
             break;
-        case 2:
+        case search_algorithm::binary_search:
             auto value = oneapi::dpl::__internal::__pstl_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
                                                                      get<1>(acc[idx]), comp);
             get<2>(acc[idx]) = (value != end_orig) && (get<1>(acc[idx]) == get<0>(acc[value]));
@@ -135,8 +135,8 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
-                           zip_vw)
+                           custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::lower_bound>{comp, size},
+                           value_size, zip_vw)
         .wait();
     return result + value_size;
 }
@@ -165,8 +165,8 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
-                           zip_vw)
+                           custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::upper_bound>{comp, size},
+                           value_size, zip_vw)
         .wait();
     return result + value_size;
 }
@@ -194,9 +194,10 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
-                           zip_vw)
+    __bknd::__parallel_for(
+        _BackendTag{}, ::std::forward<Policy>(policy),
+        custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::binary_search>{comp, size}, value_size,
+        zip_vw)
         .wait();
     return result + value_size;
 }
