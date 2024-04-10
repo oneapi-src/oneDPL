@@ -404,7 +404,8 @@ class transform_iterator
     _UnaryFunc __my_unary_func_;
 
     static_assert(std::is_invocable_v<const std::decay_t<_UnaryFunc>, typename std::iterator_traits<_Iter>::reference>,
-                  "_UnaryFunc does not have a const-qualified call operator which accepts the reference type of the base iterator as argument.");
+                  "_UnaryFunc does not have a const-qualified call operator which accepts the reference type of the "
+                  "base iterator as argument.");
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
@@ -433,7 +434,7 @@ class transform_iterator
     operator=(const transform_iterator& __input)
     {
         __my_it_ = __input.__my_it_;
-        
+
         // If copy assignment is available, copy the functor, otherwise skip it.
         // For non-copy assignable functors, this copy assignment operator departs from the sycl 2020 specification
         // requirement of device copyable types for copy assignment to be the same as a bitwise copy of the object.
