@@ -206,13 +206,7 @@ jobs:
           echo "::warning::CMake: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-          if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
-            make_targets="build-onedpl-sycl_iterator-tests"
-            ctest_flags="-R sycl_iterator_.*\.pass"
-            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
-          else
-            make_targets="build-onedpl-tests"
-          fi
+          make_targets="build-onedpl-tests"
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
