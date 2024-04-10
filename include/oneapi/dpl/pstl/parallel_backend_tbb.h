@@ -55,35 +55,7 @@ not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer_impl
-{
-    tbb::tbb_allocator<_Tp> _M_allocator;
-    _Tp* _M_ptr;
-    const ::std::size_t _M_buf_size;
-    __buffer_impl(const __buffer_impl&) = delete;
-    void
-    operator=(const __buffer_impl&) = delete;
-
-  public:
-    //! Try to obtain buffer of given size to store objects of _Tp type
-    __buffer_impl(_ExecutionPolicy /*__exec*/, const ::std::size_t __n)
-        : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
-    {
-    }
-    //! True if buffer was successfully obtained, zero otherwise.
-    operator bool() const { return _M_ptr != nullptr; }
-    //! Return pointer to buffer, or nullptr if buffer could not be obtained.
-    _Tp*
-    get() const
-    {
-        return _M_ptr;
-    }
-    //! Destroy buffer
-    ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
-};
-
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+using __buffer = oneapi::dpl::__utils::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp, tbb::tbb_allocator>;
 
 // Wrapper for tbb::task
 inline void
