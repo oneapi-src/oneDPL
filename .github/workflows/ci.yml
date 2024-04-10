@@ -104,13 +104,13 @@ jobs:
             cxx_compiler: icpx
             std: 17
             build_type: release
-            backend: dpcpp
+            backend: dpcpp_only
             device_type: CPU
           - os: ubuntu-20.04
             cxx_compiler: icpx
             std: 17
             build_type: release
-            backend: dpcpp
+            backend: dpcpp_only
             device_type: FPGA_EMU
           - os: ubuntu-20.04
             cxx_compiler: icpx
@@ -175,7 +175,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository
-        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.backend == 'dpcpp_only' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
         run: |
           # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
           wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -311,7 +311,7 @@ jobs:
             cxx_compiler: icx
             std: 17
             build_type: release
-            backend: dpcpp
+            backend: dpcpp_only
             device_type: CPU
     steps:
       - uses: actions/checkout@v3
