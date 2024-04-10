@@ -57,16 +57,22 @@ __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, _Transfor
 {
     auto __local_idx = __item_id.get_local_id(0);
     auto __group_size = __item_id.get_local_range().size();
+    union __storage
+    {
+        _Tp __v;
+        __storage() {}
+    } __result;
     // 1. Initialization (transform part). Fill local memory
-    _Tp __result = __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __acc...);
+    __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __result, __acc...);
     const _Size __n_items = __transform_pattern.output_size(__n, __group_size);
     // 2. Reduce within work group using local memory
-    __result = __reduce_pattern(__item_id, __n_items, __result, __local_mem);
+    __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __local_mem);
     if (__local_idx == 0)
     {
-        __reduce_pattern.apply_init(__init, __result);
-        __res_acc[0] = __result;
+        __reduce_pattern.apply_init(__init, __result.__v);
+        __res_acc[0] = __result.__v;
     }
+    __result.__v.~_Tp();
 }
 
 // Device kernel that transforms and reduces __n elements to the number of work groups preliminary results.
@@ -80,13 +86,19 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, _TransformPat
     auto __local_idx = __item_id.get_local_id(0);
     auto __group_idx = __item_id.get_group(0);
     auto __group_size = __item_id.get_local_range().size();
+    union __storage
+    {
+        _Tp __v;
+        __storage() {}
+    } __result;
     // 1. Initialization (transform part). Fill local memory
-    _Tp __result = __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __acc...);
+    __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __result, __acc...);
     const _Size __n_items = __transform_pattern.output_size(__n, __group_size);
     // 2. Reduce within work group using local memory
-    __result = __reduce_pattern(__item_id, __n_items, __result, __local_mem);
+    __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __local_mem);
     if (__local_idx == 0)
-        __temp_acc[__group_idx] = __result;
+        __temp_acc[__group_idx] = __result.__v;
+    __result.__v.~_Tp();
 }
 
 //------------------------------------------------------------------------
@@ -380,12 +392,12 @@ struct __parallel_transform_reduce_impl
                         } __result;
                         if (__is_first)
                         {
-                            __result.__v = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);
+                            __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __result, __rngs...);
                             __n_items = __transform_pattern1.output_size(__n, __work_group_size);
                         }
                         else
                         {
-                            __result.__v = __transform_pattern2(__item_id, __n, __offset_2, __temp_acc);
+                            __transform_pattern2(__item_id, __n, __offset_2, __result, __temp_acc);
                             __n_items = __transform_pattern2.output_size(__n, __work_group_size);
                         }
                         // 2. Reduce within work group using local memory
@@ -401,6 +413,7 @@ struct __parallel_transform_reduce_impl
 
                             __temp_acc[__offset_1 + __group_idx] = __result.__v;
                         }
+                        __result.__v.~_Tp();
                     });
             });
             __is_first = false;
