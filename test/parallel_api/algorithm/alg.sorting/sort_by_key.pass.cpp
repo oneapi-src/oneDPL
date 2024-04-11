@@ -62,7 +62,7 @@ template<typename _Policy>
 void
 test_with_std_policy(_Policy&& policy)
 {
-    constexpr int n = 1000000;
+    constexpr int n = __TEST_MAX_SIZE;
     std::vector<int> keys_buf(n); //keys
     std::vector<int> vals_buf(n); //values
 
@@ -116,7 +116,7 @@ test_with_usm(sycl::queue& q)
 void
 test_with_buffers(sycl::queue& q)
 {
-    constexpr int n = 1000000;
+    constexpr int n = __TEST_MAX_SIZE;
     sycl::buffer<int> keys_buf{n};  // buffer with keys
     sycl::buffer<int> vals_buf{n};  // buffer with values
 

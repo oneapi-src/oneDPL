@@ -97,7 +97,7 @@ template <typename T>
 void
 test_is_sorted_by_type()
 {
-    const ::std::size_t max_n = 1000000;
+    const ::std::size_t max_n = __TEST_MAX_SIZE;
 
     for (::std::size_t n1 = 1; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : ::std::size_t(3.1415 * n1))
     {

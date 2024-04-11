@@ -162,7 +162,7 @@ void
 test()
 {
     const ::std::int64_t init_val = 999;
-    for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 1; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         {
             Sequence<_Type> in1(n, [=](size_t k) { return (3 * k); });
@@ -196,7 +196,7 @@ void
 test_inplace()
 {
     const ::std::int64_t init_val = 999;
-    for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 1; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         {
             Sequence<_Type> in1(n, [=](size_t k) { return k; });

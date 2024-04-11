@@ -39,7 +39,7 @@ void
 test_long_form(T init, BinaryOp binary_op, F f)
 {
     // Try sequences of various lengths
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         T expected(init);
         Sequence<T> in(n, [n, f](size_t k) { return f((std::int32_t(k ^ n) % 1000 - 500)); });
@@ -86,7 +86,7 @@ struct test_short_reduce_init
 void
 test_short_forms()
 {
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sum init(42, OddTag());
         Sum expected(init);

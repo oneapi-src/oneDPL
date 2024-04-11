@@ -364,7 +364,7 @@ template <::std::size_t CallNumber, typename T, typename Compare, typename Conve
 void
 test_sort(Compare compare, Convert convert)
 {
-    for (size_t n = 0; n < 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n < __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.

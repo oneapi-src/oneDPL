@@ -69,7 +69,7 @@ template <typename T>
 void
 test()
 {
-    const ::std::size_t max_len = 100000;
+    const ::std::size_t max_len = __TEST_MAX_SIZE;
 
     Sequence<T> actual(max_len);
 

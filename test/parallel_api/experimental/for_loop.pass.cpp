@@ -291,7 +291,7 @@ template <typename T>
 void
 test_for_loop()
 {
-    for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in_out(n, Gen<T>());
         Sequence<T> expected = in_out;

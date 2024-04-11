@@ -185,7 +185,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
+    double* v = sycl::malloc_shared<double>(__TEST_MAX_SIZE, u[0]);
     int* j = sycl::malloc_shared<int>(1, u[0]);
 
     my_policy_t p{u};
@@ -239,7 +239,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                 {
                     return q.submit([=](sycl::handler& h) {
                         h.parallel_for<TestUtils::unique_kernel_name<class tune3, 0>>(
-                            1000000, [=](sycl::id<1> idx) {
+                            __TEST_MAX_SIZE, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
                                     v[idx] += idx;
@@ -283,7 +283,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     {
                         return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<class tune4, 0>>(
-                                1000000, [=](sycl::id<1> idx) {
+                                __TEST_MAX_SIZE, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
                                         v[idx] += idx;
@@ -317,7 +317,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
+    double* v = sycl::malloc_shared<double>(__TEST_MAX_SIZE, u[0]);
     int* j = sycl::malloc_shared<int>(1, u[0]);
 
     my_policy_t p{u};
@@ -371,7 +371,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                 {
                     return q.submit([=](sycl::handler& h) {
                         h.parallel_for<TestUtils::unique_kernel_name<class tune5, 0>>(
-                            1000000, [=](sycl::id<1> idx) {
+                            __TEST_MAX_SIZE, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
                                     v[idx] += idx;
@@ -414,7 +414,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     {
                         return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<class tune6, 0>>(
-                                1000000, [=](sycl::id<1> idx) {
+                                __TEST_MAX_SIZE, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
                                         v[idx] += idx;

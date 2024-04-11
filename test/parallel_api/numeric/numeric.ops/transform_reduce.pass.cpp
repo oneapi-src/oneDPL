@@ -130,7 +130,7 @@ template <typename T, typename BinaryOperation1, typename BinaryOperation2, type
 void
 test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, Initializer initObj)
 {
-    ::std::size_t maxSize = 100000;
+    ::std::size_t maxSize = __TEST_MAX_SIZE;
     Sequence<T> in1(maxSize, initObj);
     Sequence<T> in2(maxSize, initObj);
 

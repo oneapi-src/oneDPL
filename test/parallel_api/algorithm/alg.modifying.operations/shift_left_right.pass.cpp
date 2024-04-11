@@ -216,7 +216,7 @@ main()
 {
     using ValueType = ::std::int32_t;
 
-    const ::std::size_t N = 100000;
+    const ::std::size_t N = __TEST_MAX_SIZE;
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {

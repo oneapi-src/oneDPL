@@ -77,7 +77,7 @@ template <typename T, typename Convert>
 void
 test_with_plus(T init, T trash, Convert convert)
 {
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, convert);
         Sequence<T> expected(in);
@@ -102,12 +102,7 @@ test_with_plus(T init, T trash, Convert convert)
 
 #if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
     // testing of large number of items may take too much time in debug mode
-    unsigned long n =
-#if PSTL_USE_DEBUG
-        70000000;
-#else
-        100000000;
-#endif
+    unsigned long n = __TEST_MAX_SIZE;
 
     Sequence<T> in(n, convert);
     Sequence<T> expected(in);
@@ -208,7 +203,7 @@ template <typename In, typename Out, typename BinaryOp>
 void
 test_matrix(Out init, BinaryOp binary_op, Out trash)
 {
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<In> in(n, [](size_t k) { return In(k, k + 1); });
 
@@ -254,7 +249,7 @@ test_with_multiplies()
     T init = 1;
     const std::size_t custom_item_count = 10;
 
-    for (size_t n = custom_item_count; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = custom_item_count; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> out(n, [&](size_t) { return trash; });
         Sequence<T> expected(n, [&](size_t) { return trash; });

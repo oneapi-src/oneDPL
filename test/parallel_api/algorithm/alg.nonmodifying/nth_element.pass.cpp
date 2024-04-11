@@ -148,7 +148,7 @@ void
 test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
 {
     using namespace std;
-    size_t max_size = 10000;
+    size_t max_size = __TEST_MAX_SIZE;
     Sequence<T> in1(max_size, [](size_t v) { return T(v); });
     Sequence<T> exp(max_size, [](size_t v) { return T(v); });
     size_t m;

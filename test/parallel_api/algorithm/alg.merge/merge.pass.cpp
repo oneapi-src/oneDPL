@@ -102,7 +102,7 @@ void
 test_merge_by_type(Generator1 generator1, Generator2 generator2)
 {
     using namespace std;
-    size_t max_size = 100000;
+    size_t max_size = __TEST_MAX_SIZE;
     Sequence<T> in1(max_size, generator1);
     Sequence<T> in2(max_size / 2, generator2);
     Sequence<T> out(in1.size() + in2.size());

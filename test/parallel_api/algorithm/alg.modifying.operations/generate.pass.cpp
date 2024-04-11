@@ -82,7 +82,7 @@ template <typename T>
 void
 test_generate_by_type()
 {
-    for (size_t n = 0; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, [](size_t) -> T { return T(0); }); //fill by zero
 

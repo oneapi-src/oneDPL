@@ -72,7 +72,7 @@ template <typename T, typename Generator, typename Predicate>
 void
 test(Generator generator, Predicate pred)
 {
-    const ::std::size_t max_size = 1000000;
+    const ::std::size_t max_size = __TEST_MAX_SIZE;
     Sequence<T> in(max_size, [](size_t v) { return T(v); });
     Sequence<T> exp(max_size, [](size_t v) { return T(v); });
 
