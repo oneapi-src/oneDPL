@@ -209,24 +209,20 @@ struct transform_reduce
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _Size, typename... _Acc>
-    _Tp
-    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _Acc&... __acc) const
+    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    void
+    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
+             const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
         const _Size __adjusted_n = __global_offset + __n;
         // Sequential load and reduce from global memory
-        union __storage
-        {
-            _Tp __v;
-            __storage() {}
-        } __res;
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
             // Keep these statements in the same scope to allow for better memory alignment
-            __res.__v = __unary_op(__adjusted_global_id, __acc...);
+            new (&__res.__v) _Tp(std::move(__unary_op(__adjusted_global_id, __acc...)));
             _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
@@ -235,16 +231,17 @@ struct transform_reduce
         {
             const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
             // Keep these statements in the same scope to allow for better memory alignment
-            __res.__v = __unary_op(__adjusted_global_id, __acc...);
+            new (&__res.__v) _Tp(std::move(__unary_op(__adjusted_global_id, __acc...)));
             for (_Size __i = 1; __i < __items_to_process; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
         }
-        return __res.__v;
+        return;
     }
 
-    template <typename _NDItemId, typename _Size, typename... _Acc>
-    _Tp
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _Acc&... __acc) const
+    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    void
+    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
+                const _Acc&... __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
@@ -254,14 +251,9 @@ struct transform_reduce
         const _Size __adjusted_n = __global_offset + __n;
 
         // Coalesced load and reduce from global memory
-        union __storage
-        {
-            _Tp __v;
-            __storage() {}
-        } __res;
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
-            __res.__v = __unary_op(__adjusted_global_id, __acc...);
+            new (&__res.__v) _Tp(std::move(__unary_op(__adjusted_global_id, __acc...)));
             _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
@@ -270,25 +262,26 @@ struct transform_reduce
         {
             const _Size __items_to_process =
                 std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
-            __res.__v = __unary_op(__adjusted_global_id, __acc...);
+            new (&__res.__v) _Tp(std::move(__unary_op(__adjusted_global_id, __acc...)));
             for (_Size __i = 1; __i < __items_to_process; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
         }
-        return __res.__v;
+        return;
     }
 
     // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
     // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
     static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
 
-    template <typename _NDItemId, typename _Size, typename... _Acc>
-    inline _Tp
-    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _Acc&... __acc) const
+    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    inline void
+    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, _Res& __res,
+               const _Acc&... __acc) const
     {
         if constexpr (__use_nonseq_impl)
-            return nonseq_impl(__item_id, __n, __global_offset, __acc...);
+            return nonseq_impl(__item_id, __n, __global_offset, __res, __acc...);
         else
-            return seq_impl(__item_id, __n, __global_offset, __acc...);
+            return seq_impl(__item_id, __n, __global_offset, __res, __acc...);
     }
 
     template <typename _Size>
