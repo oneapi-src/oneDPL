@@ -78,6 +78,12 @@ struct __is_heap_check;
 template <typename _Predicate, typename _ValueType>
 struct __create_mask_unique_copy;
 
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename>
+struct __brick_fill;
+
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename>
+struct __brick_fill_n;
+
 } // namespace oneapi::dpl::__internal
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::fill_functor)
@@ -99,6 +105,61 @@ struct __early_exit_find_or;
 } // namespace oneapi::dpl::__par_backend_hetero
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__par_backend_hetero::__early_exit_find_or);
+
+namespace oneapi::dpl::unseq_backend
+{
+
+template <typename _ExecutionPolicy, typename _F>
+struct walk_n;
+
+template <typename _ExecutionPolicy, typename _F>
+struct walk_adjacent_difference;
+
+template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+          typename _Tp, typename _Commutative>
+struct transform_reduce;
+
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
+struct reduce_over_group;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct single_match_pred_by_idx;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct multiple_match_pred;
+
+template <typename _ExecutionPolicy, typename _Pred, typename _Tp, typename _Size>
+struct n_elem_match_pred;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct first_match_pred;
+
+template <typename _Pred, typename _Tp>
+struct __create_mask;
+
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
+struct __copy_by_mask;
+
+template <typename _BinaryOp, typename _Inclusive>
+struct __partition_by_mask;
+
+template <typename _Inclusive, typename _BinaryOp, typename _InitType>
+struct __global_scan_functor;
+
+template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
+          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
+struct __scan;
+
+template <typename _ExecutionPolicy, typename _Compare, typename _Size1, typename _Size2>
+struct __brick_includes;
+
+template <typename _ExecutionPolicy, typename _Compare, typename _Size1, typename _Size2, typename _IsOpDifference>
+class __brick_set_op;
+
+template <typename _BinaryOperator, typename _Size>
+struct __brick_reduce_idx;
+
+} // namespace oneapi::dpl::unseq_backend
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_n)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_adjacent_difference)
