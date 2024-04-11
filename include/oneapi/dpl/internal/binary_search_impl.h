@@ -29,13 +29,6 @@ namespace dpl
 namespace internal
 {
 
-enum class search_algorithm
-{
-    lower_bound,
-    upper_bound,
-    binary_search
-};
-
 template <typename Comp, typename T, search_algorithm func>
 struct custom_brick
 {
