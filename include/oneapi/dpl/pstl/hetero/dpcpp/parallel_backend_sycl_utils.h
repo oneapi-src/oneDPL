@@ -528,7 +528,6 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_host_allocations(sycl::queue __queue)
     {
-// USM device memory is used by default. Supporting compilers use the unified future on top of USM host or device memory.
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         auto __device = __queue.get_device();
         if (!__device.is_gpu())
