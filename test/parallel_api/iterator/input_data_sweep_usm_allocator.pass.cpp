@@ -33,11 +33,13 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
 {
     if (TestUtils::has_types_support<T>(policy.queue().get_device()))
     {
+        auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
+        auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
         { //std::vector using usm shared allocator
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy1.queue(), n);
             oneapi::dpl::counting_iterator<int> counting(0);
             // usm_shared allocator std::vector
-            sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy.queue()};
+            sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy1.queue()};
             std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
             //test all modes / wrappers
 
@@ -49,16 +51,16 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
                          TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<
                              decltype(shared_data_vec.begin())>::value,
                          /*__is_reversible=*/true>(
-                policy, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(),
+                policy1, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(),
                 shared_data_vec.begin(), copy_out.get_data(), counting, trash,
                 std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
         }
 
         { //std::vector using usm host allocator
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy2.queue(), n);
             oneapi::dpl::counting_iterator<int> counting(0);
             // usm_host allocator std::vector
-            sycl::usm_allocator<T, sycl::usm::alloc::host> q_alloc{policy.queue()};
+            sycl::usm_allocator<T, sycl::usm::alloc::host> q_alloc{policy2.queue()};
             std::vector<T, decltype(q_alloc)> host_data_vec(n, q_alloc);
             //test all modes / wrappers
 
@@ -69,7 +71,7 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
                          TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<
                              decltype(host_data_vec.begin())>::value,
                          /*__is_reversible=*/true>(
-                policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
+                policy2, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
                 host_data_vec.begin(), copy_out.get_data(), counting, trash,
                 std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
         }
@@ -85,7 +87,6 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
 int
 main()
 {
-    bool run_tests = false;
 #if TEST_DPCPP_BACKEND_PRESENT
     constexpr size_t n = 10;
 
@@ -100,28 +101,12 @@ main()
     auto policy5 = TestUtils::create_new_policy_idx<decltype(policy), 4>(policy);
 
     // baseline with no wrapping
-    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<float>)
-    {
-        run_tests = true;
-        test<float, 0>(policy1, -666.0f, n, "float");
-    }
-    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<double>)
-    {
-        run_tests = true;
-        test<double, 0>(policy2, -666.0, n, "double");
-    }
-    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<uint64_t>)
-    {
-        run_tests = true;
-        test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
-    }
-    if (oneapi::dpl::usm_allocated_vector_iterators_supported_v<int32_t>)
-    {
-        run_tests = true;
-        // big recursion step: 1 and 2 layers of wrapping
-        test<std::int32_t, 2>(policy4, -666, n, "int32_t");
-    }
-    }
+    test<float, 0>(policy1, -666.0f, n, "float");
+    test<double, 0>(policy2, -666.0, n, "double");
+    test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
+    // big recursion step: 1 and 2 layers of wrapping
+    test<std::int32_t, 2>(policy4, -666, n, "int32_t");
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
-    return TestUtils::done(run_tests);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
