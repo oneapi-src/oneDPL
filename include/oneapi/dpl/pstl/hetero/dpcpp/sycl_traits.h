@@ -24,6 +24,8 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
+#include <oneapi/dpl/internal/binary_search_extension_defs.h>
+
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 
 #    define _ONEDPL_DEVICE_COPYABLE(TYPE)                                                                              \
@@ -43,18 +45,19 @@
 
 #endif
 
-using namespace oneapi::dpl::__internal;
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__reorder_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value_by_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_equal_value)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_unary_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_binary_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_copy_functor)
 
-_ONEDPL_DEVICE_COPYABLE(__not_pred)
-_ONEDPL_DEVICE_COPYABLE(__reorder_pred)
-_ONEDPL_DEVICE_COPYABLE(__equal_value_by_pred)
-_ONEDPL_DEVICE_COPYABLE(__equal_value)
-_ONEDPL_DEVICE_COPYABLE(__not_equal_value)
-_ONEDPL_DEVICE_COPYABLE(__transform_functor)
-_ONEDPL_DEVICE_COPYABLE(__transform_if_unary_functor)
-_ONEDPL_DEVICE_COPYABLE(__transform_if_binary_functor)
-_ONEDPL_DEVICE_COPYABLE(__replace_functor)
-_ONEDPL_DEVICE_COPYABLE(__replace_copy_functor)
+namespace oneapi::dpl::__internal
+{
 
 template <typename _SourceT>
 struct fill_functor;
@@ -77,45 +80,49 @@ struct __is_heap_check;
 template <typename _Predicate, typename _ValueType>
 struct __create_mask_unique_copy;
 
-_ONEDPL_DEVICE_COPYABLE(fill_functor)
-_ONEDPL_DEVICE_COPYABLE(generate_functor)
-_ONEDPL_DEVICE_COPYABLE(__brick_fill)
-_ONEDPL_DEVICE_COPYABLE(__brick_fill_n)
-_ONEDPL_DEVICE_COPYABLE(__search_n_unary_predicate)
-_ONEDPL_DEVICE_COPYABLE(__is_heap_check)
-_ONEDPL_DEVICE_COPYABLE(equal_predicate)
-_ONEDPL_DEVICE_COPYABLE(adjacent_find_fn)
-_ONEDPL_DEVICE_COPYABLE(__create_mask_unique_copy)
+} // namespace oneapi::dpl::__internal
 
-using namespace oneapi::dpl::__par_backend_hetero;
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::fill_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::generate_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__brick_fill)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__brick_fill_n)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__search_n_unary_predicate)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__is_heap_check)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::equal_predicate)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::adjacent_find_fn)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__create_mask_unique_copy)
+
+namespace oneapi::dpl::__par_backend_hetero
+{
 
 template <typename _ExecutionPolicy, typename _Pred>
 struct __early_exit_find_or;
 
-_ONEDPL_DEVICE_COPYABLE(__early_exit_find_or);
+} // namespace oneapi::dpl::__par_backend_hetero
 
-using namespace oneapi::dpl::unseq_backend;
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__par_backend_hetero::__early_exit_find_or);
 
-_ONEDPL_DEVICE_COPYABLE(walk_n)
-_ONEDPL_DEVICE_COPYABLE(walk_adjacent_difference)
-_ONEDPL_DEVICE_COPYABLE(transform_reduce)
-_ONEDPL_DEVICE_COPYABLE(reduce_over_group)
-_ONEDPL_DEVICE_COPYABLE(single_match_pred_by_idx)
-_ONEDPL_DEVICE_COPYABLE(multiple_match_pred)
-_ONEDPL_DEVICE_COPYABLE(n_elem_match_pred)
-_ONEDPL_DEVICE_COPYABLE(first_match_pred)
-_ONEDPL_DEVICE_COPYABLE(__create_mask)
-_ONEDPL_DEVICE_COPYABLE(__copy_by_mask)
-_ONEDPL_DEVICE_COPYABLE(__partition_by_mask)
-_ONEDPL_DEVICE_COPYABLE(__global_scan_functor)
-_ONEDPL_DEVICE_COPYABLE(__scan)
-_ONEDPL_DEVICE_COPYABLE(__brick_includes)
-_ONEDPL_DEVICE_COPYABLE(__brick_set_op)
-_ONEDPL_DEVICE_COPYABLE(__brick_reduce_idx)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_n)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_adjacent_difference)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::transform_reduce)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::reduce_over_group)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::single_match_pred_by_idx)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::multiple_match_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::n_elem_match_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::first_match_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__create_mask)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__copy_by_mask)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__partition_by_mask)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__global_scan_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__scan)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__brick_includes)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__brick_set_op)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::__brick_reduce_idx)
 
-using namespace oneapi::dpl::internal;
+namespace oneapi::dpl::internal
+{
 
-template <typename Comp, typename T, int func>
+template <typename Comp, typename T, search_algorithm func>
 struct custom_brick;
 
 template <typename T, typename Predicate>
@@ -133,18 +140,18 @@ class scatter_and_accumulate_fun;
 template <typename ValueType, typename FlagType, typename BinaryOp>
 struct scan_by_key_fun;
 
-_ONEDPL_DEVICE_COPYABLE(custom_brick)
-_ONEDPL_DEVICE_COPYABLE(replace_if_fun)
-_ONEDPL_DEVICE_COPYABLE(scan_by_key_fun)
-_ONEDPL_DEVICE_COPYABLE(segmented_scan_fun)
-_ONEDPL_DEVICE_COPYABLE(scatter_and_accumulate_fun)
-_ONEDPL_DEVICE_COPYABLE(transform_if_stencil_fun)
+} // namespace oneapi::dpl::internal
 
-using namespace oneapi::dpl;
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::custom_brick)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::replace_if_fun)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::scan_by_key_fun)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::segmented_scan_fun)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::scatter_and_accumulate_fun)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::transform_if_stencil_fun)
 
-_ONEDPL_DEVICE_COPYABLE(zip_iterator)
-_ONEDPL_DEVICE_COPYABLE(transform_iterator)
-_ONEDPL_DEVICE_COPYABLE(permutation_iterator)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::zip_iterator)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::transform_iterator)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::permutation_iterator)
 
 #undef _ONEDPL_DEVICE_COPYABLE
 
