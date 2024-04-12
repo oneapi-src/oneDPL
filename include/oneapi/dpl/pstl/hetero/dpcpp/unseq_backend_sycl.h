@@ -229,6 +229,16 @@ struct transform_reduce
             __res = __binary_op(__res, __unary_op(__start_idx + __i, __acc...));
     }
 
+    template <typename _Size, typename _Res, typename... _Acc>
+    inline void
+    scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, const _Size __max_iters, _Res& __res,
+                               const _Acc&... __acc) const
+    {
+        const _Size __no_iters = ::std::min(static_cast<_Size>(__adjusted_n - __start_idx), __max_iters);
+        for (_Size __idx = 0; __idx < __no_iters; ++__idx)
+            __res = __binary_op(__res, __unary_op(__start_idx + __idx, __acc...));
+    }
+
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __iters_per_work_item,
@@ -246,13 +256,13 @@ struct transform_reduce
         const _Size __local_range = __item_id.get_local_range(0);
         const _Size __no_vec_ops = __iters_per_work_item / _VecSize;
         const _Size __adjusted_n = __global_offset + __n;
+        constexpr _Size __vec_size_minus_one = static_cast<_Size>(_VecSize - 1);
 
         _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
-        if constexpr (_Commutative{})
-            __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
         _Size __adjusted_global_id = __global_offset;
         if constexpr (_Commutative{})
         {
+            __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
             __adjusted_global_id +=
                 __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * _VecSize;
         }
@@ -279,11 +289,9 @@ struct transform_reduce
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
                 vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
             __local_mem[__local_idx] = __res;
-            return;
         }
         // At least one vector operation
-        constexpr _Size __vec_size_minus_one = static_cast<_Size>(_VecSize - 1);
-        if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
+        else if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
         {
             _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
@@ -293,34 +301,21 @@ struct transform_reduce
                     vectorized_reduction_remainder(__base_idx, __res, __acc...);
                 else if (__base_idx < __adjusted_n)
                 {
-                    for (_Size __idx = 0; __idx < __vec_size_minus_one; ++__idx)
-                    {
-                        if (__base_idx + __idx >= __adjusted_n)
-                            break;
-                        __res = __binary_op(__res, __unary_op(__base_idx + __idx, __acc...));
-                    }
+                    scalar_reduction_remainder(__base_idx, __adjusted_n, __vec_size_minus_one, __res, __acc...);
                 }
                 else
                     break;
             }
             __local_mem[__local_idx] = __res;
-            return;
         }
         // Scalar remainder
-        if (__adjusted_global_id < __adjusted_n)
+        else if (__adjusted_global_id < __adjusted_n)
         {
             _Res __res = __unary_op(__adjusted_global_id, __acc...);
-            for (_Size __i = 1; __i < __vec_size_minus_one; ++__i)
-            {
-                const _Size __base_idx = __adjusted_global_id + __i;
-                if (__base_idx >= __adjusted_n)
-                    break;
-                __res = __binary_op(__res, __unary_op(__base_idx, __acc...));
-            }
+            scalar_reduction_remainder(static_cast<_Size>(__adjusted_global_id + 1), __adjusted_n,
+                                       static_cast<_Size>(_VecSize - 2), __res, __acc...);
             __local_mem[__local_idx] = __res;
-            return;
         }
-        return;
     }
 
     template <typename _Size>

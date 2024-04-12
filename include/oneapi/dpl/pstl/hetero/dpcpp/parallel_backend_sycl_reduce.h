@@ -50,11 +50,12 @@ class __reduce_kernel;
 // Adjust number of sequential operations per work-item based on the vector size. Single elements are kept to
 // improve performance of small arrays or remainder loops.
 template <::std::uint8_t _VecSize, typename _Size>
-inline void
-__adjust_iters_per_work_item(_Size& __iters_per_work_item)
+inline _Size
+__adjust_iters_per_work_item(_Size __iters_per_work_item)
 {
     if (__iters_per_work_item > 1)
-        __iters_per_work_item = ((__iters_per_work_item + _VecSize - 1) / _VecSize) * _VecSize;
+        return ((__iters_per_work_item + _VecSize - 1) / _VecSize) * _VecSize;
+    return __iters_per_work_item;
 }
 
 // Single work group kernel that transforms and reduces __n elements to the single result.
@@ -481,7 +482,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
         const ::std::uint16_t __work_group_size_short = static_cast<::std::uint16_t>(__work_group_size);
         ::std::uint16_t __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n_short, __work_group_size);
-        __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item);
+        __iters_per_work_item = __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item);
         return __parallel_transform_reduce_small_impl<_Tp, _Commutative, __vector_size>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __n_short, __work_group_size_short,
             __iters_per_work_item, __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
@@ -501,7 +502,8 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
         ::std::uint32_t __n_groups = __max_cu * __oversubscription;
         ::std::uint32_t __iters_per_work_item_device_kernel =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n_short, __n_groups * __work_group_size_short);
-        __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item_device_kernel);
+        __iters_per_work_item_device_kernel =
+            __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item_device_kernel);
 
         // Lower the number of iterations to not exceed the empirically found limit.
         // This increases the number of work-groups up to the limit of work-group size times __max_iters_per_work_item.
@@ -512,7 +514,8 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
         }
         ::std::uint32_t __iters_per_work_item_work_group_kernel =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __work_group_size_short);
-        __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item_work_group_kernel);
+        __iters_per_work_item_work_group_kernel =
+            __adjust_iters_per_work_item<__vector_size>(__iters_per_work_item_work_group_kernel);
         return __parallel_transform_reduce_mid_impl<_Tp, _Commutative, __vector_size>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __n_short, __work_group_size_short,
             __iters_per_work_item_device_kernel, __iters_per_work_item_work_group_kernel, __reduce_op, __transform_op,
