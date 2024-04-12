@@ -137,9 +137,9 @@ bool is_equal(std::forward_iterator auto it, rng::range auto &&r) {
 auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
-    return fmt::format("");
+    return drfmt::format("");
   }
-  return fmt::format("\n{}"
+  return drfmt::format("\n{}"
                      "    ref:    {}\n"
                      "    actual: {}\n  ",
                      title == "" ? "" : "    " + title + "\n",
@@ -151,7 +151,7 @@ std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
   if (is_equal(ref, tst)) {
     return "";
   } else {
-    return fmt::format("\n{}"
+    return drfmt::format("\n{}"
                        "    in:     {}\n"
                        "    ref:    {}\n"
                        "    actual: {}\n  ",
@@ -177,7 +177,7 @@ std::string check_segments_message(auto &&r) {
   auto segments = dr::ranges::segments(r);
   auto flat = rng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
-    return fmt::format("\n"
+    return drfmt::format("\n"
                        "    Segment error\n"
                        "      range:    {}\n"
                        "      segments: {}\n  ",
@@ -247,7 +247,7 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
     return testing::AssertionSuccess();
   } else {
     return testing::AssertionFailure()
-           << fmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
+           << drfmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
                           "actual: {}\n  ",
                           a, b, ref, actual);
   }
@@ -258,7 +258,7 @@ auto check_segments(std::forward_iterator auto di) {
   auto flat = rng::join_view(segments);
   if (contains_empty(segments) || !is_equal(di, flat)) {
     return testing::AssertionFailure()
-           << fmt::format("\n    segments: {}\n  ", segments);
+           << drfmt::format("\n    segments: {}\n  ", segments);
   } else {
     return testing::AssertionSuccess();
   }
@@ -336,14 +336,14 @@ template <rng::range R1, rng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
 template <typename... Ts>
 inline std::ostream &operator<<(std::ostream &os,
                                 const rng::common_tuple<Ts...> &obj) {
-  os << fmt::format("{}", obj);
+  os << drfmt::format("{}", obj);
   return os;
 }
 
 template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os,
                                 const rng::common_pair<T1, T2> &obj) {
-  os << fmt::format("{}", obj);
+  os << drfmt::format("{}", obj);
   return os;
 }
 
@@ -354,14 +354,14 @@ namespace std {
 template <typename... Ts>
 inline std::ostream &operator<<(std::ostream &os,
                                 const std::tuple<Ts...> &obj) {
-  os << fmt::format("{}", obj);
+  os << drfmt::format("{}", obj);
   return os;
 }
 
 template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os,
                                 const std::pair<T1, T2> &obj) {
-  os << fmt::format("{}", obj);
+  os << drfmt::format("{}", obj);
   return os;
 }
 

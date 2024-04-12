@@ -4,13 +4,24 @@
 #pragma once
 
 #include "cxxopts.hpp"
-#include <fmt/core.h>
-#include <fmt/ranges.h>
+
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed-ranges>
 
-#define TEST_SHP
+#ifdef __cpp_lib_format
+#include <format>
+namespace drfmt {
+  using std::format;
+}
+#else
+#include <fmt/core.h>
+#include <fmt/ranges.h>
+namespace drfmt {
+  using fmt::format;
+}
+#endif
 
+#define TEST_SHP
 // To share tests with MHP
 const std::size_t comm_rank = 0;
 const std::size_t comm_size = 1;

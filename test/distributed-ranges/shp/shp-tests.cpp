@@ -19,12 +19,12 @@ int main(int argc, char *argv[]) {
   try {
     options = options_spec.parse(argc, argv);
   } catch (const cxxopts::OptionParseException &e) {
-    fmt::print("{}\n", options_spec.help());
+    std::cout << options_spec.help() << "\n";
     exit(1);
   }
 
   if (options.count("drhelp")) {
-    fmt::print("{}\n", options_spec.help());
+    std::cout << options_spec.help() << "\n";
     exit(0);
   }
 
