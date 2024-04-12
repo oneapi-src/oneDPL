@@ -129,7 +129,7 @@ struct comp_select_first
     bool
     operator()(_T1&& t1, _T2&& t2) const
     {
-        return comp(::std::get<0>(::std::forward<_T1>(t1)), ::std::get<0>(::std::forward<_T2>(t2)));
+        return comp(std::get<0>(std::forward<_T1>(t1)), std::get<0>(std::forward<_T2>(t2)));
     }
 };
 
@@ -150,9 +150,9 @@ struct test_set_intersection
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_intersection");
         EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_intersection effect");
 
-        if constexpr (TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag,
+        if constexpr (TestUtils::is_base_of_iterator_category<std::random_access_iterator_tag,
                                                               InputIterator1>::value &&
-                      TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator2>::value)
+                      TestUtils::is_base_of_iterator_category<std::random_access_iterator_tag, InputIterator2>::value)
         {
             // Check that set_intersection always copies from the first list to result.
             // Will fail to compile if the second range is used to copy to the output.
@@ -172,12 +172,12 @@ struct test_set_intersection
             auto zip_expect = oneapi::dpl::make_zip_iterator(sequences.first.begin(), expect_ints.begin());
             auto zip_out = oneapi::dpl::make_zip_iterator(sequences.second.begin(), out_ints.begin());
 
-            auto zip_expect_res = ::std::set_intersection(zip_first1, zip_last1, zip_first2, zip_last2, zip_expect,
+            auto zip_expect_res = std::set_intersection(zip_first1, zip_last1, zip_first2, zip_last2, zip_expect,
                                                           comp_select_first(comp));
-            auto zip_res = ::std::set_intersection(exec, zip_first1, zip_last1, zip_first2, zip_last2, zip_out,
+            auto zip_res = std::set_intersection(exec, zip_first1, zip_last1, zip_first2, zip_last2, zip_out,
                                                    comp_select_first(comp));
             EXPECT_TRUE(zip_expect_res - zip_expect == zip_res - zip_out, "wrong result for zipped set_intersection");
-            EXPECT_EQ_N(zip_expect, zip_out, ::std::distance(zip_out, zip_res), "wrong zipped set_intersection effect");
+            EXPECT_EQ_N(zip_expect, zip_out, std::distance(zip_out, zip_res), "wrong zipped set_intersection effect");
         }
     }
 
