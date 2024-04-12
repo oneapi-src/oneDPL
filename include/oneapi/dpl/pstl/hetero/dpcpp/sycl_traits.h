@@ -24,8 +24,6 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
-#include <oneapi/dpl/internal/binary_search_extension_defs.h>
-
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 
 #    define _ONEDPL_DEVICE_COPYABLE(TYPE)                                                                              \

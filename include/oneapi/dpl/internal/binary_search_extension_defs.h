@@ -25,17 +25,6 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace internal
-{
-
-enum class search_algorithm
-{
-    lower_bound,
-    upper_bound,
-    binary_search
-};
-
-} // namespace internal
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
