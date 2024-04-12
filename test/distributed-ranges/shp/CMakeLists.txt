@@ -1,6 +1,18 @@
 # SPDX-FileCopyrightText: Intel Corporation
 #
 # SPDX-License-Identifier: BSD-3-Clause
+
+include(CheckIncludeFileCXX)
+check_include_file_cxx("format" CXX_FORMAT_SUPPORT)
+if (NOT CXX_FORMAT_SUPPORT)
+  find_package(fmt QUIET)
+  if (NOT fmt_FOUND)
+    message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
+    return()
+  endif ()
+  message(STATUS "using fmt library for logging in distributed-ranges tests")
+endif()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -14,12 +26,6 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/BenBrock/range-v3.git
   GIT_TAG 5300fe3)
 FetchContent_MakeAvailable(range-v3)
-
-FetchContent_Declare(
-  cpp-format
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG 0b0f7cf)
-FetchContent_MakeAvailable(cpp-format)
 
 FetchContent_Declare(
     cxxopts
@@ -37,12 +43,14 @@ add_library(DR::shp ALIAS dr_shp)
 target_include_directories(dr_shp INTERFACE . vendor ../../../include)
 target_compile_definitions(dr_shp INTERFACE USE_MKL
                                             _GLIBCXX_USE_TBB_PAR_BACKEND=0)
-target_link_libraries(dr_shp INTERFACE range-v3 fmt::fmt MKL::MKL_DPCPP)
+target_link_libraries(dr_shp INTERFACE range-v3 MKL::MKL_DPCPP)
+if (NOT CXX_FORMAT_SUPPORT)
+  target_link_libraries(dr_shp INTERFACE fmt::fmt)
+endif()
 
 if (DEFINED ONEDPL_USE_DR)
   target_compile_options(dr_shp INTERFACE "-DONEDPL_USE_DISTRIBUTED_RANGES")
 endif()
-
 
 # For use, see:
 # https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
@@ -55,9 +63,6 @@ if($(HIPSYCL_TARGETS))
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-
-
 
 add_executable(
   shp-tests
@@ -73,7 +78,10 @@ add_executable(
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
-  target_link_libraries(${test-exec} GTest::gtest_main DR::shp fmt::fmt cxxopts)
+  target_link_libraries(${test-exec} GTest::gtest_main DR::shp cxxopts)
+  if (NOT CXX_FORMAT_SUPPORT)
+    target_link_libraries(${test-exec} fmt::fmt)
+  endif()
 endforeach()
 
 add_custom_target(shp-all-tests)
