@@ -54,8 +54,8 @@ template <typename _T, sycl::access::mode _AccMode = sycl::access::mode::read,
           sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 class all_view
 {
-    using __return_t = ::std::conditional_t<_AccMode == sycl::access::mode::read, const _T, _T>;
-    using __diff_type = typename ::std::iterator_traits<_T*>::difference_type;
+    using __return_t = std::conditional_t<_AccMode == sycl::access::mode::read, const _T, _T>;
+    using __diff_type = typename std::iterator_traits<_T*>::difference_type;
     using __accessor_t = sycl::accessor<_T, 1, _AccMode, _Target, _Placeholder>;
 
   public:
@@ -115,17 +115,17 @@ struct all_view_fn
 {
     template <typename _T>
     constexpr oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
-    operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
-               typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
+    operator()(sycl::buffer<_T, 1> __buf, typename std::iterator_traits<_T*>::difference_type __offset = 0,
+               typename std::iterator_traits<_T*>::difference_type __n = 0) const
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>(__buf, __offset, __n);
     }
 
     template <typename _R>
     auto
-    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
+    operator()(_R&& __r) const -> decltype(std::forward<_R>(__r))
     {
-        return ::std::forward<_R>(__r);
+        return std::forward<_R>(__r);
     }
 };
 
@@ -135,8 +135,8 @@ struct all_host_view_fn
     // An overload for sycl::buffer template type
     template <typename _T>
     auto
-    operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
-               typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
+    operator()(sycl::buffer<_T, 1> __buf, typename std::iterator_traits<_T*>::difference_type __offset = 0,
+               typename std::iterator_traits<_T*>::difference_type __n = 0) const
     {
         return __internal::__create_accessor<sycl::host_accessor<_T>>(__buf, __offset, __n);
     }
@@ -144,9 +144,9 @@ struct all_host_view_fn
     // "No operation" overload for another ranges/views
     template <typename _R>
     auto
-    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
+    operator()(_R&& __r) const -> decltype(std::forward<_R>(__r))
     {
-        return ::std::forward<_R>(__r);
+        return std::forward<_R>(__r);
     }
 };
 #endif
@@ -175,35 +175,35 @@ inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_
 //all_view traits
 
 template <typename Iter, typename Void = void> // for iterators that should not be passed directly
-struct is_zip : ::std::false_type
+struct is_zip : std::false_type
 {
 };
 
 template <typename Iter> // for iterators defined as direct pass
-struct is_zip<Iter, ::std::enable_if_t<Iter::is_zip::value>> : ::std::true_type
+struct is_zip<Iter, std::enable_if_t<Iter::is_zip::value>> : std::true_type
 {
 };
 
 template <typename Iter, typename Void = void>
-struct is_permutation : ::std::false_type
+struct is_permutation : std::false_type
 {
 };
 
 template <typename Iter> // for permutation_iterators
-struct is_permutation<Iter, ::std::enable_if_t<Iter::is_permutation::value>> : ::std::true_type
+struct is_permutation<Iter, std::enable_if_t<Iter::is_permutation::value>> : std::true_type
 {
 };
 
 //is_passed_directly trait definition; specializations for the oneDPL iterators
 
 template <typename Iter, typename Void = void>
-struct is_passed_directly : ::std::is_pointer<Iter>
+struct is_passed_directly : std::is_pointer<Iter>
 {
 };
 
 //support legacy "is_passed_directly" trait
 template <typename Iter>
-struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
+struct is_passed_directly<Iter, std::enable_if_t<Iter::is_passed_directly::value>> : std::true_type
 {
 };
 
@@ -218,17 +218,17 @@ struct is_passed_directly<
 };
 
 template <typename Ip>
-struct is_passed_directly<oneapi::dpl::counting_iterator<Ip>> : ::std::true_type
+struct is_passed_directly<oneapi::dpl::counting_iterator<Ip>> : std::true_type
 {
 };
 
 template <>
-struct is_passed_directly<oneapi::dpl::discard_iterator> : ::std::true_type
+struct is_passed_directly<oneapi::dpl::discard_iterator> : std::true_type
 {
 };
 
 template <typename Iter>
-struct is_passed_directly<::std::reverse_iterator<Iter>> : is_passed_directly<Iter>
+struct is_passed_directly<std::reverse_iterator<Iter>> : is_passed_directly<Iter>
 {
 };
 
@@ -239,12 +239,12 @@ struct is_passed_directly<oneapi::dpl::transform_iterator<Iter, Unary>> : is_pas
 
 template <typename SourceIterator, typename IndexIterator>
 struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>>
-    : ::std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<IndexIterator>>
+    : std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<IndexIterator>>
 {
 };
 
 template <typename... Iters>
-struct is_passed_directly<zip_iterator<Iters...>> : ::std::conjunction<is_passed_directly<Iters>...>
+struct is_passed_directly<zip_iterator<Iters...>> : std::conjunction<is_passed_directly<Iters>...>
 {
 };
 
@@ -254,22 +254,22 @@ inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
 // A trait for checking if iterator is heterogeneous or not
 
 template <typename Iter>
-struct is_sycl_iterator : ::std::false_type
+struct is_sycl_iterator : std::false_type
 {
 };
 
 template <oneapi::dpl::access_mode Mode, typename... Types>
-struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std::true_type
+struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : std::true_type
 {
 };
 
 template <typename Iter, typename Void = void>
-struct is_hetero_legacy_trait : ::std::false_type
+struct is_hetero_legacy_trait : std::false_type
 {
 };
 
 template <typename Iter>
-struct is_hetero_legacy_trait<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
+struct is_hetero_legacy_trait<Iter, std::enable_if_t<Iter::is_hetero::value>> : std::true_type
 {
 };
 
@@ -279,18 +279,18 @@ inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value || is_h
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
-struct is_temp_buff : ::std::false_type
+struct is_temp_buff : std::false_type
 {
 };
 
 template <typename _Iter>
-struct is_temp_buff<_Iter, ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !::std::is_pointer_v<_Iter> &&
-                                              !is_passed_directly_v<_Iter>>> : ::std::true_type
+struct is_temp_buff<_Iter, std::enable_if_t<!is_sycl_iterator_v<_Iter> && !std::is_pointer_v<_Iter> &&
+                                              !is_passed_directly_v<_Iter>>> : std::true_type
 {
 };
 
 template <typename _Iter>
-using val_t = typename ::std::iterator_traits<_Iter>::value_type;
+using val_t = typename std::iterator_traits<_Iter>::value_type;
 
 //range/zip_view/all_view/ variadic utilities
 
@@ -320,7 +320,7 @@ struct _require_access_args
     void
     operator()(Args&&... args)
     {
-        __require_access(__cgh, ::std::forward<Args>(args)...);
+        __require_access(__cgh, std::forward<Args>(args)...);
     }
 };
 
@@ -328,9 +328,9 @@ template <typename... _Ranges>
 void
 __require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Ranges...>& __zip)
 {
-    const ::std::size_t __num_ranges = sizeof...(_Ranges);
+    const std::size_t __num_ranges = sizeof...(_Ranges);
     oneapi::dpl::__ranges::invoke(__zip.tuple(), _require_access_args<decltype(__cgh)>{__cgh},
-                                  ::std::make_index_sequence<__num_ranges>());
+                                  std::make_index_sequence<__num_ranges>());
 }
 
 //__require_access utility
@@ -358,9 +358,9 @@ template <typename... _Ranges>
 void
 __require_access_range(sycl::handler& __cgh, oneapi::dpl::__internal::tuple<_Ranges...>& __tuple)
 {
-    const ::std::size_t __num_ranges = sizeof...(_Ranges);
+    const std::size_t __num_ranges = sizeof...(_Ranges);
     oneapi::dpl::__ranges::invoke(__tuple, _require_access_args<decltype(__cgh)>{__cgh},
-                                  ::std::make_index_sequence<__num_ranges>());
+                                  std::make_index_sequence<__num_ranges>());
 }
 
 template <typename _BaseRange>
@@ -374,12 +374,12 @@ void
 __require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
 {
     //getting an access for the all_view based range
-    auto base_rng = oneapi::dpl::__ranges::pipeline_base_range<_Range>(::std::forward<_Range>(__rng)).base_range();
+    auto base_rng = oneapi::dpl::__ranges::pipeline_base_range<_Range>(std::forward<_Range>(__rng)).base_range();
 
     __require_access_range(__cgh, base_rng);
 
     //getting an access for the rest ranges
-    __require_access(__cgh, ::std::forward<_Ranges>(__rest)...);
+    __require_access(__cgh, std::forward<_Ranges>(__rest)...);
 }
 
 template <typename _R>
@@ -423,7 +423,7 @@ struct __get_sycl_range
 
   private:
     //We have to keep sycl buffer(s) instance here by sync reasons;
-    ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
+    std::vector<std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     template <sycl::access::mode _LocalAccMode>
     static constexpr bool __is_copy_direct_v =
@@ -435,7 +435,7 @@ struct __get_sycl_range
     //SFINAE iterator type checks
     template <typename It>
     static constexpr auto
-    __is_addressable(int) -> decltype(std::addressof(*::std::declval<It&>()), std::true_type{});
+    __is_addressable(int) -> decltype(std::addressof(*std::declval<It&>()), std::true_type{});
     template <typename It>
     static constexpr std::false_type
     __is_addressable(...);
@@ -449,13 +449,13 @@ struct __get_sycl_range
         return __f(__it, __it + __n);
     }
 
-    template <typename _TupleType, typename _DiffType, ::std::size_t... _Ip>
+    template <typename _TupleType, typename _DiffType, std::size_t... _Ip>
     auto
-    gen_zip_view(_TupleType __t, _DiffType __n, ::std::index_sequence<_Ip...>)
+    gen_zip_view(_TupleType __t, _DiffType __n, std::index_sequence<_Ip...>)
     {
         // Send each zipped iterator to `gen_view` which recursively calls __get_sycl_range() to process them.
-        auto tmp = oneapi::dpl::__internal::make_tuple(__gen_view(*this, ::std::get<_Ip>(__t), __n)...);
-        return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
+        auto tmp = oneapi::dpl::__internal::make_tuple(__gen_view(*this, std::get<_Ip>(__t), __n)...);
+        return oneapi::dpl::__ranges::make_zip_view(std::get<_Ip>(tmp).all_view()...);
     }
 
     //zip iterators
@@ -465,8 +465,8 @@ struct __get_sycl_range
     {
         assert(__first < __last);
 
-        const ::std::size_t __num_it = sizeof...(Iters);
-        auto rng = gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<__num_it>());
+        const std::size_t __num_it = sizeof...(Iters);
+        auto rng = gen_zip_view(__first.base(), __last - __first, std::make_index_sequence<__num_it>());
         return __range_holder<decltype(rng)>{rng};
     }
 
@@ -488,7 +488,7 @@ struct __get_sycl_range
     //specialization for std::reverse_iterator
     template <sycl::access::mode _LocalAccMode, typename _Iter>
     auto
-    __process_input_iter(::std::reverse_iterator<_Iter> __first, ::std::reverse_iterator<_Iter> __last)
+    __process_input_iter(std::reverse_iterator<_Iter> __first, std::reverse_iterator<_Iter> __last)
     {
         assert(__first < __last);
 
@@ -499,7 +499,7 @@ struct __get_sycl_range
     }
 
     template <typename _R, typename _Map, typename _Size,
-              ::std::enable_if_t<oneapi::dpl::__internal::__is_functor<_Map>, int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__is_functor<_Map>, int> = 0>
     static auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -507,7 +507,7 @@ struct __get_sycl_range
     }
 
     template <typename _R, typename _Map, typename _Size,
-              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Map>, int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Map>, int> = 0>
     auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -518,7 +518,7 @@ struct __get_sycl_range
 
     //specialization for permutation_iterator using sycl_iterator as source
     template <sycl::access::mode _LocalAccMode, typename _It, typename _Map,
-              ::std::enable_if_t<is_sycl_iterator_v<_It>, int> = 0>
+              std::enable_if_t<is_sycl_iterator_v<_It>, int> = 0>
     auto
     __process_input_iter(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                          oneapi::dpl::permutation_iterator<_It, _Map> __last)
@@ -531,7 +531,7 @@ struct __get_sycl_range
         //  "get_idx()" to return the buffer offset
 
         //  __first.base() is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
-        //   is_hetero = ::std::true_type.  Therefore, to make sure our types match, we use get_idx() to get the buffer
+        //   is_hetero = std::true_type.  Therefore, to make sure our types match, we use get_idx() to get the buffer
         //   offset, and use that to recurse as a sycl_iterator over the __base_buffer.
         auto __base_iter = __first.base();
         auto __base_buffer = __base_iter.get_buffer();
@@ -546,7 +546,7 @@ struct __get_sycl_range
 
     //specialization for permutation_iterator using USM pointer or direct pass object as source
     template <sycl::access::mode _LocalAccMode, typename _Iter, typename _Map,
-              ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && is_passed_directly_v<_Iter>, int> = 0>
+              std::enable_if_t<!is_sycl_iterator_v<_Iter> && is_passed_directly_v<_Iter>, int> = 0>
     auto
     __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
                          oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
@@ -564,7 +564,7 @@ struct __get_sycl_range
     // specialization for general case, permutation_iterator with base iterator that is not sycl_iterator or
     // passed directly.
     template <sycl::access::mode _LocalAccMode, typename _Iter, typename _Map,
-              ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
+              std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
     auto
     __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
                          oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
@@ -599,7 +599,7 @@ struct __get_sycl_range
 
     // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
     template <sycl::access::mode _LocalAccMode, typename _Iter>
-    ::std::enable_if_t<is_passed_directly_v<_Iter>, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
+    std::enable_if_t<is_passed_directly_v<_Iter>, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
     __process_input_iter(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
@@ -611,7 +611,7 @@ struct __get_sycl_range
     template <sycl::access::mode _LocalAccMode, typename _Iter>
     auto
     __process_input_iter(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_sycl_iterator_v<_Iter>,
+        -> std::enable_if_t<is_sycl_iterator_v<_Iter>,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
         assert(__first < __last);
@@ -622,11 +622,11 @@ struct __get_sycl_range
         //  "get_idx()" to return the buffer offset
 
         //  __first is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
-        //   is_hetero = ::std::true_type. We use get_idx() to get the buffer offset, use get_buffer() to get the
+        //   is_hetero = std::true_type. We use get_idx() to get the buffer offset, use get_buffer() to get the
         //   buffer and use those to create the range.
         const auto __offset = __first.get_idx();
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
-        const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
+        const auto __n = std::min(decltype(__size)(__last - __first), __size);
         assert(__offset + __n <= __size);
 
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, _LocalAccMode>>{
@@ -638,7 +638,7 @@ struct __get_sycl_range
     template <sycl::access::mode _LocalAccMode, typename _Iter>
     auto
     __process_input_iter(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
+        -> std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
                                   !is_permutation<_Iter>::value,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
@@ -648,7 +648,7 @@ struct __get_sycl_range
             if constexpr (__is_copy_direct_v<_LocalAccMode>)
             {
                 //wait and copy on a buffer destructor; an exclusive access buffer, good performance
-                return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
+                return sycl::buffer<_T, 1>{std::addressof(*__first), __last - __first};
 
                 //No call to sycl::buffer::set_final_data() is required here because this sycl::buffer ctor
                 // guarantees by specification that data will be written back to this host data pointer upon destruction
@@ -657,7 +657,7 @@ struct __get_sycl_range
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
-                __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                __buf.set_final_data(std::addressof(*__first)); //wait and fast copy on a buffer destructor
                 return __buf;
             }
         });
@@ -667,7 +667,7 @@ struct __get_sycl_range
     template <sycl::access::mode _LocalAccMode, typename _Iter>
     auto
     __process_input_iter(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !__is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
+        -> std::enable_if_t<is_temp_buff<_Iter>::value && !__is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
                                   !is_permutation<_Iter>::value,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, _LocalAccMode>>>
     {
@@ -710,7 +710,7 @@ struct __get_sycl_range
         // We have to extend sycl buffer lifetime by sync reasons in case of host iterators. SYCL runtime has sync
         // in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
         using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(__buf)>;
-        m_buffers.push_back(::std::make_unique<BufferType>(__buf));
+        m_buffers.push_back(std::make_unique<BufferType>(__buf));
 
         using _T = val_t<_Iter>;
         return __range_holder<oneapi::dpl::__ranges::all_view<_T, _LocalAccMode>>{
@@ -723,7 +723,7 @@ struct __get_sycl_range
     operator()(_ArgTypes... __args)
     {
         //when called using operator(), use access mode provided by the struct template parameter
-        return __process_input_iter<AccMode>(::std::forward<_ArgTypes>(__args)...);
+        return __process_input_iter<AccMode>(std::forward<_ArgTypes>(__args)...);
     }
 };
 
