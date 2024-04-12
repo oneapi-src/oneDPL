@@ -316,9 +316,9 @@ inline constexpr __internal::__search_n_fn search_n;
 
 struct count_if_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_count_if(__dispatch_tag,
@@ -330,9 +330,9 @@ inline constexpr count_if_fn count_if;
 
 struct count_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj = std::identity>
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
         auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(__val, __value);};
         return count_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
@@ -343,9 +343,10 @@ inline constexpr count_fn count;
 
 struct equal_fn
 {
-    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1, typename _Proj2>
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred = std::ranges::equal_to,
+             typename _Proj1 = std::identity, typename _Proj2 = std::identity>
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2) const
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred = {}, _Proj1 __proj1 = {}, _Proj2 __proj2 = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_equal(__dispatch_tag,
@@ -358,9 +359,9 @@ inline constexpr equal_fn equal;
 
 struct is_sorted_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Comp = std::ranges::less>
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_is_sorted(__dispatch_tag,
@@ -372,10 +373,10 @@ inline constexpr is_sorted_fn is_sorted;
 
 struct stable_sort_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_sort2(__dispatch_tag,
@@ -387,10 +388,10 @@ inline constexpr stable_sort_fn stable_sort;
 
 struct sort_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         return oneapi::dpl::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
             __proj);
@@ -401,10 +402,10 @@ inline constexpr sort_fn sort;
 
 struct min_element_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_min_element(__dispatch_tag,
@@ -416,10 +417,10 @@ inline constexpr min_element_fn min_element;
 
 struct max_element_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp, typename _Proj,
+    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         return oneapi::dpl::ranges::min_element(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             oneapi::dpl::__internal::__reorder_pred(__comp), __proj);
@@ -445,10 +446,10 @@ inline constexpr copy_fn copy;
 
 struct copy_if_fn
 {
-    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj,
+    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj = std::identity,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj) const
+    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_copy_if_2(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
@@ -460,11 +461,12 @@ inline constexpr copy_if_fn copy_if;
 
 struct merge_fn
 {
-    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp, typename _Proj1,
-             typename _Proj2, oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp = std::ranges::less,
+             typename _Proj1 = std::identity, typename _Proj2 = std::identity,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp, _Proj1 __proj1,
-               _Proj2 __proj2) const
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp = {}, _Proj1 __proj1 = {},
+               _Proj2 __proj2 = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin(), __out_r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_merge(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
