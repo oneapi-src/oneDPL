@@ -424,11 +424,11 @@ struct __sycl_usm_alloc
     operator()(::std::size_t __elements) const
     {
         const auto& __queue = __exec.queue();
-        auto __buf = static_cast<_T*>(
-            sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t));
-        if (!__buf)
-            throw std::bad_alloc();
-        return __buf;
+        if (auto __buf = static_cast<_T*>(
+                sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t)))
+            return __buf;
+
+        throw std::bad_alloc();
     }
 };
 
