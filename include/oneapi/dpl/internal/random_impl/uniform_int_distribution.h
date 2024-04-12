@@ -37,7 +37,7 @@ class uniform_int_distribution
       public:
         using distribution_type = uniform_int_distribution<result_type>;
         param_type() : param_type(scalar_type{0}) {}
-        explicit param_type(scalar_type a, scalar_type b = ::std::numeric_limits<scalar_type>::max()) : a_(a), b_(b) {}
+        explicit param_type(scalar_type a, scalar_type b = std::numeric_limits<scalar_type>::max()) : a_(a), b_(b) {}
         scalar_type
         a() const
         {
@@ -66,7 +66,7 @@ class uniform_int_distribution
 
     // Constructors
     uniform_int_distribution() : uniform_int_distribution(scalar_type{0}) {}
-    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = ::std::numeric_limits<scalar_type>::max())
+    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = std::numeric_limits<scalar_type>::max())
         : a_(__a), b_(__b)
     {
     }
@@ -151,10 +151,10 @@ class uniform_int_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Type of real distribution
-    using RealType = ::std::conditional_t<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>;
+    using RealType = std::conditional_t<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>;
 
     // Static asserts
-    static_assert(::std::is_integral_v<scalar_type>,
+    static_assert(std::is_integral_v<scalar_type>,
                   "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
 
     // Distribution parameters
@@ -166,7 +166,7 @@ class uniform_int_distribution
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr != 0), result_type>
+    std::enable_if_t<(_Ndistr != 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
@@ -181,7 +181,7 @@ class uniform_int_distribution
     }
 
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr == 0), result_type>
+    std::enable_if_t<(_Ndistr == 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
@@ -193,7 +193,7 @@ class uniform_int_distribution
 
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr != 0), result_type>
+    std::enable_if_t<(_Ndistr != 0), result_type>
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;
