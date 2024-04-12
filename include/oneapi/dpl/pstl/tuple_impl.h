@@ -37,7 +37,7 @@ struct tuple;
 
 namespace std
 {
-template <::std::size_t N, typename T, typename... Rest>
+template <std::size_t N, typename T, typename... Rest>
 struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
     : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
 {
@@ -50,7 +50,7 @@ struct tuple_element<0, oneapi::dpl::__internal::tuple<T, Rest...>>
 };
 
 template <typename... Args>
-struct tuple_size<oneapi::dpl::__internal::tuple<Args...>> : ::std::integral_constant<::std::size_t, sizeof...(Args)>
+struct tuple_size<oneapi::dpl::__internal::tuple<Args...>> : std::integral_constant<std::size_t, sizeof...(Args)>
 {
 };
 } // namespace std
@@ -65,24 +65,24 @@ namespace __internal
 template <typename... Size>
 struct get_value_by_idx;
 
-template <typename T1, typename... T, ::std::size_t... indices>
-::std::tuple<T...>
-get_tuple_tail_impl(const ::std::tuple<T1, T...>& t, const ::std::index_sequence<indices...>&)
+template <typename T1, typename... T, std::size_t... indices>
+std::tuple<T...>
+get_tuple_tail_impl(const std::tuple<T1, T...>& t, const std::index_sequence<indices...>&)
 {
-    return ::std::tuple<T...>(::std::get<indices + 1>(t)...);
+    return std::tuple<T...>(std::get<indices + 1>(t)...);
 }
 
 template <typename T1, typename... T>
-::std::tuple<T...>
-get_tuple_tail(const ::std::tuple<T1, T...>& other)
+std::tuple<T...>
+get_tuple_tail(const std::tuple<T1, T...>& other)
 {
-    return oneapi::dpl::__internal::get_tuple_tail_impl(other, ::std::make_index_sequence<sizeof...(T)>());
+    return oneapi::dpl::__internal::get_tuple_tail_impl(other, std::make_index_sequence<sizeof...(T)>());
 }
 
 // Maps an incoming type for tuplewrapper to simplify tuple-related handling.
 // as it doesn't work well with rvalue refs.
 // T& -> T&, T&& -> T, T -> T
-template <typename _Tp, bool = ::std::is_lvalue_reference_v<_Tp>>
+template <typename _Tp, bool = std::is_lvalue_reference_v<_Tp>>
 struct __lvref_or_val
 {
     using __type = _Tp&&;
@@ -91,7 +91,7 @@ struct __lvref_or_val
 template <typename _Tp>
 struct __lvref_or_val<_Tp, false>
 {
-    using __type = ::std::remove_reference_t<_Tp>;
+    using __type = std::remove_reference_t<_Tp>;
 };
 
 template <typename T>
@@ -124,7 +124,7 @@ template <typename... T>
 oneapi::dpl::__internal::tuplewrapper<T&&...>
 make_tuplewrapper(T&&... t)
 {
-    return {::std::forward<T>(t)...};
+    return {std::forward<T>(t)...};
 }
 
 template <size_t N>
@@ -146,16 +146,16 @@ struct get_impl
 
     template <typename... T>
     constexpr auto
-    operator()(oneapi::dpl::__internal::tuple<T...>&& t) const -> decltype(get_impl<N - 1>()(::std::move(t.next)))
+    operator()(oneapi::dpl::__internal::tuple<T...>&& t) const -> decltype(get_impl<N - 1>()(std::move(t.next)))
     {
-        return get_impl<N - 1>()(::std::move(t.next));
+        return get_impl<N - 1>()(std::move(t.next));
     }
 
     template <typename... T>
     constexpr auto
-    operator()(const oneapi::dpl::__internal::tuple<T...>&& t) const -> decltype(get_impl<N - 1>()(::std::move(t.next)))
+    operator()(const oneapi::dpl::__internal::tuple<T...>&& t) const -> decltype(get_impl<N - 1>()(std::move(t.next)))
     {
-        return get_impl<N - 1>()(::std::move(t.next));
+        return get_impl<N - 1>()(std::move(t.next));
     }
 };
 
@@ -163,7 +163,7 @@ template <>
 struct get_impl<0>
 {
     template <typename... T>
-    using ret_type = ::std::tuple_element_t<0, oneapi::dpl::__internal::tuple<T...>>;
+    using ret_type = std::tuple_element_t<0, oneapi::dpl::__internal::tuple<T...>>;
 
     template <typename... T>
     constexpr ret_type<T...>&
@@ -183,14 +183,14 @@ struct get_impl<0>
     constexpr ret_type<T...>&&
     operator()(oneapi::dpl::__internal::tuple<T...>&& t) const
     {
-        return ::std::forward<ret_type<T...>&&>(t.holder.value);
+        return std::forward<ret_type<T...>&&>(t.holder.value);
     }
 
     template <typename... T>
     constexpr const ret_type<T...>&&
     operator()(const oneapi::dpl::__internal::tuple<T...>&& t) const
     {
-        return ::std::forward<const ret_type<T...>&&>(t.holder.value);
+        return std::forward<const ret_type<T...>&&>(t.holder.value);
     }
 };
 
@@ -206,9 +206,9 @@ struct make_inner_tuple_functor
 {
     template <typename... Args>
     auto
-    operator()(Args&&... args) const -> decltype(oneapi::dpl::__internal::make_tuple(::std::forward<Args>(args)...))
+    operator()(Args&&... args) const -> decltype(oneapi::dpl::__internal::make_tuple(std::forward<Args>(args)...))
     {
-        return oneapi::dpl::__internal::make_tuple(::std::forward<Args>(args)...);
+        return oneapi::dpl::__internal::make_tuple(std::forward<Args>(args)...);
     }
 };
 
@@ -217,15 +217,15 @@ struct make_tuplewrapper_functor
     template <typename... Args>
     auto
     operator()(Args&&... args) const
-        -> decltype(oneapi::dpl::__internal::make_tuplewrapper(::std::forward<Args>(args)...))
+        -> decltype(oneapi::dpl::__internal::make_tuplewrapper(std::forward<Args>(args)...))
     {
-        return oneapi::dpl::__internal::make_tuplewrapper(::std::forward<Args>(args)...);
+        return oneapi::dpl::__internal::make_tuplewrapper(std::forward<Args>(args)...);
     }
 };
 
 template <typename MakeTupleF, typename F, size_t... indices, typename... T>
 auto
-map_tuple_impl(MakeTupleF mtf, F f, ::std::index_sequence<indices...>, T... in)
+map_tuple_impl(MakeTupleF mtf, F f, std::index_sequence<indices...>, T... in)
     -> decltype(mtf(oneapi::dpl::__internal::apply_to_tuple<indices>(f, in...)...))
 {
     return mtf(oneapi::dpl::__internal::apply_to_tuple<indices>(f, in...)...);
@@ -236,10 +236,10 @@ template <typename F, template <typename...> class TBig, typename... T, typename
 auto
 map_tuple(F f, TBig<T...> in, RestTuples... rest)
     -> decltype(oneapi::dpl::__internal::map_tuple_impl(oneapi::dpl::__internal::make_inner_tuple_functor{}, f,
-                                                        ::std::make_index_sequence<sizeof...(T)>(), in, rest...))
+                                                        std::make_index_sequence<sizeof...(T)>(), in, rest...))
 {
     return oneapi::dpl::__internal::map_tuple_impl(oneapi::dpl::__internal::make_inner_tuple_functor{}, f,
-                                                   ::std::make_index_sequence<sizeof...(T)>(), in, rest...);
+                                                   std::make_index_sequence<sizeof...(T)>(), in, rest...);
 }
 
 // Functions are needed to call get_value_by_idx: it requires to store in tuple wrapper
@@ -247,10 +247,10 @@ template <typename F, template <typename...> class TBig, typename... T, typename
 auto
 map_tuplewrapper(F f, TBig<T...> in, RestTuples... rest)
     -> decltype(oneapi::dpl::__internal::map_tuple_impl(oneapi::dpl::__internal::make_tuplewrapper_functor{}, f,
-                                                        ::std::make_index_sequence<sizeof...(T)>(), in, rest...))
+                                                        std::make_index_sequence<sizeof...(T)>(), in, rest...))
 {
     return oneapi::dpl::__internal::map_tuple_impl(oneapi::dpl::__internal::make_tuplewrapper_functor{}, f,
-                                                   ::std::make_index_sequence<sizeof...(T)>(), in, rest...);
+                                                   std::make_index_sequence<sizeof...(T)>(), in, rest...);
 }
 
 template <typename _Tp>
@@ -258,7 +258,7 @@ struct __value_holder
 {
     __value_holder() = default;
     template <typename _Up>
-    __value_holder(_Up&& t) : value(::std::forward<_Up>(t))
+    __value_holder(_Up&& t) : value(std::forward<_Up>(t))
     {
     }
     _Tp value;
@@ -266,7 +266,7 @@ struct __value_holder
 
 // Necessary to make tuple trivially_copy_assignable. This type decided
 // if it's needed to have user-defined operator=.
-template <typename _Tp, bool = ::std::is_trivially_copy_assignable_v<oneapi::dpl::__internal::__value_holder<_Tp>>>
+template <typename _Tp, bool = std::is_trivially_copy_assignable_v<oneapi::dpl::__internal::__value_holder<_Tp>>>
 struct __copy_assignable_holder : oneapi::dpl::__internal::__value_holder<_Tp>
 {
     using oneapi::dpl::__internal::__value_holder<_Tp>::__value_holder;
@@ -295,76 +295,76 @@ struct tuple<T1, T...>
     oneapi::dpl::__internal::__copy_assignable_holder<T1> holder;
     tuple<T...> next;
 
-    using tuple_type = ::std::tuple<T1, T...>;
+    using tuple_type = std::tuple<T1, T...>;
 
-    template <::std::size_t I>
+    template <std::size_t I>
     constexpr auto
     get() & -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
-    template <::std::size_t I>
+    template <std::size_t I>
     constexpr auto
     get() const& -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
-    template <::std::size_t I>
+    template <std::size_t I>
     constexpr auto
-    get() && -> decltype(get_impl<I>()(::std::move(*this)))
+    get() && -> decltype(get_impl<I>()(std::move(*this)))
     {
-        return get_impl<I>()(::std::move(*this));
+        return get_impl<I>()(std::move(*this));
     }
 
-    template <::std::size_t I>
+    template <std::size_t I>
     constexpr auto
-    get() const&& -> decltype(get_impl<I>()(::std::move(*this)))
+    get() const&& -> decltype(get_impl<I>()(std::move(*this)))
     {
-        return get_impl<I>()(::std::move(*this));
+        return get_impl<I>()(std::move(*this));
     }
 
     tuple() = default;
     tuple(const tuple& other) = default;
     tuple(tuple&& other) = default;
-    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
+    template <typename _U1, typename... _U, typename = std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
     tuple(const tuple<_U1, _U...>& other) : holder(other.template get<0>()), next(other.next)
     {
     }
 
-    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
+    template <typename _U1, typename... _U, typename = std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
     tuple(tuple<_U1, _U...>&& other) : holder(std::move(other).template get<0>()), next(std::move(other.next))
     {
     }
 
     template <typename _U1, typename... _U,
-              typename = ::std::enable_if_t<
+              typename = std::enable_if_t<
                   (sizeof...(_U) == sizeof...(T) &&
-                   ::std::conjunction_v<::std::is_constructible<T1, _U1&&>, ::std::is_constructible<T, _U&&>...>)>>
-    tuple(_U1&& _value, _U&&... _next) : holder(::std::forward<_U1>(_value)), next(::std::forward<_U>(_next)...)
+                   std::conjunction_v<std::is_constructible<T1, _U1&&>, std::is_constructible<T, _U&&>...>)>>
+    tuple(_U1&& _value, _U&&... _next) : holder(std::forward<_U1>(_value)), next(std::forward<_U>(_next)...)
     {
     }
 
-    // required to convert ::std::tuple to inner tuple in user-provided functor
-    tuple(const ::std::tuple<T1, T...>& other)
-        : holder(::std::get<0>(other)), next(oneapi::dpl::__internal::get_tuple_tail(other))
+    // required to convert std::tuple to inner tuple in user-provided functor
+    tuple(const std::tuple<T1, T...>& other)
+        : holder(std::get<0>(other)), next(oneapi::dpl::__internal::get_tuple_tail(other))
     {
     }
 
-    // conversion to ::std::tuple with the same template arguments
-    operator ::std::tuple<T1, T...>() const
+    // conversion to std::tuple with the same template arguments
+    operator std::tuple<T1, T...>() const
     {
-        static constexpr ::std::size_t __tuple_size = sizeof...(T) + 1;
-        return to_std_tuple(*this, ::std::make_index_sequence<__tuple_size>());
+        static constexpr std::size_t __tuple_size = sizeof...(T) + 1;
+        return to_std_tuple(*this, std::make_index_sequence<__tuple_size>());
     }
 
-    // conversion to ::std::tuple with the different template arguments
+    // conversion to std::tuple with the different template arguments
     template <typename U1, typename... U>
-    operator ::std::tuple<U1, U...>() const
+    operator std::tuple<U1, U...>() const
     {
-        constexpr ::std::size_t __tuple_size = sizeof...(T) + 1;
-        return to_std_tuple(static_cast<tuple<U1, U...>>(*this), ::std::make_index_sequence<__tuple_size>());
+        constexpr std::size_t __tuple_size = sizeof...(T) + 1;
+        return to_std_tuple(static_cast<tuple<U1, U...>>(*this), std::make_index_sequence<__tuple_size>());
     }
 
     // non-const subscript operator with tuple argument
@@ -414,12 +414,12 @@ struct tuple<T1, T...>
     tuple&
     operator=(const tuple<T1, T...>& other) = default;
 
-    // for cases when we assign ::std::tuple to __internal::tuple
+    // for cases when we assign std::tuple to __internal::tuple
     template <typename U1, typename... U>
     tuple&
-    operator=(const ::std::tuple<U1, U...>& other)
+    operator=(const std::tuple<U1, U...>& other)
     {
-        holder.value = ::std::get<0>(other);
+        holder.value = std::get<0>(other);
         next = oneapi::dpl::__internal::get_tuple_tail(other);
         return *this;
     }
@@ -435,31 +435,31 @@ struct tuple<T1, T...>
         return !(__lhs == __rhs);
     }
 
-    template <typename U1, typename... U, ::std::size_t... _Ip>
-    static ::std::tuple<U1, U...>
-    to_std_tuple(const oneapi::dpl::__internal::tuple<U1, U...>& __t, ::std::index_sequence<_Ip...>)
+    template <typename U1, typename... U, std::size_t... _Ip>
+    static std::tuple<U1, U...>
+    to_std_tuple(const oneapi::dpl::__internal::tuple<U1, U...>& __t, std::index_sequence<_Ip...>)
     {
-        return ::std::tuple<U1, U...>(oneapi::dpl::__internal::get_impl<_Ip>()(__t)...);
+        return std::tuple<U1, U...>(oneapi::dpl::__internal::get_impl<_Ip>()(__t)...);
     }
 };
 
 template <>
 struct tuple<>
 {
-    using tuple_type = ::std::tuple<>;
+    using tuple_type = std::tuple<>;
     // since compiler does not autogenerate ctors
     // if user defines its own, we have to define them too
     tuple() = default;
     tuple(const tuple& other) = default;
 
-    tuple(const ::std::tuple<>&) {}
+    tuple(const std::tuple<>&) {}
 
     tuple operator[](tuple) { return {}; }
     tuple operator[](const tuple&) const { return {}; }
     tuple&
     operator=(const tuple&) = default;
     tuple&
-    operator=(const ::std::tuple<>& /*other*/)
+    operator=(const std::tuple<>& /*other*/)
     {
         return *this;
     }
@@ -479,7 +479,7 @@ template <typename... _T>
 void
 swap(oneapi::dpl::__internal::tuple<_T...>& __x, oneapi::dpl::__internal::tuple<_T...>& __y)
 {
-    using ::std::swap;
+    using std::swap;
     swap(__x.holder.value, __y.holder.value);
     swap(__x.next, __y.next);
 }
@@ -488,13 +488,13 @@ template <typename... _T>
 void
 swap(oneapi::dpl::__internal::tuple<_T...>&& __x, oneapi::dpl::__internal::tuple<_T...>&& __y)
 {
-    using ::std::swap;
+    using std::swap;
     swap(__x.holder.value, __y.holder.value);
     swap(__x.next, __y.next);
 }
 
-// Get corresponding ::std::tuple for our internal tuple(i.e. access tuple_type member
-// which is ::std::tuple<Ts...> for internal::tuple<Ts...>).
+// Get corresponding std::tuple for our internal tuple(i.e. access tuple_type member
+// which is std::tuple<Ts...> for internal::tuple<Ts...>).
 // Do nothing for other types or if both operands are internal tuples.
 template <class _T, class>
 struct __get_tuple_type
@@ -619,19 +619,19 @@ operator-(Size idx, const oneapi::dpl::__internal::tuple<T1...>& tuple1)
 template <typename _T>
 struct __decay_with_tuple_specialization
 {
-    using type = ::std::decay_t<_T>;
+    using type = std::decay_t<_T>;
 };
 
 template <typename... _Args>
 struct __decay_with_tuple_specialization<oneapi::dpl::__internal::tuple<_Args...>>
 {
-    using type = oneapi::dpl::__internal::tuple<::std::decay_t<_Args>...>;
+    using type = oneapi::dpl::__internal::tuple<std::decay_t<_Args>...>;
 };
 
 template <typename... _Args>
-struct __decay_with_tuple_specialization<::std::tuple<_Args...>>
+struct __decay_with_tuple_specialization<std::tuple<_Args...>>
 {
-    using type = ::std::tuple<::std::decay_t<_Args>...>;
+    using type = std::tuple<std::decay_t<_Args>...>;
 };
 
 template <typename... _Args>
@@ -644,30 +644,30 @@ using __decay_with_tuple_specialization_t = typename __decay_with_tuple_speciali
 namespace std
 {
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
 get(oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
 get(const oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
 get(oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
-    return ::std::move(__a).template get<_Idx>();
+    return std::move(__a).template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
-    return ::std::move(__a).template get<_Idx>();
+    return std::move(__a).template get<_Idx>();
 }
 } // namespace std
 
