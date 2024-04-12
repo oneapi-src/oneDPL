@@ -35,7 +35,7 @@ namespace __serial_backend
 {
 
 template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = oneapi::dpl::__utils::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
+using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
 
 inline void
 __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)

@@ -55,7 +55,7 @@ not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = oneapi::dpl::__utils::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp, tbb::tbb_allocator>;
+using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, tbb::tbb_allocator>;
 
 // Wrapper for tbb::task
 inline void
