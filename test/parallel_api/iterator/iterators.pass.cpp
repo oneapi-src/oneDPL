@@ -322,16 +322,22 @@ struct test_permutation_iterator
         test_random_iterator(perm_begin);
 
         auto n = in1.size();
-        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
+        auto stateful_lambda = [n] (auto i) { return n - i - 1;};
+        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), stateful_lambda, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
-
-#if TEST_STD_VER <= 17
-        // c++17 lambdas are not default constructible, therefore this permutation_iterator is not either
+        //stateful lambdas wont be default constructible, therefore this permutation iterator will not be either
         test_random_iterator_skip_default_ctor_check(perm_it_fun_rev);
-#else // c++20 or later
-        // starting at c++20, lambdas are default constructible, therefore this permutation_iterator should be as well
-        test_random_iterator(perm_it_fun_rev);
-#endif
+
+        auto stateless_lambda = [] (auto i) { return i;};
+        auto perm_it_stateless_fun = oneapi::dpl::make_permutation_iterator(in1.begin(), stateless_lambda, 1);
+        EXPECT_TRUE(*++perm_it_stateless_fun == in1[2], "wrong result from permutation_iterator(base_iterator, stateless_lambda)");
+
+        //stateless lambdas may be default constructible based on the c++ standard, permutation iterator should match
+        if constexpr(std::is_default_constructible_v<decltype(stateless_lambda)>)
+            test_random_iterator(perm_it_stateless_fun);
+        else
+            test_random_iterator_skip_default_ctor_check(perm_it_stateless_fun);
+
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;
