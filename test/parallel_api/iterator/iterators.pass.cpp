@@ -325,7 +325,7 @@ struct test_permutation_iterator
         auto stateful_lambda = [n] (auto i) { return n - i - 1;};
         auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), stateful_lambda, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
-        //stateful lambdas wont be default constructible, therefore this permutation iterator will not be either
+        //stateful lambdas won't be default constructible, therefore this permutation iterator will not be either
         test_random_iterator_skip_default_ctor_check(perm_it_fun_rev);
 
         auto stateless_lambda = [] (auto i) { return i;};
