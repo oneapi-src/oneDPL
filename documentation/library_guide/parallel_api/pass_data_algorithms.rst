@@ -4,8 +4,8 @@ Pass Data to Algorithms
 You can use one of the following ways to pass data to an algorithm executed with a device policy:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
-* Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
-* Iterators of host-side ``std::vector``
+* Unified shared memory (USM) pointers
+* Iterators or USM pointers to ``std::vector`` data
 
 .. _use-buffer-wrappers:
 
@@ -56,14 +56,9 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
 Use Unified Shared Memory
 -------------------------
 
-The following examples demonstrate two ways to use the parallel algorithms with USM:
-
-* USM pointers
-* USM allocators
-
-If you have a USM-allocated buffer, pass the pointers to the start and past the end
-of the buffer to a parallel algorithm. Make sure that the execution policy and
-the buffer were created for the same queue. For example:
+If you have USM-allocated memory, pass the pointers to the start and past the end
+of the sequence to a parallel algorithm. Make sure that the execution policy and
+the USM-allocated memory were created for the same queue. For example:
 
 .. code:: cpp
 
@@ -81,52 +76,19 @@ the buffer were created for the same queue. For example:
     return 0;
   }
 
-Alternatively, use ``std::vector`` with a USM allocator.
-
-Note: The ability to appropriately detect USM allocated ``std::vector::iterator`` depends
-on details of the C++ standard library implementation and what information about the
-allocator is included in the ``std::vector::iterator`` type definition. If USM allocated
-vector iterators are not detectable with your C++ standard library, they will still function
-as inputs to oneDPL, but they will be treated as if they were host-side
-``std::vector::iterator`` as described in the `Use Host-Side std::vector`_ section. To guarantee
-no additional host-side copies, you can use ``std::vector::data()`` in combination with
-``std::vector::size()`` with USM allocated vectors to obtain USM pointers, which can be used as
-substitutes for ``std::vector::begin()`` and ``std::vector::end()``. This will avoid extra
-host-side copies regardless of the C++ standard library implementation.
-
-An example of ``std::vector`` with a USM allocator:
-
-.. code:: cpp
-
-  #include <oneapi/dpl/execution>
-  #include <oneapi/dpl/algorithm>
-  #include <sycl/sycl.hpp>
-  int main(){
-    const int n = 1000;
-    auto policy = oneapi::dpl::execution::dpcpp_default;
-    sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
-    std::vector<int, decltype(alloc)> vec(n, alloc);
-
-    std::fill(policy, vec.begin(), vec.end(), 42);
-
-    //alternative to use USM pointers:
-    // std::fill(policy, vec.data(), vec.data() + vec.size(), 42);
-
-    return 0;
-  }
-
 When using device USM, such as allocated by ``malloc_device``, manually copy data to this memory
 before calling oneDPL algorithms, and copy it back once the algorithms have finished execution.
 
-Use Host-Side std::vector
+Use std::vector
 -----------------------------
 
-|onedpl_long| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
-example below.
-In this case, a temporary SYCL buffer is created, and the data is copied to this buffer.
-After processing on a device is complete, the modified data is copied from the temporary buffer back
-to the host container.
-For example:
+The following examples demonstrate two ways to use the parallel algorithms with ``std::vector``:
+
+* host allocators
+* USM allocators
+
+You can use iterators to host allocated ``std::vector`` data
+as shown in the following example:
 
 .. code:: cpp
 
@@ -140,4 +102,40 @@ For example:
     return 0;
   }
 
-Working with SYCL buffers is recommended to reduce data copying between the host and device.
+When using iterators to host allocated data, a temporary SYCL buffer is created, and the data
+is copied to this buffer. After processing on a device is complete, the modified data is copied
+from the temporary buffer back to the host container. While convenient, using host allocated
+data can lead to unintended copying between host and device. We recommend working with SYCL buffers
+or USM memory to reduce data copying between the host and device. 
+
+You can also use ``std::vector`` with a USM allocator, as shown in the following example:
+
+.. code:: cpp
+
+  #include <oneapi/dpl/execution>
+  #include <oneapi/dpl/algorithm>
+  #include <sycl/sycl.hpp>
+  int main(){
+    const int n = 1000;
+    auto policy = oneapi::dpl::execution::dpcpp_default;
+    sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
+    std::vector<int, decltype(alloc)> vec(n, alloc);
+
+    // Recommended to use USM pointers:
+    std::fill(policy, vec.data(), vec.data() + vec.size(), 42);
+
+    // Iterators for USM allocators might require extra copying
+    // std::fill(policy, vec.begin(), vec.end(), 42);
+
+    return 0;
+  }
+
+Make sure that the execution policy and the USM-allocated memory were created for the same queue.
+When using USM allocators with ``std::vector``, it is recommended to use USM pointers as shown in
+the example above, rather than with iterators to ``std::vector``. In some implementations of the C++
+Standard Library, it is not possible to detect that iterators are pointing to USM-allocated data.
+In those cases, data will be treated as if it were host-side data, and will require extra copying
+between host and device. |onedpl_short| will avoid copies whenever it is possible with the C++
+Standard Library implementation.  However, to guarantee no unintended copying, use
+``std::vector::data()`` in combination with ``std::vector::size()`` when using USM-allocated data
+to retrieve USM pointers for the sequence as shown.
