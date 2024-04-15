@@ -90,7 +90,7 @@ vector iterators are not detectable with your C++ standard library, they will st
 as inputs to oneDPL, but they will be treated as if they were host-side
 ``std::vector::iterator`` as described in the `Use Host-Side std::vector`_ section. To guarantee
 no additional host-side copies, you can use ``std::vector::data()`` in combination with
-``std::vector::size()`` with USM allocated vectors to obtain USM pointers which can be used as
+``std::vector::size()`` with USM allocated vectors to obtain USM pointers, which can be used as
 substitutes for ``std::vector::begin()`` and ``std::vector::end()``. This will avoid extra
 host-side copies regardless of the C++ standard library implementation.
 
