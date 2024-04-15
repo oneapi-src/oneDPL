@@ -49,7 +49,7 @@ inline constexpr bool __can_use_known_identity =
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = ::std::conditional_t<
     __can_use_known_identity<_Tp>,
-#        if _ONEDPL_LIBSYCL_VERSION >= 50200
+#    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
         ::std::conjunction<::std::is_arithmetic<_Tp>,
@@ -61,22 +61,22 @@ using __has_known_identity = ::std::conditional_t<
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
-#        else           //_ONEDPL_LIBSYCL_VERSION >= 50200
+#    else               //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
-#        endif          //_ONEDPL_LIBSYCL_VERSION >= 50200
+#    endif              //_ONEDPL_LIBSYCL_VERSION >= 50200
     ::std::false_type>; // This is for the case of __can_use_known_identity<_Tp>==false
 
-#    else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
+#else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = std::false_type;
 
-#    endif //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
+#endif //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
@@ -210,7 +210,7 @@ struct transform_reduce
     _Operation2 __unary_op;
 
     template <typename _Size, typename _Res, typename... _Acc>
-    inline void
+    void
     vectorized_reduction_first(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
     {
         new (&__res.__v) _Tp(std::move(__unary_op(__start_idx, __acc...)));
@@ -220,7 +220,7 @@ struct transform_reduce
     }
 
     template <typename _Size, typename _Res, typename... _Acc>
-    inline void
+    void
     vectorized_reduction_remainder(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
     {
         _ONEDPL_PRAGMA_UNROLL
@@ -229,7 +229,7 @@ struct transform_reduce
     }
 
     template <typename _Size, typename _Res, typename... _Acc>
-    inline void
+    void
     scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, const _Size __max_iters, _Res& __res,
                                const _Acc&... __acc) const
     {
@@ -239,7 +239,7 @@ struct transform_reduce
     }
 
     template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
-    inline void
+    void
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __iters_per_work_item,
                const _Size& __global_offset, const bool __is_full, const _Size __n_groups, _Res& __res,
                const _Acc&... __acc) const
@@ -297,9 +297,7 @@ struct transform_reduce
                 if (__base_idx + __vec_size_minus_one < __adjusted_n)
                     vectorized_reduction_remainder(__base_idx, __res, __acc...);
                 else if (__base_idx < __adjusted_n)
-                {
                     scalar_reduction_remainder(__base_idx, __adjusted_n, __vec_size_minus_one, __res, __acc...);
-                }
                 else
                     break;
             }
@@ -329,8 +327,7 @@ struct transform_reduce
             _Size __last_wg_contrib = ::std::min(__last_wg_vec, static_cast<_Size>(__work_group_size * _VecSize));
             return __full_group_contrib + __last_wg_contrib;
         }
-        else
-            return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 
