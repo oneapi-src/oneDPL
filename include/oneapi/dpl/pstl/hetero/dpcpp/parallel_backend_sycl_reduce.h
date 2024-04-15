@@ -50,7 +50,7 @@ class __reduce_kernel;
 // Adjust number of sequential operations per work-item based on the vector size. Single elements are kept to
 // improve performance of small arrays or remainder loops.
 template <::std::uint8_t _VecSize, typename _Size>
-inline _Size
+_Size
 __adjust_iters_per_work_item(_Size __iters_per_work_item)
 {
     if (__iters_per_work_item > 1)
