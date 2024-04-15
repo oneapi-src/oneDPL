@@ -19,6 +19,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <algorithm>
 
 namespace oneapi
 {
@@ -102,13 +103,13 @@ class sycl_backend
 
         void lazy_report(){
             std::lock_guard<std::mutex> l(m_);
-            int size = async_waiters.size();
-            for(auto i = async_waiters.begin(); i!=async_waiters.begin()+size; i++){
-                if(i->get()->is_complete()){
-                    i->get()->report();
-                    async_waiters.erase(i);
-                }
-            }
+            async_waiters.erase(std::remove_if(async_waiters.begin(), async_waiters.end(), [](std::shared_ptr<async_waiter_base>& async_waiter){
+                    if(async_waiter->is_complete()){
+                        async_waiter->report();
+                        return true;
+                    }
+                    return false;
+                }), async_waiters.end());
         }
     };
 
