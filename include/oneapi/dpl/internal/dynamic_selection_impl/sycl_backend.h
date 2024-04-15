@@ -42,18 +42,24 @@ class sycl_backend
             virtual void wait() = 0;
             virtual void report() = 0;
             virtual bool is_complete() = 0;
-            virtual ~async_waiter_base(){}
+            virtual ~async_waiter_base() = default;
     };
 
     template<typename Selection>
     class async_waiter : public async_waiter_base
     {
         sycl::event e_;
-        Selection* s;
+        std::shared_ptr<Selection> s;
       public:
-        async_waiter(sycl::event e) : e_(e){}
-        async_waiter(sycl::event e, Selection* selection) : e_(e), s(selection) {}
+        async_waiter(sycl::event e) : e_(e) {}
+        async_waiter(sycl::event e, std::shared_ptr<Selection> selection) : e_(e), s(selection) {}
 
+        async_waiter(async_waiter &w) : e_(w.e_), s(w.s) {}
+        async_waiter& operator=(async_waiter &w){
+            s = w.s;
+            e_ = w.e_;
+            return *this;
+        }
         sycl::event
         unwrap()
         {
@@ -86,7 +92,7 @@ class sycl_backend
     struct async_waiter_list_t{
 
         std::mutex m_;
-        std::vector<std::unique_ptr<async_waiter_base>> async_waiters;
+        std::vector<std::shared_ptr<async_waiter_base>> async_waiters;
 
         template<typename T>
         void add_waiter(T *t){
@@ -180,12 +186,12 @@ class sycl_backend
                         s.report(execution_info::task_completion);
                     });
                 });
-                return async_waiter{e2, new SelectionHandle(s)};
+                return async_waiter{e2, std::make_shared<SelectionHandle>(s)};
             }
             else if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>){
                 if (use_event_profiling)
                 {
-                    auto waiter = async_waiter{e1, new SelectionHandle(s)};
+                    auto waiter = async_waiter{e1,std::make_shared<SelectionHandle>(s)};
                     async_waiter_list.add_waiter(new async_waiter(waiter));
                     return waiter;
                 }
@@ -196,13 +202,13 @@ class sycl_backend
                             s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
                         });
                     });
-                    return async_waiter{e2, new SelectionHandle(s)};
+                    return async_waiter{e2, std::make_shared<SelectionHandle>(s)};
                 }
             }
         }
         else
         {
-            return async_waiter{f(unwrap(s), std::forward<Args>(args)...), new SelectionHandle(s)};
+            return async_waiter{f(unwrap(s), std::forward<Args>(args)...), std::make_shared<SelectionHandle>(s)};
         }
     }
 
