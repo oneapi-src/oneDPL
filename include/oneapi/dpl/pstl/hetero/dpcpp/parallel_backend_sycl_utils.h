@@ -543,7 +543,7 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_allocations(sycl::queue __queue)
     {
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __queue.get_device().has(sycl::aspect::usm_device_allocations);
 #else
         return false;
