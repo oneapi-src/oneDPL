@@ -567,7 +567,6 @@ struct __result_and_scratch_storage
         }
         else if (__supports_USM_device)
         {
-            std::cout << "device" << std::endl;
             // If we don't use host memory, malloc only a single unified device allocation
             __scratch_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n + 1),
@@ -575,7 +574,6 @@ struct __result_and_scratch_storage
         }
         else
         {
-            std::cout << "buffer" << std::endl;
             // If we don't have USM support allocate memory here
             __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__scratch_n + 1));
         }
