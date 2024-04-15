@@ -688,7 +688,7 @@ __shars_lower_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __val
     _Size __search_offset{0};
     for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
     {
-        _Size __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
+        const _Size __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
         if (__comp(__acc[__search_idx], __value))
             __search_offset |= __cur_pow2;
     }
