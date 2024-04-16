@@ -16,6 +16,10 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
+#    include <version>
+#endif
+
 #ifndef _PSTL_VERSION
 #    define _PSTL_VERSION 11000
 #    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
@@ -296,8 +300,29 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
-#define _ONEDPL_CPP20_CONCEPTS_PRESENT                                                                                 \
-    (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1923 || _GLIBCXX_RELEASE >= 10 || _LIBCPP_VERSION >= 13000))
+#if _ONEDPL___cplusplus >= 202002L && __cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT 1
+#else
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT 0
+#endif
+
+#if _ONEDPL___cplusplus >= 202302L && __cpp_lib_tuple_like >= 202207L
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 1
+#else
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 0
+#endif
+
+#if _ONEDPL___cplusplus >= 202302L && __cpp_lib_ranges_zip >= 202110L
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 1
+#else
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 0
+#endif
+
+// To use std::tuple as a proxy reference and satisfy iterator concepts for C++20 and beyond, we need
+// the changes to std::tuple in P2321R2 and the tuple-like basic_common_reference specialization in P2165R4.
+#define _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR                                                                       \
+    (!_ONEDPL_CPP20_CONCEPTS_PRESENT ||                                                                                \
+     (_ONEDPL_CPP23_RANGES_ZIP_PRESENT && _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT))
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 

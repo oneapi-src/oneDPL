@@ -79,18 +79,26 @@ struct __make_references
 template <typename... _Types>
 class zip_forward_iterator
 {
+    template <typename... _Ts>
+    using __tuple_t =
+#if _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR
+        ::std::tuple<_Ts...>;
+#else
+        oneapi::dpl::__internal::tuple<_Ts...>;
+#endif
+
     static const ::std::size_t __num_types = sizeof...(_Types);
-    typedef typename oneapi::dpl::__internal::tuple<_Types...> __it_types;
+    typedef __tuple_t<_Types...> __it_types;
 
   public:
     typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit zip_forward_iterator(_Types... __args) : __my_it_(oneapi::dpl::__internal::make_tuple(__args...)) {}
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(__tuple_t<_Types...>{__args...}) {}
 
     reference operator*() const
     {
