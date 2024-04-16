@@ -543,7 +543,7 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_allocations(sycl::queue __queue)
     {
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __queue.get_device().has(sycl::aspect::usm_device_allocations);
 #else
         return false;
@@ -558,9 +558,12 @@ struct __result_and_scratch_storage
         if (__use_USM_host && __supports_USM_device)
         {
             // Separate scratch (device) and result (host) allocations on performant backends (i.e. L0)
-            __scratch_buf = ::std::shared_ptr<_T>(
-                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n),
-                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+            if (__scratch_n > 0)
+            {
+                __scratch_buf = ::std::shared_ptr<_T>(
+                    __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n),
+                    __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+            }
             __result_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
@@ -581,31 +584,39 @@ struct __result_and_scratch_storage
 
     template <typename _Acc>
     static auto
-    __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
+    __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, ::std::size_t __scratch_n = 0)
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __acc.__get_pointer();
 #else
-        return &__acc[0];
+        return &__acc[__scratch_n];
 #endif
     }
 
     auto
     __get_result_acc(sycl::handler& __cgh)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host && __supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __result_buf.get());
         else if (__supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
         return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     auto
     __get_scratch_acc(sycl::handler& __cgh)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host || __supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
         return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     bool
