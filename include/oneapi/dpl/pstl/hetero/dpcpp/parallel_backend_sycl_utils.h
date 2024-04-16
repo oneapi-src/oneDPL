@@ -584,31 +584,39 @@ struct __result_and_scratch_storage
 
     template <typename _Acc>
     static auto
-    __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
+    __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, ::std::size_t __scratch_n = 0)
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __acc.__get_pointer();
 #else
-        return &__acc[0];
+        return &__acc[__scratch_n];
 #endif
     }
 
     auto
     __get_result_acc(sycl::handler& __cgh)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host && __supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __result_buf.get());
         else if (__supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
         return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     auto
     __get_scratch_acc(sycl::handler& __cgh)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host || __supports_USM_device)
             return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
         return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     bool
