@@ -131,11 +131,10 @@ You can also use ``std::vector`` with a USM allocator, as shown in the following
   }
 
 Make sure that the execution policy and the USM-allocated memory were created for the same queue.
-When using USM allocators with ``std::vector``, it is recommended to use USM pointers as shown in
-the example above, rather than with iterators to ``std::vector``. In some implementations of the C++
-Standard Library, it is not possible to detect that iterators are pointing to USM-allocated data.
-In those cases, data will be treated as if it were host-side data, and will require extra copying
-between host and device. |onedpl_short| will avoid copies whenever it is possible with the C++
-Standard Library implementation.  However, to guarantee no unintended copying, use
-``std::vector::data()`` in combination with ``std::vector::size()`` when using USM-allocated data
-to retrieve USM pointers for the sequence as shown.
+
+For ``std::vector`` with a USM allocator we recommend to use ``std::vector::data()`` in
+combination with ``std::vector::size()`` as shown in the example above, rather than iterators to
+``std::vector``. That is because for some implementations of the C++ Standard Library it might not
+be possible for |onedpl_short| to detect that iterators are pointing to USM-allocated data. In that
+case the data will be treated as if it were host-allocated, with an extra copy made to a SYCL buffer.
+Retrieving USM pointers from ``std::vector`` as shown guarantees no unintended copying.
