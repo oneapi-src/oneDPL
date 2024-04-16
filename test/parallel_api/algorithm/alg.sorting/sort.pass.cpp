@@ -63,6 +63,7 @@ class ParanoidKey
     //! Special value used to mark destroyed objects.
     static const std::int32_t Dead = -2;
     // True if key object has comparable value
+
     bool
     isLive() const
     {
