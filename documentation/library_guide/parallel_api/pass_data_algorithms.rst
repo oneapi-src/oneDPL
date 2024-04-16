@@ -1,7 +1,16 @@
 Pass Data to Algorithms
 #######################
 
-You can use one of the following ways to pass data to an algorithm executed with a device policy:
+When using the C++ standard execution policies, oneDPL supports data being passed to its algorithms as specified
+in the ISO/IEC 14882:2017 standard (commonly called C++17). According to the standard, the calling code
+must prevent data races when using algorithms with parallel execution policies.
+
+Note: Implementations of ``std::vector<bool>`` are not required to avoid data races for concurrent modifications
+of vector elements. Some implementations may optimize multiple ``bool`` elements into a bitfield, making it unsafe
+for multithreading. For this reason, it is recommended to avoid ``std::vector<bool>`` for anything but a read-only
+input with the C++ standard execution policies.
+
+When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
