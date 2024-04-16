@@ -117,7 +117,7 @@ template <typename RandomIt>
 void
 test_random_iterator(const RandomIt& it)
 {
-    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
+    static_assert(std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
     test_random_iterator_skip_default_ctor_check(it);
 }
 

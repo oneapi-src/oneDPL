@@ -80,12 +80,12 @@ test_copy_assignment()
                   "transform_iterator with lambda is not copy assignable");
 
     oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, noop> trans2{count, noop{}};
-    static_assert(::std::is_copy_assignable_v<decltype(trans2)>,
+    static_assert(std::is_copy_assignable_v<decltype(trans2)>,
                   "transform_iterator with noop functor is not copy assignable");
 
     oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor> trans3{count,
                                                                                                   stateful_functor{1}};
-    static_assert(::std::is_copy_assignable_v<decltype(trans3)>,
+    static_assert(std::is_copy_assignable_v<decltype(trans3)>,
                   "transform_iterator with stateful functor is not copy assignable");
 
     oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor> trans4{count,
@@ -102,7 +102,7 @@ test_copy_assignment()
     //Note that trans5 uses count incremented by 100 as its base iterator
     oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor_no_copy_assign> trans5{
         count + 100, stateful_functor_no_copy_assign{3}};
-    static_assert(::std::is_copy_assignable_v<decltype(trans5)>,
+    static_assert(std::is_copy_assignable_v<decltype(trans5)>,
                   "transform_iterator with non-copy-assignable functor is not copy assignable");
 
     oneapi::dpl::transform_iterator<oneapi::dpl::counting_iterator<int>, stateful_functor_no_copy_assign> trans6{
@@ -126,22 +126,22 @@ test_default_constructible()
     oneapi::dpl::transform_iterator<int*, decltype(transformation)> trans1{ptr, transformation};
     //default constructibility of lambdas depends on c++ standard, we want transform iterator to match its template args
     static_assert((std::is_default_constructible_v<decltype(transformation)> ==
-                   ::std::is_default_constructible_v<decltype(trans1)>),
+                   std::is_default_constructible_v<decltype(trans1)>),
                   "transform_iterator with lambda does not match default constructibility trait of the lambda itself");
 
     //both types are default constructible
     oneapi::dpl::transform_iterator<int*, noop> trans2{ptr, noop{}};
-    static_assert(::std::is_default_constructible_v<decltype(trans2)>,
+    static_assert(std::is_default_constructible_v<decltype(trans2)>,
                   "transform_iterator with default constructible functor is seen to be non-default constructible");
 
     //functor is not default constructible
     oneapi::dpl::transform_iterator<int*, noop_nodefault> trans3{ptr, noop_nodefault{1}};
-    static_assert(!::std::is_default_constructible_v<decltype(trans3)>,
+    static_assert(!std::is_default_constructible_v<decltype(trans3)>,
                   "transform_iterator with non-default constructible functor is seen to be default constructible");
 
     oneapi::dpl::transform_iterator<decltype(trans3), noop> trans4{trans3, noop{}};
     static_assert(
-        !::std::is_default_constructible_v<decltype(trans4)>,
+        !std::is_default_constructible_v<decltype(trans4)>,
         "transform_iterator with non-default constructible iterator source is seen to be default constructible");
 
     oneapi::dpl::transform_iterator<int*, noop> a(ptr);
