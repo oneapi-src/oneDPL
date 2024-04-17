@@ -90,7 +90,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
         oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op, NewKernelParam{}).wait();
     }
