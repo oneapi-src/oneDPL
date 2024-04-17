@@ -318,8 +318,8 @@
 #    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 0
 #endif
 
-// To use std::tuple as a proxy reference and satisfy iterator concepts for C++20 and beyond, we need
-// the changes to std::tuple in P2321R2 and the tuple-like basic_common_reference specialization in P2165R4.
+// When C++20 concepts are available, we must use std::tuple as a proxy reference to satisfy iterator concepts, which
+// requires the changes to std::tuple in P2321R2 and the tuple-like basic_common_reference specialization in P2165R4.
 #define _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR                                                                       \
     (!_ONEDPL_CPP20_CONCEPTS_PRESENT ||                                                                                \
      (_ONEDPL_CPP23_RANGES_ZIP_PRESENT && _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT))
