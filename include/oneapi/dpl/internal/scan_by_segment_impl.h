@@ -30,9 +30,9 @@
 #ifndef _ONEDPL_SCAN_BY_SEGMENT_IMPL_H
 #define _ONEDPL_SCAN_BY_SEGMENT_IMPL_H
 
-#if _ONEDPL_BACKEND_SYCL
-
 #include <type_traits>
+
+#if _ONEDPL_BACKEND_SYCL
 #include <cstddef>
 #include <cstdint>
 #include <utility>
@@ -401,5 +401,51 @@ __scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& po
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
-#endif
-#endif
+
+#endif // _ONEDPL_BACKEND_SYCL
+
+namespace oneapi
+{
+namespace dpl
+{
+namespace internal
+{
+
+//------------------------------------------------------------------------------
+// __par_buffer_backend_selector staff - for resolve __backend_tag in the places
+// of code where we have backend tags / dispatch tags in the same type
+//------------------------------------------------------------------------------
+
+template <typename, typename = void>
+struct has_member_backend_tag_type : ::std::false_type
+{
+};
+
+template <typename T>
+struct has_member_backend_tag_type<T, ::std::void_t<typename T::__backend_tag>> : ::std::true_type
+{
+};
+
+template <typename T>
+constexpr bool has_member_backend_tag_type_v = has_member_backend_tag_type<T>::value;
+
+template <class _Tag, typename = void>
+struct __par_buffer_backend_selector;
+
+template <class _Tag>
+struct __par_buffer_backend_selector<_Tag, std::enable_if_t<has_member_backend_tag_type_v<_Tag>>>
+{
+    using __backend_tag = typename _Tag::__backend_tag;
+};
+
+template <class _Tag>
+struct __par_buffer_backend_selector<_Tag, std::enable_if_t<!has_member_backend_tag_type_v<_Tag>>>
+{
+    using __backend_tag = oneapi::dpl::__internal::__serial_backend_tag;
+};
+
+} // namespace internal
+} // namespace dpl
+} // namespace oneapi
+
+#endif // _ONEDPL_SCAN_BY_SEGMENT_IMPL_H

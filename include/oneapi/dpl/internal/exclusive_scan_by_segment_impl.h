@@ -63,8 +63,10 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 
     InputIterator2 last2 = first2 + n;
 
+    using __buffer_backend_tag = typename oneapi::dpl::internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
+
     // compute head flags
-    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _flags(policy, n);
+    oneapi::dpl::__internal::__par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _flags(policy, n);
     auto flags = _flags.get();
     flags[0] = 1;
 
@@ -72,7 +74,7 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
-    oneapi::dpl::__par_backend::__buffer<Policy, OutputType> _temp(policy, n);
+    oneapi::dpl::__internal::__par_backend_buffer<__buffer_backend_tag, Policy, OutputType> _temp(policy, n);
     auto temp = _temp.get();
 
     temp[0] = init;
