@@ -76,8 +76,9 @@ the USM-allocated memory were created for the same queue. For example:
     return 0;
   }
 
-When using device USM, such as allocated by ``malloc_device``, manually copy data to this memory
-before calling oneDPL algorithms, and copy it back once the algorithms have finished execution.
+When using device USM, such as allocated by malloc_device, the user is responsible for data
+transfers to and from the device to ensure that input data is device accessible during oneDPL
+algorithm execution and that the result is available to the operation which follows.
 
 Use std::vector
 -----------------------------
@@ -124,7 +125,7 @@ You can also use ``std::vector`` with a USM allocator, as shown in the following
     // Recommended to use USM pointers:
     std::fill(policy, vec.data(), vec.data() + vec.size(), 42);
 
-    // Iterators for USM allocators might require extra copying
+    // Iterators for USM allocators might require extra copying - not recommended method
     // std::fill(policy, vec.begin(), vec.end(), 42);
 
     return 0;
