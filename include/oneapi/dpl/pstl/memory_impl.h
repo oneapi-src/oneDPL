@@ -137,7 +137,7 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
         using _TargetValueType = std::decay_t<_TargetT>;
-        if constexpr (std::is_trivial_v<_TargetValueType>)
+        if constexpr (std::is_trivially_constructible_v<_TargetValueType>)
             __target = std::forward<_SourceT>(__source);
         else
             ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
