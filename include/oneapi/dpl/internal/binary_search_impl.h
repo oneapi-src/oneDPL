@@ -42,14 +42,15 @@ struct custom_brick
 {
     Comp comp;
     T size;
+    bool use_32bit_indexing;
 
-    template <typename _ItemId, typename _Acc1>
+    template <typename _Size, typename _ItemId, typename _Acc>
     void
-    operator()(_ItemId idx, _Acc1 acc) const
+    search_impl(_ItemId idx, _Acc acc) const
     {
-        T start_orig = 0;
-        auto end_orig = size;
-        using ::std::get;
+        _Size start_orig = 0;
+        _Size end_orig = size;
+        using std::get;
         if constexpr (func == search_algorithm::lower_bound)
         {
             get<2>(acc[idx]) = oneapi::dpl::__internal::__shars_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
@@ -66,6 +67,16 @@ struct custom_brick
                                                                       get<1>(acc[idx]), comp);
             get<2>(acc[idx]) = (value != end_orig) && (get<1>(acc[idx]) == get<0>(acc[value]));
         }
+    }
+
+    template <typename _ItemId, typename _Acc>
+    void
+    operator()(_ItemId idx, _Acc acc) const
+    {
+        if (use_32bit_indexing)
+            search_impl<std::uint32_t>(idx, acc);
+        else
+            search_impl<std::size_t>(idx, acc);
     }
 };
 
@@ -112,9 +123,6 @@ binary_search_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 e
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <typename T>
-class lower_bound_fallback;
-
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
 OutputIterator
@@ -127,7 +135,7 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -138,28 +146,14 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    auto run_lower_bound = [comp, value_size, zip_vw](auto&& policy, auto size) {
-        __bknd::__parallel_for(
-            _BackendTag{}, ::std::forward<decltype(policy)>(policy),
-            custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::lower_bound>{comp, size}, value_size,
-            zip_vw)
-            .wait();
-    };
-    // Enable index calculation to proceed with uint32_t if input range is small enough.
-    if (size <= ::std::numeric_limits<::std::uint32_t>::max())
-    {
-        run_lower_bound(::std::forward<Policy>(policy), static_cast<::std::uint32_t>(size));
-    }
-    else
-    {
-        run_lower_bound(__bknd::make_wrapped_policy<lower_bound_fallback>(::std::forward<Policy>(policy)),
-                        static_cast<::std::size_t>(size));
-    }
+    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    __bknd::__parallel_for(
+        _BackendTag{}, ::std::forward<decltype(policy)>(policy),
+        custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::lower_bound>{comp, size, use_32bit_indexing}, value_size,
+        zip_vw)
+        .wait();
     return result + value_size;
 }
-
-template <typename T>
-class upper_bound_fallback;
 
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
@@ -168,12 +162,12 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
                  InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
-    const auto size = ::std::distance(start, end);
+    const auto size = std::distance(start, end);
 
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -184,28 +178,14 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    auto run_upper_bound = [comp, value_size, zip_vw](auto&& policy, auto size) {
-        __bknd::__parallel_for(
-            _BackendTag{}, ::std::forward<decltype(policy)>(policy),
-            custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::upper_bound>{comp, size}, value_size,
-            zip_vw)
-            .wait();
-    };
-    // Enable index calculation to proceed with uint32_t if input range is small enough.
-    if (size <= ::std::numeric_limits<::std::uint32_t>::max())
-    {
-        run_upper_bound(::std::forward<Policy>(policy), static_cast<::std::uint32_t>(size));
-    }
-    else
-    {
-        run_upper_bound(__bknd::make_wrapped_policy<upper_bound_fallback>(::std::forward<Policy>(policy)),
-                        static_cast<::std::size_t>(size));
-    }
+    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    __bknd::__parallel_for(
+        _BackendTag{}, std::forward<decltype(policy)>(policy),
+        custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::upper_bound>{comp, size, use_32bit_indexing}, value_size,
+        zip_vw)
+        .wait();
     return result + value_size;
 }
-
-template <typename T>
-class binary_search_fallback;
 
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
@@ -219,7 +199,7 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -230,23 +210,12 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    auto run_binary_search = [comp, value_size, zip_vw](auto&& policy, auto size) {
-        __bknd::__parallel_for(
-            _BackendTag{}, ::std::forward<decltype(policy)>(policy),
-            custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::binary_search>{comp, size}, value_size,
-            zip_vw)
-            .wait();
-    };
-    // Enable index calculation to proceed with uint32_t if input range is small enough.
-    if (size <= ::std::numeric_limits<::std::uint32_t>::max())
-    {
-        run_binary_search(::std::forward<Policy>(policy), static_cast<::std::uint32_t>(size));
-    }
-    else
-    {
-        run_binary_search(__bknd::make_wrapped_policy<binary_search_fallback>(::std::forward<Policy>(policy)),
-                          static_cast<::std::size_t>(size));
-    }
+    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    __bknd::__parallel_for(
+        _BackendTag{}, std::forward<decltype(policy)>(policy),
+        custom_brick<StrictWeakOrdering, decltype(size), search_algorithm::binary_search>{comp, size, use_32bit_indexing}, value_size,
+        zip_vw)
+        .wait();
     return result + value_size;
 }
 
