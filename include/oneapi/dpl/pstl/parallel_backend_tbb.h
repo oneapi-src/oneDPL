@@ -46,20 +46,72 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __tbb_backend
+namespace __backend
 {
 
-//! Raw memory buffer with automatic freeing and no exceptions.
-/** Some of our algorithms need to start with raw memory buffer,
-not an initialize array, because initialization/destruction
-would make the span be at least O(N). */
-// tbb::allocator can improve performance in some cases.
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, tbb::tbb_allocator>;
+template <>
+struct __backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>
+{
+    // Raw memory buffer with automatic freeing and no exceptions.
+    // Some of our algorithms need to start with raw memory buffer,
+    // not an initialize array, because initialization/destruction
+    // would make the span be at least O(N).
+    // tbb::allocator can improve performance in some cases.
+    template <typename _ExecutionPolicy, typename _Tp>
+    using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, tbb::tbb_allocator>;
+
+    static void
+    __cancel_execution();
+
+    template <class _ExecutionPolicy, class _Index, class _Fp>
+    static void
+    __parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f);
+
+    template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
+    static void
+    __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f);
+
+    template <class _ExecutionPolicy, typename _F1, typename _F2>
+    static void
+    __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2);
+
+    template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+              typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
+    static void
+    __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
+                     _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _RandomAccessIterator3 __outit,
+                     _Compare __comp, _LeafMerge __leaf_merge);
+
+    template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
+    static _Value
+    __parallel_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, const _Value& __identity,
+                      const _RealBody& __real_body, const _Reduction&);
+
+    template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
+    static void
+    __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
+                           _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort /*= 0*/);
+
+    template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp,
+              typename _Ap>
+    static void
+    __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
+                           _Ap __apex);
+
+    template <class _ExecutionPolicy, class _Index, class _UnaryOp, class _Tp, class _BinaryOp, class _Reduce>
+    static _Tp
+    __parallel_transform_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, _UnaryOp, _Tp __init, _BinaryOp,
+                                _Reduce __reduce);
+
+    template <class _ExecutionPolicy, class _Index, class _UnaryOp, class _Tp, class _BinaryOp, class _Reduce,
+              class _Scan>
+    static _Tp
+    __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _UnaryOp, _Tp __init, _BinaryOp, _Reduce, _Scan __scan);
+};
 
 // Wrapper for tbb::task
 inline void
-__cancel_execution(oneapi::dpl::__internal::__tbb_backend_tag)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__cancel_execution()
 {
 #if TBB_INTERFACE_VERSION <= 12000
     tbb::task::self().group()->cancel_group_execution();
@@ -92,7 +144,8 @@ class __parallel_for_body
 // wrapper over tbb::parallel_for
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
-__parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_for(_ExecutionPolicy&&, _Index __first,
+                                                                             _Index __last, _Fp __f)
 {
     tbb::this_task_arena::isolate([=]() {
         tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last), __parallel_for_body<_Index, _Fp>(__f));
@@ -103,8 +156,10 @@ __parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _
 // wrapper over tbb::parallel_reduce
 template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
 _Value
-__parallel_reduce(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,
-                  const _Value& __identity, const _RealBody& __real_body, const _Reduction& __reduction)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_reduce(_ExecutionPolicy&&, _Index __first,
+                                                                                _Index __last, const _Value& __identity,
+                                                                                const _RealBody& __real_body,
+                                                                                const _Reduction& __reduction)
 {
     return tbb::this_task_arena::isolate([__first, __last, &__identity, &__real_body, &__reduction]() -> _Value {
         return tbb::parallel_reduce(
@@ -125,6 +180,8 @@ __parallel_reduce(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&
 //      c(x,y) combines values x and y that were the result of r or u
 //------------------------------------------------------------------------
 
+namespace __tbb_backend_details
+{
 template <class _Index, class _Up, class _Tp, class _Cp, class _Rp>
 struct __par_trans_red_body
 {
@@ -181,13 +238,15 @@ struct __par_trans_red_body
         sum() = _M_brick_reduce(__i, __j, sum());
     }
 };
+} // namespace __tbb_backend_details
 
 template <class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp>
 _Tp
-__parallel_transform_reduce(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first,
-                            _Index __last, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_transform_reduce(
+    _ExecutionPolicy&&, _Index __first, _Index __last, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce)
 {
-    __tbb_backend::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine, __brick_reduce);
+    __tbb_backend_details::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine,
+                                                                                   __brick_reduce);
     // The grain size of 3 is used in order to provide minimum 2 elements for each body
     tbb::this_task_arena::isolate(
         [__first, __last, &__body]() { tbb::parallel_reduce(tbb::blocked_range<_Index>(__first, __last, 3), __body); });
@@ -198,6 +257,8 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__tbb_backend_tag, _Executi
 // parallel_scan
 //------------------------------------------------------------------------
 
+namespace __tbb_backend_details
+{
 template <class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
 class __trans_scan_body
 {
@@ -307,9 +368,9 @@ __upsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsize
     {
         _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] { __tbb_backend::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
+            [=] { __tbb_backend_details::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
             [=] {
-                __tbb_backend::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine);
+                __tbb_backend_details::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine);
             });
         if (__m == 2 * __k)
             __r[__m - 1] = __combine(__r[__k - 1], __r[__m - 1]);
@@ -327,15 +388,16 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
     {
         const _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] { __tbb_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
+            [=] { __tbb_backend_details::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             //TODO: Consider adding a requirement for user functors to be constant.
             [=, &__combine] {
-                __tbb_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
+                __tbb_backend_details::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
                                            __combine(__initial, __r[__k - 1]), __combine, __scan);
             });
     }
 }
+} // namespace __tbb_backend_details
 
 // Adapted from Intel(R) Cilk(TM) version from cilkpub.
 // Let i:len denote a counted interval of length n starting at i.  s denotes a generalized-sum value.
@@ -353,8 +415,10 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
 // T must have a trivial constructor and destructor.
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&& __exec, _Index __n, _Tp __initial,
-                       _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_strict_scan(_ExecutionPolicy&& __exec,
+                                                                                     _Index __n, _Tp __initial,
+                                                                                     _Rp __reduce, _Cp __combine,
+                                                                                     _Sp __scan, _Ap __apex)
 {
     tbb::this_task_arena::isolate([=, &__combine]() {
         if (__n > 1)
@@ -363,10 +427,10 @@ __parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
             const _Index __slack = 4;
             _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
             _Index __m = (__n - 1) / __tilesize;
-            __tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__exec, __m + 1);
+            __buffer<_ExecutionPolicy, _Tp> __buf(__exec, __m + 1);
             _Tp* __r = __buf.get();
-            __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
-                                     __combine);
+            __tbb_backend_details::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize,
+                                             __reduce, __combine);
 
             // When __apex is a no-op and __combine has no side effects, a good optimizer
             // should be able to eliminate all code between here and __apex.
@@ -377,8 +441,8 @@ __parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
             while ((__k &= __k - 1))
                 __t = __combine(__r[__k - 1], __t);
             __apex(__combine(__initial, __t));
-            __tbb_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial,
-                                       __combine, __scan);
+            __tbb_backend_details::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize,
+                                               __initial, __combine, __scan);
             return;
         }
         // Fewer than 2 elements in sequence, or out of memory.  Handle has single block.
@@ -393,10 +457,13 @@ __parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
 
 template <class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
 _Tp
-__parallel_transform_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __n, _Up __u,
-                          _Tp __init, _Cp __combine, _Rp __brick_reduce, _Sp __scan)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_transform_scan(_ExecutionPolicy&&, _Index __n,
+                                                                                        _Up __u, _Tp __init,
+                                                                                        _Cp __combine,
+                                                                                        _Rp __brick_reduce, _Sp __scan)
 {
-    __trans_scan_body<_Index, _Up, _Tp, _Cp, _Rp, _Sp> __body(__u, __init, __combine, __brick_reduce, __scan);
+    __tbb_backend_details::__trans_scan_body<_Index, _Up, _Tp, _Cp, _Rp, _Sp> __body(__u, __init, __combine,
+                                                                                     __brick_reduce, __scan);
     auto __range = tbb::blocked_range<_Index>(0, __n);
     tbb::this_task_arena::isolate([__range, &__body]() { tbb::parallel_scan(__range, __body); });
     return __body.sum();
@@ -1162,9 +1229,9 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&& __exec,
-                       _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort,
-                       ::std::size_t __nsort)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_stable_sort(
+    _ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
+    _LeafSort __leaf_sort, ::std::size_t __nsort /*= 0*/)
 {
     tbb::this_task_arena::isolate([=, &__nsort]() {
         //sorting based on task tree and parallel merge
@@ -1175,7 +1242,7 @@ __parallel_stable_sort(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
         const _DifferenceType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
-            __tbb_backend::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
+            __buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
             __root_task<__stable_sort_func<_RandomAccessIterator, _ValueType*, _Compare, _LeafSort>> __root{
                 __xs, __xe, __buf.get(), true, __comp, __leaf_sort, __nsort, __xs, __buf.get()};
             __task::spawn_root_and_wait(__root);
@@ -1255,9 +1322,9 @@ operator()(__task* __self)
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
 void
-__parallel_merge(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __xs,
-                 _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
-                 _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_merge(
+    _ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys,
+    _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
@@ -1287,7 +1354,8 @@ __parallel_merge(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&,
 
 template <class _ExecutionPolicy, typename _F1, typename _F2>
 void
-__parallel_invoke(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_invoke(_ExecutionPolicy&&, _F1&& __f1,
+                                                                                _F2&& __f2)
 {
     //TODO: a version of tbb::this_task_arena::isolate with variadic arguments pack should be added in the future
     tbb::this_task_arena::isolate(
@@ -1300,13 +1368,14 @@ __parallel_invoke(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
-__parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _ForwardIterator __begin,
-                    _ForwardIterator __end, _Fp __f)
+__backend_impl<::oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_for_each(_ExecutionPolicy&&,
+                                                                                  _ForwardIterator __begin,
+                                                                                  _ForwardIterator __end, _Fp __f)
 {
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
-} // namespace __tbb_backend
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 
