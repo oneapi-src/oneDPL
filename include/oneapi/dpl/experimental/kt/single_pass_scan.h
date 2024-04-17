@@ -19,6 +19,8 @@
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl.h"
+#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
+#include "../../pstl/utils.h"
 
 namespace oneapi::dpl::experimental::kt
 {
