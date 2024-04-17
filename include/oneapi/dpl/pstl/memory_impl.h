@@ -41,7 +41,10 @@ __brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _O
     using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
     {
-        ::new (::std::addressof(*__result)) _ValueType(::std::move(*__first));
+        if constexpr (std::is_trivially_move_constructible_v<_ValueType>)
+            *__result = std::move(*__first);
+        else
+            ::new (std::addressof(*__result)) _ValueType(std::move(*__first));
     }
     return __result;
 }
@@ -55,9 +58,13 @@ __brick_uninitialized_move(_RandomAccessIterator __first, _RandomAccessIterator 
     using _ReferenceType1 = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
     using _ReferenceType2 = typename ::std::iterator_traits<_OutputIterator>::reference;
 
-    return __unseq_backend::__simd_walk_2(
-        __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(::std::move(__x)); });
+    return __unseq_backend::__simd_walk_2(__first, __last - __first, __result,
+                                          [](_ReferenceType1 __x, _ReferenceType2 __y) {
+                                              if constexpr (std::is_trivially_move_constructible_v<__ValueType>)
+                                                  __y = std::move(__x);
+                                              else
+                                                  ::new (std::addressof(__y)) __ValueType(std::move(__x));
+                                          });
 }
 
 template <typename _Iterator>
@@ -143,7 +150,10 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::move(__source));
+        if constexpr (std::is_trivially_move_constructible_v<_TargetValueType>)
+            __target = std::move(__source);
+        else
+            ::new (std::addressof(__target)) _TargetValueType(std::move(__source));
     }
 };
 

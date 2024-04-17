@@ -1497,10 +1497,10 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
                 __internal::__brick_copy_by_mask(
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
                     [](_RandomAccessIterator __x, _Tp* __z) {
-                        if constexpr (::std::is_trivial_v<_Tp>)
-                            *__z = ::std::move(*__x);
+                        if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+                            *__z = std::move(*__x);
                         else
-                            ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+                            ::new (std::addressof(*__z)) _Tp(std::move(*__x));
                     },
                     _IsVector{});
             },
@@ -3094,10 +3094,10 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
-            if constexpr (::std::is_trivial_v<_Tp>)
-                *__z = ::std::move(*__x);
+            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+                *__z = std::move(*__x);
             else
-                ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+                ::new (std::addressof(*__z)) _Tp(std::move(*__x));
         };
 
         auto __move_sequences = [](_RandomAccessIterator __first1, _RandomAccessIterator __last1, _Tp* __first2) {

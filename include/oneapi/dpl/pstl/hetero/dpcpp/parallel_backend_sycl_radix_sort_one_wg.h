@@ -106,7 +106,12 @@ struct __subgroup_radix_sort
         {
             const uint16_t __idx = __wi * __block_size + __i;
             if (__idx < __n)
-                new (&__values[__i]) _ValueT(::std::move(__src[__idx]));
+            {
+                if constexpr (std::is_trivially_move_constructible_v<_ValueT>)
+                    __values[__i] = std::move(__src[__idx]);
+                else
+                    new (&__values[__i]) _ValueT(std::move(__src[__idx]));
+            }
         }
     }
 
@@ -282,7 +287,12 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
+                                    {
+                                        if constexpr (std::is_trivially_move_constructible_v<_ValT>)
+                                            __exchange_lacc[__r] = std::move(__values.__v[__i]);
+                                        else
+                                            new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
+                                    }
                                 }
                             }
                             else
