@@ -127,7 +127,7 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__backend_impl<::oneapi::dpl::__internal::__omp_backend_tag>::__parallel_stable_sort(
+__backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_stable_sort(
     _ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
     _LeafSort __leaf_sort, std::size_t __nsort /*= 0*/)
 {

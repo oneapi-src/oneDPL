@@ -95,7 +95,7 @@ __parallel_strict_scan_body(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial
     const _Index __slack = 4;
     _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
     _Index __m = (__n - 1) / __tilesize;
-    oneapi::dpl::__backend::__backend_impl<::oneapi::dpl::__internal::__omp_backend_tag>::__buffer<_ExecutionPolicy,
+    oneapi::dpl::__backend::__backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__buffer<_ExecutionPolicy,
                                                                                                    _Tp>
         __buf(::std::forward<_ExecutionPolicy>(__exec), __m + 1);
     _Tp* __r = __buf.get();
@@ -118,7 +118,7 @@ __parallel_strict_scan_body(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial
 
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__backend_impl<::oneapi::dpl::__internal::__omp_backend_tag>::__parallel_strict_scan(_ExecutionPolicy&& __exec,
+__backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_strict_scan(_ExecutionPolicy&& __exec,
                                                                                      _Index __n, _Tp __initial,
                                                                                      _Rp __reduce, _Cp __combine,
                                                                                      _Sp __scan, _Ap __apex)

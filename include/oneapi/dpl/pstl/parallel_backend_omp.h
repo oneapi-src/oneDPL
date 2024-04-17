@@ -28,7 +28,7 @@ namespace __backend
 {
 
 template <>
-struct __backend_impl<::oneapi::dpl::__internal::__omp_backend_tag>
+struct __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>
 {
     template <typename _ExecutionPolicy, typename _Tp>
     using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
