@@ -22,9 +22,10 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __omp_backend
+namespace __backend
 {
-
+namespace __omp_backend_details
+{
 template <typename _F1, typename _F2>
 void
 __parallel_invoke_body(_F1&& __f1, _F2&& __f2)
@@ -35,24 +36,28 @@ __parallel_invoke_body(_F1&& __f1, _F2&& __f2)
         _PSTL_PRAGMA(omp task untied mergeable) { std::forward<_F2>(__f2)(); }
     }
 }
+}
 
 template <class _ExecutionPolicy, typename _F1, typename _F2>
 void
-__parallel_invoke(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
+__backend_impl<::oneapi::dpl::__internal::__omp_backend_tag>::__parallel_invoke(_ExecutionPolicy&&, _F1&& __f1,
+                                                                                _F2&& __f2)
 {
     if (omp_in_parallel())
     {
-        oneapi::dpl::__omp_backend::__parallel_invoke_body(std::forward<_F1>(__f1), std::forward<_F2>(__f2));
+        oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1),
+                                                                              std::forward<_F2>(__f2));
     }
     else
     {
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
-        oneapi::dpl::__omp_backend::__parallel_invoke_body(std::forward<_F1>(__f1), std::forward<_F2>(__f2));
+        oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1),
+                                                                              std::forward<_F2>(__f2));
     }
 }
 
-} // namespace __omp_backend
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_INVOKE_H
