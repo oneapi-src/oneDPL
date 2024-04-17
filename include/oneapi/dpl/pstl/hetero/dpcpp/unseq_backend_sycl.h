@@ -222,7 +222,7 @@ struct transform_reduce
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
             // Keep these statements in the same scope to allow for better memory alignment
-            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+            if constexpr (std::is_trivially_copy_constructible_v<_Tp>)
                 __res.__v = __unary_op(__adjusted_global_id, __acc...);
             else
                 new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
@@ -234,7 +234,7 @@ struct transform_reduce
         {
             const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
             // Keep these statements in the same scope to allow for better memory alignment
-            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+            if constexpr (std::is_trivially_copy_constructible_v<_Tp>)
                 __res.__v = __unary_op(__adjusted_global_id, __acc...);
             else
                 new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
@@ -259,7 +259,7 @@ struct transform_reduce
         // Coalesced load and reduce from global memory
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
-            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+            if constexpr (std::is_trivially_copy_constructible_v<_Tp>)
                 __res.__v = __unary_op(__adjusted_global_id, __acc...);
             else
                 new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
@@ -271,7 +271,7 @@ struct transform_reduce
         {
             const _Size __items_to_process =
                 std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
-            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+            if constexpr (std::is_trivially_copy_constructible_v<_Tp>)
                 __res.__v = __unary_op(__adjusted_global_id, __acc...);
             else
                 new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
