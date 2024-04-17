@@ -1145,7 +1145,8 @@ struct __brick_move_destroy
         return __unseq_backend::__simd_assign(__first, __last - __first, __result,
                                               [](_RandomAccessIterator1 __first, _RandomAccessIterator2 __result) {
                                                   *__result = ::std::move(*__first);
-                                                  (*__first).~_IteratorValueType();
+                                                  if constexpr (!std::is_trivially_destructible_v<_IteratorValueType>)
+                                                      (*__first).~_IteratorValueType();
                                               });
     }
 
@@ -1158,7 +1159,8 @@ struct __brick_move_destroy
         for (; __first != __last; ++__first, ++__result)
         {
             *__result = ::std::move(*__first);
-            (*__first).~_IteratorValueType();
+            if constexpr (!std::is_trivially_destructible_v<_IteratorValueType>)
+                (*__first).~_IteratorValueType();
         }
         return __result;
     }

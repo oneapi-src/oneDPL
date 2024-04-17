@@ -254,17 +254,21 @@ struct __subgroup_radix_sort
                                     {
                                         //move the values to source range and destroy the values
                                         __src[__r] = ::std::move(__values.__v[__i]);
-                                        __values.__v[__i].~_ValT();
+                                        if constexpr (!std::is_trivially_destructible_v<_ValT>)
+                                            __values.__v[__i].~_ValT();
                                     }
                                 }
 
                                 //destroy values in exchange buffer
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                if constexpr (!std::is_trivially_destructible_v<_ValT>)
                                 {
-                                    const uint16_t __idx = __wi * __block_size + __i;
-                                    if (__idx < __n)
-                                        __exchange_lacc[__idx].~_ValT();
+                                    _ONEDPL_PRAGMA_UNROLL
+                                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                    {
+                                        const uint16_t __idx = __wi * __block_size + __i;
+                                        if (__idx < __n)
+                                            __exchange_lacc[__idx].~_ValT();
+                                    }
                                 }
 
                                 return;

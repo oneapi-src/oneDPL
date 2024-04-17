@@ -519,10 +519,13 @@ __simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _Un
             __init = __binary_op(__init, __lane[__i]);
         }
         // destroyer
-        _ONEDPL_PRAGMA_SIMD
-        for (_Size __i = 0; __i < __block_size; ++__i)
+        if constexpr (!std::is_trivially_destructible_v<_Tp>)
         {
-            __lane[__i].~_Tp();
+            _ONEDPL_PRAGMA_SIMD
+            for (_Size __i = 0; __i < __block_size; ++__i)
+            {
+                __lane[__i].~_Tp();
+            }
         }
     }
     else

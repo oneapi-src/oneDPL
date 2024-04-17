@@ -153,8 +153,11 @@ struct __par_trans_red_body
     ~__par_trans_red_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if (_M_has_sum)
-            sum().~_Tp();
+        if constexpr (!std::is_trivially_destructible_v<_Tp>)
+        {
+            if (_M_has_sum)
+                sum().~_Tp();
+        }
     }
 
     void
@@ -223,8 +226,11 @@ class __trans_scan_body
     ~__trans_scan_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if (_M_has_sum)
-            sum().~_Tp();
+        if constexpr (!std::is_trivially_destructible_v<_Tp>)
+        {
+            if (_M_has_sum)
+                sum().~_Tp();
+        }
     }
 
     _Tp&

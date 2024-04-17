@@ -70,6 +70,7 @@ struct __serial_destroy
     operator()(_RandomAccessIterator __zs, _RandomAccessIterator __ze)
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+        static_assert(!std::is_trivially_destructible_v<_ValueType>);
         while (__zs != __ze)
         {
             --__ze;

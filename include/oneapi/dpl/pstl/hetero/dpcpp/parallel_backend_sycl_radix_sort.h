@@ -616,7 +616,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     if (__self_lidx < __residual)
                     {
                         __output_rng[__new_offset_idx] = std::move(__in_val.__v);
-                        __in_val.__v.~_ValueT();
+                        if constexpr (!std::is_trivially_destructible_v<_ValueT>)
+                            __in_val.__v.~_ValueT();
                     }
                 }
             });

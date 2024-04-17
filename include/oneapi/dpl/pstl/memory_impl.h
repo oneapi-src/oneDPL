@@ -66,6 +66,8 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
+    static_assert(!std::is_trivially_destructible_v<_ValueType>);
+
     for (; __first != __last; ++__first)
         __first->~_ValueType();
 }
@@ -76,6 +78,8 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
 {
     using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
     using _ReferenceType = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
+
+    static_assert(!std::is_trivially_destructible_v<_ValueType>);
 
     __unseq_backend::__simd_walk_1(__first, __last - __first, [](_ReferenceType __x) { __x.~_ValueType(); });
 }
@@ -174,6 +178,8 @@ struct __op_destroy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
+
+        static_assert(!std::is_trivially_destructible_v<_TargetValueType>);
         __target.~_TargetValueType();
     }
 };
