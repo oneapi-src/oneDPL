@@ -19,13 +19,10 @@
 // Select a parallel backend
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
-#    include "parallel_backend_tbb.h"
 #elif ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_OPENMP 1
-#    include "parallel_backend_omp.h"
 #else
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
-#    include "parallel_backend_serial.h"
 #endif
 
 namespace oneapi
@@ -42,6 +39,10 @@ struct __backend_impl;
 } // namespace __backend
 } // namespace dpl
 } // namespace oneapi
+
+#include "parallel_backend_serial.h"
+#include "parallel_backend_tbb.h"
+#include "parallel_backend_omp.h"
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
