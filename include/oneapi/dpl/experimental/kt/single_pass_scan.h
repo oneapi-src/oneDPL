@@ -348,17 +348,23 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr int __status_flag_padding = SUBGROUP_SIZE;
     ::std::size_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
-    ::std::size_t __status_flags_size_mem_size =
-        __status_flags_size * sizeof(_FlagStorageType) + (__status_flags_size * sizeof(_Type)) * 2;
-    ::std::size_t __status_vals_full_offset = __status_flags_size * sizeof(_FlagStorageType);
-    ::std::size_t __status_vals_partial_offset = __status_vals_full_offset + __status_flags_size * sizeof(_Type);
+    ::std::size_t __mem_align_pad = sizeof(_Type);
+    ::std::size_t __status_flags_bytes = __status_flags_size * sizeof(_FlagStorageType);
+    ::std::size_t __status_vals_full_offset_bytes = __status_flags_size * sizeof(_Type);
+    ::std::size_t __status_vals_partial_offset_bytes = __status_flags_size * sizeof(_Type);
+    ::std::size_t __mem_bytes = __status_flags_bytes + __status_vals_full_offset_bytes +
+                                __status_vals_partial_offset_bytes + __mem_align_pad;
 
-    ::std::byte* __device_mem = sycl::malloc_device<::std::byte>(__status_flags_size_mem_size, __queue);
+    ::std::byte* __device_mem = reinterpret_cast<::std::byte*>(sycl::malloc_device(__mem_bytes, __queue));
     assert(__device_mem);
 
     _FlagStorageType* __status_flags = reinterpret_cast<_FlagStorageType*>(__device_mem);
-    _Type* __status_vals_full = reinterpret_cast<_Type*>(__device_mem + __status_vals_full_offset);
-    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__device_mem + __status_vals_partial_offset);
+    ::std::size_t __remainder = __mem_bytes - __status_flags_bytes;
+    void* __vals_base_ptr = reinterpret_cast<void*>(__device_mem + __status_flags_bytes);
+    void* __vals_aligned_ptr = ::std::align(::std::alignment_of_v<_Type>, __status_vals_full_offset_bytes,
+                                            __vals_base_ptr, __remainder);
+    _Type* __status_vals_full = reinterpret_cast<_Type*>(__vals_aligned_ptr);
+    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__status_vals_full + __status_vals_full_offset_bytes);
 
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
