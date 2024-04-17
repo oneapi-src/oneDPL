@@ -36,12 +36,12 @@ __parallel_invoke_body(_F1&& __f1, _F2&& __f2)
         _PSTL_PRAGMA(omp task untied mergeable) { std::forward<_F2>(__f2)(); }
     }
 }
-}
+} // namespace __omp_backend_details
 
 template <class _ExecutionPolicy, typename _F1, typename _F2>
 void
 __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_invoke(_ExecutionPolicy&&, _F1&& __f1,
-                                                                                _F2&& __f2)
+                                                                              _F2&& __f2)
 {
     if (omp_in_parallel())
     {

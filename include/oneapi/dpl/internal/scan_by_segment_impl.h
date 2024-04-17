@@ -33,20 +33,20 @@
 #include <type_traits>
 
 #if _ONEDPL_BACKEND_SYCL
-#include <cstddef>
-#include <cstdint>
-#include <utility>
-#include <algorithm>
+#    include <cstddef>
+#    include <cstdint>
+#    include <utility>
+#    include <algorithm>
 
-#include "../pstl/algorithm_fwd.h"
-#include "../pstl/parallel_backend.h"
-#include "../pstl/hetero/utils_hetero.h"
+#    include "../pstl/algorithm_fwd.h"
+#    include "../pstl/parallel_backend.h"
+#    include "../pstl/hetero/utils_hetero.h"
 
-#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
-#include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#    include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#    include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
-#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+#    include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 namespace oneapi
 {

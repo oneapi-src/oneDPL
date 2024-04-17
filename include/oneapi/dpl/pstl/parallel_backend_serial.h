@@ -99,7 +99,7 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__cancel_executio
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
 __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_for(_ExecutionPolicy&&, _Index __first,
-                                                                                _Index __last, _Fp __f)
+                                                                              _Index __last, _Fp __f)
 {
     __f(__first, __last);
 }
@@ -107,10 +107,10 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_for(_E
 template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
 _Value
 __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_reduce(_ExecutionPolicy&&, _Index __first,
-                                                                                   _Index __last,
-                                                                                   const _Value& __identity,
-                                                                                   const _RealBody& __real_body,
-                                                                                   const _Reduction&)
+                                                                                 _Index __last,
+                                                                                 const _Value& __identity,
+                                                                                 const _RealBody& __real_body,
+                                                                                 const _Reduction&)
 {
     if (__first == __last)
     {
@@ -133,9 +133,9 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_transf
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
 __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_strict_scan(_ExecutionPolicy&&, _Index __n,
-                                                                                        _Tp __initial, _Rp __reduce,
-                                                                                        _Cp __combine, _Sp __scan,
-                                                                                        _Ap __apex)
+                                                                                      _Tp __initial, _Rp __reduce,
+                                                                                      _Cp __combine, _Sp __scan,
+                                                                                      _Ap __apex)
 {
     _Tp __sum = __initial;
     if (__n)
@@ -147,10 +147,10 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_strict
 
 template <class _ExecutionPolicy, class _Index, class _UnaryOp, class _Tp, class _BinaryOp, class _Reduce, class _Scan>
 _Tp
-__backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_transform_scan(_ExecutionPolicy&&,
-                                                                                           _Index __n, _UnaryOp,
-                                                                                           _Tp __init, _BinaryOp,
-                                                                                           _Reduce, _Scan __scan)
+__backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_transform_scan(_ExecutionPolicy&&, _Index __n,
+                                                                                         _UnaryOp, _Tp __init,
+                                                                                         _BinaryOp, _Reduce,
+                                                                                         _Scan __scan)
 {
     return __scan(_Index(0), __n, __init);
 }
@@ -178,7 +178,7 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_merge(
 template <class _ExecutionPolicy, typename _F1, typename _F2>
 void
 __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_invoke(_ExecutionPolicy&&, _F1&& __f1,
-                                                                                   _F2&& __f2)
+                                                                                 _F2&& __f2)
 {
     ::std::forward<_F1>(__f1)();
     ::std::forward<_F2>(__f2)();
@@ -187,8 +187,8 @@ __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_invoke
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
 __backend_impl<oneapi::dpl::__internal::__serial_backend_tag>::__parallel_for_each(_ExecutionPolicy&&,
-                                                                                     _ForwardIterator __begin,
-                                                                                     _ForwardIterator __end, _Fp __f)
+                                                                                   _ForwardIterator __begin,
+                                                                                   _ForwardIterator __end, _Fp __f)
 {
     for (auto __iter = __begin; __iter != __end; ++__iter)
         __f(*__iter);

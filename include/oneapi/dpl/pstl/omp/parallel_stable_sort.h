@@ -59,12 +59,12 @@ __parallel_move_range(_RandomAccessIterator __first1, _RandomAccessIterator __la
     _PSTL_PRAGMA(omp taskloop)
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        oneapi::dpl::__backend::__omp_backend_details::__process_chunk(__policy, __first1, __chunk,
-                                                               [&](auto __chunk_first, auto __chunk_last) {
-                                                                   auto __chunk_offset = __chunk_first - __first1;
-                                                                   auto __output_it = __d_first + __chunk_offset;
-                                                                   std::move(__chunk_first, __chunk_last, __output_it);
-                                                               });
+        oneapi::dpl::__backend::__omp_backend_details::__process_chunk(
+            __policy, __first1, __chunk, [&](auto __chunk_first, auto __chunk_last) {
+                auto __chunk_offset = __chunk_first - __first1;
+                auto __output_it = __d_first + __chunk_offset;
+                std::move(__chunk_first, __chunk_last, __output_it);
+            });
     }
 
     return __d_first + __size;
@@ -77,7 +77,7 @@ struct __move_range
     operator()(_RandomAccessIterator __first1, _RandomAccessIterator __last1, _OutputIterator __d_first) const
     {
         return oneapi::dpl::__backend::__omp_backend_details::__sort_details::__parallel_move_range(__first1, __last1,
-                                                                                            __d_first);
+                                                                                                    __d_first);
     }
 };
 } // namespace __sort_details
@@ -120,7 +120,7 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 
         // Move the values from __output_data back in the original source range.
         oneapi::dpl::__backend::__omp_backend_details::__sort_details::__parallel_move_range(__output_data.begin(),
-                                                                                     __output_data.end(), __xs);
+                                                                                             __output_data.end(), __xs);
     }
 }
 } // namespace __omp_backend_details

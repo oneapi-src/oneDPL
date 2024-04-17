@@ -1443,7 +1443,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
     _DifferenceType __n = __last - __first;
-    __par_backend_buffer<__backend_tag, _ExecutionPolicy, bool>  __mask_buf(__exec, __n);
+    __par_backend_buffer<__backend_tag, _ExecutionPolicy, bool> __mask_buf(__exec, __n);
     // 1. find a first iterator that should be removed
     return __internal::__except_handler([&]() {
         bool* __mask = __mask_buf.get();
@@ -2591,7 +2591,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
         {
             typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _T1;
             typedef typename ::std::iterator_traits<_RandomAccessIterator2>::value_type _T2;
-            __par_backend_buffer<__backend_tag, _ExecutionPolicy, _T1 > __buf(__exec, __n1);
+            __par_backend_buffer<__backend_tag, _ExecutionPolicy, _T1> __buf(__exec, __n1);
             _T1* __r = __buf.get();
 
             __par_backend<__backend_tag>::__parallel_stable_sort(
@@ -3087,7 +3087,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
     auto __n = __last - __first;
-    __par_backend_buffer<__backend_tag, _ExecutionPolicy, _Tp > __buf(__exec, __n);
+    __par_backend_buffer<__backend_tag, _ExecutionPolicy, _Tp> __buf(__exec, __n);
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
@@ -3218,7 +3218,7 @@ __parallel_set_op(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
     const _DifferenceType __n1 = __last1 - __first1;
     const _DifferenceType __n2 = __last2 - __first2;
 
-    __par_backend_buffer<__backend_tag, _ExecutionPolicy, _T > __buf(__exec, __size_func(__n1, __n2));
+    __par_backend_buffer<__backend_tag, _ExecutionPolicy, _T> __buf(__exec, __size_func(__n1, __n2));
 
     return __internal::__except_handler(
         [&__exec, __n1, __first1, __last1, __first2, __last2, __result, __comp, __size_func, __set_op, &__buf]() {

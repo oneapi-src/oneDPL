@@ -137,7 +137,8 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
-    oneapi::dpl::__internal::__par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _scanned_tail_flags(policy, n);
+    oneapi::dpl::__internal::__par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _scanned_tail_flags(policy,
+                                                                                                              n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
     inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,

@@ -58,13 +58,13 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
 
     _PSTL_PRAGMA(omp task untied mergeable default(none)
                      firstprivate(__xs, __xm, __ys, __ym, __zs, __comp, __leaf_merge))
-    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xm - __xs, __ym - __ys, __xs, __xm, __ys, __ym, __zs,
-                                                                 __comp, __leaf_merge);
+    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xm - __xs, __ym - __ys, __xs, __xm, __ys,
+                                                                         __ym, __zs, __comp, __leaf_merge);
 
     _PSTL_PRAGMA(omp task untied mergeable default(none)
                      firstprivate(__xm, __xe, __ym, __ye, __zm, __comp, __leaf_merge))
-    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xe - __xm, __ye - __ym, __xm, __xe, __ym, __ye, __zm,
-                                                                 __comp, __leaf_merge);
+    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xe - __xm, __ye - __ym, __xm, __xe, __ym,
+                                                                         __ye, __zm, __comp, __leaf_merge);
 
     _PSTL_PRAGMA(omp taskwait)
 }

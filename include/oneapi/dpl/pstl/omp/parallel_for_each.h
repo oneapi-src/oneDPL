@@ -47,8 +47,8 @@ __parallel_for_each_body(_ForwardIterator __first, _ForwardIterator __last, _Fp 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
 __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_for_each(_ExecutionPolicy&&,
-                                                                                  _ForwardIterator __first,
-                                                                                  _ForwardIterator __last, _Fp __f)
+                                                                                _ForwardIterator __first,
+                                                                                _ForwardIterator __last, _Fp __f)
 {
     if (omp_in_parallel())
     {
