@@ -54,15 +54,16 @@ namespace oneapi
 {
 namespace dpl
 {
-#if _ONEDPL_PAR_BACKEND_TBB
-namespace __par_backend = __tbb_backend;
-#elif _ONEDPL_PAR_BACKEND_OPENMP
-namespace __par_backend = __omp_backend;
-#elif _ONEDPL_PAR_BACKEND_SERIAL
-namespace __par_backend = __serial_backend;
-#else
-#    error "Parallel backend was not specified"
-#endif
+namespace __internal
+{
+
+template <typename __backend_tag>
+using __par_backend = oneapi::dpl::__backend::__backend_impl<__backend_tag>;
+
+template <typename __backend_tag, typename _ExecutionPolicy, typename _Tp>
+using __par_backend_buffer = typename __par_backend<__backend_tag>::template __buffer<_ExecutionPolicy, _Tp>;
+
+} // __internal
 } // namespace dpl
 } // namespace oneapi
 
