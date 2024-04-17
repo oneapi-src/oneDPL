@@ -18,6 +18,7 @@
 
 #if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
 #    include <version>
+#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
 #endif
 
 #ifndef _PSTL_VERSION
@@ -300,21 +301,13 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
-#if _ONEDPL___cplusplus >= 202002L && __cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L
-#    define _ONEDPL_CPP20_CONCEPTS_PRESENT 1
+#if _ONEDPL_STD_FEATURE_MACROS_PRESENT
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT (__cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L)
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT (_ONEDPL___cplusplus >= 202302L && __cpp_lib_tuple_like >= 202207L)
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT (_ONEDPL___cplusplus >= 202302L && __cpp_lib_ranges_zip >= 202110L)
 #else
 #    define _ONEDPL_CPP20_CONCEPTS_PRESENT 0
-#endif
-
-#if _ONEDPL___cplusplus >= 202302L && __cpp_lib_tuple_like >= 202207L
-#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 1
-#else
 #    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 0
-#endif
-
-#if _ONEDPL___cplusplus >= 202302L && __cpp_lib_ranges_zip >= 202110L
-#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 1
-#else
 #    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 0
 #endif
 
