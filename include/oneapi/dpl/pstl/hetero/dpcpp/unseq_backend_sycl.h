@@ -302,6 +302,11 @@ struct transform_reduce
     }
 };
 
+template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+          typename _Tp, typename _Commutative>
+struct _ONEDPL_IS_DEVICE_COPYABLE(transform_reduce, _ExecutionPolicy, __iters_per_work_item, _Operation1, _Operation2,
+    _Tp, _Commutative): dpl::__internal::__is_types_device_copyable<_Tp, _Operation1, _Operation2> {};
+
 // Reduce local reductions of each work item to a single reduced element per work group. The local reductions are held
 // in local memory. sycl::reduce_over_group is used for supported data types and operations. All other operations are
 // processed in order and without a known identity.
