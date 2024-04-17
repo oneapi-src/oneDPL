@@ -36,7 +36,7 @@ inline const std::vector<std::size_t> scan_sizes = {
     888'235, 1'000'000, 1 << 20, 10'000'000};
 
 template <typename T>
-typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
+typename std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 {
     std::default_random_engine gen{seed};
@@ -220,7 +220,7 @@ main()
         for (auto size : scan_sizes)
             test_all_cases<TEST_TYPE>(q, size, params);
     }
-    catch (const ::std::exception& exc)
+    catch (const std::exception& exc)
     {
         std::cerr << "Exception: " << exc.what() << std::endl;
         return EXIT_FAILURE;
