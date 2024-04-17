@@ -2605,7 +2605,10 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                     // 1. Copy elements from input to raw memory
                     for (_T1* __k = __i; __k != __j; ++__k, ++__it)
                     {
-                        ::new (__k) _T2(*__it);
+                        if constexpr (std::is_trivially_copy_constructible_v<_T2>)
+                            *__k = *__it;
+                        else
+                            ::new (__k) _T2(*__it);
                     }
 
                     // 2. Sort elements in temporary buffer
