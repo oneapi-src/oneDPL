@@ -84,8 +84,8 @@ __pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
-        return __par_backend::__parallel_transform_reduce(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+        return __par_backend<__backend_tag>::__parallel_transform_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable {
                 return __binary_op2(*__i, *(__first2 + (__i - __first1)));
             },
@@ -149,8 +149,8 @@ __pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
-        return __par_backend::__parallel_transform_reduce(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        return __par_backend<__backend_tag>::__parallel_transform_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__unary_op](_RandomAccessIterator __i) mutable { return __unary_op(*__i); }, __init, __binary_op,
             [__unary_op, __binary_op](_RandomAccessIterator __i, _RandomAccessIterator __j, _Tp __init) {
                 return __internal::__brick_transform_reduce(__i, __j, __init, __binary_op, __unary_op, _IsVector{});
@@ -262,8 +262,8 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
     return __internal::__except_handler([&]() {
-        __par_backend::__parallel_transform_scan(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
+        __par_backend<__backend_tag>::__parallel_transform_scan(
+            ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
             [__first, __unary_op, __binary_op](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
@@ -299,8 +299,8 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     }
 
     return __internal::__except_handler([&]() {
-        __par_backend::__parallel_strict_scan(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
+        __par_backend<__backend_tag>::__parallel_strict_scan(
+            ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
             [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i,
                                                           __unary_op, _Tp{}, __binary_op, _Inclusive(), _IsVector{})
@@ -399,8 +399,8 @@ __pattern_adjacent_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __ex
     *__d_first = *__first;
 
     return __internal::__except_handler([&]() {
-        __par_backend::__parallel_for(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
+        __par_backend<__backend_tag>::__parallel_for(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
             [&__op, __d_first, __first](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
                 _RandomAccessIterator2 __d_b = __d_first + (__b - __first);
                 __internal::__brick_walk3(
