@@ -28,6 +28,21 @@
 #    include "parallel_backend_serial.h"
 #endif
 
+namespace oneapi
+{
+namespace dpl
+{
+namespace __backend
+{
+
+// Template for backend implementations
+template <typename __backend_tag>
+struct __backend_impl;
+
+} // namespace __backend
+} // namespace dpl
+} // namespace oneapi
+
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
 #    if _ONEDPL_FPGA_DEVICE
