@@ -16,11 +16,6 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
-#    include <version>
-#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
-#endif
-
 #ifndef _PSTL_VERSION
 #    define _PSTL_VERSION 11000
 #    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
@@ -31,6 +26,11 @@
 #define ONEDPL_VERSION_MAJOR 2022
 #define ONEDPL_VERSION_MINOR 5
 #define ONEDPL_VERSION_PATCH 0
+
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
+#    include <version>
+#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
+#endif
 
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
