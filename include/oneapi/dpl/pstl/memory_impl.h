@@ -235,7 +235,8 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType();
+        static_assert(!std::is_trivial_v<_TargetValueType>);
+        ::new (std::addressof(__target)) _TargetValueType();
     }
 };
 
