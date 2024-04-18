@@ -890,6 +890,7 @@ create_new_policy_idx(Policy&& policy)
 #endif
 }
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <typename KernelName, int idx>
 struct __kernel_name_with_idx
 {
@@ -903,6 +904,7 @@ get_new_kernel_params(KernelParams)
         KernelParams::data_per_workitem, KernelParams::workgroup_size,
         __kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
 }
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 } /* namespace TestUtils */
 
