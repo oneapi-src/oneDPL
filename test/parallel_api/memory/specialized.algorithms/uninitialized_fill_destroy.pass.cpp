@@ -27,6 +27,7 @@
 #include _PSTL_TEST_HEADER(memory)
 
 #include "support/utils.h"
+#include "uninitialized_custom_data_struct.h"
 
 #include <memory>
 #include <cstdlib>
@@ -210,6 +211,15 @@ test_uninitialized_fill_destroy_by_type()
 int
 main()
 {
+    static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
+    static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
+    test_uninitialized_fill_destroy_by_type<StructTriviallyCopyConstructible>();
+
+    // Not applicable for StructTriviallyMoveConstructible due it has move-constructor only
+    //static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
+    //static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
+    //test_uninitialized_fill_destroy_by_type<StructTriviallyMoveConstructible>();
+
     // for trivial types
     test_uninitialized_fill_destroy_by_type<std::int32_t>();
     test_uninitialized_fill_destroy_by_type<float64_t>();
