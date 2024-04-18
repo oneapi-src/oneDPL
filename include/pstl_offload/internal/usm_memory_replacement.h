@@ -72,24 +72,19 @@ class __spin_mutex
         _M_flag.clear(std::memory_order_release);
     }
 
-public:
+  public:
     class __scoped_lock
     {
         __spin_mutex& _M_mutex;
 
-    public:
-        __scoped_lock(__spin_mutex& __m) : _M_mutex(__m)
-        {
-            __m.__lock();
-        }
+      public:
+        __scoped_lock(__spin_mutex& __m) : _M_mutex(__m) { __m.__lock(); }
 
         __scoped_lock(__scoped_lock&) = delete;
-        __scoped_lock& operator=(__scoped_lock&) = delete;
+        __scoped_lock&
+        operator=(__scoped_lock&) = delete;
 
-        ~__scoped_lock()
-        {
-            _M_mutex.__unlock();
-        }
+        ~__scoped_lock() { _M_mutex.__unlock(); }
     };
     friend class __scoped_lock;
 };
@@ -136,7 +131,7 @@ class __offload_policy_holder_type
 
         __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
 
-        new(&_M_offload_device) __sycl_device_shared_ptr(_device);
+        new (&_M_offload_device) __sycl_device_shared_ptr(_device);
         _M_offload_policy = oneapi::dpl::execution::device_policy<>(_device);
         _M_set_device_status_func(true);
     }

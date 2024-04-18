@@ -65,13 +65,13 @@ class __sycl_device_shared_ptr
 
     __sycl_device_shared_ptr(sycl::device _device)
     {
-        _M_shared_device = (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
+        _M_shared_device =
+            (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
         if (!_M_shared_device)
         {
             throw std::bad_alloc();
         }
-        new (_M_shared_device) __shared_device{_device,
-                                               _device.get_platform().ext_oneapi_get_default_context(), 1};
+        new (_M_shared_device) __shared_device{_device, _device.get_platform().ext_oneapi_get_default_context(), 1};
     }
 
     bool
