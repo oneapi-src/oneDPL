@@ -55,8 +55,6 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __internal
-{
 
 template <typename __backend_tag>
 using __par_backend = oneapi::dpl::__backend::__backend_impl<__backend_tag>;
@@ -64,7 +62,6 @@ using __par_backend = oneapi::dpl::__backend::__backend_impl<__backend_tag>;
 template <typename __backend_tag, typename _ExecutionPolicy, typename _Tp>
 using __par_backend_buffer = typename __par_backend<__backend_tag>::template __buffer<_ExecutionPolicy, _Tp>;
 
-} // namespace __internal
 } // namespace dpl
 } // namespace oneapi
 
