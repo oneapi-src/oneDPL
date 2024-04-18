@@ -23,6 +23,10 @@
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
+#include <functional>
+#include <utility>
+#include <cmath>
+#include <limits>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
