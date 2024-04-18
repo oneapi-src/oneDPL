@@ -286,19 +286,9 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
 
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    if constexpr (::std::is_trivial_v<_ValueType>)
-    {
-        return oneapi::dpl::__internal::__pattern_walk_brick_n(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__brick_fill_n<decltype(__dispatch_tag), _DecayedExecutionPolicy, _ValueType>{
-                _ValueType()});
-    }
-    else
-    {
-        return oneapi::dpl::__internal::__pattern_walk1_n(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__op_uninitialized_value_construct<_DecayedExecutionPolicy>{});
-    }
+    return oneapi::dpl::__internal::__pattern_walk1_n(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+        oneapi::dpl::__internal::__op_uninitialized_value_construct<_DecayedExecutionPolicy>{});
 }
 
 } // namespace dpl
