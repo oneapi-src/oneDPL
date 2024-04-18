@@ -216,15 +216,21 @@ __onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pa
         __esimd_radix_sort_onesweep_histogram<_KernelName>>;
     using _EsimdRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __esimd_radix_sort_onesweep_scan<_KernelName>>;
-    using _EsimdRadixSortSweepInitial = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack1>, std::decay_t<_RngPack2>, _KernelName>,
-                             __esimd_radix_sort_onesweep<std::decay_t<_RngPack1>, std::decay_t<_RngPack2>, _KernelName>>>;
-    using _EsimdRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack3>, std::decay_t<_RngPack2>, _KernelName>,
-                             __esimd_radix_sort_onesweep<std::decay_t<_RngPack3>, std::decay_t<_RngPack2>, _KernelName>>>;
-    using _EsimdRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>,
-                             __esimd_radix_sort_onesweep<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>>>;
+    using _EsimdRadixSortSweepInitial =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<::std::conditional_t<
+            __has_values,
+            __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack1>, std::decay_t<_RngPack2>, _KernelName>,
+            __esimd_radix_sort_onesweep<std::decay_t<_RngPack1>, std::decay_t<_RngPack2>, _KernelName>>>;
+    using _EsimdRadixSortSweepEven =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<::std::conditional_t<
+            __has_values,
+            __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack3>, std::decay_t<_RngPack2>, _KernelName>,
+            __esimd_radix_sort_onesweep<std::decay_t<_RngPack3>, std::decay_t<_RngPack2>, _KernelName>>>;
+    using _EsimdRadixSortSweepOdd =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<::std::conditional_t<
+            __has_values,
+            __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>,
+            __esimd_radix_sort_onesweep<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>>>;
     using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
                              __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
@@ -340,8 +346,7 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
         }
     };
     auto __tmp_pack = __get_tmp_pack();
-    auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto&
-    {
+    auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto& {
         if constexpr (__in_place || (__stage_count % 2 == 0))
             return __pack1;
         else
