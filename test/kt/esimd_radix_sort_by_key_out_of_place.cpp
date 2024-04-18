@@ -50,8 +50,8 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
         sycl::buffer<KeyT> keys_out(actual_keys_out.data(), actual_keys_out.size());
         sycl::buffer<ValueT> values_out(actual_values_out.data(), actual_values_out.size());
 
-        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(
-            q, keys, values, keys_out, values_out, param)
+        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(q, keys, values, keys_out,
+                                                                                        values_out, param)
             .wait();
     }
 
@@ -132,7 +132,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
     EXPECT_EQ_N(expected_keys.begin(), actual_keys_out.begin(), size, msg_out.c_str());
     msg_out = "wrong results with USM (values)" + parameters_msg.str();
     EXPECT_EQ_N(expected_values.begin(), actual_values_out.begin(), size, msg_out.c_str());
-    }
+}
 
 int
 main()
@@ -147,12 +147,14 @@ main()
         {
             for (auto size : sort_sizes)
             {
-                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(q, size,
-                                                                                                             params);
-                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(q, size,
-                                                                                                              params);
-                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
-                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
+                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(
+                    q, size, TestUtils::get_new_kernel_params<0>(params));
+                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
+                    q, size, TestUtils::get_new_kernel_params<1>(params));
+                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(
+                    q, size, TestUtils::get_new_kernel_params<2>(params));
+                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(
+                    q, size, TestUtils::get_new_kernel_params<3>(params));
             }
         }
         catch (const ::std::exception& exc)
