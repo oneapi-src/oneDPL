@@ -102,7 +102,6 @@ _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__par_backend_hetero::__early_exit_find_or)
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_n)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_adjacent_difference)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::transform_reduce)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::reduce_over_group)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::single_match_pred_by_idx)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::multiple_match_pred)
@@ -149,7 +148,6 @@ _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::segmented_scan_fun)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::scatter_and_accumulate_fun)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::transform_if_stencil_fun)
 
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::zip_iterator)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::transform_iterator)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::permutation_iterator)
 

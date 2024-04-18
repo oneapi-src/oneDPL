@@ -72,8 +72,8 @@ __except_handler(_Fp __f) -> decltype(__f())
 
 #if _ONEDPL_BACKEND_SYCL
 
-template <typename... Ts>
-struct __is_types_device_copyable: std::conjunction<sycl::is_device_copyable<Ts>...> {};
+template <typename... _Ts>
+struct __is_types_device_copyable: std::conjunction<sycl::is_device_copyable<_Ts>...> {};
 
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 #   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) sycl::is_device_copyable<TYPE<__VA_ARGS__>, \
@@ -84,11 +84,11 @@ struct __is_types_device_copyable: std::conjunction<sycl::is_device_copyable<Ts>
 
 #else
 
-template <typename... Ts>
+template <typename...>
 struct __is_types_device_copyable: std::false_type {};
 
-template <typename... Ts>
-__is_device_copyable_ignore: std::false_type {};
+template <typename>
+struct __is_device_copyable_ignore: std::false_type {};
 
 #   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) __is_device_copyable_ignore<TYPE<__VA_ARGS__>>
 
