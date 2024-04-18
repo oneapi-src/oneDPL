@@ -717,6 +717,19 @@ struct __spirv_target_conditional :
 // to determine SPIR-V targets.
 inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
 
+template <typename T, typename = void>
+struct __is_iterator_type : std::false_type
+{
+};
+
+template <typename T>
+struct __is_iterator_type<T, std::void_t<typename std::iterator_traits<T>::difference_type>> : std::true_type
+{
+};
+
+template <typename T>
+static constexpr bool __is_iterator_type_v = __is_iterator_type<T>::value;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

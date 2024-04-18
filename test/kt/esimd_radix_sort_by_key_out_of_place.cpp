@@ -50,7 +50,7 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
         sycl::buffer<KeyT> keys_out(actual_keys_out.data(), actual_keys_out.size());
         sycl::buffer<ValueT> values_out(actual_values_out.data(), actual_values_out.size());
 
-        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key_out_of_place<isAscending, RadixBits>(
+        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(
             q, keys, values, keys_out, values_out, param)
             .wait();
     }
@@ -101,7 +101,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
     auto expected_first = oneapi::dpl::make_zip_iterator(std::begin(expected_keys), std::begin(expected_values));
     std::stable_sort(expected_first, expected_first + size, CompareKey<isAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort_by_key_out_of_place<isAscending, RadixBits>(
+    oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(
         q, keys.get_data(), keys.get_data() + size, values.get_data(), keys_out.get_data(), values_out.get_data(),
         param)
         .wait();
