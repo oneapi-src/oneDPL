@@ -203,7 +203,7 @@ struct __init_processing
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
-          ::std::uint8_t _VecSize>
+          std::uint8_t _VecSize>
 struct transform_reduce
 {
     _Operation1 __binary_op;
@@ -213,7 +213,7 @@ struct transform_reduce
     void
     vectorized_reduction_first(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
     {
-        new (&__res.__v) _Tp(std::move(__unary_op(__start_idx, __acc...)));
+        new (&__res.__v) _Tp(__unary_op(__start_idx, __acc...));
         _ONEDPL_PRAGMA_UNROLL
         for (_Size __i = 1; __i < _VecSize; ++__i)
             __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __i, __acc...));
@@ -233,7 +233,7 @@ struct transform_reduce
     scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, const _Size __max_iters, _Res& __res,
                                const _Acc&... __acc) const
     {
-        const _Size __no_iters = ::std::min(static_cast<_Size>(__adjusted_n - __start_idx), __max_iters);
+        const _Size __no_iters = std::min(static_cast<_Size>(__adjusted_n - __start_idx), __max_iters);
         for (_Size __idx = 0; __idx < __no_iters; ++__idx)
             __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
     }
@@ -248,7 +248,7 @@ struct transform_reduce
         const _Size __global_idx = __item_id.get_global_id(0);
         if (__iters_per_work_item == 1)
         {
-            new (&__res.__v) _Tp(std::move(__unary_op(__global_idx, __acc...)));
+            new (&__res.__v) _Tp(__unary_op(__global_idx, __acc...));
             return;
         }
         const _Size __local_range = __item_id.get_local_range(0);
@@ -305,7 +305,7 @@ struct transform_reduce
         // Scalar remainder
         else if (__adjusted_global_id < __adjusted_n)
         {
-            new (&__res.__v) _Tp(std::move(__unary_op(__adjusted_global_id, __acc...)));
+            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
             scalar_reduction_remainder(static_cast<_Size>(__adjusted_global_id + 1), __adjusted_n,
                                        static_cast<_Size>(_VecSize - 2), __res, __acc...);
         }
@@ -324,7 +324,7 @@ struct transform_reduce
             _Size __last_wg_remainder = __n % __items_per_work_group;
             // Adjust remainder and wg size for vector size
             _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
-            _Size __last_wg_contrib = ::std::min(__last_wg_vec, static_cast<_Size>(__work_group_size * _VecSize));
+            _Size __last_wg_contrib = std::min(__last_wg_vec, static_cast<_Size>(__work_group_size * _VecSize));
             return __full_group_contrib + __last_wg_contrib;
         }
         return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
@@ -361,7 +361,7 @@ struct reduce_over_group
         auto __group_size = __item_id.get_local_range().size();
 
         __local_mem[__local_idx] = __val;
-        for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
+        for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
             __dpl_sycl::__group_barrier(__item_id);
             if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
@@ -387,8 +387,8 @@ struct reduce_over_group
         __init_processing<_Tp>{}(__init, __result, __bin_op1);
     }
 
-    inline ::std::size_t
-    local_mem_req(const ::std::uint16_t& __work_group_size) const
+    inline std::size_t
+    local_mem_req(const std::uint16_t& __work_group_size) const
     {
         if constexpr (__has_known_identity<_BinaryOperation1, _Tp>{})
             return 0;
