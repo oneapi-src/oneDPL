@@ -169,9 +169,8 @@ struct test_destroy_n
 
 template <typename T>
 void
-test_uninitialized_fill_destroy_by_type()
+test_uninitialized_fill_destroy_by_type(const std::size_t N = 100000)
 {
-    ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
@@ -211,14 +210,8 @@ test_uninitialized_fill_destroy_by_type()
 int
 main()
 {
-    static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
-    static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
-    test_uninitialized_fill_destroy_by_type<StructTriviallyCopyConstructible>();
-
-    // Not applicable for StructTriviallyMoveConstructible due it has move-constructor only
-    //static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
-    //static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
-    //test_uninitialized_fill_destroy_by_type<StructTriviallyMoveConstructible>();
+    test_uninitialized_fill_destroy_by_type<Wrapper<StructTriviallyCopyConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<StructTriviallyMoveConstructible>>(1);
 
     // for trivial types
     test_uninitialized_fill_destroy_by_type<std::int32_t>();

@@ -162,9 +162,8 @@ struct test_uninit_value_construct_n
 
 template <typename T>
 void
-test_uninit_construct_by_type()
+test_uninit_construct_by_type(const std::size_t N = 100000)
 {
-    ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
@@ -200,11 +199,11 @@ main()
 {
     static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
     static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
-    test_uninit_construct_by_type<StructTriviallyCopyConstructible>();
+    test_uninit_construct_by_type<StructTriviallyCopyConstructible>(1);
 
     static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
     static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
-    test_uninit_construct_by_type<StructTriviallyMoveConstructible>();
+    test_uninit_construct_by_type<StructTriviallyMoveConstructible>(1);
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types

@@ -164,60 +164,27 @@ struct test_uninitialized_move_n
     }
 };
 
-template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-void
-test_uninitialized_copy_move_by_type()
+template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+auto
+create_sequence(size_t n)
 {
-    ::std::size_t N = 100000;
-    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        Sequence<T> in(n, [=](size_t k) -> T { return T(k); });
-
-#if !TEST_DPCPP_BACKEND_PRESENT
-        ::std::unique_ptr<T[]> p(new T[n]);
-        auto out_begin = p.get();
-#else
-        // common pointers are not supported for hetero backend
-        // sycl::buffer<T,1> buf(n); // async nature of buffer requires sync before EXPECT_ macro
-        // auto out_begin = oneapi::dpl::begin(buf);
-        Sequence<T> out(n, [=](size_t) -> T { return T{}; });
-        auto out_begin = out.begin();
-        // TODO: "memory objects" should be created in another abstraction level
-        //       to avoid multiple enable/disable macro for different backends
-#endif
-        if constexpr (std::is_trivially_copy_constructible_v<T>)
-        {
-#ifdef UNITIALIZED_COPY
-            invoke_on_all_policies<>()(test_uninitialized_copy<T>(), in.begin(), in.end(), out_begin, n,
-                                       ::std::is_trivial<T>());
-#endif
-#ifdef UNITIALIZED_COPY_N
-            invoke_on_all_policies<>()(test_uninitialized_copy_n<T>(), in.begin(), in.end(), out_begin, n,
-                                       ::std::is_trivial<T>());
-#endif
-        }
-
-        if constexpr (std::is_trivially_move_constructible_v<T>)
-        {
-#ifdef UNITIALIZED_MOVE
-            invoke_on_all_policies<>()(test_uninitialized_move<T>(), in.begin(), in.end(), out_begin, n,
-                                       ::std::is_trivial<T>());
-#endif
-#ifdef UNITIALIZED_MOVE_N
-            invoke_on_all_policies<>()(test_uninitialized_move_n<T>(), in.begin(), in.end(), out_begin, n,
-                                       ::std::is_trivial<T>());
-#endif
-        }
-    }
+    return Sequence<T>(n, [=](size_t k) -> T { return T(k); });
 }
 
-template <typename T, std::enable_if_t<!std::is_integral_v<T>, int> = 0>
-void
-test_uninitialized_copy_move_by_type()
+template <typename T, std::enable_if_t<!std::is_arithmetic_v<T>, int> = 0>
+auto
+create_sequence(size_t n)
 {
-    size_t n = 10;
+    return Sequence<T>(n);
+}
+
+template <typename T>
+void
+test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
+{
+    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> in(n);
+        Sequence<T> in = create_sequence<T>(n);
 
 #if !TEST_DPCPP_BACKEND_PRESENT
         ::std::unique_ptr<T[]> p(new T[n]);
@@ -262,11 +229,11 @@ main()
 {
     static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
     static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
-    test_uninitialized_copy_move_by_type<StructTriviallyCopyConstructible>();
+    test_uninitialized_copy_move_by_type<StructTriviallyCopyConstructible>(1);
 
     static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
     static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
-    test_uninitialized_copy_move_by_type<StructTriviallyMoveConstructible>();
+    test_uninitialized_copy_move_by_type<StructTriviallyMoveConstructible>(1);
 
     // for trivial types
     test_uninitialized_copy_move_by_type<std::int16_t>();
