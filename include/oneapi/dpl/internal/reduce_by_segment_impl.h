@@ -113,7 +113,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
 
-    using __buffer_backend_tag = typename oneapi::dpl::internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
+    using __buffer_backend_tag = typename oneapi::dpl::__internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result

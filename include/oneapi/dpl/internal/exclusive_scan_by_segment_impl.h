@@ -63,7 +63,7 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 
     InputIterator2 last2 = first2 + n;
 
-    using __buffer_backend_tag = typename oneapi::dpl::internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
+    using __buffer_backend_tag = typename oneapi::dpl::__internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
 
     // compute head flags
     oneapi::dpl::__internal::__par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _flags(policy, n);

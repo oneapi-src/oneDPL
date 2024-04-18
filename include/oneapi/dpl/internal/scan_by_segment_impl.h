@@ -408,7 +408,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace internal
+namespace __internal
 {
 
 //------------------------------------------------------------------------------
@@ -444,7 +444,7 @@ struct __par_buffer_backend_selector<_Tag, std::enable_if_t<!has_member_backend_
     using __backend_tag = oneapi::dpl::__internal::__serial_backend_tag;
 };
 
-} // namespace internal
+} // namespace __internal
 } // namespace dpl
 } // namespace oneapi
 
