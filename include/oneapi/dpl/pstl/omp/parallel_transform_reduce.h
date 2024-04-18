@@ -45,7 +45,7 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
 
     // Initial partition of the iteration space into chunks. If the range is too small,
     // this will result in a nonsense policy, so we check on the size as well below.
-    auto __policy = oneapi::dpl::__backend::__omp_backend_details::__chunk_partitioner(__first + __num_threads, __last);
+    auto __policy = __chunk_partitioner(__first + __num_threads, __last);
 
     if (__size <= __num_threads || __policy.__n_chunks < 2)
     {
@@ -68,11 +68,10 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
     _PSTL_PRAGMA(omp taskloop shared(__accums))
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        oneapi::dpl::__backend::__omp_backend_details::__process_chunk(
-            __policy, __first + __num_threads, __chunk, [&](auto __chunk_first, auto __chunk_last) {
-                auto __thread_num = omp_get_thread_num();
-                __accums[__thread_num] = __reduction(__chunk_first, __chunk_last, __accums[__thread_num]);
-            });
+        __process_chunk(__policy, __first + __num_threads, __chunk, [&](auto __chunk_first, auto __chunk_last) {
+            auto __thread_num = omp_get_thread_num();
+            __accums[__thread_num] = __reduction(__chunk_first, __chunk_last, __accums[__thread_num]);
+        });
     }
 
     // combine by accumulators
@@ -97,8 +96,8 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_transform
     {
         // We don't create a nested parallel region in an existing parallel
         // region: just create tasks
-        __result = oneapi::dpl::__backend::__omp_backend_details::__transform_reduce_body(
-            __first, __last, __unary_op, __init, __combiner, __reduction);
+        __result = __omp_backend_details::__transform_reduce_body(__first, __last, __unary_op, __init, __combiner,
+                                                                  __reduction);
     }
     else
     {
@@ -107,8 +106,8 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_transform
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            __result = oneapi::dpl::__backend::__omp_backend_details::__transform_reduce_body(
-                __first, __last, __unary_op, __init, __combiner, __reduction);
+            __result = __omp_backend_details::__transform_reduce_body(__first, __last, __unary_op, __init, __combiner,
+                                                                      __reduction);
         }
     }
 

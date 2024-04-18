@@ -33,13 +33,13 @@ void
 __parallel_for_body(_Index __first, _Index __last, _Fp __f)
 {
     // initial partition of the iteration space into chunks
-    auto __policy = ::oneapi::dpl::__backend::__omp_backend_details::__chunk_partitioner(__first, __last);
+    auto __policy = __chunk_partitioner(__first, __last);
 
     // To avoid over-subscription we use taskloop for the nested parallelism
     _PSTL_PRAGMA(omp taskloop untied mergeable)
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        ::oneapi::dpl::__backend::__omp_backend_details::__process_chunk(__policy, __first, __chunk, __f);
+        __process_chunk(__policy, __first, __chunk, __f);
     }
 }
 } // namespace __omp_backend_details
@@ -58,7 +58,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_for(_Exec
     {
         // we don't create a nested parallel region in an existing parallel
         // region: just create tasks
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_for_body(__first, __last, __f);
+        __omp_backend_details::__parallel_for_body(__first, __last, __f);
     }
     else
     {
@@ -67,7 +67,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_for(_Exec
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            oneapi::dpl::__backend::__omp_backend_details::__parallel_for_body(__first, __last, __f);
+            __omp_backend_details::__parallel_for_body(__first, __last, __f);
         }
     }
 }

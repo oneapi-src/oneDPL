@@ -64,8 +64,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_reduce(_E
     // just create tasks.
     if (omp_in_parallel())
     {
-        return oneapi::dpl::__backend::__omp_backend_details::__parallel_reduce_body(__first, __last, __identity,
-                                                                                     __real_body, __reduction);
+        return __omp_backend_details::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
     }
 
     // In any case (nested or non-nested) one parallel region is created and only
@@ -75,8 +74,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_reduce(_E
     _PSTL_PRAGMA(omp parallel)
     _PSTL_PRAGMA(omp single nowait)
     {
-        __res = oneapi::dpl::__backend::__omp_backend_details::__parallel_reduce_body(__first, __last, __identity,
-                                                                                      __real_body, __reduction);
+        __res = __omp_backend_details::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
     }
 
     return __res;

@@ -34,7 +34,7 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
                       _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
 {
 
-    if (__size_x + __size_y <= ::oneapi::dpl::__backend::__omp_backend_details::__default_chunk_size)
+    if (__size_x + __size_y <= __default_chunk_size)
     {
         __leaf_merge(__xs, __xe, __ys, __ye, __zs, __comp);
         return;
@@ -58,13 +58,11 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
 
     _PSTL_PRAGMA(omp task untied mergeable default(none)
                      firstprivate(__xs, __xm, __ys, __ym, __zs, __comp, __leaf_merge))
-    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xm - __xs, __ym - __ys, __xs, __xm, __ys,
-                                                                         __ym, __zs, __comp, __leaf_merge);
+    __parallel_merge_body(__xm - __xs, __ym - __ys, __xs, __xm, __ys, __ym, __zs, __comp, __leaf_merge);
 
     _PSTL_PRAGMA(omp task untied mergeable default(none)
                      firstprivate(__xm, __xe, __ym, __ye, __zm, __comp, __leaf_merge))
-    oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__xe - __xm, __ye - __ym, __xm, __xe, __ym,
-                                                                         __ye, __zm, __comp, __leaf_merge);
+    __parallel_merge_body(__xe - __xm, __ye - __ym, __xm, __xe, __ym, __ye, __zm, __comp, __leaf_merge);
 
     _PSTL_PRAGMA(omp taskwait)
 }
@@ -88,16 +86,16 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_merge(
 
     if (omp_in_parallel())
     {
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye,
-                                                                             __zs, __comp, __leaf_merge);
+        __omp_backend_details::__parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp,
+                                                     __leaf_merge);
     }
     else
     {
         _PSTL_PRAGMA(omp parallel)
         {
             _PSTL_PRAGMA(omp single nowait)
-            oneapi::dpl::__backend::__omp_backend_details::__parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys,
-                                                                                 __ye, __zs, __comp, __leaf_merge);
+            __omp_backend_details::__parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp,
+                                                         __leaf_merge);
         }
     }
 }

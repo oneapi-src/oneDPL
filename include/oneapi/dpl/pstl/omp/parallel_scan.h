@@ -47,14 +47,8 @@ __upsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsize
     {
         _Index __k = __split(__m);
         oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(
-            [=] {
-                oneapi::dpl::__backend::__omp_backend_details::__upsweep(__i, __k, __tilesize, __r, __tilesize,
-                                                                         __reduce, __combine);
-            },
-            [=] {
-                oneapi::dpl::__backend::__omp_backend_details::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k,
-                                                                         __lastsize, __reduce, __combine);
-            });
+            [=] { __upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
+            [=] { __upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine); });
         if (__m == 2 * __k)
             __r[__m - 1] = __combine(__r[__k - 1], __r[__m - 1]);
     }
@@ -70,17 +64,13 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
     else
     {
         const _Index __k = __split(__m);
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(
-            [=] {
-                oneapi::dpl::__backend::__omp_backend_details::__downsweep(__i, __k, __tilesize, __r, __tilesize,
-                                                                           __initial, __combine, __scan);
-            },
+        __parallel_invoke_body(
+            [=] { __downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             // TODO: Consider adding a requirement for user functors to be constant.
             [=, &__combine] {
-                oneapi::dpl::__backend::__omp_backend_details::__downsweep(
-                    __i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __combine(__initial, __r[__k - 1]),
-                    __combine, __scan);
+                __downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __combine(__initial, __r[__k - 1]),
+                            __combine, __scan);
             });
     }
 }
@@ -99,8 +89,7 @@ __parallel_strict_scan_body(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial
         __buf(::std::forward<_ExecutionPolicy>(__exec), __m + 1);
     _Tp* __r = __buf.get();
 
-    oneapi::dpl::__backend::__omp_backend_details::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r,
-                                                             __n - __m * __tilesize, __reduce, __combine);
+    __upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce, __combine);
 
     std::size_t __k = __m + 1;
     _Tp __t = __r[__k - 1];
@@ -110,8 +99,7 @@ __parallel_strict_scan_body(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial
     }
 
     __apex(__combine(__initial, __t));
-    oneapi::dpl::__backend::__omp_backend_details::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r,
-                                                               __n - __m * __tilesize, __initial, __combine, __scan);
+    __downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial, __combine, __scan);
 }
 } // namespace __omp_backend_details
 
@@ -122,7 +110,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_strict_sc
                                                                                    _Rp __reduce, _Cp __combine,
                                                                                    _Sp __scan, _Ap __apex)
 {
-    if (__n <= ::oneapi::dpl::__backend::__omp_backend_details::__default_chunk_size)
+    if (__n <= __omp_backend_details::__default_chunk_size)
     {
         _Tp __sum = __initial;
         if (__n)
@@ -139,16 +127,16 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_strict_sc
 
     if (omp_in_parallel())
     {
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_strict_scan_body(
-            ::std::forward<_ExecutionPolicy>(__exec), __n, __initial, __reduce, __combine, __scan, __apex);
+        __omp_backend_details::__parallel_strict_scan_body(::std::forward<_ExecutionPolicy>(__exec), __n, __initial,
+                                                           __reduce, __combine, __scan, __apex);
     }
     else
     {
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            oneapi::dpl::__backend::__omp_backend_details::__parallel_strict_scan_body(
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __initial, __reduce, __combine, __scan, __apex);
+            __omp_backend_details::__parallel_strict_scan_body(::std::forward<_ExecutionPolicy>(__exec), __n, __initial,
+                                                               __reduce, __combine, __scan, __apex);
         }
     }
 }

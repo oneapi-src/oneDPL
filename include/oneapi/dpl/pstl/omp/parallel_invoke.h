@@ -45,15 +45,13 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_invoke(_E
 {
     if (omp_in_parallel())
     {
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1),
-                                                                              std::forward<_F2>(__f2));
+        __omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1), std::forward<_F2>(__f2));
     }
     else
     {
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1),
-                                                                              std::forward<_F2>(__f2));
+        __omp_backend_details::__parallel_invoke_body(std::forward<_F1>(__f1), std::forward<_F2>(__f2));
     }
 }
 

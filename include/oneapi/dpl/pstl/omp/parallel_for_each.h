@@ -54,7 +54,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_for_each(
     {
         // we don't create a nested parallel region in an existing parallel
         // region: just create tasks
-        oneapi::dpl::__backend::__omp_backend_details::__parallel_for_each_body(__first, __last, __f);
+        __omp_backend_details::__parallel_for_each_body(__first, __last, __f);
     }
     else
     {
@@ -63,7 +63,7 @@ __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_for_each(
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            oneapi::dpl::__backend::__omp_backend_details::__parallel_for_each_body(__first, __last, __f);
+            __omp_backend_details::__parallel_for_each_body(__first, __last, __f);
         }
     }
 }
