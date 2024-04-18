@@ -494,7 +494,7 @@ __simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _Un
         _ONEDPL_PRAGMA_SIMD
         for (_Size __i = 0; __i < __block_size; ++__i)
         {
-            if constexpr (std::is_trivially_copy_constructible_v<_Tp>)
+            if constexpr (std::is_trivial_v<_Tp>)
                 *(__lane + __i) = __binary_op(__f(__i), __f(__block_size + __i));
             else
                 ::new (__lane + __i) _Tp(__binary_op(__f(__i), __f(__block_size + __i)));

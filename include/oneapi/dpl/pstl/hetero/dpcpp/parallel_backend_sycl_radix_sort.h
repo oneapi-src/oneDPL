@@ -600,7 +600,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     if (__self_lidx < __residual)
                     {
                         //initialize the storage via move constructor for _ValueT type
-                        if constexpr (std::is_trivially_move_constructible_v<_ValueT>)
+                        if constexpr (std::is_trivial_v<_ValueT>)
                             __in_val.__v = std::move(__input_rng[__seg_end + __self_lidx]);
                         else
                             new (&__in_val.__v) _ValueT(std::move(__input_rng[__seg_end + __self_lidx]));

@@ -1497,7 +1497,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
                 __internal::__brick_copy_by_mask(
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
                     [](_RandomAccessIterator __x, _Tp* __z) {
-                        if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+                        if constexpr (std::is_trivial_v<_Tp>)
                             *__z = std::move(*__x);
                         else
                             ::new (std::addressof(*__z)) _Tp(std::move(*__x));
@@ -2605,7 +2605,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                     // 1. Copy elements from input to raw memory
                     for (_T1* __k = __i; __k != __j; ++__k, ++__it)
                     {
-                        if constexpr (std::is_trivially_copy_constructible_v<_T2>)
+                        if constexpr (std::is_trivial_v<_T2>)
                             *__k = *__it;
                         else
                             ::new (__k) _T2(*__it);
@@ -3097,7 +3097,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
-            if constexpr (std::is_trivially_move_constructible_v<_Tp>)
+            if constexpr (std::is_trivial_v<_Tp>)
                 *__z = std::move(*__x);
             else
                 ::new (std::addressof(*__z)) _Tp(std::move(*__x));
