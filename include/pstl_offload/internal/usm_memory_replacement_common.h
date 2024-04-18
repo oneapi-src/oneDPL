@@ -26,6 +26,18 @@
 namespace __pstl_offload
 {
 
+#if __linux__
+inline void*
+__original_aligned_alloc(std::size_t __alignment, std::size_t __size)
+{
+    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
+
+    static __aligned_alloc_func_type __orig_aligned_alloc =
+        __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
+    return __orig_aligned_alloc(__alignment, __size);
+}
+#endif // __linux__
+
 constexpr bool
 __is_power_of_two(std::size_t __number)
 {
@@ -40,83 +52,58 @@ class __sycl_device_shared_ptr
     // state is shared between TU with the context and all objects allocated in this TU
     struct __shared_device
     {
-        std::optional<sycl::device> _M_device;
+        sycl::device _M_device;
         // to keep reference to default context of the device as long as allocated memory objects exist
-        std::optional<sycl::context> _M_default_context;
+        sycl::context _M_default_context;
         std::atomic<std::size_t> _M_cnt;
     };
 
     __shared_device* _M_shared_device;
 
   public:
-    template <typename _DeviceSelector>
-    __sycl_device_shared_ptr(const _DeviceSelector& __device_selector)
-        // new always allocates system memory at this point
-        : _M_shared_device(new __shared_device{std::nullopt, std::nullopt, 1})
+    __sycl_device_shared_ptr() : _M_shared_device(nullptr) {}
+
+    __sycl_device_shared_ptr(sycl::device _device)
     {
-        try
+        _M_shared_device = (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
+        if (!_M_shared_device)
         {
-            _M_shared_device->_M_device.emplace(__device_selector);
+            throw std::bad_alloc();
         }
-        catch (const sycl::exception& e)
-        {
-            // __device_selector call throws with e.code() == sycl::errc::runtime when device selection unable
-            // to get offload device with required type. Do not pass an exception, as ctor is called for
-            // a static object and the exception can't be processed.
-            // Remember the situation as empty _M_device and re-throw exception when asked for
-            // the policy from user's code.
-            // Re-throw in every other case, as we don't know the reason of an exception.
-            if (e.code() == sycl::errc::runtime)
-            {
-                return;
-            }
-            else
-            {
-                throw;
-            }
-        }
-        _M_shared_device->_M_default_context.emplace(
-            _M_shared_device->_M_device->get_platform().ext_oneapi_get_default_context());
+        new (_M_shared_device) __shared_device{_device,
+                                               _device.get_platform().ext_oneapi_get_default_context(), 1};
     }
 
     bool
     __is_device_created() const
     {
-        return _M_shared_device->_M_device.has_value();
+        return _M_shared_device != nullptr;
     }
 
     sycl::device
     __get_device() const
     {
-        return *_M_shared_device->_M_device;
+        return _M_shared_device->_M_device;
     }
 
     sycl::context
     __get_context() const
     {
-        return *_M_shared_device->_M_default_context;
+        return _M_shared_device->_M_default_context;
     }
 
     __sycl_device_shared_ptr&
-    operator=(const __sycl_device_shared_ptr& other)
-    {
-        if (this != &other)
-        {
-            _M_shared_device = other._M_shared_device;
-            _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
-        }
-        return *this;
-    }
+    operator=(const __sycl_device_shared_ptr& __other) = delete;
 
-    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& other)
+    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& __other)
     {
-        _M_shared_device = other._M_shared_device;
+        _M_shared_device = __other._M_shared_device;
         _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
     }
 
     ~__sycl_device_shared_ptr()
     {
-        if (1 == _M_shared_device->_M_cnt.fetch_add(-1, std::memory_order_acq_rel))
+        if (_M_shared_device != nullptr && 1 == _M_shared_device->_M_cnt.fetch_add(-1, std::memory_order_acq_rel))
         {
             delete _M_shared_device;
         }
