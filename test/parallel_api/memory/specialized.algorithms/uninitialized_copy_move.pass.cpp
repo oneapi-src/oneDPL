@@ -21,6 +21,7 @@
 #include _PSTL_TEST_HEADER(memory)
 
 #include "support/utils.h"
+#include "uninitialized_custom_data_struct.h"
 
 #if  !defined(UNITIALIZED_COPY) && !defined(UNITIALIZED_COPY_N) &&\
      !defined(UNITIALIZED_MOVE) && !defined(UNITIALIZED_MOVE_N)
@@ -259,50 +260,10 @@ test_uninitialized_copy_move_by_type()
 int
 main()
 {
-    struct StructTriviallyCopyConstructible
-    {
-        StructTriviallyCopyConstructible() = default;
-        StructTriviallyCopyConstructible(StructTriviallyCopyConstructible&&) = delete;
-        StructTriviallyCopyConstructible(const StructTriviallyCopyConstructible&) = default;
-
-        StructTriviallyCopyConstructible& operator=(const StructTriviallyCopyConstructible&) = delete;
-        StructTriviallyCopyConstructible& operator=(StructTriviallyCopyConstructible&&) = delete;
-
-        bool
-        operator==(const StructTriviallyCopyConstructible& other) const
-        {
-            return true;
-        }
-        bool
-        operator!=(const StructTriviallyCopyConstructible& other) const
-        {
-            return false;
-        }
-    };
     static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
     static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
     test_uninitialized_copy_move_by_type<StructTriviallyCopyConstructible>();
 
-    struct StructTriviallyMoveConstructible
-    {
-        StructTriviallyMoveConstructible() = default;
-        StructTriviallyMoveConstructible(StructTriviallyMoveConstructible&&) = default;
-        StructTriviallyMoveConstructible(const StructTriviallyMoveConstructible&) = delete;
-
-        StructTriviallyMoveConstructible& operator=(const StructTriviallyMoveConstructible&) = delete;
-        StructTriviallyMoveConstructible& operator=(StructTriviallyMoveConstructible&&) = delete;
-
-        bool
-        operator==(const StructTriviallyMoveConstructible& other) const
-        {
-            return true;
-        }
-        bool
-        operator!=(const StructTriviallyMoveConstructible& other) const
-        {
-            return false;
-        }
-    };
     static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
     static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
     test_uninitialized_copy_move_by_type<StructTriviallyMoveConstructible>();

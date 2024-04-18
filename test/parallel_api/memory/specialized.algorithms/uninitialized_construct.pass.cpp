@@ -22,6 +22,7 @@
 #include _PSTL_TEST_HEADER(memory)
 
 #include "support/utils.h"
+#include "uninitialized_custom_data_struct.h"
 
 #if  !defined(_PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT) && !defined(_PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT_N) &&\
      !defined(_PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT) && !defined(_PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT_N)
@@ -197,6 +198,13 @@ test_uninit_construct_by_type()
 int
 main()
 {
+    static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
+    static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
+    test_uninit_construct_by_type<StructTriviallyCopyConstructible>();
+
+    static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
+    static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
+    test_uninit_construct_by_type<StructTriviallyMoveConstructible>();
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
