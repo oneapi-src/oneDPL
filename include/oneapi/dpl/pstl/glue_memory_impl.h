@@ -88,18 +88,9 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
 
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
-    if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
-    {
-        return oneapi::dpl::__internal::__pattern_walk2_brick(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__brick_copy<decltype(__dispatch_tag), _DecayedExecutionPolicy>{});
-    }
-    else
-    {
-        return oneapi::dpl::__internal::__pattern_walk2(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__op_uninitialized_move<_DecayedExecutionPolicy>{});
-    }
+    return oneapi::dpl::__internal::__pattern_walk2(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        oneapi::dpl::__internal::__op_uninitialized_move<_DecayedExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
