@@ -346,7 +346,8 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
         }
     };
     auto __tmp_pack = __get_tmp_pack();
-    auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto& {
+    auto __select_pack = [](const auto& __pack1, const auto& __pack2) -> const auto&
+    {
         if constexpr (__in_place || (__stage_count % 2 == 0))
             return __pack1;
         else
