@@ -382,10 +382,6 @@ class zip_iterator
     __it_types __my_it_;
 };
 
-template<typename... _Types>
-struct _ONEDPL_IS_DEVICE_COPYABLE(zip_iterator, _Types...):
-    oneapi::dpl::__internal::__is_types_device_copyable<_Types...> {};
-
 template <typename... _Tp>
 zip_iterator<_Tp...>
 make_zip_iterator(_Tp... __args)
@@ -400,6 +396,17 @@ make_zip_iterator(std::tuple<_Tp...> __arg)
     return zip_iterator<_Tp...>(__arg);
 }
 
+} //oneapi
+} //dpl
+
+template<typename... _Types>
+struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::zip_iterator, _Types...):
+    oneapi::dpl::__internal::__is_types_device_copyable<_Types...> {};
+
+namespace oneapi
+{
+namespace dpl
+{
 template <typename _Iter, typename _UnaryFunc>
 class transform_iterator
 {
