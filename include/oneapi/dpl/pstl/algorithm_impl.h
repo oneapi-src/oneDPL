@@ -1145,7 +1145,7 @@ struct __brick_move_destroy
         return __unseq_backend::__simd_assign(__first, __last - __first, __result,
                                               [](_RandomAccessIterator1 __first, _RandomAccessIterator2 __result) {
                                                   *__result = ::std::move(*__first);
-                                                  (*__first).~_IteratorValueType();
+                                                  oneapi::dpl::__utils::__op_smart_dtor<_IteratorValueType>{}(*__first);
                                               });
     }
 
@@ -1158,7 +1158,7 @@ struct __brick_move_destroy
         for (; __first != __last; ++__first, ++__result)
         {
             *__result = ::std::move(*__first);
-            (*__first).~_IteratorValueType();
+            oneapi::dpl::__utils::__op_smart_dtor<_IteratorValueType>{}(*__first);
         }
         return __result;
     }
@@ -2618,10 +2618,12 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                                                   __i, __j, __d_first + (__i - __r), _IsVector{});
                                           });
 
-            if constexpr (!::std::is_trivially_destructible_v<_T1>)
+            if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_T1>::required)
+            {
                 __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __r + __n2,
                                               __r + __n1,
                                               [](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, _IsVector{}); });
+            }
 
             return __d_first + __n2;
         }

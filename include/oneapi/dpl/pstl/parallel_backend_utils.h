@@ -153,10 +153,14 @@ struct __serial_destroy
     operator()(_RandomAccessIterator __zs, _RandomAccessIterator __ze)
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-        while (__zs != __ze)
+
+        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
         {
-            --__ze;
-            (*__ze).~_ValueType();
+            while (__zs != __ze)
+            {
+                --__ze;
+                oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(*__ze);
+            }
         }
     }
 };

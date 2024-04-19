@@ -72,7 +72,7 @@ __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, _Transfor
         __reduce_pattern.apply_init(__init, __result.__v);
         __res_acc[0] = __result.__v;
     }
-    __result.__v.~_Tp();
+    oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(__result.__v);
 }
 
 // Device kernel that transforms and reduces __n elements to the number of work groups preliminary results.
@@ -98,7 +98,7 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, _TransformPat
     __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __local_mem);
     if (__local_idx == 0)
         __temp_acc[__group_idx] = __result.__v;
-    __result.__v.~_Tp();
+    oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(__result.__v);
 }
 
 //------------------------------------------------------------------------
@@ -421,7 +421,7 @@ struct __parallel_transform_reduce_impl
 
                             __temp_ptr[__offset_1 + __group_idx] = __result.__v;
                         }
-                        __result.__v.~_Tp();
+                        oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(__result.__v);
                     });
             });
             __is_first = false;

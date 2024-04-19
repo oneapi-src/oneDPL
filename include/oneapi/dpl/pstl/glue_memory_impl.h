@@ -217,7 +217,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
 
-    if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
+    if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
     {
         const auto __dispatch_tag =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
@@ -226,8 +226,9 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
             oneapi::dpl::__internal::__select_backend(__exec, __first);
 #endif
 
-        oneapi::dpl::__internal::__pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
-                                                 __last, [](_ReferenceType __val) { __val.~_ValueType(); });
+        oneapi::dpl::__internal::__pattern_walk1(
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [](_ReferenceType __val) { oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(__val); });
     }
 }
 
@@ -238,7 +239,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
 
-    if constexpr (::std::is_trivially_destructible_v<_ValueType>)
+    if constexpr (!oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
     {
         return oneapi::dpl::__internal::__pstl_next(__first, __n);
     }
@@ -251,9 +252,9 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
             oneapi::dpl::__internal::__select_backend(__exec, __first);
 #endif
 
-        return oneapi::dpl::__internal::__pattern_walk1_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          __first, __n,
-                                                          [](_ReferenceType __val) { __val.~_ValueType(); });
+        return oneapi::dpl::__internal::__pattern_walk1_n(
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+            [](_ReferenceType __val) { oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(__val); });
     }
 }
 

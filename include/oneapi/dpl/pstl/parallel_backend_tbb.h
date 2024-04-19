@@ -153,8 +153,11 @@ struct __par_trans_red_body
     ~__par_trans_red_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if (_M_has_sum)
-            sum().~_Tp();
+        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_Tp>::required)
+        {
+            if (_M_has_sum)
+                oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
+        }
     }
 
     void
@@ -224,8 +227,11 @@ class __trans_scan_body
     ~__trans_scan_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if (_M_has_sum)
-            sum().~_Tp();
+        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_Tp>::required)
+        {
+            if (_M_has_sum)
+                oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
+        }
     }
 
     _Tp&
@@ -885,7 +891,7 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx, _M_x_beg + _M_xs);
-            if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
+            if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
                 __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx);
         }
 
@@ -902,7 +908,7 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny, _M_x_beg + _M_ys);
-            if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
+            if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
                 __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny);
         }
 
@@ -938,7 +944,7 @@ class __merge_func
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
 
-            if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
+            if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
             {
                 __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe);
                 __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye);
