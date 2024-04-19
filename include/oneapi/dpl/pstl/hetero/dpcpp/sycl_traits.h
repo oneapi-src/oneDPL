@@ -43,19 +43,38 @@
 
 #endif
 
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_pred)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__reorder_pred)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value_by_pred)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_equal_value)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_functor)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_unary_functor)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_binary_functor)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_functor)
-_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_copy_functor)
-
 namespace oneapi::dpl::__internal
 {
+
+template <typename _Pred>
+class __not_pred;
+
+template <typename _Pred>
+class __reorder_pred;
+
+template <typename _Tp, typename _Predicate>
+class __equal_value_by_pred;
+
+template <typename _Tp>
+class __equal_value;
+
+template <typename _Tp>
+class __not_equal_value;
+
+template <typename _Pred>
+class __transform_functor;
+
+template <typename _UnaryOper, typename _UnaryPred>
+class __transform_if_unary_functor;
+
+template <typename _BinaryOper, typename _BinaryPred>
+class __transform_if_binary_functor;
+
+template <typename _Tp, typename _Pred>
+class __replace_functor;
+
+template <typename _Tp, typename _Pred>
+class __replace_copy_functor;
 
 template <typename _SourceT>
 struct fill_functor;
@@ -78,7 +97,24 @@ struct __is_heap_check;
 template <typename _Predicate, typename _ValueType>
 struct __create_mask_unique_copy;
 
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename>
+struct __brick_fill;
+
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename>
+struct __brick_fill_n;
+
 } // namespace oneapi::dpl::__internal
+
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__reorder_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value_by_pred)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_equal_value)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_unary_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__transform_if_binary_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_functor)
+_ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__replace_copy_functor)
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::fill_functor)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::generate_functor)
@@ -99,6 +135,61 @@ struct __early_exit_find_or;
 } // namespace oneapi::dpl::__par_backend_hetero
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__par_backend_hetero::__early_exit_find_or);
+
+namespace oneapi::dpl::unseq_backend
+{
+
+template <typename _ExecutionPolicy, typename _F>
+struct walk_n;
+
+template <typename _ExecutionPolicy, typename _F>
+struct walk_adjacent_difference;
+
+template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+          typename _Tp, typename _Commutative>
+struct transform_reduce;
+
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
+struct reduce_over_group;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct single_match_pred_by_idx;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct multiple_match_pred;
+
+template <typename _ExecutionPolicy, typename _Pred, typename _Tp, typename _Size>
+struct n_elem_match_pred;
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct first_match_pred;
+
+template <typename _Pred, typename _Tp>
+struct __create_mask;
+
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
+struct __copy_by_mask;
+
+template <typename _BinaryOp, typename _Inclusive>
+struct __partition_by_mask;
+
+template <typename _Inclusive, typename _BinaryOp, typename _InitType>
+struct __global_scan_functor;
+
+template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
+          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
+struct __scan;
+
+template <typename _ExecutionPolicy, typename _Compare, typename _Size1, typename _Size2>
+struct __brick_includes;
+
+template <typename _ExecutionPolicy, typename _Compare, typename _Size1, typename _Size2, typename _IsOpDifference>
+class __brick_set_op;
+
+template <typename _BinaryOperator, typename _Size>
+struct __brick_reduce_idx;
+
+} // namespace oneapi::dpl::unseq_backend
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_n)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_adjacent_difference)
@@ -128,8 +219,8 @@ struct custom_brick;
 template <typename T, typename Predicate>
 struct replace_if_fun;
 
-template <typename T, typename Predicate, typename UnaryOperation>
-class transform_if_stencil_fun;
+template <typename ValueType, typename FlagType, typename BinaryOp>
+struct scan_by_key_fun;
 
 template <typename ValueType, typename FlagType, typename BinaryOp>
 struct segmented_scan_fun;
@@ -137,8 +228,8 @@ struct segmented_scan_fun;
 template <typename Output1, typename Output2>
 class scatter_and_accumulate_fun;
 
-template <typename ValueType, typename FlagType, typename BinaryOp>
-struct scan_by_key_fun;
+template <typename T, typename Predicate, typename UnaryOperation>
+class transform_if_stencil_fun;
 
 } // namespace oneapi::dpl::internal
 
@@ -148,6 +239,20 @@ _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::scan_by_key_fun)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::segmented_scan_fun)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::scatter_and_accumulate_fun)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::internal::transform_if_stencil_fun)
+
+namespace oneapi::dpl
+{
+
+template <typename... _Types>
+class zip_iterator;
+
+template <typename _Iter, typename _UnaryFunc>
+class transform_iterator;
+
+template <typename SourceIterator, typename _Permutation>
+class permutation_iterator;
+
+} // namespace oneapi::dpl
 
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::zip_iterator)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::transform_iterator)
