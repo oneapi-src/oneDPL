@@ -220,7 +220,7 @@ main()
     test_uninitialized_fill_destroy_by_type<Wrapper<std::int8_t*>>();
 #endif
 
-    // Regression tests to check compatibility of oneDPL implementation wit
+    // Regression tests to check compatibility of oneDPL implementation with
     // trivial user types that has only copy/move constructors
     test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableCopyConstructible>>(1);
     test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableMoveConstructible>>(1);
