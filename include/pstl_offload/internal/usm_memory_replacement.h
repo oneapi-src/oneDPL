@@ -52,6 +52,9 @@ __get_offload_device_selector()
 #endif
 }
 
+// Stripped down spin mutex. Propose is to implement mutex able to be used from zero-initialized
+// memory without need in constructors. This allows to use the mutex in file-scope constructors
+// and destructors.
 class __spin_mutex
 {
     std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
