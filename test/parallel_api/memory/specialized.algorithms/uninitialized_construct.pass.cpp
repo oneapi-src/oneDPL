@@ -207,7 +207,7 @@ main()
     test_uninit_construct_by_type<std::int8_t>();
     test_uninit_construct_by_type<float64_t>();
 
-    // Regression tests to check compatibility of oneDPL implementation wit
+    // Regression tests to check compatibility of oneDPL implementation with
     // trivial user types that has only copy/move constructors
     test_uninit_construct_by_type<NonAssignableCopyConstructible>(1);
     test_uninit_construct_by_type<NonAssignableMoveConstructible>(1);
