@@ -29,6 +29,9 @@
 #include <limits>
 #include <cstdint>
 
+#include "oneapi/dpl/pstl/parallel_backend.h"
+#include "oneapi/dpl/pstl/execution_defs.h"
+
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
@@ -51,6 +54,95 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace __backend
+{
+template <>
+struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
+{
+    // Tag for __parallel_find_or for or-semantic
+    struct __parallel_or_tag
+    {
+        class __atomic_compare
+        {
+          public:
+            template <typename _LocalAtomic, typename _GlobalAtomic>
+            bool
+            operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
+            {
+                return __found_local == 1 && __found == 0;
+            }
+        };
+
+        using _AtomicType = int32_t;
+        using _Compare = __atomic_compare;
+
+        // The template parameter is intended to unify __init_value in tags.
+        template <typename _DiffType>
+        constexpr static _AtomicType __init_value(_DiffType)
+        {
+            return 0;
+        }
+    };
+
+    // 1
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    static auto
+    __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
+
+    // 2
+    template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation,
+              typename _InitType, typename _BinaryOperation, typename _Inclusive>
+    static auto
+    __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
+                                           std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
+                                           _BinaryOperation __binary_op, _Inclusive);
+
+    // 3
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
+              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+    static auto
+    __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
+                                   _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                                   _GroupScan __group_scan, _GlobalScan __global_scan);
+
+    // 4
+    template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+    static std::conditional_t<std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
+                              oneapi::dpl::__internal::__difference_t<
+                                  typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
+    __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs);
+
+    // 5
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    static auto
+    __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp);
+
+    // 6 KSATODO move into details?
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+    static auto
+    __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
+
+    // 7 KSATODO move into details?
+    template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    static auto
+    __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp);
+
+    // 10
+    template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
+    static auto
+    __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+                         const _BinHashMgr& __binhash_manager);
+
+#if _USE_RADIX_SORT
+    // 11 KSATORO move into details?
+    template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
+    static auto
+    __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj);
+#endif // _USE_RADIX_SORT
+};
+
+} // namespace __backend
+
 namespace __par_backend_hetero
 {
 
@@ -253,8 +345,8 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
-               _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_for(_ExecutionPolicy&& __exec, _Fp __brick,
+                                                                              _Index __count, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
@@ -666,10 +758,9 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                       _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
-                                       _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
-                                       _Inclusive)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transform_scan_single_group(
+    _ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op,
+    _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -745,9 +836,9 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 auto
-__parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                               _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
-                               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transform_scan_base(
+    _ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
+    _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -758,6 +849,9 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
+
+namespace __par_backend_hetero
+{
 
 template <typename _Type>
 bool
@@ -772,6 +866,8 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
 
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
+
+} // namespace __par_backend_hetero
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
@@ -994,31 +1090,6 @@ struct __parallel_find_backward_tag
     }
 };
 
-// Tag for __parallel_find_or for or-semantic
-struct __parallel_or_tag
-{
-    class __atomic_compare
-    {
-      public:
-        template <typename _LocalAtomic, typename _GlobalAtomic>
-        bool
-        operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
-        {
-            return __found_local == 1 && __found == 0;
-        }
-    };
-
-    using _AtomicType = int32_t;
-    using _Compare = __atomic_compare;
-
-    // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
-    {
-        return 0;
-    }
-};
-
 //------------------------------------------------------------------------
 // early_exit (find_or)
 //------------------------------------------------------------------------
@@ -1092,8 +1163,9 @@ template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typena
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
-__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f,
+                                                                                  _BrickTag __brick_tag,
+                                                                                  _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
@@ -1507,8 +1579,9 @@ class __merge_kernel_name;
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
-__parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
-                 _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_merge(_ExecutionPolicy&& __exec,
+                                                                                _Range1&& __rng1, _Range2&& __rng2,
+                                                                                _Range3&& __rng3, _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -1660,10 +1733,11 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
     }
 };
 
+// KSATODO move into details ?
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
-__parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
-                     _Compare __comp)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_sort_impl(_ExecutionPolicy&& __exec,
+                                                                                    _Range&& __rng, _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -1771,8 +1845,10 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
 
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
 auto
-__parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
-                             _Merge __merge, _Compare __comp)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_partial_sort_impl(_ExecutionPolicy&& __exec,
+                                                                                            _Range&& __rng,
+                                                                                            _Merge __merge,
+                                                                                            _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _GlobalSortKernel =
