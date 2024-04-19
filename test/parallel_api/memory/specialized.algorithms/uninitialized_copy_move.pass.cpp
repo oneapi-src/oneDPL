@@ -164,20 +164,19 @@ struct test_uninitialized_move_n
     }
 };
 
-template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+template <typename T>
 auto
 create_sequence(size_t n)
 {
-    return Sequence<T>(n, [=](size_t k) -> T { return T(k); });
+    if constexpr (std::is_arithmetic_v<T>)
+    {
+        return Sequence<T>(n, [=](size_t k) -> T { return T(k); };
+    }
+    else
+    {
+        return Sequence<T>(n);
+    }
 }
-
-template <typename T, std::enable_if_t<!std::is_arithmetic_v<T>, int> = 0>
-auto
-create_sequence(size_t n)
-{
-    return Sequence<T>(n);
-}
-
 template <typename T>
 void
 test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
