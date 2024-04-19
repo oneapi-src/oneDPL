@@ -878,12 +878,12 @@ create_new_policy(Policy&& policy)
     return ::std::forward<Policy>(policy);
 }
 
-template <typename _NewKernelName, int idx, typename Policy>
+template <int idx, typename Policy>
 auto
 create_new_policy_idx(Policy&& policy)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    return create_new_policy<TestUtils::new_kernel_name<_NewKernelName, idx>>(::std::forward<Policy>(policy));
+    return create_new_policy<TestUtils::new_kernel_name<Policy, idx>>(::std::forward<Policy>(policy));
 #else
     return ::std::forward<Policy>(policy);
 #endif
