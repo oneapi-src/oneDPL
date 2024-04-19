@@ -165,6 +165,7 @@ function(_generate_gpu_scan_tests)
     endforeach()
 
     _generate_test("single_pass_scan" "single_pass_scan.cpp")
+    target_compile_definitions("single_pass_scan" PRIVATE TEST_DATA_PER_WORK_ITEM=8 TEST_WORK_GROUP_SIZE=256 TEST_TYPE=uint32_t)
 endfunction()
 
 if (ONEDPL_TEST_ENABLE_KT_SYCL)
