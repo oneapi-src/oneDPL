@@ -197,9 +197,6 @@ test_uninit_construct_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    test_uninit_construct_by_type<NonAssignableTriviallyCopyConstructible>(1);
-    test_uninit_construct_by_type<NonAssignableTriviallyMoveConstructible>(1);
-
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
     test_uninit_construct_by_type<Wrapper<std::int32_t>>();
@@ -209,6 +206,11 @@ main()
     // for trivial types
     test_uninit_construct_by_type<std::int8_t>();
     test_uninit_construct_by_type<float64_t>();
+
+    // Regression tests to check compatibility of oneDPL implementation wit
+    // trivial user types that has only copy/move constructors
+    test_uninit_construct_by_type<NonAssignableTriviallyCopyConstructible>(1);
+    test_uninit_construct_by_type<NonAssignableTriviallyMoveConstructible>(1);
 
     return done();
 }

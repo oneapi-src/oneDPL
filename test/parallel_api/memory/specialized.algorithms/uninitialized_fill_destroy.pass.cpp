@@ -210,9 +210,6 @@ test_uninitialized_fill_destroy_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyCopyConstructible>>(1);
-    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyMoveConstructible>>(1);
-
     // for trivial types
     test_uninitialized_fill_destroy_by_type<std::int32_t>();
     test_uninitialized_fill_destroy_by_type<float64_t>();
@@ -222,6 +219,11 @@ main()
     test_uninitialized_fill_destroy_by_type<Wrapper<::std::string>>();
     test_uninitialized_fill_destroy_by_type<Wrapper<std::int8_t*>>();
 #endif
+
+    // Regression tests to check compatibility of oneDPL implementation wit
+    // trivial user types that has only copy/move constructors
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyCopyConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyMoveConstructible>>(1);
 
     return done();
 }

@@ -226,9 +226,6 @@ test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    test_uninitialized_copy_move_by_type<NonAssignableTriviallyCopyConstructible>(1);
-    test_uninitialized_copy_move_by_type<NonAssignableTriviallyMoveConstructible>(1);
-
     // for trivial types
     test_uninitialized_copy_move_by_type<std::int16_t>();
     test_uninitialized_copy_move_by_type<float64_t>();
@@ -237,6 +234,11 @@ main()
     // for user-defined types
     test_uninitialized_copy_move_by_type<Wrapper<std::int8_t>>();
 #endif
+
+    // Regression tests to check compatibility of oneDPL implementation wit
+    // trivial user types that has only copy/move constructors
+    test_uninitialized_copy_move_by_type<NonAssignableTriviallyCopyConstructible>(1);
+    test_uninitialized_copy_move_by_type<NonAssignableTriviallyMoveConstructible>(1);
 
     return done();
 }
