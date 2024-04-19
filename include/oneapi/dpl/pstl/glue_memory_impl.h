@@ -27,6 +27,7 @@
 #include "algorithm_fwd.h"
 
 #include "execution_impl.h"
+#include "parallel_backend_utils.h"
 
 #include <type_traits>
 

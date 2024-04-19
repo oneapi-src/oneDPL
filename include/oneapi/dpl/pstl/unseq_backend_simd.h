@@ -19,6 +19,7 @@
 #include <type_traits>
 
 #include "utils.h"
+#include "parallel_backend_utils.h"
 
 // This header defines the minimum set of vector routines required
 // to support Parallel STL.

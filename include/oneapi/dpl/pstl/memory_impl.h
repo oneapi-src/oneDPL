@@ -21,6 +21,7 @@
 
 #include "memory_fwd.h"
 #include "unseq_backend_simd.h"
+#include "parallel_backend_utils.h"
 
 namespace oneapi
 {

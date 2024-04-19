@@ -27,6 +27,8 @@
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
+#include "../../parallel_backend_utils.h"
+
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
 //To achieve better performance, number of segments and work-group size are variated depending on a number of elements:
 //1. 32K...512K  - number of segments is increased up to 8 times

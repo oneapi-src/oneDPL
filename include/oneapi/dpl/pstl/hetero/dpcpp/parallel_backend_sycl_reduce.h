@@ -28,6 +28,8 @@
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
+#include "./../../parallel_backend_utils.h"
+
 namespace oneapi
 {
 namespace dpl

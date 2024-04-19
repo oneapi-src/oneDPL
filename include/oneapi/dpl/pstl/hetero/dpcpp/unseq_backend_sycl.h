@@ -22,6 +22,7 @@
 #include "../../onedpl_config.h"
 #include "../../utils.h"
 #include "sycl_defs.h"
+#include "../../parallel_backend_utils.h"
 
 namespace oneapi
 {
