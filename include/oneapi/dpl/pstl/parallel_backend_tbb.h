@@ -124,6 +124,8 @@ __backend_impl<oneapi::dpl::__internal::__tbb_backend_tag>::__cancel_execution()
 // parallel_for
 //------------------------------------------------------------------------
 
+namespace __tbb_backend_details
+{
 template <class _Index, class _RealBody>
 class __parallel_for_body
 {
@@ -139,6 +141,7 @@ class __parallel_for_body
   private:
     _RealBody _M_body;
 };
+}
 
 //! Evaluation of brick f[i,j) for each subrange [i,j) of [first,last)
 // wrapper over tbb::parallel_for
@@ -148,7 +151,8 @@ __backend_impl<oneapi::dpl::__internal::__tbb_backend_tag>::__parallel_for(_Exec
                                                                            _Index __last, _Fp __f)
 {
     tbb::this_task_arena::isolate([=]() {
-        tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last), __parallel_for_body<_Index, _Fp>(__f));
+        tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last),
+                          __tbb_backend_details::__parallel_for_body<_Index, _Fp>(__f));
     });
 }
 
