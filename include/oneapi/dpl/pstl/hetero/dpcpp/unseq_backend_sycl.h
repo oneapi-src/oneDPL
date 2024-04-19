@@ -300,24 +300,10 @@ struct transform_reduce
         else
             return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
+
+    _ONEDPL_IS_DEVICE_COPYABLE(_Tp, _Operation1, _Operation2)
 };
 
-} //unseq_backend
-} //dpl
-} //oneapi
-
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::transform_reduce, _ExecutionPolicy, __iters_per_work_item,
-                                 _Operation1, _Operation2, _Tp, _Commutative):
-    oneapi::dpl::__internal::__is_types_device_copyable<_Tp, _Operation1, _Operation2> {};
-
-namespace oneapi
-{
-namespace dpl
-{
-namespace unseq_backend
-{
 // Reduce local reductions of each work item to a single reduced element per work group. The local reductions are held
 // in local memory. sycl::reduce_over_group is used for supported data types and operations. All other operations are
 // processed in order and without a known identity.

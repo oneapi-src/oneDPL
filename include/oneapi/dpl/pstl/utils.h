@@ -41,36 +41,39 @@
 #    include <cstring> // memcpy
 #endif
 
+#if _ONEDPL_BACKEND_SYCL
+
+namespace oneapi
+{
+namespace dpl
+{
+template <typename... Ts>
+struct is_device_copyable: std::conjunction<sycl::is_device_copyable<Ts>...> {};
+}
+}
+
+#define _ONEDPL_IS_DEVICE_COPYABLE(...) public: using is_device_copyable = oneapi::dpl::is_device_copyable<__VA_ARGS__>;
+
+#if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
+template<typename T>
+struct sycl::is_device_copyable<T, std::enable_if_t<!std::is_trivially_copyable_v<T> && T::is_device_copyable::value>>: T::is_device_copyable {};
+#else
+template<typename T>
+struct sycl::is_device_copyable<T>: T::is_device_copyable {};
+#endif //__INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
+
+#else //No _ONEDPL_BACKEND_SYCL
+
+#   define _ONEDPL_IS_DEVICE_COPYABLE(...)
+
+#endif //_ONEDPL_BACKEND_SYCL
+
 namespace oneapi
 {
 namespace dpl
 {
 namespace __internal
 {
-
-#if _ONEDPL_BACKEND_SYCL
-
-template <typename... _Ts>
-struct __is_types_device_copyable: std::conjunction<sycl::is_device_copyable<_Ts>...> {};
-
-#if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
-#   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) sycl::is_device_copyable<TYPE<__VA_ARGS__>, \
-    std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>>
-#else
-#   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) sycl::is_device_copyable<TYPE<__VA_ARGS__>>
-#endif //__INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
-
-#else
-
-template <typename...>
-struct __is_types_device_copyable: std::false_type {};
-
-template <typename>
-struct __is_device_copyable_ignore: std::false_type {};
-
-# define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) oneapi::dpl::__internal::__is_device_copyable_ignore<TYPE<__VA_ARGS__>>
-
-#endif //_ONEDPL_BACKEND_SYCL
 
 template <typename Iterator>
 using is_const_iterator =

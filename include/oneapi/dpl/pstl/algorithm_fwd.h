@@ -405,20 +405,6 @@ __pattern_search_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessI
 template <class _Tag, typename _ExecutionPolicy, typename = void>
 struct __brick_copy_n;
 
-} //__internal
-} //dpl
-} //oneapi
-
-template<class _Tag, typename _ExecutionPolicy, typename _SpecTag>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::__internal::__brick_copy_n, _Tag, _ExecutionPolicy, _SpecTag):
-    oneapi::dpl::__internal::__is_types_device_copyable<> {};
-
-namespace oneapi
-{
-namespace dpl
-{
-namespace __internal
-{
 template <class _Tag, typename _ExecutionPolicy, typename = void>
 struct __brick_copy;
 

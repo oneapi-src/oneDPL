@@ -375,6 +375,8 @@ struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy>
     {
         __target = ::std::forward<_SourceT>(__source);
     }
+
+    _ONEDPL_IS_DEVICE_COPYABLE()
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy>

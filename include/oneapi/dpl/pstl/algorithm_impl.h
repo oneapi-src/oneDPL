@@ -1066,6 +1066,8 @@ struct __brick_copy_n<_Tag, _ExecutionPolicy,
     {
         return ::std::copy_n(__first, __n, __result);
     }
+
+    _ONEDPL_IS_DEVICE_COPYABLE()
 };
 
 //------------------------------------------------------------------------
