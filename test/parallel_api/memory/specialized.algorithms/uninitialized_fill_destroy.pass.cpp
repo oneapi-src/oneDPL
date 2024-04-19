@@ -210,8 +210,8 @@ test_uninitialized_fill_destroy_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    test_uninitialized_fill_destroy_by_type<Wrapper<StructTriviallyCopyConstructible>>(1);
-    test_uninitialized_fill_destroy_by_type<Wrapper<StructTriviallyMoveConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyCopyConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyMoveConstructible>>(1);
 
     // for trivial types
     test_uninitialized_fill_destroy_by_type<std::int32_t>();

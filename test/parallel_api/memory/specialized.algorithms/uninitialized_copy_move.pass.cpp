@@ -226,13 +226,13 @@ test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    static_assert(std::is_trivial_v<StructTriviallyCopyConstructible>);
-    static_assert(std::is_trivially_copy_constructible_v<StructTriviallyCopyConstructible>);
-    test_uninitialized_copy_move_by_type<StructTriviallyCopyConstructible>(1);
+    static_assert(std::is_trivial_v<NonAssignableTriviallyCopyConstructible>);
+    static_assert(std::is_trivially_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
+    test_uninitialized_copy_move_by_type<NonAssignableTriviallyCopyConstructible>(1);
 
-    static_assert(std::is_trivial_v<StructTriviallyMoveConstructible>);
-    static_assert(std::is_trivially_move_constructible_v<StructTriviallyMoveConstructible>);
-    test_uninitialized_copy_move_by_type<StructTriviallyMoveConstructible>(1);
+    static_assert(std::is_trivial_v<NonAssignableTriviallyMoveConstructible>);
+    static_assert(std::is_trivially_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
+    test_uninitialized_copy_move_by_type<NonAssignableTriviallyMoveConstructible>(1);
 
     // for trivial types
     test_uninitialized_copy_move_by_type<std::int16_t>();

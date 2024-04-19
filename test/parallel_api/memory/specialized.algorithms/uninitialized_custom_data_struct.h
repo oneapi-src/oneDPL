@@ -16,47 +16,47 @@
 #ifndef _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
 #define _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
 
-struct StructTriviallyCopyConstructible
+struct NonAssignableTriviallyCopyConstructible
 {
-    StructTriviallyCopyConstructible() = default;
-    StructTriviallyCopyConstructible(StructTriviallyCopyConstructible&&) = delete;
-    StructTriviallyCopyConstructible(const StructTriviallyCopyConstructible&) = default;
+    NonAssignableTriviallyCopyConstructible() = default;
+    NonAssignableTriviallyCopyConstructible(NonAssignableTriviallyCopyConstructible&&) = delete;
+    NonAssignableTriviallyCopyConstructible(const NonAssignableTriviallyCopyConstructible&) = default;
 
-    StructTriviallyCopyConstructible&
-    operator=(const StructTriviallyCopyConstructible&) = delete;
-    StructTriviallyCopyConstructible&
-    operator=(StructTriviallyCopyConstructible&&) = delete;
+    NonAssignableTriviallyCopyConstructible&
+    operator=(const NonAssignableTriviallyCopyConstructible&) = delete;
+    NonAssignableTriviallyCopyConstructible&
+    operator=(NonAssignableTriviallyCopyConstructible&&) = delete;
 
     bool
-    operator==(const StructTriviallyCopyConstructible& other) const
+    operator==(const NonAssignableTriviallyCopyConstructible& other) const
     {
         return true;
     }
     bool
-    operator!=(const StructTriviallyCopyConstructible& other) const
+    operator!=(const NonAssignableTriviallyCopyConstructible& other) const
     {
         return false;
     }
 };
 
-struct StructTriviallyMoveConstructible
+struct NonAssignableTriviallyMoveConstructible
 {
-    StructTriviallyMoveConstructible() = default;
-    StructTriviallyMoveConstructible(StructTriviallyMoveConstructible&&) = default;
-    StructTriviallyMoveConstructible(const StructTriviallyMoveConstructible&) = delete;
+    NonAssignableTriviallyMoveConstructible() = default;
+    NonAssignableTriviallyMoveConstructible(NonAssignableTriviallyMoveConstructible&&) = default;
+    NonAssignableTriviallyMoveConstructible(const NonAssignableTriviallyMoveConstructible&) = delete;
 
-    StructTriviallyMoveConstructible&
-    operator=(const StructTriviallyMoveConstructible&) = delete;
-    StructTriviallyMoveConstructible&
-    operator=(StructTriviallyMoveConstructible&&) = delete;
+    NonAssignableTriviallyMoveConstructible&
+    operator=(const NonAssignableTriviallyMoveConstructible&) = delete;
+    NonAssignableTriviallyMoveConstructible&
+    operator=(NonAssignableTriviallyMoveConstructible&&) = delete;
 
     bool
-    operator==(const StructTriviallyMoveConstructible& other) const
+    operator==(const NonAssignableTriviallyMoveConstructible& other) const
     {
         return true;
     }
     bool
-    operator!=(const StructTriviallyMoveConstructible& other) const
+    operator!=(const NonAssignableTriviallyMoveConstructible& other) const
     {
         return false;
     }
