@@ -222,8 +222,8 @@ main()
 
     // Regression tests to check compatibility of oneDPL implementation wit
     // trivial user types that has only copy/move constructors
-    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyCopyConstructible>>(1);
-    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableTriviallyMoveConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableCopyConstructible>>(1);
+    test_uninitialized_fill_destroy_by_type<Wrapper<NonAssignableMoveConstructible>>(1);
 
     return done();
 }

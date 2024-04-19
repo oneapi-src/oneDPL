@@ -18,52 +18,52 @@
 
 #include <type_traits>
 
-struct NonAssignableTriviallyCopyConstructible
+struct NonAssignableCopyConstructible
 {
-    NonAssignableTriviallyCopyConstructible() = default;
-    NonAssignableTriviallyCopyConstructible(NonAssignableTriviallyCopyConstructible&&) = delete;
-    NonAssignableTriviallyCopyConstructible(const NonAssignableTriviallyCopyConstructible&) = default;
+    NonAssignableCopyConstructible() = default;
+    NonAssignableCopyConstructible(NonAssignableCopyConstructible&&) = delete;
+    NonAssignableCopyConstructible(const NonAssignableCopyConstructible&) = default;
 
-    NonAssignableTriviallyCopyConstructible&
-    operator=(const NonAssignableTriviallyCopyConstructible&) = delete;
-    NonAssignableTriviallyCopyConstructible&
-    operator=(NonAssignableTriviallyCopyConstructible&&) = delete;
+    NonAssignableCopyConstructible&
+    operator=(const NonAssignableCopyConstructible&) = delete;
+    NonAssignableCopyConstructible&
+    operator=(NonAssignableCopyConstructible&&) = delete;
 
     bool
-    operator==(const NonAssignableTriviallyCopyConstructible& other) const
+    operator==(const NonAssignableCopyConstructible& other) const
     {
         return true;
     }
     bool
-    operator!=(const NonAssignableTriviallyCopyConstructible& other) const
+    operator!=(const NonAssignableCopyConstructible& other) const
     {
         return false;
     }
 };
-static_assert(std::is_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
+static_assert(std::is_copy_constructible_v<NonAssignableCopyConstructible>);
 
-struct NonAssignableTriviallyMoveConstructible
+struct NonAssignableMoveConstructible
 {
-    NonAssignableTriviallyMoveConstructible() = default;
-    NonAssignableTriviallyMoveConstructible(NonAssignableTriviallyMoveConstructible&&) = default;
-    NonAssignableTriviallyMoveConstructible(const NonAssignableTriviallyMoveConstructible&) = delete;
+    NonAssignableMoveConstructible() = default;
+    NonAssignableMoveConstructible(NonAssignableMoveConstructible&&) = default;
+    NonAssignableMoveConstructible(const NonAssignableMoveConstructible&) = delete;
 
-    NonAssignableTriviallyMoveConstructible&
-    operator=(const NonAssignableTriviallyMoveConstructible&) = delete;
-    NonAssignableTriviallyMoveConstructible&
-    operator=(NonAssignableTriviallyMoveConstructible&&) = delete;
+    NonAssignableMoveConstructible&
+    operator=(const NonAssignableMoveConstructible&) = delete;
+    NonAssignableMoveConstructible&
+    operator=(NonAssignableMoveConstructible&&) = delete;
 
     bool
-    operator==(const NonAssignableTriviallyMoveConstructible& other) const
+    operator==(const NonAssignableMoveConstructible& other) const
     {
         return true;
     }
     bool
-    operator!=(const NonAssignableTriviallyMoveConstructible& other) const
+    operator!=(const NonAssignableMoveConstructible& other) const
     {
         return false;
     }
 };
-static_assert(std::is_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
+static_assert(std::is_move_constructible_v<NonAssignableMoveConstructible>);
 
 #endif // _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
