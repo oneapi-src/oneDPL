@@ -122,8 +122,8 @@ main()
     test<std::int32_t>([](size_t j) { return j / 3; },
                   [](const std::int32_t& val1, const std::int32_t& val2) { return val1 * val1 == val2 * val2; });
 #if !ONEDPL_FPGA_DEVICE
-    test<float64_t>([](size_t) { return float64_t(1); },
-                    [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
+    ONEDPL_TEST_ENABLED(test<float64_t>([](size_t) { return float64_t(1); },
+                    [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });)
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT

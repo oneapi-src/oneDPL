@@ -107,9 +107,9 @@ struct test_non_const
 int
 main()
 {
-    test<std::int16_t>(42, IsEqual<std::int16_t>(50, OddTag()), [](std::int16_t j) { return j; });
+    ONEDPL_TEST_ENABLED(test<std::int16_t>(42, IsEqual<std::int16_t>(50, OddTag()), [](std::int16_t j) { return j; });)
     test<std::int32_t>(42, [](const std::int32_t&) { return true; }, [](std::int32_t j) { return j; });
-    test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](std::int32_t j) { return float64_t(j); });
+    ONEDPL_TEST_ENABLED(test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](std::int32_t j) { return float64_t(j); });)
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(42, OddTag()), IsEqual<Number>(Number(50, OddTag()), OddTag()),
                  [](std::int32_t j) { return Number(j, OddTag()); });

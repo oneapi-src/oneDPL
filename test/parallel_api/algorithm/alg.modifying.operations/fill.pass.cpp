@@ -106,7 +106,7 @@ main()
     for (::std::size_t n = 0; n < N; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
         test_fill_by_type<std::int32_t>(n);
-        test_fill_by_type<float64_t>(n);
+        ONEDPL_TEST_ENABLED(test_fill_by_type<float64_t>(n);)
     }
 
     return done();

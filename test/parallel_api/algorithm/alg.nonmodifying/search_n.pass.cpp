@@ -101,10 +101,10 @@ main()
 {
     test<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
-    test<std::uint16_t>();
+    ONEDPL_TEST_ENABLED(test<std::uint16_t>();)
 #endif
-    test<float64_t>();
-    test<bool>();
+    ONEDPL_TEST_ENABLED(test<float64_t>();)
+    ONEDPL_TEST_ENABLED(test<bool>();)
 
     test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 

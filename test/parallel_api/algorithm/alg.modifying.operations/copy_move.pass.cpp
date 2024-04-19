@@ -164,7 +164,7 @@ int
 main()
 {
     test<std::int32_t>(-666, [](size_t j) { return std::int32_t(j); });
-    test<float64_t>(-666.0, [](size_t j) { return float64_t(j); });
+    ONEDPL_TEST_ENABLED(test<float64_t>(-666.0, [](size_t j) { return float64_t(j); });)
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     /*TODO: copy support of a class with no default constructor*/

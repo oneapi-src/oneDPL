@@ -124,7 +124,7 @@ int
 main()
 {
     test_generate_by_type<std::int32_t>();
-    test_generate_by_type<float64_t>();
+    ONEDPL_TEST_ENABLED(test_generate_by_type<float64_t>();)
 
 
 #ifdef _PSTL_TEST_GENERATE

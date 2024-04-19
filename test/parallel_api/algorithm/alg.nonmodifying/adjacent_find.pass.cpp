@@ -147,7 +147,7 @@ main()
 #if !ONEDPL_FPGA_DEVICE
     test_adjacent_find_by_type<std::int32_t>();
 #endif
-    test_adjacent_find_by_type<float64_t>();
+    ONEDPL_TEST_ENABLED(test_adjacent_find_by_type<float64_t>();)
     test_algo_basic_single<std::int32_t>(run_for_rnd_bi<test_non_const<std::int32_t>>());
 
     return done();

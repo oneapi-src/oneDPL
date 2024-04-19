@@ -126,8 +126,8 @@ int
 main()
 {
     test<std::int32_t, std::int8_t>();
-    test<std::uint16_t, float32_t>();
-    test<float64_t, std::int64_t>();
+    ONEDPL_TEST_ENABLED(test<std::uint16_t, float32_t>();)
+    ONEDPL_TEST_ENABLED(test<float64_t, std::int64_t>();)
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif

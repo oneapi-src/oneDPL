@@ -116,15 +116,15 @@ int
 main()
 {
     test<0, std::int32_t, std::int32_t>();
-    test<10, std::int32_t, float32_t>();
-    test<20, std::uint16_t, float32_t>();
-    test<30, float64_t, float64_t>();
+    ONEDPL_TEST_ENABLED(test<10, std::int32_t, float32_t>();)
+    ONEDPL_TEST_ENABLED(test<20, std::uint16_t, float32_t>();)
+    ONEDPL_TEST_ENABLED(test<30, float64_t, float64_t>();)
 
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
-    test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
+    ONEDPL_TEST_ENABLED(test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());)
 
     //test case for zip iterator
-    test<40, std::int32_t, std::int32_t, ComplementZip, _ZipIteratorAdapter>();
+    ONEDPL_TEST_ENABLED(test<40, std::int32_t, std::int32_t, ComplementZip, _ZipIteratorAdapter>();)
 
     return done();
 }

@@ -132,8 +132,8 @@ int
 main()
 {
     test<std::int32_t>();
-    test<std::uint16_t>();
-    test<float64_t>();
+    ONEDPL_TEST_ENABLED(test<std::uint16_t>();)
+    ONEDPL_TEST_ENABLED(test<float64_t>();)
 
 
 #ifdef FOR_EACH

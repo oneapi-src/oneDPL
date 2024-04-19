@@ -130,8 +130,8 @@ int
 main()
 {
     test_by_type<std::int32_t>([](std::int32_t i) { return i; }, [](std::int32_t) { return true; });
-    test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
-    test_by_type<std::int64_t>([](std::int32_t i) { return i + 1; }, [](std::int64_t x) { return x % 3 == 0; });
+    ONEDPL_TEST_ENABLED(test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });)
+    ONEDPL_TEST_ENABLED(test_by_type<std::int64_t>([](std::int32_t i) { return i + 1; }, [](std::int64_t x) { return x % 3 == 0; });)
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_by_type<DataType<float32_t>>([](std::int32_t i) { return DataType<float32_t>(2 * i + 1); },

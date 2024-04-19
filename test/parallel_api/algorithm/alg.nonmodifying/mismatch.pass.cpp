@@ -183,7 +183,7 @@ main()
 
     test_mismatch_by_type<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
-    test_mismatch_by_type<float64_t>();
+    ONEDPL_TEST_ENABLED(test_mismatch_by_type<float64_t>();)
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT

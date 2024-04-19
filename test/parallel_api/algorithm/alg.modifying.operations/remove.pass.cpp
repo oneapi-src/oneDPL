@@ -118,8 +118,8 @@ main()
 
     test<std::int32_t>(666, 2001, [](const std::int32_t& val) { return val != 2001; },
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 2001 : -1 - std::int32_t(j); });
-    test<float64_t>(-666.0, 8.5, [](const float64_t& val) { return val != 8.5; },
-                    [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
+    ONEDPL_TEST_ENABLED(test<float64_t>(-666.0, 8.5, [](const float64_t& val) { return val != 8.5; },
+                    [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });)
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(-666, OddTag()), Number(42, OddTag()), IsMultiple(3, OddTag()),

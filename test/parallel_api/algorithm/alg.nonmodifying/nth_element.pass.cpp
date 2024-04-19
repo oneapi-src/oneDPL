@@ -187,11 +187,11 @@ main()
 {
 #if !ONEDPL_FPGA_DEVICE
     test_by_type<std::int32_t>([](std::int32_t i) { return 10 * i; }, [](std::int32_t i) { return i + 1; }, ::std::less<std::int32_t>());
-    test_by_type<std::int32_t>([](std::int32_t) { return 0; }, [](std::int32_t) { return 0; }, ::std::less<std::int32_t>());
+    ONEDPL_TEST_ENABLED(test_by_type<std::int32_t>([](std::int32_t) { return 0; }, [](std::int32_t) { return 0; }, ::std::less<std::int32_t>());)
 #endif
 
-    test_by_type<float64_t>([](std::int32_t i) { return -2 * i; }, [](std::int32_t i) { return -(2 * i + 1); },
-                            [](const float64_t x, const float64_t y) { return x > y; });
+    ONEDPL_TEST_ENABLED(test_by_type<float64_t>([](std::int32_t i) { return -2 * i; }, [](std::int32_t i) { return -(2 * i + 1); },
+                            [](const float64_t x, const float64_t y) { return x > y; });)
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_by_type<DataType<float32_t>>(

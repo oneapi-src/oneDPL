@@ -100,10 +100,10 @@ main()
 {
     // clang-3.8 fails to correctly auto vectorize the loop in some cases of different types of container's elements,
     // for example: std::int32_t and std::int8_t. This issue isn't detected for clang-3.9 and newer versions.
-    test<std::int16_t, std::int8_t>();
+    ONEDPL_TEST_ENABLED(test<std::int16_t, std::int8_t>();)
     test<std::uint16_t, float32_t>();
-    test<float64_t, std::int64_t>();
-    test<wrapper<float32_t>, wrapper<float32_t>>();
+    ONEDPL_TEST_ENABLED(test<float64_t, std::int64_t>();)
+    ONEDPL_TEST_ENABLED(test<wrapper<float32_t>, wrapper<float32_t>>();)
 
     return done();
 }

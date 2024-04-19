@@ -105,11 +105,11 @@ struct test_non_const
 int
 main()
 {
-    test<std::int16_t>([](const std::int32_t value) { return value % 2 == 0; });
+    ONEDPL_TEST_ENABLED(test<std::int16_t>([](const std::int32_t value) { return value % 2 == 0; });)
     test<std::int32_t>([](const std::int32_t) { return true; });
 
 #if !ONEDPL_FPGA_DEVICE
-    test<float64_t>([](const float64_t value) { return value > 2 << 6; });
+    ONEDPL_TEST_ENABLED(test<float64_t>([](const float64_t value) { return value > 2 << 6; });)
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
