@@ -23,6 +23,7 @@
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
+#include <cmath>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -1586,7 +1587,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         const ::std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        const ::std::int64_t __n_iter = ::std::log2(__n_power2) - ::std::log2(__leaf);
+        const ::std::int64_t __n_iter = std::log2(__n_power2) - std::log2(__leaf);
         for (::std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
