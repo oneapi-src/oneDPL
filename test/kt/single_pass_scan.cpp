@@ -29,32 +29,39 @@
 
 #include "esimd_radix_sort_utils.h"
 
+#include <random>
+#include <algorithm>
+#include <numeric>
+#include <vector>
+#include <cstdint>
+#include <type_traits>
+
 inline const std::vector<std::size_t> scan_sizes = {
     1,       6,         16,      43,        256,           316,           2048,
     5072,    8192,      14001,   1 << 14,   (1 << 14) + 1, 50000,         67543,
     100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
     888'235, 1'000'000, 1 << 20, 10'000'000};
 
-template <typename T>
-typename std::enable_if_t<std::is_arithmetic_v<T>, void>
-generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
+template<typename BinOp, typename T>
+auto generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 {
+    // Integer numbers are generated even for floating point types in order to avoid rounding errors,
+    // and simplify the final check
+    using substitue_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
+
+    const substitue_t start = std::is_signed_v<T> ? -10 : 0;
+    const substitue_t end = 10;
+
     std::default_random_engine gen{seed};
-    if constexpr (std::is_integral_v<T>)
+    std::uniform_int_distribution<substitue_t> dist(start, end);
+    std::generate(input, input + size, [&] { return dist(gen); });
+
+    if constexpr (std::is_same_v<std::multiplies<T>, BinOp>)
     {
-        const T start = std::is_signed_v<T> ? -1000 : 0;
-        std::uniform_int_distribution<T> dist(start, 1000);
-        std::generate(input, input + size, [&] { return dist(gen); });
-    }
-    else
-    {
-        std::uniform_real_distribution<T> dist_real(0.0001, 1000.);
-        std::uniform_int_distribution<int> dist_binary(0, 1);
-        auto randomly_signed_real = [&dist_real, &dist_binary, &gen]() {
-            auto v = exp2(dist_real(gen));
-            return dist_binary(gen) == 0 ? v : -v;
-        };
-        std::generate(input, input + size, [&] { return randomly_signed_real(); });
+        std::size_t custom_item_count = size < 5 ? size : 5;
+        std::fill(input + custom_item_count, input + size, 1);
+        std::replace(input, input + custom_item_count, 0, 2);
+        std::shuffle(input, input + size, gen);
     }
 }
 
@@ -83,7 +90,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
     std::vector<T> input(size);
-    generate_scan_data(input.data(), size, 42);
+    generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
 
@@ -111,7 +118,7 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::cout << "\ttest_buffer(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
     std::vector<T> input(size);
-    generate_scan_data(input.data(), size, 42);
+    generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
 
@@ -139,7 +146,7 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
               << size << ");" << std::endl;
 #endif
     std::vector<T> expected(size);
-    generate_scan_data(expected.data(), size, 42);
+    generate_scan_data<BinOp>(expected.data(), size, 42);
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
@@ -168,7 +175,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
 #endif
     std::vector<T> input(size);
     std::vector<T> output(size);
-    generate_scan_data(input.data(), size, 42);
+    generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
@@ -215,16 +222,22 @@ main()
 
     constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
-    try
+    bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
+
+    if (run_test)
     {
-        for (auto size : scan_sizes)
-            test_all_cases<TEST_TYPE>(q, size, params);
-    }
-    catch (const std::exception& exc)
-    {
-        std::cerr << "Exception: " << exc.what() << std::endl;
-        return EXIT_FAILURE;
+
+        try
+        {
+            for (auto size : scan_sizes)
+                test_all_cases<TEST_TYPE>(q, size, params);
+        }
+        catch (const std::exception& exc)
+        {
+            std::cerr << "Exception: " << exc.what() << std::endl;
+            return EXIT_FAILURE;
+        }
     }
 
-    return TestUtils::done();
+    return TestUtils::done(run_test);
 }
