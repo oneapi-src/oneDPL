@@ -216,8 +216,8 @@ struct test_non_const_remove_copy_if
 int
 main()
 {
-    ONEDPL_TEST_ENABLED(test<float64_t>(-666.0, [](const float64_t& x) { return x * x <= 1024; },
-                    [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });)
+    test<float64_t>(-666.0, [](const float64_t& x) { return x * x <= 1024; },
+                    [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
 #if !ONEDPL_FPGA_DEVICE
     test<std::int16_t>(-666, [](const std::int16_t& x) { return x != 42; },

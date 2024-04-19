@@ -126,7 +126,7 @@ int
 main()
 {
     test_by_type<std::int32_t>([](std::int32_t i) { return i; }, [](std::int32_t) { return true; });
-    ONEDPL_TEST_ENABLED(test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });)
+    test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
 #if !ONEDPL_FPGA_DEVICE
     test_by_type<std::int64_t>([](std::int32_t i) { return i + 1; }, [](std::int64_t x) { return x % 3 == 0; });
 #endif

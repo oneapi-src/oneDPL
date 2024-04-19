@@ -126,8 +126,8 @@ main()
 #endif
 
     // Try type for which algorithm can really be vectorized.
-    ONEDPL_TEST_ENABLED(test<float32_t>([](float32_t x) { return x >= 0; }, [](float32_t j) { return j * j; },
-                    [](float32_t j) { return -1 - j * j; });)
+    test<float32_t>([](float32_t x) { return x >= 0; }, [](float32_t j) { return j * j; },
+                    [](float32_t j) { return -1 - j * j; });
 
 #ifdef _PSTL_TEST_FIND_IF
     test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_find_if>());
