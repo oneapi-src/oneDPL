@@ -1031,7 +1031,8 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
     //TODO: To optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     // __pattern_copy_if above may be async due to there is implicit synchronization on sycl::buffer and the accessors
 
-    //A buffer is constructed from a range, the destructor does not need to block.
+    // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore 
+    // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
     return __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
@@ -1053,7 +1054,8 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
 
-    //A buffer is constructed from a range, the destructor does not need to block.
+    // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore 
+    // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
     return __pattern_walk2</*_IsSync=*/std::true_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
@@ -1236,7 +1238,8 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
 
-    //A buffer is constructed from a range, the destructor does not need to block.
+    // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore 
+    // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
     __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
@@ -1322,18 +1325,19 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2</*_IsSync=*/std::false_type>(
+    __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
         __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
-
-    //We don't need synchronization between these patterns due to the data are being processed independently.
 
     __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
         __false_result, copy_result.second, __first + true_count,
         __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-    //A buffer is constructed from a range, the destructor does not need to block.
+    //TODO: A buffer is constructed from a range, the destructor does not need to block.
+    // The synchronization between these patterns is not required due to the data are being processed independently.
+    // So, sycl::event::wait(event1, event2) should be call. __pattern_walk2 calls above should be asynchronous and
+    // return event1 and event2.
 
     return __first + true_count;
 }
@@ -1545,7 +1549,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
             __tag, __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
             __buf_first, __buf_mid, __out_first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-        //A buffer is constructed from a range, the destructor does not need to block.
+        // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore 
+        // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
     }
 }
 
@@ -1664,7 +1669,8 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __brick,
                                                       __n, __temp_rng_rw, __buf.all_view()).wait();
 
-    //A buffer is constructed from a range, the destructor does not need to block.
+    // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore 
+    // we must call __parallel_for with wait() to provide the blocking synchronization for this pattern.
 
     return __first + (__last - __new_first);
 }
