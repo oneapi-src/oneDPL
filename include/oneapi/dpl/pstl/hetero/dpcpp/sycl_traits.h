@@ -43,9 +43,6 @@
 
 #endif
 
-
-
-
 namespace oneapi::dpl::__internal
 {
 
