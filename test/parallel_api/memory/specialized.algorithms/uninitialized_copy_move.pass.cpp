@@ -197,7 +197,7 @@ test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
         // TODO: "memory objects" should be created in another abstraction level
         //       to avoid multiple enable/disable macro for different backends
 #endif
-        if constexpr (std::is_trivially_copy_constructible_v<T>)
+        if constexpr (std::is_copy_constructible_v<T>)
         {
 #ifdef UNITIALIZED_COPY
             invoke_on_all_policies<>()(test_uninitialized_copy<T>(), in.begin(), in.end(), out_begin, n,
@@ -209,7 +209,7 @@ test_uninitialized_copy_move_by_type(const std::size_t N = 100000)
 #endif
         }
 
-        if constexpr (std::is_trivially_move_constructible_v<T>)
+        if constexpr (std::is_move_constructible_v<T>)
         {
 #ifdef UNITIALIZED_MOVE
             invoke_on_all_policies<>()(test_uninitialized_move<T>(), in.begin(), in.end(), out_begin, n,

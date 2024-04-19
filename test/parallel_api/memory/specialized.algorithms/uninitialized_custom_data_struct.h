@@ -40,9 +40,7 @@ struct NonAssignableTriviallyCopyConstructible
         return false;
     }
 };
-
-static_assert(std::is_trivial_v<NonAssignableTriviallyCopyConstructible>);
-static_assert(std::is_trivially_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
+static_assert(std::is_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
 
 struct NonAssignableTriviallyMoveConstructible
 {
@@ -66,8 +64,6 @@ struct NonAssignableTriviallyMoveConstructible
         return false;
     }
 };
-
-static_assert(std::is_trivial_v<NonAssignableTriviallyMoveConstructible>);
-static_assert(std::is_trivially_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
+static_assert(std::is_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
 
 #endif // _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
