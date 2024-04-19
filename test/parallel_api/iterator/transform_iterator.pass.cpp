@@ -188,7 +188,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test_copyable();
 
-    size_t max_n = 10000;
+    size_t max_n = __TEST_MAX_SIZE;
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         test_simple_copy(n);

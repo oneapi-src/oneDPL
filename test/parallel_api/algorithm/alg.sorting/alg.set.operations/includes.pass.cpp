@@ -94,7 +94,7 @@ void
 test_includes(Compare compare)
 {
     ::std::srand(42);
-    const ::std::size_t n_max = 1000000;
+    const ::std::size_t n_max = __TEST_MAX_SIZE;
 
     Sequence<T1> in1(n_max, [](::std::size_t k) { return rand() % (2 * k + 1); });
     Sequence<T2> in2(n_max, [](::std::size_t k) { return rand() % (k + 1); });

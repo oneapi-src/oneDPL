@@ -98,7 +98,7 @@ template <::std::size_t CallNumber, typename In1, typename In2, typename Out, ty
 void
 test(Predicate pred, _IteratorAdapter adap = {})
 {
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<In1> in1(n, [](size_t k) { return k % 5 != 1 ? In1(3 * k + 7) : 0; });
         Sequence<In2> in2(n, [](size_t k) { return k % 7 != 2 ? In2(5 * k + 5) : 0; });

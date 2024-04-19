@@ -76,7 +76,7 @@ void
 test(T trash, const T& old_value, const T& new_value, Predicate pred, Convert convert)
 {
     // Try sequences of various lengths.
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, [&](size_t k) -> T { return convert(n ^ k); });
         Sequence<T> out(n, [=](size_t) { return trash; });

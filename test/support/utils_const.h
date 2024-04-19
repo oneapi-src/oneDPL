@@ -20,8 +20,7 @@ namespace TestUtils
 {
 #define _SKIP_RETURN_CODE 77
 
-// Test data ranges other than those that start at the beginning of an input.
-constexpr ::std::size_t max_n = 100000;
+#define __TEST_MAX_SIZE 30000
 
 // All these offset consts used for indirect testing of calculation an offset parameter
 // (as a result dpl::begin(buf) + offset) for further passing within sycl::accessor constructor.

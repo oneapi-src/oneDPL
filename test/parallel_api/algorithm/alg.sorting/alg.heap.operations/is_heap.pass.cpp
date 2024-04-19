@@ -134,7 +134,7 @@ test_is_heap_by_type(Comp comp)
 {
     using namespace std;
 
-    const size_t max_size = 100000;
+    const size_t max_size = __TEST_MAX_SIZE;
     for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, [](size_t v) -> T { return T(v); });

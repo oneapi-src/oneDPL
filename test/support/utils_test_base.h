@@ -31,6 +31,7 @@
 namespace TestUtils
 {
 constexpr int kDefaultMultValue = 1;
+constexpr ::std::size_t max_n = __TEST_MAX_SIZE/3;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// enum UDTKind - describe test source data kinds

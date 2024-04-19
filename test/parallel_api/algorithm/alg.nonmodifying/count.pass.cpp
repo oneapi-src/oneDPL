@@ -73,7 +73,7 @@ void
 test(T needle, Predicate pred, Convert convert)
 {
     // Try sequences of various lengths.
-    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<In> in(n, [=](size_t k) -> In {
             // Sprinkle "42" and "50" early, so that short sequences have non-zero count.

@@ -170,7 +170,7 @@ template <typename T>
 void
 test_uninitialized_fill_destroy_by_type()
 {
-    ::std::size_t N = 100000;
+    ::std::size_t N = __TEST_MAX_SIZE;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT

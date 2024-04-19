@@ -40,7 +40,7 @@ void
 test(Predicate pred)
 {
 
-    const ::std::size_t max_n = 1000000;
+    const ::std::size_t max_n = __TEST_MAX_SIZE;
     Sequence<T> in(max_n, [](::std::size_t k) { return T(k); });
 
     for (::std::size_t n1 = 0; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : ::std::size_t(3.1415 * n1))

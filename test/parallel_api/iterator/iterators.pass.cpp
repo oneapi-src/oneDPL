@@ -374,7 +374,7 @@ void test_iterator_by_type(IntType n) {
     ::std::vector<IntType> in2(n, IntType(0));
 
     test_counting_iterator()(in, beg,     end,     /*value*/ T(-1));
-    test_counting_iterator()(in, beg+123, end-321, /*value*/ T(42));
+    test_counting_iterator()(in, beg+123, end-121, /*value*/ T(42));
     test_random_iterator(oneapi::dpl::counting_iterator<IntType>(beg));
 
     test_zip_iterator()(in, in2);
@@ -384,8 +384,8 @@ void test_iterator_by_type(IntType n) {
 }
 
 int main() {
-    const auto n1 = 1000;
-    const auto n2 = 100000;
+    const auto n1 = __TEST_MAX_SIZE/100;
+    const auto n2 = __TEST_MAX_SIZE;
 
     test_iterator_by_type<std::int16_t, std::int16_t>(n1);
     test_iterator_by_type<std::int16_t, std::int64_t>(n2);

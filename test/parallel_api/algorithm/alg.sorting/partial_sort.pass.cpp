@@ -141,7 +141,7 @@ template <typename T, typename Compare>
 void
 test_partial_sort(Compare compare)
 {
-    const ::std::size_t n_max = 100000;
+    const ::std::size_t n_max = __TEST_MAX_SIZE;
 
     ::std::srand(42);
     // The rand()%(2*k+1) encourages generation of some duplicates.

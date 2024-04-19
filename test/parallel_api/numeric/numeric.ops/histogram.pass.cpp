@@ -102,7 +102,7 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
 {
     for (Size bin_size = 4; bin_size <= 20000; bin_size = Size(3.1415 * bin_size))
     {
-        for (Size n = 0; n <= 100000; n = n <= 16 ? n + 1 : Size(3.1415 * n))
+        for (Size n = 0; n <= __TEST_MAX_SIZE; n = n <= 16 ? n + 1 : Size(3.1415 * n))
         {
             test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }

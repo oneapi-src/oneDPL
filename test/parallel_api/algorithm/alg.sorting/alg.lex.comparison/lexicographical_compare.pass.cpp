@@ -53,7 +53,7 @@ void
 test(Predicate pred)
 {
 
-    const ::std::size_t max_n = 1000000;
+    const ::std::size_t max_n = __TEST_MAX_SIZE;
     Sequence<T1> in1(max_n, [](::std::size_t k) { return T1(k); });
     Sequence<T2> in2(2 * max_n, [](::std::size_t k) { return T2(k); });
 
@@ -104,7 +104,7 @@ void
 test_string(Predicate pred)
 {
 
-    const ::std::size_t max_n = 1000000;
+    const ::std::size_t max_n = __TEST_MAX_SIZE;
     ::std::string in1 = "";
     ::std::string in2 = "";
     for (::std::size_t n1 = 0; n1 <= max_n; ++n1)

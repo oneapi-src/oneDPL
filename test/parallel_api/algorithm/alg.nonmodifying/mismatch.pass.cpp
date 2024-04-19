@@ -85,7 +85,7 @@ void
 test_mismatch_by_type()
 {
     using namespace std;
-    for (size_t size = 0; size <= 100000; size = size <= 16 ? size + 1 : size_t(3.1415 * size))
+    for (size_t size = 0; size <= __TEST_MAX_SIZE; size = size <= 16 ? size + 1 : size_t(3.1415 * size))
     {
         const T val = T(-1);
         Sequence<T> in(size, [](size_t v) -> T { return T(v % 100); });

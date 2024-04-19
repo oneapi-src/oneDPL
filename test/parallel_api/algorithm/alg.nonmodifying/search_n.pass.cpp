@@ -55,7 +55,7 @@ void
 test()
 {
 
-    const ::std::size_t max_n1 = 100000;
+    const ::std::size_t max_n1 = __TEST_MAX_SIZE;
     const T value = T(1);
     for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {

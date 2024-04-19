@@ -162,7 +162,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
         using TestBaseData = TestUtils::test_base_data_usm<sycl::usm::alloc::shared, TSourceDataSize>;
 
-        TestBaseData test_base_data(TestUtils::get_test_queue(), {{TestUtils::max_n, TestUtils::inout1_offset}});
+        TestBaseData test_base_data(TestUtils::get_test_queue(), {{__TEST_MAX_SIZE, TestUtils::inout1_offset}});
         TSourceDataSize* itIndexStart = test_base_data.get_start_from(TestUtils::UDTKind::eKeys);
 
         std::vector<TSourceDataSize> indexes;

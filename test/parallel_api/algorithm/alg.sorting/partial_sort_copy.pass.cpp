@@ -109,7 +109,7 @@ template <typename T, typename Compare>
 void
 test_partial_sort_copy(Compare compare)
 {
-    const ::std::size_t n_max = 100000;
+    const ::std::size_t n_max = __TEST_MAX_SIZE;
     Sequence<T> in(n_max);
     Sequence<T> out(2 * n_max);
     Sequence<T> exp(2 * n_max);

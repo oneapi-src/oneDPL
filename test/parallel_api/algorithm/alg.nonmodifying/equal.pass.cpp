@@ -139,7 +139,7 @@ template <typename T, typename Compare>
 void
 test(size_t bits, Compare comp)
 {
-    constexpr ::std::size_t max_size = 100000;
+    constexpr ::std::size_t max_size = __TEST_MAX_SIZE;
 
     // Sequence of odd values
     Sequence<T> in(max_size, [bits](size_t k) { return T(2 * HashBits(k, bits - 1) ^ 1); });
