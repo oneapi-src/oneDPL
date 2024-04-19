@@ -197,12 +197,7 @@ test_uninit_construct_by_type(const std::size_t N = 100000)
 int
 main()
 {
-    static_assert(std::is_trivial_v<NonAssignableTriviallyCopyConstructible>);
-    static_assert(std::is_trivially_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
     test_uninit_construct_by_type<NonAssignableTriviallyCopyConstructible>(1);
-
-    static_assert(std::is_trivial_v<NonAssignableTriviallyMoveConstructible>);
-    static_assert(std::is_trivially_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
     test_uninit_construct_by_type<NonAssignableTriviallyMoveConstructible>(1);
 
 #if !TEST_DPCPP_BACKEND_PRESENT

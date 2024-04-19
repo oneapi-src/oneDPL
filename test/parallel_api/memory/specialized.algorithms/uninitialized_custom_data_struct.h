@@ -16,6 +16,8 @@
 #ifndef _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
 #define _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
 
+#include <type_traits>
+
 struct NonAssignableTriviallyCopyConstructible
 {
     NonAssignableTriviallyCopyConstructible() = default;
@@ -39,6 +41,9 @@ struct NonAssignableTriviallyCopyConstructible
     }
 };
 
+static_assert(std::is_trivial_v<NonAssignableTriviallyCopyConstructible>);
+static_assert(std::is_trivially_copy_constructible_v<NonAssignableTriviallyCopyConstructible>);
+
 struct NonAssignableTriviallyMoveConstructible
 {
     NonAssignableTriviallyMoveConstructible() = default;
@@ -61,5 +66,8 @@ struct NonAssignableTriviallyMoveConstructible
         return false;
     }
 };
+
+static_assert(std::is_trivial_v<NonAssignableTriviallyMoveConstructible>);
+static_assert(std::is_trivially_move_constructible_v<NonAssignableTriviallyMoveConstructible>);
 
 #endif // _UNINITIALIZED_CUSTOM_DATA_STRUCT_H
