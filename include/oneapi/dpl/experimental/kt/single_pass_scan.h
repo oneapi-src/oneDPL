@@ -367,7 +367,8 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     void* __vals_aligned_ptr = std::align(std::alignment_of_v<_Type>, __status_vals_full_offset_bytes,
                                             __vals_base_ptr, __remainder);
     _Type* __status_vals_full = reinterpret_cast<_Type*>(__vals_aligned_ptr);
-    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__status_vals_full + __status_vals_full_offset_bytes);
+    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__status_vals_full +
+                                                            __status_vals_full_offset_bytes / sizeof(_Type));
 
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
