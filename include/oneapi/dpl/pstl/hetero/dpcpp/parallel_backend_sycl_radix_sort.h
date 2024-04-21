@@ -600,7 +600,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     if (__self_lidx < __residual)
                     {
                         //initialize the storage via move constructor for _ValueT type
-                        new (&__in_val.__v) _ValueT(std::move(__input_rng[__seg_end + __self_lidx]));
+                        oneapi::dpl::__utils::__op_smart_ctor<_ValueT>{}(
+                            &__in_val.__v, std::move(__input_rng[__seg_end + __self_lidx]));
 
                         __bucket = __get_bucket<(1 << __radix_bits) - 1>(
                             __order_preserving_cast<__is_ascending>(__proj(__in_val.__v)), __radix_offset);

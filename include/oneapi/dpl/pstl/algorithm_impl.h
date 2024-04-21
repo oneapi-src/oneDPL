@@ -1495,10 +1495,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
                 __internal::__brick_copy_by_mask(
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
                     [](_RandomAccessIterator __x, _Tp* __z) {
-                        if constexpr (::std::is_trivial_v<_Tp>)
-                            *__z = ::std::move(*__x);
-                        else
-                            ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+                        oneapi::dpl::__utils::__op_smart_ctor<_Tp>{}(std::addressof(*__z), std::move(*__x));
                     },
                     _IsVector{});
             },
@@ -2603,7 +2600,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                     // 1. Copy elements from input to raw memory
                     for (_T1* __k = __i; __k != __j; ++__k, ++__it)
                     {
-                        ::new (__k) _T2(*__it);
+                        oneapi::dpl::__utils::__op_smart_ctor<_T2>{}(__k, *__it);
                     }
 
                     // 2. Sort elements in temporary buffer
@@ -3092,10 +3089,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
-            if constexpr (::std::is_trivial_v<_Tp>)
-                *__z = ::std::move(*__x);
-            else
-                ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+            oneapi::dpl::__utils::__op_smart_ctor<_Tp>{}(std::addressof(*__z), std::move(*__x));
         };
 
         auto __move_sequences = [](_RandomAccessIterator __first1, _RandomAccessIterator __last1, _Tp* __first2) {

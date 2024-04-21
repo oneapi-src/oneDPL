@@ -171,8 +171,9 @@ struct __par_trans_red_body
         if (!_M_has_sum)
         {
             __TBB_ASSERT(__range.size() > 1, "there should be at least 2 elements");
-            new (&_M_sum_storage)
-                _Tp(_M_combine(_M_u(__i), _M_u(__i + 1))); // The condition i+1 < j is provided by the grain size of 3
+            oneapi::dpl::__utils::__op_smart_ctor<_Tp>{}(
+                (_Tp*)_M_sum_storage,
+                _M_combine(_M_u(__i), _M_u(__i + 1))); // The condition i+1 < j is provided by the grain size of 3
             _M_has_sum = true;
             ::std::advance(__i, 2);
             if (__i == __j)
@@ -241,7 +242,7 @@ class __trans_scan_body
         _Index __j = __range.end();
         if (!_M_has_sum)
         {
-            new (&_M_sum_storage) _Tp(_M_u(__i));
+            oneapi::dpl::__utils::__op_smart_ctor<_Tp>{}((_Tp*)_M_sum_storage, _M_u(__i));
             _M_has_sum = true;
             ++__i;
             if (__i == __j)
@@ -265,7 +266,7 @@ class __trans_scan_body
         }
         else
         {
-            new (&_M_sum_storage) _Tp(__a.sum());
+            oneapi::dpl::__utils::__op_smart_ctor<_Tp>{}((_Tp*)_M_sum_storage, __a.sum());
             _M_has_sum = true;
         }
     }
@@ -747,7 +748,7 @@ class __merge_func
         void
         operator()(Iterator1 __x, Iterator2 __z)
         {
-            ::new (::std::addressof(*__z)) _ValueType(::std::move(*__x));
+            oneapi::dpl::__utils::__op_smart_ctor<_ValueType>{}(std::addressof(*__z), std::move(*__x));
         }
     };
 

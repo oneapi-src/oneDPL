@@ -40,9 +40,8 @@ __brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _O
 {
     using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
-    {
-        ::new (::std::addressof(*__result)) _ValueType(::std::move(*__first));
-    }
+        oneapi::dpl::__utils::__op_smart_ctor<_ValueType>{}(std::addressof(*__result), std::move(*__first));
+
     return __result;
 }
 
@@ -56,8 +55,9 @@ __brick_uninitialized_move(_RandomAccessIterator __first, _RandomAccessIterator 
     using _ReferenceType2 = typename ::std::iterator_traits<_OutputIterator>::reference;
 
     return __unseq_backend::__simd_walk_2(
-        __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(::std::move(__x)); });
+        __first, __last - __first, __result, [](_ReferenceType1 __x, _ReferenceType2 __y) {
+            oneapi::dpl::__utils::__op_smart_ctor<__ValueType>{}(std::addressof(__y), std::move(__x));
+        });
 }
 
 template <typename _Iterator>
@@ -91,9 +91,8 @@ __brick_uninitialized_copy(_ForwardIterator __first, _ForwardIterator __last, _O
 {
     using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
-    {
-        ::new (::std::addressof(*__result)) _ValueType(*__first);
-    }
+        oneapi::dpl::__utils::__op_smart_ctor<_ValueType>{}(std::addressof(*__result), *__first);
+
     return __result;
 }
 
@@ -107,8 +106,9 @@ __brick_uninitialized_copy(_RandomAccessIterator __first, _RandomAccessIterator 
     using _ReferenceType2 = typename ::std::iterator_traits<_OutputIterator>::reference;
 
     return __unseq_backend::__simd_walk_2(
-        __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(__x); });
+        __first, __last - __first, __result, [](_ReferenceType1 __x, _ReferenceType2 __y) {
+            oneapi::dpl::__utils::__op_smart_ctor<__ValueType>{}(std::addressof(__y), __x);
+        });
 }
 
 template <typename _ExecutionPolicy>
@@ -119,10 +119,8 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
         using _TargetValueType = std::decay_t<_TargetT>;
-        if constexpr (std::is_trivial_v<_TargetValueType>)
-            __target = std::forward<_SourceT>(__source);
-        else
-            ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
+        oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target),
+                                                                  std::forward<_SourceT>(__source));
     }
 };
 
@@ -139,7 +137,7 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::move(__source));
+        oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target), std::move(__source));
     }
 };
 
@@ -158,7 +156,7 @@ struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(__source);
+        oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target), __source);
     }
 };
 
@@ -208,7 +206,7 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType();
+        oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target));
     }
 };
 

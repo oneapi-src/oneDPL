@@ -273,12 +273,12 @@ __set_union_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
             return __cc_range(__first1, __last1, __result);
         if (__comp(*__first2, *__first1))
         {
-            ::new (::std::addressof(*__result)) _Tp(*__first2);
+            __op_smart_ctor<_Tp>{}(std::addressof(*__result), *__first2);
             ++__first2;
         }
         else
         {
-            ::new (::std::addressof(*__result)) _Tp(*__first1);
+            __op_smart_ctor<_Tp>{}(std::addressof(*__result), *__first1);
             if (!__comp(*__first1, *__first2))
                 ++__first2;
             ++__first1;
@@ -337,7 +337,7 @@ __set_difference_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1
 
         if (__comp(*__first1, *__first2))
         {
-            ::new (::std::addressof(*__result)) _Tp(*__first1);
+            __op_smart_ctor<_Tp>{}(std::addressof(*__result), *__first1);
             ++__result;
             ++__first1;
         }
@@ -366,7 +366,7 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 
         if (__comp(*__first1, *__first2))
         {
-            ::new (::std::addressof(*__result)) _Tp(*__first1);
+            __op_smart_ctor<_Tp>{}(std::addressof(*__result), *__first1);
             ++__result;
             ++__first1;
         }
@@ -374,7 +374,7 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
         {
             if (__comp(*__first2, *__first1))
             {
-                ::new (::std::addressof(*__result)) _Tp(*__first2);
+                __op_smart_ctor<_Tp>{}(std::addressof(*__result), *__first2);
                 ++__result;
             }
             else

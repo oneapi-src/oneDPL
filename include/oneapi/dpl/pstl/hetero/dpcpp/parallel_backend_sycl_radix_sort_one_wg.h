@@ -106,7 +106,7 @@ struct __subgroup_radix_sort
         {
             const uint16_t __idx = __wi * __block_size + __i;
             if (__idx < __n)
-                new (&__values[__i]) _ValueT(::std::move(__src[__idx]));
+                oneapi::dpl::__utils::__op_smart_ctor<_ValueT>{}(&__values[__i], std::move(__src[__idx]));
         }
     }
 
@@ -278,7 +278,8 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
+                                        oneapi::dpl::__utils::__op_smart_ctor<_ValT>{}(&__exchange_lacc[__r],
+                                                                                       std::move(__values.__v[__i]));
                                 }
                             }
                             else
