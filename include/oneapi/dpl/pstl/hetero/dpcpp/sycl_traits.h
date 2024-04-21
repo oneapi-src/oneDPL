@@ -24,7 +24,7 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
-#if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
+#if _ONEDPL_LIBSYCL_VERSION <= 70000
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>, std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>
 #else
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>
