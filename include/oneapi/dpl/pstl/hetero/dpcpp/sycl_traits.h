@@ -24,17 +24,10 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
-namespace oneapi::dpl::__internal
-{
-template <typename... _Ts>
-struct __is_device_copyable: std::conjunction<sycl::is_device_copyable<_Ts>...> {};
-}
-
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
-#   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) sycl::is_device_copyable<TYPE<__VA_ARGS__>, \
-    std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>>
+#   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>, std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>
 #else
-#   define _ONEDPL_IS_DEVICE_COPYABLE(TYPE, ...) sycl::is_device_copyable<TYPE<__VA_ARGS__>>
+#   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>
 #endif //__INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 
 namespace oneapi::dpl::__internal
@@ -100,16 +93,16 @@ struct __brick_fill_n;
 } // namespace oneapi::dpl::__internal
 
 template <typename _Pred>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::__internal::__not_pred, _Pred):
-    oneapi::dpl::__internal::__is_device_copyable<_Pred> {};
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__not_pred, _Pred)>:
+    __dpl_sycl::__is_device_copyable<_Pred> {};
 
 template <typename _Pred>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::__internal::__reorder_pred, _Pred):
-    oneapi::dpl::__internal::__is_device_copyable<_Pred> {};
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__reorder_pred, _Pred)>:
+    __dpl_sycl::__is_device_copyable<_Pred> {};
 
 template <typename _Tp, typename _Predicate>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value_by_pred, _Tp, _Predicate):
-    oneapi::dpl::__internal::__is_device_copyable<_Tp, _Predicate> {};
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__equal_value_by_pred, _Tp, _Predicate)>:
+    __dpl_sycl::__is_device_copyable<_Tp, _Predicate> {};
 
 #if 0 //TODO
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__internal::__equal_value_by_pred)
@@ -140,7 +133,9 @@ struct __early_exit_find_or;
 
 } // namespace oneapi::dpl::__par_backend_hetero
 
+#if 0
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::__par_backend_hetero::__early_exit_find_or);
+#endif
 
 namespace oneapi::dpl::unseq_backend
 {
@@ -197,14 +192,16 @@ struct __brick_reduce_idx;
 
 } // namespace oneapi::dpl::unseq_backend
 
+#if 0
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_n)
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::walk_adjacent_difference)
+#endif
 
 template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
           typename _Tp, typename _Commutative>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::transform_reduce, _ExecutionPolicy, __iters_per_work_item,
-    _Operation1, _Operation2, _Tp, _Commutative):
-    oneapi::dpl::__internal::__is_device_copyable<_Operation1, _Operation2, _Tp> {};
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::transform_reduce, _ExecutionPolicy, __iters_per_work_item,
+    _Operation1, _Operation2, _Tp, _Commutative)>:
+    __dpl_sycl::__is_device_copyable<_Operation1, _Operation2, _Tp> {};
 
 #if 0 //TODO
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::unseq_backend::reduce_over_group)
@@ -271,8 +268,8 @@ class permutation_iterator;
 } // namespace oneapi::dpl
 
 template <typename... _Types>
-struct _ONEDPL_IS_DEVICE_COPYABLE(oneapi::dpl::zip_iterator, _Types...):
-    oneapi::dpl::__internal::__is_device_copyable<_Types> {};
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::zip_iterator, _Types...)>:
+    __dpl_sycl::__is_device_copyable<_Types> {};
 
 #if 0 //TODO
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::transform_iterator)

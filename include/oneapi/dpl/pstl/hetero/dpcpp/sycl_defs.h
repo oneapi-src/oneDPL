@@ -420,6 +420,9 @@ __get_accessor_ptr(const _Acc& __acc)
 #endif
 }
 
+template <typename... _Ts>
+struct __is_device_copyable: std::conjunction<sycl::is_device_copyable<_Ts>...> {};
+
 } // namespace __dpl_sycl
 
 #endif // _ONEDPL_SYCL_DEFS_H
