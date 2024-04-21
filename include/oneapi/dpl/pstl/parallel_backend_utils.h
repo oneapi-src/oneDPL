@@ -28,6 +28,70 @@ namespace dpl
 {
 namespace __utils
 {
+//------------------------------------------------------------------------
+// Uninitialized / initialized copy / move for trivial / non-trivial types
+//------------------------------------------------------------------------
+
+// struct __op_smart_ctor - helper struct for uninitialized/initialized copy/move operations.
+// It can be used to perform copy/move operations for scalar and non-scalar types.
+template <typename _ValueType>
+struct __op_smart_ctor
+{
+    using _ValueTypeDecayed = std::decay_t<_ValueType>;
+
+    // Construct value in place
+    /*
+     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
+     */
+    inline void
+    operator()(_ValueTypeDecayed* __p_value_to) const
+    {
+        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
+        {
+            // no assignment required here
+        }
+        else
+        {
+            ::new (__p_value_to) _ValueTypeDecayed();
+        }
+    }
+
+    // Uninitialized (for scalar types) / initialized (for other types) copy
+    /**
+     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
+     * @param const _ValueTypeDecayed& __value_from - source value
+     */
+    inline void
+    operator()(_ValueTypeDecayed* __p_value_to, const _ValueTypeDecayed& __value_from) const
+    {
+        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
+        {
+            *__p_value_to = __value_from;
+        }
+        else
+        {
+            ::new (__p_value_to) _ValueTypeDecayed(__value_from);
+        }
+    }
+
+    // Uninitialized (for scalar types) / initialized (for other types) move
+    /**
+     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
+     * @param _ValueTypeDecayed&& __value_from - source value
+     */
+    inline void
+    operator()(_ValueTypeDecayed* __p_value_to, _ValueTypeDecayed&& __value_from) const
+    {
+        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
+        {
+            *__p_value_to = std::forward<_ValueTypeDecayed>(__value_from);
+        }
+        else
+        {
+            ::new (__p_value_to) _ValueTypeDecayed(std::forward<_ValueTypeDecayed>(__value_from));
+        }
+    }
+};
 
 //------------------------------------------------------------------------
 // raw buffer (with specified _TAllocator)
