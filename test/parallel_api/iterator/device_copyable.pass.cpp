@@ -207,7 +207,7 @@ test_device_copyable()
 
     static_assert(
         sycl::is_device_copyable_v<
-            oneapi::dpl::internal::segmented_scan_fun<int_device_copyable, int_device_copyable, noop_device_copyable>>,
+            oneapi::dpl::internal::segmented_scan_fun<int_non_device_copyable, int_device_copyable, noop_device_copyable>>,
         "segmented_scan_fun is not device copyable with device copyable types");
 
     static_assert(sycl::is_device_copyable_v<
@@ -248,6 +248,34 @@ test_non_device_copyable()
     static_assert(
         !sycl::is_device_copyable_v<oneapi::dpl::permutation_iterator<int*, constant_iterator_non_device_copyable>>,
         "permutation_iterator is device copyable with non device copyable types");
+
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::internal::custom_brick<
+                      noop_device_copyable, int_non_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
+                  "custom_brick is device copyable with non device copyable types");
+
+    static_assert(
+        !sycl::is_device_copyable_v<oneapi::dpl::internal::replace_if_fun<int_device_copyable, noop_non_device_copyable>>,
+        "replace_if_fun is device copyable with non device copyable types");
+
+    static_assert(
+        !sycl::is_device_copyable_v<
+            oneapi::dpl::internal::scan_by_key_fun<int_non_device_copyable, int_device_copyable, noop_non_device_copyable>>,
+        "scan_by_key_fun is device copyable with non device copyable types");
+
+    static_assert(
+        !sycl::is_device_copyable_v<
+            oneapi::dpl::internal::segmented_scan_fun<int_device_copyable, int_device_copyable, noop_non_device_copyable>>,
+        "segmented_scan_fun is device copyable with non device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<
+                      oneapi::dpl::internal::scatter_and_accumulate_fun<int_non_device_copyable, int_device_copyable>>,
+                  "scatter_and_accumulate_fun is device copyable with non device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::internal::transform_if_stencil_fun<
+                      int_device_copyable, noop_non_device_copyable, noop_device_copyable>>,
+                  "transform_if_stencil_fun is device copyable with non device copyable types");
+
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
