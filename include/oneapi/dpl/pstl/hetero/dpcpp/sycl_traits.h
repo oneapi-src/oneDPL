@@ -144,12 +144,12 @@ template <typename _Generator>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::generate_functor, _Generator)>:
     __dpl_sycl::__is_device_copyable<_Generator> {};
 
-template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename _SpecTag>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__brick_fill, _Tag, _ExecutionPolicy, _Tp, _SpecTag)>:
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename _EnableIfPlaceholder>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__brick_fill, _Tag, _ExecutionPolicy, _Tp, _EnableIfPlaceholder)>:
     __dpl_sycl::__is_device_copyable<_Tp> {};
 
-template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename _SpecTag>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__brick_fill_n, _Tag, _ExecutionPolicy, _Tp, _SpecTag)>:
+template <class _Tag, typename _ExecutionPolicy, typename _Tp, typename _EnableIfPlaceholder>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__brick_fill_n, _Tag, _ExecutionPolicy, _Tp, _EnableIfPlaceholder)>:
     __dpl_sycl::__is_device_copyable<_Tp> {};
 
 template <typename _Tp, typename _Pred>
