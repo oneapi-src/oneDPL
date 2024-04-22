@@ -22,6 +22,11 @@
 #include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 #include "../../pstl/utils.h"
 
+#include <cstdint>
+#include <cassert>
+#include <cstddef>
+#include <type_traits>
+
 namespace oneapi::dpl::experimental::kt
 {
 
