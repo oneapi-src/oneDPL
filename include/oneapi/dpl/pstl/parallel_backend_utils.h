@@ -39,57 +39,29 @@ struct __op_smart_ctor
 {
     using _ValueTypeDecayed = std::decay_t<_ValueType>;
 
-    // Construct value in place
-    /*
-     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
-     */
+    template <typename... Args>
     inline void
-    operator()(_ValueTypeDecayed* __p_value_to) const
+    operator()(_ValueTypeDecayed* __p_value_to, Args&&... args) const
     {
-        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
+        if constexpr (std::is_scalar_v<_ValueTypeDecayed> && sizeof...(Args) <= 1)
         {
-            // no assignment required here
+            if constexpr (sizeof...(Args) == 1)
+            {
+                __assign_impl(__p_value_to, std::forward<Args>(args)...);
+            }
         }
         else
         {
-            ::new (__p_value_to) _ValueTypeDecayed();
+            ::new (__p_value_to) _ValueTypeDecayed(std::forward<Args>(args)...);
         }
     }
 
-    // Uninitialized (for scalar types) / initialized (for other types) copy
-    /**
-     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
-     * @param const _ValueTypeDecayed& __value_from - source value
-     */
+  private:
+    template <typename Arg>
     inline void
-    operator()(_ValueTypeDecayed* __p_value_to, const _ValueTypeDecayed& __value_from) const
+    __assign_impl(_ValueTypeDecayed* __p_value_to, Arg&& arg) const
     {
-        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
-        {
-            *__p_value_to = __value_from;
-        }
-        else
-        {
-            ::new (__p_value_to) _ValueTypeDecayed(__value_from);
-        }
-    }
-
-    // Uninitialized (for scalar types) / initialized (for other types) move
-    /**
-     * _ValueTypeDecayed* __p_value_to - pointer to the value for construction
-     * @param _ValueTypeDecayed&& __value_from - source value
-     */
-    inline void
-    operator()(_ValueTypeDecayed* __p_value_to, _ValueTypeDecayed&& __value_from) const
-    {
-        if constexpr (std::is_scalar_v<_ValueTypeDecayed>)
-        {
-            *__p_value_to = std::forward<_ValueTypeDecayed>(__value_from);
-        }
-        else
-        {
-            ::new (__p_value_to) _ValueTypeDecayed(std::forward<_ValueTypeDecayed>(__value_from));
-        }
+        *__p_value_to = std::forward<Arg>(arg);
     }
 };
 
