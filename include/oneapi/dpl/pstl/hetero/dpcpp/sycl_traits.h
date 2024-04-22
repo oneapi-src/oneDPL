@@ -269,7 +269,7 @@ class permutation_iterator;
 
 template <typename... _Types>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::zip_iterator, _Types...)>:
-    __dpl_sycl::__is_device_copyable<_Types> {};
+    __dpl_sycl::__is_device_copyable<_Types...> {};
 
 #if 0 //TODO
 _ONEDPL_DEVICE_COPYABLE(oneapi::dpl::transform_iterator)
