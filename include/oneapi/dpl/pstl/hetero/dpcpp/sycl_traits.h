@@ -24,7 +24,11 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
-#if _ONEDPL_LIBSYCL_VERSION < 70100
+#if _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN
+// Prior to this version within DPC++ compiler, sycl::is_device_copyable relied upon a second template parameter to
+// resolve ambiguity with the general is_trivially_copyable specialization. This does not follow the sycl specification,
+// but is required to to support versions of the compiler prior to this version. Without it, the user will face a
+// compile time error of ambiguous template specialization.
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>, std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>
 #else
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>
@@ -292,7 +296,7 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backen
 template <typename _InitType>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__init_value, _InitType)>:
     __dpl_sycl::__is_device_copyable<_InitType> {};
-    
+
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__scan, _Inclusive, _ExecutionPolicy, _BinaryOperation,
