@@ -220,6 +220,9 @@ struct __partition_by_mask;
 template <typename _Inclusive, typename _BinaryOp, typename _InitType>
 struct __global_scan_functor;
 
+template <typename _InitType>
+ struct __init_value;
+
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
 struct __scan;
@@ -286,6 +289,10 @@ template <typename _Inclusive, typename _BinaryOp, typename _InitType>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__global_scan_functor, _Inclusive, _BinaryOp, _InitType)>:
     __dpl_sycl::__is_device_copyable<_BinaryOp, _InitType> {};
 
+template <typename _InitType>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__init_value, _InitType)>:
+    __dpl_sycl::__is_device_copyable<_InitType> {};
+    
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__scan, _Inclusive, _ExecutionPolicy, _BinaryOperation,
