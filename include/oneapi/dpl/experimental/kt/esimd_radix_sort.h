@@ -11,6 +11,7 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_H
 
 #include <cstdint>
+#include <type_traits>
 
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 

@@ -231,9 +231,6 @@ __onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pa
             __has_values,
             __esimd_radix_sort_onesweep_by_key<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>,
             __esimd_radix_sort_onesweep<std::decay_t<_RngPack2>, std::decay_t<_RngPack3>, _KernelName>>>;
-    using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
-                             __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
 
     using _GlobalHistT = ::std::uint32_t;
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
@@ -376,7 +373,7 @@ sycl::event
 __radix_sort(sycl::queue __q, _RngPack1&& __pack_in, _RngPack2&& __pack_out, _KernelParam __param)
 {
     const auto __n = __pack_in.__keys_rng().size();
-    assert(__n > 1);
+    assert(__n > 0);
 
     // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
     constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
