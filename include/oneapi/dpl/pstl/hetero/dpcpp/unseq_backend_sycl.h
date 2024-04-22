@@ -233,7 +233,8 @@ struct transform_reduce
     scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, const _Size __max_iters, _Res& __res,
                                const _Acc&... __acc) const
     {
-        const _Size __no_iters = std::min(static_cast<_Size>(__adjusted_n - __start_idx), __max_iters);
+        const _Size __remainder = __adjusted_n - __start_idx;
+        const _Size __no_iters = std::min(__remainder, __max_iters);
         for (_Size __idx = 0; __idx < __no_iters; ++__idx)
             __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
     }
@@ -244,7 +245,6 @@ struct transform_reduce
                const _Size& __global_offset, const bool __is_full, const _Size __n_groups, _Res& __res,
                const _Acc&... __acc) const
     {
-        const _Size __local_idx = __item_id.get_local_id(0);
         const _Size __global_idx = __item_id.get_global_id(0);
         if (__iters_per_work_item == 1)
         {
@@ -254,15 +254,16 @@ struct transform_reduce
         const _Size __local_range = __item_id.get_local_range(0);
         const _Size __no_vec_ops = __iters_per_work_item / _VecSize;
         const _Size __adjusted_n = __global_offset + __n;
-        constexpr _Size __vec_size_minus_one = static_cast<_Size>(_VecSize - 1);
+        constexpr _Size __vec_size_minus_one = _VecSize - 1;
 
         _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
         _Size __adjusted_global_id = __global_offset;
         if constexpr (_Commutative{})
         {
             __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
-            __adjusted_global_id +=
-                __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * _VecSize;
+            _Size __local_idx = __item_id.get_local_id(0);
+            _Size __group_idx = __item_id.get_group_linear_id();
+            __adjusted_global_id += __group_idx * __local_range * __iters_per_work_item + __local_idx * _VecSize;
         }
         else
             __adjusted_global_id += __iters_per_work_item * __global_idx;
@@ -275,7 +276,9 @@ struct transform_reduce
             const bool __is_multi_group = __n_groups > 1;
             if (__is_multi_group)
             {
-                const bool __is_last_wg = static_cast<_Size>(__item_id.get_group(0)) == __n_groups - (_Size)1;
+                _Size __group_idx = __item_id.get_group(0);
+                _Size __n_groups_minus_one = __n_groups - 1;
+                const bool __is_last_wg = __group_idx == __n_groups_minus_one;
                 if (!__is_last_wg)
                     __is_full_wg = true;
             }
@@ -306,14 +309,16 @@ struct transform_reduce
         else if (__adjusted_global_id < __adjusted_n)
         {
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            scalar_reduction_remainder(static_cast<_Size>(__adjusted_global_id + 1), __adjusted_n,
-                                       static_cast<_Size>(_VecSize - 2), __res, __acc...);
+            const _Size __adjusted_global_id_plus_one = __adjusted_global_id + 1;
+            constexpr _Size __vec_size_minus_two = _VecSize - 2;
+            scalar_reduction_remainder(__adjusted_global_id_plus_one, __adjusted_n, __vec_size_minus_two, __res,
+                                       __acc...);
         }
     }
 
     template <typename _Size>
     _Size
-    output_size(const _Size& __n, const _Size& __work_group_size, const _Size& __iters_per_work_item) const
+    output_size(const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item) const
     {
         if (__iters_per_work_item == 1)
             return __n;
@@ -324,7 +329,8 @@ struct transform_reduce
             _Size __last_wg_remainder = __n % __items_per_work_group;
             // Adjust remainder and wg size for vector size
             _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
-            _Size __last_wg_contrib = std::min(__last_wg_vec, static_cast<_Size>(__work_group_size * _VecSize));
+            _Size __wg_vec_size = __work_group_size * _VecSize;
+            _Size __last_wg_contrib = std::min(__last_wg_vec, __wg_vec_size);
             return __full_group_contrib + __last_wg_contrib;
         }
         return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
