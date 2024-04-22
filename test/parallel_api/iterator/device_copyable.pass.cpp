@@ -37,6 +37,10 @@ struct noop
 
 struct noop_non_device_copyable
 {
+    noop_non_device_copyable(const noop_non_device_copyable& other)
+    {
+        std::cout<<"non trivial copy ctor\n";
+    }
     int
     operator()(int a) const
     {
@@ -47,6 +51,10 @@ struct noop_non_device_copyable
 struct int_non_device_copyable
 {
     int i;
+    int_non_device_copyable(const int_non_device_copyable& other) : i(other.i)
+    {
+        std::cout<<"non trivial copy ctor\n";
+    }
 };
 
 //constant iterator which has custom copy constructor and is not device copyable
@@ -92,15 +100,6 @@ struct constant_iterator_non_device_copyable
     bool operator>=(const constant_iterator_non_device_copyable& other) const { return true; }
 };
 
-template <>
-struct sycl::is_device_copyable<noop_non_device_copyable> : std::false_type
-{
-};
-
-template <>
-struct sycl::is_device_copyable<int_non_device_copyable> : std::false_type
-{
-};
 
 void
 test_device_copyable()
