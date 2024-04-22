@@ -329,7 +329,7 @@ class transform_if_stencil_fun;
 
 } // namespace oneapi::dpl::internal
 
-template <typename Comp, typename T, search_algorithm func>
+template <typename Comp, typename T, oneapi::dpl::internal::search_algorithm func>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::internal::custom_brick, Comp, T, func)>:
     __dpl_sycl::__is_device_copyable<Comp, T> {};
 
