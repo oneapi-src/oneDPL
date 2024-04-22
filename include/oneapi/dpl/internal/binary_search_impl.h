@@ -76,7 +76,7 @@ struct custom_brick
         if (use_32bit_indexing)
             search_impl<std::uint32_t>(idx, acc);
         else
-            search_impl<std::size_t>(idx, acc);
+            search_impl<std::uint64_t>(idx, acc);
     }
 };
 
