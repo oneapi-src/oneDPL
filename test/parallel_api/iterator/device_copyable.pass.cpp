@@ -88,103 +88,32 @@ struct constant_iterator_non_device_copyable
         std::cout << "non trivial copy ctor\n";
     }
 
-    reference
-    operator*() const
-    {
-        return i;
-    }
+    reference operator*() const { return i; }
 
-    constant_iterator_non_device_copyable&
-    operator++()
-    {
-        return *this;
-    }
-    constant_iterator_non_device_copyable
-    operator++(int)
-    {
-        return *this;
-    }
+    constant_iterator_non_device_copyable& operator++() { return *this; }
+    constant_iterator_non_device_copyable operator++(int) {return *this; }
 
-    constant_iterator_non_device_copyable&
-    operator--()
-    {
-        return *this;
-    }
-    constant_iterator_non_device_copyable
-    operator--(int)
-    {
-        return *this;
-    }
+    constant_iterator_non_device_copyable& operator--() {  return *this; }
+    constant_iterator_non_device_copyable operator--(int) { return *this; }
 
-    constant_iterator_non_device_copyable&
-    operator+=(difference_type n)
-    {
-        return *this;
-    }
-    constant_iterator_non_device_copyable
-    operator+(difference_type n) const
-    {
-        return constant_iterator_non_device_copyable(i);
-    }
-    friend constant_iterator_non_device_copyable
-    operator+(difference_type n, const constant_iterator_non_device_copyable& it)
-    {
-        return constant_iterator_non_device_copyable(it.i);
-    }
+    constant_iterator_non_device_copyable& operator+=(difference_type n) {return *this; }
+    constant_iterator_non_device_copyable operator+(difference_type n) const { return constant_iterator_non_device_copyable(i); }
+    friend constant_iterator_non_device_copyable operator+(difference_type n, const constant_iterator_non_device_copyable& it) { return constant_iterator_non_device_copyable(it.i); }
 
-    constant_iterator_non_device_copyable&
-    operator-=(difference_type n)
-    {
-        return *this;
-    }
-    constant_iterator_non_device_copyable
-    operator-(difference_type n) const
-    {
-        return constant_iterator_non_device_copyable(i);
-    }
-    difference_type
-    operator-(const constant_iterator_non_device_copyable& other) const
-    {
-        return 0;
-    }
+    constant_iterator_non_device_copyable& operator-=(difference_type n) { return *this; }
+    constant_iterator_non_device_copyable operator-(difference_type n) const { return constant_iterator_non_device_copyable(i); }
+    difference_type operator-(const constant_iterator_non_device_copyable& other) const { return 0; }
 
-    reference
-    operator[](difference_type n) const
-    {
-        return i;
-    }
+    reference operator[](difference_type n) const { return i; }
 
-    bool
-    operator==(const constant_iterator_non_device_copyable& other) const
-    {
-        return true;
-    }
-    bool
-    operator!=(const constant_iterator_non_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator<(const constant_iterator_non_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator>(const constant_iterator_non_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator<=(const constant_iterator_non_device_copyable& other) const
-    {
-        return true;
-    }
-    bool
-    operator>=(const constant_iterator_non_device_copyable& other) const
-    {
-        return true;
-    }
+    bool operator==(const constant_iterator_non_device_copyable& other) const { return true; }
+    bool operator!=(const constant_iterator_non_device_copyable& other) const { return false; }
+    bool operator<(const constant_iterator_non_device_copyable& other) const { return false; }
+    bool operator>(const constant_iterator_non_device_copyable& other) const { return false; }
+    bool operator<=(const constant_iterator_non_device_copyable& other) const { return true; }
+    bool operator>=(const constant_iterator_non_device_copyable& other) const { return true; }
 };
+
 
 struct constant_iterator_device_copyable
 {
@@ -202,102 +131,30 @@ struct constant_iterator_device_copyable
         std::cout << "non trivial copy ctor\n";
     }
 
-    reference
-    operator*() const
-    {
-        return i;
-    }
+    reference operator*() const { return i; }
 
-    constant_iterator_device_copyable&
-    operator++()
-    {
-        return *this;
-    }
-    constant_iterator_device_copyable
-    operator++(int)
-    {
-        return *this;
-    }
+    constant_iterator_device_copyable& operator++() { return *this; }
+    constant_iterator_device_copyable operator++(int) {return *this; }
 
-    constant_iterator_device_copyable&
-    operator--()
-    {
-        return *this;
-    }
-    constant_iterator_device_copyable
-    operator--(int)
-    {
-        return *this;
-    }
+    constant_iterator_device_copyable& operator--() {  return *this; }
+    constant_iterator_device_copyable operator--(int) { return *this; }
 
-    constant_iterator_device_copyable&
-    operator+=(difference_type n)
-    {
-        return *this;
-    }
-    constant_iterator_device_copyable
-    operator+(difference_type n) const
-    {
-        return constant_iterator_device_copyable(i);
-    }
-    friend constant_iterator_device_copyable
-    operator+(difference_type n, const constant_iterator_device_copyable& it)
-    {
-        return constant_iterator_device_copyable(it.i);
-    }
+    constant_iterator_device_copyable& operator+=(difference_type n) {return *this; }
+    constant_iterator_device_copyable operator+(difference_type n) const { return constant_iterator_device_copyable(i); }
+    friend constant_iterator_device_copyable operator+(difference_type n, const constant_iterator_device_copyable& it) { return constant_iterator_device_copyable(it.i); }
 
-    constant_iterator_device_copyable&
-    operator-=(difference_type n)
-    {
-        return *this;
-    }
-    constant_iterator_device_copyable
-    operator-(difference_type n) const
-    {
-        return constant_iterator_device_copyable(i);
-    }
-    difference_type
-    operator-(const constant_iterator_device_copyable& other) const
-    {
-        return 0;
-    }
+    constant_iterator_device_copyable& operator-=(difference_type n) { return *this; }
+    constant_iterator_device_copyable operator-(difference_type n) const { return constant_iterator_device_copyable(i); }
+    difference_type operator-(const constant_iterator_device_copyable& other) const { return 0; }
 
-    reference
-    operator[](difference_type n) const
-    {
-        return i;
-    }
+    reference operator[](difference_type n) const { return i; }
 
-    bool
-    operator==(const constant_iterator_device_copyable& other) const
-    {
-        return true;
-    }
-    bool
-    operator!=(const constant_iterator_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator<(const constant_iterator_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator>(const constant_iterator_device_copyable& other) const
-    {
-        return false;
-    }
-    bool
-    operator<=(const constant_iterator_device_copyable& other) const
-    {
-        return true;
-    }
-    bool
-    operator>=(const constant_iterator_device_copyable& other) const
-    {
-        return true;
-    }
+    bool operator==(const constant_iterator_device_copyable& other) const { return true; }
+    bool operator!=(const constant_iterator_device_copyable& other) const { return false; }
+    bool operator<(const constant_iterator_device_copyable& other) const { return false; }
+    bool operator>(const constant_iterator_device_copyable& other) const { return false; }
+    bool operator<=(const constant_iterator_device_copyable& other) const { return true; }
+    bool operator>=(const constant_iterator_device_copyable& other) const { return true; }
 };
 
 template <>
