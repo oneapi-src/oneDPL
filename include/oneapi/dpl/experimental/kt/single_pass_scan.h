@@ -148,10 +148,8 @@ struct __lookback_init_submitter<_FlagType, _Type, _BinaryOp,
     operator()(sycl::queue __q, _StatusFlags&& __status_flags, _PartialValues&& __partial_values,
                std::size_t __status_flags_size, std::uint16_t __status_flag_padding) const
     {
-        using _KernelName = __lookback_init_kernel<_Name..., _Type, _BinaryOp>;
-
         return __q.submit([&](sycl::handler& __hdl) {
-            __hdl.parallel_for<_KernelName>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
+            __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
                 auto __id = __item.get_linear_id();
                 __status_flags[__id] =
                     __id < __status_flag_padding ? _FlagType::__oob_status : _FlagType::__initialized_status;
@@ -288,7 +286,6 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
             __lookback_kernel_func<__data_per_workitem, __workgroup_size, _Type, _FlagType, std::decay_t<_InRng>,
                                    std::decay_t<_OutRng>, std::decay_t<_BinaryOp>, std::decay_t<_StatusFlags>,
                                    std::decay_t<_StatusValues>, std::decay_t<_LocalAccessorType>>;
-        using _KernelName = __lookback_kernel<_Name..., _KernelFunc>;
 
         static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
 
@@ -297,7 +294,7 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
             __hdl.depends_on(__prev_event);
 
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
-            __hdl.parallel_for<_KernelName>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
+            __hdl.parallel_for<_Name...>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
                                             _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
                                                         __status_flags_size, __status_vals_full, __status_vals_partial,
                                                         __current_num_items, __tile_vals});
@@ -315,9 +312,9 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
     using _KernelName = typename _KernelParam::kernel_name;
     using _LookbackInitKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_init_kernel<_KernelName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_init_kernel<_KernelName, _Type, _BinaryOp>>;
     using _LookbackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_kernel<_KernelName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_kernel<_KernelName, _Type, _BinaryOp>>;
 
     const std::size_t __n = __in_rng.size();
 
