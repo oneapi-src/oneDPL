@@ -28,12 +28,6 @@ namespace dpl
 {
 namespace __utils
 {
-//------------------------------------------------------------------------
-// Uninitialized / initialized copy / move for trivial / non-trivial types
-//------------------------------------------------------------------------
-
-// struct __op_smart_ctor - helper struct for uninitialized/initialized copy/move operations.
-// It can be used to perform copy/move operations for scalar and non-scalar types.
 template <typename _ValueType>
 struct __op_smart_ctor
 {
@@ -65,15 +59,10 @@ struct __op_smart_ctor
     }
 };
 
-// struct __op_smart_dtor - helper struct for destructor calls.
-// It can be used to perform destructor calls for types,
-// which are not trivially-destructible (we call destructor)
-// and for all other types (we doesn't call destructor).
 template <typename _ValueType>
 struct __op_smart_dtor
 {
     static_assert(std::is_same_v<_ValueType, std::decay_t<_ValueType>>);
-
     static constexpr bool required = !std::is_trivially_destructible_v<_ValueType>;
 
     inline void
@@ -125,14 +114,10 @@ struct __serial_destroy
     operator()(_RandomAccessIterator __zs, _RandomAccessIterator __ze)
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-
-        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required)
+        while (__zs != __ze)
         {
-            while (__zs != __ze)
-            {
-                --__ze;
-                oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(*__ze);
-            }
+            --__ze;
+            oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(*__ze);
         }
     }
 };
