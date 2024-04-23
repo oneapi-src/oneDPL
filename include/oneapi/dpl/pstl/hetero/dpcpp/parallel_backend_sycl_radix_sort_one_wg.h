@@ -260,15 +260,12 @@ struct __subgroup_radix_sort
                                 }
 
                                 //destroy values in exchange buffer
-                                if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_ValT>::required)
+                                _ONEDPL_PRAGMA_UNROLL
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
                                 {
-                                    _ONEDPL_PRAGMA_UNROLL
-                                    for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                    {
-                                        const uint16_t __idx = __wi * __block_size + __i;
-                                        if (__idx < __n)
-                                            oneapi::dpl::__utils::__op_smart_dtor<_ValT>{}(__exchange_lacc[__idx]);
-                                    }
+                                    const uint16_t __idx = __wi * __block_size + __i;
+                                    if (__idx < __n)
+                                        oneapi::dpl::__utils::__op_smart_dtor<_ValT>{}(__exchange_lacc[__idx]);
                                 }
 
                                 return;
