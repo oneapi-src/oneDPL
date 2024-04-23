@@ -32,7 +32,7 @@
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>, std::enable_if_t<!std::is_trivially_copyable_v<TYPE<__VA_ARGS__>>>
 #else
 #   define _ONEDPL_SPECIALIZE_FOR(TYPE, ...) TYPE<__VA_ARGS__>
-#endif //__INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
+#endif
 
 namespace
 {
