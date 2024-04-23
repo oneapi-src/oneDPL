@@ -44,6 +44,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "utils_sycl.h"
+#    include "oneapi/dpl/experimental/kt/kernel_param.h"
 #endif
 
 namespace TestUtils
@@ -888,6 +889,22 @@ create_new_policy_idx(Policy&& policy)
     return ::std::forward<Policy>(policy);
 #endif
 }
+
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename KernelName, int idx>
+struct __kernel_name_with_idx
+{
+};
+
+template <int idx, typename KernelParams>
+constexpr auto
+get_new_kernel_params(KernelParams)
+{
+    return oneapi::dpl::experimental::kt::kernel_param<
+        KernelParams::data_per_workitem, KernelParams::workgroup_size,
+        __kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
+}
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 } /* namespace TestUtils */
 

@@ -24,9 +24,9 @@ namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 
 template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
-          ::std::uint16_t __work_group_size, typename _KeyT, typename _RngPack>
+          ::std::uint16_t __work_group_size, typename _KeyT, typename _RngPack1, typename _RngPack2>
 _ONEDPL_ESIMD_INLINE void
-__one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pack)
+__one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack1&& __rng_pack_in, _RngPack2&& __rng_pack_out)
 {
     using _BinT = ::std::uint16_t;
     using _HistT = ::std::uint16_t;
@@ -70,7 +70,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
     {
         __dpl_esimd::__ns::simd_mask<__data_per_step> __m = (__io_offset + __lane_id + __s) < __n;
         __keys.template select<__data_per_step, 1>(__s) = __dpl_esimd::__ns::merge(
-            __dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()), __lane_id,
+            __dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__rng_pack_in.__keys_rng()), __lane_id,
                                                           __io_offset + __s, __m),
             __dpl_esimd::__ns::simd<_KeyT, __data_per_step>(__sort_identity<_KeyT, __is_ascending>()), __m);
     }
@@ -219,7 +219,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
     _ONEDPL_PRAGMA_UNROLL
     for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
     {
-        __dpl_esimd::__scatter<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()),
+        __dpl_esimd::__scatter<_KeyT, __data_per_step>(__rng_data(__rng_pack_out.__keys_rng()),
                                                        __write_addr.template select<__data_per_step, 1>(__s),
                                                        __keys.template select<__data_per_step, 1>(__s),
                                                        __write_addr.template select<__data_per_step, 1>(__s) < __n);

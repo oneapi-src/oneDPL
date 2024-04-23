@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- esimd_radix_sort.cpp -----------------------------------------===//
+//===-- esimd_radix_sort_out_of_place.cpp ---------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #if LOG_TEST_INFO
-#include <iostream>
+#    include <iostream>
 #endif
 
 #if __has_include(<sycl/sycl.hpp>)
@@ -40,46 +40,63 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_all_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#if LOG_TEST_INFO
+#    if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#endif
+#    endif
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
-    std::vector<T> ref(input);
-    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
+    std::vector<T> input_ref(input);
+    std::vector<T> output_ref(input);
+    std::vector<T> output(size, T{9});
+
+    std::stable_sort(std::begin(output_ref), std::end(output_ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+        sycl::buffer<T> buf_out(output.data(), output.size());
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
+        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, view_out, param).wait();
     }
 
-    std::string msg = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    std::string msg = "input modified with all_view, n: " + std::to_string(size);
+    EXPECT_EQ_N(input_ref.begin(), input.begin(), size, msg.c_str());
+
+    std::string msg_out = "wrong results with all_view, n: " + std::to_string(size);
+    EXPECT_EQ_N(output_ref.begin(), output.begin(), size, msg_out.c_str());
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void
 test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#if LOG_TEST_INFO
+#    if LOG_TEST_INFO
     std::cout << "\ttest_subrange_view<T, " << IsAscending << ">(" << size << ") : " << TypeInfo().name<T>()
               << std::endl;
-#endif
-    std::vector<T> expected(size);
-    generate_data(expected.data(), size, 42);
+#    endif
+    std::vector<T> input_ref(size);
+    generate_data(input_ref.data(), size, 42);
+    std::vector<T> output_ref(input_ref);
+    std::vector<T> output(size, T{9});
 
-    TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, input_ref.begin(), input_ref.end());
+    TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_output(q, output.begin(), output.end());
 
-    std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
+    std::stable_sort(output_ref.begin(), output_ref.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+    oneapi::dpl::experimental::ranges::views::subrange view_in(dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::ranges::views::subrange view_out(dt_output.get_data(), dt_output.get_data() + size);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view_in, view_out, param).wait();
 
-    std::vector<T> actual(size);
-    dt_input.retrieve_data(actual.begin());
+    std::vector<T> output_actual(size);
+    std::vector<T> input_actual(input_ref);
+    dt_output.retrieve_data(output_actual.begin());
+    dt_input.retrieve_data(input_actual.begin());
 
-    std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+    std::string msg = "input modified with views::subrange, n: " + std::to_string(size);
+    EXPECT_EQ_N(input_ref.begin(), input_actual.begin(), size, msg.c_str());
+
+    std::string msg_out = "wrong results with views::subrange, n: " + std::to_string(size);
+    EXPECT_EQ_N(output_ref.begin(), output_actual.begin(), size, msg_out.c_str());
 }
 
 #endif // _ENABLE_RANGES_TESTING
@@ -92,22 +109,30 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", "
               << IsAscending << ">(" << size << ");" << std::endl;
 #endif
-    std::vector<T> expected(size);
-    generate_data(expected.data(), size, 42);
+    std::vector<T> input_ref(size);
+    generate_data(input_ref.data(), size, 42);
+    std::vector<T> output_ref(input_ref);
+    std::vector<T> output(size, T{9});
 
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, input_ref.begin(), input_ref.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, output.begin(), output.end());
 
-    std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
+    std::stable_sort(output_ref.begin(), output_ref.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size,
-                                                                  param)
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(
+        q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), param)
         .wait();
 
-    std::vector<T> actual(size);
-    dt_input.retrieve_data(actual.begin());
+    std::vector<T> output_actual(size);
+    std::vector<T> input_actual(input_ref);
+    dt_output.retrieve_data(output_actual.begin());
+    dt_input.retrieve_data(input_actual.begin());
 
-    std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+    std::string msg = "input modified with USM, n: " + std::to_string(size);
+    EXPECT_EQ_N(input_ref.begin(), input_actual.begin(), size, msg.c_str());
+
+    std::string msg_out = "wrong results with USM, n: " + std::to_string(size);
+    EXPECT_EQ_N(output_ref.begin(), output_actual.begin(), size, msg_out.c_str());
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
@@ -119,17 +144,22 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
 #endif
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
-    std::vector<T> ref(input);
-    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
+    std::vector<T> output(size, T{9});
+    std::vector<T> input_ref(input);
+    std::vector<T> output_ref(input);
+    std::stable_sort(std::begin(output_ref), std::end(output_ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                                      param)
+        sycl::buffer<T> buf_out(output.data(), output.size());
+        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(
+            q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), param)
             .wait();
     }
 
-    std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    std::string msg = "modified input data with oneapi::dpl::begin/end, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(input_ref, input, msg.c_str());
+    std::string msg_out = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(output_ref, output, msg_out.c_str());
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
@@ -141,15 +171,21 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
 #endif
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
-    std::vector<T> ref(input);
-    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
+    std::vector<T> output(size, T{9});
+    std::vector<T> input_ref(input);
+    std::vector<T> output_ref(input);
+
+    std::stable_sort(std::begin(output_ref), std::end(output_ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, buf, param).wait();
+        sycl::buffer<T> buf_out(output.data(), output.size());
+        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, buf, buf_out, param).wait();
     }
 
-    std::string msg = "wrong results with sycl::buffer, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    std::string msg = "modified input data with sycl::buffer, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(input_ref, input, msg.c_str());
+    std::string msg_out = "wrong results with sycl::buffer, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(output_ref, output, msg_out.c_str());
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
@@ -160,16 +196,14 @@ test_small_sizes(sycl::queue q, KernelParam param)
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
     std::vector<T> ref(input);
+    std::vector<T> output(size, T{9});
+    std::vector<T> output_ref(size, T{9});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
-                                                                           oneapi::dpl::begin(input), param)
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(
+        q, oneapi::dpl::begin(input), oneapi::dpl::begin(input), oneapi::dpl::begin(output), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
-                                                                           oneapi::dpl::begin(input) + 1, param)
-        .wait();
-    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
+    EXPECT_EQ_RANGES(output_ref, output, "output data modified when size == 0");
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
