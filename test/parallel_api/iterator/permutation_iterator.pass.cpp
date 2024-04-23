@@ -18,7 +18,7 @@
 #include "permutation_iterator_common.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include "support/utils_sycl.h"
+#    include "support/utils_device_copyable.h"
 #endif
 
 using namespace TestUtils;

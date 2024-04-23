@@ -63,6 +63,7 @@ using namespace TestUtils;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
+#include "support/utils_device_copyable.h"
 
 // just a temporary include and NoOp functor to check
 // algorithms that require init element with zip_iterators
