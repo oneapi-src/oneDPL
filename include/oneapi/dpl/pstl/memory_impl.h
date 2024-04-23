@@ -67,8 +67,6 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    static_assert(oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required);
-
     for (; __first != __last; ++__first)
         oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(*__first);
 }
@@ -79,8 +77,6 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
 {
     using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
     using _ReferenceType = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
-
-    static_assert(oneapi::dpl::__utils::__op_smart_dtor<_ValueType>::required);
 
     __unseq_backend::__simd_walk_1(__first, __last - __first, [](_ReferenceType __x) {
         oneapi::dpl::__utils::__op_smart_dtor<_ValueType>{}(__x);
@@ -179,8 +175,6 @@ struct __op_destroy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
-        static_assert(oneapi::dpl::__utils::__op_smart_dtor<_TargetValueType>::required);
 
         oneapi::dpl::__utils::__op_smart_dtor<_TargetValueType>{}(__target);
     }
