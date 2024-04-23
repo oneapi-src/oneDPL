@@ -153,11 +153,8 @@ struct __par_trans_red_body
     ~__par_trans_red_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_Tp>::required)
-        {
-            if (_M_has_sum)
-                oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
-        }
+        if (_M_has_sum)
+            oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
     }
 
     void
@@ -227,11 +224,8 @@ class __trans_scan_body
     ~__trans_scan_body()
     {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_Tp>::required)
-        {
-            if (_M_has_sum)
-                oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
-        }
+        if (_M_has_sum)
+            oneapi::dpl::__utils::__op_smart_dtor<_Tp>{}(sum());
     }
 
     _Tp&
