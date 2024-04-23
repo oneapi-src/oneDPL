@@ -24,151 +24,8 @@ using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+#    include "support/utils_sycl.h"
 #    include "sycl.hpp"
-
-// Device copyable noop functor used in testing as surrogate for predicates, binary ops, unary functors
-// Intentionally non-trivially copyable to test that device_copyable speciailzation works and we are not
-// relying on trivial copyability
-struct noop_device_copyable
-{
-    noop_device_copyable(const noop_device_copyable& other) { std::cout << "non trivial copy ctor\n"; }
-    int
-    operator()(int a) const
-    {
-        return a;
-    }
-};
-
-template <>
-struct sycl::is_device_copyable<noop_device_copyable> : std::true_type
-{
-};
-
-struct noop_non_device_copyable
-{
-    noop_non_device_copyable(const noop_non_device_copyable& other) { std::cout << "non trivial copy ctor\n"; }
-    int
-    operator()(int a) const
-    {
-        return a;
-    }
-};
-
-// Device copyable int wrapper struct used in testing as surrogate for values, value types, etc.
-// Intentionally non-trivially copyable to test that device_copyable speciailzation works and we are not
-// relying on trivial copyability
-struct int_device_copyable
-{
-    int i;
-    int_device_copyable(const int_device_copyable& other) : i(other.i) { std::cout << "non trivial copy ctor\n"; }
-};
-
-template <>
-struct sycl::is_device_copyable<int_device_copyable> : std::true_type
-{
-};
-
-struct int_non_device_copyable
-{
-    int i;
-    int_non_device_copyable(const int_non_device_copyable& other) : i(other.i)
-    {
-        std::cout << "non trivial copy ctor\n";
-    }
-};
-
-// Device copyable iterator used in testing as surrogate for iterators.
-// Intentionally non-trivially copyable to test that device_copyable speciailzation works and we are not
-// relying on trivial copyability
-
-struct constant_iterator_device_copyable
-{
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = int;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const int*;
-    using reference = const int&;
-
-    int i;
-    constant_iterator_device_copyable(int __i) : i(__i) {}
-
-    constant_iterator_device_copyable(const constant_iterator_device_copyable& other) : i(other.i)
-    {
-        std::cout << "non trivial copy ctor\n";
-    }
-
-    reference operator*() const { return i; }
-
-    constant_iterator_device_copyable& operator++() { return *this; }
-    constant_iterator_device_copyable operator++(int) {return *this; }
-
-    constant_iterator_device_copyable& operator--() {  return *this; }
-    constant_iterator_device_copyable operator--(int) { return *this; }
-
-    constant_iterator_device_copyable& operator+=(difference_type n) {return *this; }
-    constant_iterator_device_copyable operator+(difference_type n) const { return constant_iterator_device_copyable(i); }
-    friend constant_iterator_device_copyable operator+(difference_type n, const constant_iterator_device_copyable& it) { return constant_iterator_device_copyable(it.i); }
-
-    constant_iterator_device_copyable& operator-=(difference_type n) { return *this; }
-    constant_iterator_device_copyable operator-(difference_type n) const { return constant_iterator_device_copyable(i); }
-    difference_type operator-(const constant_iterator_device_copyable& other) const { return 0; }
-
-    reference operator[](difference_type n) const { return i; }
-
-    bool operator==(const constant_iterator_device_copyable& other) const { return true; }
-    bool operator!=(const constant_iterator_device_copyable& other) const { return false; }
-    bool operator<(const constant_iterator_device_copyable& other) const { return false; }
-    bool operator>(const constant_iterator_device_copyable& other) const { return false; }
-    bool operator<=(const constant_iterator_device_copyable& other) const { return true; }
-    bool operator>=(const constant_iterator_device_copyable& other) const { return true; }
-};
-
-template <>
-struct sycl::is_device_copyable<constant_iterator_device_copyable> : std::true_type
-{
-};
-
-struct constant_iterator_non_device_copyable
-{
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = int;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const int*;
-    using reference = const int&;
-
-    int i;
-    constant_iterator_non_device_copyable(int __i) : i(__i) {}
-
-    constant_iterator_non_device_copyable(const constant_iterator_non_device_copyable& other) : i(other.i)
-    {
-        std::cout << "non trivial copy ctor\n";
-    }
-
-    reference operator*() const { return i; }
-
-    constant_iterator_non_device_copyable& operator++() { return *this; }
-    constant_iterator_non_device_copyable operator++(int) {return *this; }
-
-    constant_iterator_non_device_copyable& operator--() {  return *this; }
-    constant_iterator_non_device_copyable operator--(int) { return *this; }
-
-    constant_iterator_non_device_copyable& operator+=(difference_type n) {return *this; }
-    constant_iterator_non_device_copyable operator+(difference_type n) const { return constant_iterator_non_device_copyable(i); }
-    friend constant_iterator_non_device_copyable operator+(difference_type n, const constant_iterator_non_device_copyable& it) { return constant_iterator_non_device_copyable(it.i); }
-
-    constant_iterator_non_device_copyable& operator-=(difference_type n) { return *this; }
-    constant_iterator_non_device_copyable operator-(difference_type n) const { return constant_iterator_non_device_copyable(i); }
-    difference_type operator-(const constant_iterator_non_device_copyable& other) const { return 0; }
-
-    reference operator[](difference_type n) const { return i; }
-
-    bool operator==(const constant_iterator_non_device_copyable& other) const { return true; }
-    bool operator!=(const constant_iterator_non_device_copyable& other) const { return false; }
-    bool operator<(const constant_iterator_non_device_copyable& other) const { return false; }
-    bool operator>(const constant_iterator_non_device_copyable& other) const { return false; }
-    bool operator<=(const constant_iterator_non_device_copyable& other) const { return true; }
-    bool operator>=(const constant_iterator_non_device_copyable& other) const { return true; }
-};
 
 void
 test_device_copyable()
@@ -186,22 +43,6 @@ test_device_copyable()
     static_assert(sycl::is_device_copyable_v<constant_iterator_device_copyable>,
                   "constant_iterator_device_copyable is not device copyable");
 
-    //now check that our custom types can be device copyable with these test types
-    //transform_iterator
-    static_assert(sycl::is_device_copyable_v<
-                      oneapi::dpl::transform_iterator<constant_iterator_device_copyable, noop_device_copyable>>,
-                  "transform_iterator is not device copyable with device copyable types");
-    //zip_iterator
-    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_device_copyable, int*>>,
-                  "zip_iterator is not device copyable with device copyable types");
-    //permutation_iterator
-    static_assert(
-        sycl::is_device_copyable_v<
-            oneapi::dpl::permutation_iterator<constant_iterator_device_copyable, constant_iterator_device_copyable>>,
-        "permutation_iterator is not device copyable with device copyable types");
-    static_assert(sycl::is_device_copyable_v<
-                      oneapi::dpl::permutation_iterator<constant_iterator_device_copyable, noop_device_copyable>>,
-                  "permutation_iterator is not device copyable with device copyable types");
     //custom_brick
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::internal::custom_brick<
                       noop_device_copyable, int_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
@@ -390,28 +231,6 @@ test_non_device_copyable()
     static_assert(!sycl::is_device_copyable_v<noop_non_device_copyable>, "functor is device copyable");
     static_assert(!sycl::is_device_copyable_v<int_non_device_copyable>, "struct is device copyable");
     static_assert(!sycl::is_device_copyable_v<constant_iterator_non_device_copyable>, "iterator is device copyable");
-
-    //test custom iterators
-    //transform_iterator
-    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::transform_iterator<int*, noop_non_device_copyable>>,
-                  "transform_iterator is device copyable with non device copyable types");
-    static_assert(!sycl::is_device_copyable_v<
-                      oneapi::dpl::transform_iterator<constant_iterator_non_device_copyable, noop_device_copyable>>,
-                  "transform_iterator is device copyable with non device copyable types");
-    //zip_iterator
-    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_non_device_copyable, int*>>,
-                  "zip_iterator is device copyable with non device copyable types");
-    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<int*, constant_iterator_non_device_copyable>>,
-                  "zip_iterator is device copyable with non device copyable types");
-    //permutation_iterator
-    static_assert(!sycl::is_device_copyable_v<
-                      oneapi::dpl::permutation_iterator<constant_iterator_non_device_copyable, noop_device_copyable>>,
-                  "permutation_iterator is device copyable with non device copyable types");
-    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::permutation_iterator<int*, noop_non_device_copyable>>,
-                  "permutation_iterator is device copyable with non device copyable types");
-    static_assert(
-        !sycl::is_device_copyable_v<oneapi::dpl::permutation_iterator<int*, constant_iterator_non_device_copyable>>,
-        "permutation_iterator is device copyable with non device copyable types");
 
     //custom_brick
     static_assert(
@@ -623,5 +442,5 @@ main()
     test_device_copyable();
     test_non_device_copyable();
 #endif // TEST_DPCPP_BACKEND_PRESENT
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return done(TEST_DPCPP_BACKEND_PRESENT);
 }

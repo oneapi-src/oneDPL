@@ -989,12 +989,28 @@ test_usm_and_buffer()
     test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
 #endif
 }
+
+void
+test_copyable()
+{
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_device_copyable, int*>>,
+                  "zip_iterator is not device copyable with device copyable types");
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<oneapi::dpl::counting_iterator<int>, constant_iterator_device_copyable, int*>>,
+                  "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_non_device_copyable, int*>>,
+                  "zip_iterator is device copyable with non device copyable types");
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<int*, constant_iterator_non_device_copyable>>,
+                  "zip_iterator is device copyable with non device copyable types");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ::std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    test_copyable();
     //TODO: There is the over-testing here - each algorithm is run with sycl::buffer as well.
     //So, in case of a couple of 'test_usm_and_buffer' call we get double-testing case with sycl::buffer.
 
