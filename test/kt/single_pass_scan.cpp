@@ -84,9 +84,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
-        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op,
-                                                           TestUtils::get_new_kernel_params<0>(param))
-            .wait();
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op, param).wait();
     }
 
     auto acc = buf_out.get_host_access();
@@ -110,9 +108,7 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op,
-                                                           TestUtils::get_new_kernel_params<1>(param))
-            .wait();
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op, param).wait();
     }
 
     auto acc = buf_out.get_host_access();
@@ -139,8 +135,7 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::inclusive_scan(expected.begin(), expected.end(), expected.begin(), bin_op);
 
     oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
-                                                       dt_output.get_data(), bin_op,
-                                                       TestUtils::get_new_kernel_params<2>(param))
+                                                       dt_output.get_data(), bin_op, param)
         .wait();
 
     std::vector<T> actual(size);
@@ -166,8 +161,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam p
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
         oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                           oneapi::dpl::begin(buf_out), bin_op,
-                                                           TestUtils::get_new_kernel_params<3>(param))
+                                                           oneapi::dpl::begin(buf_out), bin_op, param)
             .wait();
     }
 
@@ -179,12 +173,12 @@ template <typename T, typename BinOp, typename KernelParam>
 void
 test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, param);
-    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, param);
-    test_sycl_iterators<T>(q, size, bin_op, param);
+    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param));
+    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<1>(param));
+    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param));
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T>(q, size, bin_op, param);
-    test_buffer<T>(q, size, bin_op, param);
+    test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<3>(param));
+    test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param));
 #endif
 }
 
@@ -192,7 +186,7 @@ template <typename T, typename KernelParam>
 void
 test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
-    test_general_cases<T>(q, size, std::plus<T>{}, param);
+    test_general_cases<T>(q, size, std::plus<T>{}, TestUtils::get_new_kernel_params<0>(param));
 #if _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN
     static constexpr bool int64_mult_broken = std::is_integral_v<T> && (sizeof(T) == 8);
 #else
@@ -200,7 +194,7 @@ test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 #endif
     if constexpr (!int64_mult_broken)
     {
-        test_general_cases<T>(q, size, std::multiplies<T>{}, param);
+        test_general_cases<T>(q, size, std::multiplies<T>{}, TestUtils::get_new_kernel_params<1>(param));
     }
 }
 

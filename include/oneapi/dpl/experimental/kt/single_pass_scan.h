@@ -295,9 +295,9 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
 
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
             __hdl.parallel_for<_Name...>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
-                                            _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
-                                                        __status_flags_size, __status_vals_full, __status_vals_partial,
-                                                        __current_num_items, __tile_vals});
+                                         _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
+                                                     __status_flags_size, __status_vals_full, __status_vals_partial,
+                                                     __current_num_items, __tile_vals});
         });
     }
 };
@@ -311,10 +311,10 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
     using _KernelName = typename _KernelParam::kernel_name;
-    using _LookbackInitKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_init_kernel<_KernelName, _Type, _BinaryOp>>;
-    using _LookbackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_kernel<_KernelName, _Type, _BinaryOp>>;
+    using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __lookback_init_kernel<_KernelName, _Type, _BinaryOp>>;
+    using _LookbackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __lookback_kernel<_KernelName, _Type, _BinaryOp>>;
 
     const std::size_t __n = __in_rng.size();
 
@@ -338,8 +338,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
             oneapi::dpl::__internal::__device_backend_tag{},
             oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue),
             std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng), __n,
-            oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op,
-            std::true_type{});
+            oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op, std::true_type{});
     }
 
     constexpr std::size_t __workgroup_size = _KernelParam::workgroup_size;
@@ -356,8 +355,8 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     std::size_t __status_flags_bytes = __status_flags_size * sizeof(_FlagStorageType);
     std::size_t __status_vals_full_offset_bytes = __status_flags_size * sizeof(_Type);
     std::size_t __status_vals_partial_offset_bytes = __status_flags_size * sizeof(_Type);
-    std::size_t __mem_bytes = __status_flags_bytes + __status_vals_full_offset_bytes +
-                                __status_vals_partial_offset_bytes + __mem_align_pad;
+    std::size_t __mem_bytes =
+        __status_flags_bytes + __status_vals_full_offset_bytes + __status_vals_partial_offset_bytes + __mem_align_pad;
 
     std::byte* __device_mem = reinterpret_cast<std::byte*>(sycl::malloc_device(__mem_bytes, __queue));
     if (!__device_mem)
@@ -366,11 +365,11 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     _FlagStorageType* __status_flags = reinterpret_cast<_FlagStorageType*>(__device_mem);
     std::size_t __remainder = __mem_bytes - __status_flags_bytes;
     void* __vals_base_ptr = reinterpret_cast<void*>(__device_mem + __status_flags_bytes);
-    void* __vals_aligned_ptr = std::align(std::alignment_of_v<_Type>, __status_vals_full_offset_bytes,
-                                            __vals_base_ptr, __remainder);
+    void* __vals_aligned_ptr =
+        std::align(std::alignment_of_v<_Type>, __status_vals_full_offset_bytes, __vals_base_ptr, __remainder);
     _Type* __status_vals_full = reinterpret_cast<_Type*>(__vals_aligned_ptr);
-    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__status_vals_full +
-                                                            __status_vals_full_offset_bytes / sizeof(_Type));
+    _Type* __status_vals_partial =
+        reinterpret_cast<_Type*>(__status_vals_full + __status_vals_full_offset_bytes / sizeof(_Type));
 
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
@@ -412,8 +411,7 @@ inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _Bin
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
-    return __impl::__single_pass_scan<true>(__queue, std::move(__in_view), std::move(__out_view), __binary_op,
-                                            __param);
+    return __impl::__single_pass_scan<true>(__queue, std::move(__in_view), std::move(__out_view), __binary_op, __param);
 }
 
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>

@@ -762,7 +762,8 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
 }
 
 template <typename _Type>
-bool __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
+bool
+__group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
 {
     constexpr int __single_group_upper_limit = 16384;
 
@@ -772,7 +773,6 @@ bool __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::s
     const auto __req_slm_size = sizeof(_Type) * __n_uniform;
 
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
-
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
