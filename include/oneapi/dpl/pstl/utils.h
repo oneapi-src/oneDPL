@@ -686,7 +686,7 @@ __shars_lower_bound(_Acc __acc, _Size __first, _Size __last, const _Value& __val
     // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
     // bit must be set in the result.
     _Size __search_offset{0};
-    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
+    for (__cur_pow2 >>= 1; __cur_pow2 > 0; __cur_pow2 >>= 1)
     {
         const _Size __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
         if (__comp(__acc[__search_idx], __value))
