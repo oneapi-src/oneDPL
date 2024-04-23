@@ -47,13 +47,13 @@ auto generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 {
     // Integer numbers are generated even for floating point types in order to avoid rounding errors,
     // and simplify the final check
-    using substitue_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
+    using substitute_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
 
-    const substitue_t start = std::is_signed_v<T> ? -10 : 0;
-    const substitue_t end = 10;
+    const substitute_t start = std::is_signed_v<T> ? -10 : 0;
+    const substitute_t end = 10;
 
     std::default_random_engine gen{seed};
-    std::uniform_int_distribution<substitue_t> dist(start, end);
+    std::uniform_int_distribution<substitute_t> dist(start, end);
     std::generate(input, input + size, [&] { return dist(gen); });
 
     if constexpr (std::is_same_v<std::multiplies<T>, BinOp>)
@@ -208,7 +208,15 @@ void
 test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
     test_general_cases<T>(q, size, std::plus<T>{}, param);
-    test_general_cases<T>(q, size, std::multiplies<T>{}, param);
+#if _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN
+    static constexpr bool int64_mult_broken = std::is_integral_v<T> && (sizeof(T) == 8);
+#else
+    static constexpr bool int64_mult_broken = 0;
+#endif
+    if constexpr (!int64_mult_broken)
+    {
+        test_general_cases<T>(q, size, std::multiplies<T>{}, param);
+    }
 }
 
 int

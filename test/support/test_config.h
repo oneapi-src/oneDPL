@@ -164,4 +164,9 @@
 #    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
 #endif
 
+// Group reduction produces wrong results with multiplication of 64-bit for certain driver versions
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
+
 #endif // _TEST_CONFIG_H
