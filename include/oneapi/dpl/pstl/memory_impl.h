@@ -139,7 +139,6 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
         oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target), std::move(__source));
     }
 };
@@ -158,7 +157,6 @@ struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
         oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target), __source);
     }
 };
@@ -175,7 +173,6 @@ struct __op_destroy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
         oneapi::dpl::__utils::__op_smart_dtor<_TargetValueType>{}(__target);
     }
 };
@@ -192,7 +189,6 @@ struct __op_uninitialized_default_construct<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
         ::new (::std::addressof(__target)) _TargetValueType;
     }
 };
@@ -209,7 +205,6 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
-
         oneapi::dpl::__utils::__op_smart_ctor<_TargetValueType>{}(std::addressof(__target));
     }
 };
