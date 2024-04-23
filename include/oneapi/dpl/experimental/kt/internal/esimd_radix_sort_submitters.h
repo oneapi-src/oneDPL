@@ -18,6 +18,7 @@
 
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 #include "esimd_radix_sort_kernels.h"
 #include "esimd_defs.h"
@@ -38,16 +39,17 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
 struct __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
                                      oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _RngPack>
+    template <typename _RngPack1, typename _RngPack2>
     sycl::event
-    operator()(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n) const
+    operator()(sycl::queue __q, _RngPack1&& __pack_in, _RngPack2&& __pack_out, ::std::size_t __n) const
     {
         sycl::nd_range<1> __nd_range{__work_group_size, __work_group_size};
         return __q.submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __pack.__keys_rng());
+            oneapi::dpl::__ranges::__require_access(__cgh, __pack_in.__keys_rng());
+            oneapi::dpl::__ranges::__require_access(__cgh, __pack_out.__keys_rng());
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
                 __one_wg_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT>(
-                    __nd_item, __n, __pack);
+                    __nd_item, __n, __pack_in, __pack_out);
             });
         });
     }

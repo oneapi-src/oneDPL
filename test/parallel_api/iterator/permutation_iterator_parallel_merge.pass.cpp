@@ -34,9 +34,9 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
-            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
-            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
-            auto exec3 = TestUtils::create_new_policy_idx<Policy, 2>(exec);
+            auto exec1 = TestUtils::create_new_policy_idx<0>(exec);
+            auto exec2 = TestUtils::create_new_policy_idx<1>(exec);
+            auto exec3 = TestUtils::create_new_policy_idx<2>(exec);
 
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge

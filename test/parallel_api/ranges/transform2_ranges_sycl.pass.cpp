@@ -13,12 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/execution>
-
 #include "support/test_config.h"
 
+#include _PSTL_TEST_HEADER(execution)
+#include _PSTL_TEST_HEADER(algorithm)
+
 #if _ENABLE_RANGES_TESTING
-#include <oneapi/dpl/ranges>
+#include _PSTL_TEST_HEADER(ranges)
 #endif
 
 #include "support/utils.h"
@@ -36,17 +37,15 @@ main()
     auto lambda1 = [](auto i) { return i * i; };
     auto lambda2 = [](auto i, auto j) { return i + j; };
 
-    using namespace oneapi::dpl::experimental::ranges;
-
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
-        auto sv = all_view(A);
-        auto view = views::reverse(sv) | views::transform(lambda1);
+        auto sv = oneapi::dpl::experimental::ranges::all_view(A);
+        auto view = oneapi::dpl::experimental::ranges::views::reverse(sv) | oneapi::dpl::experimental::ranges::views::transform(lambda1);
 
-        auto range_res = all_view<int, sycl::access::mode::write>(B);
-        transform(TestUtils::default_dpcpp_policy, view, view, range_res, lambda2);
+        auto range_res = oneapi::dpl::experimental::ranges::all_view<int, sycl::access::mode::write>(B);
+        oneapi::dpl::experimental::ranges::transform(TestUtils::default_dpcpp_policy, view, view, range_res, lambda2);
     }
 
     //check result

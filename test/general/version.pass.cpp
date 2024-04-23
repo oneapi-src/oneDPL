@@ -29,7 +29,7 @@ static_assert(_PSTL_VERSION_PATCH == 0);
 #endif
 
 static_assert(ONEDPL_VERSION_MAJOR == 2022);
-static_assert(ONEDPL_VERSION_MINOR == 5);
+static_assert(ONEDPL_VERSION_MINOR == 6);
 static_assert(ONEDPL_VERSION_PATCH == 0);
 
 int main() {

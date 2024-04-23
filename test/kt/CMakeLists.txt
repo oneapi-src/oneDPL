@@ -44,7 +44,7 @@ endfunction()
 # Arguments with special treatment:
 #   _val_type. Treated as absent for values: "" (empty string).
 #              If absent, key sort test is generated, otherwise key-value sort test
-function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_type _val_type _probability_permille)
+function(_generate_esimd_sort_test _base_file _data_per_work_item _work_group_size _key_type _val_type _probability_permille)
     if ((NOT TARGET build-esimd-tests) AND (NOT TARGET run-esimd-tests))
         add_custom_target(build-esimd-tests COMMENT "Build all ESIMD-based kernel template tests")
         add_custom_target(run-esimd-tests
@@ -56,11 +56,11 @@ function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_typ
     string(REPLACE "_t" "" _key_type_short ${_key_type})
     if (NOT "${_val_type}" STREQUAL "")
         string(REPLACE "_t" "" _val_type_short ${_val_type})
-        set(_target_name "esimd_radix_sort_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}_${_val_type_short}")
-        set(_test_path "esimd_radix_sort_by_key.cpp")
+        set(_target_name "${_base_file}_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}_${_val_type_short}")
+        set(_test_path "${_base_file}.cpp")
     else()
-        set(_target_name "esimd_radix_sort_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}")
-        set(_test_path "esimd_radix_sort.cpp")
+        set(_target_name "${_base_file}_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}")
+        set(_test_path "${_base_file}.cpp")
     endif()
 
     _generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
@@ -97,6 +97,8 @@ endfunction()
 # 5. Number of elements.
 # Parameters #1 and #4 were selected for generation to allow compilation and execution of a test within ~5 minutes
 function(_generate_esimd_sort_tests _key_value_pairs)
+    set(_base_file_all "esimd_radix_sort" "esimd_radix_sort_out_of_place")
+    set(_base_file_by_key_all "esimd_radix_sort_by_key" "esimd_radix_sort_by_key_out_of_place")
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
     set(_work_group_size_all "32" "64")
     set(_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
@@ -105,11 +107,15 @@ function(_generate_esimd_sort_tests _key_value_pairs)
         foreach (_work_group_size ${_work_group_size_all})
             foreach (_key_type ${_type_all})
                 if(_key_value_pairs)
-                    foreach (_val_type ${_type_all})
-                        _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} ${_val_type} 20)
+                    foreach (_base_file ${_base_file_by_key_all})
+                        foreach (_val_type ${_type_all})
+                            _generate_esimd_sort_test(${_base_file} ${_data_per_work_item} ${_work_group_size} ${_key_type} ${_val_type} 20)
+                        endforeach()
                     endforeach()
                 else()
-                    _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} "" 200)
+                    foreach (_base_file ${_base_file_all})
+                        _generate_esimd_sort_test(${_base_file} ${_data_per_work_item} ${_work_group_size} ${_key_type} "" 200)
+                    endforeach()
                 endif()
             endforeach()
         endforeach()
@@ -121,7 +127,7 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_tests(TRUE) # esimd_radix_sort_by_key, random
 
     # Pin some cases to track them, e.g. because they fail
-    _generate_esimd_sort_test("256" "32" "double" "" 1000) # segfault
+    _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
 endif()
 
 function (_generate_gpu_scan_test _data_per_work_item _work_group_size _type)
