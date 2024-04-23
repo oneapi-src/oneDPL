@@ -185,6 +185,7 @@ test_copyable()
 
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::transform_iterator<int*, noop_non_device_copyable>>,
                   "transform_iterator is device copyable with non device copyable types");
+
     static_assert(!sycl::is_device_copyable_v<
                       oneapi::dpl::transform_iterator<constant_iterator_non_device_copyable, noop_device_copyable>>,
                   "transform_iterator is device copyable with non device copyable types");

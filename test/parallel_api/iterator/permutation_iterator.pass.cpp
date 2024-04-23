@@ -18,7 +18,7 @@
 #include "permutation_iterator_common.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#   include "support/utils_sycl.h"
+#    include "support/utils_sycl.h"
 #endif
 
 using namespace TestUtils;
@@ -42,13 +42,14 @@ main()
     auto permItBegin = dpl::make_permutation_iterator(countingItBegin, kDefaultIndexStepOp);
     auto permItEnd = permItBegin + perm_size_expected;
 
-   static_assert(sycl::is_device_copyable_v<decltype(permItBegin)>,
-                "permutation_iterator (counting_iterator) is not device copyable");
+    static_assert(sycl::is_device_copyable_v<decltype(permItBegin)>,
+                  "permutation_iterator (counting_iterator) is not device copyable");
 
     static_assert(
         sycl::is_device_copyable_v<
             oneapi::dpl::permutation_iterator<constant_iterator_device_copyable, constant_iterator_device_copyable>>,
         "permutation_iterator is not device copyable with device copyable types");
+
     static_assert(sycl::is_device_copyable_v<
                       oneapi::dpl::permutation_iterator<constant_iterator_device_copyable, noop_device_copyable>>,
                   "permutation_iterator is not device copyable with device copyable types");
@@ -56,8 +57,10 @@ main()
     static_assert(!sycl::is_device_copyable_v<
                       oneapi::dpl::permutation_iterator<constant_iterator_non_device_copyable, noop_device_copyable>>,
                   "permutation_iterator is device copyable with non device copyable types");
+
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::permutation_iterator<int*, noop_non_device_copyable>>,
                   "permutation_iterator is device copyable with non device copyable types");
+
     static_assert(
         !sycl::is_device_copyable_v<oneapi::dpl::permutation_iterator<int*, constant_iterator_non_device_copyable>>,
         "permutation_iterator is device copyable with non device copyable types");

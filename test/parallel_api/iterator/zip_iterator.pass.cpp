@@ -995,11 +995,15 @@ test_copyable()
 {
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_device_copyable, int*>>,
                   "zip_iterator is not device copyable with device copyable types");
-    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<oneapi::dpl::counting_iterator<int>, constant_iterator_device_copyable, int*>>,
-                  "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(
+        sycl::is_device_copyable_v<
+            oneapi::dpl::zip_iterator<oneapi::dpl::counting_iterator<int>, constant_iterator_device_copyable, int*>>,
+        "zip_iterator is not device copyable with device copyable types");
 
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_non_device_copyable, int*>>,
                   "zip_iterator is device copyable with non device copyable types");
+
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<int*, constant_iterator_non_device_copyable>>,
                   "zip_iterator is device copyable with non device copyable types");
 }
