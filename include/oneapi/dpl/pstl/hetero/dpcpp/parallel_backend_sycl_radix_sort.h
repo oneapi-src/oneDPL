@@ -24,9 +24,7 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
-
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
-
 #include "../../parallel_backend_utils.h"
 
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
