@@ -196,7 +196,7 @@ struct walk_n;
 template <typename _ExecutionPolicy, typename _F>
 struct walk_adjacent_difference;
 
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
           typename _Tp, typename _Commutative>
 struct transform_reduce;
 
@@ -218,7 +218,7 @@ struct first_match_pred;
 template <typename _Pred, typename _Tp>
 struct __create_mask;
 
-template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, std::size_t N>
 struct __copy_by_mask;
 
 template <typename _BinaryOp, typename _Inclusive>
@@ -253,7 +253,7 @@ template <typename _ExecutionPolicy, typename _F>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::walk_adjacent_difference, _ExecutionPolicy, _F)>:
     oneapi::dpl::__internal::__are_all_device_copyable<_F> {};
 
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
           typename _Tp, typename _Commutative>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::transform_reduce, _ExecutionPolicy, __iters_per_work_item,
     _Operation1, _Operation2, _Tp, _Commutative)>:
@@ -283,7 +283,7 @@ template <typename _Pred, typename _Tp>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__create_mask, _Pred, _Tp)>:
     oneapi::dpl::__internal::__are_all_device_copyable<_Pred, _Tp> {};
 
-template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, std::size_t N>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__copy_by_mask, _BinaryOp, _Assigner, _Inclusive, N)>:
     oneapi::dpl::__internal::__are_all_device_copyable<_BinaryOp, _Assigner> {};
 
