@@ -40,13 +40,25 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend_hetero
+namespace __backend
 {
-//------------------------------------------------------------------------
-// parallel_for
-//------------------------------------------------------------------------
-//General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
-//for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
+
+template <>
+struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>
+    : __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
+{
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    static auto
+    __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
+
+    template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
+    static auto
+    __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+                         const _BinHashMgr& __binhash_manager);
+};
+
+namespace __fpga_backend_detail
+{
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _Name>
@@ -79,16 +91,23 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
     }
 };
 
+} // namespace __fpga_backend_detail
+
+//------------------------------------------------------------------------
+// parallel_for
+//------------------------------------------------------------------------
+//General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
+//for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
-               _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>::__parallel_for(_ExecutionPolicy&& __exec, _Fp __brick,
+                                                                            _Index __count, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                                __count, std::forward<_Ranges>(__rngs)...);
+    return __fpga_backend_detail::__parallel_for_fpga_submitter<__parallel_for_name>()(
+        std::forward<_ExecutionPolicy>(__exec), __brick, __count, std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -98,19 +117,20 @@ __parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& _
 // TODO: check if it makes sense to move these wrappers out of backend to a common place
 template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__parallel_histogram(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, const _Event& __init_event,
-                     _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
+__backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>::__parallel_histogram(_ExecutionPolicy&& __exec,
+                                                                                  const _Event& __init_event,
+                                                                                  _Range1&& __input, _Range2&& __bins,
+                                                                                  const _BinHashMgr& __binhash_manager)
 {
     static_assert(sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t),
                   "histogram is not supported on FPGA devices with output types greater than 32 bits");
 
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
-        oneapi::dpl::__internal::__device_backend_tag{}, __exec, __init_event, ::std::forward<_Range1>(__input),
-        ::std::forward<_Range2>(__bins), __binhash_manager);
+    return __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_histogram(
+        __exec, __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 
