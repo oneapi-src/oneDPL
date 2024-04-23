@@ -968,7 +968,7 @@ struct __kernel_name_with_idx
 
 template <int idx, typename KernelParams>
 constexpr auto
-get_new_kernel_params(KernelParams params)
+get_new_kernel_params([[maybe_unused]] KernelParams params)
 {
     auto new_params = oneapi::dpl::experimental::kt::kernel_param<
         KernelParams::data_per_workitem, KernelParams::workgroup_size,
