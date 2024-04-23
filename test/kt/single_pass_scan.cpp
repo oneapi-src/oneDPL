@@ -42,8 +42,9 @@ inline const std::vector<std::size_t> scan_sizes = {
     100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
     888'235, 1'000'000, 1 << 20, 10'000'000};
 
-template<typename BinOp, typename T>
-auto generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
+template <typename BinOp, typename T>
+auto
+generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 {
     // Integer numbers are generated even for floating point types in order to avoid rounding errors,
     // and simplify the final check
@@ -65,27 +66,11 @@ auto generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
     }
 }
 
-template <typename OldParam, typename KernelName>
-using make_kernel_param =
-    oneapi::dpl::experimental::kt::kernel_param<OldParam::data_per_workitem, OldParam::workgroup_size, KernelName>;
-
-struct all_view_kt_kernel
-{
-};
-struct usm_kt_kernel
-{
-};
-struct buffer_kt_kernel
-{
-};
-
 #if _ENABLE_RANGES_TESTING
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
+test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    using NewKernelParam = make_kernel_param<KernelParam, all_view_kt_kernel>;
-
 #    if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
@@ -99,7 +84,9 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
-        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op, NewKernelParam{}).wait();
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view_out, bin_op,
+                                                           TestUtils::get_new_kernel_params<0>(param))
+            .wait();
     }
 
     auto acc = buf_out.get_host_access();
@@ -110,10 +97,8 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
+test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    using NewKernelParam = make_kernel_param<KernelParam, buffer_kt_kernel>;
-
 #    if LOG_TEST_INFO
     std::cout << "\ttest_buffer(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
@@ -125,7 +110,9 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op, NewKernelParam{}).wait();
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op,
+                                                           TestUtils::get_new_kernel_params<1>(param))
+            .wait();
     }
 
     auto acc = buf_out.get_host_access();
@@ -137,10 +124,8 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
 
 template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename KernelParam>
 void
-test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
+test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    using NewKernelParam = make_kernel_param<KernelParam, usm_kt_kernel>;
-
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
@@ -154,7 +139,8 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::inclusive_scan(expected.begin(), expected.end(), expected.begin(), bin_op);
 
     oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
-                                                       dt_output.get_data(), bin_op, NewKernelParam{})
+                                                       dt_output.get_data(), bin_op,
+                                                       TestUtils::get_new_kernel_params<2>(param))
         .wait();
 
     std::vector<T> actual(size);
@@ -166,10 +152,8 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
+test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    constexpr oneapi::dpl::experimental::kt::kernel_param<KernelParam::data_per_workitem, KernelParam::workgroup_size>
-        param;
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
@@ -182,7 +166,8 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
         oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                           oneapi::dpl::begin(buf_out), bin_op, param)
+                                                           oneapi::dpl::begin(buf_out), bin_op,
+                                                           TestUtils::get_new_kernel_params<3>(param))
             .wait();
     }
 
