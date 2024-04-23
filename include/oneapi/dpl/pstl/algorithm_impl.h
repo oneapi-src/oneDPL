@@ -2619,11 +2619,9 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                                           });
 
             if constexpr (oneapi::dpl::__utils::__op_smart_dtor<_T1>::required)
-            {
                 __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __r + __n2,
                                               __r + __n1,
                                               [](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, _IsVector{}); });
-            }
 
             return __d_first + __n2;
         }
