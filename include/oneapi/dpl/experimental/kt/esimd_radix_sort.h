@@ -178,8 +178,8 @@ namespace esimd [[deprecated("Use of oneapi::dpl::experimental::kt::esimd namesp
                              "and will be removed in a future release. "
                              "Use oneapi::dpl::experimental::kt::gpu::esimd instead")]]
 {
-    using oneapi::dpl::experimental::kt::gpu::esimd::radix_sort;
-    using oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_by_key;
+using oneapi::dpl::experimental::kt::gpu::esimd::radix_sort;
+using oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_by_key;
 } // namespace oneapi::dpl::experimental::kt::esimd
 } // namespace oneapi::dpl::experimental::kt
 
