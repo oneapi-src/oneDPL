@@ -162,25 +162,12 @@ struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
     __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
                          const _BinHashMgr& __binhash_manager);
 
-    // 10.1 KSATODO combine to one function with 10.2 and extract two impl functions
-#if _USE_RADIX_SORT
-    template <
-        typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-        ::std::enable_if_t<
-            __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+    // 11
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
     static auto
     __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj);
-#endif
 
-    // 10.2 KSATODO combine to one function with 10.1 and extract two impl functions
-    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-              ::std::enable_if_t<
-                  !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
-                  int> = 0>
-    static auto
-    __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj);
-
-    // 11
+    // 12
     template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
     static auto
     __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
@@ -1967,17 +1954,13 @@ struct __is_radix_sort_usable_for_type
 #endif
 };
 
-} // namespace __par_backend_hetero
-
 #if _USE_RADIX_SORT
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
     ::std::enable_if_t<
         __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_stable_sort(_ExecutionPolicy&& __exec,
-                                                                                      _Range&& __rng, _Compare,
-                                                                                      _Proj __proj)
+__parallel_stable_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
@@ -1989,14 +1972,24 @@ template <
     ::std::enable_if_t<
         !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_stable_sort(_ExecutionPolicy&& __exec,
-                                                                                      _Range&& __rng, _Compare __comp,
-                                                                                      _Proj __proj)
+__parallel_stable_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     auto __cmp_f = [__comp, __proj](const auto& __a, const auto& __b) mutable {
         return __comp(__proj(__a), __proj(__b));
     };
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
+}
+
+} // namespace __par_backend_hetero
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
+auto
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_stable_sort(_ExecutionPolicy&& __exec,
+                                                                                      _Range&& __rng, _Compare __comp,
+                                                                                      _Proj __proj)
+{
+    return __par_backend_hetero::__parallel_stable_sort_impl(::std::forward<_ExecutionPolicy>(__exec),
+                                                             ::std::forward<_Range>(__rng), __comp, __proj);
 }
 
 //------------------------------------------------------------------------
