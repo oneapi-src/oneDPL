@@ -57,7 +57,7 @@ namespace dpl
 namespace __backend
 {
 template <>
-struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
+struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>        // 15
 {
     // Tag for __parallel_find_or for or-semantic
     struct __parallel_or_tag
@@ -89,7 +89,7 @@ struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
     static auto
     __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
 
-    // 3
+    // 2
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
               typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     static auto
@@ -97,77 +97,78 @@ struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
                                    _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
                                    _GroupScan __group_scan, _GlobalScan __global_scan);
 
-    // 3.1
+    // 3
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
               typename _InitType, typename _BinaryOperation, typename _Inclusive>
     static auto
     __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive);
 
-    // 3.2
+    // 4
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
               typename _CopyByMaskOp>
     static auto
     __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
                          _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op);
 
+    // 5
     template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
               typename _InitType, typename... _Ranges>
     static auto
     __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
                                 _InitType __init, _Ranges&&... __rngs);
 
-    // 3.3
+    // 6
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
     static auto
     __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred);
 
-    // 4
+    // 7
     template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
     static std::conditional_t<std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
                               oneapi::dpl::__internal::__difference_t<
                                   typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
     __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs);
 
-    // 4.1
+    // 8
     template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
     static bool
     __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
                   _Iterator2 __s_last, _Brick __f);
 
-    // 4.2
+    // 9
     template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
     static bool
     __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f);
 
-    // 4.3
+    // 10
     template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
     static _Iterator1
     __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
                     _Iterator2 __s_last, _Brick __f, _IsFirst);
 
-    // 4.4
+    // 11
     template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
     static _Iterator
     __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst);
 
-    // 5
+    // 12
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     static auto
     __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp);
 
-    // 10
+    // 13
     template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
     static auto
     __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
                          const _BinHashMgr& __binhash_manager);
 
-    // 11
+    // 14
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
     static auto
     __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj);
 
-    // 12
+    // 15
     template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
     static auto
     __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,

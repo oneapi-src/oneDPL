@@ -44,7 +44,7 @@ namespace __backend
 {
 
 template <>
-struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>
+struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>      // 2 + 15 (base)
     : __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>

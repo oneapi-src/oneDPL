@@ -28,29 +28,34 @@ namespace __backend
 {
 
 template <>
-struct __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>
+struct __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>       // 10
 {
     template <typename _ExecutionPolicy, typename _Tp>
     using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
 
+    // 1
     static void
     __cancel_execution()
     {
         // TODO: Figure out how to make cancellation work.
     }
 
+    // 2
     template <class _ExecutionPolicy, class _Index, class _Fp>
     static void
     __parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f);
 
+    // 3
     template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
     static void
     __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Fp __f);
 
+    // 4
     template <class _ExecutionPolicy, typename _F1, typename _F2>
     static void
     __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2);
 
+    // 5
     template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
               typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
     static void
@@ -58,29 +63,34 @@ struct __backend_impl<oneapi::dpl::__internal::__omp_backend_tag>
                      _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs,
                      _Compare __comp, _LeafMerge __leaf_merge);
 
+    // 6
     template <class _ExecutionPolicy, class _RandomAccessIterator, class _Value, typename _RealBody,
               typename _Reduction>
     static _Value
     __parallel_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
                       _Value __identity, _RealBody __real_body, _Reduction __reduction);
 
+    // 7
     template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp,
               typename _Ap>
     static void
     __parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine,
                            _Sp __scan, _Ap __apex);
 
+    // 8
     template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
     static void
     __parallel_stable_sort(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
                            _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort = 0);
 
+    // 9
     template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryOp, class _Value, class _Combiner,
               class _Reduction>
     static _Value
     __parallel_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
                                 _UnaryOp __unary_op, _Value __init, _Combiner __combiner, _Reduction __reduction);
 
+    // 10
     template <class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
     static _Tp
     __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up /* __u */, _Tp __init, _Cp /* __combine */,
