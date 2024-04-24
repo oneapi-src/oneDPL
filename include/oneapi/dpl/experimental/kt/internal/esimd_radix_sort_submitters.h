@@ -23,7 +23,7 @@
 #include "esimd_radix_sort_kernels.h"
 #include "esimd_defs.h"
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
 //------------------------------------------------------------------------
@@ -171,6 +171,6 @@ struct __radix_sort_copyback_submitter<oneapi::dpl::__par_backend_hetero::__inte
     }
 };
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_SUBMITTERS_H

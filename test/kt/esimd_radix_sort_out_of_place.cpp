@@ -55,7 +55,7 @@ test_all_view(sycl::queue q, std::size_t size, KernelParam param)
         sycl::buffer<T> buf_out(output.data(), output.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, view_out, param).wait();
+        oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, view, view_out, param).wait();
     }
 
     std::string msg = "input modified with all_view, n: " + std::to_string(size);
@@ -85,7 +85,7 @@ test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
 
     oneapi::dpl::experimental::ranges::views::subrange view_in(dt_input.get_data(), dt_input.get_data() + size);
     oneapi::dpl::experimental::ranges::views::subrange view_out(dt_output.get_data(), dt_output.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view_in, view_out, param).wait();
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, view_in, view_out, param).wait();
 
     std::vector<T> output_actual(size);
     std::vector<T> input_actual(input_ref);
@@ -119,7 +119,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 
     std::stable_sort(output_ref.begin(), output_ref.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(
         q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), param)
         .wait();
 
@@ -151,7 +151,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(
+        oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(
             q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), param)
             .wait();
     }
@@ -179,7 +179,7 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, buf, buf_out, param).wait();
+        oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, buf, buf_out, param).wait();
     }
 
     std::string msg = "modified input data with sycl::buffer, n: " + std::to_string(size);
@@ -199,7 +199,7 @@ test_small_sizes(sycl::queue q, KernelParam param)
     std::vector<T> output(size, T{9});
     std::vector<T> output_ref(size, T{9});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending, RadixBits>(
         q, oneapi::dpl::begin(input), oneapi::dpl::begin(input), oneapi::dpl::begin(output), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");

@@ -21,13 +21,13 @@
 // https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_esimd/sycl_ext_intel_esimd.md#static-allocation-of-slm-using-slm_init-function
 #define _ONEDPL_ESIMD_INLINE inline __attribute__((always_inline))
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
 // TODO: rename to show the meaning clearly: default vectorization factor
 constexpr int __data_per_step = 16;
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 // This namespace mostly consists of abstractions on the top of regular ESIMD functions.
 // The purpose is:
