@@ -165,7 +165,9 @@ class __offload_policy_holder_type
 
         if (__device_ready.load(std::memory_order_acquire))
         {
-            return _M_offload_device;
+            // it's safe to use copy ctor here, because we under __offload_policy_holder_mtx
+            // and ~__offload_policy_holder_type() has not been called
+            return __sycl_device_shared_ptr(_M_offload_device);
         }
         else
         {
@@ -188,7 +190,7 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
     {
         if (std::optional<__sycl_device_shared_ptr> _dev = __offload_policy_holder.__get_device_ptr())
         {
-            void* __res = __allocate_shared_for_device(*_dev, __size, __alignment);
+            void* __res = __allocate_shared_for_device(std::move(*_dev), __size, __alignment);
             assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
             return __res;
         }
