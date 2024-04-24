@@ -691,20 +691,20 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ true,
-                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
+                        ::std::integral_constant<::std::uint16_t, __wg_size>,
+                        ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
+                        /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                     std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ false,
-                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
+                        ::std::integral_constant<::std::uint16_t, __wg_size>,
+                        ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
+                        /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                     std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
         };
@@ -734,7 +734,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     else
     {
         using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __par_backend_hetero::__scan_single_wg_dynamic_kernel<_CustomName>>;
+            __par_backend_hetero::__scan_single_wg_dynamic_kernel<_BinaryOperation, _CustomName>>;
 
         return __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
             ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
@@ -759,6 +759,20 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
+template <typename _Type>
+bool
+__group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
+{
+    constexpr int __single_group_upper_limit = 16384;
+
+    // Pessimistically only use half of the memory to take into account memory used by compiled kernel
+    const ::std::size_t __max_slm_size =
+        __queue.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
+    const auto __req_slm_size = sizeof(_Type) * __n_uniform;
+
+    return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
+}
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
@@ -773,17 +787,10 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     if ((__n_uniform & (__n_uniform - 1)) != 0)
         __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
 
-    // Pessimistically only use half of the memory to take into account memory used by compiled kernel
-    const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
-    const auto __req_slm_size = sizeof(_Type) * __n_uniform;
-
-    constexpr int __single_group_upper_limit = 16384;
-
     constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
     if constexpr (__can_use_group_scan)
     {
-        if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
+        if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
         {
             return __parallel_transform_scan_single_group(
                 __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),

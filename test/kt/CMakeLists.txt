@@ -13,6 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 option(ONEDPL_TEST_ENABLE_KT_ESIMD "Enable ESIMD-based kernel template tests")
+option(ONEDPL_TEST_ENABLE_KT_SYCL "Enable SYCL-based kernel template tests")
 
 function(_generate_test _target_name _test_path)
     add_executable(${_target_name} EXCLUDE_FROM_ALL ${_test_path})
@@ -127,4 +128,52 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
 
     # Pin some cases to track them, e.g. because they fail
     _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
+endif()
+
+function (_generate_gpu_scan_test _data_per_work_item _work_group_size _type)
+
+    if ((NOT TARGET build-scan-kt-tests) AND (NOT TARGET run-scan-kt-tests))
+        add_custom_target(build-scan-kt-tests COMMENT "Build all scan kernel template tests")
+        add_custom_target(run-scan-kt-tests
+            COMMAND "${CMAKE_CTEST_COMMAND}" -R "^run-scan-kt-tests$" --output-on-failure --no-label-summary
+            DEPENDS build-scan-kt-tests
+            COMMENT "Build and run all scan kernel template tests")
+    endif()
+
+    string(REPLACE "_t" "" _type_short ${_type})
+    set(_target_name "single_pass_scan_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_type_short}")
+    set(_test_path "single_pass_scan.cpp")
+
+    #_generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
+    _generate_test(${_target_name} ${_test_path})
+    if(TARGET ${_target_name})
+        add_dependencies(build-scan-kt-tests ${_target_name})
+        add_dependencies(run-scan-kt-tests ${_target_name})
+
+        target_compile_definitions(${_target_name} PRIVATE TEST_DATA_PER_WORK_ITEM=${_data_per_work_item})
+        target_compile_definitions(${_target_name} PRIVATE TEST_WORK_GROUP_SIZE=${_work_group_size})
+        target_compile_definitions(${_target_name} PRIVATE TEST_TYPE=${_type})
+    endif()
+
+endfunction()
+
+function(_generate_gpu_scan_tests)
+    set(_data_per_work_item_all "1" "2" "4" "8" "16" "32")
+    set(_work_group_size_all "64" "128" "256" "512" "1024")
+    set(_type_all "uint32_t" "int32_t" "float" "int64_t" "uint64_t" "double")
+
+    foreach (_data_per_work_item ${_data_per_work_item_all})
+        foreach (_work_group_size ${_work_group_size_all})
+            foreach (_type ${_type_all})
+                _generate_gpu_scan_test(${_data_per_work_item} ${_work_group_size} ${_type})
+            endforeach()
+        endforeach()
+    endforeach()
+
+    _generate_test("single_pass_scan" "single_pass_scan.cpp")
+    target_compile_definitions("single_pass_scan" PRIVATE TEST_DATA_PER_WORK_ITEM=8 TEST_WORK_GROUP_SIZE=256 TEST_TYPE=uint32_t)
+endfunction()
+
+if (ONEDPL_TEST_ENABLE_KT_SYCL)
+    _generate_gpu_scan_tests()
 endif()
