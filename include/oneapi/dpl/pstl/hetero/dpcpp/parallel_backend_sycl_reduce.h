@@ -54,7 +54,7 @@ auto
 __adjust_iters_per_work_item(_Size __iters_per_work_item) -> _Size
 {
     if (__iters_per_work_item > 1)
-        return ((__iters_per_work_item + _VecSize - 1) / _VecSize) * _VecSize;
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, _VecSize) * _VecSize;
     return __iters_per_work_item;
 }
 

@@ -268,23 +268,13 @@ struct transform_reduce
         else
             __adjusted_global_id += __iters_per_work_item * __global_idx;
 
-        // If n is not evenly divisible by the number of elements processed per work-group, the last work-group might
-        // need to process less elements than __iters_per_work_item.
-        bool __is_full_wg = __is_full;
-        if (!__is_full_wg)
-        {
-            const bool __is_multi_group = __n_groups > 1;
-            if (__is_multi_group)
-            {
-                _Size __group_idx = __item_id.get_group(0);
-                _Size __n_groups_minus_one = __n_groups - 1;
-                const bool __is_last_wg = __group_idx == __n_groups_minus_one;
-                if (!__is_last_wg)
-                    __is_full_wg = true;
-            }
-        }
+        // Groups are full if n is evenly divisible by the number of elements processed per work-group.
+        // Multi group reductions will be full for all groups before the last group.
+        _Size __group_idx = __item_id.get_group(0);
+        _Size __n_groups_minus_one = __n_groups - 1;
+
         // _VecSize-wide vectorized path (__iters_per_work_item are multiples of _VecSize)
-        if (__is_full_wg)
+        if (__is_full || (__group_idx < __n_groups_minus_one))
         {
             vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
@@ -294,15 +284,20 @@ struct transform_reduce
         else if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
         {
             vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
-            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+            if (__no_vec_ops > 1)
             {
-                const _Size __base_idx = __adjusted_global_id + __i * __stride;
-                if (__base_idx + __vec_size_minus_one < __adjusted_n)
+                _Size __n_diff = __adjusted_n - __adjusted_global_id - _VecSize;
+                _Size __no_iters = __n_diff / __stride;
+                _Size __no_vec_ops_minus_one = __no_vec_ops - 1;
+                __no_iters = std::min(__no_iters, __no_vec_ops_minus_one);
+                _Size __base_idx = __adjusted_global_id + __stride;
+                for (_Size __i = 1; __i <= __no_iters; ++__i)
+                {
                     vectorized_reduction_remainder(__base_idx, __res, __acc...);
-                else if (__base_idx < __adjusted_n)
+                    __base_idx += __stride;
+                }
+                if (__no_iters < __no_vec_ops_minus_one && __base_idx < __adjusted_n)
                     scalar_reduction_remainder(__base_idx, __adjusted_n, __vec_size_minus_one, __res, __acc...);
-                else
-                    break;
             }
         }
         // Scalar remainder
@@ -329,10 +324,10 @@ struct transform_reduce
             _Size __last_wg_remainder = __n % __items_per_work_group;
             // Adjust remainder and wg size for vector size
             _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
-            _Size __wg_vec_size = __work_group_size * _VecSize;
-            _Size __last_wg_contrib = std::min(__last_wg_vec, __wg_vec_size);
+            _Size __last_wg_contrib = std::min(__last_wg_vec, __work_group_size);
             return __full_group_contrib + __last_wg_contrib;
         }
+        // else (if not commutative)
         return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };

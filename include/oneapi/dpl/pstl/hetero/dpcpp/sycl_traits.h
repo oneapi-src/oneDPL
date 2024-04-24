@@ -254,8 +254,8 @@ struct walk_n;
 template <typename _ExecutionPolicy, typename _F>
 struct walk_adjacent_difference;
 
-template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
+          std::uint8_t _VecSize>
 struct transform_reduce;
 
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
