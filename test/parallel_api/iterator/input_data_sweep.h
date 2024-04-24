@@ -34,19 +34,19 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
              OutputIterator copy_to_first, OriginalIterator1 orig_first, OriginalIterator2 orig_out_first,
              ExpectedIterator expected_first, T trash, const std::string& input_descr)
 {
-    auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
-    auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
-    auto exec3 = TestUtils::create_new_policy_idx<Policy, 2>(exec);
-    auto exec4 = TestUtils::create_new_policy_idx<Policy, 3>(exec);
-    auto exec5 = TestUtils::create_new_policy_idx<Policy, 4>(exec);
-    auto exec6 = TestUtils::create_new_policy_idx<Policy, 5>(exec);
-    auto exec7 = TestUtils::create_new_policy_idx<Policy, 6>(exec);
-    auto exec8 = TestUtils::create_new_policy_idx<Policy, 7>(exec);
-    auto exec9 = TestUtils::create_new_policy_idx<Policy, 8>(exec);
-    auto exec10 = TestUtils::create_new_policy_idx<Policy, 9>(exec);
-    auto exec11 = TestUtils::create_new_policy_idx<Policy, 10>(exec);
-    auto exec12 = TestUtils::create_new_policy_idx<Policy, 11>(exec);
-    auto exec13 = TestUtils::create_new_policy_idx<Policy, 12>(exec);
+    auto exec1 = TestUtils::create_new_policy_idx<0>(exec);
+    auto exec2 = TestUtils::create_new_policy_idx<1>(exec);
+    auto exec3 = TestUtils::create_new_policy_idx<2>(exec);
+    auto exec4 = TestUtils::create_new_policy_idx<3>(exec);
+    auto exec5 = TestUtils::create_new_policy_idx<4>(exec);
+    auto exec6 = TestUtils::create_new_policy_idx<5>(exec);
+    auto exec7 = TestUtils::create_new_policy_idx<6>(exec);
+    auto exec8 = TestUtils::create_new_policy_idx<7>(exec);
+    auto exec9 = TestUtils::create_new_policy_idx<8>(exec);
+    auto exec10 = TestUtils::create_new_policy_idx<9>(exec);
+    auto exec11 = TestUtils::create_new_policy_idx<10>(exec);
+    auto exec12 = TestUtils::create_new_policy_idx<11>(exec);
+    auto exec13 = TestUtils::create_new_policy_idx<12>(exec);
 
     oneapi::dpl::counting_iterator<size_t> counting(size_t{0});
 

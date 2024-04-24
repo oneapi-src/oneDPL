@@ -64,10 +64,10 @@ main()
 
     auto policy = TestUtils::make_new_policy<class Kernel1>(q);
 
-    auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
-    auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
-    auto policy3 = TestUtils::create_new_policy_idx<decltype(policy), 2>(policy);
-    auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
+    auto policy1 = TestUtils::create_new_policy_idx<0>(policy);
+    auto policy2 = TestUtils::create_new_policy_idx<1>(policy);
+    auto policy3 = TestUtils::create_new_policy_idx<2>(policy);
+    auto policy4 = TestUtils::create_new_policy_idx<3>(policy);
 
     // baseline with no wrapping
     test<float, 0>(policy1, -666.0f, n, "float");
