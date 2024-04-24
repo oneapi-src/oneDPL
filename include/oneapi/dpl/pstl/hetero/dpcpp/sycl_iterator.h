@@ -196,7 +196,7 @@ struct __is_known_usm_vector_iter : std::false_type
 {
 };
 
-//We must avoid instantiating vector of const, reference, or function elements
+//We must avoid instantiating vector of const, reference, or function elements to avoid ill-formed vector instantiation
 template <typename Iter>
 struct __is_known_usm_vector_iter<
     Iter, std::enable_if_t<std::conjunction<
