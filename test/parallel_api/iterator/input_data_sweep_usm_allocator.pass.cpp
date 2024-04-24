@@ -29,52 +29,28 @@
 
 template <typename T, int __recurse, typename Policy>
 void
-test(Policy&& policy, T trash, size_t n, const std::string& type_text)
+test_usm_shared_alloc(Policy&& policy, T trash, size_t n, const std::string& type_text)
 {
     if (TestUtils::has_types_support<T>(policy.queue().get_device()))
     {
-        auto policy1 = TestUtils::create_new_policy_idx<0>(policy);
-        auto policy2 = TestUtils::create_new_policy_idx<1>(policy);
-        { //std::vector using usm shared allocator
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy1.queue(), n);
-            oneapi::dpl::counting_iterator<int> counting(0);
-            // usm_shared allocator std::vector
-            sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy1.queue()};
-            std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
-            //test all modes / wrappers
+        //std::vector using usm shared allocator
+        TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+        oneapi::dpl::counting_iterator<int> counting(0);
+        // usm_shared allocator std::vector
+        sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy.queue()};
+        std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
+        //test all modes / wrappers
 
-            //Only test as source iterator for permutation iterator if we can expect it to work 
-            // (if the vector implementation distiguishes its iterator for this type)
-            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                         /*__check_write=*/true, /*__usable_as_perm_map=*/true,
-                         /*__usable_as_perm_src=*/
-                         TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<
-                             decltype(shared_data_vec.begin())>::value,
-                         /*__is_reversible=*/true>(
-                policy1, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(),
-                shared_data_vec.begin(), copy_out.get_data(), counting, trash,
-                std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
-        }
-
-        { //std::vector using usm host allocator
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy2.queue(), n);
-            oneapi::dpl::counting_iterator<int> counting(0);
-            // usm_host allocator std::vector
-            sycl::usm_allocator<T, sycl::usm::alloc::host> q_alloc{policy2.queue()};
-            std::vector<T, decltype(q_alloc)> host_data_vec(n, q_alloc);
-            //test all modes / wrappers
-
-            //Only test as source iterator for permutation iterator if we can expect it to work 
-            // (if the vector implementation distiguishes its iterator for this type)
-            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                         /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/
-                         TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<
-                             decltype(host_data_vec.begin())>::value,
-                         /*__is_reversible=*/true>(
-                policy2, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
-                host_data_vec.begin(), copy_out.get_data(), counting, trash,
-                std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
-        }
+        //Only test as source iterator for permutation iterator if we can expect it to work
+        // (if the vector implementation distiguishes its iterator for this type)
+        wrap_recurse<
+            __recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+            /*__check_write=*/true, /*__usable_as_perm_map=*/true,
+            /*__usable_as_perm_src=*/
+            TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<decltype(shared_data_vec.begin())>::value,
+            /*__is_reversible=*/true>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting,
+                                      copy_out.get_data(), shared_data_vec.begin(), copy_out.get_data(), counting,
+                                      trash, std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
     }
     else
     {
@@ -82,6 +58,35 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
     }
 }
 
+template <typename T, int __recurse, typename Policy>
+void
+test_usm_host_alloc(Policy&& policy, T trash, size_t n, const std::string& type_text)
+{
+    if (TestUtils::has_types_support<T>(policy.queue().get_device()))
+    {
+        //std::vector using usm host allocator
+        TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+        oneapi::dpl::counting_iterator<int> counting(0);
+        // usm_host allocator std::vector
+        sycl::usm_allocator<T, sycl::usm::alloc::host> q_alloc{policy.queue()};
+        std::vector<T, decltype(q_alloc)> host_data_vec(n, q_alloc);
+        //test all modes / wrappers
+
+        //Only test as source iterator for permutation iterator if we can expect it to work
+        // (if the vector implementation distiguishes its iterator for this type)
+        wrap_recurse<
+            __recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+            /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/
+            TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<decltype(host_data_vec.begin())>::value,
+            /*__is_reversible=*/true>(policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
+                                      host_data_vec.begin(), copy_out.get_data(), counting, trash,
+                                      std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
+    }
+    else
+    {
+        TestUtils::unsupported_types_notifier(policy.queue().get_device());
+    }
+}
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
 int
@@ -101,11 +106,13 @@ main()
     auto policy5 = TestUtils::create_new_policy_idx<4>(policy);
 
     // baseline with no wrapping
-    test<float, 0>(policy1, -666.0f, n, "float");
-    test<double, 0>(policy2, -666.0, n, "double");
-    test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
+    test_usm_shared_alloc<float, 0>(policy1, -666.0f, n, "float");
+    test_usm_shared_alloc<double, 0>(policy2, -666.0, n, "double");
+    test_usm_shared_alloc<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
     // big recursion step: 1 and 2 layers of wrapping
-    test<std::int32_t, 2>(policy4, -666, n, "int32_t");
+    test_usm_shared_alloc<std::int32_t, 2>(policy4, -666, n, "int32_t");
+    //only use host alloc for int, it follows the same path as shared alloc
+    test_usm_host_alloc<int, 0>(policy5, 666, n, "int");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
