@@ -37,7 +37,7 @@ struct __op_smart_ctor
     inline void
     operator()(_ValueTypeDecayed* __p_value_to, Args&&... args) const
     {
-        if constexpr (std::is_scalar_v<_ValueTypeDecayed> && sizeof...(Args) <= 1)
+        if constexpr (std::is_trivial_v<_ValueTypeDecayed> && sizeof...(Args) <= 1)
         {
             if constexpr (sizeof...(Args) == 1)
             {
