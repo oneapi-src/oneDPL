@@ -103,7 +103,7 @@ class __sycl_device_shared_ptr
         _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
     }
 
-    __sycl_device_shared_ptr(__sycl_device_shared_ptr&& __other) :_M_shared_device(__other._M_shared_device)
+    __sycl_device_shared_ptr(__sycl_device_shared_ptr&& __other) : _M_shared_device(__other._M_shared_device)
     {
         __other._M_shared_device = nullptr;
     }
@@ -231,7 +231,8 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
         {
             // Reallocate __new_size, reusing __header->_M_device for new header
             sycl::context __context = __header->_M_device.__get_context();
-            void* __new_ptr = __allocate_shared_for_device(std::move(__header->_M_device), __new_size, alignof(std::max_align_t));
+            void* __new_ptr =
+                __allocate_shared_for_device(std::move(__header->_M_device), __new_size, alignof(std::max_align_t));
 
             if (__new_ptr != nullptr)
             {
