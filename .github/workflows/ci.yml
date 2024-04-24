@@ -66,6 +66,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install prerequisites
         run: |
+          sudo rm /etc/apt/sources.list.d/microsoft-prod.list # workaround temporary issue: https://github.com/orgs/community/discussions/120966
           sudo apt update && sudo apt install -y codespell
       - name: Run scan
         run: |
@@ -181,6 +182,7 @@ jobs:
           wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
           | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo rm /etc/apt/sources.list.d/microsoft-prod.list # workaround temporary issue: https://github.com/orgs/community/discussions/120966
           sudo apt-get update -y
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
