@@ -16,6 +16,7 @@
 #include <mutex>
 #include <utility>
 #include <chrono>
+#include <ratio>
 #include <limits>
 #include <vector>
 #include <type_traits>
@@ -48,6 +49,9 @@ class auto_tune_policy
     using size_type = typename std::vector<typename Backend::resource_type>::size_type;
     using timing_t = uint64_t;
 
+    using report_clock_type = std::chrono::steady_clock;
+    using report_duration = std::chrono::duration<double, std::milli>;
+
     static constexpr timing_t never_resample = 0;
     static constexpr size_type use_best_resource = ~size_type(0);
 
@@ -67,7 +71,7 @@ class auto_tune_policy
     {
         std::mutex m_;
 
-        std::chrono::steady_clock::time_point t0_;
+        report_clock_type::time_point t0_;
 
         timing_t best_timing_ = std::numeric_limits<timing_t>::max();
         resource_with_index_t best_resource_;
@@ -81,7 +85,7 @@ class auto_tune_policy
         timing_t resample_time_ = 0.0;
 
         tuner_t(resource_with_index_t br, size_type resources_size, timing_t rt)
-            : t0_(std::chrono::steady_clock::now()), best_resource_(br), max_resource_to_profile_(resources_size),
+            : t0_(report_clock_type::now()), best_resource_(br), max_resource_to_profile_(resources_size),
               resample_time_(rt)
         {
         }
@@ -101,8 +105,8 @@ class auto_tune_policy
             }
             else
             {
-                auto now = std::chrono::steady_clock::now();
-                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - t0_).count();
+                auto now = report_clock_type::now();
+                auto ms = report_duration(now - t0_).count();
                 if (ms < resample_time_)
                 {
                     return use_best_resource;
@@ -218,10 +222,8 @@ class auto_tune_policy
     select(Function&& f, Args&&... args)
     {
         static_assert(sizeof...(KeyArgs) == sizeof...(Args));
-        if constexpr(backend_traits::lazy_report_v<Backend> && backend_traits::enable_profiling_v<Backend>){
-            if(backend_->has_enable_profiling == true){
-                backend_->lazy_report();
-            }
+        if constexpr(backend_traits::lazy_report_v<Backend>){
+            backend_->lazy_report();
         }
         if (state_)
         {
