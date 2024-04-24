@@ -134,7 +134,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               typename... _Ranges>
     auto
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, const _Size __n,
+    operator()(_ExecutionPolicy&& __exec, const _Size __n,
                const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
                _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs) const
     {
@@ -170,8 +170,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
 template <typename _Tp, typename _Commutative, std::uint8_t _VecSize, typename _ExecutionPolicy, typename _Size,
           typename _ReduceOp, typename _TransformOp, typename _InitType, typename... _Ranges>
 auto
-__parallel_transform_reduce_small_impl(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
-                                       _ExecutionPolicy&& __exec, const _Size __n, const _Size __work_group_size,
+__parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, const _Size __work_group_size,
                                        const _Size __iters_per_work_item, _ReduceOp __reduce_op,
                                        _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
@@ -180,7 +179,7 @@ __parallel_transform_reduce_small_impl(oneapi::dpl::__internal::__device_backend
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_small_kernel<_CustomName>>;
 
     return __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize, _ReduceKernel>()(
-        __backend_tag, std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __iters_per_work_item,
+        std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __iters_per_work_item,
         __reduce_op, __transform_op, __init, std::forward<_Ranges>(__rngs)...);
 }
 
@@ -197,7 +196,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, _Commutative, _V
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp,
               typename _ExecutionPolicy2, typename... _Ranges>
     auto
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, const _Size __n,
+    operator()(_ExecutionPolicy&& __exec, const _Size __n,
                const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
                _TransformOp __transform_op, __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container,
                _Ranges&&... __rngs) const
@@ -244,7 +243,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _InitType,
               typename _ExecutionPolicy2>
     auto
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, sycl::event& __reduce_event,
+    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event,
                const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
                _InitType __init, __result_and_scratch_storage<_ExecutionPolicy2, _Tp> __scratch_container) const
     {
@@ -285,8 +284,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
 template <typename _Tp, typename _Commutative, std::uint8_t _VecSize, typename _ExecutionPolicy, typename _Size,
           typename _ReduceOp, typename _TransformOp, typename _InitType, typename... _Ranges>
 auto
-__parallel_transform_reduce_mid_impl(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
-                                     _ExecutionPolicy&& __exec, const _Size __n, const _Size __work_group_size,
+__parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, const _Size __n, const _Size __work_group_size,
                                      const _Size __iters_per_work_item_device_kernel,
                                      const _Size __iters_per_work_item_work_group_kernel, _ReduceOp __reduce_op,
                                      _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
@@ -304,7 +302,7 @@ __parallel_transform_reduce_mid_impl(oneapi::dpl::__internal::__device_backend_t
 
     sycl::event __reduce_event =
         __parallel_transform_reduce_device_kernel_submitter<_Tp, _Commutative, _VecSize, _ReduceDeviceKernel>()(
-            __backend_tag, __exec, __n, __work_group_size, __iters_per_work_item_device_kernel, __reduce_op,
+            __exec, __n, __work_group_size, __iters_per_work_item_device_kernel, __reduce_op,
             __transform_op, __scratch_container, std::forward<_Ranges>(__rngs)...);
 
     // __n_groups preliminary results from the device kernel.
@@ -321,7 +319,7 @@ struct __parallel_transform_reduce_impl
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               typename... _Ranges>
     static auto
-    submit(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n, _Size __work_group_size,
+    submit(_ExecutionPolicy&& __exec, _Size __n, _Size __work_group_size,
            const _Size __iters_per_work_item, _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
            _Ranges&&... __rngs)
     {
@@ -365,20 +363,20 @@ struct __parallel_transform_reduce_impl
         {
             __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n,
                                                     __n_groups](sycl::handler& __cgh) {
-                __cgh.depends_on(__reduce_event);
-                auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
-                auto __res_acc = __scratch_container.__get_result_acc(__cgh);
+                    __cgh.depends_on(__reduce_event);
+                    auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
+                    auto __res_acc = __scratch_container.__get_result_acc(__cgh);
 
                 // get an access to data under SYCL buffer
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
                 std::size_t __local_mem_size = __reduce_pattern.local_mem_req(__work_group_size);
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__local_mem_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+                    __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<_ReduceKernel>(
+                    __cgh.parallel_for<_ReduceKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel,
+                        __kernel,
 #endif
                     sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
                                       sycl::range<1>(__work_group_size)),
@@ -395,34 +393,34 @@ struct __parallel_transform_reduce_impl
                         _Size __n_items;
                         const bool __is_full = __n == __size_per_work_group * __n_groups;
                         __lazy_ctor_storage<_Tp> __result;
-                        if (__is_first)
-                        {
+                            if (__is_first)
+                            {
                             __transform_pattern1(__item_id, __n, __iters_per_work_item, /*global_offset*/ (_Size)0,
                                                  __is_full, __n_groups, __result, __rngs...);
                             __n_items = __transform_pattern1.output_size(__n, __work_group_size, __iters_per_work_item);
-                        }
-                        else
-                        {
+                            }
+                            else
+                            {
                             __transform_pattern2(__item_id, __n, __iters_per_work_item, __offset_2, __is_full,
                                                  __n_groups, __result, __temp_ptr);
                             __n_items = __transform_pattern2.output_size(__n, __work_group_size, __iters_per_work_item);
-                        }
-                        // 2. Reduce within work group using local memory
-                        __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __temp_local);
-                        if (__local_idx == 0)
-                        {
-                            // final reduction
-                            if (__n_groups == 1)
-                            {
-                                __reduce_pattern.apply_init(__init, __result.__v);
-                                __res_ptr[0] = __result.__v;
                             }
+                            // 2. Reduce within work group using local memory
+                            __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __temp_local);
+                            if (__local_idx == 0)
+                            {
+                                // final reduction
+                                if (__n_groups == 1)
+                                {
+                                    __reduce_pattern.apply_init(__init, __result.__v);
+                                    __res_ptr[0] = __result.__v;
+                                }
 
-                            __temp_ptr[__offset_1 + __group_idx] = __result.__v;
-                        }
-                        __result.__v.~_Tp();
-                    });
-            });
+                                __temp_ptr[__offset_1 + __group_idx] = __result.__v;
+                            }
+                            __result.__v.~_Tp();
+                        });
+                });
             __is_first = false;
             std::swap(__offset_1, __offset_2);
             __n = __n_groups;
@@ -432,6 +430,8 @@ struct __parallel_transform_reduce_impl
         return __future(__reduce_event, __scratch_container);
     }
 }; // struct __parallel_transform_reduce_impl
+
+} // namespace __par_backend_hetero
 
 // General version of parallel_transform_reduce.
 // The binary operator must be associative but commutativity is only required by some of the algorithms using
@@ -448,8 +448,11 @@ struct __parallel_transform_reduce_impl
 template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
           typename _InitType, typename... _Ranges>
 auto
-__parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                            _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transform_reduce(_ExecutionPolicy&& __exec,
+                                                                                           _ReduceOp __reduce_op,
+                                                                                           _TransformOp __transform_op,
+                                                                                           _InitType __init,
+                                                                                           _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -528,7 +531,6 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
         __reduce_op, __transform_op, __init, std::forward<_Ranges>(__rngs)...);
 }
 
-} // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
 
