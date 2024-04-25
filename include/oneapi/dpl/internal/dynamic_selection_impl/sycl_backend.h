@@ -79,7 +79,7 @@ class sycl_backend
                 cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                 if(s!=nullptr){
                     const auto duration_in_ns = std::chrono::nanoseconds(time_end-time_start);
-                    s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns).count());
+                    s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns));
                 }
             }
 
@@ -207,7 +207,7 @@ class sycl_backend
                         h.depends_on(e1);
                         h.host_task([=](){
                             const auto tp_now = report_clock_type::now();
-                            s.report(execution_info::task_time, std::chrono::duration_cast<report_duration>(tp_now - t0).count());
+                            s.report(execution_info::task_time, std::chrono::duration_cast<report_duration>(tp_now - t0));
                         });
                     });
                     return async_waiter{e2, std::make_shared<SelectionHandle>(s)};
