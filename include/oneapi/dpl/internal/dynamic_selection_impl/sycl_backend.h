@@ -44,7 +44,6 @@ class sycl_backend
   private:
     class async_waiter_base{
         public:
-            virtual void wait() = 0;
             virtual void report() = 0;
             virtual bool is_complete() = 0;
             virtual ~async_waiter_base() = default;
@@ -56,10 +55,9 @@ class sycl_backend
         sycl::event e_;
         std::shared_ptr<Selection> s;
       public:
-        async_waiter(sycl::event e) : e_(e) {}
+        async_waiter() = default;
         async_waiter(sycl::event e, std::shared_ptr<Selection> selection) : e_(e), s(selection) {}
 
-        async_waiter(async_waiter &w) : e_(w.e_), s(w.s) {}
         sycl::event
         unwrap()
         {
@@ -67,7 +65,7 @@ class sycl_backend
         }
 
         void
-        wait() override
+        wait()
         {
             e_.wait();
         }
@@ -75,9 +73,9 @@ class sycl_backend
         void
         report() override{
             if constexpr (report_value_v<Selection, execution_info::task_time_t>){
-                cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
-                cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                 if(s!=nullptr){
+                    cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                    cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                     const auto duration_in_ns = std::chrono::nanoseconds(time_end-time_start);
                     s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns).count());
                 }
@@ -98,10 +96,9 @@ class sycl_backend
         std::mutex m_;
         std::vector<std::unique_ptr<async_waiter_base>> async_waiters;
 
-        template<typename T>
-        void add_waiter(T *t){
+        void add_waiter(async_waiter_base *t){
             std::lock_guard<std::mutex> l(m_);
-            async_waiters.push_back(std::unique_ptr<T>(t));
+            async_waiters.push_back(std::unique_ptr<async_waiter_base>(t));
         }
 
         void lazy_report(){
@@ -185,6 +182,7 @@ class sycl_backend
                     t0 = report_clock_type::now();
                 }
             }
+            async_waiter<SelectionHandle> waiter;
             auto e1 = f(q, std::forward<Args>(args)...);
             if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>){
                 auto e2 = q.submit([=](sycl::handler& h){
@@ -193,14 +191,13 @@ class sycl_backend
                         s.report(execution_info::task_completion);
                     });
                 });
-                return async_waiter{e2, std::make_shared<SelectionHandle>(s)};
+                waiter =  async_waiter{e2, std::make_shared<SelectionHandle>(s)};
             }
             if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>){
                 if (is_profiling_enabled)
                 {
-                    auto waiter = async_waiter{e1,std::make_shared<SelectionHandle>(s)};
+                    waiter = async_waiter{e1,std::make_shared<SelectionHandle>(s)};
                     async_waiter_list.add_waiter(new async_waiter(waiter));
-                    return waiter;
                 }
                 else{
                     auto e2 = q.submit([=](sycl::handler& h){
@@ -210,9 +207,10 @@ class sycl_backend
                             s.report(execution_info::task_time, std::chrono::duration_cast<report_duration>(tp_now - t0).count());
                         });
                     });
-                    return async_waiter{e2, std::make_shared<SelectionHandle>(s)};
+                    waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
                 }
             }
+            return waiter;
         }
         else
         {
@@ -246,9 +244,8 @@ class sycl_backend
         bool profiling = true;
         auto prop_list = sycl::property_list{};
         auto devices = sycl::device::get_devices();
-        for (auto x : devices)
+        for (auto& x : devices)
         {
-            global_rank_.push_back(sycl::queue{x});
             if(!x.has(sycl::aspect::queue_profiling)){
                 profiling = false;
             }
@@ -257,7 +254,7 @@ class sycl_backend
         if(is_profiling_enabled){
             prop_list = sycl::property_list{sycl::property::queue::enable_profiling()};
         }
-        for (auto x : devices)
+        for (auto& x : devices)
         {
             global_rank_.push_back(sycl::queue{x, prop_list});
         }
