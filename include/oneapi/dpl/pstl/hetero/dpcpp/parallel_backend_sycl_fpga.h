@@ -44,9 +44,11 @@ namespace __backend
 {
 
 template <>
-struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>      // 2 + 15 (base)
-    : __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
+struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag> : __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
 {
+    template <typename _ExecutionPolicy, typename _T>
+    using __buffer = oneapi::dpl::__backend::__device_backend_details::__internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
+
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     static auto
     __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
@@ -57,7 +59,7 @@ struct __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>      // 2 + 1
                          const _BinHashMgr& __binhash_manager);
 };
 
-namespace __fpga_backend_detail
+namespace __fpga_backend_details
 {
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -91,7 +93,7 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
     }
 };
 
-} // namespace __fpga_backend_detail
+} // namespace __fpga_backend_details
 
 //------------------------------------------------------------------------
 // parallel_for
@@ -106,7 +108,7 @@ __backend_impl<oneapi::dpl::__internal::__fpga_backend_tag>::__parallel_for(_Exe
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<_CustomName>;
 
-    return __fpga_backend_detail::__parallel_for_fpga_submitter<__parallel_for_name>()(
+    return __fpga_backend_details::__parallel_for_fpga_submitter<__parallel_for_name>()(
         std::forward<_ExecutionPolicy>(__exec), __brick, __count, std::forward<_Ranges>(__rngs)...);
 }
 

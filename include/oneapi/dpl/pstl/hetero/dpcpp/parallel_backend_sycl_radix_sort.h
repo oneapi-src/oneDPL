@@ -37,7 +37,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 //------------------------------------------------------------------------
 // radix sort: bitwise order-preserving conversions to unsigned integrals
@@ -850,7 +850,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     return __future(__event);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 } // namespace dpl
 } // namespace oneapi
 

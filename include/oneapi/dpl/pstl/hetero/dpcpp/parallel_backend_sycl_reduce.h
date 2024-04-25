@@ -32,7 +32,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename... _Name>
@@ -431,7 +431,7 @@ struct __parallel_transform_reduce_impl
     }
 }; // struct __parallel_transform_reduce_impl
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 // General version of parallel_transform_reduce.
 // The binary operator must be associative but commutativity is only required by some of the algorithms using

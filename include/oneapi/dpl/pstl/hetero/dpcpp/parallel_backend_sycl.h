@@ -47,6 +47,7 @@
 #if _USE_RADIX_SORT
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
+#include "parallel_backend_sycl_utils.h"
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
@@ -57,8 +58,11 @@ namespace dpl
 namespace __backend
 {
 template <>
-struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>        // 15
+struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
 {
+    template <typename _ExecutionPolicy, typename _T>
+    using __buffer = oneapi::dpl::__backend::__device_backend_details::__internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
+
     // Tag for __parallel_find_or for or-semantic
     struct __parallel_or_tag
     {
@@ -84,12 +88,10 @@ struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>        // 1
         }
     };
 
-    // 1
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     static auto
     __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
 
-    // 2
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
               typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     static auto
@@ -97,87 +99,72 @@ struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>        // 1
                                    _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
                                    _GroupScan __group_scan, _GlobalScan __global_scan);
 
-    // 3
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
               typename _InitType, typename _BinaryOperation, typename _Inclusive>
     static auto
     __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive);
 
-    // 4
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
               typename _CopyByMaskOp>
     static auto
     __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
                          _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op);
 
-    // 5
     template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
               typename _InitType, typename... _Ranges>
     static auto
     __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
                                 _InitType __init, _Ranges&&... __rngs);
 
-    // 6
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
     static auto
     __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred);
 
-    // 7
     template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
     static std::conditional_t<std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
                               oneapi::dpl::__internal::__difference_t<
                                   typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
     __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs);
 
-    // 8
     template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
     static bool
     __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
                   _Iterator2 __s_last, _Brick __f);
 
-    // 9
     template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
     static bool
     __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f);
 
-    // 10
     template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
     static _Iterator1
     __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
                     _Iterator2 __s_last, _Brick __f, _IsFirst);
 
-    // 11
     template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
     static _Iterator
     __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst);
 
-    // 12
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     static auto
     __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp);
 
-    // 13
     template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
     static auto
     __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
                          const _BinHashMgr& __binhash_manager);
 
-    // 14
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
     static auto
     __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj);
 
-    // 15
     template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
     static auto
     __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
                             _Compare __comp);
 };
 
-} // namespace __backend
-
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 //-----------------------------------------------------------------------------
@@ -375,7 +362,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
     }
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
@@ -387,14 +374,14 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_for(_E
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                  ::std::forward<_Ranges>(__rngs)...);
+    return __device_backend_details::__parallel_for_submitter<_ForKernel>()(
+        ::std::forward<_ExecutionPolicy>(__exec), __brick, __count, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size>
 struct __global_scan_caller
@@ -872,7 +859,7 @@ __parallel_transform_scan_single_group(
     }
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
@@ -891,7 +878,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transf
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename _Type>
@@ -908,7 +895,7 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
@@ -962,7 +949,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transf
             .event());
 }
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename _SizeType>
@@ -1003,7 +990,7 @@ struct __invoke_single_group_copy_if
     }
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
           typename _CopyByMaskOp>
@@ -1097,7 +1084,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_copy_i
 // find_or tags
 //------------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 // Tag for __parallel_find_or to find the first element that satisfies predicate
@@ -1140,13 +1127,13 @@ struct __parallel_find_backward_tag
     }
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 //------------------------------------------------------------------------
 // early_exit (find_or)
 //------------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename _ExecutionPolicy, typename _Pred>
@@ -1208,7 +1195,7 @@ struct __early_exit_find_or
         }
     }
 };
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 //------------------------------------------------------------------------
 // parallel_find_or - sync pattern
@@ -1321,7 +1308,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find_o
 // parallel_or - sync pattern
 //------------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename Name>
@@ -1329,7 +1316,7 @@ class __or_policy_wrapper
 {
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
 bool
@@ -1369,7 +1356,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_or(_Ex
 // parallel_find - sync pattern
 //-----------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename Name>
@@ -1377,7 +1364,7 @@ class __find_policy_wrapper
 {
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
 _Iterator1
@@ -1424,7 +1411,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find(_
 // parallel_merge - async pattern
 //-----------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 // Partial merge implementation with O(log(k)) per routine complexity.
 // Note: the routine assumes that the 2nd sequence goes after the first one, meaning that end_1 == start_2.
@@ -1647,7 +1634,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 template <typename... _Name>
 class __merge_kernel_name;
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
@@ -1681,7 +1668,7 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_merge(
 //-----------------------------------------------------------------------
 // parallel_sort: general implementation
 //-----------------------------------------------------------------------
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 struct __leaf_sort_kernel
@@ -1933,13 +1920,13 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
         ::std::forward<_Range>(__rng), __merge, __comp);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 //------------------------------------------------------------------------
 // parallel_stable_sort - async pattern
 //-----------------------------------------------------------------------
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 template <typename _T, typename _Compare>
@@ -1981,7 +1968,7 @@ __parallel_stable_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare 
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
 auto
@@ -2014,6 +2001,10 @@ __backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_partia
                                         __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
+// Create namespace alias __par_backend_hetero for compatibility with already existing code
+namespace __par_backend_hetero = __backend::__device_backend_details;
+
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 
