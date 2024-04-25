@@ -27,6 +27,35 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
+
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __usm_shared_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
+
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __usm_host_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
+
+// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
+// std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
+// default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
+// could be confused with a usm allocator.
+template <typename Iter, typename Void = void>
+struct __vector_impl_distinguishes_usm_allocator_from_default : std::false_type
+{
+};
+
+template <typename Iter>
+struct __vector_impl_distinguishes_usm_allocator_from_default<
+    Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+                           !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
+    : std::true_type
+{
+};
+
 template <typename T, int __recurse, typename Policy>
 void
 test_usm_shared_alloc(Policy&& policy, T trash, size_t n, const std::string& type_text)
@@ -43,14 +72,14 @@ test_usm_shared_alloc(Policy&& policy, T trash, size_t n, const std::string& typ
 
         //Only test as source iterator for permutation iterator if we can expect it to work
         // (if the vector implementation distiguishes its iterator for this type)
-        wrap_recurse<
-            __recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-            /*__check_write=*/true, /*__usable_as_perm_map=*/true,
-            /*__usable_as_perm_src=*/
-            TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<decltype(shared_data_vec.begin())>::value,
-            /*__is_reversible=*/true>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting,
-                                      copy_out.get_data(), shared_data_vec.begin(), copy_out.get_data(), counting,
-                                      trash, std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
+        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                     /*__check_write=*/true, /*__usable_as_perm_map=*/true,
+                     /*__usable_as_perm_src=*/
+                     __vector_impl_distinguishes_usm_allocator_from_default<decltype(shared_data_vec.begin())>::value,
+                     /*__is_reversible=*/true>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting,
+                                               copy_out.get_data(), shared_data_vec.begin(), copy_out.get_data(),
+                                               counting, trash,
+                                               std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
     }
     else
     {
@@ -74,13 +103,12 @@ test_usm_host_alloc(Policy&& policy, T trash, size_t n, const std::string& type_
 
         //Only test as source iterator for permutation iterator if we can expect it to work
         // (if the vector implementation distiguishes its iterator for this type)
-        wrap_recurse<
-            __recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-            /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/
-            TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<decltype(host_data_vec.begin())>::value,
-            /*__is_reversible=*/true>(policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
-                                      host_data_vec.begin(), copy_out.get_data(), counting, trash,
-                                      std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
+        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                     /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/
+                     __vector_impl_distinguishes_usm_allocator_from_default<decltype(host_data_vec.begin())>::value,
+                     /*__is_reversible=*/true>(
+            policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(), host_data_vec.begin(),
+            copy_out.get_data(), counting, trash, std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
     }
     else
     {
