@@ -26,6 +26,7 @@
 
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
+#include "../support/scan_serial_impl.h"
 
 #include "esimd_radix_sort_utils.h"
 
@@ -79,7 +80,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
 
-    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
+    inclusive_scan_serial(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
@@ -105,7 +106,7 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
 
-    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
+    inclusive_scan_serial(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, buf, buf_out, bin_op, param).wait();
@@ -132,7 +133,7 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
 
-    std::inclusive_scan(expected.begin(), expected.end(), expected.begin(), bin_op);
+    inclusive_scan_serial(expected.begin(), expected.end(), expected.begin(), bin_op);
 
     oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
                                                        dt_output.get_data(), bin_op, param)
@@ -156,7 +157,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam p
     std::vector<T> output(size);
     generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
-    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
+    inclusive_scan_serial(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
