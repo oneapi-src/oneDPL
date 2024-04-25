@@ -146,8 +146,8 @@ class __offload_policy_holder_type
         _M_set_device_status_func(false);
     }
 
-    auto
-    __get_policy()
+    static auto
+    __get_policy(__offload_policy_holder_type& __this)
     {
         __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
 
@@ -155,11 +155,11 @@ class __offload_policy_holder_type
         {
             throw sycl::exception(sycl::errc::runtime);
         }
-        return _M_offload_policy;
+        return __this._M_offload_policy;
     }
 
-    std::optional<__sycl_device_shared_ptr>
-    __get_device_ptr()
+    static std::optional<__sycl_device_shared_ptr>
+    __get_device_ptr(__offload_policy_holder_type& __this)
     {
         __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
 
@@ -167,7 +167,7 @@ class __offload_policy_holder_type
         {
             // it's safe to use copy ctor here, because we under __offload_policy_holder_mtx
             // and ~__offload_policy_holder_type() has not been called
-            return __sycl_device_shared_ptr(_M_offload_device);
+            return __sycl_device_shared_ptr(__this._M_offload_device);
         }
         else
         {
@@ -188,7 +188,8 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 {
     if (__device_ready.load(std::memory_order_acquire))
     {
-        if (std::optional<__sycl_device_shared_ptr> _dev = __offload_policy_holder.__get_device_ptr())
+        if (std::optional<__sycl_device_shared_ptr> _dev =
+                __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
         {
             void* __res = __allocate_shared_for_device(std::move(*_dev), __size, __alignment);
             assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
@@ -342,7 +343,7 @@ inline void* __attribute__((always_inline)) __libc_memalign(std::size_t __alignm
     return memalign(__alignment, __size);
 }
 
-inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, std::size_t __size)
+inline void* __attribute__((always_inline)) __libc_realloc(void* __ptr, std::size_t __size)
 {
     return realloc(__ptr, __size);
 }
