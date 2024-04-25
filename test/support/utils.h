@@ -853,6 +853,7 @@ struct _ZipIteratorAdapter
     }
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
 using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
 
@@ -881,6 +882,7 @@ struct __vector_impl_distinguishes_usm_allocator_from_default<
     : std::true_type
 {
 };
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation of create_new_policy for all policies (host + hetero)
