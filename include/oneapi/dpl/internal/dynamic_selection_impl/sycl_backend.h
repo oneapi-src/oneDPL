@@ -38,7 +38,7 @@ class sycl_backend
     using resource_container_t = std::vector<execution_resource_t>;
 
     using report_clock_type = std::chrono::steady_clock;
-    using report_duration = std::chrono::duration<double, std::milli>;
+    using report_duration = std::chrono::milliseconds;
 
     static inline bool is_profiling_enabled = false;
   private:
@@ -78,7 +78,8 @@ class sycl_backend
                 cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
                 cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                 if(s!=nullptr){
-                    s->report(execution_info::task_time, report_duration(time_end-time_start).count());
+                    const auto duration_in_ns = std::chrono::nanoseconds(time_end-time_start);
+                    s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns).count());
                 }
             }
 
@@ -205,7 +206,8 @@ class sycl_backend
                     auto e2 = q.submit([=](sycl::handler& h){
                         h.depends_on(e1);
                         h.host_task([=](){
-                            s.report(execution_info::task_time, (report_clock_type::now() - t0).count());
+                            const auto tp_now = report_clock_type::now();
+                            s.report(execution_info::task_time, std::chrono::duration_cast<report_duration>(tp_now - t0).count());
                         });
                     });
                     return async_waiter{e2, std::make_shared<SelectionHandle>(s)};

@@ -50,7 +50,7 @@ class auto_tune_policy
     using timing_t = uint64_t;
 
     using report_clock_type = std::chrono::steady_clock;
-    using report_duration = std::chrono::duration<double, std::milli>;
+    using report_duration = std::chrono::milliseconds;
 
     static constexpr timing_t never_resample = 0;
     static constexpr size_type use_best_resource = ~size_type(0);
@@ -105,8 +105,8 @@ class auto_tune_policy
             }
             else
             {
-                auto now = report_clock_type::now();
-                auto ms = report_duration(now - t0_).count();
+                const auto now = report_clock_type::now();
+                const auto ms = std::chrono::duration_cast<report_duration>(now - t0_).count();
                 if (ms < resample_time_)
                 {
                     return use_best_resource;
