@@ -75,8 +75,6 @@ auto async_handler = [](sycl::exception_list ex_list) {
     }
 };
 
-#endif
-
 #if ONEDPL_FPGA_DEVICE
 inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
