@@ -61,7 +61,7 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 
     using __buffer_backend_tag = typename oneapi::dpl::__internal::__par_buffer_backend_selector<_Tag>::__backend_tag;
 
-    __par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _mask(policy, n);
+    oneapi::dpl::__par_backend_buffer<__buffer_backend_tag, Policy, FlagType> _mask(policy, n);
     auto mask = _mask.get();
 
     mask[0] = 1;
@@ -111,7 +111,7 @@ inclusive_scan_by_segment_impl(__internal::__hetero_tag<_BackendTag>, Policy&& p
 
     FlagType initial_mask = 1;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<Policy, FlagType> _mask(policy, n);
+    oneapi::dpl::__par_backend_buffer<_BackendTag, Policy, FlagType> _mask(policy, n);
     {
         auto mask_buf = _mask.get_buffer();
         auto mask = mask_buf.get_host_access(sycl::read_write);
