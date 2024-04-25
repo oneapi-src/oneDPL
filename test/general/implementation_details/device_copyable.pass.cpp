@@ -222,6 +222,13 @@ test_device_copyable()
     static_assert(sycl::is_device_copyable_v<
                       oneapi::dpl::__internal::__create_mask_unique_copy<noop_device_copyable, int_device_copyable>>,
                   "__create_mask_unique_copy is not device copyable with device copyable types");
+    //tuple
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::__internal::tuple<int_device_copyable, int_device_copyable>>,
+                  "tuple is not device copyable with device copyable types");
+    static_assert(
+        sycl::is_device_copyable_v<oneapi::dpl::__internal::tuple<std::tuple<int_device_copyable, int_device_copyable>,
+                                                                  int_device_copyable, int_device_copyable>>,
+        "tuple is not device copyable with device copyable types");
 }
 
 void
@@ -431,6 +438,13 @@ test_non_device_copyable()
         !sycl::is_device_copyable_v<
             oneapi::dpl::__internal::__create_mask_unique_copy<noop_non_device_copyable, int_non_device_copyable>>,
         "__create_mask_unique_copy is device copyable with non device copyable types");
+    //tuple
+    static_assert(
+        !sycl::is_device_copyable_v<oneapi::dpl::__internal::tuple<int_non_device_copyable, int_device_copyable>>,
+        "tuple is device copyable with non device copyable types");
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::__internal::tuple<
+                      std::tuple<int_non_device_copyable, int_device_copyable>, int_device_copyable>>,
+                  "tuple is device copyable with non device copyable types");
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
