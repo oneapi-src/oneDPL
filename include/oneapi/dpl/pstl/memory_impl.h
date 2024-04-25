@@ -41,7 +41,7 @@ __brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _O
     using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
     {
-        ::new (::std::addressof(*__result)) _ValueType(::std::move(*__first));
+        ::new (std::addressof(*__result)) _ValueType(std::move(*__first));
     }
     return __result;
 }
@@ -57,7 +57,7 @@ __brick_uninitialized_move(_RandomAccessIterator __first, _RandomAccessIterator 
 
     return __unseq_backend::__simd_walk_2(
         __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(::std::move(__x)); });
+        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (std::addressof(__y)) __ValueType(std::move(__x)); });
 }
 
 template <typename _Iterator>
@@ -92,7 +92,7 @@ __brick_uninitialized_copy(_ForwardIterator __first, _ForwardIterator __last, _O
     using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
     {
-        ::new (::std::addressof(*__result)) _ValueType(*__first);
+        ::new (std::addressof(*__result)) _ValueType(*__first);
     }
     return __result;
 }
@@ -108,7 +108,7 @@ __brick_uninitialized_copy(_RandomAccessIterator __first, _RandomAccessIterator 
 
     return __unseq_backend::__simd_walk_2(
         __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(__x); });
+        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (std::addressof(__y)) __ValueType(__x); });
 }
 
 template <typename _ExecutionPolicy>
@@ -120,7 +120,7 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     {
         using _TargetValueType = std::decay_t<_TargetT>;
 
-            ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
     }
 };
 
@@ -137,7 +137,7 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::move(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::move(__source));
     }
 };
 
@@ -156,7 +156,7 @@ struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(__source);
+        ::new (std::addressof(__target)) _TargetValueType(__source);
     }
 };
 
@@ -189,7 +189,7 @@ struct __op_uninitialized_default_construct<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType;
+        ::new (std::addressof(__target)) _TargetValueType;
     }
 };
 
@@ -206,7 +206,7 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     {
         using _TargetValueType = ::std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType();
+        ::new (std::addressof(__target)) _TargetValueType();
     }
 };
 

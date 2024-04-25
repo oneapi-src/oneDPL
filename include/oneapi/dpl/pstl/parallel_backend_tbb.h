@@ -747,7 +747,7 @@ class __merge_func
         void
         operator()(Iterator1 __x, Iterator2 __z)
         {
-            ::new (::std::addressof(*__z)) _ValueType(::std::move(*__x));
+            ::new (std::addressof(*__z)) _ValueType(std::move(*__x));
         }
     };
 
