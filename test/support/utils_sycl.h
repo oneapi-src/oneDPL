@@ -75,27 +75,6 @@ auto async_handler = [](sycl::exception_list ex_list) {
     }
 };
 
-//function is needed to wrap kernel name into another class
-template <typename _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
-auto
-make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
-{
-    return TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
-}
-
-#if ONEDPL_FPGA_DEVICE
-template <typename _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
-auto
-make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy)))
-{
-    return TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy));
-}
 #endif
 
 #if ONEDPL_FPGA_DEVICE
