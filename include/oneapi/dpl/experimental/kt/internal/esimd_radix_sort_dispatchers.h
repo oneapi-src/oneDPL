@@ -24,7 +24,7 @@
 #include "esimd_radix_sort_kernels.h"
 #include "esimd_radix_sort_submitters.h"
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 template <typename... _Name>
 class __esimd_radix_sort_one_wg;
@@ -409,6 +409,6 @@ __radix_sort(sycl::queue __q, _RngPack1&& __pack_in, _RngPack2&& __pack_out, _Ke
     }
 }
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H

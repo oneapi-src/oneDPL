@@ -50,7 +50,7 @@ test_all_view(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+        oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, view, param).wait();
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -73,7 +73,7 @@ test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, view, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -99,7 +99,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size,
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size,
                                                                   param)
         .wait();
 
@@ -123,9 +123,18 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+        // Deprecated namespace is used deliberatelly to make sure the functionality is still available
         oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
                                                                       param)
             .wait();
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -145,7 +154,7 @@ test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, buf, param).wait();
+        oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending>(q, buf, param).wait();
     }
 
     std::string msg = "wrong results with sycl::buffer, n: " + std::to_string(size);
@@ -161,12 +170,12 @@ test_small_sizes(sycl::queue q, KernelParam param)
     generate_data(input.data(), size, 42);
     std::vector<T> ref(input);
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::gpu::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input) + 1, param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");

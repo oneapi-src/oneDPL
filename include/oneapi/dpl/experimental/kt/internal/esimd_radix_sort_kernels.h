@@ -20,7 +20,7 @@
 #include "esimd_defs.h"
 #include "esimd_radix_sort_utils.h"
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
 template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
@@ -749,6 +749,6 @@ struct __radix_sort_onesweep_kernel
     }
 };
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_KERNELS_H
