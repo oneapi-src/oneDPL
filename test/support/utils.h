@@ -854,14 +854,14 @@ struct _ZipIteratorAdapter
 };
 
 #if TEST_DPCPP_BACKEND_PRESENT
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
 
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __usm_shared_alloc_vec_iter =
     typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
 
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __usm_host_alloc_vec_iter =
     typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
 

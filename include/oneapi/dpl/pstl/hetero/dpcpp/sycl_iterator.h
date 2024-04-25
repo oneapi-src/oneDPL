@@ -17,6 +17,7 @@
 #define _ONEDPL_SYCL_ITERATOR_H
 
 #include <iterator>
+#include <type_traits>
 #include "../../onedpl_config.h"
 #include "sycl_defs.h"
 
@@ -149,14 +150,14 @@ struct _ModeConverter<access_mode::write>
     static constexpr access_mode __value = access_mode::discard_write;
 };
 
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
 
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __usm_shared_alloc_vec_iter =
     typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
 
-template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __usm_host_alloc_vec_iter =
     typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
 
@@ -178,32 +179,16 @@ struct __vector_iter_distinguishes_by_allocator<
 };
 
 template <typename Iter, typename Void = void>
-struct __is_known_usm_vector_iter_impl : std::false_type
-{
-};
-
-template <typename Iter>
-struct __is_known_usm_vector_iter_impl<
-    Iter, std::enable_if_t<std::conjunction<
-              std::disjunction<std::is_same<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>>,
-                               std::is_same<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>>,
-              oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>>::value>> : std::true_type
-{
-};
-
-template <typename Iter, typename Void = void>
 struct __is_known_usm_vector_iter : std::false_type
 {
 };
 
-//We must avoid instantiating vector of const, reference, or function elements to avoid ill-formed vector instantiation
 template <typename Iter>
 struct __is_known_usm_vector_iter<
     Iter, std::enable_if_t<std::conjunction<
-              std::negation<std::disjunction<std::is_const<typename std::iterator_traits<Iter>::value_type>,
-                                             std::is_reference<typename std::iterator_traits<Iter>::value_type>,
-                                             std::is_function<typename std::iterator_traits<Iter>::value_type>>>,
-              oneapi::dpl::__internal::__is_known_usm_vector_iter_impl<Iter>>::value>> : std::true_type
+              std::disjunction<std::is_same<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>>,
+                               std::is_same<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>>,
+              oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>>::value>> : std::true_type
 {
 };
 
