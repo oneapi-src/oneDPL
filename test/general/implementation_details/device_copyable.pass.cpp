@@ -82,8 +82,8 @@ test_device_copyable()
     //transform_reduce
     static_assert(
         sycl::is_device_copyable_v<
-            oneapi::dpl::unseq_backend::transform_reduce<policy_non_device_copyable, 8, noop_device_copyable,
-                                                         noop_device_copyable, int_device_copyable, std::true_type>>,
+            oneapi::dpl::unseq_backend::transform_reduce<policy_non_device_copyable, noop_device_copyable,
+                                                         noop_device_copyable, int_device_copyable, std::true_type, 4>>,
         "transform_reduce is not device copyable with device copyable types");
     //reduce_over_group
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::reduce_over_group<
@@ -280,8 +280,8 @@ test_non_device_copyable()
     //transform_reduce
     static_assert(
         !sycl::is_device_copyable_v<
-            oneapi::dpl::unseq_backend::transform_reduce<policy_non_device_copyable, 8, noop_non_device_copyable,
-                                                         noop_device_copyable, int_device_copyable, std::true_type>>,
+            oneapi::dpl::unseq_backend::transform_reduce<policy_non_device_copyable, noop_non_device_copyable,
+                                                         noop_device_copyable, int_device_copyable, std::true_type, 4>>,
         "transform_reduce is device copyable with non device copyable types");
     //reduce_over_group
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::reduce_over_group<
