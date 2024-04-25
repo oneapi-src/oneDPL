@@ -176,9 +176,9 @@ namespace oneapi::dpl::experimental::kt
 {
 namespace esimd
 #if !defined(__SYCL_DEVICE_ONLY__)
-[[deprecated("Use of oneapi::dpl::experimental::kt::esimd namespace is deprecated "
-                             "and will be removed in a future release. "
-                             "Use oneapi::dpl::experimental::kt::gpu::esimd instead")]]
+    [[deprecated("Use of oneapi::dpl::experimental::kt::esimd namespace is deprecated "
+                 "and will be removed in a future release. "
+                 "Use oneapi::dpl::experimental::kt::gpu::esimd instead")]]
 #endif
 {
 using oneapi::dpl::experimental::kt::gpu::esimd::radix_sort;
