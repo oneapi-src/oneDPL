@@ -594,7 +594,10 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 if (__residual > 0)
                 {
                     //_ValueT may not have a default constructor, so we create just a storage via union type
-                    union __storage { _ValueT __v; __storage(){} } __in_val;
+                    union __storage
+                    {
+                        _ValueT __v;
+                    } __in_val;
 
                     ::std::uint32_t __bucket = __radix_states; // greater than any actual radix state
                     if (__self_lidx < __residual)
