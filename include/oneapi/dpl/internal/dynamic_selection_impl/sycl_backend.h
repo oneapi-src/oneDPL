@@ -74,8 +74,8 @@ class sycl_backend
         report() override{
             if constexpr (report_value_v<Selection, execution_info::task_time_t>){
                 if(s!=nullptr){
-                    cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
-                    cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
+                    const auto time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                    const auto time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                     const auto duration_in_ns = std::chrono::nanoseconds(time_end-time_start);
                     s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns).count());
                 }
@@ -214,7 +214,7 @@ class sycl_backend
         }
         else
         {
-            return async_waiter{f(unwrap(s), std::forward<Args>(args)...), std::make_shared<SelectionHandle>(s)};
+            return async_waiter{f(q, std::forward<Args>(args)...), std::make_shared<SelectionHandle>(s)};
         }
     }
 
