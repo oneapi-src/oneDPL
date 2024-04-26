@@ -55,7 +55,11 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
+#if defined(_GLIBCXX_RELEASE)
+#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE < 8)
+#else
+#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN 0
+#endif
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
