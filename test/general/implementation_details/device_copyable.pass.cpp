@@ -25,7 +25,7 @@ using namespace TestUtils;
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #    include "support/utils_device_copyable.h"
-#    include "sycl.hpp"
+#    include "support/utils_sycl_defs.h"
 
 void
 test_device_copyable()
