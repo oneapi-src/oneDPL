@@ -202,7 +202,6 @@ class sycl_backend
             auto e1 = f(q, std::forward<Args>(args)...);
             async_waiter<SelectionHandle> waiter{e1, std::make_shared<SelectionHandle>(s)};
 
-
             if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
             {
                 if (is_profiling_enabled)
@@ -211,8 +210,9 @@ class sycl_backend
                 }
             }
 
-            bool is_host_task_needed = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration> && !is_profiling_enabled
-                                       || report_info_v<SelectionHandle, execution_info::task_completion_t>;
+            bool is_host_task_needed = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration> &&
+                                           !is_profiling_enabled ||
+                                       report_info_v<SelectionHandle, execution_info::task_completion_t>;
 
             if (is_host_task_needed)
             {
@@ -221,10 +221,10 @@ class sycl_backend
                     h.host_task([=]() {
                         if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
                         {
-                            if(!is_profiling_enabled)
+                            if (!is_profiling_enabled)
                             {
                                 s.report(execution_info::task_time,
-                                     std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
+                                         std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
                             }
                         }
                         if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
