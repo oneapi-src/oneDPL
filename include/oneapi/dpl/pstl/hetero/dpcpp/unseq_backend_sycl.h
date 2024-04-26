@@ -230,16 +230,13 @@ struct transform_reduce
 
     template <typename _Size, typename _Res, typename... _Acc>
     void
-    scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, const _Size __max_iters, _Res& __res,
+    scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, _Res& __res,
                                const _Acc&... __acc) const
     {
-        if (__start_idx < __adjusted_n)
-        {
-            const _Size __remainder = __adjusted_n - __start_idx;
-            const _Size __no_iters = std::min(__remainder, __max_iters);
-            for (_Size __idx = 0; __idx < __no_iters; ++__idx)
-                __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
-        }
+        // The boundary checks are done in the caller, i.e., __start_idx <= __adjusted_n
+        const _Size __no_iters = __adjusted_n - __start_idx;
+        for (_Size __idx = 0; __idx < __no_iters; ++__idx)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
     }
 
     template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
@@ -295,11 +292,18 @@ struct transform_reduce
                 _Size __n_diff = __adjusted_n - __adjusted_global_id - _VecSize;
                 _Size __no_iters = __n_diff / __stride;
                 _Size __no_vec_ops_minus_one = __no_vec_ops - 1;
-                bool __excess_scalar_elements = true;
+                bool __excess_scalar_elements = false;
                 if (__no_iters >= __no_vec_ops_minus_one)
                 {
-                    __excess_scalar_elements = false;
+                    // Completely full work item
                     __no_iters = __no_vec_ops_minus_one;
+                    __excess_scalar_elements = false;
+                }
+                else
+                {
+                    // Partially full work item, but we need to consider if it's next iteration after its last
+                    // vector instruction begins within the sequence
+                    __excess_scalar_elements = __adjusted_global_id + (__no_iters + 1) * __stride < __adjusted_n;
                 }
                 _Size __base_idx = __adjusted_global_id + __stride;
                 for (_Size __i = 1; __i <= __no_iters; ++__i)
@@ -308,7 +312,7 @@ struct transform_reduce
                     __base_idx += __stride;
                 }
                 if (__excess_scalar_elements)
-                    scalar_reduction_remainder(__base_idx, __adjusted_n, __vec_size_minus_one, __res, __acc...);
+                    scalar_reduction_remainder(__base_idx, __adjusted_n, __res, __acc...);
             }
         }
         // Scalar remainder
@@ -316,9 +320,7 @@ struct transform_reduce
         {
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
             const _Size __adjusted_global_id_plus_one = __adjusted_global_id + 1;
-            constexpr _Size __vec_size_minus_two = _VecSize - 2;
-            scalar_reduction_remainder(__adjusted_global_id_plus_one, __adjusted_n, __vec_size_minus_two, __res,
-                                       __acc...);
+            scalar_reduction_remainder(__adjusted_global_id_plus_one, __adjusted_n, __res, __acc...);
         }
     }
 
