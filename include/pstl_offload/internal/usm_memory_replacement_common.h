@@ -19,8 +19,8 @@
 #include <limits>
 
 #if __linux__
-#include <dlfcn.h>
-#include <unistd.h>
+#    include <dlfcn.h>
+#    include <unistd.h>
 #endif // __linux__
 
 namespace __pstl_offload
@@ -44,8 +44,6 @@ __is_power_of_two(std::size_t __number)
     return (__number != 0) && ((__number & __number - 1) == 0);
 }
 
-class __offload_policy_holder_type;
-
 // can't use std::shared_ptr, because commonly sizeof(std::shared_ptr) is 2*sizeof(void*) while
 // sizeof(__block_header) must be power of 2 and with std::shared_ptr instead of
 // __sycl_device_shared_ptr memory fragmentation increases drastically
@@ -65,16 +63,16 @@ class __sycl_device_shared_ptr
   public:
     __sycl_device_shared_ptr() : _M_shared_device(nullptr) {}
 
-    explicit __sycl_device_shared_ptr(sycl::device _device)
+    explicit __sycl_device_shared_ptr(sycl::device _device) : _M_shared_device(nullptr) { __init(_device); }
+
+    void
+    __init(sycl::device _device)
     {
-        _M_shared_device =
-            (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
-        if (!_M_shared_device)
-        {
-            throw std::bad_alloc();
-        }
-        new (_M_shared_device) __shared_device{_device, _device.get_platform().ext_oneapi_get_default_context(), 1};
+        assert(!_M_shared_device);
+        _M_shared_device = new __shared_device{_device, _device.get_platform().ext_oneapi_get_default_context(), 1};
     }
+
+    explicit operator bool() const { return _M_shared_device != nullptr; }
 
     bool
     __is_device_created() const
@@ -97,9 +95,8 @@ class __sycl_device_shared_ptr
     __sycl_device_shared_ptr&
     operator=(const __sycl_device_shared_ptr& __other) = delete;
 
-    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& __other)
+    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& __other) : _M_shared_device(__other._M_shared_device)
     {
-        _M_shared_device = __other._M_shared_device;
         _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
     }
 
@@ -198,18 +195,13 @@ __original_realloc(void* __user_ptr, std::size_t __new_size)
 }
 
 inline void
-__free_usm_pointer(__block_header* __header, sycl::context __context)
+__free_usm_pointer(__block_header* __header)
 {
     assert(__header != nullptr);
     __header->_M_uniq_const = 0;
+    sycl::context __context = __header->_M_device.__get_context();
     __header->~__block_header();
     sycl::free(__header->_M_original_pointer, __context);
-}
-
-inline void
-__free_usm_pointer(__block_header* __header)
-{
-    __free_usm_pointer(__header, __header->_M_device.__get_context());
 }
 
 inline void*
@@ -229,17 +221,15 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
         }
         else
         {
-            // Reallocate __new_size, reusing __header->_M_device for new header
-            sycl::context __context = __header->_M_device.__get_context();
-            void* __new_ptr =
-                __allocate_shared_for_device(std::move(__header->_M_device), __new_size, alignof(std::max_align_t));
+            // Reallocate __new_size
+            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(std::max_align_t));
 
             if (__new_ptr != nullptr)
             {
                 std::memcpy(__new_ptr, __user_ptr, __header->_M_requested_number_of_bytes);
 
                 // Free previously allocated memory
-                __free_usm_pointer(__header, __context);
+                __free_usm_pointer(__header);
                 __result = __new_ptr;
             }
             else

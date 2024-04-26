@@ -59,8 +59,9 @@ class __spin_mutex
 {
     std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
 
+  public:
     void
-    __lock()
+    lock()
     {
         while (_M_flag.test_and_set(std::memory_order_acquire))
         {
@@ -70,26 +71,10 @@ class __spin_mutex
     }
 
     void
-    __unlock()
+    unlock()
     {
         _M_flag.clear(std::memory_order_release);
     }
-
-  public:
-    class __scoped_lock
-    {
-        __spin_mutex& _M_mutex;
-
-      public:
-        __scoped_lock(__spin_mutex& __m) : _M_mutex(__m) { __m.__lock(); }
-
-        __scoped_lock(__scoped_lock&) = delete;
-        __scoped_lock&
-        operator=(__scoped_lock&) = delete;
-
-        ~__scoped_lock() { _M_mutex.__unlock(); }
-    };
-    friend class __scoped_lock;
 };
 
 static __spin_mutex __offload_policy_holder_mtx;
@@ -105,7 +90,7 @@ class __offload_policy_holder_type
     // would be stored in each translation unit
     template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
-                                 __set_device_status_func_type __set_device_status_func)
+                                 __set_device_status_func_type __set_device_status_func, __spin_mutex& __mtx)
         : _M_set_device_status_func(__set_device_status_func)
     {
         sycl::device _device;
@@ -132,16 +117,16 @@ class __offload_policy_holder_type
             }
         }
 
-        __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
+        std::scoped_lock __lock{__mtx};
 
-        new (&_M_offload_device) __sycl_device_shared_ptr(_device);
+        _M_offload_device.__init(_device);
         _M_offload_policy = oneapi::dpl::execution::device_policy<>(_device);
         _M_set_device_status_func(true);
     }
 
     ~__offload_policy_holder_type()
     {
-        __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
 
         _M_set_device_status_func(false);
     }
@@ -149,7 +134,7 @@ class __offload_policy_holder_type
     static auto
     __get_policy(__offload_policy_holder_type& __this)
     {
-        __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
 
         if (!__device_ready.load(std::memory_order_acquire))
         {
@@ -158,10 +143,10 @@ class __offload_policy_holder_type
         return __this._M_offload_policy;
     }
 
-    static std::optional<__sycl_device_shared_ptr>
+    static __sycl_device_shared_ptr
     __get_device_ptr(__offload_policy_holder_type& __this)
     {
-        __spin_mutex::__scoped_lock __lock(__offload_policy_holder_mtx);
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
 
         if (__device_ready.load(std::memory_order_acquire))
         {
@@ -171,7 +156,7 @@ class __offload_policy_holder_type
         }
         else
         {
-            return std::nullopt;
+            return __sycl_device_shared_ptr{};
         }
     }
 
@@ -181,17 +166,17 @@ class __offload_policy_holder_type
     __set_device_status_func_type _M_set_device_status_func;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), &__set_device_status};
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), &__set_device_status,
+                                                            __offload_policy_holder_mtx};
 
 static void*
 __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 {
     if (__device_ready.load(std::memory_order_acquire))
     {
-        if (std::optional<__sycl_device_shared_ptr> _dev =
-                __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
+        if (__sycl_device_shared_ptr __dev = __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
         {
-            void* __res = __allocate_shared_for_device(std::move(*_dev), __size, __alignment);
+            void* __res = __allocate_shared_for_device(std::move(__dev), __size, __alignment);
             assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
             return __res;
         }
