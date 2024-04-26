@@ -114,7 +114,8 @@ has_report_value_impl(...) -> std::false_type;
 
 template <typename S, typename Info, typename ValueType>
 auto
-has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), std::declval<ValueType>()), std::true_type{});
+has_report_value_impl(int)
+    -> decltype(std::declval<S>().report(std::declval<Info>(), std::declval<ValueType>()), std::true_type{});
 
 template <typename S, typename Info, typename ValueType>
 struct has_report_value : decltype(has_report_value_impl<S, Info, ValueType>(0))

@@ -222,7 +222,8 @@ class auto_tune_policy
     select(Function&& f, Args&&... args)
     {
         static_assert(sizeof...(KeyArgs) == sizeof...(Args));
-        if constexpr(backend_traits::lazy_report_v<Backend>){
+        if constexpr (backend_traits::lazy_report_v<Backend>)
+        {
             backend_->lazy_report();
         }
         if (state_)

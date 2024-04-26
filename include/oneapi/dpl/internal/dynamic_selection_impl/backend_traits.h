@@ -22,29 +22,30 @@ namespace experimental
 {
 namespace internal
 {
-    template <typename Backend>
-    auto
-    has_lazy_report_impl(...) -> std::false_type;
+template <typename Backend>
+auto
+has_lazy_report_impl(...) -> std::false_type;
 
-    template <typename Backend>
-    auto
-    has_lazy_report_impl(int) -> decltype(std::declval<Backend>().lazy_report(), std::true_type{});
+template <typename Backend>
+auto
+has_lazy_report_impl(int) -> decltype(std::declval<Backend>().lazy_report(), std::true_type{});
 
-    template <typename Backend>
-    struct has_lazy_report : decltype(has_lazy_report_impl<Backend>(0))
-    {
-    };
+template <typename Backend>
+struct has_lazy_report : decltype(has_lazy_report_impl<Backend>(0))
+{
+};
 
-}//namespace internal
+} //namespace internal
 
-namespace backend_traits {
-    template <typename S>
-    struct lazy_report_value
-    {
-        static constexpr bool value = ::oneapi::dpl::experimental::internal::has_lazy_report<S>::value;
-    };
-    template <typename S>
-    inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
+namespace backend_traits
+{
+template <typename S>
+struct lazy_report_value
+{
+    static constexpr bool value = ::oneapi::dpl::experimental::internal::has_lazy_report<S>::value;
+};
+template <typename S>
+inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
 
 } //namespace backend_traits
 

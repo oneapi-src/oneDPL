@@ -41,19 +41,24 @@ class sycl_backend
     using report_duration = std::chrono::milliseconds;
 
     static inline bool is_profiling_enabled = false;
+
   private:
-    class async_waiter_base{
-        public:
-            virtual void report() = 0;
-            virtual bool is_complete() = 0;
-            virtual ~async_waiter_base() = default;
+    class async_waiter_base
+    {
+      public:
+        virtual void
+        report() = 0;
+        virtual bool
+        is_complete() = 0;
+        virtual ~async_waiter_base() = default;
     };
 
-    template<typename Selection>
+    template <typename Selection>
     class async_waiter : public async_waiter_base
     {
         sycl::event e_;
         std::shared_ptr<Selection> s;
+
       public:
         async_waiter() = default;
         async_waiter(sycl::event e, std::shared_ptr<Selection> selection) : e_(e), s(selection) {}
@@ -71,52 +76,63 @@ class sycl_backend
         }
 
         void
-        report() override{
-            if constexpr (report_value_v<Selection, execution_info::task_time_t, report_duration>){
-                if(s!=nullptr){
-                    const auto time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
+        report() override
+        {
+            if constexpr (report_value_v<Selection, execution_info::task_time_t, report_duration>)
+            {
+                if (s != nullptr)
+                {
+                    const auto time_start =
+                        e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
                     const auto time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
                     s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(
                                                              std::chrono::nanoseconds(time_end - time_start)));
                 }
             }
-
-
         }
 
         bool
-        is_complete() override{
-            return e_.get_info<sycl::info::event::command_execution_status>() == sycl::info::event_command_status::complete;
+        is_complete() override
+        {
+            return e_.get_info<sycl::info::event::command_execution_status>() ==
+                   sycl::info::event_command_status::complete;
         }
-
     };
 
-    struct async_waiter_list_t{
+    struct async_waiter_list_t
+    {
 
         std::mutex m_;
         std::vector<std::unique_ptr<async_waiter_base>> async_waiters;
 
-        void add_waiter(async_waiter_base *t){
+        void
+        add_waiter(async_waiter_base* t)
+        {
             std::lock_guard<std::mutex> l(m_);
             async_waiters.push_back(std::unique_ptr<async_waiter_base>(t));
         }
 
-        void lazy_report(){
-            if(is_profiling_enabled){
+        void
+        lazy_report()
+        {
+            if (is_profiling_enabled)
+            {
                 std::lock_guard<std::mutex> l(m_);
-                async_waiters.erase(std::remove_if(async_waiters.begin(), async_waiters.end(), [](std::unique_ptr<async_waiter_base>& async_waiter){
-                        if(async_waiter->is_complete()){
-                            async_waiter->report();
-                            return true;
-                        }
-                        return false;
-                    }), async_waiters.end());
+                async_waiters.erase(std::remove_if(async_waiters.begin(), async_waiters.end(),
+                                                   [](std::unique_ptr<async_waiter_base>& async_waiter) {
+                                                       if (async_waiter->is_complete())
+                                                       {
+                                                           async_waiter->report();
+                                                           return true;
+                                                       }
+                                                       return false;
+                                                   }),
+                                    async_waiters.end());
             }
         }
     };
 
     async_waiter_list_t async_waiter_list;
-
 
     class submission_group
     {
@@ -154,7 +170,8 @@ class sycl_backend
         for (auto e : v)
         {
             global_rank_.push_back(e);
-            if(!e.template has_property<sycl::property::queue::enable_profiling>()){
+            if (!e.template has_property<sycl::property::queue::enable_profiling>())
+            {
                 profiling = false;
             }
         }
@@ -184,25 +201,26 @@ class sycl_backend
             }
             async_waiter<SelectionHandle> waiter;
             auto e1 = f(q, std::forward<Args>(args)...);
-            if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>){
-                auto e2 = q.submit([=](sycl::handler& h){
+            if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
+            {
+                auto e2 = q.submit([=](sycl::handler& h) {
                     h.depends_on(e1);
-                    h.host_task([=](){
-                        s.report(execution_info::task_completion);
-                    });
+                    h.host_task([=]() { s.report(execution_info::task_completion); });
                 });
-                waiter =  async_waiter{e2, std::make_shared<SelectionHandle>(s)};
+                waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
             }
-            if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>){
+            if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+            {
                 if (is_profiling_enabled)
                 {
-                    waiter = async_waiter{e1,std::make_shared<SelectionHandle>(s)};
+                    waiter = async_waiter{e1, std::make_shared<SelectionHandle>(s)};
                     async_waiter_list.add_waiter(new async_waiter(waiter));
                 }
-                else{
-                    auto e2 = q.submit([=](sycl::handler& h){
+                else
+                {
+                    auto e2 = q.submit([=](sycl::handler& h) {
                         h.depends_on(e1);
-                        h.host_task([=](){
+                        h.host_task([=]() {
                             s.report(execution_info::task_time,
                                      std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
                         });
@@ -230,7 +248,9 @@ class sycl_backend
         return global_rank_;
     }
 
-    void lazy_report(){
+    void
+    lazy_report()
+    {
         async_waiter_list.lazy_report();
     }
 
@@ -246,12 +266,14 @@ class sycl_backend
         auto devices = sycl::device::get_devices();
         for (auto& x : devices)
         {
-            if(!x.has(sycl::aspect::queue_profiling)){
+            if (!x.has(sycl::aspect::queue_profiling))
+            {
                 profiling = false;
             }
         }
         is_profiling_enabled = profiling;
-        if(is_profiling_enabled){
+        if (is_profiling_enabled)
+        {
             prop_list = sycl::property_list{sycl::property::queue::enable_profiling()};
         }
         for (auto& x : devices)
