@@ -44,10 +44,19 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
   #include <oneapi/dpl/iterator>
   #include <sycl/sycl.hpp>
   int main(){
-    sycl::buffer<int> buf { 1000 };
+    std::vector<int> vec(1000);
+    // generate random data on host for simplicity
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
+    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+
+    //create a buffer from host memory
+    sycl::buffer<int> buf { vec.data(), vec.size() };
     auto buf_begin = oneapi::dpl::begin(buf);
     auto buf_end   = oneapi::dpl::end(buf);
-    std::fill(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end, 42);
+
+    std::sort(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end);
     return 0;
   }
 
@@ -69,8 +78,13 @@ the USM-allocated memory were created for the same queue. For example:
     sycl::queue q;
     const int n = 1000;
     int* d_head = sycl::malloc_shared<int>(n, q);
+    // generate random data on host for simplicity
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
+    std::generate(d_head, d_head + n, [&](){ return uniform_dist(e1); });
 
-    std::fill(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n, 42);
+    std::sort(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n);
 
     sycl::free(d_head, q);
     return 0;
@@ -98,8 +112,12 @@ as shown in the following example:
   #include <vector>
   int main(){
     std::vector<int> vec( 1000 );
-    std::fill(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end(), 42);
-    // each element of vec equals to 42
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
+    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+
+    std::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end();
     return 0;
   }
 
@@ -122,12 +140,16 @@ You can also use ``std::vector`` with a USM allocator, as shown in the following
     sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
     std::vector<int, decltype(alloc)> vec(n, alloc);
 
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
+    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+
     // Recommended to use USM pointers:
-    std::fill(policy, vec.data(), vec.data() + vec.size(), 42);
+    std::sort(policy, vec.data(), vec.data() + vec.size());
 
     // Iterators for USM allocators might require extra copying - not recommended method
-    // std::fill(policy, vec.begin(), vec.end(), 42);
-
+    // std::sort(policy, vec.begin(), vec.end());
     return 0;
   }
 
