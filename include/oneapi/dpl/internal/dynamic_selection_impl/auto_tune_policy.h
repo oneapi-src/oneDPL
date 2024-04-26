@@ -174,9 +174,9 @@ class auto_tune_policy
         };
 
         void
-        report(const execution_info::task_time_t&, const typename execution_info::task_time_t::value_type& v) const
+        report(const execution_info::task_time_t&, report_duration v) const
         {
-            tuner_->add_new_timing(resource_, v);
+            tuner_->add_new_timing(resource_, v.count());
         }
     };
 
