@@ -14,6 +14,8 @@
 #include <thread>
 #include "support/test_dynamic_selection_utils.h"
 #include "support/utils.h"
+#include "support/sycl_alloc_utils.h"
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
@@ -53,8 +55,11 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -189,8 +194,11 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -326,8 +334,11 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
