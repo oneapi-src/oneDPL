@@ -107,7 +107,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                 if (*j == 0)
                 {
                      return q.submit([=](sycl::handler& h){
-                        h.single_task([](){});
+                        h.single_task<class SingleTask1>([](){});
                      });
                 }
                 else
@@ -153,7 +153,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     if (*j == 0)
                     {
                          return q.submit([=](sycl::handler& h){
-                            h.single_task([](){});
+                            h.single_task<class SingleTask2>([](){});
                          });
                     }
                     else
@@ -246,7 +246,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                 if (*j == 0)
                 {
                      return q.submit([=](sycl::handler& h){
-                        h.single_task([](){});
+                        h.single_task<class SingleTask3>([](){});
                      });
                 }
                 else
@@ -292,7 +292,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     if (*j == 0)
                     {
                          return q.submit([=](sycl::handler& h){
-                            h.single_task([](){});
+                            h.single_task<class SingleTask4>([](){});
                          });
                     }
                     else
@@ -386,7 +386,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                 if (*j == 0)
                 {
                      return q.submit([=](sycl::handler& h){
-                        h.single_task([](){});
+                        h.single_task<class SingleTask5>([](){});
                      });
                 }
                 else
@@ -431,7 +431,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     if (*j == 0)
                     {
                          return q.submit([=](sycl::handler& h){
-                            h.single_task([](){});
+                            h.single_task<class SingleTask6>([](){});
                          });
                     }
                     else
