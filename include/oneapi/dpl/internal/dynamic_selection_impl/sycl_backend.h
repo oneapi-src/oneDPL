@@ -199,34 +199,41 @@ class sycl_backend
                     t0 = report_clock_type::now();
                 }
             }
-            async_waiter<SelectionHandle> waiter;
             auto e1 = f(q, std::forward<Args>(args)...);
-            if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
-            {
-                auto e2 = q.submit([=](sycl::handler& h) {
-                    h.depends_on(e1);
-                    h.host_task([=]() { s.report(execution_info::task_completion); });
-                });
-                waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
-            }
+            async_waiter<SelectionHandle> waiter{e1, std::make_shared<SelectionHandle>(s)};
+
+
             if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
             {
                 if (is_profiling_enabled)
                 {
-                    waiter = async_waiter{e1, std::make_shared<SelectionHandle>(s)};
                     async_waiter_list.add_waiter(new async_waiter(waiter));
                 }
-                else
-                {
-                    auto e2 = q.submit([=](sycl::handler& h) {
-                        h.depends_on(e1);
-                        h.host_task([=]() {
-                            s.report(execution_info::task_time,
+            }
+
+            bool is_host_task_needed = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration> && !is_profiling_enabled
+                                       || report_info_v<SelectionHandle, execution_info::task_completion_t>;
+
+            if (is_host_task_needed)
+            {
+                auto e2 = q.submit([=](sycl::handler& h) {
+                    h.depends_on(e1);
+                    h.host_task([=]() {
+                        if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+                        {
+                            if(!is_profiling_enabled)
+                            {
+                                s.report(execution_info::task_time,
                                      std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
-                        });
+                            }
+                        }
+                        if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
+                        {
+                            s.report(execution_info::task_completion);
+                        }
                     });
-                    waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
-                }
+                });
+                waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
             }
             return waiter;
         }
