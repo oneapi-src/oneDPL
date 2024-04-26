@@ -72,12 +72,12 @@ class sycl_backend
 
         void
         report() override{
-            if constexpr (report_value_v<Selection, execution_info::task_time_t>){
+            if constexpr (report_value_v<Selection, execution_info::task_time_t, report_duration>){
                 if(s!=nullptr){
                     const auto time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
                     const auto time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
-                    const auto duration_in_ns = std::chrono::nanoseconds(time_end-time_start);
-                    s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(duration_in_ns).count());
+                    s->report(execution_info::task_time, std::chrono::duration_cast<report_duration>(
+                                                             std::chrono::nanoseconds(time_end - time_start)));
                 }
             }
 
@@ -172,10 +172,10 @@ class sycl_backend
             report(s, execution_info::task_submission);
         }
         if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t> ||
-                      report_value_v<SelectionHandle, execution_info::task_time_t>)
+                      report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
         {
             report_clock_type::time_point t0;
-            if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
+            if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
             {
                 if (!is_profiling_enabled)
                 {
@@ -193,7 +193,7 @@ class sycl_backend
                 });
                 waiter =  async_waiter{e2, std::make_shared<SelectionHandle>(s)};
             }
-            if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>){
+            if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>){
                 if (is_profiling_enabled)
                 {
                     waiter = async_waiter{e1,std::make_shared<SelectionHandle>(s)};
@@ -203,8 +203,8 @@ class sycl_backend
                     auto e2 = q.submit([=](sycl::handler& h){
                         h.depends_on(e1);
                         h.host_task([=](){
-                            const auto tp_now = report_clock_type::now();
-                            s.report(execution_info::task_time, std::chrono::duration_cast<report_duration>(tp_now - t0).count());
+                            s.report(execution_info::task_time,
+                                     std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
                         });
                     });
                     waiter = async_waiter{e2, std::make_shared<SelectionHandle>(s)};
