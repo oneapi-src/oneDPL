@@ -246,6 +246,9 @@ struct transform_reduce
                const _Acc&... __acc) const
     {
         const _Size __global_idx = __item_id.get_global_id(0);
+        // Check if there is any work to do
+        if (__global_idx >= __n)
+            return;
         if (__iters_per_work_item == 1)
         {
             new (&__res.__v) _Tp(__unary_op(__global_idx, __acc...));
