@@ -169,6 +169,18 @@ class __offload_policy_holder_type
 static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), &__set_device_status,
                                                             __offload_policy_holder_mtx};
 
+#if __linux__
+inline void*
+__original_aligned_alloc(std::size_t __alignment, std::size_t __size)
+{
+    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
+
+    static __aligned_alloc_func_type __orig_aligned_alloc =
+        __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
+    return __orig_aligned_alloc(__alignment, __size);
+}
+#endif // __linux__
+
 static void*
 __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 {

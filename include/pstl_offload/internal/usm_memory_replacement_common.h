@@ -26,18 +26,6 @@
 namespace __pstl_offload
 {
 
-#if __linux__
-inline void*
-__original_aligned_alloc(std::size_t __alignment, std::size_t __size)
-{
-    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
-
-    static __aligned_alloc_func_type __orig_aligned_alloc =
-        __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
-    return __orig_aligned_alloc(__alignment, __size);
-}
-#endif // __linux__
-
 constexpr bool
 __is_power_of_two(std::size_t __number)
 {
@@ -169,9 +157,8 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
     // usm_alignment bytes are reserved to store memory header
     std::size_t __usm_size = __size + __base_offset;
 
-    sycl::device __device = __device_ptr.__get_device();
-    sycl::context __context = __device_ptr.__get_context();
-    void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, __device, __context);
+    void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, __device_ptr.__get_device(),
+                                             __device_ptr.__get_context());
 
     if (__ptr != nullptr)
     {
