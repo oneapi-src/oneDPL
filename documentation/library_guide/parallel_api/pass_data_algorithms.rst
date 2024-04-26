@@ -45,7 +45,7 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
   #include <sycl/sycl.hpp>
   int main(){
     std::vector<int> vec(1000);
-    // generate random data on host for simplicity
+
     std::random_device r;
     std::default_random_engine e1(r());
     std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
@@ -78,7 +78,7 @@ the USM-allocated memory were created for the same queue. For example:
     sycl::queue q;
     const int n = 1000;
     int* d_head = sycl::malloc_shared<int>(n, q);
-    // generate random data on host for simplicity
+
     std::random_device r;
     std::default_random_engine e1(r());
     std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
@@ -117,7 +117,7 @@ as shown in the following example:
     std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
     std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
 
-    std::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end();
+    std::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end());
     return 0;
   }
 
