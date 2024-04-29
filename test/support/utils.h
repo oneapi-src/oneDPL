@@ -869,19 +869,12 @@ using __usm_host_alloc_vec_iter =
 // std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
 // default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
 // could be confused with a usm allocator.
-template <typename Iter, typename Void = void>
-struct __vector_impl_distinguishes_usm_allocator_from_default : std::false_type
-{
-};
-
 template <typename Iter>
-struct __vector_impl_distinguishes_usm_allocator_from_default<
-    Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
-                           !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
-                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
-    : std::true_type
-{
-};
+constexpr bool __vector_impl_distinguishes_usm_allocator_from_default_v =
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>;
+
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
