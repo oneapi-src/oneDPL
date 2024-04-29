@@ -304,4 +304,11 @@
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
 #endif
 
+// The implementation of std::bit_floor in MS STL does not meet requirements for SYCL device functions
+#if defined(_MSC_VER) && (__SYCL_DEVICE_ONLY__ || __SYCL_SINGLE_SOURCE__)
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
+#else
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
+#endif
+
 #endif // _ONEDPL_CONFIG_H

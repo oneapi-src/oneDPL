@@ -525,7 +525,7 @@ __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0)
         return 0;
-#if __cpp_lib_int_pow2 >= 202002L
+#if __cpp_lib_int_pow2 >= 202002L && !_ONEDPL_STD_BIT_FLOOR_BROKEN
     return ::std::bit_floor(__x);
 #elif _ONEDPL_BACKEND_SYCL
     // Use the count-leading-zeros function
