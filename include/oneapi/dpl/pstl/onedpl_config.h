@@ -305,10 +305,7 @@
 #endif
 
 // Avoid compile errors due incorrect implementation of std::bit_floor in MS STL: used "extern" variable __isa_available
-#if defined(_MSC_VER) && _ONEDPL_BACKEND_SYCL
-#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
-#else
-#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
-#endif
+#define _ONEDPL_STD_BIT_FLOOR_BROKEN                                                                                   \
+    (_ONEDPL___cplusplus >= 202002L && _ONEDPL_BACKEND_SYCL && _MSC_VER > 0)
 
 #endif // _ONEDPL_CONFIG_H
