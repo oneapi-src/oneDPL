@@ -125,7 +125,6 @@ class sycl_backend
                                                    return false;
                                                }),
                                 async_waiters.end());
-
         }
     };
 
@@ -182,7 +181,7 @@ class sycl_backend
     {
         constexpr bool report_task_completion = report_info_v<SelectionHandle, execution_info::task_completion_t>;
         constexpr bool report_task_submission = report_info_v<SelectionHandle, execution_info::task_submission_t>;
-        constexpr bool  report_task_time = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>;
+        constexpr bool report_task_time = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>;
 
         auto q = unwrap(s);
         if constexpr (report_task_submission)
@@ -256,7 +255,8 @@ class sycl_backend
     void
     lazy_report()
     {
-        if (is_profiling_enabled){
+        if (is_profiling_enabled)
+        {
             async_waiter_list.lazy_report();
         }
     }
