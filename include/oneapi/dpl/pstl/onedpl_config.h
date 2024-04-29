@@ -304,4 +304,10 @@
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
 #endif
 
+#if defined(_MSC_VER) && _ONEDPL_BACKEND_SYCL
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
+#else
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
+#endif
+
 #endif // _ONEDPL_CONFIG_H
