@@ -31,10 +31,10 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
             *it = n - index;
     }
 
-    template <typename Policy, typename TIterator>
-    void check_results(const Policy& exec, TIterator itBegin, TIterator itEnd)
+    template <typename TIterator>
+    void check_results(TIterator itBegin, TIterator itEnd)
     {
-        const auto result = std::is_sorted(exec, itBegin, itEnd);
+        const auto result = std::is_sorted(oneapi::dpl::execution::par_unseq, itBegin, itEnd);
         EXPECT_TRUE(result, "Wrong partial_sort data results");
     }
 
@@ -68,7 +68,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
                         wait_and_throw(exec);
 
                         // Check results
-                        check_results(exec, partialSortResult.begin(), partialSortResult.end());
+                        check_results(partialSortResult.begin(), partialSortResult.end());
                     }
                 });
         }
