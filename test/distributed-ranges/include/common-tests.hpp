@@ -70,9 +70,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-   std::iota(vec0, 100);
-   std::iota(vec1, 200);
-   std::iota(vec2, 300);
+    rng::iota(vec0, 100);
+    rng::iota(vec1, 200);
+    rng::iota(vec2, 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;

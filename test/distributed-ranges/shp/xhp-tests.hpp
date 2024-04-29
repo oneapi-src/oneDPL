@@ -14,6 +14,7 @@
 //   using std::format;
 // }
 // #else
+#include <fmt/format.h>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 namespace drfmt {
