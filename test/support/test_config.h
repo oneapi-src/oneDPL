@@ -16,6 +16,13 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
+// Any include from standard library required to have correct state of _GLIBCXX_RELEASE
+#if __cplusplus >= 202002L || _MSVC_LANG >= 202002L
+#   include <version>
+#else
+#   include <cstddef>
+#endif
+
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
