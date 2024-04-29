@@ -37,12 +37,13 @@ class sycl_backend
     using execution_resource_t = resource_type;
     using resource_container_t = std::vector<execution_resource_t>;
 
+
+  private:
+
+    static inline bool is_profiling_enabled = false;
     using report_clock_type = std::chrono::steady_clock;
     using report_duration = std::chrono::milliseconds;
 
-    static inline bool is_profiling_enabled = false;
-
-  private:
     class async_waiter_base
     {
       public:

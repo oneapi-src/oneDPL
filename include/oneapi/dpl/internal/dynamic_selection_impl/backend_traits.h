@@ -11,7 +11,6 @@
 #define _ONEDPL_INTERNAL_BACKEND_TRAITS_H
 
 #include <utility>
-#include <cstdint>
 #include <type_traits>
 
 namespace oneapi
