@@ -37,9 +37,7 @@ class sycl_backend
     using execution_resource_t = resource_type;
     using resource_container_t = std::vector<execution_resource_t>;
 
-
   private:
-
     static inline bool is_profiling_enabled = false;
     using report_clock_type = std::chrono::steady_clock;
     using report_duration = std::chrono::milliseconds;
@@ -116,20 +114,18 @@ class sycl_backend
         void
         lazy_report()
         {
-            if (is_profiling_enabled)
-            {
-                std::lock_guard<std::mutex> l(m_);
-                async_waiters.erase(std::remove_if(async_waiters.begin(), async_waiters.end(),
-                                                   [](std::unique_ptr<async_waiter_base>& async_waiter) {
-                                                       if (async_waiter->is_complete())
-                                                       {
-                                                           async_waiter->report();
-                                                           return true;
-                                                       }
-                                                       return false;
-                                                   }),
-                                    async_waiters.end());
-            }
+            std::lock_guard<std::mutex> l(m_);
+            async_waiters.erase(std::remove_if(async_waiters.begin(), async_waiters.end(),
+                                               [](std::unique_ptr<async_waiter_base>& async_waiter) {
+                                                   if (async_waiter->is_complete())
+                                                   {
+                                                       async_waiter->report();
+                                                       return true;
+                                                   }
+                                                   return false;
+                                               }),
+                                async_waiters.end());
+
         }
     };
 
@@ -259,7 +255,9 @@ class sycl_backend
     void
     lazy_report()
     {
-        async_waiter_list.lazy_report();
+        if (is_profiling_enabled){
+            async_waiter_list.lazy_report();
+        }
     }
 
   private:
