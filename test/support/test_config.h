@@ -17,7 +17,7 @@
 #define _TEST_CONFIG_H
 
 // Any include from standard library required to have correct state of _GLIBCXX_RELEASE
-#if __cplusplus >= 202002L || _MSVC_LANG >= 202002L
+#if __has_include(<version>)
 #   include <version>
 #else
 #   include <cstddef>
