@@ -10,7 +10,9 @@
 
 #ifdef DR_USE_STD_RANGES
 
-#include <ranges>
+// workaround of LLVM-61763
+// #include <ranges>
+#include "fixranges"
 
 namespace rng = ::std::ranges;
 
