@@ -166,14 +166,16 @@ using __usm_host_alloc_vec_iter =
 // default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
 // could be confused with a usm allocator.
 template <typename Iter>
-constexpr bool __vector_iter_distinguishes_by_allocator_v = !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
-                           !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
-                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>;
+constexpr bool __vector_iter_distinguishes_by_allocator_v =
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>;
 
 template <typename Iter>
-constexpr bool __is_known_usm_vector_iter_v = oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator_v<Iter> &&
-                                              (std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
-                                              std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>);
+constexpr bool __is_known_usm_vector_iter_v =
+    oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator_v<Iter> &&
+    (std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
+     std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>);
 
 } // namespace __internal
 

@@ -236,7 +236,9 @@ struct is_passed_directly<oneapi::dpl::transform_iterator<Iter, Unary>> : is_pas
 
 template <typename SourceIterator, typename IndexIterator>
 struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>>
-    : ::std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<typename oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>::IndexMap>>
+    : ::std::conjunction<
+          is_passed_directly<SourceIterator>,
+          is_passed_directly<typename oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>::IndexMap>>
 {
 };
 
