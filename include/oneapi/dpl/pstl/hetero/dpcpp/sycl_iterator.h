@@ -165,32 +165,15 @@ using __usm_host_alloc_vec_iter =
 // std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
 // default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
 // could be confused with a usm allocator.
-template <typename Iter, typename Void = void>
-struct __vector_iter_distinguishes_by_allocator : std::false_type
-{
-};
 template <typename Iter>
-struct __vector_iter_distinguishes_by_allocator<
-    Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+constexpr bool __vector_iter_distinguishes_by_allocator_v = !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
                            !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
-                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
-    : std::true_type
-{
-};
-
-template <typename Iter, typename Void = void>
-struct __is_known_usm_vector_iter : std::false_type
-{
-};
+                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>;
 
 template <typename Iter>
-struct __is_known_usm_vector_iter<
-    Iter, std::enable_if_t<std::conjunction<
-              std::disjunction<std::is_same<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>>,
-                               std::is_same<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>>,
-              oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>>::value>> : std::true_type
-{
-};
+constexpr bool __is_known_usm_vector_iter_v = oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator_v<Iter> &&
+                                              (std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
+                                              std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>);
 
 } // namespace __internal
 
