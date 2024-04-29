@@ -20,14 +20,47 @@
 #include <utility>
 #include <cassert>
 #include "utils.h"
+#include "memory_fwd.h"
 
 namespace oneapi
 {
 namespace dpl
 {
-
 namespace __utils
 {
+
+//------------------------------------------------------------------------
+// raw buffer (with specified _TAllocator)
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Tp, template <typename _T> typename _TAllocator>
+class __buffer_impl
+{
+    _TAllocator<_Tp> _M_allocator;
+    _Tp* _M_ptr = nullptr;
+    const ::std::size_t _M_buf_size = 0;
+
+    __buffer_impl(const __buffer_impl&) = delete;
+    void
+    operator=(const __buffer_impl&) = delete;
+
+  public:
+    //! Try to obtain buffer of given size to store objects of _Tp type
+    __buffer_impl(_ExecutionPolicy /*__exec*/, const ::std::size_t __n)
+        : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
+    {
+    }
+    //! True if buffer was successfully obtained, zero otherwise.
+    operator bool() const { return _M_ptr != nullptr; }
+    //! Return pointer to buffer, or nullptr if buffer could not be obtained.
+    _Tp*
+    get() const
+    {
+        return _M_ptr;
+    }
+    //! Destroy buffer
+    ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
+};
 
 //! Destroy sequence [xs,xe)
 struct __serial_destroy
@@ -171,13 +204,14 @@ __set_union_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
     return __cc_range(__first2, __last2, __result);
 }
 
-template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare>
+template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare,
+          typename _CopyFunc, typename _CopyFromFirstSet>
 _OutputIterator
 __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
-                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp)
+                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp, _CopyFunc _copy,
+                             _CopyFromFirstSet)
 {
     using _Tp = typename ::std::iterator_traits<_OutputIterator>::value_type;
-
     for (; __first1 != __last1 && __first2 != __last2;)
     {
         if (__comp(*__first1, *__first2))
@@ -186,7 +220,15 @@ __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __las
         {
             if (!__comp(*__first2, *__first1))
             {
-                ::new (::std::addressof(*__result)) _Tp(*__first1);
+
+                if constexpr (_CopyFromFirstSet::value)
+                {
+                    _copy(*__first1, *__result);
+                }
+                else
+                {
+                    _copy(*__first2, *__result);
+                }
                 ++__result;
                 ++__first1;
             }

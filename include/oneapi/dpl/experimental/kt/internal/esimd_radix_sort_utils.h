@@ -21,7 +21,7 @@
 
 #include "esimd_defs.h"
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
 template <::std::uint8_t __radix_bits, ::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size>
@@ -337,6 +337,6 @@ __make_simd_pack()
     }
 }
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H

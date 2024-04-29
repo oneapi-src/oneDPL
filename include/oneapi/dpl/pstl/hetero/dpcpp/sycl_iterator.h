@@ -177,6 +177,36 @@ struct __vector_iter_distinguishes_by_allocator<
 {
 };
 
+template <typename Iter, typename Void = void>
+struct __is_known_usm_vector_iter_impl : std::false_type
+{
+};
+
+template <typename Iter>
+struct __is_known_usm_vector_iter_impl<
+    Iter, std::enable_if_t<std::conjunction<
+              std::disjunction<std::is_same<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>>,
+                               std::is_same<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>>,
+              oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<Iter>>::value>> : std::true_type
+{
+};
+
+template <typename Iter, typename Void = void>
+struct __is_known_usm_vector_iter : std::false_type
+{
+};
+
+//We must avoid instantiating vector of const, reference, or function elements to avoid ill-formed vector instantiation
+template <typename Iter>
+struct __is_known_usm_vector_iter<
+    Iter, std::enable_if_t<std::conjunction<
+              std::negation<std::disjunction<std::is_const<typename std::iterator_traits<Iter>::value_type>,
+                                             std::is_reference<typename std::iterator_traits<Iter>::value_type>,
+                                             std::is_function<typename std::iterator_traits<Iter>::value_type>>>,
+              oneapi::dpl::__internal::__is_known_usm_vector_iter_impl<Iter>>::value>> : std::true_type
+{
+};
+
 } // namespace __internal
 
 template <typename T, typename Allocator>
