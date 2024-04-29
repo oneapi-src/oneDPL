@@ -49,7 +49,7 @@ test_is_not_standard_layout()
 }
 
 template <class T1, class T2>
-struct pair
+struct test_pair
 {
     T1 first;
     T2 second;
@@ -60,7 +60,7 @@ kernel_test()
 {
     test_is_standard_layout<int>();
     test_is_standard_layout<int[3]>();
-    test_is_standard_layout<pair<int, float>>();
+    test_is_standard_layout<test_pair<int, float>>();
 
     test_is_not_standard_layout<int&>();
     return true;

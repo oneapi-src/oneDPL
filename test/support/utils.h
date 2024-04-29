@@ -44,6 +44,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "utils_sycl.h"
+#    include "oneapi/dpl/experimental/kt/kernel_param.h"
 #endif
 
 namespace TestUtils
@@ -852,6 +853,37 @@ struct _ZipIteratorAdapter
     }
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
+
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __usm_shared_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
+
+template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
+using __usm_host_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
+
+// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
+// std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
+// default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
+// could be confused with a usm allocator.
+template <typename Iter, typename Void = void>
+struct __vector_impl_distinguishes_usm_allocator_from_default : std::false_type
+{
+};
+
+template <typename Iter>
+struct __vector_impl_distinguishes_usm_allocator_from_default<
+    Iter, std::enable_if_t<!std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+                           !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+                           !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>>>
+    : std::true_type
+{
+};
+#endif //TEST_DPCPP_BACKEND_PRESENT
+
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation of create_new_policy for all policies (host + hetero)
 template <typename Policy>
@@ -878,16 +910,32 @@ create_new_policy(Policy&& policy)
     return ::std::forward<Policy>(policy);
 }
 
-template <typename _NewKernelName, int idx, typename Policy>
+template <int idx, typename Policy>
 auto
 create_new_policy_idx(Policy&& policy)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    return create_new_policy<TestUtils::new_kernel_name<_NewKernelName, idx>>(::std::forward<Policy>(policy));
+    return create_new_policy<TestUtils::new_kernel_name<Policy, idx>>(::std::forward<Policy>(policy));
 #else
     return ::std::forward<Policy>(policy);
 #endif
 }
+
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename KernelName, int idx>
+struct __kernel_name_with_idx
+{
+};
+
+template <int idx, typename KernelParams>
+constexpr auto
+get_new_kernel_params(KernelParams)
+{
+    return oneapi::dpl::experimental::kt::kernel_param<
+        KernelParams::data_per_workitem, KernelParams::workgroup_size,
+        __kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
+}
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 } /* namespace TestUtils */
 

@@ -55,7 +55,11 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
+#if defined(_GLIBCXX_RELEASE)
+#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE < 8)
+#else
+#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN 0
+#endif
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
@@ -163,5 +167,10 @@
 #if !PSTL_USE_DEBUG && defined(__INTEL_LLVM_COMPILER)
 #    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
 #endif
+
+// Group reduction produces wrong results with multiplication of 64-bit for certain driver versions
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
 
 #endif // _TEST_CONFIG_H
