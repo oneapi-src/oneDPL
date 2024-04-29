@@ -209,7 +209,7 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 
 //support std::vector::iterator with usm host / shared allocator as passed directly
 template <typename Iter>
-struct is_passed_directly<Iter, std::enable_if_t<oneapi::dpl::__internal::__is_known_usm_vector_iter<Iter>::value>>
+struct is_passed_directly<Iter, std::enable_if_t<oneapi::dpl::__internal::__is_known_usm_vector_iter_v<Iter>>>
     : std::true_type
 {
 };
@@ -236,7 +236,9 @@ struct is_passed_directly<oneapi::dpl::transform_iterator<Iter, Unary>> : is_pas
 
 template <typename SourceIterator, typename IndexIterator>
 struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>>
-    : ::std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<IndexIterator>>
+    : ::std::conjunction<
+          is_passed_directly<SourceIterator>,
+          is_passed_directly<typename oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>::IndexMap>>
 {
 };
 
