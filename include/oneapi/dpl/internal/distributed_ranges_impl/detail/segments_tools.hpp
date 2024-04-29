@@ -88,7 +88,6 @@ template <typename R> auto drop_segments(R &&segments, std::size_t n) {
 
   return drop_segments(std::forward<R>(segments), first_seg, remainder);
 }
-
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr

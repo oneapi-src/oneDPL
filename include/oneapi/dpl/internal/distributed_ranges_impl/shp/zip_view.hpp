@@ -39,8 +39,7 @@ template <typename... Args>
 using tuple_or_pair_t = typename tuple_or_pair<Args...>::type;
 
 }; // namespace __detail
-
-template <rng::random_access_iterator... Iters> class zip_accessor {
+template <std::random_access_iterator... Iters> class zip_accessor {
 public:
   using element_type = __detail::tuple_or_pair_t<std::iter_value_t<Iters>...>;
   using value_type = element_type;
@@ -100,7 +99,8 @@ private:
   std::tuple<Iters...> iterators_;
 };
 
-template <rng::random_access_iterator... Iters>
+
+template <std::random_access_iterator... Iters>
 using zip_iterator = iterator_adaptor<zip_accessor<Iters...>>;
 
 /// zip
@@ -343,6 +343,7 @@ namespace views {
 template <rng::random_access_range... Rs> auto zip(Rs &&...rs) {
   return zip_view(std::forward<Rs>(rs)...);
 }
+
 
 } // namespace views
 

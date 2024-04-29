@@ -50,7 +50,7 @@ concept distributed_contiguous_range =
 
 template <typename Iter>
 concept distributed_contiguous_iterator =
-    distributed_iterator<Iter> && rng::random_access_iterator<Iter> &&
+    distributed_iterator<Iter> && std::random_access_iterator<Iter> &&
     requires(Iter &iter) {
       { ranges::segments(iter) } -> rng::random_access_range;
     } &&

@@ -6,7 +6,7 @@
 
 // TODO: use libstdc++ 13.0 or greater if available.
 
-// #define DR_USE_STD_RANGES
+#define DR_USE_STD_RANGES
 
 #ifdef DR_USE_STD_RANGES
 

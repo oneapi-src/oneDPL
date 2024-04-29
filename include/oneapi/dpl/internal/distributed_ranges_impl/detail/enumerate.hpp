@@ -40,10 +40,10 @@ public:
     }
   }
 
-  template <rng::viewable_range R>
-  friend auto operator|(R &&r, const enumerate_adapter_closure &closure) {
-    return closure(std::forward<R>(r));
-  }
+  // template <rng::viewable_range R>
+  // friend auto operator|(R &&r, const enumerate_adapter_closure &closure) {
+  //   return closure(std::forward<R>(r));
+  // }
 };
 
 class enumerate_fn_ {

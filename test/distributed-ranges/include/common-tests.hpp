@@ -70,9 +70,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-    rng::iota(vec0, 100);
-    rng::iota(vec1, 200);
-    rng::iota(vec2, 300);
+   std::iota(vec0, 100);
+   std::iota(vec1, 200);
+   std::iota(vec2, 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;
@@ -115,9 +115,11 @@ template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
       rng::distance(rng::begin(r2), rng::end(r2))) {
     return false;
   }
-  auto r2i = r2.begin();
-  for (const auto &v1 : r1) {
-    if (v1 != *r2i++) {
+  
+  // TODO: why r2.begin() is not working here with std::ranges?
+  auto r1i = r1.begin();
+  for (const auto &v2 : r2) {
+    if (v2 != *r1i++) {
       return false;
     }
   }
@@ -335,14 +337,14 @@ template <rng::range R1, rng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
 
 template <typename... Ts>
 inline std::ostream &operator<<(std::ostream &os,
-                                const rng::common_tuple<Ts...> &obj) {
+                                const std::tuple<Ts...> &obj) {
   os << drfmt::format("{}", obj);
   return os;
 }
 
 template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os,
-                                const rng::common_pair<T1, T2> &obj) {
+                                const std::pair<T1, T2> &obj) {
   os << drfmt::format("{}", obj);
   return os;
 }
