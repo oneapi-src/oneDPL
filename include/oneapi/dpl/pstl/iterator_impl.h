@@ -76,6 +76,10 @@ struct __make_references
 
 //zip_iterator version for forward iterator
 //== and != comparison is performed only on the first element of the tuple
+//
+//zip_forward_iterator is implemented as an internal class and should remain so. Users should never encounter
+//this class or be returned a type of its value_type, reference, etc as the tuple-like type internally
+//managed switches between C++ standard and library versions and could potentially break user code if exposed.
 template <typename... _Types>
 class zip_forward_iterator
 {
