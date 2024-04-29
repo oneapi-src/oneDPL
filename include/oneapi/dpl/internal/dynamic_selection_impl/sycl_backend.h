@@ -180,16 +180,19 @@ class sycl_backend
     auto
     submit(SelectionHandle s, Function&& f, Args&&... args)
     {
+        constexpr bool report_task_completion = report_info_v<SelectionHandle, execution_info::task_completion_t>;
+        constexpr bool report_task_submission = report_info_v<SelectionHandle, execution_info::task_submission_t>;
+        constexpr bool  report_task_time = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>;
+
         auto q = unwrap(s);
-        if constexpr (report_info_v<SelectionHandle, execution_info::task_submission_t>)
+        if constexpr (report_task_submission)
         {
             report(s, execution_info::task_submission);
         }
-        if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t> ||
-                      report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+        if constexpr (report_task_completion || report_task_time)
         {
             report_clock_type::time_point t0;
-            if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+            if constexpr (report_task_time)
             {
                 if (!is_profiling_enabled)
                 {
@@ -199,7 +202,7 @@ class sycl_backend
             auto e1 = f(q, std::forward<Args>(args)...);
             async_waiter<SelectionHandle> waiter{e1, std::make_shared<SelectionHandle>(s)};
 
-            if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+            if constexpr (report_task_time)
             {
                 if (is_profiling_enabled)
                 {
@@ -207,16 +210,14 @@ class sycl_backend
                 }
             }
 
-            bool is_host_task_needed = report_value_v<SelectionHandle, execution_info::task_time_t, report_duration> &&
-                                           !is_profiling_enabled ||
-                                       report_info_v<SelectionHandle, execution_info::task_completion_t>;
+            bool is_host_task_needed = report_task_time && !is_profiling_enabled || report_task_completion;
 
             if (is_host_task_needed)
             {
                 auto e2 = q.submit([=](sycl::handler& h) {
                     h.depends_on(e1);
                     h.host_task([=]() {
-                        if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t, report_duration>)
+                        if constexpr (report_task_time)
                         {
                             if (!is_profiling_enabled)
                             {
@@ -224,7 +225,7 @@ class sycl_backend
                                          std::chrono::duration_cast<report_duration>(report_clock_type::now() - t0));
                             }
                         }
-                        if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
+                        if constexpr (report_task_completion)
                         {
                             s.report(execution_info::task_completion);
                         }
