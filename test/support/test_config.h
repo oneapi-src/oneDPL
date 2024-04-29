@@ -20,7 +20,7 @@
 #if __has_include(<version>)
 #   include <version>
 #else
-#   include <cstddef>
+#   include <ciso646>
 #endif
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
