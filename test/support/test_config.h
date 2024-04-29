@@ -16,13 +16,6 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
-// Any include from standard library required to have correct state of _GLIBCXX_RELEASE
-#if __has_include(<version>)
-#   include <version>
-#else
-#   include <ciso646>
-#endif
-
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
@@ -59,11 +52,7 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#if defined(_GLIBCXX_RELEASE)
-#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE < 8)
-#else
-#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN 0
-#endif
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
