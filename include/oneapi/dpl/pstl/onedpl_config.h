@@ -304,8 +304,11 @@
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
 #endif
 
-// Avoid compile errors due incorrect implementation of std::bit_floor in MS STL: used "extern" variable __isa_available
-#define _ONEDPL_STD_BIT_FLOOR_BROKEN                                                                                   \
-    (_ONEDPL___cplusplus >= 202002L && _ONEDPL_BACKEND_SYCL && _MSC_VER > 0)
+// The implementation of std::bit_floor in MS STL does not meet requirements for SYCL device functions
+#if defined(_MSC_VER) && (__SYCL_DEVICE_ONLY__ || __SYCL_SINGLE_SOURCE__)
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
+#else
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
+#endif
 
 #endif // _ONEDPL_CONFIG_H
