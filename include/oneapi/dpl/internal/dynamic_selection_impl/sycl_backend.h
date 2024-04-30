@@ -45,10 +45,8 @@ class sycl_backend
     class async_waiter_base
     {
       public:
-        virtual void
-        report() const = 0;
-        virtual bool
-        is_complete() const = 0;
+        virtual void report() const = 0;
+        virtual bool is_complete() const = 0;
         virtual ~async_waiter_base() = default;
     };
 
