@@ -190,7 +190,7 @@ class sycl_backend
 
         if constexpr (report_task_completion || report_task_time)
         {
-            const report_clock_type::time_point t0 = report_clock_type::now();
+            const auto t0 = report_clock_type::now();
 
             auto e1 = f(q, std::forward<Args>(args)...);
             async_waiter<SelectionHandle> waiter{e1, std::make_shared<SelectionHandle>(s)};
