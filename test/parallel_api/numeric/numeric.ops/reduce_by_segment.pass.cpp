@@ -21,13 +21,14 @@
 #    define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION _ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 #endif
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 #include "oneapi/dpl/complex"
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 #include "support/reduce_serial_impl.h"
