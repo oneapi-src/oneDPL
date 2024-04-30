@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <utility>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/backend_traits.h"
 #if _DS_BACKEND_SYCL != 0
 #    include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
@@ -150,6 +151,10 @@ struct dynamic_load_policy
     selection_type
     select(Args&&...)
     {
+        if constexpr (backend_traits::lazy_report_v<Backend>)
+        {
+            backend_->lazy_report();
+        }
         if (state_)
         {
             std::lock_guard<std::mutex> l(state_->m_);

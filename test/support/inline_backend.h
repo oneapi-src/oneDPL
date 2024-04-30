@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <atomic>
+#include <chrono>
 
 namespace TestUtils
 {
@@ -50,6 +51,7 @@ class int_inline_backend_t
     using wait_type = int;
     using execution_resource_t = basic_execution_resource_t<resource_type>;
     using resource_container_t = std::vector<execution_resource_t>;
+    using report_duration = std::chrono::milliseconds;
 
   private:
     using native_resource_container_t = std::vector<resource_type>;
@@ -99,8 +101,8 @@ class int_inline_backend_t
     submit(SelectionHandle s, Function&& f, Args&&... args)
     {
         std::chrono::steady_clock::time_point t0;
-        if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle,
-                                                                oneapi::dpl::experimental::execution_info::task_time_t>)
+        if constexpr (oneapi::dpl::experimental::report_value_v<
+                          SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t, report_duration>)
         {
             t0 = std::chrono::steady_clock::now();
         }
@@ -116,11 +118,11 @@ class int_inline_backend_t
         {
             oneapi::dpl::experimental::report(s, oneapi::dpl::experimental::execution_info::task_completion);
         }
-        if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle,
-                                                                oneapi::dpl::experimental::execution_info::task_time_t>)
+        if constexpr (oneapi::dpl::experimental::report_value_v<
+                          SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t, report_duration>)
         {
             report(s, oneapi::dpl::experimental::execution_info::task_time,
-                   (std::chrono::steady_clock::now() - t0).count());
+                   std::chrono::duration_cast<report_duration>(std::chrono::steady_clock::now() - t0));
         }
         return async_waiter{w};
     }

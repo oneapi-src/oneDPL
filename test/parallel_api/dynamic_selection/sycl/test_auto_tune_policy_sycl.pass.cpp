@@ -14,6 +14,8 @@
 #include <thread>
 #include "support/test_dynamic_selection_utils.h"
 #include "support/utils.h"
+#include "support/sycl_alloc_utils.h"
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
@@ -53,8 +55,11 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -101,7 +106,9 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                 ecount += i;
                 if (*j == 0)
                 {
-                    return sycl::event{};
+                     return q.submit([=](sycl::handler& h){
+                        h.single_task<class SingleTask1>([](){});
+                     });
                 }
                 else
                 {
@@ -145,7 +152,9 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     ecount += i;
                     if (*j == 0)
                     {
-                        return sycl::event{};
+                         return q.submit([=](sycl::handler& h){
+                            h.single_task<class SingleTask2>([](){});
+                         });
                     }
                     else
                     {
@@ -185,8 +194,11 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -233,7 +245,9 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                 ecount += i;
                 if (*j == 0)
                 {
-                    return sycl::event{};
+                     return q.submit([=](sycl::handler& h){
+                        h.single_task<class SingleTask3>([](){});
+                     });
                 }
                 else
                 {
@@ -277,7 +291,9 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     ecount += i;
                     if (*j == 0)
                     {
-                        return sycl::event{};
+                         return q.submit([=](sycl::handler& h){
+                            h.single_task<class SingleTask4>([](){});
+                         });
                     }
                     else
                     {
@@ -310,6 +326,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     return 0;
 }
 
+
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer>
 int
 test_auto_submit_and_wait(UniverseContainer u, int best_resource)
@@ -317,8 +334,11 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
     using my_policy_t = Policy;
 
     // they are cpus so this is ok
-    double* v = sycl::malloc_shared<double>(1000000, u[0]);
-    int* j = sycl::malloc_shared<int>(1, u[0]);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
+
+    double* v = dt_helper_v.get_data();
+    int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -365,7 +385,9 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                 ecount += i;
                 if (*j == 0)
                 {
-                    return sycl::event{};
+                     return q.submit([=](sycl::handler& h){
+                        h.single_task<class SingleTask5>([](){});
+                     });
                 }
                 else
                 {
@@ -408,7 +430,9 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     ecount += i;
                     if (*j == 0)
                     {
-                        return sycl::event{};
+                         return q.submit([=](sycl::handler& h){
+                            h.single_task<class SingleTask6>([](){});
+                         });
                     }
                     else
                     {
@@ -440,13 +464,20 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
     return 0;
 }
 
+
+template<bool use_event_profiling=false>
 static inline void
 build_auto_tune_universe(std::vector<sycl::queue>& u)
 {
+    auto prop_list = sycl::property_list{};
+    if(use_event_profiling){
+        prop_list = sycl::property_list{sycl::property::queue::enable_profiling()};
+    }
+
     try
     {
         auto device_cpu1 = sycl::device(sycl::cpu_selector_v);
-        sycl::queue cpu1_queue(device_cpu1);
+        sycl::queue cpu1_queue{device_cpu1, prop_list};
         u.push_back(cpu1_queue);
     }
     catch (const sycl::exception&)
@@ -456,7 +487,7 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     try
     {
         auto device_cpu2 = sycl::device(sycl::cpu_selector_v);
-        sycl::queue cpu2_queue(device_cpu2);
+        sycl::queue cpu2_queue{device_cpu2, prop_list};
         u.push_back(cpu2_queue);
     }
     catch (const sycl::exception&)
@@ -466,7 +497,7 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     try
     {
         auto device_cpu3 = sycl::device(sycl::cpu_selector_v);
-        sycl::queue cpu3_queue(device_cpu3);
+        sycl::queue cpu3_queue{device_cpu3, prop_list};
         u.push_back(cpu3_queue);
     }
     catch (const sycl::exception&)
@@ -476,7 +507,7 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     try
     {
         auto device_cpu4 = sycl::device(sycl::cpu_selector_v);
-        sycl::queue cpu4_queue(device_cpu4);
+        sycl::queue cpu4_queue{device_cpu4, prop_list};
         u.push_back(cpu4_queue);
     }
     catch (const sycl::exception&)
@@ -484,7 +515,8 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
         std::cout << "SKIPPED: Unable to run with cpu_selector\n";
     }
 }
-#endif
+
+#endif //TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()
@@ -494,52 +526,77 @@ main()
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #if !ONEDPL_FPGA_DEVICE || !ONEDPL_FPGA_EMULATOR
     using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
-    std::vector<sycl::queue> u;
-    build_auto_tune_universe(u);
+    std::vector<sycl::queue> u1;
+    std::vector<sycl::queue> u2;
+    constexpr bool use_event_profiling = true;
+    build_auto_tune_universe(u1);
+    build_auto_tune_universe<use_event_profiling>(u2);
 
-    //If building the universe is not a success, return
-    if (u.size() != 0)
+    if (u1.size() != 0 || u2.size() !=0 )
     {
-        auto f = [u](int i)
-        {
+        auto f = [u1](int i) {
             if (i <= 8)
-                return u[(i - 1) % 4];
+                return u1[(i - 1) % 4];
             else
-                return u[0];
+                return u1[0];
         };
 
         constexpr bool just_call_submit = false;
         constexpr bool call_select_before_submit = true;
 
-        auto actual = test_auto_initialization(u);
-        actual = test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f);
-        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0);
-        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1);
-        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2);
-        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 3);
-        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 0);
-        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 1);
-        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 2);
-        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 3);
-        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 0);
-        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 1);
-        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 2);
-        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 3);
-
+        auto actual = test_auto_initialization(u1);
+        actual = test_select<policy_t, decltype(u1), const decltype(f)&, true>(u1, f);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u1, 3);
         // now select then submits
-        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 0);
-        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 1);
-        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 2);
-        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 3);
-        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 0);
-        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 1);
-        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 2);
-        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 3);
-
-        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 0);
-        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 1);
-        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 2);
-        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 3);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u1, 3);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 0);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 1);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 2);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 3);
+        // Use event profiling
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 3);
+        // now select then submits
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u2, 3);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 0);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 1);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 2);
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 3);
 
         bProcessed = true;
     }
