@@ -74,6 +74,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
         }
     }
 };
+
 template <typename ValueType, typename PermItIndexTag>
 void
 run_algo_tests()
