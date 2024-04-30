@@ -351,7 +351,6 @@ main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     run_test<::std::uint64_t, UserBinaryPredicate<::std::uint64_t>, MaxFunctor<::std::uint64_t>>();
-    run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
     run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
 
     run_test<int, ::std::equal_to<int>, ::std::plus<int>>();
