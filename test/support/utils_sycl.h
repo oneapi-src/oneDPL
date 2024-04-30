@@ -17,15 +17,14 @@
 
 // File contains common utilities for SYCL that tests rely on
 
-// Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
+#include "test_config.h"
 
+// Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
 #include <iterator>
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "utils_sycl_defs.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
-
-#include "test_config.h"
 
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
