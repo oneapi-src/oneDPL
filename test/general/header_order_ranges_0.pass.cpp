@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/cstddef> // for definition _GLIBCXX_RELEASE, __GLIBCXX or _LIBCPP_VERSION
-
 #include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
