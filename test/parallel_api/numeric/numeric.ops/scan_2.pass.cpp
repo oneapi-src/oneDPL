@@ -16,11 +16,12 @@
 // We create this additional test for test functional of inclusive scan
 // and exclusive scan for an in-place and non-in-place scan variants.
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
