@@ -56,6 +56,14 @@
 #    endif // __has_include(<tbb/version.h>)
 // - TBB is not found (libstdc++ v9)
 #    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
+#        ifdef __PSTL_USE_PAR_POLICIES
+#            undef __PSTL_USE_PAR_POLICIES
+#            define __PSTL_USE_PAR_POLICIES 0
+#        endif
+#        ifdef __PSTL_PAR_BACKEND_TBB
+#             undef __PSTL_PAR_BACKEND_TBB
+#             define __PSTL_PAR_BACKEND_TBB 0
+#        endif
 #        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 #    endif
 #endif // __cplusplus >= 201703L
