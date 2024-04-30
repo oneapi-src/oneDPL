@@ -58,7 +58,7 @@ class auto_tune_policy
     struct resource_with_index_t
     {
         wrapped_resource_t r_;
-        size_type index_;
+        size_type index_ = 0;
     };
 
     struct time_data_t

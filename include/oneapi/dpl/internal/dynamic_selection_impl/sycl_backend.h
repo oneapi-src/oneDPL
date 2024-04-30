@@ -46,9 +46,9 @@ class sycl_backend
     {
       public:
         virtual void
-        report() = 0;
+        report() const = 0;
         virtual bool
-        is_complete() = 0;
+        is_complete() const = 0;
         virtual ~async_waiter_base() = default;
     };
 
@@ -75,7 +75,7 @@ class sycl_backend
         }
 
         void
-        report() override
+        report() const override
         {
             if constexpr (report_value_v<Selection, execution_info::task_time_t, report_duration>)
             {
@@ -91,7 +91,7 @@ class sycl_backend
         }
 
         bool
-        is_complete() override
+        is_complete() const override
         {
             return e_.get_info<sycl::info::event::command_execution_status>() ==
                    sycl::info::event_command_status::complete;
