@@ -350,13 +350,17 @@ main()
     test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    run_test<::std::uint32_t, UserBinaryPredicate<::std::uint32_t>, MaxFunctor<::std::uint32_t>>();
+    run_test<::std::uint64_t, UserBinaryPredicate<::std::uint64_t>, MaxFunctor<::std::uint64_t>>();
+    run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
     run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
 
     run_test<int, ::std::equal_to<int>, ::std::plus<int>>();
+    run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
     run_test<double, ::std::equal_to<double>, ::std::plus<double>>();
 
     // TODO investigate possible overflow: see issue #1416
+    run_test_on_device<int, ::std::equal_to<int>, ::std::multiplies<int>>();
+    run_test_on_device<float, ::std::equal_to<float>, ::std::multiplies<float>>();
     run_test_on_device<double, ::std::equal_to<double>, ::std::multiplies<double>>();
 
     return TestUtils::done();
