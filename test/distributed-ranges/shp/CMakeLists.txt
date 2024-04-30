@@ -3,15 +3,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 include(CheckIncludeFileCXX)
-# check_include_file_cxx("format" CXX_FORMAT_SUPPORT)
-# if (NOT CXX_FORMAT_SUPPORT)
-  find_package(fmt QUIET)
-  if (NOT fmt_FOUND)
-    message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
-    return()
-  endif ()
-  message(STATUS "using fmt library for logging in distributed-ranges tests")
-# endif()
+check_include_file_cxx("format" CXX_FORMAT_SUPPORT)
+if (NOT CXX_FORMAT_SUPPORT)
+  message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
+  return()
+endif ()
 
 include(FetchContent)
 
@@ -45,9 +41,6 @@ target_compile_definitions(dr_shp INTERFACE USE_MKL
                                             _GLIBCXX_USE_TBB_PAR_BACKEND=0)
 #target_link_libraries(dr_shp INTERFACE range-v3 MKL::MKL_DPCPP)
 target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
-# if (NOT CXX_FORMAT_SUPPORT)
-  target_link_libraries(dr_shp INTERFACE fmt::fmt)
-# endif()
 
 if (DEFINED ONEDPL_USE_DR)
   target_compile_options(dr_shp INTERFACE "-DONEDPL_USE_DISTRIBUTED_RANGES" "-ftemplate-backtrace-limit=0")
@@ -98,9 +91,6 @@ add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
   target_link_libraries(${test-exec} GTest::gtest_main DR::shp cxxopts)
-  # if (NOT CXX_FORMAT_SUPPORT)
-    target_link_libraries(${test-exec} fmt::fmt)
-  # endif()
 endforeach()
 
 add_custom_target(shp-all-tests)
