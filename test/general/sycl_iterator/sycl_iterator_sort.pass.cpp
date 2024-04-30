@@ -19,7 +19,7 @@
 
 DEFINE_TEST(test_sort)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_sort)
+    DEFINE_TEST_CONSTRUCTOR(test_sort, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -77,7 +77,7 @@ DEFINE_TEST(test_sort)
 
 DEFINE_TEST(test_stable_sort)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_stable_sort)
+    DEFINE_TEST_CONSTRUCTOR(test_stable_sort, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -136,7 +136,7 @@ DEFINE_TEST(test_stable_sort)
 
 DEFINE_TEST(test_partial_sort)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_partial_sort)
+    DEFINE_TEST_CONSTRUCTOR(test_partial_sort, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -187,7 +187,7 @@ DEFINE_TEST(test_partial_sort)
 
 DEFINE_TEST(test_partial_sort_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_partial_sort_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_partial_sort_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -251,7 +251,7 @@ DEFINE_TEST(test_partial_sort_copy)
 
 DEFINE_TEST(test_inplace_merge)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_inplace_merge)
+    DEFINE_TEST_CONSTRUCTOR(test_inplace_merge, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -287,7 +287,7 @@ DEFINE_TEST(test_inplace_merge)
 
 DEFINE_TEST(test_nth_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_nth_element)
+    DEFINE_TEST_CONSTRUCTOR(test_nth_element, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -338,7 +338,7 @@ DEFINE_TEST(test_nth_element)
 
 DEFINE_TEST(test_merge)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_merge)
+    DEFINE_TEST_CONSTRUCTOR(test_merge, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void

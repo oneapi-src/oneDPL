@@ -19,7 +19,7 @@
 
 // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag, 1.0f, 1.0f)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform_reduce)
 

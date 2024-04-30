@@ -393,7 +393,7 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                                                    \
+#define DEFINE_TEST_CONSTRUCTOR(TestClassName, ScaleStepValue, ScaleMaxNValue)                                    \
     TestClassName(test_base_data<TestValueType>& _test_base_data)                                                 \
         : TestUtils::test_base<TestValueType>(_test_base_data)                                                    \
     {                                                                                                             \
@@ -402,9 +402,11 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
     template <UDTKind kind, typename Size>                                                                        \
     using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>; \
                                                                                                                   \
-    using UsedValueType = TestValueType;
+    using UsedValueType = TestValueType;                                                                          \
+    static constexpr float ScaleMax = ScaleMaxNValue;                                                                    \
+    static constexpr float ScaleStep = ScaleStepValue;
 #else
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName)
+#define DEFINE_TEST_CONSTRUCTOR(TestClassName, ScaleMaxNValue, ScaleStepValue)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//

@@ -62,7 +62,7 @@ wait_and_throw(ExecutionPolicy&& exec)
 }
 
 // DEFINE_TEST_PERM_IT should be used to declare permutation iterator tests
-#define DEFINE_TEST_PERM_IT(TestClassName, TemplateParams)                                                             \
+#define DEFINE_TEST_PERM_IT(TestClassName, TemplateParams, ScaleStepValue, ScaleMaxNValue)                             \
     template <typename TestValueType, typename TemplateParams>                                                         \
     struct TestClassName : TestUtils::test_base<TestValueType>
 
@@ -76,6 +76,8 @@ wait_and_throw(ExecutionPolicy&& exec)
     template <UDTKind kind, typename Size>                                                                             \
     using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>;      \
                                                                                                                        \
-    using UsedValueType = TestValueType;
+    using UsedValueType = TestValueType;                                                                               \
+    static constexpr float ScaleMax = ScaleMaxNValue;                                                                         \
+    static constexpr float ScaleStep = ScaleStepValue;
 
 #endif // _PERMUTATION_ITERATOR_COMMON_H

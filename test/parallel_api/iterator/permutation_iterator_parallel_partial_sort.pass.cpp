@@ -19,7 +19,7 @@
 
 // test_partial_sort : dpl::partial_sort -> __parallel_partial_sort
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag, 1.0f, 1.0f)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_partial_sort)
 

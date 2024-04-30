@@ -18,7 +18,7 @@
 #include "permutation_iterator_common.h"
 
 // dpl::merge, dpl::inplace_merge -> __parallel_merge
-DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag, 1.0, 1.0)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_merge)
 

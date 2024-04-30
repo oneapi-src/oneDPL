@@ -35,7 +35,7 @@ using namespace TestUtils;
 
 DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment)
+    DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment, 1.0f, 1.0f)
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)

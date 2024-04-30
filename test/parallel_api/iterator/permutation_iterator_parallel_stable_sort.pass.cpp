@@ -19,7 +19,7 @@
 
 // test_sort : dpl::sort -> __parallel_stable_sort
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag, 1.0f, 1.0f)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_sort)
 

@@ -19,7 +19,7 @@
 
 // dpl::remove_if -> __parallel_transform_scan
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag, 1.0f, 1.0f)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_remove_if)
 

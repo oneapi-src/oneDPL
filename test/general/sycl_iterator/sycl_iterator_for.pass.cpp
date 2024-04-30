@@ -96,7 +96,7 @@ struct policy_name_wrapper
 
 DEFINE_TEST(test_uninitialized_fill)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_fill)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_fill, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -120,7 +120,7 @@ DEFINE_TEST(test_uninitialized_fill)
 
 DEFINE_TEST(test_uninitialized_fill_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_fill_n)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_fill_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -142,7 +142,7 @@ DEFINE_TEST(test_uninitialized_fill_n)
 
 DEFINE_TEST(test_uninitialized_default_construct)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_default_construct)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_default_construct, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -169,7 +169,7 @@ DEFINE_TEST(test_uninitialized_default_construct)
 
 DEFINE_TEST(test_uninitialized_default_construct_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_default_construct_n)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_default_construct_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -195,7 +195,7 @@ DEFINE_TEST(test_uninitialized_default_construct_n)
 
 DEFINE_TEST(test_uninitialized_value_construct)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_value_construct)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_value_construct, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -220,7 +220,7 @@ DEFINE_TEST(test_uninitialized_value_construct)
 
 DEFINE_TEST(test_uninitialized_value_construct_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_value_construct_n)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_value_construct_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -245,7 +245,7 @@ DEFINE_TEST(test_uninitialized_value_construct_n)
 
 DEFINE_TEST(test_destroy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_destroy)
+    DEFINE_TEST_CONSTRUCTOR(test_destroy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -272,7 +272,7 @@ DEFINE_TEST(test_destroy)
 
 DEFINE_TEST(test_destroy_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_destroy_n)
+    DEFINE_TEST_CONSTRUCTOR(test_destroy_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -299,7 +299,7 @@ DEFINE_TEST(test_destroy_n)
 
 DEFINE_TEST(test_fill)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_fill)
+    DEFINE_TEST_CONSTRUCTOR(test_fill, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -320,7 +320,7 @@ DEFINE_TEST(test_fill)
 
 DEFINE_TEST(test_fill_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_fill_n)
+    DEFINE_TEST_CONSTRUCTOR(test_fill_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -341,7 +341,7 @@ DEFINE_TEST(test_fill_n)
 
 DEFINE_TEST(test_generate)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_generate)
+    DEFINE_TEST_CONSTRUCTOR(test_generate, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -364,7 +364,7 @@ DEFINE_TEST(test_generate)
 
 DEFINE_TEST(test_generate_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_generate_n)
+    DEFINE_TEST_CONSTRUCTOR(test_generate_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -386,7 +386,7 @@ DEFINE_TEST(test_generate_n)
 
 DEFINE_TEST(test_for_each)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -415,7 +415,7 @@ DEFINE_TEST(test_for_each)
 
 DEFINE_TEST(test_for_each_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each_n)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -440,7 +440,7 @@ DEFINE_TEST(test_for_each_n)
 
 DEFINE_TEST(test_replace)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_replace)
+    DEFINE_TEST_CONSTRUCTOR(test_replace, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -465,7 +465,7 @@ DEFINE_TEST(test_replace)
 
 DEFINE_TEST(test_replace_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_replace_if)
+    DEFINE_TEST_CONSTRUCTOR(test_replace_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -490,7 +490,7 @@ DEFINE_TEST(test_replace_if)
 
 DEFINE_TEST(test_reverse)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_reverse)
+    DEFINE_TEST_CONSTRUCTOR(test_reverse, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -517,7 +517,7 @@ DEFINE_TEST(test_reverse)
 
 DEFINE_TEST(test_rotate)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_rotate)
+    DEFINE_TEST_CONSTRUCTOR(test_rotate, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -544,7 +544,7 @@ DEFINE_TEST(test_rotate)
 
 DEFINE_TEST(test_includes)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_includes)
+    DEFINE_TEST_CONSTRUCTOR(test_includes, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -580,7 +580,7 @@ DEFINE_TEST(test_includes)
 
 DEFINE_TEST(test_swap_ranges)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_swap_ranges)
+    DEFINE_TEST_CONSTRUCTOR(test_swap_ranges, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -621,7 +621,7 @@ DEFINE_TEST(test_swap_ranges)
 
 DEFINE_TEST(test_reverse_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_reverse_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_reverse_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -650,7 +650,7 @@ DEFINE_TEST(test_reverse_copy)
 
 DEFINE_TEST(test_rotate_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_rotate_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_rotate_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -678,7 +678,7 @@ DEFINE_TEST(test_rotate_copy)
 
 DEFINE_TEST(test_uninitialized_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -704,7 +704,7 @@ DEFINE_TEST(test_uninitialized_copy)
 
 DEFINE_TEST(test_uninitialized_copy_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_copy_n)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_copy_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -730,7 +730,7 @@ DEFINE_TEST(test_uninitialized_copy_n)
 
 DEFINE_TEST(test_uninitialized_move)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_move)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_move, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -755,7 +755,7 @@ DEFINE_TEST(test_uninitialized_move)
 
 DEFINE_TEST(test_uninitialized_move_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_move_n)
+    DEFINE_TEST_CONSTRUCTOR(test_uninitialized_move_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -782,7 +782,7 @@ DEFINE_TEST(test_uninitialized_move_n)
 
 DEFINE_TEST(test_transform_unary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_unary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_unary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -811,7 +811,7 @@ DEFINE_TEST(test_transform_unary)
 
 DEFINE_TEST(test_transform_binary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_binary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_binary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -837,7 +837,7 @@ DEFINE_TEST(test_transform_binary)
 
 DEFINE_TEST(test_replace_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_replace_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_replace_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -862,7 +862,7 @@ DEFINE_TEST(test_replace_copy)
 
 DEFINE_TEST(test_replace_copy_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_replace_copy_if)
+    DEFINE_TEST_CONSTRUCTOR(test_replace_copy_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -888,7 +888,7 @@ DEFINE_TEST(test_replace_copy_if)
 
 DEFINE_TEST(test_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -914,7 +914,7 @@ DEFINE_TEST(test_copy)
 
 DEFINE_TEST(test_copy_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_copy_n)
+    DEFINE_TEST_CONSTRUCTOR(test_copy_n, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -940,7 +940,7 @@ DEFINE_TEST(test_copy_n)
 
 DEFINE_TEST(test_move)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_move)
+    DEFINE_TEST_CONSTRUCTOR(test_move, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -967,7 +967,7 @@ DEFINE_TEST(test_move)
 
 DEFINE_TEST(test_adjacent_difference)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_adjacent_difference)
+    DEFINE_TEST_CONSTRUCTOR(test_adjacent_difference, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void

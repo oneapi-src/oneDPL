@@ -28,7 +28,7 @@ using namespace TestUtils;
 
 DEFINE_TEST(test_upper_bound)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_upper_bound)
+    DEFINE_TEST_CONSTRUCTOR(test_upper_bound, 1.0f, 1.0f)
 
     // TODO: replace data generation with random data and update check to compare result to
     // the result of the serial algorithm

@@ -35,7 +35,7 @@ get_size(Size n)
 
 DEFINE_TEST(test_remove)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_remove)
+    DEFINE_TEST_CONSTRUCTOR(test_remove, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -69,7 +69,7 @@ DEFINE_TEST(test_remove)
 
 DEFINE_TEST(test_remove_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_remove_if)
+    DEFINE_TEST_CONSTRUCTOR(test_remove_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -107,7 +107,7 @@ DEFINE_TEST(test_remove_if)
 
 DEFINE_TEST(test_unique)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique)
+    DEFINE_TEST_CONSTRUCTOR(test_unique, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -157,7 +157,7 @@ DEFINE_TEST(test_unique)
 
 DEFINE_TEST(test_partition)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_partition)
+    DEFINE_TEST_CONSTRUCTOR(test_partition, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -200,7 +200,7 @@ DEFINE_TEST(test_partition)
 
 DEFINE_TEST(test_transform_inclusive_scan)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -259,7 +259,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
 
 DEFINE_TEST(test_transform_exclusive_scan)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_exclusive_scan)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_exclusive_scan, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -297,7 +297,7 @@ DEFINE_TEST(test_transform_exclusive_scan)
 
 DEFINE_TEST(test_copy_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_copy_if)
+    DEFINE_TEST_CONSTRUCTOR(test_copy_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -351,7 +351,7 @@ DEFINE_TEST(test_copy_if)
 
 DEFINE_TEST(test_unique_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_unique_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -404,7 +404,7 @@ DEFINE_TEST(test_unique_copy)
 
 DEFINE_TEST(test_partition_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_partition_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_partition_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -482,7 +482,7 @@ DEFINE_TEST(test_partition_copy)
 
 DEFINE_TEST(test_set_intersection)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_set_intersection)
+    DEFINE_TEST_CONSTRUCTOR(test_set_intersection, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -536,7 +536,7 @@ DEFINE_TEST(test_set_intersection)
 
 DEFINE_TEST(test_set_difference)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_set_difference)
+    DEFINE_TEST_CONSTRUCTOR(test_set_difference, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -567,7 +567,7 @@ DEFINE_TEST(test_set_difference)
 
 DEFINE_TEST(test_set_union)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_set_union)
+    DEFINE_TEST_CONSTRUCTOR(test_set_union, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -599,7 +599,7 @@ DEFINE_TEST(test_set_union)
 
 DEFINE_TEST(test_set_symmetric_difference)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_set_symmetric_difference)
+    DEFINE_TEST_CONSTRUCTOR(test_set_symmetric_difference, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
