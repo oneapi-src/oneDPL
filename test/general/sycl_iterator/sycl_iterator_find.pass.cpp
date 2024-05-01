@@ -19,7 +19,7 @@
 
 DEFINE_TEST(test_adjacent_find)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_adjacent_find, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_adjacent_find, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -114,7 +114,7 @@ DEFINE_TEST(test_adjacent_find)
 
 DEFINE_TEST(test_is_sorted_until)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_is_sorted_until, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_is_sorted_until, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -213,7 +213,7 @@ DEFINE_TEST(test_is_sorted_until)
 
 DEFINE_TEST(test_is_sorted)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_is_sorted, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_is_sorted, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -310,7 +310,7 @@ DEFINE_TEST(test_is_sorted)
 
 DEFINE_TEST(test_any_all_none_of)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_any_all_none_of, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_any_all_none_of, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -377,7 +377,7 @@ DEFINE_TEST(test_any_all_none_of)
 
 DEFINE_TEST(test_find_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_find_if, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_find_if, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -432,7 +432,7 @@ DEFINE_TEST(test_find_if)
 
 DEFINE_TEST(test_search_n)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_search_n, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_search_n, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -442,7 +442,7 @@ DEFINE_TEST(test_search_n)
 
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
-        ::std::iota(host_keys.get(), host_keys.get() + n, T(5));
+        ::std::iota(host_keys.get(), host_keys.get() + n, T(100));
 
         // Search for sequence at the end
         {
@@ -557,7 +557,7 @@ DEFINE_TEST(test_search_n)
 
 DEFINE_TEST(test_is_heap)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_is_heap, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_is_heap, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -613,7 +613,7 @@ DEFINE_TEST(test_is_heap)
 
 DEFINE_TEST(test_is_heap_until)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_is_heap_until, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_is_heap_until, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -658,7 +658,7 @@ DEFINE_TEST(test_is_heap_until)
 
 DEFINE_TEST(test_equal)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_equal, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_equal, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -694,7 +694,7 @@ DEFINE_TEST(test_equal)
 
 DEFINE_TEST(test_find_first_of)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_find_first_of, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_find_first_of, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -768,7 +768,7 @@ DEFINE_TEST(test_find_first_of)
 
 DEFINE_TEST(test_search)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_search, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_search, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -827,7 +827,7 @@ DEFINE_TEST(test_search)
 
 DEFINE_TEST(test_mismatch)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_mismatch, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_mismatch, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -869,7 +869,7 @@ DEFINE_TEST(test_mismatch)
 
 DEFINE_TEST(test_find_end)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_find_end, 2.0f, 0.5f)
+    DEFINE_TEST_CONSTRUCTOR(test_find_end, 2.0f, 0.65f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
