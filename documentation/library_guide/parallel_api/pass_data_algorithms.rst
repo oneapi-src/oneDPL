@@ -84,16 +84,16 @@ the USM-allocated memory were created for the same queue. For example:
     return 0;
   }
 
-When using device USM, such as allocated by malloc_device, the user is responsible for data
+When using device USM, such as allocated by malloc_device, you are responsible for data
 transfers to and from the device to ensure that input data is device accessible during oneDPL
-algorithm execution and that the result is available to the operation which follows.
+algorithm execution and that the result is available to the operations.
 
 Use std::vector
 -----------------------------
 
 The following examples demonstrate two ways to use the parallel algorithms with ``std::vector``:
 
-* host allocators
+* Host allocators
 * USM allocators
 
 You can use iterators to host allocated ``std::vector`` data
