@@ -106,9 +106,9 @@
 // Defining this all on one line to delay evaluation of `defined(_GLIBCXX_RELEASE)` and `defined(_LIBCPP_VERSION)` until
 // later, when _ENABLE_RANGES_TESTING is being used, and we can be confident that std lib macros are defined
 #   define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY &&                                            \
-                                   ((defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502) || \
-                                    (defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 7000) ||                           \
-                                    (!defined(_GLIBCXX_RELEASE) && !defined(_LIBCPP_VERSION))))
+                                   ((_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502) || \
+                                    (_LIBCPP_VERSION > 0 && _LIBCPP_VERSION >= 7000) ||                           \
+                                    (!_GLIBCXX_RELEASE && !_LIBCPP_VERSION)))
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
 #define TEST_HAS_NO_INT128
