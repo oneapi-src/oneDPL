@@ -3882,11 +3882,17 @@ _RandomAccessIterator
 __brick_min_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                     /* __is_vector = */ ::std::true_type) noexcept
 {
-#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
-    return __unseq_backend::__simd_min_element(__first, __last - __first, __comp);
-#else
-    return ::std::min_element(__first, __last, __comp);
+    // On some platforms, _PSTL_UDR_PRESENT is defined but empty
+#if (_PSTL_UDR_PRESENT + 0)
+    constexpr bool __use_simd_min_element = _PSTL_UDR_PRESENT;
+#else //  _ONEDPL_UDR_PRESENT should always be defined
+    constexpr bool __use_simd_min_element = _ONEDPL_UDR_PRESENT;
 #endif
+
+    if constexpr (__use_simd_min_element)
+        return __unseq_backend::__simd_min_element(__first, __last - __first, __comp);
+    else
+        return ::std::min_element(__first, __last, __comp);
 }
 
 template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Compare>
@@ -3949,11 +3955,17 @@ template <typename _RandomAccessIterator, typename _Compare>
 __brick_minmax_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                        /* __is_vector = */ ::std::true_type) noexcept
 {
-#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
-    return __unseq_backend::__simd_minmax_element(__first, __last - __first, __comp);
-#else
-    return ::std::minmax_element(__first, __last, __comp);
+    // On some platforms, _PSTL_UDR_PRESENT is defined but empty
+#if (_PSTL_UDR_PRESENT + 0)
+    constexpr bool __use_simd_minmax_element = _PSTL_UDR_PRESENT;
+#else //  _ONEDPL_UDR_PRESENT should always be defined
+    constexpr bool __use_simd_minmax_element = _ONEDPL_UDR_PRESENT;
 #endif
+
+    if constexpr (__use_simd_minmax_element)
+        return __unseq_backend::__simd_minmax_element(__first, __last - __first, __comp);
+    else
+        return ::std::minmax_element(__first, __last, __comp);
 }
 
 template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Compare>
