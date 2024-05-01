@@ -41,6 +41,8 @@
 #    include <cstring> // memcpy
 #endif
 
+#define _ONEDPL_DEFINED_AND_NOT_ZERO(X) (X + 0)
+
 namespace oneapi
 {
 namespace dpl

@@ -213,21 +213,14 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
 {
-    // On some platforms, _PSTL_UDS_PRESENT is defined but empty
-#if (_PSTL_UDS_PRESENT + 0)
-    constexpr bool __use_simd_scan = _PSTL_UDS_PRESENT;
-#else //  _ONEDPL_UDS_PRESENT should always be defined
-    constexpr bool __use_simd_scan = _ONEDPL_UDS_PRESENT;
+#if _ONEDPL_DEFINED_AND_NOT_ZERO(_PSTL_UDS_PRESENT) || _ONEDPL_UDS_PRESENT
+    if (_Inclusive() || !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
+    {
+        return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
+                                            _Inclusive());
+    }
 #endif
 
-    if constexpr (__use_simd_scan)
-    {
-        if (_Inclusive() || !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
-        {
-            return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
-                                                _Inclusive());
-        }
-    }
     // We need to call serial brick here to call function for inclusive and exclusive scan that depends on _Inclusive() value
     return __internal::__brick_transform_scan(__first, __last, __result, __unary_op, __init, __binary_op, _Inclusive(),
                                               /*is_vector=*/::std::false_type());
