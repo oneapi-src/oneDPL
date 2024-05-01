@@ -19,7 +19,7 @@
 
 DEFINE_TEST(test_reduce)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_reduce, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_reduce, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -51,7 +51,7 @@ DEFINE_TEST(test_reduce)
 
 DEFINE_TEST(test_transform_reduce_unary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -75,7 +75,7 @@ DEFINE_TEST(test_transform_reduce_unary)
 
 DEFINE_TEST(test_min_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_min_element, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_min_element, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -118,7 +118,7 @@ DEFINE_TEST(test_min_element)
 
 DEFINE_TEST(test_max_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_max_element, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_max_element, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -158,7 +158,7 @@ DEFINE_TEST(test_max_element)
 
 DEFINE_TEST(test_minmax_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_minmax_element, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_minmax_element, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -209,7 +209,7 @@ DEFINE_TEST(test_minmax_element)
 
 DEFINE_TEST(test_count)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_count, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_count, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -261,7 +261,7 @@ DEFINE_TEST(test_count)
 
 DEFINE_TEST(test_count_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_count_if, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_count_if, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -313,7 +313,7 @@ DEFINE_TEST(test_count_if)
 
 DEFINE_TEST(test_is_partitioned)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_is_partitioned, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_is_partitioned, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -364,7 +364,7 @@ DEFINE_TEST(test_is_partitioned)
 
 DEFINE_TEST(test_transform_reduce_binary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -389,7 +389,7 @@ DEFINE_TEST(test_transform_reduce_binary)
 // TODO: move unique cases to test_lexicographical_compare
 DEFINE_TEST(test_lexicographical_compare)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare, 1.0f, 1.0f)
+    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare, 2.0f, 0.80f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void

@@ -19,9 +19,9 @@
 
 // dpl::transform -> __parallel_for
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag, 1.0f, 1.0f)
+DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform, 1.0f, 1.0f)
 
     struct TransformOp
     {

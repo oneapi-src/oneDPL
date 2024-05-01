@@ -62,12 +62,12 @@ wait_and_throw(ExecutionPolicy&& exec)
 }
 
 // DEFINE_TEST_PERM_IT should be used to declare permutation iterator tests
-#define DEFINE_TEST_PERM_IT(TestClassName, TemplateParams, ScaleStepValue, ScaleMaxNValue)                             \
+#define DEFINE_TEST_PERM_IT(TestClassName, TemplateParams)                                                             \
     template <typename TestValueType, typename TemplateParams>                                                         \
     struct TestClassName : TestUtils::test_base<TestValueType>
 
 // DEFINE_TEST_PERM_IT_CONSTRUCTOR should be used to declare permutation iterator tests constructor
-#define DEFINE_TEST_PERM_IT_CONSTRUCTOR(TestClassName)                                                                 \
+#define DEFINE_TEST_PERM_IT_CONSTRUCTOR(TestClassName, ScaleStepValue, ScaleMaxNValue)                                                                 \
     TestClassName(test_base_data<TestValueType>& _test_base_data)                                                      \
         : TestUtils::test_base<TestValueType>(_test_base_data)                                                         \
     {                                                                                                                  \

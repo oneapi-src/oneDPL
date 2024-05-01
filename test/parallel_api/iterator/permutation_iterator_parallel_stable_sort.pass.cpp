@@ -19,9 +19,9 @@
 
 // test_sort : dpl::sort -> __parallel_stable_sort
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag, 1.0f, 1.0f)
+DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_sort)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_sort, 2.0f, 0.65f)
 
     template <typename TIterator, typename Size>
     void generate_data(TIterator itBegin, TIterator itEnd, Size n)

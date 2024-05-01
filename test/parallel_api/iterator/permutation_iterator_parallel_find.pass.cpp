@@ -18,9 +18,9 @@
 #include "permutation_iterator_common.h"
 
 // dpl::find, dpl::find_if, dpl::find_if_not -> __parallel_find -> _parallel_find_or
-DEFINE_TEST_PERM_IT(test_find, PermItIndexTag, 1.0f, 1.0f)
+DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_find)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_find, 1.0f, 1.0f)
 
     template <typename TIterator>
     void generate_data(TIterator itBegin, TIterator itEnd, TestValueType initVal)
