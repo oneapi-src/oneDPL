@@ -42,14 +42,11 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
   #include <oneapi/dpl/iterator>
+  #include <random>
   #include <sycl/sycl.hpp>
   int main(){
     std::vector<int> vec(1000);
-
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
-    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+    std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
     //create a buffer from host memory
     sycl::buffer<int> buf { vec.data(), vec.size() };
@@ -73,16 +70,13 @@ the USM-allocated memory were created for the same queue. For example:
 
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
+  #include <random>
   #include <sycl/sycl.hpp>
   int main(){
     sycl::queue q;
     const int n = 1000;
     int* d_head = sycl::malloc_shared<int>(n, q);
-
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
-    std::generate(d_head, d_head + n, [&](){ return uniform_dist(e1); });
+    std::generate(d_head, d_head + n, std::minstd_rand{});
 
     std::sort(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n);
 
@@ -109,13 +103,11 @@ as shown in the following example:
 
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
+  #include <random>
   #include <vector>
   int main(){
     std::vector<int> vec( 1000 );
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
-    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+    std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
     std::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end());
     return 0;
@@ -133,17 +125,14 @@ You can also use ``std::vector`` with a USM allocator, as shown in the following
 
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
+  #include <random>
   #include <sycl/sycl.hpp>
   int main(){
     const int n = 1000;
     auto policy = oneapi::dpl::execution::dpcpp_default;
     sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
     std::vector<int, decltype(alloc)> vec(n, alloc);
-
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(-2000, 2000);
-    std::generate(vec.begin(), vec.end(), [&](){ return uniform_dist(e1); });
+    std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
     // Recommended to use USM pointers:
     std::sort(policy, vec.data(), vec.data() + vec.size());
