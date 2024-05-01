@@ -213,7 +213,7 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
 {
-#if _ONEDPL_DEFINED_AND_NOT_ZERO(_PSTL_UDS_PRESENT) || _ONEDPL_UDS_PRESENT
+#if _ONEDPL_DEFINED_AND_IS_ONE(_PSTL_UDS_PRESENT) || _ONEDPL_UDS_PRESENT
     if (_Inclusive() || !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
     {
         return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
