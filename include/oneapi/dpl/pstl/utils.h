@@ -52,7 +52,7 @@
 //      an empty macro) and disabled if the macro is undefined
 //
 //  We want to catch both cases in a single macro
-#define _ONEDPL_DEFINED_AND_IS_ONE(_X) (_ONEDPL_IS_EMPTY_STRING(_X) || _ONEDPL_IS_ONE(_X))
+#define _ONEDPL_IS_ONE_OR_EMPTY(_X) (_ONEDPL_IS_EMPTY_STRING(_X) || _ONEDPL_IS_ONE(_X))
 
 namespace oneapi
 {
