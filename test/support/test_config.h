@@ -52,6 +52,8 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
+// Defining this all on one line to delay evaluation of `_GLIBCXX_RELEASE` until later, when
+// _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN is being used, and we can be confident that std lib macros are defined
 #define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
@@ -100,14 +102,13 @@
 
 // Check for C++ standard and standard library for the use of ranges API
 #if !defined(_ENABLE_RANGES_TESTING)
-#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY TEST_DPCPP_BACKEND_PRESENT
-#if defined(_GLIBCXX_RELEASE)
-#    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
-#elif defined(_LIBCPP_VERSION)
-#    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _LIBCPP_VERSION >= 7000)
-#else
-#    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
-#endif
+#   define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY TEST_DPCPP_BACKEND_PRESENT
+// Defining this all on one line to delay evaluation of `defined(_GLIBCXX_RELEASE)` and `defined(_LIBCPP_VERSION)` until
+// later, when _ENABLE_RANGES_TESTING is being used, and we can be confident that std lib macros are defined
+#   define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY &&                                            \
+                                   ((defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502) || \
+                                    (defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 7000) ||                           \
+                                    (!defined(_GLIBCXX_RELEASE) && !defined(_LIBCPP_VERSION))))
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
 #define TEST_HAS_NO_INT128
@@ -133,6 +134,8 @@
 #define _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
 #define _PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
 #define _PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
+// Defining this all on one line to delay evaluation of `_GLIBCXX_RELEASE` until later, when
+// _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN is being used, and we can be confident that std lib macros are defined
 #define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
 
 // Known limitation:
