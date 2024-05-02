@@ -124,9 +124,10 @@ class auto_tune_policy
         void
         add_new_timing(resource_with_index_t r, timing_t t)
         {
-            std::lock_guard<std::mutex> l(m_);
             auto index = r.index_;
             timing_t new_value = t;
+
+            std::lock_guard<std::mutex> l(m_);
 
             // ignore the 1st timing to cover for JIT compilation
             auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, std::numeric_limits<timing_t>::max()});
