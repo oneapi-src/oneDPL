@@ -86,7 +86,7 @@ the USM-allocated memory were created for the same queue. For example:
 
 When using device USM, such as allocated by ``malloc_device``, you are responsible for data
 transfers to and from the device to ensure that input data is device accessible during oneDPL
-algorithm execution and that the result is available to the operations.
+algorithm execution and that the result is available to the subsequent operations.
 
 Use std::vector
 -----------------------------
