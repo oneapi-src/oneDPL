@@ -41,8 +41,8 @@
 #    include <cstring> // memcpy
 #endif
 
-#define _ONEDPL_IS_EMPTY_STRING(_X) ((0-_X-1)==1 && (_X-0)!=-2)
-#define _ONEDPL_IS_ONE(_X) ((_X-1)==0)
+#define _ONEDPL_IS_EMPTY_STRING(_X) ((0 - _X - 1) == 1 && (_X - 0) != -2)
+#define _ONEDPL_IS_ONE(_X) ((_X - 1) == 0)
 
 // This macro is needed because there are two ways that input defines are used:
 //
