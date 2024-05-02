@@ -157,12 +157,12 @@ struct dynamic_load_policy
         }
         if (state_)
         {
-            std::lock_guard<std::mutex> l(state_->m_);
             std::shared_ptr<resource_t> least_loaded;
             int least_load = std::numeric_limits<load_t>::max();
-            for (int i = 0; i < state_->resources_.size(); i++)
+
+            std::lock_guard<std::mutex> l(state_->m_);
+            for (auto r : state_->resources_)
             {
-                auto r = state_->resources_[i];
                 load_t v = r->load_.load();
                 if (!least_loaded || v < least_load)
                 {
