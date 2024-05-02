@@ -58,8 +58,10 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
 
-    double* v = dt_helper_v.get_data();
+    //Making v volatile so the release build does not optimize it in the for loop below
+    volatile double* v = dt_helper_v.get_data();
     int* j = dt_helper_j.get_data();
+
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -197,8 +199,10 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
 
-    double* v = dt_helper_v.get_data();
+    //Making v volatile so the release build does not optimize it in the for loop below
+    volatile double* v = dt_helper_v.get_data();
     int* j = dt_helper_j.get_data();
+
 
     my_policy_t p{u};
     auto n_samples = u.size();
@@ -337,7 +341,8 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, double> dt_helper_v(u[0], 1000000);
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> dt_helper_j(u[0], 1);
 
-    double* v = dt_helper_v.get_data();
+    //Making v volatile so the release build does not optimize it in the for loop below
+    volatile double* v = dt_helper_v.get_data();
     int* j = dt_helper_j.get_data();
 
     my_policy_t p{u};
