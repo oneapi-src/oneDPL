@@ -82,7 +82,7 @@ class auto_tune_policy
         using time_by_index_t = std::unordered_map<size_type, time_data_t>;
         time_by_index_t time_by_index_;
 
-        timing_t resample_time_ = 0.0;
+        timing_t resample_time_ = 0;
 
         tuner_t(resource_with_index_t br, size_type resources_size, timing_t rt)
             : t0_(report_clock_type::now()), best_resource_(br), max_resource_to_profile_(resources_size),
