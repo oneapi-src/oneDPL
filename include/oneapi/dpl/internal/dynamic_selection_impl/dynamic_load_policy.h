@@ -161,9 +161,8 @@ struct dynamic_load_policy
             int least_load = std::numeric_limits<load_t>::max();
 
             std::lock_guard<std::mutex> l(state_->m_);
-            for (int i = 0; i < state_->resources_.size(); i++)
+            for (auto r : state_->resources_)
             {
-                auto r = state_->resources_[i];
                 load_t v = r->load_.load();
                 if (!least_loaded || v < least_load)
                 {
