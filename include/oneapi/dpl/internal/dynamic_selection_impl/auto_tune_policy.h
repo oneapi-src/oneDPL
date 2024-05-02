@@ -131,8 +131,13 @@ class auto_tune_policy
 
             // ignore the 1st timing to cover for JIT compilation
             auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, std::numeric_limits<timing_t>::max()});
+
+            // emplace_res is std::pair<time_by_index_t::iterator, bool> where
+            //  - emplace_res.first iterate inserted or existing element;
+            //  - emplace_res.second is true if new element inserted, false if element with such key already existed.
             if (!emplace_res.second)
             {
+                // get reference to time_data_t from already existing element
                 auto& td = emplace_res.first->second;
                 auto n = td.num_timings_;
                 new_value = (n * td.value_ + t) / (n + 1);
