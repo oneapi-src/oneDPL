@@ -47,12 +47,12 @@ class auto_tune_policy
     using execution_resource_t = typename backend_t::execution_resource_t;
     using wrapped_resource_t = execution_resource_t;
     using size_type = typename std::vector<typename Backend::resource_type>::size_type;
-    using timing_t = uint64_t;
+    using timing_t = std::chrono::milliseconds;
 
     using report_clock_type = std::chrono::steady_clock;
     using report_duration = std::chrono::milliseconds;
 
-    static constexpr timing_t never_resample = 0;
+    static constexpr report_duration never_resample{ 0 };
     static constexpr size_type use_best_resource = ~size_type(0);
 
     struct resource_with_index_t
@@ -64,7 +64,13 @@ class auto_tune_policy
     struct time_data_t
     {
         uint64_t num_timings_ = 0;
-        timing_t value_ = 0;
+        timing_t value_;
+
+        time_data_t(uint64_t num_timings = 0, timing_t value = timing_t{0})
+        {
+            num_timings_ = num_timings;
+            value_ = value;
+        }
     };
 
     struct tuner_t
@@ -73,7 +79,7 @@ class auto_tune_policy
 
         report_clock_type::time_point t0_;
 
-        timing_t best_timing_ = std::numeric_limits<timing_t>::max();
+        timing_t best_timing_ = timing_t::max();
         resource_with_index_t best_resource_;
 
         const size_type max_resource_to_profile_;
@@ -82,7 +88,7 @@ class auto_tune_policy
         using time_by_index_t = std::unordered_map<size_type, time_data_t>;
         time_by_index_t time_by_index_;
 
-        timing_t resample_time_ = 0;
+        timing_t resample_time_;
 
         tuner_t(resource_with_index_t br, size_type resources_size, timing_t rt)
             : t0_(report_clock_type::now()), best_resource_(br), max_resource_to_profile_(resources_size),
@@ -106,7 +112,7 @@ class auto_tune_policy
             else
             {
                 const auto now = report_clock_type::now();
-                const auto ms = std::chrono::duration_cast<report_duration>(now - t0_).count();
+                const auto ms = std::chrono::duration_cast<report_duration>(now - t0_);
                 if (ms < resample_time_)
                 {
                     return use_best_resource;
@@ -130,7 +136,7 @@ class auto_tune_policy
             std::lock_guard<std::mutex> l(m_);
 
             // ignore the 1st timing to cover for JIT compilation
-            auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, std::numeric_limits<timing_t>::max()});
+            auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, timing_t::max());
 
             // emplace_res is std::pair<time_by_index_t::iterator, bool> where
             //  - emplace_res.first iterate inserted or existing element;
@@ -180,7 +186,7 @@ class auto_tune_policy
         void
         report(const execution_info::task_time_t&, report_duration v) const
         {
-            tuner_->add_new_timing(resource_, v.count());
+            tuner_->add_new_timing(resource_, v);
         }
     };
 
@@ -190,7 +196,7 @@ class auto_tune_policy
     using wait_type = typename Backend::wait_type;
     using selection_type = auto_tune_selection_type;
 
-    auto_tune_policy(deferred_initialization_t) {}
+    auto_tune_policy(deferred_initialization_t) : resample_time_(0) {}
 
     auto_tune_policy(timing_t resample_time = never_resample) { initialize(resample_time); }
 
@@ -305,7 +311,7 @@ class auto_tune_policy
     // member variables
     //
 
-    timing_t resample_time_ = 0;
+    timing_t resample_time_;
 
     struct state_t
     {
