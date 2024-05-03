@@ -16,23 +16,12 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
-// Disable use of TBB in Parallel STL from libstdc++.
-// This workaround is for GCC only
-#if __cplusplus >= 201703L
-// - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
-#    if __has_include(<tbb/version.h>)
-#        ifndef PSTL_USE_PARALLEL_POLICIES
-#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
-#        endif
-#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
-#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
-#        endif
-#    endif // __has_include(<tbb/version.h>)
-// - TBB is not found (libstdc++ v9)
-#    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
-#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
-#    endif
-#endif // __cplusplus >= 201703L
+// If a valid tbb is unavailable, lets turn off PSTL parallel policies, as they may encounter errors (libstdc++ v9/v10)
+// This will effect all implementations of PSTL (not just libstdc++), but we are not testing or using those APIs within
+// oneDPL tests, so this should not do harm, and it avoids a potential error.
+#if !defined(PSTL_USE_PARALLEL_POLICIES) && (__has_include(<tbb/version.h>) || !__has_include(<tbb/tbb.h>))
+#    define PSTL_USE_PARALLEL_POLICIES 0
+#endif
 
 #if __has_include(<version>)
 #   include <version>
