@@ -60,6 +60,7 @@ __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, _Transfor
     union __storage
     {
         _Tp __v;
+        __storage() {}
     } __result;
     // 1. Initialization (transform part). Fill local memory
     __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __result, __acc...);
@@ -88,6 +89,7 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, _TransformPat
     union __storage
     {
         _Tp __v;
+        __storage() {}
     } __result;
     // 1. Initialization (transform part). Fill local memory
     __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __result, __acc...);
@@ -394,6 +396,7 @@ struct __parallel_transform_reduce_impl
                         union __storage
                         {
                             _Tp __v;
+                            __storage() {}
                         } __result;
                         if (__is_first)
                         {
