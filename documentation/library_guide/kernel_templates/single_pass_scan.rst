@@ -51,6 +51,9 @@ Parameters
 |                                               |   <use-buffer-wrappers>` (1).                                       |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
+|  ``binary_op``                                | A function object that will applied to the elements of the input    |
+|                                               |                                                                     |
++-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
@@ -60,6 +63,9 @@ Parameters
 
 - The element type of sequence(s) to scan must be a C++ integral or floating-point type
   other than ``bool`` with a width of up to 64 bits.
+- The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
+  evaluate to true.
+- The result is non-deterministic if the binary operator is non-associative (such as in floating-point addition).
 
 .. note::
 
