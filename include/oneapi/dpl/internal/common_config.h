@@ -61,8 +61,8 @@
 #            define __PSTL_USE_PAR_POLICIES 0
 #        endif
 #        ifdef __PSTL_PAR_BACKEND_TBB
-#             undef __PSTL_PAR_BACKEND_TBB
-#             define __PSTL_PAR_BACKEND_TBB 0
+#            undef __PSTL_PAR_BACKEND_TBB
+#            define __PSTL_PAR_BACKEND_TBB 0
 #        endif
 #        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 #    endif
