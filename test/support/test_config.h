@@ -16,6 +16,41 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
+// Disable use of TBB in Parallel STL from libstdc++.
+// This workaround is for GCC only
+#if __cplusplus >= 201703L
+// - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
+#    if __has_include(<tbb/version.h>)
+#        if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 9 || _GLIBCXX_RELEASE == 10)
+//           If STL headers are included before oneDPL, __PSTL_USE_PAR_POLICIES,
+//           __PSTL_PAR_BACKEND_TBB and _PSTL_PAR_BACKEND_TBB macros can be defined
+//           before this config file
+#            ifdef __PSTL_USE_PAR_POLICIES
+#                undef __PSTL_USE_PAR_POLICIES
+#                define __PSTL_USE_PAR_POLICIES 0
+#            endif
+#            ifdef __PSTL_PAR_BACKEND_TBB
+#                undef __PSTL_PAR_BACKEND_TBB
+#                define __PSTL_PAR_BACKEND_TBB 0
+#            endif
+#            ifdef _PSTL_PAR_BACKEND_TBB // For GCC10
+#                undef _PSTL_PAR_BACKEND_TBB
+#                define _PSTL_PAR_BACKEND_SERIAL
+#            endif
+#        endif
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+// - TBB is not found (libstdc++ v9)
+#    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
+#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#    endif
+#endif // __cplusplus >= 201703L
+
 #if __has_include(<version>)
 #   include <version>
 #else
