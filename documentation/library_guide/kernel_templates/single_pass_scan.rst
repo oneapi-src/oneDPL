@@ -172,7 +172,7 @@ Local memory is used for storing elements of the input that are to be scanned by
 The used amount is denoted as N\ :sub:`elems_per_workgroup`, which equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``.
 
 Some amount of local memory is also used by the calls to SYCL's group reduction and group scan. The amount of memory used particularly
-for these calls is implementation dependant.
+for these calls is implementation dependent.
 
 -----------------------------------------
 Recommended Settings for Best Performance
