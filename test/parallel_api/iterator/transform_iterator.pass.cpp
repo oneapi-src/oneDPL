@@ -174,10 +174,12 @@ test_copyable()
     static_assert(sycl::is_device_copyable_v<decltype(trans_count)>,
                   "transform_iterator is not device copyable with a counting iterator and noop lambda");
 
-    std::vector<int> array(10, 0);
-    auto trans_array = ::dpl::make_transform_iterator(array.begin(), [](auto i) { return i; });
+    sycl::queue q;
+    int* ptr = sycl::malloc_shared<int>(1, q);
+    auto trans_array = ::dpl::make_transform_iterator(ptr, [](auto i) { return i; });
     static_assert(sycl::is_device_copyable_v<decltype(trans_array)>,
-                  "transform_iterator is not device copyable with a host iterator and noop lambda");
+                  "transform_iterator is not device copyable with a pointer and noop lambda");
+    sycl::free(ptr, q);
 
     static_assert(sycl::is_device_copyable_v<
                       oneapi::dpl::transform_iterator<constant_iterator_device_copyable, noop_device_copyable>>,
