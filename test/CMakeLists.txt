@@ -253,13 +253,19 @@ foreach (_file IN LISTS UNIT_TESTS)
 
 endforeach()
 
+if (ONEDPL_USE_DR)
+    add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
+    add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
+endif()
+
 # add additional TUs if required
 if (TARGET interop_allocs.pass)
     target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
                                                "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
 endif()
 
-if (ONEDPL_USE_DR)
-    add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
-    add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
+if (TARGET free_after_unload.pass)
+    add_library(free_after_unload_lib SHARED "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/general/free_after_unload_lib.cpp")
+    target_include_directories(free_after_unload_lib PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+    target_link_libraries(free_after_unload.pass PRIVATE free_after_unload_lib)
 endif()

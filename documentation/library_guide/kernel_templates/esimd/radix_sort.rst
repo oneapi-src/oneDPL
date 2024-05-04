@@ -15,7 +15,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
 
    // defined in <oneapi/dpl/experimental/kernel_templates>
 
-   namespace oneapi::dpl::experimental::kt::esimd {
+   namespace oneapi::dpl::experimental::kt::gpu::esimd {
 
    // Sort a single sequence
 

@@ -31,9 +31,11 @@
 
 using namespace TestUtils;
 
-//common checks of a random access iterator functionality
+//common checks of a random access iterator functionality which is needed for oneDPL algos
 template <typename RandomIt>
-void test_random_iterator(const RandomIt& it) {
+void
+test_random_iterator_skip_default_ctor_check(const RandomIt& it)
+{
     // check that RandomIt has all necessary publicly accessible member types
     {
         [[maybe_unused]] auto t1 = typename RandomIt::difference_type{};
@@ -42,8 +44,6 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] typename RandomIt::reference ref = *it;
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
-
-    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -113,6 +113,14 @@ void test_random_iterator(const RandomIt& it) {
     EXPECT_TRUE(!(it >= it + 1), "operator>= returned false positive");
 }
 
+template <typename RandomIt>
+void
+test_random_iterator(const RandomIt& it)
+{
+    static_assert(std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
+    test_random_iterator_skip_default_ctor_check(it);
+}
+
 struct test_counting_iterator {
     template <typename T, typename IntType>
     void operator()( ::std::vector<T>& in, IntType begin, IntType end, const T& value) {
@@ -140,6 +148,8 @@ struct test_counting_iterator {
         //explicit checks of the counting iterator specific
         EXPECT_TRUE(*(b + 1) == begin+1, "wrong result with operator+ for an iterator");
         EXPECT_TRUE(*(b+=1) == begin+1, "wrong result with operator+= for an iterator");
+
+        test_random_iterator(b);
     }
 };
 
@@ -261,6 +271,8 @@ struct test_transform_iterator {
 
         transform_functor new_functor;
         ref_transform_functor ref_functor;
+        //check default constructibility of transform_iterator with default constructible components
+        oneapi::dpl::transform_iterator<T1*, transform_functor> _it0;
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
 
@@ -310,10 +322,22 @@ struct test_permutation_iterator
         test_random_iterator(perm_begin);
 
         auto n = in1.size();
-        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
+        auto stateful_lambda = [n] (auto i) { return n - i - 1;};
+        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), stateful_lambda, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
+        //stateful lambdas won't be default constructible, therefore this permutation iterator will not be either
+        test_random_iterator_skip_default_ctor_check(perm_it_fun_rev);
 
-        test_random_iterator(perm_it_fun_rev);
+        auto stateless_lambda = [] (auto i) { return i;};
+        auto perm_it_stateless_fun = oneapi::dpl::make_permutation_iterator(in1.begin(), stateless_lambda, 1);
+        EXPECT_TRUE(*++perm_it_stateless_fun == in1[2], "wrong result from permutation_iterator(base_iterator, stateless_lambda)");
+
+        //stateless lambdas may be default constructible based on the c++ standard, permutation iterator should match
+        if constexpr(std::is_default_constructible_v<decltype(stateless_lambda)>)
+            test_random_iterator(perm_it_stateless_fun);
+        else
+            test_random_iterator_skip_default_ctor_check(perm_it_stateless_fun);
+
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;

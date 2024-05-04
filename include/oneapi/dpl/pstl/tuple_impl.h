@@ -669,6 +669,19 @@ get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
     return ::std::move(__a).template get<_Idx>();
 }
+
+// To enable oneapi::dpl::zip_iterator to satisfy the requirements for the std::input_iterator concept in C++20,
+// we must provide a basic_common_reference specialization for our internal tuple implementation. std::basic_common_reference
+// is introduced in __cpp_lib_concepts, so we must ensure this feature is present.
+#if _ONEDPL_CPP20_CONCEPTS_PRESENT
+template <typename... TTypes, typename... UTypes, template <typename> typename TQual,
+          template <typename> typename UQual>
+struct basic_common_reference<oneapi::dpl::__internal::tuple<TTypes...>, oneapi::dpl::__internal::tuple<UTypes...>,
+                              TQual, UQual>
+{
+    using type = oneapi::dpl::__internal::tuple<::std::common_reference_t<TQual<TTypes>, UQual<UTypes>>...>;
+};
+#endif
 } // namespace std
 
 #endif // _ONEDPL_TUPLE_IMPL_H

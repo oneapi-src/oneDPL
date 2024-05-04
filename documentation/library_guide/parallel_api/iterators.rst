@@ -67,16 +67,24 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
                  [](auto t){return get<1>(t) == 1;}
 
 * ``transform_iterator``: an iterator defined over another iterator whose dereferenced value is the result
-  of a function applied to the corresponding element of the original iterator. Both the type of the original
+  of a function applied to the corresponding element of the base iterator. Both the type of the base
   iterator and the unary function applied during dereference operations are required template parameters of
-  the ``transform_iterator`` class. The ``transform_iterator`` class provides three constructors:
+  the ``transform_iterator`` class. 
+
+  The unary functor provided to a ``transform_iterator`` should have a ``const``-qualified call operator which accepts
+  the reference type of the base iterator as argument. The functor's call operator should not have any side effects and
+  should not modify the state of the functor object.
+  
+  The ``transform_iterator`` class provides the following constructors:
 
   * ``transform_iterator()``: instantiates the iterator using a default constructed base iterator and unary functor.
-  * ``transform_iterator(iter)``: instantiates the iterator using the base iterator provided and a default constructed unary functor.
+  This constructor participates in overload resolution only if the base iterator and unary functor are both default constructible.
+  * ``transform_iterator(iter)``: instantiates the iterator using the base iterator provided and a default constructed
+  unary functor. This constructor participates in overload resolution only if the unary functor is default constructible.
   * ``transform_iterator(iter, func)``: instantiates the iterator using the base iterator and unary functor provided.
 
   To simplify the construction of the iterator, ``oneapi::dpl::make_transform_iterator`` is provided. The
-  function receives the original iterator and transform operation instance as arguments, and constructs the
+  function receives the base iterator and transform operation instance as arguments, and constructs the
   ``transform_iterator`` instance::
 
     using namespace oneapi;

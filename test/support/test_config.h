@@ -30,9 +30,6 @@
     (!_DEBUG && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900 && _MSC_VER == 1910)
 // ICC 18 doesn't vectorize the loop
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN (!_DEBUG && __INTEL_COMPILER && __INTEL_COMPILER == 1800)
-// clang 900.0.38 produces fatal error: error in backend: Section too large
-#define _PSTL_CLANG_TEST_BIG_OBJ_DEBUG_32_BROKEN                                                                      \
-    (__i386__ && PSTL_USE_DEBUG && __clang__ && _PSTL_CLANG_VERSION <= 90000)
 // ICC 18 generates wrong result with omp simd early_exit
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN                                                               \
     (!_DEBUG && __INTEL_COMPILER == 1800 && __AVX__ && !__AVX2__ && !__AVX512__)
@@ -55,7 +52,7 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
@@ -163,5 +160,10 @@
 #if !PSTL_USE_DEBUG && defined(__INTEL_LLVM_COMPILER)
 #    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
 #endif
+
+// Group reduction produces wrong results with multiplication of 64-bit for certain driver versions
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
 
 #endif // _TEST_CONFIG_H

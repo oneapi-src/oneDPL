@@ -14,7 +14,6 @@
 #    error "PSTL offload compiler mode should be enabled to use this header"
 #endif
 
-#include <atomic>
 #include <cstdlib>
 #include <cassert>
 #include <cerrno>
@@ -29,12 +28,14 @@
 namespace __pstl_offload
 {
 
-static std::atomic<sycl::device*> __active_device = nullptr;
+// allocation can be requested before static ctor or after static dtor runs, have a flag for that
+// keep it out of __offload_policy_holder_type to not access object before ctor or after dtor
+static std::atomic_bool __device_ready;
 
 static void
-__set_active_device(sycl::device* __new_active_device)
+__set_device_status(bool __ready)
 {
-    __active_device.store(__new_active_device, std::memory_order_release);
+    __device_ready.store(__ready, std::memory_order_release);
 }
 
 static auto
@@ -51,58 +52,122 @@ __get_offload_device_selector()
 #endif
 }
 
-class __offload_policy_holder_type
+// Stripped down spin mutex. Propose is to implement mutex able to be used from zero-initialized
+// memory without need in constructors. This allows to use the mutex in file-scope constructors
+// and destructors.
+class __spin_mutex
 {
-    using __set_active_device_func_type = void (*)(sycl::device*);
+    std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
 
   public:
-    // Since the global object of __offload_policy_holder_type is static but the constructor
+    void
+    lock()
+    {
+        while (_M_flag.test_and_set(std::memory_order_acquire))
+        {
+            // TODO: exponential backoff or switch to wait() from c++20
+            std::this_thread::yield();
+        }
+    }
+
+    void
+    unlock()
+    {
+        _M_flag.clear(std::memory_order_release);
+    }
+};
+
+static __spin_mutex __offload_policy_holder_mtx;
+
+class __offload_policy_holder_type
+{
+    using __set_device_status_func_type = void (*)(bool);
+
+  public:
+    // Since the global object of __offload_policy_holder_type is static but the template constructor
     // of the class is inline, we need to avoid calling static functions inside of the constructor
-    // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
+    // and pass the pointer to exact function as an argument to guarantee that the correct offload device
     // would be stored in each translation unit
     template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
-                                 __set_active_device_func_type __set_active_device_func)
-        : _M_set_active_device(__set_active_device_func)
+                                 __set_device_status_func_type __set_device_status_func, __spin_mutex& __mtx)
+        : _M_set_device_status_func(__set_device_status_func)
     {
+        sycl::device _device;
+
         try
         {
-            _M_offload_device.emplace(__device_selector);
-            _M_set_active_device(&*_M_offload_device);
-            _M_offload_policy.emplace(*_M_offload_device);
+            _device = sycl::device(__device_selector);
         }
         catch (const sycl::exception& e)
         {
-            // __device_selector throws with e.code() == sycl::errc::runtime when device selection unable
+            // __device_selector call throws with e.code() == sycl::errc::runtime when device selection unable
             // to get offload device with required type. Do not pass an exception, as ctor is called for
             // a static object and the exception can't be processed.
-            // Remember the situation and re-throw exception when asked for the policy from user's code.
-            // Re-throw in every other case, as we don't know the reason.
-            if (e.code() != sycl::errc::runtime)
+            // Remember the situation as empty _M_device and re-throw exception when asked for
+            // the policy from user's code.
+            // Re-throw in every other case, as we don't know the reason of an exception.
+            if (e.code() == sycl::errc::runtime)
+            {
+                return;
+            }
+            else
+            {
                 throw;
+            }
         }
+
+        std::scoped_lock __lock{__mtx};
+
+        _M_offload_device.__init(_device);
+        _M_offload_policy = oneapi::dpl::execution::device_policy<>(_device);
+        _M_set_device_status_func(true);
     }
 
     ~__offload_policy_holder_type()
     {
-        if (_M_offload_device.has_value())
-            _M_set_active_device(nullptr);
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
+
+        _M_set_device_status_func(false);
     }
 
-    auto
-    __get_policy()
+    static auto
+    __get_policy(__offload_policy_holder_type& __this)
     {
-        if (!_M_offload_device.has_value())
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
+
+        if (!__device_ready.load(std::memory_order_acquire))
+        {
             throw sycl::exception(sycl::errc::runtime);
-        return *_M_offload_policy;
+        }
+        return __this._M_offload_policy;
     }
+
+    static __sycl_device_shared_ptr
+    __get_device_ptr(__offload_policy_holder_type& __this)
+    {
+        std::scoped_lock __lock{__offload_policy_holder_mtx};
+
+        if (__device_ready.load(std::memory_order_acquire))
+        {
+            // it's safe to use copy ctor here, because we under __offload_policy_holder_mtx
+            // and ~__offload_policy_holder_type() has not been called
+            return __sycl_device_shared_ptr(__this._M_offload_device);
+        }
+        else
+        {
+            return __sycl_device_shared_ptr{};
+        }
+    }
+
   private:
-    std::optional<sycl::device> _M_offload_device;
-    std::optional<oneapi::dpl::execution::device_policy<>> _M_offload_policy;
-    __set_active_device_func_type _M_set_active_device;
+    __sycl_device_shared_ptr _M_offload_device;
+    oneapi::dpl::execution::device_policy<> _M_offload_policy;
+    __set_device_status_func_type _M_set_device_status_func;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), __set_active_device};
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), &__set_device_status,
+                                                            __offload_policy_holder_mtx};
 
 #if __linux__
 inline void*
@@ -119,17 +184,16 @@ __original_aligned_alloc(std::size_t __alignment, std::size_t __size)
 static void*
 __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 {
-    sycl::device* __device = __active_device.load(std::memory_order_acquire);
-    void* __res = nullptr;
-
-    if (__device != nullptr)
+    if (__device_ready.load(std::memory_order_acquire))
     {
-        __res = __allocate_shared_for_device(__device, __size, __alignment);
+        if (__sycl_device_shared_ptr __dev = __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
+        {
+            void* __res = __allocate_shared_for_device(std::move(__dev), __size, __alignment);
+            assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
+            return __res;
+        }
     }
-    else
-    {
-        __res = __original_aligned_alloc(__alignment, __size);
-    }
+    void* __res = __original_aligned_alloc(__alignment, __size);
 
     assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
     return __res;
@@ -276,7 +340,7 @@ inline void* __attribute__((always_inline)) __libc_memalign(std::size_t __alignm
     return memalign(__alignment, __size);
 }
 
-inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, std::size_t __size)
+inline void* __attribute__((always_inline)) __libc_realloc(void* __ptr, std::size_t __size)
 {
     return realloc(__ptr, __size);
 }

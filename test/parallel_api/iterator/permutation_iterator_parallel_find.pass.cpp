@@ -51,20 +51,20 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
                     if (testing_n >= 2)
                     {
                         // Get value to find: the second value
-                        TestValueType valueToFind{};
-                        dpl::copy(exec, permItBegin + 1, permItBegin + 2, &valueToFind);
+                        std::vector<TestValueType> valueToFind(1);
+                        dpl::copy(exec, permItBegin + 1, permItBegin + 2, valueToFind.begin());
                         wait_and_throw(exec);
 
-                        const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind);
+                        const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind[0]);
                         wait_and_throw(exec);
 
                         EXPECT_TRUE(result != permItEnd, "Wrong result of dpl::find");
 
                         // Copy data back
-                        TestValueType foundedVal{};
-                        dpl::copy(exec, result, result + 1, &foundedVal);
+                        std::vector<TestValueType> foundVal(1);
+                        dpl::copy(exec, result, result + 1, foundVal.begin());
                         wait_and_throw(exec);
-                        EXPECT_EQ(foundedVal, valueToFind, "Incorrect value was found in dpl::find");
+                        EXPECT_EQ(foundVal[0], valueToFind[0], "Incorrect value was found in dpl::find");
                     }
                 });
         }

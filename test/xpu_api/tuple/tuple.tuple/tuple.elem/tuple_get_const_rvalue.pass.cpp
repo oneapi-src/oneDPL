@@ -53,9 +53,12 @@ kernel_test()
 int
 main()
 {
+    bool bProcessed = false;
+
 #if !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
     kernel_test();
+    bProcessed = true;
 #endif // !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
-    return TestUtils::done(!_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN);
+    return TestUtils::done(bProcessed);
 }

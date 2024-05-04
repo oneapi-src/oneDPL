@@ -75,34 +75,6 @@ auto async_handler = [](sycl::exception_list ex_list) {
     }
 };
 
-//Check that type is device copyable including types which are deprecated in sycl 2020
-template <typename T>
-static constexpr bool check_if_device_copyable_by_sycl2020_or_by_old_definition  =
-    sycl::is_device_copyable_v<T> || (std::is_trivially_copy_constructible_v<T> && std::is_trivially_destructible_v<T>);
-
-//function is needed to wrap kernel name into another class
-template <typename _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
-auto
-make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
-{
-    return TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
-}
-
-#if ONEDPL_FPGA_DEVICE
-template <typename _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
-auto
-make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy)))
-{
-    return TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy));
-}
-#endif
-
 #if ONEDPL_FPGA_DEVICE
 inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
@@ -397,6 +369,6 @@ test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
-} /* namespace TestUtils */
 
+} /* namespace TestUtils */
 #endif // _UTILS_SYCL_H
