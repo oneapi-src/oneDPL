@@ -30,9 +30,6 @@
     (!_DEBUG && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900 && _MSC_VER == 1910)
 // ICC 18 doesn't vectorize the loop
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN (!_DEBUG && __INTEL_COMPILER && __INTEL_COMPILER == 1800)
-// clang 900.0.38 produces fatal error: error in backend: Section too large
-#define _PSTL_CLANG_TEST_BIG_OBJ_DEBUG_32_BROKEN                                                                      \
-    (__i386__ && PSTL_USE_DEBUG && __clang__ && _PSTL_CLANG_VERSION <= 90000)
 // ICC 18 generates wrong result with omp simd early_exit
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN                                                               \
     (!_DEBUG && __INTEL_COMPILER == 1800 && __AVX__ && !__AVX2__ && !__AVX512__)
@@ -55,11 +52,7 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#if defined(_GLIBCXX_RELEASE)
-#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE < 8)
-#else
-#   define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN 0
-#endif
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)

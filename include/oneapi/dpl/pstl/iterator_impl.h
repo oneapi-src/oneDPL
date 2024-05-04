@@ -76,21 +76,34 @@ struct __make_references
 
 //zip_iterator version for forward iterator
 //== and != comparison is performed only on the first element of the tuple
+//
+//zip_forward_iterator is implemented as an internal class and should remain so. Users should never encounter
+//this class or be returned a type of its value_type, reference, etc as the tuple-like type used internally
+//is variable dependent on the C++ standard library version and could cause an inconsistent ABI due to resulting
+//layout changes of this class.
 template <typename... _Types>
 class zip_forward_iterator
 {
+    template <typename... _Ts>
+    using __tuple_t =
+#if _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR
+        ::std::tuple<_Ts...>;
+#else
+        oneapi::dpl::__internal::tuple<_Ts...>;
+#endif
+
     static const ::std::size_t __num_types = sizeof...(_Types);
-    typedef typename ::std::tuple<_Types...> __it_types;
+    typedef __tuple_t<_Types...> __it_types;
 
   public:
     typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(__tuple_t<_Types...>{__args...}) {}
 
     reference operator*() const
     {

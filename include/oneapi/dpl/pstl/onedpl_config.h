@@ -27,6 +27,11 @@
 #define ONEDPL_VERSION_MINOR 6
 #define ONEDPL_VERSION_PATCH 0
 
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
+#    include <version>
+#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
+#endif
+
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
 #    define _ONEDPL_FPGA_DEVICE ONEDPL_FPGA_DEVICE
@@ -296,12 +301,36 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
+#if _ONEDPL_STD_FEATURE_MACROS_PRESENT
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT (__cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L)
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT                                                          \
+        (_ONEDPL___cplusplus >= 202302L && __cpp_lib_tuple_like >= 202207L)
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT (_ONEDPL___cplusplus >= 202302L && __cpp_lib_ranges_zip >= 202110L)
+#else
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT 0
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 0
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 0
+#endif
+
+// When C++20 concepts are available, we must use std::tuple as a proxy reference to satisfy iterator concepts, which
+// requires the changes to std::tuple in P2321R2 and the tuple-like basic_common_reference specialization in P2165R4.
+#define _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR                                                                       \
+    (!_ONEDPL_CPP20_CONCEPTS_PRESENT ||                                                                                \
+     (_ONEDPL_CPP23_RANGES_ZIP_PRESENT && _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT))
+
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
+#endif
+
+// The implementation of std::bit_floor in MS STL does not meet requirements for SYCL device functions
+#if defined(_MSC_VER) && (__SYCL_DEVICE_ONLY__ || __SYCL_SINGLE_SOURCE__)
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
+#else
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
 #endif
 
 #endif // _ONEDPL_CONFIG_H
