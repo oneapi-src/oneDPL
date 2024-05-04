@@ -65,19 +65,19 @@ add_executable(
   ../common/copy.cpp 
   ../common/counted.cpp
   ../common/distributed_vector.cpp 
-  ../common/drop.cpp 
-  # ../common/enumerate.cpp
+  ../common/drop.cpp # test fail 
+  # ../common/enumerate.cpp # compile fail
   ../common/fill.cpp 
-  # ../common/for_each.cpp 
+  # ../common/for_each.cpp # compile fail
   ../common/iota.cpp
-  # ../common/iota_view.cpp
+  ## ../common/iota_view.cpp # compile fail
   ../common/reduce.cpp 
-  ../common/sort.cpp 
+  ../common/sort.cpp # test fail
   ../common/subrange.cpp
   ../common/take.cpp 
   ../common/transform.cpp 
   ../common/transform_view.cpp
-  # ../common/zip.cpp 
+  # ../common/zip.cpp # compile fail
   ../common/zip_local.cpp 
   algorithms.cpp
   containers.cpp 
