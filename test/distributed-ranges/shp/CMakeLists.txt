@@ -7,21 +7,20 @@ include(CheckIncludeFileCXX)
 # if (NOT CXX_FORMAT_SUPPORT)
   find_package(fmt QUIET)
   if (NOT fmt_FOUND)
-    message(WARNING "disabled distributed ranges tests, install ibfmt-dev or other package with fmt")
+    message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
     return()
   endif ()
-  #message(STATUS "using fmt library for logging in distributed-ranges tests")
 # endif()
-
-find_package(GTest)
-if (NOT GTest_FOUND)
-  message(WARNING "disabled distributed ranges tests, install libgtest-dev or other package with GTest")
-  return()
-endif ()
 
 check_include_file_cxx("cxxopts.hpp" CXX_OPTS_SUPPORT)
 if (NOT CXX_OPTS_SUPPORT)
   message(WARNING "disabled distributed ranges tests, install libcxxopts-dev or other package with cxxopts")
+  return()
+endif ()
+
+find_package(GTest)
+if (NOT GTest_FOUND)
+  message(WARNING "disabled distributed ranges tests, install libgtest-dev or other package with GTest")
   return()
 endif ()
 
@@ -67,7 +66,7 @@ add_executable(
   ../common/drop.cpp # test fail 
   # ../common/enumerate.cpp # compile fail
   ../common/fill.cpp 
-  # ../common/for_each.cpp # compile fail
+  ../common/for_each.cpp # compile fail
   ../common/iota.cpp
   ## ../common/iota_view.cpp # compile fail
   ../common/reduce.cpp 
@@ -76,7 +75,7 @@ add_executable(
   ../common/take.cpp 
   ../common/transform.cpp 
   ../common/transform_view.cpp
-  # ../common/zip.cpp # compile fail
+  ../common/zip.cpp # compile fail
   ../common/zip_local.cpp 
   algorithms.cpp
   containers.cpp 
@@ -89,7 +88,7 @@ add_executable(
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
-  target_link_libraries(${test-exec} GTest::gtest_main DR::shp) #  cxxopts
+  target_link_libraries(${test-exec} GTest::gtest_main DR::shp)
   # if (NOT CXX_FORMAT_SUPPORT)
     target_link_libraries(${test-exec} fmt::fmt)
   # endif()

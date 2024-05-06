@@ -45,7 +45,7 @@ inline std::ostream &operator<<(std::ostream &os, const AOS_Struct &st) {
 template <typename T> struct Ops1 {
   Ops1(std::size_t n) : dist_vec(n), vec(n) {
     iota(dist_vec, 100);
-    std::iota(rng::begin(vec), rng::end(vec), 100);
+    rng::iota(vec, 100);
   }
 
   T dist_vec;
@@ -56,8 +56,8 @@ template <typename T> struct Ops2 {
   Ops2(std::size_t n) : dist_vec0(n), dist_vec1(n), vec0(n), vec1(n) {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
-    std::iota(rng::begin(vec0), rng::end(vec0), 100);
-    std::iota(rng::begin(vec1), rng::end(vec1), 200);
+    rng::iota(vec0, 100);
+    rng::iota(vec1, 200);
   }
 
   T dist_vec0, dist_vec1;
@@ -70,9 +70,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-    std::iota(rng::begin(vec0), rng::end(vec0), 100);
-    std::iota(rng::begin(vec1), rng::end(vec1), 200);
-    std::iota(rng::begin(vec2), rng::end(vec2), 300);
+    rng::iota(vec0, 100);
+    rng::iota(vec1, 200);
+    rng::iota(vec2, 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;
@@ -119,7 +119,8 @@ template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   // TODO: why r2.begin() is not working here with std::ranges?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
-    if (v2 != *r1i++) {
+    typeof(v2) v1 = *r1i++;
+    if (v2 != v1) {
       return false;
     }
   }
