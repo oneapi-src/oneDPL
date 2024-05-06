@@ -41,19 +41,6 @@
 #    include <cstring> // memcpy
 #endif
 
-#define _ONEDPL_IS_EMPTY_STRING(_X) ((0 - _X - 1) == 1 && (_X - 0) != -2)
-#define _ONEDPL_IS_ONE(_X) ((_X - 1) == 0)
-
-// This macro is needed because there are two ways that input defines are used:
-//
-//   1. A feature X is enabled if the macro X is defined as 1 and disabled if
-//      the macro X is defined as 0
-//   2. A feature X is enabled if the macro X is defined with no value (i.e.,
-//      an empty macro) and disabled if the macro is undefined
-//
-//  We want to catch both cases in a single macro
-#define _ONEDPL_IS_ONE_OR_EMPTY(_X) (_ONEDPL_IS_EMPTY_STRING(_X) || _ONEDPL_IS_ONE(_X))
-
 namespace oneapi
 {
 namespace dpl
