@@ -8,10 +8,19 @@
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed-ranges>
 
-#include <format>
+// #ifdef __cpp_lib_format
+// #include <format>
+// namespace drfmt {
+//   using std::format;
+// }
+// #else
+#include <fmt/format.h>
+#include <fmt/core.h>
+#include <fmt/ranges.h>
 namespace drfmt {
-   using std::format;
+  using fmt::format;
 }
+// #endif
 
 #define TEST_SHP
 // To share tests with MHP
