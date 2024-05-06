@@ -173,4 +173,9 @@
 // of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
 #define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
 
+// oneAPI DPC++ compiler 2022.2 an below show an internal compiler error during the backend code generation of
+// minmax_element.pass.cpp
+#define _PSTL_ICPX_TEST_MINMAX_ELEMENT_BROKEN                                                                         \
+    (TEST_DPCPP_BACKEND_PRESENT && defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20220300)
+
 #endif // _TEST_CONFIG_H
