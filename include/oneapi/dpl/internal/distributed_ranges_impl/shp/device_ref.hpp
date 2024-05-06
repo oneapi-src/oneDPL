@@ -19,6 +19,7 @@ public:
   device_ref(const device_ref &) = default;
 
   device_ref(T *pointer) : pointer_(pointer) {}
+  device_ref(T &value) : pointer_(&value) {}
 
   operator T() const {
 #ifdef __SYCL_DEVICE_ONLY__
