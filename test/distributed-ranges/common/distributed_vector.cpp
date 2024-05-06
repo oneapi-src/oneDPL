@@ -72,7 +72,7 @@ TEST(DistributedVector, ConstructorBasic) {
   iota(dist_vec, 100);
 
   std::vector<int> local_vec(10);
-  std::iota(local_vec, 100);
+  std::iota(rng::begin(local_vec), rng::end(local_vec), 100);
 
   EXPECT_EQ(local_vec, dist_vec);
 }

@@ -56,8 +56,8 @@ template <typename T> struct Ops2 {
   Ops2(std::size_t n) : dist_vec0(n), dist_vec1(n), vec0(n), vec1(n) {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
-    std::iota(vec0, 100);
-    std::iota(vec1, 200);
+    std::iota(rng::begin(vec0), rng::end(vec0), 100);
+    std::iota(rng::begin(vec1), rng::end(vec1), 200);
   }
 
   T dist_vec0, dist_vec1;
@@ -70,9 +70,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-    std::iota(vec0, 100);
-    std::iota(vec1, 200);
-    std::iota(vec2, 300);
+    std::iota(rng::begin(vec0), rng::end(vec0), 100);
+    std::iota(rng::begin(vec1), rng::end(vec1), 200);
+    std::iota(rng::begin(vec2), rng::end(vec2), 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;

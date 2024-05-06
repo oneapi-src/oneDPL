@@ -18,8 +18,8 @@ protected:
       auto &mop = mops[i];
       op.resize(10);
       mop.resize(10);
-      std::iota(op, val);
-      std::iota(mop, val);
+      std::iota(rng::begin(op), rng::end(op), val);
+      std::iota(rng::begin(mop), rng::end(mop), val);
       val += 100;
     }
   }
