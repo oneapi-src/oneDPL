@@ -120,7 +120,7 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     {
         using _TargetValueType = std::decay_t<_TargetT>;
 
-            ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
     }
 };
 
