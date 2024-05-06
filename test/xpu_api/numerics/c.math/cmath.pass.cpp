@@ -102,7 +102,7 @@ void test_abs()
 #endif
 
     assert(dpl::abs(-1.f) == 1.f);
-    IF_DOUBLE_SUPPORT(assert(dpl::abs(-1.) == 1));
+    IF_DOUBLE_SUPPORT(assert(dpl::abs(-1.) == 1.));
 }
 
 ONEDPL_TEST_DECLARE
