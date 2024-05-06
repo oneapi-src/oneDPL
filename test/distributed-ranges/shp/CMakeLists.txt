@@ -9,25 +9,17 @@ if (NOT CXX_FORMAT_SUPPORT)
   return()
 endif ()
 
-include(FetchContent)
+find_package(GTest)
+if (NOT GTest_FOUND)
+  message(WARNING "disabled distributed ranges tests, install libgtest-dev or other package with GTest")
+  return()
+endif ()
 
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.14.0)
-FetchContent_MakeAvailable(googletest)
-
-# FetchContent_Declare(
-#   range-v3
-#   GIT_REPOSITORY https://github.com/BenBrock/range-v3.git
-#   GIT_TAG 5300fe3)
-# FetchContent_MakeAvailable(range-v3)
-
-FetchContent_Declare(
-    cxxopts
-    GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-    GIT_TAG v3.0.0)
-FetchContent_MakeAvailable(cxxopts)
+check_include_file_cxx("cxxopts.hpp" CXX_OPTS_SUPPORT)
+if (NOT CXX_OPTS_SUPPORT)
+  message(WARNING "disabled distributed ranges tests, install libcxxopts-dev or other package with cxxopts")
+  return()
+endif ()
 
 find_package(MKL REQUIRED)
 
