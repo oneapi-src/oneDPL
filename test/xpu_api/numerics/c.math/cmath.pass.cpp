@@ -101,7 +101,8 @@ void test_abs()
 #pragma clang diagnostic pop
 #endif
 
-    assert(dpl::abs(-1.) == 1);
+    assert(dpl::abs(-1.f) == 1.f);
+    IF_DOUBLE_SUPPORT(assert(dpl::abs(-1.) == 1));
 }
 
 ONEDPL_TEST_DECLARE
