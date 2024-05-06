@@ -61,7 +61,7 @@ Parameters
 
 **Type Requirements**:
 
-- The element type of sequence(s) to scan must be a C++ integral or floating-point type
+- The element type of sequence to scan must be a C++ integral or floating-point type
   other than ``bool`` with a width of up to 64 bits.
 - The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
   evaluate to true.
