@@ -16,11 +16,12 @@
 #ifndef _TEST_COMPLEX_H
 #define _TEST_COMPLEX_H
 
+#include "test_config.h"
+
 #include <oneapi/dpl/complex>
 
 #include "utils.h"
 #include "utils_invoke.h"
-#include "test_config.h"
 
 #include <type_traits>
 #include <cassert>

@@ -12,6 +12,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
 #include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
