@@ -54,7 +54,7 @@ TYPED_TEST(DistributedVectorAllTypes, Stream) {
 TYPED_TEST(DistributedVectorAllTypes, Equality) {
   Ops1<TypeParam> ops(10);
   iota(ops.dist_vec, 100);
-  std::iota(ops.vec, 100);
+  std::iota(rng::begin(ops.vec), rng::end(ops.vec), 100);
   EXPECT_TRUE(ops.dist_vec == ops.vec);
   EXPECT_EQ(ops.vec, ops.dist_vec);
 }

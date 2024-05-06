@@ -237,7 +237,7 @@ public:
 private:
   template <std::size_t... Ints>
   auto local_impl_(std::index_sequence<Ints...>) const noexcept {
-    return rng::views::zip(__detail::local(std::get<Ints>(views_))...);
+    return rng::zip_view(__detail::local(std::get<Ints>(views_))...);
   }
 
   template <std::size_t I, typename R> std::size_t get_rank_impl_() const {

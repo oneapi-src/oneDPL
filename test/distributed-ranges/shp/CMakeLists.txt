@@ -7,10 +7,10 @@ include(CheckIncludeFileCXX)
 # if (NOT CXX_FORMAT_SUPPORT)
   find_package(fmt QUIET)
   if (NOT fmt_FOUND)
-    message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
+    message(WARNING "disabled distributed ranges tests, install ibfmt-dev or other package with fmt")
     return()
   endif ()
-  message(STATUS "using fmt library for logging in distributed-ranges tests")
+  #message(STATUS "using fmt library for logging in distributed-ranges tests")
 # endif()
 
 find_package(GTest)
@@ -89,7 +89,7 @@ add_executable(
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
-  target_link_libraries(${test-exec} GTest::gtest_main DR::shp cxxopts)
+  target_link_libraries(${test-exec} GTest::gtest_main DR::shp) #  cxxopts
   # if (NOT CXX_FORMAT_SUPPORT)
     target_link_libraries(${test-exec} fmt::fmt)
   # endif()

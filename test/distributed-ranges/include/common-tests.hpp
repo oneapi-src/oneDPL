@@ -45,7 +45,7 @@ inline std::ostream &operator<<(std::ostream &os, const AOS_Struct &st) {
 template <typename T> struct Ops1 {
   Ops1(std::size_t n) : dist_vec(n), vec(n) {
     iota(dist_vec, 100);
-    std::iota(vec, 100);
+    std::iota(rng::begin(vec), rng::end(vec), 100);
   }
 
   T dist_vec;
