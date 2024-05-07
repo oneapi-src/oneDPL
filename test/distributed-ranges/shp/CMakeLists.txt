@@ -66,16 +66,16 @@ add_executable(
   ../common/drop.cpp # test fail 
   ../common/enumerate.cpp
   ../common/fill.cpp 
-  ../common/for_each.cpp # compile fail
+  ../common/for_each.cpp
   ../common/iota.cpp
-  #../common/iota_view.cpp # compile fail
+  # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
   ../common/reduce.cpp 
   ../common/sort.cpp # test fail
   ../common/subrange.cpp
   ../common/take.cpp 
   ../common/transform.cpp 
   ../common/transform_view.cpp
-  ../common/zip.cpp # compile fail
+  ../common/zip.cpp
   ../common/zip_local.cpp 
   algorithms.cpp
   containers.cpp 
