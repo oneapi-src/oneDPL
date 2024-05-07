@@ -89,7 +89,7 @@ void test_edges()
             assert(std::isinf(r.real()));
             assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
             assert(std::isnan(r.imag()));
-#endif
+#endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && testcases[i].imag() == 0)
         {
@@ -97,7 +97,7 @@ void test_edges()
             assert(std::isnan(r.real()));
             assert(r.imag() == 0);
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
-#endif
+#endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
@@ -109,7 +109,7 @@ void test_edges()
 #if !_PSTL_TEST_COMPLEX_ASINH_BROKEN
             assert(std::isinf(r.real()));
             assert(std::isnan(r.imag()));
-#endif
+#endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {

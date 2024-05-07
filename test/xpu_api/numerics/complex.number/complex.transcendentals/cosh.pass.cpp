@@ -55,7 +55,7 @@ void test_edges()
             assert(std::isnan(r.real()));
             assert(r.imag() == 0);
         }
-#endif
+#endif // _PSTL_TEST_COMPLEX_COSH_BROKEN
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
             assert(std::isnan(r.real()));
@@ -99,7 +99,7 @@ void test_edges()
             assert(std::isnan(r.real()));
             assert(r.imag() == 0);
         }
-#endif
+#endif // _PSTL_TEST_COMPLEX_COSH_BROKEN
         else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
             assert(std::isnan(r.real()));

@@ -76,7 +76,7 @@ void test_edges()
             assert(r.imag() == 0);
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
-#endif
+#endif // _PSTL_TEST_COMPLEX_TANH_BROKEN
         else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
             assert(std::isnan(r.real()));
