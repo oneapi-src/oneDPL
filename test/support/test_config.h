@@ -119,6 +119,9 @@
 
 #define TEST_HAS_NO_INT128
 #define _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE (_MSVC_STL_VERSION < 143)
+#define _PSTL_TEST_COMPLEX_ACOS_MINUS_INF_NAN_BROKEN (_MSVC_STL_VERSION <= 143)
+#define _PSTL_TEST_COMPLEX_ACOS_MINUS_ZERO_NAN_BROKEN (_MSVC_STL_VERSION <= 143)
+#define _PSTL_TEST_COMPLEX_ACOS_NAN_MINUS_INF_BROKEN (_MSVC_STL_VERSION <= 143)
 
 #define _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN (__GLIBCXX__ >= 7)
 
@@ -168,7 +171,7 @@
 #    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
 #endif
 
-// Group reduction produces wrong results with multiplication of 64-bit for certain driver versions
+// Group reduction produces wrong results with multiplication of 64-bit  for certain driver versions
 // TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
 // of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
 #define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
