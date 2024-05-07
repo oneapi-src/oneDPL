@@ -48,10 +48,13 @@ kernel_test()
 int
 main()
 {
+    bool tests_run = false;
+
 #if !_PSTL_TEST_COMPARISON_BROKEN
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of work with dpl::array and '<=' in kernel_test");
+    tests_run = true;
 #endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done(!_PSTL_TEST_COMPARISON_BROKEN);
+    return TestUtils::done(tests_run);
 }
