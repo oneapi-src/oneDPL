@@ -110,6 +110,26 @@ bool fp_equal(std::vector<T> a, std::vector<T> b,
   return true;
 }
 
+template <class A, class B, class C, class D>
+bool operator==(std::pair<A, B> const & x, std::tuple<C, D> const & y)
+{
+    return x.first == std::get<0>(y)
+        && x.second == std::get<1>(y);
+}
+
+template <class A, class B, class C, class D>
+bool operator==(std::tuple<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x == y;
+}
+
+template <class A, class B, class C, class D>
+bool operator==(std::pair<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x.first == y.first && x.second == y.second;
+}
+
+
 template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   if (rng::distance(rng::begin(r1), rng::end(r1)) !=
       rng::distance(rng::begin(r2), rng::end(r2))) {
@@ -119,8 +139,8 @@ template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   // TODO: why r2.begin() is not working here with std::ranges?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
-    typeof(v2) v1 = *r1i++;
-    if (v2 != v1) {
+    auto && v1 = *r1i++;
+    if (!(v2 == v1)) {
       return false;
     }
   }

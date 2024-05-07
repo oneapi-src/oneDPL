@@ -64,11 +64,11 @@ add_executable(
   ../common/counted.cpp
   ../common/distributed_vector.cpp 
   ../common/drop.cpp # test fail 
-  # ../common/enumerate.cpp # compile fail
+  ../common/enumerate.cpp
   ../common/fill.cpp 
   ../common/for_each.cpp # compile fail
   ../common/iota.cpp
-  ## ../common/iota_view.cpp # compile fail
+  #../common/iota_view.cpp # compile fail
   ../common/reduce.cpp 
   ../common/sort.cpp # test fail
   ../common/subrange.cpp
