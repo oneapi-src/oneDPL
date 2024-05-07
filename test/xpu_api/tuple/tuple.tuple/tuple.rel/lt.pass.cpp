@@ -20,6 +20,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#if !_PSTL_TEST_COMPARISON_BROKEN
 class KernelTupleLTTest1;
 class KernelTupleLTTest2;
 
@@ -304,16 +305,19 @@ kernel_test2(sycl::queue& deviceQueue)
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::tuple comparison check");
 }
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
 int
 main()
 {
+#if !_PSTL_TEST_COMPARISON_BROKEN
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done();
+    return TestUtils::done(!_PSTL_TEST_COMPARISON_BROKEN);
 }

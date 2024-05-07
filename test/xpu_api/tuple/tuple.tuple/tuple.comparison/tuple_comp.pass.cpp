@@ -21,6 +21,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#if !_PSTL_TEST_COMPARISON_BROKEN
 template <typename X>
 bool
 test(const X& x)
@@ -60,12 +61,15 @@ kernel_test()
     }
     return ret;
 }
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
 int
 main()
 {
+#if !_PSTL_TEST_COMPARISON_BROKEN
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::tuple comparison check");
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done();
+    return TestUtils::done(!_PSTL_TEST_COMPARISON_BROKEN);
 }

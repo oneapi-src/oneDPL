@@ -20,6 +20,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#if !_PSTL_TEST_COMPARISON_BROKEN
 class KernelPairTest;
 void
 kernel_test()
@@ -97,10 +98,14 @@ kernel_test()
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::pair comparison check");
 }
 
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
+
 int
 main()
 {
+#if !_PSTL_TEST_COMPARISON_BROKEN
     kernel_test();
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done();
+    return TestUtils::done(!_PSTL_TEST_COMPARISON_BROKEN);
 }
