@@ -345,13 +345,13 @@ void test_isnan()
     static_assert((std::is_same_v<decltype(dpl::isnan(0)), bool>));
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same_v<decltype(dpl::isnan((long double)0)), bool>)))
     IF_DOUBLE_SUPPORT(assert(dpl::isnan(-1.0) == false))
-#if !_PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_MSVC_STL_LLVM_COMPILER
     assert(dpl::isnan(0) == false);
     assert(dpl::isnan(1) == false);
     assert(dpl::isnan(-1) == false);
     assert(dpl::isnan(std::numeric_limits<int>::max()) == false);
     assert(dpl::isnan(std::numeric_limits<int>::min()) == false);
-#endif // !_PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN
+#endif // !_PSTL_TEST_COMPLEX_OP_BROKEN_MSVC_STL_LLVM_COMPILER
 
 #ifdef __clang__
 #pragma clang diagnostic pop
