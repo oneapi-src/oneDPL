@@ -23,8 +23,6 @@ endif ()
 
 find_package(MKL REQUIRED)
 
-# include(GoogleTest)
-
 add_library(dr_shp INTERFACE)
 add_library(DR::shp ALIAS dr_shp)
 
