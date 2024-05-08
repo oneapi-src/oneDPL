@@ -16,6 +16,9 @@
 
 #include "../cases.h"
 
+#include <thread>
+#include <chrono>
+
 template <class T>
 void
 test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
@@ -154,7 +157,29 @@ void test_edges()
     }
 }
 
-ONEDPL_TEST_NUM_MAIN
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
+int
+run_test();
+int
+main(int, char**)
+{
+    std::cout << "Wait debugger 30 sec." << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+
+    std::cout << "Run test on host" << std::endl;
+    run_test<::std::true_type, ::std::true_type>();
+    using HasDoubleTypeSupportInRuntime = ::std::true_type;
+    using HasntDoubleTypeSupportInRuntime = ::std::false_type;
+    using HasntLongDoubleSupportInCompiletime = ::std::false_type;
+    std::cout << "Run test on device" << std::endl;
+    TestUtils::run_test_in_kernel(
+        [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },
+        [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); });
+    return TestUtils::done();
+}
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
+int
+run_test()
 {
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
