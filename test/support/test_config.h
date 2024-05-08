@@ -158,7 +158,7 @@
 // within a sycl kernel which MSVC uses to allow comparisons with literal zero without warning
 #define _PSTL_TEST_COMPARISON_BROKEN                                                                                   \
     (__cplusplus >= 202002L && _MSVC_LANG >= 202002L && _MSVC_STL_VERSION >= 143 && _MSVC_STL_UPDATE >= 202303L &&     \
-    __INTEL_LLVM_COMPILER <= 20240200)
+    defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER <= 20240200)
 
 #define _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
 #define _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
