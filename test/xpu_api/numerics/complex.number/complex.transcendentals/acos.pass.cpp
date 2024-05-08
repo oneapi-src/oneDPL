@@ -47,10 +47,10 @@ void test_edges()
         }
         else if (testcases[i].real() == 0 && std::isnan(testcases[i].imag()))
         {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN
             is_about(r.real(), pi/2);
             assert(std::isnan(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
+#endif // _PSTL_TEST_COMPLEX_OP_BROKEN
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
@@ -90,10 +90,10 @@ void test_edges()
         }
         else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN
             assert(std::isnan(r.real()));
             assert(std::isinf(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
+#endif // _PSTL_TEST_COMPLEX_OP_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
@@ -102,11 +102,11 @@ void test_edges()
         }
         else if (std::isnan(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN
             assert(std::isnan(r.real()));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
+#endif // _PSTL_TEST_COMPLEX_OP_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
