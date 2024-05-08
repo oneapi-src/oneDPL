@@ -75,13 +75,15 @@ void test_edges()
                     assert(classify(r) == non_zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+//#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     if (classify(r) != zero)
                     {
+                        //  0       dpl::complex<double>(1.e-6, 1.e-6)
+                        // 33       dpl::complex<double>(-2, NAN)
                         std::cout << "i = " << i << ", j == " << j << std::endl;
                         assert(false);
                     }
-#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+//#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
                     assert(classify(r) == NaN);

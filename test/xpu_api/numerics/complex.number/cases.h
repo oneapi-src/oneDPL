@@ -19,175 +19,175 @@
 
 const dpl::complex<double> testcases[] =
 {
-    dpl::complex<double>( 1.e-6,  1.e-6),
-    dpl::complex<double>(-1.e-6,  1.e-6),
-    dpl::complex<double>(-1.e-6, -1.e-6),
-    dpl::complex<double>( 1.e-6, -1.e-6),
+    dpl::complex<double>( 1.e-6,  1.e-6),               // 0
+    dpl::complex<double>(-1.e-6,  1.e-6),               // 1
+    dpl::complex<double>(-1.e-6, -1.e-6),               // 2
+    dpl::complex<double>( 1.e-6, -1.e-6),               // 3
 
-    dpl::complex<double>( 1.e+6,  1.e-6),
-    dpl::complex<double>(-1.e+6,  1.e-6),
-    dpl::complex<double>(-1.e+6, -1.e-6),
-    dpl::complex<double>( 1.e+6, -1.e-6),
+    dpl::complex<double>( 1.e+6,  1.e-6),               // 4
+    dpl::complex<double>(-1.e+6,  1.e-6),               // 5
+    dpl::complex<double>(-1.e+6, -1.e-6),               // 6
+    dpl::complex<double>( 1.e+6, -1.e-6),               // 7
 
-    dpl::complex<double>( 1.e-6,  1.e+6),
-    dpl::complex<double>(-1.e-6,  1.e+6),
-    dpl::complex<double>(-1.e-6, -1.e+6),
-    dpl::complex<double>( 1.e-6, -1.e+6),
+    dpl::complex<double>( 1.e-6,  1.e+6),               // 8
+    dpl::complex<double>(-1.e-6,  1.e+6),               // 9
+    dpl::complex<double>(-1.e-6, -1.e+6),               // 10
+    dpl::complex<double>( 1.e-6, -1.e+6),               // 11
 
-    dpl::complex<double>( 1.e+6,  1.e+6),
-    dpl::complex<double>(-1.e+6,  1.e+6),
-    dpl::complex<double>(-1.e+6, -1.e+6),
-    dpl::complex<double>( 1.e+6, -1.e+6),
+    dpl::complex<double>( 1.e+6,  1.e+6),               // 12
+    dpl::complex<double>(-1.e+6,  1.e+6),               // 13
+    dpl::complex<double>(-1.e+6, -1.e+6),               // 14
+    dpl::complex<double>( 1.e+6, -1.e+6),               // 15
 
-    dpl::complex<double>(-0, -1.e-6),
-    dpl::complex<double>(-0,  1.e-6),
-    dpl::complex<double>(-0,  1.e+6),
-    dpl::complex<double>(-0, -1.e+6),
-    dpl::complex<double>( 0, -1.e-6),
-    dpl::complex<double>( 0,  1.e-6),
-    dpl::complex<double>( 0,  1.e+6),
-    dpl::complex<double>( 0, -1.e+6),
+    dpl::complex<double>(-0, -1.e-6),                   // 16
+    dpl::complex<double>(-0,  1.e-6),                   // 17
+    dpl::complex<double>(-0,  1.e+6),                   // 18
+    dpl::complex<double>(-0, -1.e+6),                   // 19
+    dpl::complex<double>( 0, -1.e-6),                   // 20
+    dpl::complex<double>( 0,  1.e-6),                   // 21
+    dpl::complex<double>( 0,  1.e+6),                   // 22
+    dpl::complex<double>( 0, -1.e+6),                   // 23
 
-    dpl::complex<double>(-1.e-6, -0),
-    dpl::complex<double>( 1.e-6, -0),
-    dpl::complex<double>( 1.e+6, -0),
-    dpl::complex<double>(-1.e+6, -0),
-    dpl::complex<double>(-1.e-6,  0),
-    dpl::complex<double>( 1.e-6,  0),
-    dpl::complex<double>( 1.e+6,  0),
-    dpl::complex<double>(-1.e+6,  0),
+    dpl::complex<double>(-1.e-6, -0),                   // 24
+    dpl::complex<double>( 1.e-6, -0),                   // 25
+    dpl::complex<double>( 1.e+6, -0),                   // 25
+    dpl::complex<double>(-1.e+6, -0),                   // 26
+    dpl::complex<double>(-1.e-6,  0),                   // 27
+    dpl::complex<double>( 1.e-6,  0),                   // 28
+    dpl::complex<double>( 1.e+6,  0),                   // 29
+    dpl::complex<double>(-1.e+6,  0),                   // 30
 
-    dpl::complex<double>(NAN, NAN),
-    dpl::complex<double>(-INFINITY, NAN),
-    dpl::complex<double>(-2, NAN),
-    dpl::complex<double>(-1, NAN),
-    dpl::complex<double>(-0.5, NAN),
-    dpl::complex<double>(-0., NAN),
-    dpl::complex<double>(+0., NAN),
-    dpl::complex<double>(0.5, NAN),
-    dpl::complex<double>(1, NAN),
-    dpl::complex<double>(2, NAN),
-    dpl::complex<double>(INFINITY, NAN),
+    dpl::complex<double>(NAN, NAN),                     // 31
+    dpl::complex<double>(-INFINITY, NAN),               // 32
+    dpl::complex<double>(-2, NAN),                      // 33
+    dpl::complex<double>(-1, NAN),                      //
+    dpl::complex<double>(-0.5, NAN),                    //
+    dpl::complex<double>(-0., NAN),                     //
+    dpl::complex<double>(+0., NAN),                     //
+    dpl::complex<double>(0.5, NAN),                     //
+    dpl::complex<double>(1, NAN),                       //
+    dpl::complex<double>(2, NAN),                       //
+    dpl::complex<double>(INFINITY, NAN),                //
 
-    dpl::complex<double>(NAN, -INFINITY),
-    dpl::complex<double>(-INFINITY, -INFINITY),
-    dpl::complex<double>(-2, -INFINITY),
-    dpl::complex<double>(-1, -INFINITY),
-    dpl::complex<double>(-0.5, -INFINITY),
-    dpl::complex<double>(-0., -INFINITY),
-    dpl::complex<double>(+0., -INFINITY),
-    dpl::complex<double>(0.5, -INFINITY),
-    dpl::complex<double>(1, -INFINITY),
-    dpl::complex<double>(2, -INFINITY),
-    dpl::complex<double>(INFINITY, -INFINITY),
+    dpl::complex<double>(NAN, -INFINITY),               //
+    dpl::complex<double>(-INFINITY, -INFINITY),         //
+    dpl::complex<double>(-2, -INFINITY),                //
+    dpl::complex<double>(-1, -INFINITY),                //
+    dpl::complex<double>(-0.5, -INFINITY),              //
+    dpl::complex<double>(-0., -INFINITY),               //
+    dpl::complex<double>(+0., -INFINITY),               //
+    dpl::complex<double>(0.5, -INFINITY),               //
+    dpl::complex<double>(1, -INFINITY),                 //
+    dpl::complex<double>(2, -INFINITY),                 //
+    dpl::complex<double>(INFINITY, -INFINITY),          //
 
-    dpl::complex<double>(NAN, -2),
-    dpl::complex<double>(-INFINITY, -2),
-    dpl::complex<double>(-2, -2),
-    dpl::complex<double>(-1, -2),
-    dpl::complex<double>(-0.5, -2),
-    dpl::complex<double>(-0., -2),
-    dpl::complex<double>(+0., -2),
-    dpl::complex<double>(0.5, -2),
-    dpl::complex<double>(1, -2),
-    dpl::complex<double>(2, -2),
-    dpl::complex<double>(INFINITY, -2),
+    dpl::complex<double>(NAN, -2),                      //
+    dpl::complex<double>(-INFINITY, -2),                //
+    dpl::complex<double>(-2, -2),                       //
+    dpl::complex<double>(-1, -2),                       //
+    dpl::complex<double>(-0.5, -2),                     //
+    dpl::complex<double>(-0., -2),                      //
+    dpl::complex<double>(+0., -2),                      //
+    dpl::complex<double>(0.5, -2),                      //
+    dpl::complex<double>(1, -2),                        //
+    dpl::complex<double>(2, -2),                        //
+    dpl::complex<double>(INFINITY, -2),                 //
 
-    dpl::complex<double>(NAN, -1),
-    dpl::complex<double>(-INFINITY, -1),
-    dpl::complex<double>(-2, -1),
-    dpl::complex<double>(-1, -1),
-    dpl::complex<double>(-0.5, -1),
-    dpl::complex<double>(-0., -1),
-    dpl::complex<double>(+0., -1),
-    dpl::complex<double>(0.5, -1),
-    dpl::complex<double>(1, -1),
-    dpl::complex<double>(2, -1),
-    dpl::complex<double>(INFINITY, -1),
+    dpl::complex<double>(NAN, -1),                      //
+    dpl::complex<double>(-INFINITY, -1),                //
+    dpl::complex<double>(-2, -1),                       //
+    dpl::complex<double>(-1, -1),                       //
+    dpl::complex<double>(-0.5, -1),                     //
+    dpl::complex<double>(-0., -1),                      //
+    dpl::complex<double>(+0., -1),                      //
+    dpl::complex<double>(0.5, -1),                      //
+    dpl::complex<double>(1, -1),                        //
+    dpl::complex<double>(2, -1),                        //
+    dpl::complex<double>(INFINITY, -1),                 //
 
-    dpl::complex<double>(NAN, -0.5),
-    dpl::complex<double>(-INFINITY, -0.5),
-    dpl::complex<double>(-2, -0.5),
-    dpl::complex<double>(-1, -0.5),
-    dpl::complex<double>(-0.5, -0.5),
-    dpl::complex<double>(-0., -0.5),
-    dpl::complex<double>(+0., -0.5),
-    dpl::complex<double>(0.5, -0.5),
-    dpl::complex<double>(1, -0.5),
-    dpl::complex<double>(2, -0.5),
-    dpl::complex<double>(INFINITY, -0.5),
+    dpl::complex<double>(NAN, -0.5),                    //
+    dpl::complex<double>(-INFINITY, -0.5),              //
+    dpl::complex<double>(-2, -0.5),                     //
+    dpl::complex<double>(-1, -0.5),                     //
+    dpl::complex<double>(-0.5, -0.5),                   //
+    dpl::complex<double>(-0., -0.5),                    //
+    dpl::complex<double>(+0., -0.5),                    //
+    dpl::complex<double>(0.5, -0.5),                    //
+    dpl::complex<double>(1, -0.5),                      //
+    dpl::complex<double>(2, -0.5),                      //
+    dpl::complex<double>(INFINITY, -0.5),               //
 
-    dpl::complex<double>(NAN, -0.),
-    dpl::complex<double>(-INFINITY, -0.),
-    dpl::complex<double>(-2, -0.),
-    dpl::complex<double>(-1, -0.),
-    dpl::complex<double>(-0.5, -0.),
-    dpl::complex<double>(-0., -0.),
-    dpl::complex<double>(+0., -0.),
-    dpl::complex<double>(0.5, -0.),
-    dpl::complex<double>(1, -0.),
-    dpl::complex<double>(2, -0.),
-    dpl::complex<double>(INFINITY, -0.),
+    dpl::complex<double>(NAN, -0.),                     //
+    dpl::complex<double>(-INFINITY, -0.),               //
+    dpl::complex<double>(-2, -0.),                      //
+    dpl::complex<double>(-1, -0.),                      //
+    dpl::complex<double>(-0.5, -0.),                    //
+    dpl::complex<double>(-0., -0.),                     //
+    dpl::complex<double>(+0., -0.),                     //
+    dpl::complex<double>(0.5, -0.),                     //
+    dpl::complex<double>(1, -0.),                       //
+    dpl::complex<double>(2, -0.),                       //
+    dpl::complex<double>(INFINITY, -0.),                //
 
-    dpl::complex<double>(NAN, +0.),
-    dpl::complex<double>(-INFINITY, +0.),
-    dpl::complex<double>(-2, +0.),
-    dpl::complex<double>(-1, +0.),
-    dpl::complex<double>(-0.5, +0.),
-    dpl::complex<double>(-0., +0.),
-    dpl::complex<double>(+0., +0.),
-    dpl::complex<double>(0.5, +0.),
-    dpl::complex<double>(1, +0.),
-    dpl::complex<double>(2, +0.),
-    dpl::complex<double>(INFINITY, +0.),
+    dpl::complex<double>(NAN, +0.),                     //
+    dpl::complex<double>(-INFINITY, +0.),               //
+    dpl::complex<double>(-2, +0.),                      //
+    dpl::complex<double>(-1, +0.),                      //
+    dpl::complex<double>(-0.5, +0.),                    //
+    dpl::complex<double>(-0., +0.),                     //
+    dpl::complex<double>(+0., +0.),                     //
+    dpl::complex<double>(0.5, +0.),                     //
+    dpl::complex<double>(1, +0.),                       //
+    dpl::complex<double>(2, +0.),                       //
+    dpl::complex<double>(INFINITY, +0.),                //
 
-    dpl::complex<double>(NAN, 0.5),
-    dpl::complex<double>(-INFINITY, 0.5),
-    dpl::complex<double>(-2, 0.5),
-    dpl::complex<double>(-1, 0.5),
-    dpl::complex<double>(-0.5, 0.5),
-    dpl::complex<double>(-0., 0.5),
-    dpl::complex<double>(+0., 0.5),
-    dpl::complex<double>(0.5, 0.5),
-    dpl::complex<double>(1, 0.5),
-    dpl::complex<double>(2, 0.5),
-    dpl::complex<double>(INFINITY, 0.5),
+    dpl::complex<double>(NAN, 0.5),                     //
+    dpl::complex<double>(-INFINITY, 0.5),               //
+    dpl::complex<double>(-2, 0.5),                      //
+    dpl::complex<double>(-1, 0.5),                      //
+    dpl::complex<double>(-0.5, 0.5),                    //
+    dpl::complex<double>(-0., 0.5),                     //
+    dpl::complex<double>(+0., 0.5),                     //
+    dpl::complex<double>(0.5, 0.5),                     //
+    dpl::complex<double>(1, 0.5),                       //
+    dpl::complex<double>(2, 0.5),                       //
+    dpl::complex<double>(INFINITY, 0.5),                //
 
-    dpl::complex<double>(NAN, 1),
-    dpl::complex<double>(-INFINITY, 1),
-    dpl::complex<double>(-2, 1),
-    dpl::complex<double>(-1, 1),
-    dpl::complex<double>(-0.5, 1),
-    dpl::complex<double>(-0., 1),
-    dpl::complex<double>(+0., 1),
-    dpl::complex<double>(0.5, 1),
-    dpl::complex<double>(1, 1),
-    dpl::complex<double>(2, 1),
-    dpl::complex<double>(INFINITY, 1),
+    dpl::complex<double>(NAN, 1),                       //
+    dpl::complex<double>(-INFINITY, 1),                 //
+    dpl::complex<double>(-2, 1),                        //
+    dpl::complex<double>(-1, 1),                        //
+    dpl::complex<double>(-0.5, 1),                      //
+    dpl::complex<double>(-0., 1),                       //
+    dpl::complex<double>(+0., 1),                       //
+    dpl::complex<double>(0.5, 1),                       //
+    dpl::complex<double>(1, 1),                         //
+    dpl::complex<double>(2, 1),                         //
+    dpl::complex<double>(INFINITY, 1),                  //
 
-    dpl::complex<double>(NAN, 2),
-    dpl::complex<double>(-INFINITY, 2),
-    dpl::complex<double>(-2, 2),
-    dpl::complex<double>(-1, 2),
-    dpl::complex<double>(-0.5, 2),
-    dpl::complex<double>(-0., 2),
-    dpl::complex<double>(+0., 2),
-    dpl::complex<double>(0.5, 2),
-    dpl::complex<double>(1, 2),
-    dpl::complex<double>(2, 2),
-    dpl::complex<double>(INFINITY, 2),
+    dpl::complex<double>(NAN, 2),                       //
+    dpl::complex<double>(-INFINITY, 2),                 //
+    dpl::complex<double>(-2, 2),                        //
+    dpl::complex<double>(-1, 2),                        //
+    dpl::complex<double>(-0.5, 2),                      //
+    dpl::complex<double>(-0., 2),                       //
+    dpl::complex<double>(+0., 2),                       //
+    dpl::complex<double>(0.5, 2),                       //
+    dpl::complex<double>(1, 2),                         //
+    dpl::complex<double>(2, 2),                         //
+    dpl::complex<double>(INFINITY, 2),                  //
 
-    dpl::complex<double>(NAN, INFINITY),
-    dpl::complex<double>(-INFINITY, INFINITY),
-    dpl::complex<double>(-2, INFINITY),
-    dpl::complex<double>(-1, INFINITY),
-    dpl::complex<double>(-0.5, INFINITY),
-    dpl::complex<double>(-0., INFINITY),
-    dpl::complex<double>(+0., INFINITY),
-    dpl::complex<double>(0.5, INFINITY),
-    dpl::complex<double>(1, INFINITY),
-    dpl::complex<double>(2, INFINITY),
-    dpl::complex<double>(INFINITY, INFINITY)
+    dpl::complex<double>(NAN, INFINITY),                //
+    dpl::complex<double>(-INFINITY, INFINITY),          //
+    dpl::complex<double>(-2, INFINITY),                 //
+    dpl::complex<double>(-1, INFINITY),                 //
+    dpl::complex<double>(-0.5, INFINITY),               //
+    dpl::complex<double>(-0., INFINITY),                //
+    dpl::complex<double>(+0., INFINITY),                //
+    dpl::complex<double>(0.5, INFINITY),                //
+    dpl::complex<double>(1, INFINITY),                  //
+    dpl::complex<double>(2, INFINITY),                  //
+    dpl::complex<double>(INFINITY, INFINITY)            //
 };
 
 enum {zero, non_zero, inf, NaN, non_zero_nan};
