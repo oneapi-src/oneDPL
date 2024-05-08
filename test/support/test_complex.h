@@ -39,6 +39,7 @@ run_test();                                                                     
                                                                                                       \
 int main(int, char**)                                                                                 \
 {                                                                                                     \
+    std::cout << "Run test on host" << std::endl;                                                     \
     run_test<::std::true_type, ::std::true_type>();                                                   \
                                                                                                       \
     /* Sometimes we may start test on device, which don't support type double. */                     \
@@ -51,6 +52,7 @@ int main(int, char**)                                                           
     /* and we never can use this type inside Kernel                            */                     \
     using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
                                                                                                       \
+    std::cout << "Run test on device" << std::endl;                                                   \
     TestUtils::run_test_in_kernel(                                                                    \
         /* lambda for the case when we have support of double type on device */                       \
         [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
