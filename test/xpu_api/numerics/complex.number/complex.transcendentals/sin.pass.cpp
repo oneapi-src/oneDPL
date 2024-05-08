@@ -52,10 +52,10 @@ void test_edges()
             assert(std::isnan(dpl::imag(z)));
         else
         {
-#ifndef _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN
+#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_CLANG
             is_about(dpl::imag(r), dpl::imag(z));
             assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
-#endif // _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN
+#endif // _PSTL_TEST_COMPLEX_OP_BROKEN_CLANG
         }
     }
 }
