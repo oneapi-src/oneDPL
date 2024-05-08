@@ -27,12 +27,11 @@ main()
 {
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
-        int a[4] = {0, 0, 0, 0};
-        auto res = std::ranges::subrange(a, a+4) | std::ranges::views::transform([](auto v) { return v + 1;});
-        return res[0] == 1 && res[1] == 1 && res[2] == 1 && res[3] == 1;
+        auto res = std::ranges::views::iota(0, 4);
+        return res.size() == 4 && res[0] == 0 && res[1] == 1 && res[2] == 2 && res[3] == 3;
     };
-    const bool res = kernel_test<class std_transform_test>(test);
-    EXPECT_TRUE(res, "Wrong result of transform_view check within a kernel");
+    const bool res = kernel_test<class std_iota_test>(test);
+    EXPECT_TRUE(res, "Wrong result of iota_view check within a kernel");
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
