@@ -16,9 +16,6 @@
 
 #include "../cases.h"
 
-#include <thread>
-#include <chrono>
-
 template <class T>
 void
 test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
@@ -167,9 +164,6 @@ run_test();
 int
 main(int, char**)
 {
-    std::cout << "Wait debugger 30 sec." << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(30));
-
     std::cout << "Run test on host" << std::endl;
     run_test<::std::true_type, ::std::true_type>();
     //using HasDoubleTypeSupportInRuntime = ::std::true_type;
