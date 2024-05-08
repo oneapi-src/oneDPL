@@ -81,9 +81,9 @@ test(::std::enable_if_t<!std::is_integral_v<T>>* = 0, ::std::enable_if_t<!std::i
 ONEDPL_TEST_NUM_MAIN
 {
     IF_DOUBLE_SUPPORT(
-#if !_PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
                       test<int, float>();
-#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
+#endif // !_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
 
                       test<unsigned, float>();
                       test<long long, float>();
