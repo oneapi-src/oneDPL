@@ -54,7 +54,7 @@ void test_edges()
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    //assert(classify(r) == zero);
+                    assert(classify(r) == zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -69,14 +69,14 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    //assert(classify(r) == inf);
+                    assert(classify(r) == inf);
                     break;
                 case non_zero:
                     assert(classify(r) == non_zero);
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    //assert(classify(r) == zero);
+                    assert(classify(r) == zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -91,11 +91,11 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    //assert(classify(r) == inf);
+                    assert(classify(r) == inf);
                     break;
                 case non_zero:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    //assert(classify(r) == inf);
+                    assert(classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case inf:
@@ -133,7 +133,7 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    //assert(classify(r) == inf);
+                    assert(classify(r) == inf);
                     break;
                 case non_zero:
                     assert(classify(r) == NaN);
