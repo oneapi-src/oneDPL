@@ -30,13 +30,13 @@ test()
 
     dpl::complex<T> c3;
 
-#if _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE && !_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#if _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE && !_PSTL_TEST_COMPLEX_OP_BROKEN_LIBSTDCXX_STL_7_OR_GREATER
     c3 = c;
     dpl::complex<int> ic (1,1);
     c3 /= ic;
     is_about(c3.real(),  0.5f);
     is_about(c3.imag(), -0.5f);
-#endif // _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE && !_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#endif // _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE && !_PSTL_TEST_COMPLEX_OP_BROKEN_LIBSTDCXX_STL_7_OR_GREATER
 
     c3 = c;
     dpl::complex<float> fc (1,1);
