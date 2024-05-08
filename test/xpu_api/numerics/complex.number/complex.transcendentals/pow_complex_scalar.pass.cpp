@@ -61,11 +61,11 @@ void test_edges()
 
 ONEDPL_TEST_NUM_MAIN
 {
-#if _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ
+#if _PSTL_TEST_COMPLEX_OP_MATH_DOUBLE_REQ_MSVC
     IF_DOUBLE_SUPPORT(test<float>())
 #else
     test<float>();
-#endif
+#endif // _PSTL_TEST_COMPLEX_OP_MATH_DOUBLE_REQ_MSVC
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
 #ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER

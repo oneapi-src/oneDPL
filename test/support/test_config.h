@@ -129,7 +129,7 @@
 
 // Known limitation:
 // Due to specifics of Microsoft* Visual C++, some standard floating-point math functions require device support for double precision.
-#define _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ _MSC_VER
+#define _PSTL_TEST_COMPLEX_OP_MATH_DOUBLE_REQ_MSVC _MSC_VER
 
 #define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
 
