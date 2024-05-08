@@ -127,11 +127,11 @@
 #define _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN (__GLIBCXX__ >= 7)
 #define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN (_MSC_VER && __cplusplus < 202002L && _MSVC_LANG < 202002L)
 
-#define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
-
 // Known limitation:
 // Due to specifics of Microsoft* Visual C++, some standard floating-point math functions require device support for double precision.
 #define _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ _MSC_VER
+
+#define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
 
 #define TEST_DYNAMIC_SELECTION_AVAILABLE (TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER >= 20230000)
 
