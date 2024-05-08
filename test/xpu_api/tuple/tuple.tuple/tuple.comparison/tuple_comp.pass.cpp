@@ -66,13 +66,13 @@ kernel_test()
 int
 main()
 {
-    bool tests_run = false;
+    bool bProcessed = false;
 
 #if !_PSTL_TEST_COMPARISON_BROKEN
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::tuple comparison check");
-    tests_run = true;
+    bProcessed = true;
 #endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done(tests_run);
+    return TestUtils::done(bProcessed);
 }

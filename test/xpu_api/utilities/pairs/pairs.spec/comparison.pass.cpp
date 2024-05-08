@@ -103,12 +103,12 @@ kernel_test()
 int
 main()
 {
-    bool tests_run = false;
+    bool bProcessed = false;
 
 #if !_PSTL_TEST_COMPARISON_BROKEN
     kernel_test();
-    tests_run = true;
+    bProcessed = true;
 #endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done(tests_run);
+    return TestUtils::done(bProcessed);
 }

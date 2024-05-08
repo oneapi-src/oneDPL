@@ -310,7 +310,7 @@ kernel_test2(sycl::queue& deviceQueue)
 int
 main()
 {
-    bool tests_run = false;
+    bool bProcessed = false;
 
 #if !_PSTL_TEST_COMPARISON_BROKEN
     sycl::queue deviceQueue = TestUtils::get_test_queue();
@@ -319,8 +319,8 @@ main()
     {
         kernel_test2(deviceQueue);
     }
-    tests_run = true;
+    bProcessed = true;
 #endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done(tests_run);
+    return TestUtils::done(bProcessed);
 }
