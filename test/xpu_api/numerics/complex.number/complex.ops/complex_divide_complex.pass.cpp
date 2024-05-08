@@ -78,7 +78,7 @@ void test_edges()
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     if (classify(r) != zero)
                     {
-                        std::cout << "i = " << i << ", j == " << j << ", classify(r) = (" << classify(r).real() << ", " << classify(r).imag() << ")" << std::endl;
+                        std::cout << "i = " << i << ", j == " << j << std::endl;
                         assert(false);
                     }
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
