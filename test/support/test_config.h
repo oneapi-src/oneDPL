@@ -136,6 +136,7 @@
 #define _PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
 
 #define _PSTL_TEST_COMPLEX_OP_BROKEN_MSVC_STL (_MSVC_STL_VERSION && _MSVC_STL_VERSION <= 143)
+#define _PSTL_TEST_COMPLEX_OP_BROKEN_CLANG __clang__
 
 #define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
 
@@ -143,7 +144,6 @@
 // Due to specifics of Microsoft* Visual C++, some standard floating-point math functions require device support for double precision.
 #define _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ _MSC_VER
 
-#define _PSTL_CLANG_TEST_COMPLEX_ACOS_IS_NAN_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN __clang__
 
