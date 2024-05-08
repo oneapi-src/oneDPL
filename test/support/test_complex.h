@@ -16,11 +16,12 @@
 #ifndef _TEST_COMPLEX_H
 #define _TEST_COMPLEX_H
 
+#include "test_config.h"
+
 #include <oneapi/dpl/complex>
 
 #include "utils.h"
 #include "utils_invoke.h"
-#include "test_config.h"
 
 #include <type_traits>
 #include <cassert>
@@ -51,9 +52,9 @@ int main(int, char**)                                                           
     using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
                                                                                                       \
     TestUtils::run_test_in_kernel(                                                                    \
-        /* labbda for the case when we have support of double type on device */                       \
+        /* lambda for the case when we have support of double type on device */                       \
         [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
-        /* labbda for the case when we haven't support of double type on device */                    \
+        /* lambda for the case when we haven't support of double type on device */                    \
         [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); }); \
                                                                                                       \
     return TestUtils::done();                                                                         \

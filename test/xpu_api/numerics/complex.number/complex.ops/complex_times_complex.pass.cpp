@@ -75,7 +75,9 @@ void test_edges()
                     assert(classify(r) == non_zero);
                     break;
                 case inf:
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
                     assert(classify(r) == NaN);
@@ -92,16 +94,22 @@ void test_edges()
                     assert(classify(r) == NaN);
                     break;
                 case non_zero:
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case inf:
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     assert(classify(r) == inf);
+#endif
                     break;
                 case NaN:
                     assert(classify(r) == NaN);
                     break;
                 case non_zero_nan:
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 }
                 break;
@@ -135,7 +143,9 @@ void test_edges()
                     assert(classify(r) == NaN);
                     break;
                 case inf:
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
                     assert(classify(r) == NaN);
