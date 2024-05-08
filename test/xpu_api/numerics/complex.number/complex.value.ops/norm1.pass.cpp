@@ -40,7 +40,7 @@ void test_edges()
             assert(std::isfinite(r) && r > 0);
             break;
         case inf:
-#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
             assert(std::isinf(r) && r > 0);
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
             break;

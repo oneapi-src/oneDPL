@@ -40,7 +40,7 @@ void test_edges()
         {
             assert(r.real() == 1);
             assert(r.imag() == 0);
-#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
         }
@@ -72,7 +72,7 @@ void test_edges()
             assert(std::isinf(r.real()));
             assert(!std::signbit(r.real()));
             assert(r.imag() == 0);
-#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
         }

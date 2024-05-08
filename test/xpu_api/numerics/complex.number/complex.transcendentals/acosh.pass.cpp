@@ -75,7 +75,7 @@ void test_edges()
         else if (std::isfinite(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
             assert(std::isnan(r.real()));
-#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_CLANG
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_CLANG
             assert(std::isnan(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_CLANG
         }

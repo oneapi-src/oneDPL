@@ -87,7 +87,7 @@ void test_edges()
 #if !_PSTL_TEST_COMPLEX_OP_BROKEN_MSVC_STL
             assert(std::isnan(r.real()));
             assert(std::isinf(r.imag()));
-#ifndef _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
+#if !_PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
             assert(std::signbit(testcases[i].real()) != std::signbit(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_INTEL_LLVM_COMPILER
 #endif // _PSTL_TEST_COMPLEX_OP_BROKEN_MSVC_STL
