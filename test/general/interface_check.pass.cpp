@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/functional>
@@ -24,7 +26,6 @@
 #include <functional>
 #include <iterator>
 #include <vector>
-#include "support/test_config.h"
 
 using oneapi::dpl::counting_iterator;
 using oneapi::dpl::discard_iterator;
