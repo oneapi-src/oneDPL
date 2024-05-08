@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 
+#include <format>
+#include <ranges>
+
 constexpr std::size_t EVENLY_DIVIDABLE_SIZE =
     2 * 3 * 5 * 7 * 11 * 13; // good up to 16 processes
 
@@ -163,9 +166,11 @@ auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
   }
   return drfmt::format("\n{}"
                      "    ref:    {}\n"
-                     "    actual: {}\n  ",
+                     /*"    actual: {}\n  " */,
                      title == "" ? "" : "    " + title + "\n",
-                     rng::views::all(ref), rng::views::all(actual));
+                     ref /*, rng::views::all(actual) */);
+  // return drfmt::format("\n{}\n",
+  //                      title == "" ? "equal_message failed" : "    " + title + "\n");
 }
 
 std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
@@ -173,11 +178,13 @@ std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
   if (is_equal(ref, tst)) {
     return "";
   } else {
-    return drfmt::format("\n{}"
-                       "    in:     {}\n"
-                       "    ref:    {}\n"
-                       "    actual: {}\n  ",
-                       title == "" ? "" : "    " + title + "\n", in, ref, tst);
+    // return drfmt::format("\n{}"
+    //                    "    in:     {}\n"
+    //                    "    ref:    {}\n"
+    //                    "    actual: {}\n  ",
+    //                    title == "" ? "" : "    " + title + "\n", in, ref, tst);
+    return drfmt::format(
+        "\n{}\n", title == "unary_check_message failed" ? "" : "    " + title + "\n");
   }
 }
 
@@ -199,11 +206,12 @@ std::string check_segments_message(auto &&r) {
   auto segments = dr::ranges::segments(r);
   auto flat = rng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
-    return drfmt::format("\n"
-                       "    Segment error\n"
-                       "      range:    {}\n"
-                       "      segments: {}\n  ",
-                       rng::views::all(r), rng::views::all(segments));
+    // return drfmt::format("\n"
+    //                      "    Segment error\n"
+    //                      "      range:    {}\n"
+    //                      "      segments: {}\n  ",
+    //                      rng::views::all(r), rng::views::all(segments));
+    return drfmt::format("\n    Segment error\n");
   }
   return "";
 }
@@ -269,9 +277,10 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
     return testing::AssertionSuccess();
   } else {
     return testing::AssertionFailure()
-           << drfmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
-                          "actual: {}\n  ",
-                          a, b, ref, actual);
+           << drfmt::format("\n    check_binary_check_op failure\n  ");
+    //  << drfmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
+    //                 "actual: {}\n  ",
+    //                 a, b, ref, actual);
   }
 }
 
@@ -280,7 +289,8 @@ auto check_segments(std::forward_iterator auto di) {
   auto flat = rng::join_view(segments);
   if (contains_empty(segments) || !is_equal(di, flat)) {
     return testing::AssertionFailure()
-           << drfmt::format("\n    segments: {}\n  ", segments);
+           << drfmt::format("\n    check_segments failure\n  ");
+        //  << drfmt::format("\n    segments: {}\n  ", segments);
   } else {
     return testing::AssertionSuccess();
   }
