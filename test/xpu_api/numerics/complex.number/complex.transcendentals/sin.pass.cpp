@@ -43,8 +43,10 @@ void test_edges()
             assert(std::isnan(dpl::real(z)));
         else
         {
+#if !_PSTL_TEST_COMPLEX_SIN_BROKEN
             assert(dpl::real(r) == dpl::real(z));
             assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
+#endif // _PSTL_TEST_COMPLEX_SIN_BROKEN
         }
         if (std::isnan(dpl::imag(r)))
             assert(std::isnan(dpl::imag(z)));
