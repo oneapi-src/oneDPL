@@ -1494,12 +1494,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
             [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) {
                 __internal::__brick_copy_by_mask(
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
-                    [](_RandomAccessIterator __x, _Tp* __z) {
-                        if constexpr (::std::is_trivial_v<_Tp>)
-                            *__z = ::std::move(*__x);
-                        else
-                            ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
-                    },
+                    [](_RandomAccessIterator __x, _Tp* __z) { ::new (std::addressof(*__z)) _Tp(std::move(*__x)); },
                     _IsVector{});
             },
             [&__m](_DifferenceType __total) { __m = __total; });
@@ -3092,10 +3087,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
-            if constexpr (::std::is_trivial_v<_Tp>)
-                *__z = ::std::move(*__x);
-            else
-                ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+            ::new (std::addressof(*__z)) _Tp(std::move(*__x));
         };
 
         auto __move_sequences = [](_RandomAccessIterator __first1, _RandomAccessIterator __last1, _Tp* __first2) {
@@ -3882,7 +3874,7 @@ _RandomAccessIterator
 __brick_min_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                     /* __is_vector = */ ::std::true_type) noexcept
 {
-#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
+#if _ONEDPL_UDR_PRESENT // _PSTL_UDR_PRESENT
     return __unseq_backend::__simd_min_element(__first, __last - __first, __comp);
 #else
     return ::std::min_element(__first, __last, __comp);
@@ -3949,7 +3941,7 @@ template <typename _RandomAccessIterator, typename _Compare>
 __brick_minmax_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                        /* __is_vector = */ ::std::true_type) noexcept
 {
-#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
+#if _ONEDPL_UDR_PRESENT // _PSTL_UDR_PRESENT
     return __unseq_backend::__simd_minmax_element(__first, __last - __first, __comp);
 #else
     return ::std::minmax_element(__first, __last, __comp);

@@ -136,11 +136,10 @@ template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
     return false;
   }
   
-  // TODO: why r2.begin() is not working here with std::ranges?
+  // TODO: why r2.begin() is not working here?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
-    auto && v1 = *r1i++;
-    if (!(v2 == v1)) {
+    if (*r1i++ != v2) {
       return false;
     }
   }

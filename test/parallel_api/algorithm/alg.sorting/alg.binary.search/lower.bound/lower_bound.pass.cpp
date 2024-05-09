@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/binary_search_utils.h"
 
