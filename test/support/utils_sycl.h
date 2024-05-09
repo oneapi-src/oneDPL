@@ -120,6 +120,13 @@ test1buffer(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
     const size_t local_max_n = max_n * ScaleMax;
     const size_t incr_by_one_max = 16 * ScaleMax;
     const size_t local_step = 3.1415 * ScaleStep;
+
+#if TEST_LONG_RUN
+    local_max_n = std::max(local_max_n, max_n);
+    incr_by_one_max = std::max(incr_by_one_max, 16);
+    local_step = std::min(local_step, 3.1415);
+#endif // TEST_LONG_RUN
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
@@ -170,6 +177,12 @@ test2buffers(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
     const size_t local_max_n = max_n * ScaleMax;
     const size_t incr_by_one_max = 16 * ScaleMax;
     const size_t local_step = 3.1415 * ScaleStep;
+
+#if TEST_LONG_RUN
+    local_max_n = std::max(local_max_n, max_n);
+    incr_by_one_max = std::max(incr_by_one_max, 16);
+    local_step = std::min(local_step, 3.1415);
+#endif // TEST_LONG_RUN
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
@@ -227,6 +240,12 @@ test3buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMa
     const size_t local_max_n = max_n * ScaleMax;
     const size_t incr_by_one_max = 16 * ScaleMax;
     const size_t local_step = 3.1415 * ScaleStep;
+
+#if TEST_LONG_RUN
+    local_max_n = std::max(local_max_n, max_n);
+    incr_by_one_max = std::max(incr_by_one_max, 16);
+    local_step = std::min(local_step, 3.1415);
+#endif // TEST_LONG_RUN
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
@@ -291,6 +310,12 @@ test4buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMa
     const size_t local_max_n = max_n * ScaleMax;
     const size_t incr_by_one_max = 16 * ScaleMax;
     const size_t local_step = 3.1415 * ScaleStep;
+
+#if TEST_LONG_RUN
+    local_max_n = std::max(local_max_n, max_n);
+    incr_by_one_max = std::max(incr_by_one_max, 16);
+    local_step = std::min(local_step, 3.1415);
+#endif // TEST_LONG_RUN
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
