@@ -403,7 +403,7 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
     using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>; \
                                                                                                                   \
     using UsedValueType = TestValueType;                                                                          \
-    static constexpr float ScaleMax = ScaleMaxNValue;                                                                    \
+    static constexpr float ScaleMax = ScaleMaxNValue;                                                             \
     static constexpr float ScaleStep = ScaleStepValue;
 #else
 #define DEFINE_TEST_CONSTRUCTOR(TestClassName, ScaleMaxNValue, ScaleStepValue)
