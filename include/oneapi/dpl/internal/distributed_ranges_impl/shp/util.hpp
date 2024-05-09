@@ -193,7 +193,7 @@ template <typename R> void print_range_details(R &&r, std::string label = "") {
   }
 }
 
-template <distributed_range R>
+/* template <distributed_range R>
 void range_details(R &&r, std::size_t width = 80) {
   std::size_t size = rng::size(r);
 
@@ -217,7 +217,7 @@ void range_details(R &&r, std::size_t width = 80) {
   }
   std::cout << std::endl;
 }
-
+ */
 namespace __detail {
 
 template <typename T>

@@ -110,14 +110,36 @@ bool fp_equal(std::vector<T> a, std::vector<T> b,
   return true;
 }
 
+template <class A, class B, class C, class D>
+bool operator==(std::pair<A, B> const & x, std::tuple<C, D> const & y)
+{
+    return x.first == std::get<0>(y)
+        && x.second == std::get<1>(y);
+}
+
+template <class A, class B, class C, class D>
+bool operator==(std::tuple<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x == y;
+}
+
+template <class A, class B, class C, class D>
+bool operator==(std::pair<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x.first == y.first && x.second == y.second;
+}
+
+
 template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   if (rng::distance(rng::begin(r1), rng::end(r1)) !=
       rng::distance(rng::begin(r2), rng::end(r2))) {
     return false;
   }
-  auto r2i = r2.begin();
-  for (const auto &v1 : r1) {
-    if (v1 != *r2i++) {
+  
+  // TODO: why r2.begin() is not working here?
+  auto r1i = r1.begin();
+  for (const auto &v2 : r2) {
+    if (*r1i++ != v2) {
       return false;
     }
   }
@@ -335,14 +357,14 @@ template <rng::range R1, rng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
 
 template <typename... Ts>
 inline std::ostream &operator<<(std::ostream &os,
-                                const rng::common_tuple<Ts...> &obj) {
+                                const std::tuple<Ts...> &obj) {
   os << drfmt::format("{}", obj);
   return os;
 }
 
 template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os,
-                                const rng::common_pair<T1, T2> &obj) {
+                                const std::pair<T1, T2> &obj) {
   os << drfmt::format("{}", obj);
   return os;
 }

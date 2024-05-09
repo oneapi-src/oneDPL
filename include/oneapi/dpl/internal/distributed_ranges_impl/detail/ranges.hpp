@@ -142,7 +142,7 @@ template <has_local_adl T> struct is_localizable_helper<T> : std::true_type {};
 template <iter_has_local_method T>
 struct is_localizable_helper<T> : std::true_type {};
 
-template <rng::forward_iterator Iter>
+template <std::forward_iterator Iter>
   requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) &&
           requires() { std::iter_value_t<Iter>(); }
 struct is_localizable_helper<Iter>
@@ -175,8 +175,10 @@ struct local_fn_ {
                         rng::iterator_t<typename Iter::value_type>>)
         return rng::begin(*iter).local();
       else
-        return rng::basic_iterator<cursor_over_local_ranges<
-            rng::iterator_t<typename Iter::value_type>>>(rng::begin(*iter));
+        return std::iterator<std::bidirectional_iterator_tag,
+                             cursor_over_local_ranges<
+                                 rng::iterator_t<typename Iter::value_type>>>(
+            rng::begin(*iter));
     }
     auto read() const {
       return rng::views::counted(make_begin_for_counted(), rng::size(*iter));
@@ -203,7 +205,8 @@ struct local_fn_ {
     } else if constexpr (has_local_adl<Iter>) {
       return local_(iter);
     } else if constexpr (is_localizable<Iter>) {
-      return rng::basic_iterator<cursor_over_local_ranges<Iter>>(iter);
+      return std::iterator<std::bidirectional_iterator_tag,
+                           cursor_over_local_ranges<Iter>>(iter);
     } else if constexpr (std::contiguous_iterator<Iter>) {
       return iter;
     }
@@ -223,7 +226,7 @@ struct local_fn_ {
       return local_(std::forward<R>(r));
     } else if constexpr (is_localizable<R>) {
       return rng::views::counted(
-          rng::basic_iterator<cursor_over_local_ranges<rng::iterator_t<R>>>(
+          std::iterator<std::input_iterator_tag, cursor_over_local_ranges<rng::iterator_t<R>>>(
               rng::begin(r)),
           rng::size(r));
     } else if constexpr (std::contiguous_iterator<rng::iterator_t<R>>) {

@@ -14,7 +14,7 @@ TEST(DetailTest, parallel_for) {
   // Compute `v`
   std::vector<int> v(size, 0);
 
-  auto iota = ranges::views::iota(std::size_t(0), n);
+  auto iota = rng::views::iota(std::size_t(0), n);
 
   std::for_each(iota.begin(), iota.end(), [&](auto i) { v[i % size] += 1; });
 
