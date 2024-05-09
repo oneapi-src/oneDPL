@@ -4,15 +4,9 @@
 
 find_package(fmt QUIET)
 if (NOT fmt_FOUND)
-  message(WARNING "disabled distributed ranges tests, install fmt library or g++>=13 or clang>=17")
+  message(WARNING "disabled distributed ranges tests, install fmt library")
   return()
 endif ()
-
-# check_include_file_cxx("cxxopts.hpp" CXX_OPTS_SUPPORT)
-# if (NOT CXX_OPTS_SUPPORT)
-#   message(WARNING "disabled distributed ranges tests, install libcxxopts-dev or other package with cxxopts")
-#   return()
-# endif ()
 
 find_package(GTest)
 if (NOT GTest_FOUND)
