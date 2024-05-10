@@ -192,8 +192,7 @@
 
 // oneAPI DPC++ compiler 2022.2 an below show an internal compiler error during the backend code generation of
 // minmax_element.pass.cpp
-#if TEST_DPCPP_BACKEND_PRESENT && defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20220300
-#   define _PSTL_ICPX_TEST_MINMAX_ELEMENT_BROKEN 1
-#endif
+#define _PSTL_ICPX_TEST_MINMAX_ELEMENT_PASS_BROKEN                                                                     \
+    (TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER > 0 && __INTEL_LLVM_COMPILER < 20220300)
 
 #endif // _TEST_CONFIG_H
