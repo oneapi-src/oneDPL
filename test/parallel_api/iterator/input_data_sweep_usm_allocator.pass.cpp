@@ -109,8 +109,12 @@ main()
     test_usm_shared_alloc<float, 0>(policy1, -666.0f, n, "float");
     test_usm_shared_alloc<double, 0>(policy2, -666.0, n, "double");
     test_usm_shared_alloc<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
+
+    #if !_PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN
     // big recursion step: 1 and 2 layers of wrapping
     test_usm_shared_alloc<std::int32_t, 2>(policy4, -666, n, "int32_t");
+    #endif // !_PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN
+
     //only use host alloc for int, it follows the same path as shared alloc
     test_usm_host_alloc<int, 0>(policy5, 666, n, "int");
 
