@@ -40,6 +40,24 @@ struct HostChecker
         int i = 0;
         int j = 0;
         int lineNo = 0;
+
+        bool
+        operator==(const ErrorInfo& other) const
+        {
+            return i == other.i && j == other.j && lineNo == other.lineNo;
+        }
+
+        bool
+        operator<(const ErrorInfo& other) const
+        {
+            if (lineNo != other.lineNo)
+                return lineNo < other.lineNo;
+
+            if (i != other.i)
+                return i < other.i;
+
+            return j < other.j;
+        }
     };
     std::vector<ErrorInfo> errors;
 
@@ -95,15 +113,31 @@ int main(int, char**)                                                           
     run_test<::std::true_type, ::std::true_type>(check_obj_host);                                                       \
     if (!check_obj_host.errors.empty())                                                                                 \
     {                                                                                                                   \
-        std::cout << "Errors on host: ";                                                                                \
+        std::sort(check_obj_host.errors.begin(), check_obj_host.errors.end());                                          \
+        std::cout << "Errors on host:";                                                                                 \
         bool bFirst = true;                                                                                             \
+        int nLastLine = -1;                                                                                             \
+        HostChecker::ErrorInfo last;                                                                                    \
         for (const auto& errorInfo : check_obj_host.errors)                                                             \
         {                                                                                                               \
+            if (errorInfo == last)                                                                                      \
+                continue;                                                                                               \
+                                                                                                                        \
+            last = errorInfo;                                                                                           \
+                                                                                                                        \
+            if (errorInfo.lineNo != nLastLine)                                                                          \
+            {                                                                                                           \
+                std::cout << "\n\t";                                                                                    \
+                nLastLine = errorInfo.lineNo;                                                                           \
+                                                                                                                        \
+                std::cout << "line " << errorInfo.lineNo << " : ";                                                      \
+                bFirst = true;                                                                                          \
+            }                                                                                                           \
             if (!bFirst)                                                                                                \
                 std::cout << ", ";                                                                                      \
             else                                                                                                        \
                 bFirst = false;                                                                                         \
-            std::cout << "(" << errorInfo.i << ", " << errorInfo.j << ", " << errorInfo.lineNo << ")";                  \
+            std::cout << "(" << errorInfo.i << ", " << errorInfo.j << ")";                                              \
         }                                                                                                               \
         std::cout << std::endl;                                                                                         \
         std::exit(EXIT_FAILURE);                                                                                        \
