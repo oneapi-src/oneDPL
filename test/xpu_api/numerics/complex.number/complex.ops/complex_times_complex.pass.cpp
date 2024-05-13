@@ -76,7 +76,7 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == non_zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
@@ -95,12 +95,12 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif
                     break;
@@ -108,7 +108,7 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
@@ -144,7 +144,7 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
