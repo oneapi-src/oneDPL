@@ -33,7 +33,8 @@ test()
     test(dpl::complex<T>(-1, -2), dpl::complex<T>(-1, -2));
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -43,18 +44,18 @@ void test_edges()
         {
         case zero:
         case non_zero:
-            assert(r == testcases[i]);
-            assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(testcases[i])));
-            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
+            CALL_CHECK_OBJ_I(check_obj, i, r == testcases[i]);
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(dpl::real(r)) == std::signbit(dpl::real(testcases[i])));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
             break;
         case inf:
-            assert(std::isinf(dpl::real(r)) && dpl::real(r) > 0);
-            assert(dpl::imag(r) == 0);
-            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(dpl::real(r)) && dpl::real(r) > 0);
+            CALL_CHECK_OBJ_I(check_obj, i, dpl::imag(r) == 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
             break;
         case NaN:
         case non_zero_nan:
-            assert(classify(r) == classify(testcases[i]));
+            CALL_CHECK_OBJ_I(check_obj, i, classify(r) == classify(testcases[i]));
             break;
         }
     }
@@ -65,7 +66,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

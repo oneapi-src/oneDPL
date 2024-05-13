@@ -24,7 +24,8 @@ test()
     assert(norm(z) == 25);
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -33,22 +34,22 @@ void test_edges()
         switch (classify(testcases[i]))
         {
         case zero:
-            assert(r == 0);
-            assert(!std::signbit(r));
+            CALL_CHECK_OBJ_I(check_obj, i, r == 0);
+            CALL_CHECK_OBJ_I(check_obj, i, !std::signbit(r));
             break;
         case non_zero:
-            assert(std::isfinite(r) && r > 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::isfinite(r) && r > 0);
             break;
         case inf:
 #ifndef _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES
-            assert(std::isinf(r) && r > 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r) && r > 0);
 #endif // _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES
             break;
         case NaN:
-            assert(std::isnan(r));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r));
             break;
         case non_zero_nan:
-            assert(std::isnan(r));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r));
             break;
         }
     }
@@ -59,7 +60,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

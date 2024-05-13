@@ -23,8 +23,8 @@ void
 test(const dpl::complex<T>& a, const T& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
-    is_about(dpl::real(c), dpl::real(x));
-    is_about(dpl::imag(c), dpl::imag(x));
+    assert(is_about(dpl::real(c), dpl::real(x)));
+    assert(is_about(dpl::imag(c), dpl::imag(x)));
 }
 
 template <class T>
@@ -34,7 +34,8 @@ test()
     test(dpl::complex<T>(2, 3), T(2), dpl::complex<T>(-5, 12));
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -44,16 +45,16 @@ void test_edges()
             dpl::complex<double> r = dpl::pow(testcases[i], dpl::real(testcases[j]));
             dpl::complex<double> z = dpl::exp(dpl::complex<double>(dpl::real(testcases[j])) * dpl::log(testcases[i]));
             if (std::isnan(dpl::real(r)))
-                assert(std::isnan(dpl::real(z)));
+                CALL_CHECK_OBJ_I(check_obj, i, std::isnan(dpl::real(z)));
             else
             {
-                assert(dpl::real(r) == dpl::real(z));
+                CALL_CHECK_OBJ_I(check_obj, i, dpl::real(r) == dpl::real(z));
             }
             if (std::isnan(dpl::imag(r)))
-                assert(std::isnan(dpl::imag(z)));
+                CALL_CHECK_OBJ_I(check_obj, i, std::isnan(dpl::imag(z)));
             else
             {
-                assert(dpl::imag(r) == dpl::imag(z));
+                CALL_CHECK_OBJ_I(check_obj, i, dpl::imag(r) == dpl::imag(z));
             }
         }
     }
@@ -69,7 +70,7 @@ ONEDPL_TEST_NUM_MAIN
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
 #ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_SCALAR_PASS_BROKEN_TEST_EDGES
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_SCALAR_PASS_BROKEN_TEST_EDGES
 
   return 0;

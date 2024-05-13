@@ -26,7 +26,8 @@ test()
     assert(dpl::arg(z) == 0);
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const double pi = std::atan2(+0., -0.);
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
@@ -34,7 +35,7 @@ void test_edges()
     {
         double r = dpl::arg(testcases[i]);
         if (std::isnan(testcases[i].real()) || std::isnan(testcases[i].imag()))
-            assert(std::isnan(r));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r));
         else
         {
             switch (classify(testcases[i]))
@@ -43,42 +44,42 @@ void test_edges()
                 if (std::signbit(testcases[i].real()))
                 {
                     if (std::signbit(testcases[i].imag()))
-                        is_about(r, -pi);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -pi));
                     else
-                        is_about(r, pi);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, pi));
                 }
                 else
                 {
-                    assert(std::signbit(testcases[i].imag()) == std::signbit(r));
+                    CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].imag()) == std::signbit(r));
                 }
                 break;
             case non_zero:
                 if (testcases[i].real() == 0)
                 {
                     if (testcases[i].imag() < 0)
-                        is_about(r, -pi/2);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -pi / 2));
                     else
-                        is_about(r, pi/2);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, pi / 2));
                 }
                 else if (testcases[i].imag() == 0)
                 {
                     if (testcases[i].real() < 0)
                     {
                         if (std::signbit(testcases[i].imag()))
-                            is_about(r, -pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -pi));
                         else
-                            is_about(r, pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, pi));
                     }
                     else
                     {
-                        assert(r == 0);
-                        assert(std::signbit(testcases[i].imag()) == std::signbit(r));
+                        CALL_CHECK_OBJ_I(check_obj, i, r == 0);
+                        CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].imag()) == std::signbit(r));
                     }
                 }
                 else if (testcases[i].imag() > 0)
-                    assert(r > 0);
+                    CALL_CHECK_OBJ_I(check_obj, i, r > 0);
                 else
-                    assert(r < 0);
+                    CALL_CHECK_OBJ_I(check_obj, i, r < 0);
                 break;
             case inf:
                 if (std::isinf(testcases[i].real()) && std::isinf(testcases[i].imag()))
@@ -86,16 +87,16 @@ void test_edges()
                     if (testcases[i].real() < 0)
                     {
                         if (testcases[i].imag() > 0)
-                            is_about(r, 0.75 * pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, 0.75 * pi));
                         else
-                            is_about(r, -0.75 * pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -0.75 * pi));
                     }
                     else
                     {
                         if (testcases[i].imag() > 0)
-                            is_about(r, 0.25 * pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, 0.25 * pi));
                         else
-                            is_about(r, -0.25 * pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -0.25 * pi));
                     }
                 }
                 else if (std::isinf(testcases[i].real()))
@@ -103,22 +104,22 @@ void test_edges()
                     if (testcases[i].real() < 0)
                     {
                         if (std::signbit(testcases[i].imag()))
-                            is_about(r, -pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -pi));
                         else
-                            is_about(r, pi);
+                            CALL_CHECK_OBJ_I(check_obj, i, is_about(r, pi));
                     }
                     else
                     {
-                        assert(r == 0);
-                        assert(std::signbit(r) == std::signbit(testcases[i].imag()));
+                        CALL_CHECK_OBJ_I(check_obj, i, r == 0);
+                        CALL_CHECK_OBJ_I(check_obj, i, std::signbit(r) == std::signbit(testcases[i].imag()));
                     }
                 }
                 else
                 {
                     if (testcases[i].imag() < 0)
-                        is_about(r, -pi/2);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, -pi / 2));
                     else
-                        is_about(r, pi/2);
+                        CALL_CHECK_OBJ_I(check_obj, i, is_about(r, pi / 2));
                 }
                 break;
             }
@@ -131,7 +132,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

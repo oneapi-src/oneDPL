@@ -35,7 +35,8 @@ test()
 
 // test edges
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -49,19 +50,19 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
                     break;
                 case non_zero:
-                    assert(classify(r) == zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
                     break;
                 case inf:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -69,21 +70,21 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
                     break;
                 case non_zero:
-                    assert(classify(r) == non_zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == non_zero);
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -91,24 +92,24 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 }
@@ -117,19 +118,19 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case inf:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -137,21 +138,21 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -165,7 +166,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

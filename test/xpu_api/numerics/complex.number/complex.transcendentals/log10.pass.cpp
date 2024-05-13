@@ -32,7 +32,8 @@ test()
     test(dpl::complex<T>(0, 0), dpl::complex<T>(-INFINITY, 0));
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -40,21 +41,21 @@ void test_edges()
         dpl::complex<double> r = dpl::log10(testcases[i]);
         dpl::complex<double> z = dpl::log(testcases[i]) / std::log(10);
         if (std::isnan(dpl::real(r)))
-            assert(std::isnan(dpl::real(z)));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(dpl::real(z)));
         else
         {
 #if !_PSTL_TEST_COMPLEX_LOG10_BROKEN
-            assert(dpl::real(r) == dpl::real(z));
-            assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
+            CALL_CHECK_OBJ_I(check_obj, i, dpl::real(r) == dpl::real(z));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
 #endif // _PSTL_TEST_COMPLEX_LOG10_BROKEN
         }
         if (std::isnan(dpl::imag(r)))
-            assert(std::isnan(dpl::imag(z)));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(dpl::imag(z)));
         else
         {
 #if !_PSTL_TEST_COMPLEX_LOG10_BROKEN
-            assert(dpl::imag(r) == dpl::imag(z));
-            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
+            CALL_CHECK_OBJ_I(check_obj, i, dpl::imag(r) == dpl::imag(z));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
 #endif // _PSTL_TEST_COMPLEX_LOG10_BROKEN
         }
     }
@@ -65,7 +66,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

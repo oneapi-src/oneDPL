@@ -25,6 +25,7 @@
 
 #include <type_traits>
 #include <cassert>
+#include <vector>
 
 #if !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) static_assert(arg)
@@ -32,39 +33,107 @@
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) assert(arg)
 #endif // !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
 
-#define ONEDPL_TEST_NUM_MAIN                                                                          \
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
-int                                                                                                   \
-run_test();                                                                                           \
-                                                                                                      \
-int main(int, char**)                                                                                 \
-{                                                                                                     \
-    std::cout << "Run test on host" << std::endl;                                                     \
-    run_test<::std::true_type, ::std::true_type>();                                                   \
-                                                                                                      \
-    /* Sometimes we may start test on device, which don't support type double. */                     \
-    /* In this case generates run-time error.                                  */                     \
-    /* This two types allow us to avoid this situation.                        */                     \
-    using HasDoubleTypeSupportInRuntime = ::std::true_type;                                           \
-    using HasntDoubleTypeSupportInRuntime = ::std::false_type;                                        \
-                                                                                                      \
-    /* long double type generate compile-time error in Kernel code             */                     \
-    /* and we never can use this type inside Kernel                            */                     \
-    using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
-                                                                                                      \
-    std::cout << "Run test on device" << std::endl;                                                   \
-    TestUtils::run_test_in_kernel(                                                                    \
-        /* lambda for the case when we have support of double type on device */                       \
-        [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
-        /* lambda for the case when we haven't support of double type on device */                    \
-        [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); }); \
-                                                                                                      \
-    return TestUtils::done();                                                                         \
-}                                                                                                     \
-                                                                                                      \
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
-int                                                                                                   \
-run_test()
+struct HostChecker
+{
+    struct ErrorInfo
+    {
+        int i = 0;
+        int j = 0;
+        int lineNo = 0;
+    };
+    std::vector<ErrorInfo> errors;
+
+    inline void
+    operator()(int i, bool bResult, int lineNo)
+    {
+        if (!bResult)
+        {
+            ErrorInfo info;
+            info.i = i;
+            info.lineNo = lineNo;
+            errors.push_back(info);
+        }
+    }
+
+    inline void
+    operator()(int i, int j, bool bResult, int lineNo)
+    {
+        if (!bResult)
+        {
+            ErrorInfo info;
+            info.i = i;
+            info.lineNo = lineNo;
+            errors.push_back(info);
+        }
+    }
+};
+
+struct KernelChecker
+{
+    inline void
+    operator()(int /*i*/, bool bResult, int /*lineNo*/) const
+    {
+        assert(bResult);
+    }
+
+    inline void
+    operator()(int /*i*/, int /*j*/, bool bResult, int /*lineNo*/) const
+    {
+        assert(bResult);
+    }
+};
+
+#define ONEDPL_TEST_NUM_MAIN                                                                                            \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime,                               \
+          class TChecker>                                                                                               \
+int                                                                                                                     \
+run_test(TChecker& check_obj);                                                                                          \
+                                                                                                                        \
+int main(int, char**)                                                                                                   \
+{                                                                                                                       \
+    HostChecker check_obj_host;                                                                                         \
+    run_test<::std::true_type, ::std::true_type>(check_obj_host);                                                       \
+    if (!check_obj_host.errors.empty())                                                                                 \
+    {                                                                                                                   \
+        std::cout << "Errors on host: ";                                                                                \
+        bool bFirst = true;                                                                                             \
+        for (const auto& errorInfo : check_obj_host.errors)                                                             \
+        {                                                                                                               \
+            if (!bFirst)                                                                                                \
+                std::cout << ", ";                                                                                      \
+            else                                                                                                        \
+                bFirst = false;                                                                                         \
+            std::cout << "(" << errorInfo.i << ", " << errorInfo.j << ", " << errorInfo.lineNo << ")";                  \
+        }                                                                                                               \
+        std::cout << std::endl;                                                                                         \
+        std::exit(EXIT_FAILURE);                                                                                        \
+    }                                                                                                                   \
+                                                                                                                        \
+    /* Sometimes we may start test on device, which don't support type double. */                                       \
+    /* In this case generates run-time error.                                  */                                       \
+    /* This two types allow us to avoid this situation.                        */                                       \
+    using HasDoubleTypeSupportInRuntime = ::std::true_type;                                                             \
+    using HasntDoubleTypeSupportInRuntime = ::std::false_type;                                                          \
+                                                                                                                        \
+    /* long double type generate compile-time error in Kernel code             */                                       \
+    /* and we never can use this type inside Kernel                            */                                       \
+    using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                                      \
+                                                                                                                        \
+    std::cout << "Run test on device" << std::endl;                                                                     \
+    KernelChecker check_obj_kernel;                                                                                     \
+    TestUtils::run_test_in_kernel(                                                                                      \
+        /* lambda for the case when we have support of double type on device */                                         \
+        [check_obj_kernel]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(check_obj_kernel); },       \
+        /* lambda for the case when we haven't support of double type on device */                                                      \
+        [check_obj_kernel]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(check_obj_kernel); });    \
+                                                                                                                        \
+    return TestUtils::done();                                                                                           \
+}                                                                                                                       \
+                                                                                                                        \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime,                               \
+          class TChecker>                                                                                               \
+int                                                                                                                     \
+run_test(TChecker& check_obj)
 
 // We should use this macros to avoid runtime-error if type double doesn't supported on device.
 //
@@ -95,6 +164,10 @@ run_test()
 //     }
 #define IF_DOUBLE_SUPPORT(...)                                                                        \
     TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { __VA_ARGS__; });
+
+#define IF_DOUBLE_SUPPORT_REF_CAPT(...)                                                               \
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), [&]() { __VA_ARGS__; });
+
 #define IF_DOUBLE_SUPPORT_L(...)                                                                      \
     TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), __VA_ARGS__);
 
@@ -103,6 +176,9 @@ run_test()
     TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { __VA_ARGS__; });
 #define IF_LONG_DOUBLE_SUPPORT_L(...)                                                                 \
     TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), __VA_ARGS__);
+
+#define CALL_CHECK_OBJ_I(OBJ, I, COND) OBJ(I, COND, __LINE__)
+#define CALL_CHECK_OBJ_I_J(OBJ, I, J, COND) OBJ(I, J, COND, __LINE__)
 
 namespace TestUtils
 {

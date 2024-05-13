@@ -20,7 +20,7 @@ template <class T>
 void
 test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
 {
-    is_about(lhs / rhs, x);
+    assert(is_about(lhs / rhs, x));
 }
 
 template <class T>
@@ -33,7 +33,8 @@ test()
     test(lhs, rhs, x);
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -47,21 +48,21 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
-                    assert(classify(r) == zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    assert(classify(r) == zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -70,11 +71,11 @@ void test_edges()
                 {
                 case zero:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case non_zero:
-                    assert(classify(r) == non_zero);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == non_zero);
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
@@ -83,15 +84,15 @@ void test_edges()
                         //  0       dpl::complex<double>(1.e-6, 1.e-6)
                         // 33       dpl::complex<double>(-2, NAN)
                         std::cout << "i = " << i << ", j == " << j << std::endl;
-                        assert(false);
+                        CALL_CHECK_OBJ_I_J(check_obj, i, j, false);
                     }
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -100,22 +101,22 @@ void test_edges()
                 {
                 case zero:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case non_zero:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case inf:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -123,19 +124,19 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case inf:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -144,20 +145,20 @@ void test_edges()
                 {
                 case zero:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    assert(classify(r) == inf);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case non_zero:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case inf:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case NaN:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 case non_zero_nan:
-                    assert(classify(r) == NaN);
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
                     break;
                 }
                 break;
@@ -183,14 +184,14 @@ main(int, char**)
     //    [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); });
     return TestUtils::done();
 }
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime, class TChecker>
 int
 run_test()
 {
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }

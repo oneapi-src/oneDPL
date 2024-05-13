@@ -42,7 +42,8 @@ test()
     test(T(100), T(0), dpl::complex<T>(100, 0));
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -56,37 +57,37 @@ void test_edges()
             if (std::signbit(r) || classify(theta) == inf || classify(theta) == NaN)
             {
                 int c = classify(z);
-                assert(c == NaN || c == non_zero_nan);
+                CALL_CHECK_OBJ_I(check_obj, i, c == NaN || c == non_zero_nan);
             }
             else
             {
-                assert(z == dpl::complex<double>());
+                CALL_CHECK_OBJ_I(check_obj, i, z == dpl::complex<double>());
             }
             break;
         case non_zero:
             if (std::signbit(r) || classify(theta) == inf || classify(theta) == NaN)
             {
                 int c = classify(z);
-                assert(c == NaN || c == non_zero_nan);
+                CALL_CHECK_OBJ_I(check_obj, i, c == NaN || c == non_zero_nan);
             }
             else
             {
-                is_about(dpl::abs(z), r);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(dpl::abs(z), r));
             }
             break;
         case inf:
             if (r < 0)
             {
                 int c = classify(z);
-                assert(c == NaN || c == non_zero_nan);
+                CALL_CHECK_OBJ_I(check_obj, i, c == NaN || c == non_zero_nan);
             }
             else
             {
-                assert(classify(z) == inf);
+                CALL_CHECK_OBJ_I(check_obj, i, classify(z) == inf);
                 if (classify(theta) != NaN && classify(theta) != inf)
                 {
-                    assert(classify(dpl::real(z)) != NaN);
-                    assert(classify(dpl::imag(z)) != NaN);
+                    CALL_CHECK_OBJ_I(check_obj, i, classify(dpl::real(z)) != NaN);
+                    CALL_CHECK_OBJ_I(check_obj, i, classify(dpl::imag(z)) != NaN);
                 }
             }
             break;
@@ -94,7 +95,7 @@ void test_edges()
         case non_zero_nan:
             {
                 int c = classify(z);
-                assert(c == NaN || c == non_zero_nan);
+                CALL_CHECK_OBJ_I(check_obj, i, c == NaN || c == non_zero_nan);
             }
             break;
         }
@@ -107,7 +108,7 @@ ONEDPL_TEST_NUM_MAIN
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
 #ifndef _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 #endif // _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES
 
   return 0;

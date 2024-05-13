@@ -32,7 +32,8 @@ test()
     test(dpl::complex<T>(0, 0), dpl::complex<T>(0, 0));
 }
 
-void test_edges()
+template <class TChecker>
+void test_edges(TChecker& check_obj)
 {
     const double pi = std::atan2(+0., -0.);
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
@@ -41,85 +42,85 @@ void test_edges()
         dpl::complex<double> r = dpl::asinh(testcases[i]);
         if (testcases[i].real() == 0 && testcases[i].imag() == 0)
         {
-            assert(std::signbit(r.real()) == std::signbit(testcases[i].real()));
-            assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(r.real()) == std::signbit(testcases[i].real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
         else if (testcases[i].real() == 0 && std::abs(testcases[i].imag()) == 1)
         {
-            assert(r.real() == 0);
-            assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, r.real() == 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi/2);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), -pi / 2));
             else
-                is_about(r.imag(),  pi/2);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), pi / 2));
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
-            assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].real()) == std::signbit(r.real()));
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi/2);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), -pi / 2));
             else
-                is_about(r.imag(),  pi/2);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), pi / 2));
         }
         else if (std::isfinite(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.imag()));
         }
         else if (std::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
-            assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
-            assert(r.imag() == 0);
-            assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].real()) == std::signbit(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, r.imag() == 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }
         else if (std::isinf(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
-            assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].real()) == std::signbit(r.real()));
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi/4);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), -pi / 4));
             else
-                is_about(r.imag(),  pi/4);
+                CALL_CHECK_OBJ_I(check_obj, i, is_about(r.imag(), pi / 4));
         }
         else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
 #if !_PSTL_TEST_COMPLEX_ASINH_BROKEN
-            assert(std::isinf(r.real()));
-            assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
-            assert(std::isnan(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].real()) == std::signbit(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && testcases[i].imag() == 0)
         {
 #if !_PSTL_TEST_COMPLEX_ASINH_BROKEN
-            assert(std::isnan(r.real()));
-            assert(r.imag() == 0);
-            assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, r.imag() == 0);
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.imag()));
         }
         else if (std::isnan(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
 #if !_PSTL_TEST_COMPLEX_ASINH_BROKEN
-            assert(std::isinf(r.real()));
-            assert(std::isnan(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isinf(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_ASINH_BROKEN
         }
         else if (std::isnan(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::isnan(r.imag()));
         }
         else
         {
-            assert(std::signbit(r.real()) == std::signbit(testcases[i].real()));
-            assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(r.real()) == std::signbit(testcases[i].real()));
+            CALL_CHECK_OBJ_I(check_obj, i, std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
     }
 }
@@ -129,7 +130,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    IF_DOUBLE_SUPPORT_REF_CAPT(test_edges(check_obj))
 
   return 0;
 }
