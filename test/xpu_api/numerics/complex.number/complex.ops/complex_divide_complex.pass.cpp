@@ -54,7 +54,7 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
@@ -70,7 +70,7 @@ void test_edges(TChecker& check_obj)
                 switch (classify(testcases[j]))
                 {
                 case zero:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
@@ -78,7 +78,7 @@ void test_edges(TChecker& check_obj)
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == non_zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) != zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
@@ -94,10 +94,12 @@ void test_edges(TChecker& check_obj)
                 switch (classify(testcases[j]))
                 {
                 case zero:
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     break;
                 case non_zero:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
@@ -136,7 +138,9 @@ void test_edges(TChecker& check_obj)
                 switch (classify(testcases[j]))
                 {
                 case zero:
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     break;
                 case non_zero:
                     CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) == NaN);
