@@ -69,7 +69,7 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN && !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIBCXX
                     assert(classify(r) == inf);
 #endif
                     break;
