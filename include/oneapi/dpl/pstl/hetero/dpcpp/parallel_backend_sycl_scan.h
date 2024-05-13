@@ -418,7 +418,7 @@ single_pass_scan_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRa
     const ::std::size_t n = __in_rng.size();
 
     constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::data_per_workitem;
     // Avoid non_uniform n by padding up to a multiple of wgsize
     constexpr ::std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
     constexpr ::std::size_t num_workitems = wgsize;
@@ -505,7 +505,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     const ::std::size_t n = __in_rng.size();
 
     constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::data_per_workitem;
     // Avoid non_uniform n by padding up to a multiple of wgsize
     constexpr ::std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
     ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
@@ -638,15 +638,6 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     event.wait();
 }
 
-// The generic structure for configuring a kernel
-template <std::uint16_t ElemsPerWorkItem, std::uint16_t WorkGroupSize, typename KernelName>
-struct kernel_param
-{
-    static constexpr std::uint16_t elems_per_workitem = ElemsPerWorkItem;
-    static constexpr std::uint16_t workgroup_size = WorkGroupSize;
-    using kernel_name = KernelName;
-};
-
 template <typename _KernelParam, typename _Inclusive, typename _InIterator, typename _OutIterator, typename _BinaryOp>
 void
 single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
@@ -708,7 +699,7 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
                            _BinaryOp __binary_op)
 {
     constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::data_per_workitem;
     // Avoid non_uniform n by padding up to a multiple of wgsize
     constexpr ::std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
     auto __n = __in_end - __in_begin;
@@ -738,7 +729,7 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
     const ::std::size_t n = __in_rng.size();
 
     constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::data_per_workitem;
 
     // Avoid non_uniform n by padding up to a multiple of wgsize
     constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
@@ -830,7 +821,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     const ::std::size_t n = __in_rng.size();
 
     constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::data_per_workitem;
 
     // Avoid non_uniform n by padding up to a multiple of wgsize
     constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
