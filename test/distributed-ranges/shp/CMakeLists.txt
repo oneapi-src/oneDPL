@@ -2,9 +2,30 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+if(${CMAKE_VERSION} VERSION_LESS "3.26")
+    message(WARNING "disabled distributed ranges tests, use cmake>=3.26")
+    return()
+endif()
+
+
 find_package(fmt QUIET)
-if (NOT fmt_FOUND)
-  message(WARNING "disabled distributed ranges tests, install fmt library")
+if(fmt_FOUND)
+    if(fmt_VERSION VERSION_LESS 8 OR fmt_VERSION VERSION_GREATER 9)
+        message(WARNING "libfmt version is not 8.x or 9.x, skipping distributed ranges tests")
+        return()
+    else()
+        message(STATUS "libfmt version ${fmt_VERSION} found")
+    endif()
+else()
+    message(WARNING "libfmt not found, install libfmt-dev 8.x or 9.x to enable distributed ranges tests")
+    return()
+endif()
+
+
+include(CheckIncludeFileCXX)
+check_include_file_cxx("cxxopts.hpp" CXX_OPTS_SUPPORT)
+if (NOT CXX_OPTS_SUPPORT)
+  message(WARNING "disabled distributed ranges tests, install libcxxopts-dev or other package with cxxopts")
   return()
 endif ()
 
@@ -53,7 +74,7 @@ add_executable(
   ../common/fill.cpp 
   ../common/for_each.cpp
   ../common/iota.cpp
-  # ../common/iota_view.cpp # compile fail
+  # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
   ../common/reduce.cpp 
   ../common/sort.cpp
   ../common/subrange.cpp

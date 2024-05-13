@@ -16,7 +16,6 @@ namespace drfmt {
   using fmt::format;
 }
 
-
 #define TEST_SHP
 // To share tests with MHP
 const std::size_t comm_rank = 0;
