@@ -23,7 +23,7 @@ void
 test(const T& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
-    is_about(dpl::real(c), dpl::real(x));
+    assert(is_about(dpl::real(c), dpl::real(x)));
     assert(std::abs(dpl::imag(c)) < T(1.e-6));
 }
 
@@ -53,7 +53,7 @@ void test_edges()
                 assert(std::isnan(dpl::imag(z)));
             else
             {
-                is_about(dpl::imag(r), dpl::imag(z));
+                assert(is_about(dpl::imag(r), dpl::imag(z)));
             }
         }
     }

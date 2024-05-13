@@ -23,7 +23,7 @@ void
 test(const dpl::complex<T>& c, dpl::complex<T> x)
 {
     dpl::complex<T> a = dpl::sqrt(c);
-    is_about(dpl::real(a), dpl::real(x));
+    assert(is_about(dpl::real(a), dpl::real(x)));
     assert(std::abs(dpl::imag(c)) < T(1.e-6));
 }
 

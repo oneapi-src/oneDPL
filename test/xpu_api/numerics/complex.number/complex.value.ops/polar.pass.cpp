@@ -71,7 +71,7 @@ void test_edges()
             }
             else
             {
-                is_about(dpl::abs(z), r);
+                assert(is_about(dpl::abs(z), r));
             }
             break;
         case inf:

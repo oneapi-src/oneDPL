@@ -53,7 +53,7 @@ void test_edges()
         else
         {
 #ifndef _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN
-            is_about(dpl::imag(r), dpl::imag(z));
+            assert(is_about(dpl::imag(r), dpl::imag(z)));
 #endif // _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN
             assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
         }
