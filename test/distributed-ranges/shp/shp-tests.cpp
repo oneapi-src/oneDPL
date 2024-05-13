@@ -18,9 +18,9 @@ void printhelp() {
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
 
-  std::string drhelpOption = "--drhelp";
-  std::string dOption = "-d";
-  std::string devicesCountOption = "--devicesCount";
+  const std::string drhelpOption = "--drhelp";
+  const std::string dOption = "-d";
+  const std::string devicesCountOption = "--devicesCount";
 
   bool drhelp = false;
   unsigned int devicesCount = 0;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-    auto devices = xhp::get_numa_devices(sycl::default_selector_v);
+  auto devices = xhp::get_numa_devices(sycl::default_selector_v);
 
   if (devicesCount > 0) {
     unsigned int i = 0;

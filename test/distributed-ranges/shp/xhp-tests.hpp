@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 
-// #include "cxxopts.hpp"
-
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed-ranges>
 
@@ -13,7 +11,7 @@
 #include <fmt/ranges.h>
 
 namespace drfmt {
-  using fmt::format;
+using fmt::format;
 }
 
 #define TEST_SHP
@@ -29,8 +27,7 @@ inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
-using AllocatorTypes =
-    ::testing::Types<xhp::device_allocator<int>>;
+using AllocatorTypes = ::testing::Types<xhp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = rng::forward_range<V> && requires(V &v) {
