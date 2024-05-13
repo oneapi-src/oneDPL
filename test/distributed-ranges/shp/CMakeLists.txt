@@ -5,16 +5,19 @@
 if(${CMAKE_VERSION} VERSION_LESS "3.26")
     message(WARNING "disabled distributed ranges tests, use cmake>=3.26")
     return()
+else ()
+    message(STATUS "suitable for distributed ranges cmake version ${CMAKE_VERSION} found")
 endif()
 
 
 find_package(fmt QUIET)
 if(fmt_FOUND)
-    if(fmt_VERSION VERSION_LESS 8 OR fmt_VERSION VERSION_GREATER 9)
-        message(WARNING "libfmt version is not 8.x or 9.x, skipping distributed ranges tests")
-        return()
+    if(fmt_VERSION VERSION_GREATER_EQUAL 8.1 AND fmt_VERSION VERSION_LESS 10)
+        message(STATUS "suitable for distributed ranges libfmt version ${fmt_VERSION} found")
     else()
-        message(STATUS "libfmt version ${fmt_VERSION} found")
+        message(WARNING "libfmt version ${fmt_VERSION} is not >= 8.1 and < 10, skipping distributed ranges tests")
+        return()
+
     endif()
 else()
     message(WARNING "libfmt not found, install libfmt-dev 8.x or 9.x to enable distributed ranges tests")
