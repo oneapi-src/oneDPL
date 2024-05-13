@@ -140,7 +140,6 @@ int main(int, char**)                                                           
             std::cout << "(" << errorInfo.i << ", " << errorInfo.j << ")";                                              \
         }                                                                                                               \
         std::cout << std::endl;                                                                                         \
-        std::exit(EXIT_FAILURE);                                                                                        \
     }                                                                                                                   \
                                                                                                                         \
     /* Sometimes we may start test on device, which don't support type double. */                                       \
@@ -160,6 +159,9 @@ int main(int, char**)                                                           
         [check_obj_kernel]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(check_obj_kernel); },       \
         /* lambda for the case when we haven't support of double type on device */                                                      \
         [check_obj_kernel]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(check_obj_kernel); });    \
+                                                                                                                        \
+    if (!check_obj_host.errors.empty())                                                                                 \
+        std::exit(EXIT_FAILURE);                                                                                        \
                                                                                                                         \
     return TestUtils::done();                                                                                           \
 }                                                                                                                       \
