@@ -79,13 +79,7 @@ void test_edges(TChecker& check_obj)
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
-                    if (classify(r) != zero)
-                    {
-                        //  0       dpl::complex<double>(1.e-6, 1.e-6)
-                        // 33       dpl::complex<double>(-2, NAN)
-                        std::cout << "i = " << i << ", j == " << j << std::endl;
-                        CALL_CHECK_OBJ_I_J(check_obj, i, j, false);
-                    }
+                    CALL_CHECK_OBJ_I_J(check_obj, i, j, classify(r) != zero);
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -167,26 +161,7 @@ void test_edges(TChecker& check_obj)
     }
 }
 
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
-int
-run_test();
-int
-main(int, char**)
-{
-    std::cout << "Run test on host" << std::endl;
-    run_test<::std::true_type, ::std::true_type>();
-    //using HasDoubleTypeSupportInRuntime = ::std::true_type;
-    //using HasntDoubleTypeSupportInRuntime = ::std::false_type;
-    //using HasntLongDoubleSupportInCompiletime = ::std::false_type;
-    //std::cout << "Run test on device" << std::endl;
-    //TestUtils::run_test_in_kernel(
-    //    [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },
-    //    [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); });
-    return TestUtils::done();
-}
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime, class TChecker>
-int
-run_test()
+ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
