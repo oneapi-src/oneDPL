@@ -67,18 +67,18 @@ void test_edges()
         else if (std::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
             if (testcases[i].real() > 0)
-                is_about(r.real(),  pi/2);
+                assert(is_about(r.real(),  pi/2));
             else
-                is_about(r.real(), - pi/2);
+                assert(is_about(r.real(), - pi/2));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }
         else if (std::isinf(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
             if (std::signbit(testcases[i].real()))
-                is_about(r.real(), -pi/4);
+                assert(is_about(r.real(), -pi/4));
             else
-                is_about(r.real(),  pi/4);
+                assert(is_about(r.real(),  pi/4));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }

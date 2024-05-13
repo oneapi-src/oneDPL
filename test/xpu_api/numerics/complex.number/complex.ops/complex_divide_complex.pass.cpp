@@ -20,7 +20,7 @@ template <class T>
 void
 test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
 {
-    is_about(lhs / rhs, x);
+    assert(is_about(lhs / rhs, x));
 }
 
 template <class T>

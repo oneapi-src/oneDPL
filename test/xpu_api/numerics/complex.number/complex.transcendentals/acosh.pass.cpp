@@ -43,9 +43,9 @@ void test_edges()
         {
             assert(!std::signbit(r.real()));
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi/2);
+                assert(is_about(r.imag(), -pi/2));
             else
-                is_about(r.imag(),  pi/2);
+                assert(is_about(r.imag(),  pi/2));
         }
         else if (testcases[i].real() == 1 && testcases[i].imag() == 0)
         {
@@ -59,18 +59,18 @@ void test_edges()
             assert(r.real() == 0);
             assert(!std::signbit(r.real()));
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi);
+                assert(is_about(r.imag(), -pi));
             else
-                is_about(r.imag(),  pi);
+                assert(is_about(r.imag(),  pi));
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
             assert(std::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi/2);
+                assert(is_about(r.imag(), -pi/2));
             else
-                is_about(r.imag(),  pi/2);
+                assert(is_about(r.imag(),  pi/2));
         }
         else if (std::isfinite(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
@@ -84,9 +84,9 @@ void test_edges()
             assert(std::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -pi);
+                assert(is_about(r.imag(), -pi));
             else
-                is_about(r.imag(),  pi);
+                assert(is_about(r.imag(),  pi));
         }
         else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isfinite(testcases[i].imag()))
         {
@@ -100,18 +100,18 @@ void test_edges()
             assert(std::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -0.75 * pi);
+                assert(is_about(r.imag(), -0.75 * pi));
             else
-                is_about(r.imag(),  0.75 * pi);
+                assert(is_about(r.imag(),  0.75 * pi));
         }
         else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isinf(testcases[i].imag()))
         {
             assert(std::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
-                is_about(r.imag(), -0.25 * pi);
+                assert(is_about(r.imag(), -0.25 * pi));
             else
-                is_about(r.imag(),  0.25 * pi);
+                assert(is_about(r.imag(),  0.25 * pi));
         }
         else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {

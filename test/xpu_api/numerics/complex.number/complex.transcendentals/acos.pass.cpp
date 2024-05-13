@@ -41,20 +41,20 @@ void test_edges()
         dpl::complex<double> r = dpl::acos(testcases[i]);
         if (testcases[i].real() == 0 && testcases[i].imag() == 0)
         {
-            is_about(r.real(), pi/2);
+            assert(is_about(r.real(), pi/2));
             assert(r.imag() == 0);
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }
         else if (testcases[i].real() == 0 && std::isnan(testcases[i].imag()))
         {
 #if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
-            is_about(r.real(), pi/2);
+            assert(is_about(r.real(), pi/2));
             assert(std::isnan(r.imag()));
 #endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
-            is_about(r.real(), pi/2);
+            assert(is_about(r.real(), pi/2));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }
@@ -65,7 +65,7 @@ void test_edges()
         }
         else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isfinite(testcases[i].imag()))
         {
-            is_about(r.real(), pi);
+            assert(is_about(r.real(), pi));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }
@@ -78,13 +78,13 @@ void test_edges()
         }
         else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isinf(testcases[i].imag()))
         {
-            is_about(r.real(), 0.75 * pi);
+            assert(is_about(r.real(), 0.75 * pi));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }
         else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isinf(testcases[i].imag()))
         {
-            is_about(r.real(), 0.25 * pi);
+            assert(is_about(r.real(), 0.25 * pi));
             assert(std::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }

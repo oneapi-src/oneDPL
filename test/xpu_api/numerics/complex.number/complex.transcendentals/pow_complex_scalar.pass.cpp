@@ -23,8 +23,8 @@ void
 test(const dpl::complex<T>& a, const T& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
-    is_about(dpl::real(c), dpl::real(x));
-    is_about(dpl::imag(c), dpl::imag(x));
+    assert(is_about(dpl::real(c), dpl::real(x)));
+    assert(is_about(dpl::imag(c), dpl::imag(x)));
 }
 
 template <class T>
