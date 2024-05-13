@@ -3,9 +3,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 
-// #include <format>
-// #include <ranges>
-
 constexpr std::size_t EVENLY_DIVIDABLE_SIZE =
     2 * 3 * 5 * 7 * 11 * 13; // good up to 16 processes
 
