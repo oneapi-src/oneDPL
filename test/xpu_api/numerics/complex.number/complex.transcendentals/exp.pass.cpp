@@ -98,7 +98,9 @@ void test_edges()
         else if (std::isfinite(testcases[i].imag()) && std::abs(testcases[i].imag()) <= 1)
         {
             assert(!std::signbit(r.real()));
+#if !_PSTL_TEST_COMPLEX_EXP_BROKEN_GLIBCXX
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
+#endif // _PSTL_TEST_COMPLEX_EXP_BROKEN_GLIBCXX
         }
         else if (std::isinf(r.real()) && testcases[i].imag() == 0) {
             assert(r.imag() == 0);
