@@ -209,12 +209,12 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 #if _WIN64
     // Under Windows, memory with explicitly set alignment must not be released by free() function,
     // but rather with _aligned_free(), so have to use malloc() for non-extended alignment allocations.
-    void* __res = (__ignore_alignment == __alignment) ? __original_malloc(__size)
-                                                      : __original_aligned_alloc(__size, __alignment);
+    void* __res =
+        (__ignore_alignment == __alignment) ? __original_malloc(__size) : __original_aligned_alloc(__size, __alignment);
 #else
     // can always use aligned allocation, not interop issue with free()
-    void* __res = __original_aligned_alloc((__ignore_alignment == __alignment) ? alignof(std::max_align_t) : __alignment,
-                                           __size);
+    void* __res =
+        __original_aligned_alloc((__ignore_alignment == __alignment) ? alignof(std::max_align_t) : __alignment, __size);
 #endif
     if (__res && __alignment)
         assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
