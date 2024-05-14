@@ -1,5 +1,5 @@
 Single-Pass Scan
-##########
+################
 
 -----------------------------------------------------------
 ``inclusive_scan`` Function Template
@@ -8,6 +8,10 @@ Single-Pass Scan
 The ``inclusive_scan`` function computes the inclusive prefix sum using a given binary operation.
 The function implements a single-pass algorithm, where each input element is read exactly once from
 global memory and each output element is written to exactly once in global memory.
+
+As this algorithm uses inter-work-group communication, it must be run on a device that supports
+strong forward progress guarantees, such as the `Intel® Data Center GPU Max
+<https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
 
 A synopsis of the ``inclusive_scan`` function is provided below:
 
@@ -63,16 +67,16 @@ Parameters
 
 - The element type of sequence to scan must be a C++ integral or floating-point type
   other than ``bool`` with a width of up to 64 bits.
-- The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
-  evaluate to true.
 - The result is non-deterministic if the binary operator is non-associative (such as in floating-point addition).
 
-.. note::
 
-   Current limitations:
+**Current limitations**:
 
-   - The function will internally block until the issued kernels have completed execution
-   - The SYCL device associated with the provided queue must support 64-bit atomic operations
+- The function will internally block until the issued kernels have completed execution.
+  Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
+- The SYCL device associated with the provided queue must support 64-bit atomic operations
+- The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
+  evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
 
 Return Value
 ------------
@@ -154,7 +158,7 @@ where V is the number of bytes needed to store the input value type and F is the
 Currently, F is hard-coded to 4 as the flag type is 32-bits.
 
 The value of N\ :sub:`flags` represents the number of work-groups and depends on ``param.data_per_workitem`` and ``param.workgroup_size``.
-It can be approxmiated by dividing the number of input elements N by the product of ``param.data_per_workitem`` and ``param.workgroup_size``
+It can be approximated by dividing the number of input elements N by the product of ``param.data_per_workitem`` and ``param.workgroup_size``
 and adding 33 for padding.
 
 .. note::
@@ -182,14 +186,15 @@ The general advice is to choose kernel parameters based on performance measureme
 The initial configuration may be selected according to these high-level guidelines:
 
 
-- When the number of elements to scan (N) is small (~8K or less),
-  generally it is more efficient to process the algorithm by a single work-group.
-  In this case, the choice of kernel parameters is irrelevant, as we internally dispatch to a single
-  work-group implementation.
+- When the number of elements is small enough to fit within single work-group, the algorithm will ignore kernels
+  parameters and instead dispatch to a single workgroup version, where it is generally more efficient.
 
 - Generally, utilizing all available
-  compute cores is key for better performance. Allow creating enough work chunks to feed all
-  X\ :sup:`e`-cores [#fnote1]_ on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
+  compute cores is key for better performance. To allow sufficient work to satisfy all
+  X\ :sup:`e`-cores [#fnote1]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
+
+- On devices with mutiple tiles, it may prove beneficial to experiment with different tile hierarchies as described
+  in https://www.intel.com/content/www/us/en/developer/articles/technical/flattening-gpu-tile-hierarchy.html.
 
 
 .. warning::
