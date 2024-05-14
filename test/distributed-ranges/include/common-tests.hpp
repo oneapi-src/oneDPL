@@ -111,26 +111,31 @@ bool fp_equal(std::vector<T> a, std::vector<T> b,
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::pair<A, B> const &x, std::tuple<C, D> const &y) {
-  return x.first == std::get<0>(y) && x.second == std::get<1>(y);
+bool operator==(std::pair<A, B> const & x, std::tuple<C, D> const & y)
+{
+    return x.first == std::get<0>(y)
+        && x.second == std::get<1>(y);
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::tuple<C, D> const &y, std::pair<A, B> const &x) {
-  return x == y;
+bool operator==(std::tuple<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x == y;
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::pair<C, D> const &y, std::pair<A, B> const &x) {
-  return x.first == y.first && x.second == y.second;
+bool operator==(std::pair<C, D> const & y, std::pair<A, B> const & x)
+{
+    return x.first == y.first && x.second == y.second;
 }
+
 
 template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   if (rng::distance(rng::begin(r1), rng::end(r1)) !=
       rng::distance(rng::begin(r2), rng::end(r2))) {
     return false;
   }
-
+  
   // TODO: why r2.begin() is not working here?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
@@ -157,10 +162,10 @@ auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
     return drfmt::format("");
   }
   return drfmt::format("\n{}"
-                       "    ref:    {}\n"
-                       "    actual: {}\n  ",
-                       title == "" ? "" : "    " + title + "\n",
-                       rng::views::all(ref), rng::views::all(actual));
+                     "    ref:    {}\n"
+                     "    actual: {}\n  ",
+                     title == "" ? "" : "    " + title + "\n",
+                     rng::views::all(ref), rng::views::all(actual));
 }
 
 std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
@@ -169,11 +174,10 @@ std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
     return "";
   } else {
     return drfmt::format("\n{}"
-                         "    in:     {}\n"
-                         "    ref:    {}\n"
-                         "    actual: {}\n  ",
-                         title == "" ? "" : "    " + title + "\n", in, ref,
-                         tst);
+                       "    in:     {}\n"
+                       "    ref:    {}\n"
+                       "    actual: {}\n  ",
+                       title == "" ? "" : "    " + title + "\n", in, ref, tst);
   }
 }
 
@@ -196,10 +200,10 @@ std::string check_segments_message(auto &&r) {
   auto flat = rng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
     return drfmt::format("\n"
-                         "    Segment error\n"
-                         "      range:    {}\n"
-                         "      segments: {}\n  ",
-                         rng::views::all(r), rng::views::all(segments));
+                       "    Segment error\n"
+                       "      range:    {}\n"
+                       "      segments: {}\n  ",
+                       rng::views::all(r), rng::views::all(segments));
   }
   return "";
 }
@@ -264,10 +268,10 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
   if (is_equal(ref, actual)) {
     return testing::AssertionSuccess();
   } else {
-    return testing::AssertionFailure() << drfmt::format(
-               "\n        a: {}\n        b: {}\n      ref: {}\n    "
-               "actual: {}\n  ",
-               a, b, ref, actual);
+    return testing::AssertionFailure()
+           << drfmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
+                          "actual: {}\n  ",
+                          a, b, ref, actual);
   }
 }
 
@@ -317,7 +321,8 @@ namespace oneapi::dpl::experimental::dr::shp {
 
 // gtest relies on ADL to find the printer
 template <typename T>
-std::ostream &operator<<(std::ostream &os, const distributed_vector<T> &dist) {
+std::ostream &operator<<(std::ostream &os,
+                         const distributed_vector<T> &dist) {
   os << "{ ";
   bool first = true;
   for (const auto &val : dist) {
