@@ -186,7 +186,7 @@ The general advice is to choose kernel parameters based on performance measureme
 The initial configuration may be selected according to these high-level guidelines:
 
 
-- When the number of elements is small enough to fit within single work-group, the algorithm will ignore kernels
+- When the number of elements is small enough to fit within single work-group, the algorithm will ignore kernel
   parameters and instead dispatch to a single workgroup version, where it is generally more efficient.
 
 - Generally, utilizing all available
