@@ -9,7 +9,6 @@ else ()
     message(STATUS "suitable for distributed ranges cmake version ${CMAKE_VERSION} found")
 endif()
 
-
 find_package(fmt QUIET)
 if(fmt_FOUND)
     if(fmt_VERSION VERSION_GREATER_EQUAL 8.1 AND fmt_VERSION VERSION_LESS 10)
@@ -23,14 +22,6 @@ else()
     message(WARNING "libfmt not found, install libfmt-dev 8.x or 9.x to enable distributed ranges tests")
     return()
 endif()
-
-
-include(CheckIncludeFileCXX)
-check_include_file_cxx("cxxopts.hpp" CXX_OPTS_SUPPORT)
-if (NOT CXX_OPTS_SUPPORT)
-  message(WARNING "disabled distributed ranges tests, install libcxxopts-dev or other package with cxxopts")
-  return()
-endif ()
 
 find_package(GTest)
 if (NOT GTest_FOUND)

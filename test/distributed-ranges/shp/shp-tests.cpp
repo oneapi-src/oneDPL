@@ -2,41 +2,56 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "xhp-tests.hpp"
 
-cxxopts::ParseResult options;
+void printhelp() {
+  std::cout << "Usage: shp-tests [options]\n"
+            << "Options:\n"
+            << "  --drhelp\t\tPrint help\n"
+            << "  -d, --devicesCount\tNumber of GPUs to create\n";
+}
 
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
-  cxxopts::Options options_spec(argv[0], "DR SHP tests");
 
-  // clang-format off
-  options_spec.add_options()
-    ("drhelp", "Print help")
-    ("d, devicesCount", "number of GPUs to create", cxxopts::value<unsigned int>()->default_value("0"));
-  // clang-format on
+  const std::string drhelpOption = "--drhelp";
+  const std::string dOption = "-d";
+  const std::string devicesCountOption = "--devicesCount";
 
-  try {
-    options = options_spec.parse(argc, argv);
-  } catch (const cxxopts::OptionParseException &e) {
-    std::cout << options_spec.help() << "\n";
-    exit(1);
+  bool drhelp = false;
+  unsigned int devicesCount = 0;
+
+  for (int i = 1; i < argc; i++) {
+    std::string arg = argv[i];
+    if (arg == drhelpOption) {
+      printhelp();
+      return 0;
+    } else if (arg == dOption || arg == devicesCountOption) {
+      if (i + 1 < argc) {
+        devicesCount = std::stoi(argv[i + 1]);
+        i++; // Skip the next argument
+      } else {
+        std::cout << "Missing value for " << arg << " option\n";
+        return 1;
+      }
+    } else {
+      std::cout << "Unknown option: " << arg << "\n";
+      return 1;
+    }
   }
 
-  if (options.count("drhelp")) {
-    std::cout << options_spec.help() << "\n";
-    exit(0);
-  }
-
-  const unsigned int dev_num = options["devicesCount"].as<unsigned int>();
   auto devices = xhp::get_numa_devices(sycl::default_selector_v);
 
-  if (dev_num > 0) {
+  if (devicesCount > 0) {
     unsigned int i = 0;
-    while (devices.size() < dev_num) {
+    while (devices.size() < devicesCount) {
       devices.push_back(devices[i++]);
     }
-    devices.resize(dev_num); // if too many devices
+    devices.resize(devicesCount); // if too many devices
   }
 
   dr::shp::init(devices);
