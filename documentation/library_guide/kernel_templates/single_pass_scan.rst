@@ -184,7 +184,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 - When the number of elements to scan (N) is small (~8K or less),
   generally it is more efficient to process the algorithm by a single work-group.
-  In this case, the choice of kernel parameters is irrelevant, as we internally dispatch to a single
+  In this case, the choice of kernel parameters is irrelevant, as the implementation will internally dispatch to a single
   work-group implementation.
 
 - Generally, utilizing all available
