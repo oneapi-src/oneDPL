@@ -7,7 +7,8 @@ Radix Sort
 
 The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* [#fnote1]_ algorithm variant.
+The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in place and out of place
+overloads are provided.  For out of place overloads, the input data order is preserved.
 
 A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
@@ -24,12 +25,26 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    sycl::event
    radix_sort (sycl::queue q, Range&& r, KernelParam param); // (1)
 
-   template <bool IsAscending = true,  std::uint8_t RadixBits = 8,
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator>
    sycl::event
    radix_sort (sycl::queue q, Iterator first, Iterator last,
                KernelParam param); // (2)
 
+   // Sort a single sequence out of place
+
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename Range1, typename Range2>
+   sycl::event
+   radix_sort(sycl::queue q, Range1&& r, Range2&& r_out,
+              KernelParam param) // (3)
+
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename Iterator1,
+             typename Iterator2>
+   sycl::event
+   radix_sort(sycl::queue q, Iterator1 first, Iterator1 last,
+              Iterator2 first_out, KernelParam param) // (4)
 
    // Sort a sequence of keys and apply the same order to a sequence of values
 
@@ -37,13 +52,33 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
              typename KernelParam, typename KeysRng, typename ValuesRng>
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysRng&& keys,
-                      ValuesRng&& values, KernelParam param); // (3)
+                      ValuesRng&& values, KernelParam param); // (5)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator1, typename Iterator2>
    sycl::event
    radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
-                      Iterator2 values_first, KernelParam param); // (4)
+                      Iterator2 values_first, KernelParam param); // (6)
+
+   // Sort a sequence of keys and values out of place
+
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename KeysRng1, typename ValsRng1,
+             typename KeysRng2, typename ValsRng2>
+   sycl::event
+   radix_sort_by_key(sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
+                     KeysRng2&& keys_out, ValsRng2&& vals_out,
+                     KernelParam param) // (7)
+
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename KeysIterator1,
+             typename ValsIterator1, typename KeysIterator2,
+             typename ValsIterator2>
+   sycl::event
+   radix_sort_by_key(sycl::queue q, KeysIterator1 keys_first,
+                     KeysIterator1 keys_last, ValsIterator1 vals_first,
+                     KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
+                     KernelParam param) // (8)
 
    }
 
@@ -71,14 +106,16 @@ Parameters
 |                                               | The sequences of elements to apply the algorithm to.                |
 |  - ``r`` (1)                                  | Supported sequence types:                                           |
 |  - ``first``, ``last`` (2)                    |                                                                     |
-|  - ``keys``, ``values`` (3)                   | - ``sycl::buffer`` (1,3),                                           |
-|  - ``keys_first``, ``keys_last``,             | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
-|                                               |   <viewable-ranges>` (1,3),                                         |
-|    ``values_first`` (4)                       | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|                                               |   <viewable-ranges>` (1,3),                                         |
-|                                               | - :ref:`USM pointers <use-usm>` (2,4),                              |
-|                                               | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-|                                               |   <use-buffer-wrappers>` (2,4).                                     |
+|  - ``r``, ``r_out`` (3)                       | - ``sycl::buffer`` (1,3,5,7),                                       |
+|  - ``first``, ``last``, ``first_out`` (4)     | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+|  - ``keys``, ``values`` (5)                   |   <viewable-ranges>` (1,3,5,7),                                     |
+|  - ``keys_first``, ``keys_last``,             | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|    ``values_first`` (6)                       |   <viewable-ranges>` (1,3,5,7),                                     |
+|  - ``keys``, ``values``,                      | - :ref:`USM pointers <use-usm>` (2,4,6,8),                          |
+|    ``keys_out``, ``values_out`` (7)           | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+|  - ``keys_first``, ``keys_last``,             |   <use-buffer-wrappers>` (2,4,6,8).                                 |
+|    ``vals_first``, ``keys_out_first``,        |                                                                     |
+|    ``values_out_first`` (8)                   |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
@@ -137,7 +174,7 @@ Usage Examples
       keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
 
       // sort
-      auto e = kt::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{}); // (2)
+      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{}); // (2)
       e.wait();
 
       // print
@@ -189,7 +226,7 @@ Usage Examples
       }
 
       // sort
-      auto e = kt::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (3)
+      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (3)
       e.wait();
 
       // print
@@ -211,6 +248,132 @@ Usage Examples
 **Output:**
 
 .. code:: none
+
+   1 2 3 3 3 5
+   s o r t e d
+
+``radix_sort`` out of place Example
+----------------------
+
+.. code:: cpp
+
+   // possible build and run commands:
+   //    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include && ./radix_sort
+
+   #include <cstdint>
+   #include <iostream>
+   #include <sycl/sycl.hpp>
+
+   #include <oneapi/dpl/experimental/kernel_templates>
+
+   namespace kt = oneapi::dpl::experimental::kt;
+
+   int main()
+   {
+      std::size_t n = 6;
+      sycl::queue q{sycl::gpu_selector_v};
+      std::uint32_t* keys = sycl::malloc_shared<std::uint32_t>(n, q);
+      std::uint32_t* keys_out = sycl::malloc_shared<std::uint32_t>(n, q);
+
+      // initialize
+      keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
+
+      // sort
+      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, keys_out, kt::kernel_param<416, 64>{}); // (4)
+      e.wait();
+
+      // print
+      for(std::size_t i = 0; i < n; ++i)
+         std::cout << keys[i] << ' ';
+      std::cout << '\n';
+      for(std::size_t i = 0; i < n; ++i)
+         std::cout << keys_out[i] << ' ';
+      std::cout << '\n';
+
+      sycl::free(keys, q);
+      sycl::free(keys_out, q);
+      return 0;
+   }
+
+**Output:**
+
+.. code:: none
+
+   3 2 1 5 3 3
+   5 3 3 3 2 1
+
+``radix_sort_by_key`` out of place Example
+-----------------------------
+
+.. code:: cpp
+
+   // possible build and run commands:
+   //    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include && ./radix_sort_by_key
+
+   #include <cstdint>
+   #include <iostream>
+   #include <sycl/sycl.hpp>
+
+   #include <oneapi/dpl/experimental/kernel_templates>
+
+   namespace kt = oneapi::dpl::experimental::kt;
+
+   int main()
+   {
+      std::size_t n = 6;
+      sycl::queue q{sycl::gpu_selector_v};
+      sycl::buffer<std::uint32_t> keys{sycl::range<1>(n)};
+      sycl::buffer<std::uint32_t> keys_out{sycl::range<1>(n)};
+      sycl::buffer<char> values{sycl::range<1>(n)};
+      sycl::buffer<char> values_out{sycl::range<1>(n)};
+
+
+      // initialize
+      {
+         sycl::host_accessor k_acc{keys, sycl::write_only};
+         k_acc[0] = 3, k_acc[1] = 2, k_acc[2] = 1, k_acc[3] = 5, k_acc[4] = 3, k_acc[5] = 3;
+
+         sycl::host_accessor v_acc{values, sycl::write_only};
+         v_acc[0] = 'r', v_acc[1] = 'o', v_acc[2] = 's', v_acc[3] = 'd', v_acc[4] = 't', v_acc[5] = 'e';
+      }
+
+      // sort
+      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, keys_out, values_out,
+                                                     kt::kernel_param<96, 64>{}); // (7)
+      e.wait();
+
+      // print
+      {
+         sycl::host_accessor k_acc{keys, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << k_acc[i] << ' ';
+         std::cout << '\n';
+
+         sycl::host_accessor v_acc{values, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << v_acc[i] << ' ';
+         std::cout << "\n\n";
+         
+         sycl::host_accessor k_out_acc{keys_out, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << k_out_acc[i] << ' ';
+         std::cout << '\n';
+
+         sycl::host_accessor v_out_acc{values_out, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << v_out_acc[i] << ' ';
+         std::cout << '\n';
+      }
+
+      return 0;
+   }
+
+**Output:**
+
+.. code:: none
+
+   3 2 1 5 3 3
+   r o s d t e
 
    1 2 3 3 3 5
    s o r t e d
