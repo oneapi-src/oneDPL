@@ -1,9 +1,9 @@
 Radix Sort
 ##########
 
------------------------------------------------------------
+---------------------------------------------------
 radix_sort and radix_sort_by_key Function Templates
------------------------------------------------------------
+---------------------------------------------------
 
 The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
