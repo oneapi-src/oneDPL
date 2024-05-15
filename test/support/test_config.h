@@ -155,6 +155,8 @@
 #define _PSTL_TEST_COMPLEX_TANH_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
 
 #define _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+// According to https://gcc.gnu.org/develop.html#timeline use last known _GLIBCXX_ to check the version of libstdc++ : 20240426
+#define _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX (__GLIBCXX__ > 0 && __GLIBCXX__ <= 20240426)
 #define _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
 // According to https://gcc.gnu.org/develop.html#timeline use last known _GLIBCXX_ to check the version of libstdc++ : 20240426
 #define _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX (__GLIBCXX__ > 0 && __GLIBCXX__ <= 20240426)
