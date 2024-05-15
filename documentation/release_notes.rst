@@ -19,6 +19,8 @@ News
 
 New Features
 ------------
+- oneDPL code is now implemented on tag dispatching approach. 
+  ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` are implemented for the host policies only. 
 - Added out-of-place overloads for experimental ``radix_sort`` and ``radix_sort_by_key`` APIs found in
   the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace.
   These overloads preserve the input sequence and sort data into the user provided output sequence.
