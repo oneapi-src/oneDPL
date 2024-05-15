@@ -55,19 +55,25 @@ void test_edges()
         }
         else if (std::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
+#if !_PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX      // test case: 55
             assert(r.real() == (testcases[i].real() > 0 ? 1 : -1));
+#endif // _PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX
             assert(r.imag() == 0);
             assert(std::signbit(r.imag()) == std::signbit(dpl::sin(2 * testcases[i].imag())));
         }
 #if !_PSTL_TEST_COMPLEX_TANH_BROKEN
         else if (std::isinf(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
+#if !_PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX      // test case: 44
             assert(r.real() == (testcases[i].real() > 0 ? 1 : -1));
+#endif // _PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX
             assert(r.imag() == 0);
         }
         else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
+#if !_PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX      // test case: 33
             assert(r.real() == (testcases[i].real() > 0 ? 1 : -1));
+#endif // _PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX
             assert(r.imag() == 0);
         }
         else if (std::isnan(testcases[i].real()) && testcases[i].imag() == 0)
