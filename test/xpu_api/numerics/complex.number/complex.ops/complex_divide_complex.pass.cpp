@@ -53,8 +53,10 @@ void test_edges()
                     assert(classify(r) == zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN          // test case 92, 33
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX // test case 92, 33
                     assert(classify(r) == zero);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -69,14 +71,18 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX // test case 0, 92
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
                     break;
                 case non_zero:
                     assert(classify(r) == non_zero);
                     break;
                 case inf:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN          // test case 0, 33
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
                     assert(classify(r) == zero);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -91,11 +97,15 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX // test case 33, 92
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
                     break;
                 case non_zero:
-#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN        // test case 33, 0
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX // test case 33, 0
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN
                     break;
                 case inf:
@@ -133,7 +143,9 @@ void test_edges()
                 switch (classify(testcases[j]))
                 {
                 case zero:
+#if !_PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX // test case 34, 92
                     assert(classify(r) == inf);
+#endif // _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX
                     break;
                 case non_zero:
                     assert(classify(r) == NaN);
