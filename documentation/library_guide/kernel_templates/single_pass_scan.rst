@@ -2,7 +2,7 @@ Single-Pass Scan
 ################
 
 -----------------------------------------------------------
-``inclusive_scan`` Function Template
+inclusive_scan Function Template
 -----------------------------------------------------------
 
 The ``inclusive_scan`` function computes the inclusive prefix sum using a given binary operation.
@@ -10,7 +10,7 @@ The function implements a single-pass algorithm, where each input element is rea
 global memory and each output element is written to exactly once in global memory.
 
 As this algorithm uses inter-work-group communication, it must be run on a device that supports
-strong forward progress guarantees, such as the `Intel® Data Center GPU Max
+strong forward progress guarantees, such as the `Intel® Data Center GPU Max Series
 <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
 
 A synopsis of the ``inclusive_scan`` function is provided below:
@@ -40,9 +40,9 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-|  ``q``                                        | SYCL* queue to submit the kernels to.                               |
+|  ``q``                                        | The SYCL* queue where kernels are submitted.                        |
 +-----------------------------------------------+---------------------------------------------------------------------+
-|                                               | The sequences of elements to apply the algorithm to.                |
+|                                               | The sequences to apply the algorithm to.                            |
 |  - ``in_begin``, ``in_end``, ``out_begin`` (1)| Supported sequence types:                                           |
 |  - ``in_rng``, ``out_rng`` (2)                |                                                                     |
 |                                               | - ``sycl::buffer`` (2),                                             |
@@ -55,7 +55,7 @@ Parameters
 |                                               |   <use-buffer-wrappers>` (1).                                       |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
-|  ``binary_op``                                | A function object that will applied to the elements of the input    |
+|  ``binary_op``                                | A function object that is applied to the elements of the input.     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
@@ -70,7 +70,7 @@ Parameters
 - The result is non-deterministic if the binary operator is non-associative (such as in floating-point addition).
 
 
-**Current limitations**:
+**Current Limitations**:
 
 - The function will internally block until the issued kernels have completed execution.
   Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
@@ -88,7 +88,7 @@ Usage Examples
 --------------
 
 
-``inclusive_scan`` Example
+inclusive_scan Example
 ----------------------
 
 .. code:: cpp
@@ -193,8 +193,8 @@ The initial configuration may be selected according to these high-level guidelin
   compute cores is key for better performance. To allow sufficient work to satisfy all
   X\ :sup:`e`-cores [#fnote1]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
 
-- On devices with mutiple tiles, it may prove beneficial to experiment with different tile hierarchies as described
-  in https://www.intel.com/content/www/us/en/developer/articles/technical/flattening-gpu-tile-hierarchy.html.
+- On devices with multiple tiles, it may prove beneficial to experiment with different tile hierarchies as described
+  in `Options for using a GPU Tile Hierarchy <https://www.intel.com/content/www/us/en/developer/articles/technical/flattening-gpu-tile-hierarchy.html>`_.
 
 
 .. warning::
