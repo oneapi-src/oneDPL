@@ -44,16 +44,28 @@ void test_edges()
             dpl::complex<double> r = dpl::pow(dpl::real(testcases[i]), testcases[j]);
             dpl::complex<double> z = dpl::exp(testcases[j] * dpl::log(dpl::complex<double>(dpl::real(testcases[i]))));
             if (std::isnan(dpl::real(r)))
+            {
+#if !_PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES       // test case: 1, 13
                 assert(std::isnan(dpl::real(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
+            }
             else
             {
+#if !_PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES       // test case: 0, 55
                 assert(dpl::real(r) == dpl::real(z));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
             if (std::isnan(dpl::imag(r)))
+            {
+#if !_PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES       // test case: 0, 27
                 assert(std::isnan(dpl::imag(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
+            }
             else
             {
+#if !_PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES       // test case: 0, 5
                 assert(is_about(dpl::imag(r), dpl::imag(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
         }
     }
@@ -64,9 +76,7 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-#ifndef _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
     IF_DOUBLE_SUPPORT(test_edges())
-#endif // _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES
 
   return 0;
 }
