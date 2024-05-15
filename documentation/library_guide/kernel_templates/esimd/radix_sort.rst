@@ -2,13 +2,13 @@ Radix Sort
 ##########
 
 -----------------------------------------------------------
-``radix_sort`` and ``radix_sort_by_key`` Function Templates
+radix_sort and radix_sort_by_key Function Templates
 -----------------------------------------------------------
 
 The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in place and out of place
-overloads are provided.  For out of place overloads, the input data order is preserved.
+The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in-place and out-of-place
+overloads are provided. For out-of-place overloads, the input data order is preserved.
 
 A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
@@ -31,20 +31,20 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    radix_sort (sycl::queue q, Iterator first, Iterator last,
                KernelParam param); // (2)
 
-   // Sort a single sequence out of place
+   // Sort a single sequence out-of-place
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range1, typename Range2>
    sycl::event
-   radix_sort(sycl::queue q, Range1&& r, Range2&& r_out,
-              KernelParam param) // (3)
+   radix_sort (sycl::queue q, Range1&& r, Range2&& r_out,
+               KernelParam param) // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator1,
              typename Iterator2>
    sycl::event
-   radix_sort(sycl::queue q, Iterator1 first, Iterator1 last,
-              Iterator2 first_out, KernelParam param) // (4)
+   radix_sort (sycl::queue q, Iterator1 first, Iterator1 last,
+               Iterator2 first_out, KernelParam param) // (4)
 
    // Sort a sequence of keys and apply the same order to a sequence of values
 
@@ -60,25 +60,25 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
                       Iterator2 values_first, KernelParam param); // (6)
 
-   // Sort a sequence of keys and values out of place
+   // Sort a sequence of keys and values out-of-place
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysRng1, typename ValsRng1,
              typename KeysRng2, typename ValsRng2>
    sycl::event
-   radix_sort_by_key(sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
-                     KeysRng2&& keys_out, ValsRng2&& vals_out,
-                     KernelParam param) // (7)
+   radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
+                      KeysRng2&& keys_out, ValsRng2&& vals_out,
+                      KernelParam param) // (7)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysIterator1,
              typename ValsIterator1, typename KeysIterator2,
              typename ValsIterator2>
    sycl::event
-   radix_sort_by_key(sycl::queue q, KeysIterator1 keys_first,
-                     KeysIterator1 keys_last, ValsIterator1 vals_first,
-                     KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
-                     KernelParam param) // (8)
+   radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
+                      KeysIterator1 keys_last, ValsIterator1 vals_first,
+                      KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
+                      KernelParam param) // (8)
 
    }
 
@@ -101,24 +101,25 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-|  ``q``                                        | SYCL* queue to submit the kernels to.                               |
+| ``q``                                         | SYCL* queue to submit the kernels to.                               |
 +-----------------------------------------------+---------------------------------------------------------------------+
+|                                               |                                                                     |
 |                                               | The sequences of elements to apply the algorithm to.                |
-|  - ``r`` (1)                                  | Supported sequence types:                                           |
-|  - ``first``, ``last`` (2)                    |                                                                     |
-|  - ``r``, ``r_out`` (3)                       | - ``sycl::buffer`` (1,3,5,7),                                       |
-|  - ``first``, ``last``, ``first_out`` (4)     | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
-|  - ``keys``, ``values`` (5)                   |   <viewable-ranges>` (1,3,5,7),                                     |
-|  - ``keys_first``, ``keys_last``,             | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|    ``values_first`` (6)                       |   <viewable-ranges>` (1,3,5,7),                                     |
-|  - ``keys``, ``values``,                      | - :ref:`USM pointers <use-usm>` (2,4,6,8),                          |
-|    ``keys_out``, ``values_out`` (7)           | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-|  - ``keys_first``, ``keys_last``,             |   <use-buffer-wrappers>` (2,4,6,8).                                 |
-|    ``vals_first``, ``keys_out_first``,        |                                                                     |
-|    ``values_out_first`` (8)                   |                                                                     |
+| - ``r`` (1),                                  | Supported sequence types:                                           |
+| - ``first``, ``last`` (2),                    |                                                                     |
+| - ``r``, ``r_out`` (3),                       | - ``sycl::buffer`` (1,3,5,7),                                       |
+| - ``first``, ``last``, ``first_out`` (4),     | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+| - ``keys``, ``values`` (5),                   |   <viewable-ranges>` (1,3,5,7),                                     |
+| - ``keys_first``, ``keys_last``,              | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|   ``values_first`` (6),                       |   <viewable-ranges>` (1,3,5,7),                                     |
+| - ``keys``, ``values``,                       | - :ref:`USM pointers <use-usm>` (2,4,6,8),                          |
+|   ``keys_out``, ``values_out`` (7),           | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+| - ``keys_first``, ``keys_last``,              |   <use-buffer-wrappers>` (2,4,6,8).                                 |
+|   ``vals_first``, ``keys_out_first``,         |                                                                     |
+|   ``values_out_first`` (8)                    |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
-|  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
+| ``param``                                     | A :doc:`kernel_param <../kernel_configuration>` object.             |
 |                                               | Its ``data_per_workitem`` must be a positive multiple of 32.        |
 |                                               |                                                                     |
 |                                               |                                                                     |
@@ -148,8 +149,8 @@ Usage Examples
 --------------
 
 
-``radix_sort`` Example
-----------------------
+radix_sort In-Place Example
+---------------------------
 
 .. code:: cpp
 
@@ -193,8 +194,8 @@ Usage Examples
    5 3 3 3 2 1
 
 
-``radix_sort_by_key`` Example
------------------------------
+radix_sort_by_key In-Place Example
+----------------------------------
 
 .. code:: cpp
 
@@ -252,8 +253,8 @@ Usage Examples
    1 2 3 3 3 5
    s o r t e d
 
-``radix_sort`` out of place Example
-----------------------
+radix_sort Out-of-Place Example
+-------------------------------
 
 .. code:: cpp
 
@@ -302,8 +303,8 @@ Usage Examples
    3 2 1 5 3 3
    5 3 3 3 2 1
 
-``radix_sort_by_key`` out of place Example
------------------------------
+radix_sort_by_key Out-of-Place Example
+--------------------------------------
 
 .. code:: cpp
 
