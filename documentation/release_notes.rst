@@ -30,7 +30,7 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed an issue where users would encounter compilation errors when using ``reduce``, ``min_element``, ``max_element``,
+- Fixed compilation errors when using ``reduce``, ``min_element``, ``max_element``,
   ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` with DPCPP compilers 2023.0 and below.
 - Fixed possible data races in the following algorithms used with DPC++ execution policies: ``remove_if ``, ``unique ``,
   ``inplace_merge ``, `` stable_partition``, `` partial_sort_copy``, `` rotate``.
@@ -44,7 +44,7 @@ Fixed Issues
 - Fixed handling of ``std::reverse_iterator`` as input to oneDPL algorithms using a device policy.
 - Fixed ``set_intersection`` to always copy from the first input sequence to the output, where previously some calls would
   copy from the second input sequence.
-- Fixed an issue where users would encounter compilation errors when using ``oneapi::dpl::zip_iterator`` with the oneTBB backend and C++20.
+- Fixed compilation errors when using ``oneapi::dpl::zip_iterator`` with the oneTBB backend and C++20.
 
 Known Issues and Limitations
 ----------------------------
@@ -67,9 +67,7 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
   containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
   environment to avoid the issue.
-- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
-- Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
-  where elements are copied from the second input range rather than the first input range. 
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows. 
 - For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
   it is required that the provided input and destination iterators are equality comparable.
