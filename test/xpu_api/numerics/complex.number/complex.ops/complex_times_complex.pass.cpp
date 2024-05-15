@@ -76,9 +76,7 @@ void test_edges()
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN            // test case 0, 33
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX   // test case 0, 33
                     assert(classify(r) == inf);
-#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -97,16 +95,12 @@ void test_edges()
                     break;
                 case non_zero:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN            // test case 33, 0
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX   // test case 33, 0
                     assert(classify(r) == inf);
-#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN            // test case 33, 33
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX   // test case 33, 33
                     assert(classify(r) == inf);
-#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
@@ -114,9 +108,7 @@ void test_edges()
                     break;
                 case non_zero_nan:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN            // test case 33, 34
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX   // test case 33, 34
                     assert(classify(r) == inf);
-#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 }
@@ -152,9 +144,7 @@ void test_edges()
                     break;
                 case inf:
 #if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN                // test case 33, 34
-#if !_PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX       // test case 33, 34
                     assert(classify(r) == inf);
-#endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN_GLIB_CXX
 #endif // _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN
                     break;
                 case NaN:
