@@ -101,10 +101,10 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-| ``q``                                         | SYCL* queue to submit the kernels to.                               |
+| ``q``                                         |  The SYCL* queue where kernels are submitted.                       |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               |                                                                     |
-|                                               | The sequences of elements to apply the algorithm to.                |
+|                                               | The sequences to apply the algorithm to.                            |
 | - ``r`` (1),                                  | Supported sequence types:                                           |
 | - ``first``, ``last`` (2),                    |                                                                     |
 | - ``r``, ``r_out`` (3),                       | - ``sycl::buffer`` (1,3,5,7),                                       |
