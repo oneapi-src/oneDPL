@@ -21,6 +21,10 @@ New Features
 ------------
 - oneDPL code is now implemented on tag dispatching approach. 
   ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` are implemented for the host policies only. 
+- Added experimental ``inclusive_scan`` algorithm residing in
+  the ``oneapi::dpl::experimental::kt::gpu`` namespace. This algorithm is part of
+  the family of kernel templates that allow configuring a variety of parameters
+  including the number of elements to process by a work item, and the size of a workgroup.
 - Added out-of-place overloads for experimental ``radix_sort`` and ``radix_sort_by_key`` APIs found in
   the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace.
   These overloads preserve the input sequence and sort data into the user provided output sequence.
