@@ -44,18 +44,34 @@ void test_edges()
             dpl::complex<double> r = dpl::pow(testcases[i], testcases[j]);
             dpl::complex<double> z = dpl::exp(testcases[j] * dpl::log(testcases[i]));
             if (std::isnan(dpl::real(r)))
+            {
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // test case: 0, 13
                 assert(std::isnan(dpl::real(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
+            }
             else
             {
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // test case: 0, 56
                 assert(dpl::real(r) == dpl::real(z));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 1, 89
                 assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
             if (std::isnan(dpl::imag(r)))
+            {
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 13
                 assert(std::isnan(dpl::imag(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
+            }
             else
             {
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 24
                 assert(dpl::imag(r) == dpl::imag(z));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
+#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 26
                 assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
+#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
         }
     }
@@ -70,9 +86,7 @@ ONEDPL_TEST_NUM_MAIN
 #endif
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-#ifndef _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
     IF_DOUBLE_SUPPORT(test_edges())
-#endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
 
   return 0;
 }
