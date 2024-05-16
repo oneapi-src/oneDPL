@@ -40,7 +40,7 @@ void test_edges()
         {
             assert(r.real() == 1);
             assert(r.imag() == 0);
-#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
+#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT        // test case: 92
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
 #endif // _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
         }
