@@ -90,7 +90,7 @@ macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_itera
     #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
     #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
     #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
-    if (${switch_off_checked_iterators})
+    if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug" AND ${switch_off_checked_iterators})
         target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
         target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
     endif()
@@ -217,7 +217,6 @@ endif()
 
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-
     if (_file MATCHES "${_regexp_pstl_offload_only}")
         if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
             if (_file MATCHES "${_regexp_pstl_offload_header_presence_required}")
