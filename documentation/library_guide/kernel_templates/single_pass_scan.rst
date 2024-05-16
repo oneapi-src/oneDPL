@@ -37,30 +37,31 @@ A synopsis of the ``inclusive_scan`` function is provided below:
 Parameters
 ----------
 
-+-----------------------------------------------+---------------------------------------------------------------------+
-| Name                                          | Description                                                         |
-+===============================================+=====================================================================+
-|  ``q``                                        | The SYCL* queue where kernels are submitted.                        |
-+-----------------------------------------------+---------------------------------------------------------------------+
-|                                               | The sequences to apply the algorithm to.                            |
-|  - ``in_begin``, ``in_end``, ``out_begin`` (1)| Supported sequence types:                                           |
-|  - ``in_rng``, ``out_rng`` (2)                |                                                                     |
-|                                               | - ``sycl::buffer`` (2),                                             |
-|                                               | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
-|                                               |   <viewable-ranges>` (2),                                           |
-|                                               | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|                                               |   <viewable-ranges>` (2),                                           |
-|                                               | - :ref:`USM pointers <use-usm>` (1),                                |
-|                                               | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-|                                               |   <use-buffer-wrappers>` (1).                                       |
-|                                               |                                                                     |
-+-----------------------------------------------+---------------------------------------------------------------------+
-|  ``binary_op``                                | A function object that is applied to the elements of the input.     |
-|                                               |                                                                     |
-+-----------------------------------------------+---------------------------------------------------------------------+
-|  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
-|                                               |                                                                     |
-+-----------------------------------------------+---------------------------------------------------------------------+
++------------------------------------------------+---------------------------------------------------------------------+
+| Name                                           | Description                                                         |
++================================================+=====================================================================+
+| ``q``                                          | The SYCL* queue where kernels are submitted.                        |
++------------------------------------------------+---------------------------------------------------------------------+
+|                                                |                                                                     |
+|                                                | The sequences to apply the algorithm to.                            |
+| - ``in_begin``, ``in_end``, ``out_begin`` (1), | Supported sequence types:                                           |
+| - ``in_rng``, ``out_rng`` (2).                 |                                                                     |
+|                                                | - :ref:`USM pointers <use-usm>` (1),                                |
+|                                                | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+|                                                |   <use-buffer-wrappers>` (1),                                       |
+|                                                | - ``sycl::buffer`` (2),                                             |
+|                                                | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+|                                                |   <viewable-ranges>` (2),                                           |
+|                                                | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|                                                |   <viewable-ranges>` (2).                                           |
+|                                                |                                                                     |
++------------------------------------------------+---------------------------------------------------------------------+
+| ``binary_op``                                  | A function object that is applied to the elements of the input.     |
+|                                                |                                                                     |
++------------------------------------------------+---------------------------------------------------------------------+
+| ``param``                                      | A :doc:`kernel_param <../kernel_configuration>` object.             |
+|                                                |                                                                     |
++------------------------------------------------+---------------------------------------------------------------------+
 
 
 **Type Requirements**:
