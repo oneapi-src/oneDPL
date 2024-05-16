@@ -174,7 +174,7 @@ It can be approximated by dividing the number of input elements N by the product
 Local Memory Requirements
 -------------------------
 
-Local memory is used for storing elements of the input that are to be scanned by a single work group.
+Local memory is used for storing elements of the input that are to be scanned by a single work-group.
 The used amount is denoted as N\ :sub:`elems_per_workgroup`, which equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``.
 
 Some amount of local memory is also used by the calls to SYCL's group reduction and group scan. The amount of memory used particularly
@@ -189,7 +189,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 
 - When the number of elements is small enough to fit within single work-group, the algorithm will ignore kernel
-  parameters and instead dispatch to a single workgroup version, where it is generally more efficient.
+  parameters and instead dispatch to a single work-group version, where it is generally more efficient.
 
 - Generally, utilizing all available
   compute cores is key for better performance. To allow sufficient work to satisfy all
