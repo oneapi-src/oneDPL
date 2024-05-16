@@ -61,7 +61,7 @@ Parameters
 | ``binary_op``                                  | A function object that is applied to the elements of the input.     |
 |                                                |                                                                     |
 +------------------------------------------------+---------------------------------------------------------------------+
-| ``param``                                      | A :doc:`kernel_param <../kernel_configuration>` object.             |
+| ``param``                                      | A :doc:`kernel_param <kernel_configuration>` object.                |
 |                                                |                                                                     |
 +------------------------------------------------+---------------------------------------------------------------------+
 
@@ -80,8 +80,7 @@ Parameters
   - The function will internally block until the issued kernels have completed execution.
     Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
   - The SYCL device associated with the provided queue must support 64-bit atomic operations if the element type is 64-bits.
-  - The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
-    evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
+  - There must be a known identity value for the provided combination of the element type and the binary operation. That is, ``sycl::has_known_identity_v`` must evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
 
 Return Value
 ------------
@@ -145,10 +144,10 @@ inclusive_scan Example
 Memory Requirements
 -------------------
 
-The algorithms use global and local device memory (see `SYCL 2020 Specification
+The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
-for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
-on the device; otherwise, the algorithm throws a ``std::bad_alloc`` exception. The amount of memory that is required
+for intermediate data storage. For the algorithm to operate correctly, there must be enough memory
+on the device. It throws a ``std::bad_alloc`` exception if there is not enough global device memory. The behavior is undefined if there is not enough local memory. The amount of memory that is required
 depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
