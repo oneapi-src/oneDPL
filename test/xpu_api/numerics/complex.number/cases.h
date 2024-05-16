@@ -17,6 +17,8 @@
 #include <cassert>
 #include <type_traits>
 
+// ATTENTION: the indexes of this array are used in the test_edges() function in comments for broken cases
+// So please add new testcases to the end of the array.
 const dpl::complex<double> testcases[] =
 {
     dpl::complex<double>( 1.e-6,  1.e-6),
