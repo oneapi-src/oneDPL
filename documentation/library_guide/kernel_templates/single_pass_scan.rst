@@ -154,16 +154,14 @@ Global Memory Requirements
 --------------------------
 
 Global memory is used for copying the input sequence and storing internal data such as status flags.
-The used amount depends on many parameters; below is an upper bound approximation:
+The used amount depends on many parameters; below is an approximation in bytes:
 
-2 * V * N \ :sub:`flags` + F * N \ :sub:`flags`
+2 * V * N \ :sub:`flags` + 4 * N \ :sub:`flags`
 
-where V is the number of bytes needed to store the input value type and F is the number of bytes needed to store the flags.
-Currently, F is hard-coded to 4 as the flag type is 32-bits.
+where V is the number of bytes needed to store the input value type.
 
 The value of N\ :sub:`flags` represents the number of work-groups and depends on ``param.data_per_workitem`` and ``param.workgroup_size``.
-It can be approximated by dividing the number of input elements N by the product of ``param.data_per_workitem`` and ``param.workgroup_size``
-and adding 33 for padding.
+It can be approximated by dividing the number of input elements N by the product of ``param.data_per_workitem`` and ``param.workgroup_size``.
 
 .. note::
 
