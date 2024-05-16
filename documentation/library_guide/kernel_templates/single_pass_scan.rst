@@ -138,14 +138,14 @@ inclusive_scan Example
 
    1 3 4 7 8 10
 
-.. _memory-requirements:
+.. _scan-memory-requirements:
 
 -------------------
 Memory Requirements
 -------------------
 
 The algorithm uses global and local device memory (see `SYCL 2020 Specification
-<https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
+<https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`__)
 for intermediate data storage. For the algorithm to operate correctly, there must be enough memory
 on the device. It throws a ``std::bad_alloc`` exception if there is not enough global device memory. The behavior is undefined if there is not enough local memory. The amount of memory that is required
 depends on input data and configuration parameters, as described below.
@@ -169,7 +169,7 @@ It can be approximated by dividing the number of input elements N by the product
    the kernel template is executed by a single work-group and does not use any global memory.
 
 
-.. _local-memory:
+.. _scan-local-memory:
 
 Local Memory Requirements
 -------------------------
