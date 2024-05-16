@@ -17,7 +17,7 @@ add_subdirectory(kt)
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-option(ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL "Do not switch off MS STL iterator debug level" OFF)
+option(ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL "Do not switch off MS STL iterator debug level in tests" OFF)
 
 # If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
 # The undefined symbol error arises only with GCC compiler.
@@ -90,7 +90,7 @@ macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_itera
     #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
     #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
     #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
-    if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug" AND ${switch_off_checked_iterators})
+    if (${switch_off_checked_iterators})
         target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
         target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
     endif()
@@ -170,11 +170,6 @@ macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_itera
 endmacro()
 
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
-    set(_build_type_in_lower "unknown")
-    if (CMAKE_BUILD_TYPE)
-        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
-    endif()
-
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
@@ -204,13 +199,24 @@ set(_regexp_pstl_offload_exclude "(test/parallel_api/algorithm/alg.sorting/alg.b
 # The test should be placed in the special folder and the name should be the same as the header that is required to be present
 set(_regexp_pstl_offload_header_presence_required "(test/pstl_offload/headers/headers.standard/requires_header_presence)")
 
+set(_build_type_in_lower "unknown")
+if (CMAKE_BUILD_TYPE)
+    string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+endif()
+
+# Disable checked iterators on Windows for debug mode
+set(switch_off_checked_iterators_by_default false)
+if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug")
+    if (ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL)
+        message(STATUS "Switch off MS STL iterator debug level in tests : none")
+    else()
+        set(switch_off_checked_iterators_by_default true)
+        message(STATUS "Switch off MS STL iterator debug level in tests : auto")
+    endif()
+endif()
+
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-    if (ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL)
-        set(switch_off_checked_iterators_by_default true)
-    else()
-        set(switch_off_checked_iterators_by_default false)
-    endif()
 
     if (_file MATCHES "${_regexp_pstl_offload_only}")
         if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
