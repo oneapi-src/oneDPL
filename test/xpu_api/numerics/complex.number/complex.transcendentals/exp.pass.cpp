@@ -98,7 +98,7 @@ void test_edges()
         else if (std::isfinite(testcases[i].imag()) && std::abs(testcases[i].imag()) <= 1)
         {
             assert(!std::signbit(r.real()));
-#if !_PSTL_TEST_COMPLEX_EXP_BROKEN_IN_KERNEL_GLIB_CXX       // test case: 26
+#if !_PSTL_TEST_COMPLEX_EXP_BROKEN_IN_KERNEL_GLIB_CXX       // testcases[26]
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
 #endif // _PSTL_TEST_COMPLEX_EXP_BROKEN_IN_KERNEL_GLIB_CXX
         }

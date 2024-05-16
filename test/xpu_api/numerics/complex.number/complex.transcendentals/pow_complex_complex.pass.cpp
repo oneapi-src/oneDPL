@@ -45,31 +45,31 @@ void test_edges()
             dpl::complex<double> z = dpl::exp(testcases[j] * dpl::log(testcases[i]));
             if (std::isnan(dpl::real(r)))
             {
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // test case: 0, 13
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // testcases[0], testcases[13]
                 assert(std::isnan(dpl::real(z)));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
             else
             {
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // test case: 0, 56
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES   // testcases[0], testcases[56]
                 assert(dpl::real(r) == dpl::real(z));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 1, 89
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // testcases[1], testcases[89]
                 assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
             if (std::isnan(dpl::imag(r)))
             {
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 13
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // testcases[0], testcases[13]
                 assert(std::isnan(dpl::imag(z)));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
             else
             {
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 24
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // testcases[0], testcases[24]
                 assert(dpl::imag(r) == dpl::imag(z));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
-#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // test case: 0, 26
+#if !_PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES // testcases[0], testcases[26]
                 assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
 #endif // _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES
             }
