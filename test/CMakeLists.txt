@@ -204,20 +204,20 @@ if (CMAKE_BUILD_TYPE)
     string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
 endif()
 
+# Display version of used MS STL library
+if (${MSVC_VERSION})
+    # Their value described at https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+    message(STATUS "MSVC_VERSION: ${MSVC_VERSION}")
+endif()
+
 # Disable checked iterators on Windows for debug mode
 set(switch_off_checked_iterators_by_default false)
-if (WIN32)
-    if (${MSVC_VERSION})
-        # Their value described at https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-        message(STATUS "MSVC_VERSION: ${MSVC_VERSION}")
-    endif()
-    if (${_build_type_in_lower} STREQUAL "debug")
-        if (ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL)
-            message(STATUS "Switch off MS STL iterator debug level in tests : none")
-        else()
-            set(switch_off_checked_iterators_by_default true)
-            message(STATUS "Switch off MS STL iterator debug level in tests : auto")
-        endif()
+if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug")
+    if (ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL)
+        message(STATUS "Switch off MS STL iterator debug level in tests : none")
+    else()
+        set(switch_off_checked_iterators_by_default true)
+        message(STATUS "Switch off MS STL iterator debug level in tests : auto")
     endif()
 endif()
 
