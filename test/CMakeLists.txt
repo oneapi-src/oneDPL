@@ -70,7 +70,8 @@ add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
 if (ONEDPL_USE_DR)
-    set(run-onedpl-tests-depends build-onedpl-tests shp-tests shp-tests-3)
+    # shp-tests and shp-tests-3 are built in docker - removed from here for now
+    set(run-onedpl-tests-depends build-onedpl-tests)
 else()
     set(run-onedpl-tests-depends build-onedpl-tests)
 endif()
@@ -255,6 +256,7 @@ endforeach()
 
 if (ONEDPL_USE_DR)
     add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
+    # run in docker
     add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
 endif()
 

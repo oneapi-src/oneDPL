@@ -8,6 +8,7 @@ on:
       - release_oneDPL
       - main
       - 'release/**'
+      - distributed-ranges
 
 permissions: read-all
 
@@ -219,6 +220,13 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+      - name: Distributed Ranges testing
+        run: |
+          cd ..
+          docker build . -t dr-test -f .github/Dockerfile
+          docker run --name dr-test -d -v $(pwd):/repo dr-test sh -c "cd repo & cmake --build build --target run-dr-tests"
+          docker logs -f dr-test
+
 
   linux-pstl-offload-testing:
     name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
