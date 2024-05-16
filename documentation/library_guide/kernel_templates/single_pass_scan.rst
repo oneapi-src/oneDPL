@@ -1,9 +1,9 @@
-Single-Pass Scan
-################
+Inclusive Scan
+##############
 
------------------------------------------------------------
+--------------------------------
 inclusive_scan Function Template
------------------------------------------------------------
+--------------------------------
 
 The ``inclusive_scan`` function computes the inclusive prefix sum using a given binary operation.
 The function implements a single-pass algorithm, where each input element is read exactly once from
@@ -65,18 +65,20 @@ Parameters
 
 **Type Requirements**:
 
-- The element type of sequence to scan must be a C++ integral or floating-point type
-  other than ``bool`` with a width of up to 64 bits.
-- The result is non-deterministic if the binary operator is non-associative (such as in floating-point addition).
+- The element type of sequence to scan must be a 32-bit or 64-bit bit C++ integral or floating-point type.
+- The result is non-deterministic if the binary operator is non-associative (such as in floating-point addition)
+  or non-commutative.
 
 
-**Current Limitations**:
+.. note::
 
-- The function will internally block until the issued kernels have completed execution.
-  Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
-- The SYCL device associated with the provided queue must support 64-bit atomic operations
-- The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
-  evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
+  Current limitations:
+
+  - The function will internally block until the issued kernels have completed execution.
+    Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
+  - The SYCL device associated with the provided queue must support 64-bit atomic operations if the element type is 64-bits.
+  - The binary operator must have a known identity. That is, ``sycl::has_known_identity<Op>::value`` must
+    evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
 
 Return Value
 ------------
@@ -143,7 +145,7 @@ Memory Requirements
 The algorithms use global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
 for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
-on the device; otherwise, the behavior is undefined. The amount of memory that is required
+on the device; otherwise, the algorithm throws a ``std::bad_alloc`` exception. The amount of memory that is required
 depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
