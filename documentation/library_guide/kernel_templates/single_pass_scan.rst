@@ -10,7 +10,7 @@ The function implements a single-pass algorithm, where each input element is rea
 global memory and each output element is written to exactly once in global memory.
 
 The algorithm is designed to be compatible with a variety of devices that provide at least parallel
-forward guarantees between work-groups, due to cross-work-group communication. Additionally, it
+forward progress guarantees between work-groups, due to cross-work-group communication. Additionally, it
 requires support for device USM (Unified Shared Memory). It has been verified to be compatible
 with `Intel® Data Center GPU Max Series
 <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
