@@ -9,8 +9,10 @@ The ``inclusive_scan`` function computes the inclusive prefix sum using a given 
 The function implements a single-pass algorithm, where each input element is read exactly once from
 global memory and each output element is written to exactly once in global memory.
 
-As this algorithm uses inter-work-group communication, it must be run on a device that supports
-strong forward progress guarantees, such as the `Intel® Data Center GPU Max Series
+The algorithm is designed to be compatible with a variety of devices that provide at least parallel
+forward guarantees between work-groups, due to cross-work-group communication. Additionally, it
+requires support for device USM (Unified Shared Memory). It has been verified to be compatible
+with `Intel® Data Center GPU Max Series
 <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
 
 A synopsis of the ``inclusive_scan`` function is provided below:
