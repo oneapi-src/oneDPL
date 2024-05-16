@@ -17,6 +17,8 @@ add_subdirectory(kt)
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
+option(ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL "Do not switch off MS STL iterator debug level" OFF)
+
 # If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
 # The undefined symbol error arises only with GCC compiler.
 # There is no known way to limit the workaround to libstdc++ only.
@@ -204,7 +206,12 @@ set(_regexp_pstl_offload_header_presence_required "(test/pstl_offload/headers/he
 
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-    set(switch_off_checked_iterators_by_default true)
+    if (ONEDPL_TESTS_DO_NOT_SWITCH_OFF_ITERATOR_DEBUG_LEVEL)
+        set(switch_off_checked_iterators_by_default true)
+    else()
+        set(switch_off_checked_iterators_by_default false)
+    endif()
+
     if (_file MATCHES "${_regexp_pstl_offload_only}")
         if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
             if (_file MATCHES "${_regexp_pstl_offload_header_presence_required}")
