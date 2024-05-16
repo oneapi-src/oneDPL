@@ -169,8 +169,6 @@ It can be approximated by dividing the number of input elements N by the product
    the kernel template is executed by a single work-group and does not use any global memory.
 
 
-.. _scan-local-memory:
-
 Local Memory Requirements
 -------------------------
 
@@ -202,7 +200,7 @@ The initial configuration may be selected according to these high-level guidelin
 .. warning::
 
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
-   Make sure that :ref:`Memory requirements <memory-requirements>` are satisfied.
+   Make sure that :ref:`Memory requirements <scan-memory-requirements>` are satisfied.
 
 .. [#fnote1] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
    <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
