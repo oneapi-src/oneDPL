@@ -20,6 +20,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#if !_PSTL_TEST_COMPARISON_BROKEN
 bool
 kernel_test()
 {
@@ -48,12 +49,18 @@ kernel_test()
     }
     return ret;
 }
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
 int
 main()
 {
+    bool bProcessed = false;
+
+#if !_PSTL_TEST_COMPARISON_BROKEN
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of '...'less then' value check");
+    bProcessed = true;
+#endif // !_PSTL_TEST_COMPARISON_BROKEN
 
-    return TestUtils::done();
+    return TestUtils::done(bProcessed);
 }
