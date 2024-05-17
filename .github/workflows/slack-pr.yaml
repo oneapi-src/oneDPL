@@ -1,0 +1,27 @@
+name: Slack PR Notification
+on:
+  # use pull_request_target to run on PRs from forks and have access to secrets
+  pull_request_target:
+    types: [labeled]
+
+env:
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  channel: "onedpl"
+
+permissions:
+  pull-requests: read
+
+jobs:
+  rfc:
+    name: RFC Notification
+    runs-on: ubuntu-latest
+    # Trigger when labeling a PR with "RFC"
+    if: |
+      github.event.action == 'labeled' &&
+      contains(toJson(github.event.pull_request.labels.*.name), '"RFC"')
+    steps: 
+    - name: Notify Slack
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        channel-id: ${{ env.channel }}
+        slack-message: "${{ github.actor }} posted a RFC: ${{ github.event.pull_request.title }}. URL: ${{ github.event.pull_request.html_url }}"
