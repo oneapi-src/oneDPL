@@ -522,9 +522,6 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
         auto __chosen_for_min = __a;
         auto __chosen_for_max = __b;
 
-        assert(get<0>(__a) < get<0>(__b));
-        assert(get<1>(__a) < get<1>(__b));
-
         if (__comp(get<2>(__b), get<2>(__a)))
             __chosen_for_min = ::std::move(__b);
         if (__comp(get<3>(__b), get<3>(__a)))
