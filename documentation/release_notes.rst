@@ -30,7 +30,7 @@ New Features
   These overloads preserve the input sequence and sort data into the user provided output sequence.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``,
   and ``lexicographical_compare`` algorithms with DPC++ execution policies (especially using the CUDA backend).
-- Improved performance of ``binary_search``, ``lower_bound``, and ``upper_bound`` with device policies.
+- Improved performance of ``binary_search``, ``lower_bound``, and ``upper_bound`` algorithms with device policies.
 -  ``sort``, ``stable_sort``, ``sort_by_key`` algorithms now use Radix sort [#fnote1]_
    for sorting ``sycl::half`` elements compared with ``std::less`` or ``std::greater``.
 
