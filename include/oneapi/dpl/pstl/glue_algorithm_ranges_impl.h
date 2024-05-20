@@ -33,6 +33,8 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace ext
+{
 
 #if _ONEDPL___cplusplus >= 202002L
 namespace ranges
@@ -217,6 +219,8 @@ inline constexpr search_n_fn search_n;
 } //ranges
 
 #endif //_ONEDPL___cplusplus >= 202002L
+
+} //namespace ext
 
 #if _ONEDPL_HETERO_BACKEND
 namespace experimental
