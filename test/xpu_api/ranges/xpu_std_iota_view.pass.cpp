@@ -28,7 +28,8 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
         auto res = std::ranges::views::iota(0, 4);
-        return res.size() == 4 && res[0] == 0 && res[1] == 1 && res[2] == 2 && res[3] == 3;
+        return res.size() == 4 && res[0] == 0 && res[1] == 1 && res[2] == 2 && res[3] == 3 &&
+               *(res.begin() + 2) == 2 && (res.end() - res.begin()) == 4;
     };
     const bool res = kernel_test<class std_iota_test>(test);
     EXPECT_TRUE(res, "Wrong result of iota_view check within a kernel");
