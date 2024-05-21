@@ -10,13 +10,31 @@ or another adapted range, into a view with custom behavior.
 
 |onedpl_short| introduces two set of range based algorithms:
 
-* The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library comming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with standard range functionality. It requires C++20.
+* The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library comming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm. It requires C++20.
 * The oneapi::dpl::experimental::ranges namespace supports integration with oneDPL ranges introducing by oneapi::dpl::experimental::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the range functionality like the Ranges Library from C++20 standard. The functionality requires C++17.
 
 .. Note::
 
   The use of the oneapi::dpl::ext::ranges requires C++20 and the C++ standard libraries coming with GCC 10 (or higher) or Clang 10 (or higher).
   The use of the oneapi::dpl::experimental::ranges requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
+
+
+Range-Based API (The standard C++ Ranges Library)
+-------------------------------------------------
+
+The following C++ standard random access adaptors and factories are supported with the oneDPL parallel algorithms:
+
+* ``std::ranges::views::all``: A range adaptor object that returns a view that includes all elements of its range argument.
+* ``std::ranges::iota_view``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
+* ``std::ranges::single_view``: A view that contains exactly one element of a specified value.
+* ``std::ranges::subrange``: A utility that combines together an iterator and a sentinel into a single object that models a view.
+* ``std::ranges::transform_view``: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.
+* ``std::ranges::reverse_view``: A range adapter that produces a reversed sequence of elements provided by another view.
+* ``std::ranges::take_view``: A range adapter that produces a view of the first N elements from another view.
+* ``std::ranges::drop_view``: A range adapter that produces a view excluding the first N elements from another view.
+
+Experimental Range-Based API (The oneDPL ranges)
+------------------------------------------------
 
 |onedpl_short| supports an ``iota_view`` range factory.
 
