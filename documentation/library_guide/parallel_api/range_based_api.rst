@@ -70,7 +70,7 @@ Example of Range-Based API Usage (The standard C++ Ranges Library)
         std::vector<int> vec_out(vec_in.size());
 
         auto view_in = std::ranges::views::all(vec_in) | std::ranges::views::reverse;
-        copy(oneapi::dpl::execution::par, view_in, std::ranges::views::all(vec_out));
+        copy(oneapi::dpl::execution::par, view_in, vec_out);
     }
     {
         using shared_allocator = sycl::usm_allocator<int, sycl::usm::alloc::shared>;
