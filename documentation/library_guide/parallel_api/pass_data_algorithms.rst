@@ -11,6 +11,7 @@ for multithreading. For this reason, it is recommended to avoid ``std::vector<bo
 input with the C++ standard execution policies.
 
 When using a host execution policy, you can use one of the following ways to pass data to an algorithm:
+
 * The host-side iterators and pointers
 * The random access standard factories and adapters on top of the factories, random access containers, ``std::ranges::subrange`` and ``std::span`` on top of host-side pointers and iterators.
 
