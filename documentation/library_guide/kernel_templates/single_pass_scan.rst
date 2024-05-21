@@ -7,7 +7,8 @@ inclusive_scan Function Template
 
 The ``inclusive_scan`` function computes the inclusive prefix sum using a given binary operation.
 The function implements a single-pass algorithm, where each input element is read exactly once from
-global memory and each output element is written to exactly once in global memory.
+global memory and each output element is written to exactly once in global memory. This function
+is an implementation of the Decoupled Look-back [#fnote1]_ scan algorithm.
 
 The algorithm is designed to be compatible with a variety of devices that provide at least parallel
 forward progress guarantees between work-groups, due to cross-work-group communication. Additionally, it
@@ -191,7 +192,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 - Generally, utilizing all available
   compute cores is key for better performance. To allow sufficient work to satisfy all
-  X\ :sup:`e`-cores [#fnote1]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
+  X\ :sup:`e`-cores [#fnote2]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
 
 - On devices with multiple tiles, it may prove beneficial to experiment with different tile hierarchies as described
   in `Options for using a GPU Tile Hierarchy <https://www.intel.com/content/www/us/en/developer/articles/technical/flattening-gpu-tile-hierarchy.html>`_.
@@ -202,7 +203,8 @@ The initial configuration may be selected according to these high-level guidelin
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
    Make sure that :ref:`Memory requirements <scan-memory-requirements>` are satisfied.
 
-.. [#fnote1] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
+.. [#fnote1] Merrill, D., Garland, M.: Single-pass parallel prefix scan with decoupled look-back. Technical report NVR-2016-002, NVIDIA (2016)
+.. [#fnote2] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
    <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
    Check the number of cores in the device specification, such as `Intel® Data Center GPU Max specification
    <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
