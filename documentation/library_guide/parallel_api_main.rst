@@ -11,6 +11,7 @@ provides specific versions of the algorithms, including:
 * Segmented reduce
 * Segmented scan
 * Vectorized search algorithms
+* Range-based Interface: Algorithms accept range objects, making them more flexible and easier to use with modern C++ ranges.
 
 Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
 processors and heterogeneity support with a DPC++ based implementation for device execution policies.
