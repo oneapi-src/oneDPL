@@ -20,6 +20,8 @@
 #include <memory>
 #include <type_traits>
 #include <tuple>
+#include <optional>
+#include <utility>      // for std::in_place
 
 #include "../../iterator_impl.h"
 
