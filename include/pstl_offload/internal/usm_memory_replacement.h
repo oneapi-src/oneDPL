@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cerrno>
 #include <optional>
+#include <mutex> // std::scoped_lock
 
 #include <sycl/sycl.hpp>
 
@@ -62,31 +63,6 @@ __get_offload_device_selector()
 #    error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
 }
-
-// Stripped down spin mutex. Propose is to implement mutex able to be used from zero-initialized
-// memory without need in constructors. This allows to use the mutex in file-scope constructors
-// and destructors.
-class __spin_mutex
-{
-    std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
-
-  public:
-    void
-    lock()
-    {
-        while (_M_flag.test_and_set(std::memory_order_acquire))
-        {
-            // TODO: exponential backoff or switch to wait() from c++20
-            std::this_thread::yield();
-        }
-    }
-
-    void
-    unlock()
-    {
-        _M_flag.clear(std::memory_order_release);
-    }
-};
 
 static __spin_mutex __offload_policy_holder_mtx;
 

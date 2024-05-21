@@ -12,6 +12,7 @@
 
 #include <sycl/sycl.hpp>
 #include <atomic>
+#include <thread> // std::this_thread::yield
 #include <cstddef>
 #include <cstdlib>
 #include <cassert>
@@ -102,6 +103,31 @@ class __sycl_device_shared_ptr
     }
 };
 
+// Stripped down spin mutex. Propose is to implement mutex able to be used from zero-initialized
+// memory without need in constructors. This allows to use the mutex in file-scope constructors
+// and destructors.
+class __spin_mutex
+{
+    std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
+
+  public:
+    void
+    lock()
+    {
+        while (_M_flag.test_and_set(std::memory_order_acquire))
+        {
+            // TODO: exponential backoff or switch to wait() from c++20
+            std::this_thread::yield();
+        }
+    }
+
+    void
+    unlock()
+    {
+        _M_flag.clear(std::memory_order_release);
+    }
+};
+
 inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
 
 struct __block_header
@@ -180,7 +206,7 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
     // page if the alignment for more than a memory page is requested, so process this case specifically
     if (__alignment >= __get_memory_page_size())
     {
-        return __allocate_shared_for_device_large_alignment(__device_ptr, __size, __alignment);
+        return __allocate_shared_for_device_large_alignment(std::move(__device_ptr), __size, __alignment);
     }
 
     std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
