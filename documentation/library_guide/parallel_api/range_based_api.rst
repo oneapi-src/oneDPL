@@ -33,6 +33,31 @@ The following C++ standard random access adaptors and factories are supported wi
 * ``std::ranges::take_view``: A range adapter that produces a view of the first N elements from another view.
 * ``std::ranges::drop_view``: A range adapter that produces a view excluding the first N elements from another view.
 
+The following algorithms are available to use with the metioned standard ranges:
+
+* ``for_each``
+* ``transform``
+* ``find``
+* ``find_if``
+* ``find_if_not``
+* ``all_of``
+* ``any_of``
+* ``none_of``
+* ``adjacent_find``
+* ``search``
+* ``search_n``
+* ``count_if``
+* ``count``
+* ``equal``
+* ``sort``
+* ``stable_sort``
+* ``is_sorted``
+* ``min_element``
+* ``max_element``
+* ``copy``
+* ``copy_if``
+* ``merge``
+
 Experimental Range-Based API (The oneDPL ranges)
 ------------------------------------------------
 
