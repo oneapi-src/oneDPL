@@ -10,11 +10,16 @@ of vector elements. Some implementations may optimize multiple ``bool`` elements
 for multithreading. For this reason, it is recommended to avoid ``std::vector<bool>`` for anything but a read-only
 input with the C++ standard execution policies.
 
+When using a host execution policy, you can use one of the following ways to pass data to an algorithm:
+* The host-side iterators and pointers
+* The random access standard factories and adapters on top of the factories, random access containers, ``std::ranges::subrange`` and ``std::span`` on top of host-side pointers and iterators.
+
 When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers
 * ``std::vector`` with or without a USM allocator
+* The random access standard factories and adapters on top of the factories, ``std::vector`` with USM allocator, ``std::ranges::subrange`` and  ``std::span`` on top of USM pointers.
 
 .. _use-buffer-wrappers:
 
