@@ -477,8 +477,10 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
 
     // Use single work group implementation if less than __max_iters_per_work_item elements per work-group.
     // We can use 16-bit addressing since we have at most __max_work_group_size * __max_iters_per_work_item elements.
+    // Update this in case of changing __max_work_group_size or __max_iters_per_work_item.
     if (__n <= __max_elements_per_wg)
     {
+        assert(__n <= std::numeric_limits<std::uint16_t>::max());
         const auto __n_short = static_cast<std::uint16_t>(__n);
         const auto __work_group_size_short = static_cast<std::uint16_t>(__work_group_size);
         std::uint16_t __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n_short, __work_group_size);
@@ -492,8 +494,10 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Second step reduces __work_group_size * __iters_per_work_item_work_group_kernel elements.
     // We can use 32-bit addressing since we have at most (__max_work_group_size * __max_iters_per_work_item) ^ 2
     // elements.
+    // Update this in case of changing __max_work_group_size or __max_iters_per_work_item.
     if (__n <= __max_elements_per_wg * __max_elements_per_wg)
     {
+        assert(__n <= std::numeric_limits<std::uint32_t>::max());
         const auto __n_short = static_cast<std::uint32_t>(__n);
         const auto __work_group_size_short = static_cast<std::uint32_t>(__work_group_size);
         // Fully-utilize the device by running a work-group per compute unit.
