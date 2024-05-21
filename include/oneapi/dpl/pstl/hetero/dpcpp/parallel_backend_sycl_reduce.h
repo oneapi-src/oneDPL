@@ -47,11 +47,19 @@ class __reduce_mid_work_group_kernel;
 template <typename... _Name>
 class __reduce_kernel;
 
+// Storage helper since _Tp may not have a default constructor.
+template <typename _Tp>
+union __storage
+{
+    _Tp __v;
+    __storage() {}
+};
+
 // Adjust number of sequential operations per work-item based on the vector size. Single elements are kept to
 // improve performance of small arrays or remainder loops.
 template <std::uint8_t _VecSize, typename _Size>
-auto
-__adjust_iters_per_work_item(_Size __iters_per_work_item) -> _Size
+_Size
+__adjust_iters_per_work_item(_Size __iters_per_work_item)
 {
     if (__iters_per_work_item > 1)
         return oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, _VecSize) * _VecSize;
@@ -68,11 +76,7 @@ __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Si
 {
     auto __local_idx = __item_id.get_local_id(0);
     const _Size __group_size = __item_id.get_local_range().size();
-    union __storage
-    {
-        _Tp __v;
-        __storage() {}
-    } __result;
+    __storage<_Tp> __result;
     // 1. Initialization (transform part). Fill local memory
     __transform_pattern(__item_id, __n, __iters_per_work_item, /*global_offset*/ (_Size)0, __is_full,
                         /*__n_groups*/ (_Size)1, __result, __acc...);
@@ -100,11 +104,7 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size _
     auto __local_idx = __item_id.get_local_id(0);
     auto __group_idx = __item_id.get_group(0);
     const _Size __group_size = __item_id.get_local_range().size();
-    union __storage
-    {
-        _Tp __v;
-        __storage() {}
-    } __result;
+    __storage<_Tp> __result;
     // 1. Initialization (transform part). Fill local memory
     __transform_pattern(__item_id, __n, __iters_per_work_item, /*global_offset*/ (_Size)0, __is_full, __n_groups,
                         __result, __acc...);
@@ -394,11 +394,7 @@ struct __parallel_transform_reduce_impl
                         // 1. Initialization (transform part). Fill local memory
                         _Size __n_items;
                         const bool __is_full = __n == __size_per_work_group * __n_groups;
-                        union __storage
-                        {
-                            _Tp __v;
-                            __storage() {}
-                        } __result;
+                        __storage<_Tp> __result;
                         if (__is_first)
                         {
                             __transform_pattern1(__item_id, __n, __iters_per_work_item, /*global_offset*/ (_Size)0,
