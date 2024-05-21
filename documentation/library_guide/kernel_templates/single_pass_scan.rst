@@ -203,7 +203,7 @@ The initial configuration may be selected according to these high-level guidelin
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
    Make sure that :ref:`Memory requirements <scan-memory-requirements>` are satisfied.
 
-.. [#fnote1] Merrill, D., Garland, M.: Single-pass parallel prefix scan with decoupled look-back. Technical report NVR-2016-002, NVIDIA (2016)
+.. [#fnote1] Merrill, D., Garland, M.: Single-pass Parallel Prefix Scan with Decoupled Look-back. Technical Report NVR-2016-002, NVIDIA (2016)
 .. [#fnote2] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
    <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
    Check the number of cores in the device specification, such as `Intel® Data Center GPU Max specification
