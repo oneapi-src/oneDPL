@@ -58,8 +58,49 @@ The following algorithms are available the oneapi::dpl::ext::ranges namespace to
 * ``copy_if``
 * ``merge``
 
+Example of Range-Based API Usage (The standard C++ Ranges Library)
+------------------------------------------------------------------
+
+.. code:: cpp
+
+    using namespace oneapi::dpl::ext::ranges;
+
+    {        
+        std::vector<int> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        std::vector<int> vec_out(vec_in.size());
+
+        auto view_in = std::ranges::views::all(vec_in) | std::ranges::views::reverse();
+        copy(oneapi::dpl::execution::par, view_in, std::ranges::views::all(vec_out));
+    }
+    {
+        using shared_allocator = sycl::usm_allocator<int, sycl::usm::alloc::shared>;
+
+        std::vector<int, shared_allocator> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        std::vector<int, shared_allocator> vec_out(vec_in.size());
+
+        auto view_in = std::span(vec_in) | std::ranges::views::reverse();
+        copy(oneapi::dpl::execution::dpcpp_default, view_in, std::span(vec_out));
+    }
+
 Experimental Range-Based API (The oneDPL ranges)
 ------------------------------------------------
+
+The following viewable ranges are declared in the ``oneapi::dpl::experimental::ranges`` namespace.
+Only the ranges shown below and ``sycl::buffer`` are available as ranges for range-based algorithms.
+
+.. _viewable-ranges:
+
+* ``views::iota``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
+* ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
+* ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
+* ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
+* ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
+* ``views::subrange``: A utility that represents a view of unified shared memory (USM) data range defined by a two USM pointers.
+* ``views::zip``: A custom range adapter that produces one ``zip_view`` from other several views.
+* ``views::transform``: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.
+* ``views::reverse``: A range adapter that produces a reversed sequence of elements provided by another view.
+* ``views::take``: A range adapter that produces a view of the first N elements from another view.
+* ``views::drop``: A range adapter that produces a view excluding the first N elements from another view.
 
 |onedpl_short| supports an ``iota_view`` range factory.
 
@@ -140,25 +181,8 @@ These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` names
 To make these algorithms available, the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).
 
-The following viewable ranges are declared in the ``oneapi::dpl::experimental::ranges`` namespace.
-Only the ranges shown below and ``sycl::buffer`` are available as ranges for range-based algorithms.
-
-.. _viewable-ranges:
-
-* ``views::iota``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
-* ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
-* ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
-* ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
-* ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
-* ``views::subrange``: A utility that represents a view of unified shared memory (USM) data range defined by a two USM pointers.
-* ``views::zip``: A custom range adapter that produces one ``zip_view`` from other several views.
-* ``views::transform``: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.
-* ``views::reverse``: A range adapter that produces a reversed sequence of elements provided by another view.
-* ``views::take``: A range adapter that produces a view of the first N elements from another view.
-* ``views::drop``: A range adapter that produces a view excluding the first N elements from another view.
-
-Example of Range-Based API Usage
---------------------------------
+Example of Range-Based API Usage (The oneDPL ranges)
+----------------------------------------------------
 
 .. code:: cpp
 
