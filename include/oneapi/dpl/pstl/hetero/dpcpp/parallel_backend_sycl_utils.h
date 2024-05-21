@@ -479,7 +479,7 @@ struct __usm_or_buffer_accessor
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
-    __accessor_t __acc;
+    std::optional<__accessor_t> __acc_opt;
     _T* __ptr = nullptr;
     bool __usm = false;
     size_t __offset = 0;
@@ -487,11 +487,12 @@ struct __usm_or_buffer_accessor
   public:
     // Buffer accessor
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : __acc_opt(std::in_place, *__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})
     {
     }
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __offset(__acc_offset)
+        : __acc_opt(std::in_place, *__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}),
+          __offset(__acc_offset)
     {
     }
 
@@ -505,7 +506,8 @@ struct __usm_or_buffer_accessor
     auto
     __get_pointer() const // should be cached within a kernel
     {
-        return __usm ? __ptr + __offset : &__acc[__offset];
+        assert(__usm || __acc_opt.has_value());
+        return __usm ? __ptr + __offset : &__acc_opt.value()[__offset];
     }
 };
 
