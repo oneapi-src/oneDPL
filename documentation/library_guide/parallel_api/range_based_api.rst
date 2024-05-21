@@ -69,7 +69,7 @@ Example of Range-Based API Usage (The standard C++ Ranges Library)
         std::vector<int> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         std::vector<int> vec_out(vec_in.size());
 
-        auto view_in = std::ranges::views::all(vec_in) | std::ranges::views::reverse();
+        auto view_in = std::ranges::views::all(vec_in) | std::ranges::views::reverse;
         copy(oneapi::dpl::execution::par, view_in, std::ranges::views::all(vec_out));
     }
     {
@@ -78,7 +78,7 @@ Example of Range-Based API Usage (The standard C++ Ranges Library)
         std::vector<int, shared_allocator> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         std::vector<int, shared_allocator> vec_out(vec_in.size());
 
-        auto view_in = std::span(vec_in) | std::ranges::views::reverse();
+        auto view_in = std::ranges::subrange(vec_in.begin(), vec_in.end()) | std::ranges::views::reverse;
         copy(oneapi::dpl::execution::dpcpp_default, view_in, std::span(vec_out));
     }
 
