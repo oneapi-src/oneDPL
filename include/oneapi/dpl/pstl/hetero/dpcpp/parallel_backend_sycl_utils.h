@@ -491,8 +491,7 @@ struct __usm_or_buffer_accessor
     {
     }
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
-        : __acc_opt(std::in_place, *__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}),
-          __offset(__acc_offset)
+        : __usm_or_buffer_accessor(__cgh, __sycl_buf), __offset(__acc_offset)
     {
     }
 
