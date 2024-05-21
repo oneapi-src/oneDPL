@@ -1,14 +1,22 @@
 Range-Based API Algorithms
 ##########################
-.. Note::
-
-  The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
-  or Clang 7 (or higher).
 
 C++20 introduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
 A range factory does not have underlying data. An element is generated on success by an index or by dereferencing an iterator.
 A range adaptor, from the |onedpl_long| (|onedpl_short|) perspective, is a utility that transforms the base range,
 or another adapted range, into a view with custom behavior.
+
+|onedpl_short| supports just random access ranges, because they allow efficient and constant-time access to elements at any position in the range. This enables effective workload distribution among multiple threads or processing units, which is crucial for achieving high performance in parallel execution.
+
+|onedpl_short| introduces two set of range based algorithms:
+
+* The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library comming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with standard range functionality. It requires C++20.
+* The oneapi::dpl::experimental::ranges namespace supports integration with oneDPL ranges introducing by oneapi::dpl::experimental::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the range functionality like the Ranges Library from C++20 standard. The functionality requires C++17.
+
+.. Note::
+
+  The use of the oneapi::dpl::ext::ranges requires C++20 and the C++ standard libraries coming with GCC 10 (or higher) or Clang 10 (or higher).
+  The use of the oneapi::dpl::experimental::ranges requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
 |onedpl_short| supports an ``iota_view`` range factory.
 
