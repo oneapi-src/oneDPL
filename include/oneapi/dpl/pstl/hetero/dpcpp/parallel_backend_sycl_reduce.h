@@ -462,6 +462,8 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Empirically found tuning parameters for typical devices.
     constexpr _Size __max_iters_per_work_item = 32;
     constexpr std::size_t __max_work_group_size = 256;
+    static_assert(__max_work_group_size * __max_iters_per_work_item <= std::numeric_limits<std::uint16_t>::max(),
+                  "Out of 16-bit addressing range");
     constexpr std::uint8_t __vector_size = 4;
     constexpr std::uint32_t __oversubscription = 2;
 
@@ -480,7 +482,6 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Update this in case of changing __max_work_group_size or __max_iters_per_work_item.
     if (__n <= __max_elements_per_wg)
     {
-        assert(__n <= std::numeric_limits<std::uint16_t>::max());
         const auto __n_short = static_cast<std::uint16_t>(__n);
         const auto __work_group_size_short = static_cast<std::uint16_t>(__work_group_size);
         std::uint16_t __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n_short, __work_group_size);
@@ -497,7 +498,6 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Update this in case of changing __max_work_group_size or __max_iters_per_work_item.
     if (__n <= __max_elements_per_wg * __max_elements_per_wg)
     {
-        assert(__n <= std::numeric_limits<std::uint32_t>::max());
         const auto __n_short = static_cast<std::uint32_t>(__n);
         const auto __work_group_size_short = static_cast<std::uint32_t>(__work_group_size);
         // Fully-utilize the device by running a work-group per compute unit.
