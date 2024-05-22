@@ -725,12 +725,16 @@ template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf,
-    // 27.8.2.2 stable_sort
+    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.2 stable_sort
+    //              https://en.cppreference.com/w/cpp/algorithm/stable_sort
     // Preconditions:
     //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
     //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
+    static_assert(std::is_swappable_v<_RandomAccessIterator>);
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    static_assert(std::is_move_constructible_v<_ValueType>);
+    static_assert(std::is_move_assignable_v<_ValueType>);
 
     oneapi::dpl::stable_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                              oneapi::dpl::__internal::__pstl_less());
