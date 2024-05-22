@@ -26,9 +26,9 @@
 #    include "dpcpp/parallel_backend_sycl_utils.h"
 #endif
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 #include <ranges>
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif
 
 namespace oneapi
 {
@@ -57,7 +57,7 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     }
 }
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 //---------------------------------------------------------------------------------------------------------------------
 // pattern_for_each
 //---------------------------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
 // find_end
@@ -304,7 +304,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
          typename _Proj2>
 decltype(auto)
@@ -321,7 +321,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
     auto __end = (__idx == __r1.size() ? __r1.begin() + __idx : __r1.begin() + __idx + __r2.size());
     return std::ranges::borrowed_subrange_t<_R1>(__r1.begin() + __idx, __end);
 }
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
 // search_n
@@ -342,7 +342,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
                             __pred);
 }
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
 decltype(auto)
 __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r,
@@ -355,7 +355,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __end = (__idx == __r.size() ? __r.begin() + __idx : __r.begin() + __idx + __count);
     return std::ranges::borrowed_subrange_t<_R>(__r.begin() + __idx, __end);
 }
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 template <typename _Size>
 _Size
@@ -389,7 +389,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     using _TagType = ::std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
                                           oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>;
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
     auto __rng1 = __rng | std::ranges::views::take(__rng.size() - 1);
     auto __rng2 = __rng | std::ranges::views::drop(1);
 #else
@@ -409,7 +409,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 decltype(auto)
 __pattern_adjacent_find2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
@@ -423,7 +423,7 @@ __pattern_adjacent_find2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__difference_t<_Range>

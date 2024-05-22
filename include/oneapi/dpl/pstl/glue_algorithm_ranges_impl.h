@@ -24,8 +24,9 @@
 #    include "hetero/algorithm_impl_hetero.h" //TODO: for __brick_copy
 #endif
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 #    include <ranges>
+#    include <functional>
 #    include "algorithm_ranges_impl.h"
 #endif
 
@@ -36,7 +37,7 @@ namespace dpl
 namespace ext
 {
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 namespace ranges
 {
 
@@ -218,7 +219,7 @@ inline constexpr search_n_fn search_n;
 
 } //ranges
 
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 } //namespace ext
 
