@@ -155,7 +155,7 @@ sort(R&& r, Compare comp = Compare())
         std::size_t* splitter_i = sycl::malloc_shared<std::size_t>(n_splitters, q.get_device(), context());
         splitter_indices.push_back(splitter_i);
 
-        // Local copy `medians_l` necessary due to [GSD-3893]
+        // Local copy `medians_l` necessary due to bug in Level Zero.
         T* medians_l = sycl::malloc_device<T>(n_splitters, q.get_device(), context());
 
         q.memcpy(medians_l, medians, sizeof(T) * n_splitters).wait();
