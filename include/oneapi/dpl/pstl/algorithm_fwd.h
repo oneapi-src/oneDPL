@@ -809,7 +809,7 @@ _RandomAccessIterator2
 __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
                             _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator2, _Compare);
 
-    //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // adjacent_find
 //------------------------------------------------------------------------
 
