@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_ALGORITHM_RANGES_IMPL_H
 #define _ONEDPL_ALGORITHM_RANGES_IMPL_H
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 
 #include <ranges>
 #include "algorithm_fwd.h"
@@ -308,6 +308,6 @@ __pattern_search_n(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, std::ranges:
 } // namespace dpl
 } // namespace oneapi
 
-#endif //_ONEDPL___cplusplus >= 202002L
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 #endif // _ONEDPL_ALGORITHM_RANGES_IMPL_H
