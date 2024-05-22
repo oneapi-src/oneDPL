@@ -671,7 +671,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
     //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
     static_assert(std::is_move_constructible_v<_ValueType>);
     static_assert(std::is_move_assignable_v<_ValueType>);
 
@@ -690,7 +690,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
     //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
     static_assert(std::is_move_constructible_v<_ValueType>);
     static_assert(std::is_move_assignable_v<_ValueType>);
 
@@ -713,7 +713,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
     //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
     static_assert(std::is_move_constructible_v<_ValueType>);
     static_assert(std::is_move_assignable_v<_ValueType>);
 
@@ -732,7 +732,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
     //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
     static_assert(std::is_move_constructible_v<_ValueType>);
     static_assert(std::is_move_assignable_v<_ValueType>);
 
@@ -879,7 +879,7 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
     //      and the type of* first meets the Cpp17MoveConstructible(Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
     static_assert(std::is_move_constructible_v<_ResultValueType>);
     static_assert(std::is_move_assignable_v<_ResultValueType>);
 
@@ -899,7 +899,7 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
     //      and the type of* first meets the Cpp17MoveConstructible(Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
     static_assert(std::is_move_constructible_v<_ResultValueType>);
     static_assert(std::is_move_assignable_v<_ResultValueType>);
 
@@ -923,7 +923,7 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
     //      the type of *result_first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
     static_assert(std::is_move_constructible_v<_ResultValueType>);
     static_assert(std::is_move_assignable_v<_ResultValueType>);
 
@@ -943,7 +943,7 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
     //      the type of *result_first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
     static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
     static_assert(std::is_move_constructible_v<_ResultValueType>);
     static_assert(std::is_move_assignable_v<_ResultValueType>);
 
