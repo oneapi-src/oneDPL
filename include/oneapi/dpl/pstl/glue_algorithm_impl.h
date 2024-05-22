@@ -674,7 +674,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
     //      and Cpp17MoveAssignable(Table 34) requirements.
 
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                            __comp, typename ::std::is_move_constructible<_InputType>::type());
+                                            __comp);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
