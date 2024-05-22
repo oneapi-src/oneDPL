@@ -21,7 +21,7 @@
 
 static pointers ptrs;
 
-void register_mem_to_later_release(pointers *p)
+void register_mem_to_later_release(pointers* p)
 {
     ptrs = *p;
 }
@@ -34,7 +34,7 @@ struct DelayedReleaser
         ::operator delete (ptrs.p2, std::align_val_t(8*1024));
 
         constexpr size_t updated_size = 1024;
-        void *p = realloc(ptrs.p3, updated_size);
+        void* p = realloc(ptrs.p3, updated_size);
         EXPECT_TRUE(p, "reallocation failed");
         EXPECT_TRUE(malloc_usable_size(p) >= updated_size, "Invalid size after reallocation");
         free(p);

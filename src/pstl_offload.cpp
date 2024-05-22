@@ -154,6 +154,7 @@ struct __hash_aligned_ptr
         // 4K-aligned, drop 11 right bits that are zeros, and treat rest as a pointer,
         // hoping that an underlying Standard Library support this well.
         static constexpr unsigned __ptr_shift = 11;
+        // current page size is at least 4K
         assert(__get_memory_page_size() >= 1 << __ptr_shift);
         return std::hash<void*>()((void*)((uintptr_t)__p >> __ptr_shift));
     }
@@ -217,7 +218,11 @@ public:
     // We suppose that all users of libpstloffload have dependence on it, so it's impossible to
     // register >=4K-aligned USM memory before ctor of static objects in libpstloffload is executed.
     // So, no need for special support for adding to not-yet-created __large_aligned_ptrs_map.
-    __large_aligned_ptrs_map() : _M_map(new __map_ptr_to_object_prop) { }
+    __large_aligned_ptrs_map()
+    {
+        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
+        _M_map = new __map_ptr_to_object_prop;
+    }
 
     // Do not destroy (i.e., intentionally leak) _M_map to able use it after static object dtor is
     // executed. Global free/delete/realloc/etc are overloaded, so we need to use it even after
@@ -238,7 +243,7 @@ public:
     static std::optional<__ptr_desc>
     __unregister_ptr(__large_aligned_ptrs_map& __this, void* __ptr)
     {
-        // only page-aligned can be registered
+        // only page-aligned can be registered, so they may not be in the map
         if (!__is_ptr_page_aligned(__ptr))
         {
             return std::nullopt;
@@ -287,14 +292,14 @@ public:
 
 static __large_aligned_ptrs_map __large_aligned_ptrs;
 
-inline void
-__free_usm_pointer(__block_header* __header)
+void
+__block_header::__free()
 {
-    assert(__header != nullptr);
-    __header->_M_uniq_const = 0;
-    sycl::context __context = __header->_M_device.__get_context();
-    __header->~__block_header();
-    sycl::free(__header->_M_original_pointer, __context);
+    _M_uniq_const = 0;
+    sycl::context __context = _M_device.__get_context();
+    void* __original_pointer = _M_original_pointer;
+    this->~__block_header();
+    sycl::free(__original_pointer, __context);
 }
 
 #if __linux__
@@ -307,7 +312,7 @@ __internal_free(void* __user_ptr)
         if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
             __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __free_usm_pointer(__header);
+            __header->__free();
             return;
         }
 
@@ -442,7 +447,7 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
                                                    __header->_M_requested_number_of_bytes, __new_size);
         if (__result)
         {
-            __free_usm_pointer(__header);
+            __header->__free();
         }
         return __result;
     }
