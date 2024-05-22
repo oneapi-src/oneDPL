@@ -872,6 +872,17 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
+    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.3 partial_sort
+    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort
+    // Preconditions:
+    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements(16.4.4.3)
+    //      and the type of* first meets the Cpp17MoveConstructible(Table 32)
+    //      and Cpp17MoveAssignable(Table 34) requirements.
+    static_assert(std::is_swappable_v<_RandomAccessIterator>);
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    static_assert(std::is_move_constructible_v<_ResultValueType>);
+    static_assert(std::is_move_assignable_v<_ResultValueType>);
+
     oneapi::dpl::__internal::__pattern_partial_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                     __middle, __last, __comp);
 }
