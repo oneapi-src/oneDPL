@@ -101,7 +101,7 @@ struct find_if_not_fn
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
-        return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return oneapi::dpl::ext::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
             _Pred>>(__pred), __proj);
     }
@@ -118,7 +118,7 @@ struct find_fn
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
-        return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return oneapi::dpl::ext::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
             const _T>>(__value), __proj);
     }
@@ -146,7 +146,7 @@ struct all_of_fn
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
-        return !oneapi::dpl::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return !oneapi::dpl::ext::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Pred>>(__pred),
             __proj);
     }
@@ -160,7 +160,7 @@ struct none_of_fn
     constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
-        return !oneapi::dpl::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return !oneapi::dpl::ext::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             __pred, __proj);
     }
 }; //none_of_fn
