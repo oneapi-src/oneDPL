@@ -666,6 +666,13 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
 
+    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf,
+    // 27.8.2.1 sort
+    // Preconditions:
+    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
+    //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
+    //      and Cpp17MoveAssignable(Table 34) requirements.
+
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                             __comp, typename ::std::is_move_constructible<_InputType>::type());
 }
