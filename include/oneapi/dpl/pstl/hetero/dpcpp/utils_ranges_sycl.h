@@ -127,7 +127,7 @@ struct all_view_fn
     {
         return ::std::forward<_R>(__r);
     }
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
     template <typename _T>
     auto
     operator()(std::vector<_T, sycl::usm_allocator<_T, sycl::usm::alloc::shared>>& __vec) const 
@@ -135,7 +135,7 @@ struct all_view_fn
     {
         return std::ranges::subrange(__vec.begin(), __vec.end());
     }
-#endif
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 };
 
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
