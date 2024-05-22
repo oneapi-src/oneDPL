@@ -136,6 +136,9 @@ struct __block_header
     void* _M_original_pointer;
     __sycl_device_shared_ptr _M_device;
     std::size_t _M_requested_number_of_bytes;
+
+    void
+    __free();
 }; // struct __block_header
 
 static_assert(__is_power_of_two(sizeof(__block_header)));

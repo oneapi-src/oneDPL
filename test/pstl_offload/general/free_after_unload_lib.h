@@ -12,9 +12,9 @@
 
 struct pointers
 {
-    void *p1;
-    int *p2;
-    void *p3;
+    void* p1;
+    int* p2;
+    void* p3;
 };
 
 #if free_after_unload_lib_EXPORTS && _WIN64
