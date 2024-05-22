@@ -2409,7 +2409,7 @@ __pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    using _ValueType = typename std::iterator_traits<_RandomAccessIterator>::value_type;
     static_assert(std::is_move_constructible_v<_ValueType>);
 
     __internal::__except_handler([&]() {
