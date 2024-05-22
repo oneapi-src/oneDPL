@@ -202,103 +202,146 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
+          std::uint8_t _VecSize>
 struct transform_reduce
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    template <typename _Size, typename _Res, typename... _Acc>
     void
-    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
-             const _Acc&... __acc) const
+    vectorized_reduction_first(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
     {
-        auto __global_idx = __item_id.get_global_id(0);
-        auto __local_idx = __item_id.get_local_id(0);
-        const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
-        const _Size __adjusted_n = __global_offset + __n;
-        // Sequential load and reduce from global memory
-        if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
-        {
-            // Keep these statements in the same scope to allow for better memory alignment
-            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            _ONEDPL_PRAGMA_UNROLL
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
-        }
-        else if (__adjusted_global_id < __adjusted_n)
-        {
-            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
-            // Keep these statements in the same scope to allow for better memory alignment
-            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            for (_Size __i = 1; __i < __items_to_process; ++__i)
-                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
-        }
-        return;
+        new (&__res.__v) _Tp(__unary_op(__start_idx, __acc...));
+        _ONEDPL_PRAGMA_UNROLL
+        for (_Size __i = 1; __i < _VecSize; ++__i)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __i, __acc...));
+    }
+
+    template <typename _Size, typename _Res, typename... _Acc>
+    void
+    vectorized_reduction_remainder(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (_Size __i = 0; __i < _VecSize; ++__i)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __i, __acc...));
+    }
+
+    template <typename _Size, typename _Res, typename... _Acc>
+    void
+    scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, _Res& __res,
+                               const _Acc&... __acc) const
+    {
+        // The boundary checks are done in the caller, i.e., __start_idx <= __adjusted_n
+        const _Size __no_iters = __adjusted_n - __start_idx;
+        for (_Size __idx = 0; __idx < __no_iters; ++__idx)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
     }
 
     template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
     void
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
-                const _Acc&... __acc) const
-    {
-        auto __local_idx = __item_id.get_local_id(0);
-        const _Size __stride = __item_id.get_local_range(0);
-
-        const _Size __adjusted_global_id =
-            __global_offset + __item_id.get_group_linear_id() * __stride * __iters_per_work_item + __local_idx;
-        const _Size __adjusted_n = __global_offset + __n;
-
-        // Coalesced load and reduce from global memory
-        if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
-        {
-            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            _ONEDPL_PRAGMA_UNROLL
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
-        }
-        else if (__adjusted_global_id < __adjusted_n)
-        {
-            const _Size __items_to_process =
-                std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
-            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            for (_Size __i = 1; __i < __items_to_process; ++__i)
-                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
-        }
-        return;
-    }
-
-    // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
-    // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
-    static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
-
-    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
-    inline void
-    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, _Res& __res,
+    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __iters_per_work_item,
+               const _Size& __global_offset, const bool __is_full, const _Size __n_groups, _Res& __res,
                const _Acc&... __acc) const
     {
-        if constexpr (__use_nonseq_impl)
-            return nonseq_impl(__item_id, __n, __global_offset, __res, __acc...);
+        const _Size __global_idx = __item_id.get_global_id(0);
+        // Check if there is any work to do
+        if (__global_idx >= __n)
+            return;
+        if (__iters_per_work_item == 1)
+        {
+            new (&__res.__v) _Tp(__unary_op(__global_idx, __acc...));
+            return;
+        }
+        const _Size __local_range = __item_id.get_local_range(0);
+        const _Size __no_vec_ops = __iters_per_work_item / _VecSize;
+        const _Size __adjusted_n = __global_offset + __n;
+        constexpr _Size __vec_size_minus_one = _VecSize - 1;
+
+        _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
+        _Size __adjusted_global_id = __global_offset;
+        if constexpr (_Commutative{})
+        {
+            __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
+            _Size __local_idx = __item_id.get_local_id(0);
+            _Size __group_idx = __item_id.get_group_linear_id();
+            __adjusted_global_id += __group_idx * __local_range * __iters_per_work_item + __local_idx * _VecSize;
+        }
         else
-            return seq_impl(__item_id, __n, __global_offset, __res, __acc...);
+            __adjusted_global_id += __iters_per_work_item * __global_idx;
+
+        // Groups are full if n is evenly divisible by the number of elements processed per work-group.
+        // Multi group reductions will be full for all groups before the last group.
+        _Size __group_idx = __item_id.get_group(0);
+        _Size __n_groups_minus_one = __n_groups - 1;
+
+        // _VecSize-wide vectorized path (__iters_per_work_item are multiples of _VecSize)
+        if (__is_full || (__group_idx < __n_groups_minus_one))
+        {
+            vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
+            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+                vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
+        }
+        // At least one vector operation
+        else if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
+        {
+            vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
+            if (__no_vec_ops > 1)
+            {
+                _Size __n_diff = __adjusted_n - __adjusted_global_id - _VecSize;
+                _Size __no_iters = __n_diff / __stride;
+                _Size __no_vec_ops_minus_one = __no_vec_ops - 1;
+                bool __excess_scalar_elements = false;
+                if (__no_iters >= __no_vec_ops_minus_one)
+                {
+                    // Completely full work item
+                    __no_iters = __no_vec_ops_minus_one;
+                    __excess_scalar_elements = false;
+                }
+                else
+                {
+                    // Partially full work item, but we need to consider if it's next iteration after its last
+                    // vector instruction begins within the sequence
+                    __excess_scalar_elements = __adjusted_global_id + (__no_iters + 1) * __stride < __adjusted_n;
+                }
+                _Size __base_idx = __adjusted_global_id + __stride;
+                for (_Size __i = 1; __i <= __no_iters; ++__i)
+                {
+                    vectorized_reduction_remainder(__base_idx, __res, __acc...);
+                    __base_idx += __stride;
+                }
+                if (__excess_scalar_elements)
+                    scalar_reduction_remainder(__base_idx, __adjusted_n, __res, __acc...);
+            }
+        }
+        // Scalar remainder
+        else if (__adjusted_global_id < __adjusted_n)
+        {
+            new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
+            const _Size __adjusted_global_id_plus_one = __adjusted_global_id + 1;
+            scalar_reduction_remainder(__adjusted_global_id_plus_one, __adjusted_n, __res, __acc...);
+        }
     }
 
     template <typename _Size>
     _Size
-    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
+    output_size(const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item) const
     {
-        if constexpr (__use_nonseq_impl)
+        if (__iters_per_work_item == 1)
+            return __n;
+        if constexpr (_Commutative{})
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
             _Size __last_wg_remainder = __n % __items_per_work_group;
-
-            _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
+            // Adjust remainder and wg size for vector size
+            _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
+            _Size __last_wg_contrib = std::min(__last_wg_vec, __work_group_size);
             return __full_group_contrib + __last_wg_contrib;
         }
-        else
-            return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+        // else (if not commutative)
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 
@@ -317,7 +360,7 @@ struct reduce_over_group
                 std::true_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         return __dpl_sycl::__reduce_over_group(
             __item_id.get_group(), __global_idx >= __n ? __known_identity<_BinaryOperation1, _Tp> : __val, __bin_op1);
     }
@@ -328,11 +371,11 @@ struct reduce_over_group
                 std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
         __local_mem[__local_idx] = __val;
-        for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
+        for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
             __dpl_sycl::__group_barrier(__item_id);
             if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
@@ -358,8 +401,8 @@ struct reduce_over_group
         __init_processing<_Tp>{}(__init, __result, __bin_op1);
     }
 
-    inline ::std::size_t
-    local_mem_req(const ::std::uint16_t& __work_group_size) const
+    inline std::size_t
+    local_mem_req(const std::uint16_t& __work_group_size) const
     {
         if constexpr (__has_known_identity<_BinaryOperation1, _Tp>{})
             return 0;

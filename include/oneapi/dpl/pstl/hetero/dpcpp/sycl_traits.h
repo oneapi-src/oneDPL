@@ -254,8 +254,8 @@ struct walk_n;
 template <typename _ExecutionPolicy, typename _F>
 struct walk_adjacent_difference;
 
-template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
+          std::uint8_t _VecSize>
 struct transform_reduce;
 
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
@@ -316,11 +316,10 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backen
 {
 };
 
-template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
+          std::uint8_t _VecSize>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::transform_reduce, _ExecutionPolicy,
-                                                       __iters_per_work_item, _Operation1, _Operation2, _Tp,
-                                                       _Commutative)>
+                                                       _Operation1, _Operation2, _Tp, _Commutative, _VecSize)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Operation1, _Operation2, _Tp>
 {
 };
