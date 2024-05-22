@@ -28,7 +28,8 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
         auto res = std::ranges::views::iota(0, 4) | std::ranges::views::reverse;
-        return res.size() == 4 && res[0] == 3 && res[1] == 2 && res[2] == 1 && res[3] == 0;
+        return res.size() == 4 && res[0] == 3 && res[1] == 2 && res[2] == 1 && res[3] == 0 &&
+               (*res.begin() + 2) == 1 && res.end() - res.begin() == 4;
     };
     const bool res = kernel_test<class std_reverse_test>(test);
     EXPECT_TRUE(res, "Wrong result of reverse_view check within a kernel");

@@ -28,7 +28,8 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
         auto res = std::ranges::views::iota(0, 4) | std::ranges::views::take(2);
-        return res.size() == 2 && res[0] == 0 && res[1] == 1;
+        return res.size() == 2 && res[0] == 0 && res[1] == 1 && *(res.begin() + 1) == 1 &&
+               (res.end() - res.begin()) == 2;
     };
     const bool res = kernel_test<class std_take_test>(test);
     EXPECT_TRUE(res, "Wrong result of take_view check within a kernel");

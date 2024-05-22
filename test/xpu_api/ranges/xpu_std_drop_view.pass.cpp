@@ -28,7 +28,7 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
         auto res = std::ranges::views::iota(0, 4) | std::ranges::views::drop(2);
-        return res.size() == 2 && res[0] == 2 && res[1] == 3;
+        return res.size() == 2 && res[0] == 2 && res[1] == 3 && *res.begin() == 2 && res.end() - res.begin() == 2;
     };
     const bool res = kernel_test<class std_drop_test>(test);
     EXPECT_TRUE(res, "Wrong result of drop_view check within a kernel");

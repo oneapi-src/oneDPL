@@ -28,7 +28,7 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     auto test = [](){
         auto res = std::ranges::views::single(1);
-        return res.size() == 1 && res[0] == 1;
+        return res.size() == 1 && res[0] == 1 && *res.begin() == 1 && res.end() - res.begin() == 1;
     };
     const bool res = kernel_test<class std_single_test>(test);
     EXPECT_TRUE(res, "Wrong result of single_view check within a kernel");

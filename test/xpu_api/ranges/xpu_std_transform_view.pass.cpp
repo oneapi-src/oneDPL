@@ -29,7 +29,8 @@ main()
     auto test = [](){
         int a[4] = {0, 0, 0, 0};
         auto res = std::ranges::subrange(a, a+4) | std::ranges::views::transform([](auto v) { return v + 1;});
-        return res[0] == 1 && res[1] == 1 && res[2] == 1 && res[3] == 1;
+        return res[0] == 1 && res[1] == 1 && res[2] == 1 && res[3] == 1 && *(res.begin() + 2) == 1 &&
+               res.end() - res.begin() == 4;
     };
     const bool res = kernel_test<class std_transform_test>(test);
     EXPECT_TRUE(res, "Wrong result of transform_view check within a kernel");
