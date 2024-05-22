@@ -664,17 +664,6 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.1 sort
-    //              https://en.cppreference.com/w/cpp/algorithm/sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
-    //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-    static_assert(std::is_move_constructible_v<_ValueType>);
-    static_assert(std::is_move_assignable_v<_ValueType>);
-
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                             __comp);
 }
@@ -683,17 +672,6 @@ template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.1 sort
-    //              https://en.cppreference.com/w/cpp/algorithm/sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
-    //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-    static_assert(std::is_move_constructible_v<_ValueType>);
-    static_assert(std::is_move_assignable_v<_ValueType>);
-
     oneapi::dpl::sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                       oneapi::dpl::__internal::__pstl_less());
 }
@@ -706,17 +684,6 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.2 stable_sort
-    //              https://en.cppreference.com/w/cpp/algorithm/stable_sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
-    //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-    static_assert(std::is_move_constructible_v<_ValueType>);
-    static_assert(std::is_move_assignable_v<_ValueType>);
-
     oneapi::dpl::__internal::__pattern_stable_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                    __last, __comp);
 }
@@ -725,17 +692,6 @@ template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.2 stable_sort
-    //              https://en.cppreference.com/w/cpp/algorithm/stable_sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3)
-    //      and the type of *first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-    static_assert(std::is_move_constructible_v<_ValueType>);
-    static_assert(std::is_move_assignable_v<_ValueType>);
-
     oneapi::dpl::stable_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                              oneapi::dpl::__internal::__pstl_less());
 }
@@ -872,17 +828,6 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.3 partial_sort
-    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements(16.4.4.3)
-    //      and the type of* first meets the Cpp17MoveConstructible(Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
-    static_assert(std::is_move_constructible_v<_ResultValueType>);
-    static_assert(std::is_move_assignable_v<_ResultValueType>);
-
     oneapi::dpl::__internal::__pattern_partial_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                     __middle, __last, __comp);
 }
@@ -892,17 +837,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
              _RandomAccessIterator __last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.3 partial_sort
-    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements(16.4.4.3)
-    //      and the type of* first meets the Cpp17MoveConstructible(Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
-    static_assert(std::is_move_constructible_v<_ResultValueType>);
-    static_assert(std::is_move_assignable_v<_ResultValueType>);
-
     oneapi::dpl::partial_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
                               oneapi::dpl::__internal::__pstl_less());
 }
@@ -916,17 +850,6 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __d_first);
 
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.4 partial_sort_copy
-    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort_copy
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3),
-    //      the type of *result_first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
-    static_assert(std::is_move_constructible_v<_ResultValueType>);
-    static_assert(std::is_move_assignable_v<_ResultValueType>);
-
     return oneapi::dpl::__internal::__pattern_partial_sort_copy(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first, __d_last, __comp);
 }
@@ -936,17 +859,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.4 partial_sort_copy
-    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort_copy
-    // Preconditions:
-    //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3),
-    //      the type of *result_first meets the Cpp17MoveConstructible (Table 32)
-    //      and Cpp17MoveAssignable(Table 34) requirements.
-    static_assert(std::is_swappable_v<_RandomAccessIterator>);
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
-    static_assert(std::is_move_constructible_v<_ResultValueType>);
-    static_assert(std::is_move_assignable_v<_ResultValueType>);
-
     return oneapi::dpl::partial_sort_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
                                           __d_last, oneapi::dpl::__internal::__pstl_less());
 }
