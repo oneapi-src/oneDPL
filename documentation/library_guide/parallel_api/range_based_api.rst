@@ -10,7 +10,7 @@ or another adapted range, into a view with custom behavior.
 
 |onedpl_short| introduces two set of range based algorithms:
 
-* The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library comming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm. The functionality is implemented for the host and the device execution policies and requires C++20.
+* The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library coming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm. The functionality is implemented for the host and the device execution policies and requires C++20.
 * The oneapi::dpl::experimental::ranges namespace supports integration with oneDPL ranges introducing by oneapi::dpl::experimental::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the range functionality like the Ranges Library from C++20 standard. The functionality is implemented for the device execution policies only and requires C++17.
 
 .. Note::
