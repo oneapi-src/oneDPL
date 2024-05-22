@@ -1506,8 +1506,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to 
         // be asynchronous for better performance.
 
-        using _ValueType = typename std::iterator_traits<_OutIterator>::value_type;
-        static_assert(std::is_move_constructible_v<_ValueType>);
+        using _OutValueType = typename std::iterator_traits<_OutIterator>::value_type;
+        static_assert(std::is_move_constructible_v<_OutValueType>);
 
         // Use regular sort as partial_sort isn't required to be stable.
         //__pattern_sort is a blocking call.
