@@ -914,12 +914,16 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last)
 {
-    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf,
-    // 27.8.2.4 partial_sort_copy
+    // According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4928.pdf, 27.8.2.4 partial_sort_copy
+    //              https://en.cppreference.com/w/cpp/algorithm/partial_sort_copy
     // Preconditions:
     //      For the overloads in namespace std, RandomAccessIterator meets the Cpp17ValueSwappable requirements (16.4.4.3),
     //      the type of *result_first meets the Cpp17MoveConstructible (Table 32)
     //      and Cpp17MoveAssignable(Table 34) requirements.
+    static_assert(std::is_swappable_v<_RandomAccessIterator>);
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ResultValueType;
+    static_assert(std::is_move_constructible_v<_ResultValueType>);
+    static_assert(std::is_move_assignable_v<_ResultValueType>);
 
     return oneapi::dpl::partial_sort_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
                                           __d_last, oneapi::dpl::__internal::__pstl_less());
