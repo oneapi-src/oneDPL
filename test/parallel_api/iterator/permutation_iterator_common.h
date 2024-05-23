@@ -67,7 +67,7 @@ wait_and_throw(ExecutionPolicy&& exec)
     struct TestClassName : TestUtils::test_base<TestValueType>
 
 // DEFINE_TEST_PERM_IT_CONSTRUCTOR should be used to declare permutation iterator tests constructor
-#define DEFINE_TEST_PERM_IT_CONSTRUCTOR(TestClassName)                                                                 \
+#define DEFINE_TEST_PERM_IT_CONSTRUCTOR(TestClassName, ScaleStepValue, ScaleMaxNValue)                                                                 \
     TestClassName(test_base_data<TestValueType>& _test_base_data)                                                      \
         : TestUtils::test_base<TestValueType>(_test_base_data)                                                         \
     {                                                                                                                  \
@@ -76,6 +76,8 @@ wait_and_throw(ExecutionPolicy&& exec)
     template <UDTKind kind, typename Size>                                                                             \
     using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>;      \
                                                                                                                        \
-    using UsedValueType = TestValueType;
+    using UsedValueType = TestValueType;                                                                               \
+    static constexpr float ScaleMax = ScaleMaxNValue;                                                                         \
+    static constexpr float ScaleStep = ScaleStepValue;
 
 #endif // _PERMUTATION_ITERATOR_COMMON_H

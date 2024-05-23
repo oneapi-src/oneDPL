@@ -31,7 +31,7 @@ using namespace TestUtils;
 
 DEFINE_TEST(test_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_copy, 1.0f, 1.0f)
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Size, typename TExpectedValue>
     void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Size n, TExpectedValue expected_value)
