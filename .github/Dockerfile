@@ -1,7 +1,5 @@
-# docker build -t oneapi-gcc13 .
-# docker run -ti --rm oneapi-gcc13
 FROM intel/oneapi:latest
-RUN apt update
+RUN apt update --allow-insecure-repositories
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt install -y g++-13
 RUN apt install -y libgtest-dev
