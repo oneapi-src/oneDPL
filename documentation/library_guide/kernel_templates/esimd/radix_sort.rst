@@ -23,12 +23,12 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
              typename KernelParam, typename Iterator>
    sycl::event
    radix_sort (sycl::queue q, Iterator first, Iterator last,
-               KernelParam param); // (2)
+               KernelParam param); // (1)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range>
    sycl::event
-   radix_sort (sycl::queue q, Range&& r, KernelParam param); // (1)
+   radix_sort (sycl::queue q, Range&& r, KernelParam param); // (2)
 
 
    // Sort a single sequence out-of-place
@@ -37,13 +37,13 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
              typename Iterator2>
    sycl::event
    radix_sort (sycl::queue q, Iterator1 first, Iterator1 last,
-               Iterator2 first_out, KernelParam param) // (4)
+               Iterator2 first_out, KernelParam param) // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range1, typename Range2>
    sycl::event
    radix_sort (sycl::queue q, Range1&& r, Range2&& r_out,
-               KernelParam param) // (3)
+               KernelParam param) // (4)
 
 
    // Sort a sequence of keys and apply the same order to a sequence of values
@@ -51,13 +51,13 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
              typename KernelParam, typename Iterator1, typename Iterator2>
    sycl::event
    radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
-                      Iterator2 values_first, KernelParam param); // (6)
+                      Iterator2 values_first, KernelParam param); // (5)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysRng, typename ValuesRng>
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysRng&& keys,
-                      ValuesRng&& values, KernelParam param); // (5)
+                      ValuesRng&& values, KernelParam param); // (6)
 
 
    // Sort a sequence of keys and values out-of-place
@@ -69,7 +69,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
                       KeysIterator1 keys_last, ValsIterator1 vals_first,
                       KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
-                      KernelParam param) // (8)
+                      KernelParam param) // (7)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysRng1, typename ValsRng1,
@@ -77,7 +77,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
                       KeysRng2&& keys_out, ValsRng2&& vals_out,
-                      KernelParam param) // (7)
+                      KernelParam param) // (8)
    }
 
 
@@ -173,7 +173,7 @@ radix_sort In-Place Example
       keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{}); // (2)
+      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{}); // (1)
       e.wait();
 
       // print
@@ -225,7 +225,7 @@ radix_sort_by_key In-Place Example
       }
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (3)
+      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (6)
       e.wait();
 
       // print
@@ -278,7 +278,7 @@ radix_sort Out-of-Place Example
       keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, keys_out, kt::kernel_param<416, 64>{}); // (4)
+      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, keys_out, kt::kernel_param<416, 64>{}); // (3)
       e.wait();
 
       // print
@@ -338,7 +338,7 @@ radix_sort_by_key Out-of-Place Example
 
       // sort
       auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, keys_out, values_out,
-                                                     kt::kernel_param<96, 64>{}); // (7)
+                                                          kt::kernel_param<96, 64>{}); // (8)
       e.wait();
 
       // print
