@@ -288,10 +288,6 @@ __lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlag
 }
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
-          typename _KernelName>
-struct __lookback_submitter;
-
-template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
           typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues,
           typename _TileVals>
 struct __lookback_kernel_func
@@ -380,8 +376,12 @@ struct __lookback_kernel_func
 };
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
+          typename _KernelName>
+struct __lookback_scan_submitter;
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
           typename... _Name>
-struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
+struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
                             oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
 
@@ -476,7 +476,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
 
     auto __prev_event =
-        __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
+        __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
             __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
             __status_vals_full, __status_vals_partial, __current_num_items);
 
@@ -496,6 +496,121 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     }
 }
 
+
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _InRng, typename _OutRng, typename _NumRng, typename _TileValues>
+struct __copy_if_single_wg_kernel_func
+{
+    static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    using _SizeT = std::size_t;
+    using _BinaryOp = std::plus<_SizeT>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+
+    _InRng __in_rng;
+    _OutRng __out_rng;
+    _NumRng __num_rng;
+    _SizeT __n;
+    _TileValues __wg_copy_if_values;
+
+    [[sycl::reqd_sub_group_size(SUBGROUP_SIZE)]] void
+    operator()(const sycl::nd_item<1>& __item) const
+    {
+        auto __group = __item.get_group();
+        auto __wg_local_id = __item.get_local_id(0);
+
+        // Global load into local
+        _SizeT __wg_count = 0;
+
+        // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
+        if (__elems_in_tile <= __n)
+        {
+#pragma unroll
+            for (size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
+            {
+                _Type __val = __in_rng[__i + __wg_local_id];
+
+                _SizeT __satisfies_pred = __pred(__val);
+                _SizeT __count =
+                    sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+
+                if (__satisfies_pred)
+                    __wg_copy_if_values[__count] = __val;
+
+                __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __workgroup_size - 1);
+            }
+        }
+        else
+        {
+        // Edge of input, have to handle memory bounds
+        // Might have unneccessary group_barrier calls
+#pragma unroll
+            for (size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
+            {
+                _SizeT __satisfies_pred = 0;
+                oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
+                if (__i + __wg_local_id < __n)
+                {
+                    new (&__val.__v) _Type(__in_rng[__i + __wg_local_id]);
+
+                    __satisfies_pred = __pred(__val.__v);
+                }
+                _SizeT __count =
+                    sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+                if (__i + __wg_local_id < __n)
+                {
+                    if (__satisfies_pred)
+                        __wg_copy_if_values[__count] = std::move(__val.__v);
+                    __val.__v.~_Type();
+                }
+                __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __workgroup_size - 1);
+            }
+        }
+
+        // Phase 3: copy values to global memory
+        for (int __i = __wg_local_id; __i < __wg_count; __i += __workgroup_size)
+        {
+            __out_rng[__i] = __wg_copy_if_values[__i];
+        }
+        if (__group.leader())
+            __num_rng[0] = __wg_count;
+    }
+};
+
+
+
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _KernelName>
+struct __copy_if_single_wg_submitter;
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename... _Name>
+struct __copy_if_single_wg_submitter<__data_per_workitem, __workgroup_size, 
+                                     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+
+    template <typename _InRng, typename _OutRng, typename _NumSelectedRange>
+    sycl::event
+    operator()(sycl::queue __q, _InRng&& __in_rng, _OutRng&& __out_rng, _NumSelectedRange&& __num_rng, std::size_t __n) const
+    {
+        using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+        using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
+        using _KernelFunc =
+            __copy_if_single_wg_kernel_func<__data_per_workitem, __workgroup_size, std::decay_t<_InRng>,
+                                   std::decay_t<_OutRng>, std::decay_t<_NumSelectedRange>, _LocalAccessorType>;
+
+        static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+
+        return __q.submit([&](sycl::handler& __hdl) {
+            auto __tile_vals = _LocalAccessorType(sycl::range<1>{__elems_in_tile}, __hdl);
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng, __num_rng);
+            __hdl.parallel_for<_Name...>(sycl::nd_range<1>(__workgroup_size, __workgroup_size),
+                                         _KernelFunc{__in_rng, __out_rng, __n, __num_rng, __tile_vals});
+        });
+    }
+};
+
+
+
+
 template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
 void
@@ -513,82 +628,7 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
     constexpr ::std::size_t __wgsize = _KernelParam::workgroup_size;
     constexpr ::std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
 
-    // Avoid non_uniform n by padding up to a multiple of __wgsize
-    constexpr std::uint32_t __elems_in_tile = __wgsize * __elems_per_workitem;
-    ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
-    ::std::size_t __num_workitesm = __num_wgs * __wgsize;
-    assert(__num_wgs == 1);
-
-    auto __event = __queue.submit([&](sycl::handler& hdl) {
-        auto __wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, hdl);
-
-        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
-        hdl.parallel_for(
-            sycl::nd_range<1>(__num_workitesm, __wgsize),
-            [=](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
-                auto __group = item.get_group();
-                auto __wg_local_id = item.get_local_id(0);
-                constexpr ::std::uint32_t stride = __wgsize;
-
-                // Global load into local
-                _SizeT __wg_count = 0;
-
-                // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
-                if (__elems_in_tile <= __n)
-                {
-#pragma unroll
-                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
-                    {
-                        _Type __val = __in_rng[__i + __wg_local_id];
-
-                        _SizeT __satisfies_pred = __pred(__val);
-                        _SizeT __count =
-                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
-
-                        if (__satisfies_pred)
-                            __wg_copy_if_values[__count] = __val;
-
-                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
-                    }
-                }
-                else
-                {
-                // Edge of input, have to handle memory bounds
-                // Might have unneccessary group_barrier calls
-#pragma unroll
-                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
-                    {
-                        _SizeT __satisfies_pred = 0;
-                        oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
-                        if (__i + __wg_local_id < __n)
-                        {
-                            new (&__val.__v) _Type(__in_rng[__i + __wg_local_id]);
-
-                            __satisfies_pred = __pred(__val.__v);
-                        }
-                        _SizeT __count =
-                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
-                        if (__i + __wg_local_id < __n)
-                        {
-                            if (__satisfies_pred)
-                                __wg_copy_if_values[__count] = std::move(__val.__v);
-                            __val.__v.~_Type();
-                        }
-                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
-                    }
-                }
-
-                // Phase 3: copy values to global memory
-                for (int __i = __wg_local_id; __i < __wg_count; __i += __wgsize)
-                {
-                    __out_rng[__i] = __wg_copy_if_values[__i];
-                }
-                if (__group.leader())
-                    __num_rng[0] = __wg_count;
-            });
-    });
-
-    __event.wait();
+    __copy_if_single_wg_submitter<__elems_per_workitem, __wgsize, _KernelName>{}(__queue, __in_rng, __out_rng, __num_rng, __n).wait();
 }
 
 template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
@@ -618,7 +658,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     // Avoid non_uniform n by padding up to a multiple of __wgsize
     constexpr std::uint32_t __elems_in_tile = __wgsize * __elems_per_workitem;
     ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
-    ::std::size_t __num_workitesm = __num_wgs * __wgsize;
+    ::std::size_t __num_workitems = __num_wgs * __wgsize;
 
     __scan_lookback_mem_mgr<_FlagType> __scratch(__queue, __num_wgs);
     __scratch.allocate();
@@ -640,12 +680,11 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
         oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng, __num_rng);
         __hdl.parallel_for(
-            sycl::nd_range<1>(__num_workitesm, __wgsize),
+            sycl::nd_range<1>(__num_workitems, __wgsize),
             [=](const sycl::nd_item<1>& __item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
                 auto __group = __item.get_group();
                 auto __wg_local_id = __item.get_local_id(0);
                 auto __sg = __item.get_sub_group();
-                constexpr ::std::uint32_t __stride = __wgsize;
 
                 std::uint32_t __tile_id = 0;
 
