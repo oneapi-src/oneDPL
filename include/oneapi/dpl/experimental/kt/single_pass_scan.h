@@ -523,69 +523,69 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
         auto __wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, hdl);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
-        hdl.parallel_for(sycl::nd_range<1>(__num_workitesm, __wgsize), [=](const sycl::nd_item<1>&
-                                                                           item) [[intel::reqd_sub_group_size(
-                                                                       SUBGROUP_SIZE)]] {
-            auto __group = item.get_group();
-            auto __wg_local_id = item.get_local_id(0);
-            constexpr ::std::uint32_t stride = __wgsize;
+        hdl.parallel_for(
+            sycl::nd_range<1>(__num_workitesm, __wgsize),
+            [=](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                auto __group = item.get_group();
+                auto __wg_local_id = item.get_local_id(0);
+                constexpr ::std::uint32_t stride = __wgsize;
 
-            // Global load into local
-            _SizeT __wg_count = 0;
+                // Global load into local
+                _SizeT __wg_count = 0;
 
-            // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
-            if (__elems_in_tile <= __n)
-            {
-#pragma unroll
-                for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
+                // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
+                if (__elems_in_tile <= __n)
                 {
-                    _Type __val = __in_rng[__i + __wg_local_id];
+#pragma unroll
+                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
+                    {
+                        _Type __val = __in_rng[__i + __wg_local_id];
 
-                    _SizeT __satisfies_pred = __pred(__val);
-                    _SizeT __count =
-                        sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+                        _SizeT __satisfies_pred = __pred(__val);
+                        _SizeT __count =
+                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
 
-                    if (__satisfies_pred)
-                        __wg_copy_if_values[__count] = __val;
+                        if (__satisfies_pred)
+                            __wg_copy_if_values[__count] = __val;
 
-                    __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
+                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
+                    }
                 }
-            }
-            else
-            {
+                else
+                {
                 // Edge of input, have to handle memory bounds
                 // Might have unneccessary group_barrier calls
 #pragma unroll
-                for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
-                {
-                    _SizeT __satisfies_pred = 0;
-                    oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
-                    if (__i + __wg_local_id < __n)
+                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
                     {
-                        new (&__val.__v) _Type(__in_rng[__i + __wg_local_id]);
+                        _SizeT __satisfies_pred = 0;
+                        oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
+                        if (__i + __wg_local_id < __n)
+                        {
+                            new (&__val.__v) _Type(__in_rng[__i + __wg_local_id]);
 
-                        __satisfies_pred = __pred(__val.__v);
+                            __satisfies_pred = __pred(__val.__v);
+                        }
+                        _SizeT __count =
+                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+                        if (__i + __wg_local_id < __n)
+                        {
+                            if (__satisfies_pred)
+                                __wg_copy_if_values[__count] = std::move(__val.__v);
+                            __val.__v.~_Type();
+                        }
+                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
                     }
-                    _SizeT __count =
-                        sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
-                    if (__i + __wg_local_id < __n)
-                    {
-                        if (__satisfies_pred)
-                            __wg_copy_if_values[__count] = std::move(__val.__v);
-                        __val.__v.~_Type();
-                    }
-                    __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
                 }
-            }
 
-            // Phase 3: copy values to global memory
-            for (int __i = __wg_local_id; __i < __wg_count; __i += __wgsize)
-            {
-                __out_rng[__i] = __wg_copy_if_values[__i];
-            }
-            if (__group.leader())
-                __num_rng[0] = __wg_count;
-        });
+                // Phase 3: copy values to global memory
+                for (int __i = __wg_local_id; __i < __wg_count; __i += __wgsize)
+                {
+                    __out_rng[__i] = __wg_copy_if_values[__i];
+                }
+                if (__group.leader())
+                    __num_rng[0] = __wg_count;
+            });
     });
 
     __event.wait();
@@ -639,100 +639,100 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         __hdl.depends_on(__fill_event);
 
         oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng, __num_rng);
-        __hdl.parallel_for(sycl::nd_range<1>(__num_workitesm, __wgsize), [=](const sycl::nd_item<1>&
-                                                                           __item) [[intel::reqd_sub_group_size(
-                                                                       SUBGROUP_SIZE)]] {
-            auto __group = __item.get_group();
-            auto __wg_local_id = __item.get_local_id(0);
-            auto __sg = __item.get_sub_group();
-            constexpr ::std::uint32_t __stride = __wgsize;
+        __hdl.parallel_for(
+            sycl::nd_range<1>(__num_workitesm, __wgsize),
+            [=](const sycl::nd_item<1>& __item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                auto __group = __item.get_group();
+                auto __wg_local_id = __item.get_local_id(0);
+                auto __sg = __item.get_sub_group();
+                constexpr ::std::uint32_t __stride = __wgsize;
 
-            std::uint32_t __tile_id = 0;
+                std::uint32_t __tile_id = 0;
 
-            // Obtain unique ID for this work-group that will be used in decoupled lookback
-            if (__group.leader())
-            {
-                sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
-                                 sycl::access::address_space::global_space>
-                    __idx_atomic(__status_flags[__status_flags_size - 1]);
-                __tile_id = __idx_atomic.fetch_add(1);
-            }
-
-            __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
-
-            std::size_t __current_offset = static_cast<std::size_t>(__tile_id) * __elems_in_tile;
-
-            _SizeT __wg_count = 0;
-
-            // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
-            if ((__tile_id + 1) * __elems_in_tile <= __n)
-            {
-#pragma unroll
-                for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
+                // Obtain unique ID for this work-group that will be used in decoupled lookback
+                if (__group.leader())
                 {
-                    // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
-                    //  if load is done in a scalar fashion and provides the same performance, we
-                    //  can avoid the broadcast (I think)
-                    // would need to loop over the elements per work item first accumulating into
-                    // satisfies pred, copying to "my slot" in SLM then do scan, then the copy to
-                    // global memory needs to be loaded per work item per element, skipping copies
-                    // when they were not saved.
-                    _Type __val = __in_rng[__i + __wg_local_id + __elems_in_tile * __tile_id];
-
-                    _SizeT __satisfies_pred = __pred(__val);
-                    _SizeT __count =
-                        sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
-
-                    if (__satisfies_pred)
-                        __wg_copy_if_values[__count] = __val;
-
-                    __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
+                    sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
+                                     sycl::access::address_space::global_space>
+                        __idx_atomic(__status_flags[__status_flags_size - 1]);
+                    __tile_id = __idx_atomic.fetch_add(1);
                 }
-            }
-            else
-            {
+
+                __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
+
+                std::size_t __current_offset = static_cast<std::size_t>(__tile_id) * __elems_in_tile;
+
+                _SizeT __wg_count = 0;
+
+                // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
+                if ((__tile_id + 1) * __elems_in_tile <= __n)
+                {
+#pragma unroll
+                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
+                    {
+                        // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
+                        //  if load is done in a scalar fashion and provides the same performance, we
+                        //  can avoid the broadcast (I think)
+                        // would need to loop over the elements per work item first accumulating into
+                        // satisfies pred, copying to "my slot" in SLM then do scan, then the copy to
+                        // global memory needs to be loaded per work item per element, skipping copies
+                        // when they were not saved.
+                        _Type __val = __in_rng[__i + __wg_local_id + __elems_in_tile * __tile_id];
+
+                        _SizeT __satisfies_pred = __pred(__val);
+                        _SizeT __count =
+                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+
+                        if (__satisfies_pred)
+                            __wg_copy_if_values[__count] = __val;
+
+                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
+                    }
+                }
+                else
+                {
                 // Edge of input, have to handle memory bounds
                 // Might have unneccessary group_barrier calls
 #pragma unroll
-                for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
-                {
-                    _SizeT __satisfies_pred = 0;
-                    oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
-                    if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
+                    for (size_t __i = 0; __i < __elems_in_tile; __i += __wgsize)
                     {
-                        new (&__val.__v) _Type(__in_rng[__i + __wg_local_id + __elems_in_tile * __tile_id]);
+                        _SizeT __satisfies_pred = 0;
+                        oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
+                        if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
+                        {
+                            new (&__val.__v) _Type(__in_rng[__i + __wg_local_id + __elems_in_tile * __tile_id]);
 
-                        __satisfies_pred = __pred(__val.__v);
+                            __satisfies_pred = __pred(__val.__v);
+                        }
+                        _SizeT __count =
+                            sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
+
+                        if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
+                        {
+                            if (__satisfies_pred)
+                                __wg_copy_if_values[__count] = std::move(__val.__v);
+                            __val.__v.~_Type();
+                        }
+
+                        __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
                     }
-                    _SizeT __count =
-                        sycl::exclusive_scan_over_group(__group, __satisfies_pred, __wg_count, _BinaryOp{});
-
-                    if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
-                    {
-                        if (__satisfies_pred)
-                            __wg_copy_if_values[__count] = std::move(__val.__v);
-                        __val.__v.~_Type();
-                    }
-
-                    __wg_count = sycl::group_broadcast(__group, __count + __satisfies_pred, __wgsize - 1);
                 }
-            }
 
-            // Phase 2: Global scan across __wg_count
-            _SizeT __copied_elements = 0;
+                // Phase 2: Global scan across __wg_count
+                _SizeT __copied_elements = 0;
 
-            __lookback_phase<_FlagType>(__group, __sg, __status_flags, __status_vals_full, __status_vals_partial,
-                                        __tile_id, __wg_count, __copied_elements, _BinaryOp{});
+                __lookback_phase<_FlagType>(__group, __sg, __status_flags, __status_vals_full, __status_vals_partial,
+                                            __tile_id, __wg_count, __copied_elements, _BinaryOp{});
 
-            //TODO: explore above comment about scalar load
-            // Phase 3: copy values to global memory
-            for (int __i = __wg_local_id; __i < __wg_count; __i += __wgsize)
-            {
-                __out_rng[__copied_elements + __i] = __wg_copy_if_values[__i];
-            }
-            if (__tile_id == (__num_wgs - 1) && __group.leader())
-                __num_rng[0] = __copied_elements + __wg_count;
-        });
+                //TODO: explore above comment about scalar load
+                // Phase 3: copy values to global memory
+                for (int __i = __wg_local_id; __i < __wg_count; __i += __wgsize)
+                {
+                    __out_rng[__copied_elements + __i] = __wg_copy_if_values[__i];
+                }
+                if (__tile_id == (__num_wgs - 1) && __group.leader())
+                    __num_rng[0] = __copied_elements + __wg_count;
+            });
     });
 
     __event.wait();
