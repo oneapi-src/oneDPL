@@ -16,17 +16,15 @@
 #include "support/test_config.h"
 #include "support/utils.h"
 
+#include <oneapi/dpl/experimental/kernel_templates>
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
 
 using namespace TestUtils;
 
-template <typename T, typename Predicate>
-class CopyIfKernel;
-
-template <typename T, typename Predicate, typename Generator>
+template <typename T, typename Predicate, typename Generator, typename KernelParam>
 bool
-test(Predicate pred, Generator gen)
+test(Predicate pred, Generator gen, KernelParam param)
 {
     bool all_passed = true;
     sycl::queue q;
@@ -43,12 +41,8 @@ test(Predicate pred, Generator gen)
         T* out_ptr = sycl::malloc_device<T>(n, q);
         size_t* out_num = sycl::malloc_device<size_t>(1, q);
 
-        constexpr int n_elements_per_workitem = 8;
-
         q.copy(in.data(), in_ptr, n).wait();
-        using KernelParams =
-            oneapi::dpl::experimental::kt::kernel_param<n_elements_per_workitem, 128, CopyIfKernel<T, Predicate>>;
-        oneapi::dpl::experimental::kt::single_pass_copy_if<KernelParams>(q, in_ptr, in_ptr + n, out_ptr, out_num, pred);
+        oneapi::dpl::experimental::kt::gpu::single_pass_copy_if(q, in_ptr, in_ptr + n, out_ptr, out_num, pred, param);
 
         Sequence<T> kt_out(n);
         size_t num_selected = 0;
@@ -93,12 +87,18 @@ int
 main()
 {
     bool all_passed = true;
+    constexpr int n_elements_per_workitem = 8;
+
+    auto param = oneapi::dpl::experimental::kt::kernel_param<n_elements_per_workitem, 128>{};
     all_passed &=
         test<float64_t>([](const float64_t& x) { return x * x <= 1024; },
-                        [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
-    all_passed &= test<int>([](const int&) { return true; }, [](size_t j) { return j; });
+                        [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); },
+                        TestUtils::get_new_kernel_params<0>(param));
+    all_passed &= test<int>([](const int&) { return true; }, [](size_t j) { return j; },
+                        TestUtils::get_new_kernel_params<1>(param));
     all_passed &= test<std::int32_t>([](const std::int32_t& x) { return x != 42; },
-                                     [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? std::int32_t(j + 1) : 42; });
+                                     [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? std::int32_t(j + 1) : 42; },
+                                     TestUtils::get_new_kernel_params<2>(param));
 
     return all_passed;
 }
