@@ -37,6 +37,15 @@ namespace __impl
 {
 
 template <typename... _Name>
+class __copy_if_kernel;
+
+template <typename... _Name>
+class __copy_if_single_wg_kernel;
+
+template <typename... _Name>
+class __inclusive_scan_kernel;
+
+template <typename... _Name>
 class __lookback_init_kernel;
 
 template <typename... _Name>
@@ -426,7 +435,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
-    using _KernelName = typename _KernelParam::kernel_name;
+    using _KernelName = __inclusive_scan_kernel<typename _KernelParam::kernel_name>;
     using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __lookback_init_kernel<_KernelName, _Type, _BinaryOp>>;
     using _LookbackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
@@ -510,7 +519,7 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _SizeT = uint64_t;
     using _TileIdT = TileId::_TileIdT;
-    using _KernelName = typename _KernelParam::kernel_name;
+    using _KernelName = __copy_if_single_wg_kernel<typename _KernelParam::kernel_name>;
 
     const ::std::size_t n = __in_rng.size();
 
@@ -604,7 +613,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _SizeT = uint64_t;
     using _TileIdT = TileId::_TileIdT;
-    using _KernelName = typename _KernelParam::kernel_name;
+    using _KernelName = __copy_if_kernel<typename _KernelParam::kernel_name>;
 
     using _BinaryOp = std::plus<_SizeT>;
 
