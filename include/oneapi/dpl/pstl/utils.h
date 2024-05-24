@@ -765,6 +765,14 @@ struct __is_iterator_type<_T, std::void_t<typename std::iterator_traits<_T>::dif
 template <typename _T>
 static constexpr bool __is_iterator_type_v = __is_iterator_type<_T>::value;
 
+//For use to lazily create objects values of type _Tp without requiring a default constructibility of _Tp
+template <typename _Tp>
+union __lazy_ctor_storage
+{
+    _Tp __v;
+    __lazy_ctor_storage() {}
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

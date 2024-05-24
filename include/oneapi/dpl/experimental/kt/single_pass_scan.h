@@ -563,23 +563,21 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
                 for (size_t i = 0; i < elems_in_tile; i += wgsize)
                 {
                     _SizeT satisfies_pred = 0;
-                    // launder is used here to create data without initialization without requiring
-                    // a default constructor or out of bounds access
-                    // TODO: replace with "union" trick to avoid launder,
-                    // see https://github.com/oneapi-src/oneDPL/pull/1495 and https://github.com/oneapi-src/oneDPL/pull/1470
-                    _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
+                    oneapi::dpl::__internal::__lazy_ctor_storage<_Type> val;
                     if (i + wg_local_id < n)
                     {
-                        val = __in_rng[i + wg_local_id];
+                        new (&val.__v) _Type(__in_rng[i + wg_local_id]);
 
-                        satisfies_pred = pred(val);
+                        satisfies_pred = pred(val.__v);
                     }
                     _SizeT count =
                         sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
-
-                    if (satisfies_pred)
-                        wg_copy_if_values[count] = val;
-
+                    if (i + wg_local_id < n)
+                    {
+                        if (satisfies_pred)
+                            wg_copy_if_values[count] = std::move(val.__v);
+                        val.__v.~_Type();
+                    }
                     wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
                 }
             }
@@ -705,22 +703,22 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                 for (size_t i = 0; i < __elems_in_tile; i += wgsize)
                 {
                     _SizeT satisfies_pred = 0;
-                    // launder is used here to create data without initialization without requiring
-                    // a default constructor or out of bounds access
-                    // TODO: replace with "union" trick to avoid launder,
-                    // see https://github.com/oneapi-src/oneDPL/pull/1495 and https://github.com/oneapi-src/oneDPL/pull/1470
-                    _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
+                    oneapi::dpl::__internal::__lazy_ctor_storage<_Type> val;
                     if (i + wg_local_id + __elems_in_tile * __tile_id < n)
                     {
-                        val = __in_rng[i + wg_local_id + __elems_in_tile * __tile_id];
+                        new (&val.__v) _Type(__in_rng[i + wg_local_id + __elems_in_tile * __tile_id]);
 
-                        satisfies_pred = pred(val);
+                        satisfies_pred = pred(val.__v);
                     }
                     _SizeT count =
                         sycl::exclusive_scan_over_group(__group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
 
-                    if (satisfies_pred)
-                        wg_copy_if_values[count] = val;
+                    if (i + wg_local_id + __elems_in_tile * __tile_id < n)
+                    {
+                        if (satisfies_pred)
+                            wg_copy_if_values[count] = std::move(val.__v);
+                        val.__v.~_Type();
+                    }
 
                     wg_count = sycl::group_broadcast(__group, count + satisfies_pred, wgsize - 1);
                 }
