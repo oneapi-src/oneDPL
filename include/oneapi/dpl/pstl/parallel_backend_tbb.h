@@ -646,7 +646,7 @@ class __func_task : public __task
         assert(__parent->_M_refcount.load(::std::memory_order_relaxed) > 0);
 
         auto __refcount = --__parent->_M_refcount;
-        
+
         // Placing the deallocation after the refcount decrement allows another thread to proceed with tree
         // folding concurrently with this task cleanup.
         __alloc.deallocate(this, *__ed);
