@@ -29,6 +29,7 @@
 #endif
 
 #define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 1
+#define PATTERN_FIND_IF_ON_TRANSFORM_REDUCE                      1
 
 namespace oneapi
 {
@@ -794,6 +795,75 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 }
 
 //------------------------------------------------------------------------
+// parallel_find
+//------------------------------------------------------------------------
+
+#if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
+template <typename _Typle, typename _UnaryTransformOp>
+struct __find_if_unary_transform_op
+{
+    _UnaryTransformOp __transform_op;
+
+    template <typename Arg>
+    _Typle
+    operator()(const Arg& arg) const
+    {
+        return {__transform_op(std::get<0>(arg)), std::get<1>(arg)};
+    }
+};
+
+template <typename _Typle, typename _IsFirst>
+struct __find_if_binary_reduce_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (::std::get<0>(op1) && ::std::get<0>(op2))
+        {
+            if constexpr (_IsFirst{})
+                return {true, ::std::min(::std::get<1>(op1), ::std::get<1>(op2))};
+            else
+                return {true, ::std::max(::std::get<1>(op1), ::std::get<1>(op2))};
+        }
+
+        return ::std::get<0>(op1) ? op1 : op2;
+    }
+};
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
+_Iterator
+__pattern_find_if_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                                   _Iterator __last, _Pred __pred, _IsFirst)
+{
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
+        return __last;
+
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
+
+    const auto __itBegin = oneapi::dpl::make_zip_iterator(__first, oneapi::dpl::counting_iterator{0});
+    const auto __itEnd = __itBegin + __n;
+
+    using _zipped_data_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
+    const auto __reduce_op = __find_if_binary_reduce_op<_zipped_data_type, _IsFirst>{};
+    const auto __transform_op = __find_if_unary_transform_op<_zipped_data_type, _Pred>{__pred};
+
+    const auto result = __pattern_transform_reduce(
+        /* __dispatch_tag    */ __tag,
+        /* _ExecutionPolicy  */ std::forward<_ExecutionPolicy>(__exec),
+        /* _ForwardIterator  */ __itBegin,
+        /* _ForwardIterator  */ __itEnd,
+        /* _Tp __init        */ _result_type{false, __itEnd - __itBegin},
+        /* _BinaryReduceOp   */ __reduce_op,
+        /* _UnaryTransformOp */ __transform_op);
+
+    return std::get<0>(result) ? __first + std::get<1>(result) : __last;
+}
+#endif // PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
+
+//------------------------------------------------------------------------
 // find_if
 //------------------------------------------------------------------------
 
@@ -805,13 +875,19 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
     if (__first == __last)
         return __last;
 
+#if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
+    return __pattern_find_if_transform_reduce(__hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                              __first, __last, __pred,
+                                              /*_IsFirst*/ ::std::true_type{});
+#else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
-    return __par_backend_hetero::__parallel_find(
+    return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred},
         ::std::true_type{});
+#endif // PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
