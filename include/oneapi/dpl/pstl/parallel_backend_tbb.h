@@ -647,8 +647,8 @@ class __func_task : public __task
 
         auto __refcount = --__parent->_M_refcount;
         
-        //The deallocation can be done concurrently (the reference reached 0 and the thread can proceed with tree
-        //folding without waiting for task deallocation on another thread)
+        // Placing the deallocation after the refcount decrement allows another thread to proceed with tree
+        // folding concurrently with this task cleanup.
         __alloc.deallocate(this, *__ed);
 
         if (__refcount == 0)
