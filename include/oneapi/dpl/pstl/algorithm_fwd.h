@@ -741,11 +741,7 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomA
 // sort
 //------------------------------------------------------------------------
 
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-decltype(auto)
-__select_backend_pattern_sort(_ExecutionPolicy&&, _RandomAccessIterator);
-
-    template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
 __pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare) noexcept;
 

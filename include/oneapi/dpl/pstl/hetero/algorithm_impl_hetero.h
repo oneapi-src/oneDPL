@@ -1510,16 +1510,14 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to 
         // be asynchronous for better performance.
 
-        // Special case of __select_backend implementation for __pattern_sort
         // TODO is it OK for call inside __pattern_partial_sort_copy?
         //      __pattern_partial_sort_copy hasn't any requirement for value iterated by _OutIterator
         //      and it's possible that it can be not move constructible.
-        const auto __pattern_sort_dispatch_tag = __select_backend_pattern_sort(__exec, __out_first);
 
         // Use regular sort as partial_sort isn't required to be stable.
         //__pattern_sort is a blocking call.
         __pattern_sort(
-            __pattern_sort_dispatch_tag,
+            __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
             __out_first, __out_end, __comp);
 

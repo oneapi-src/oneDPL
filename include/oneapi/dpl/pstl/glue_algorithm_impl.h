@@ -656,52 +656,15 @@ partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
                                                              __first, __last, __out_true, __out_false, __pred);
 }
 
-inline const oneapi::dpl::execution::parallel_policy&
-get_pattern_sort_unvectorized_policy(const oneapi::dpl::execution::parallel_unsequenced_policy&)
-{
-    return oneapi::dpl::execution::par;
-}
-
-inline const oneapi::dpl::execution::sequenced_policy&
-get_pattern_sort_unvectorized_policy(const oneapi::dpl::execution::unsequenced_policy&)
-{
-    return oneapi::dpl::execution::seq;
-}
-
-template <typename _ExecutionPolicy>
-const _ExecutionPolicy&
-get_pattern_sort_unvectorized_policy(const _ExecutionPolicy& __exec)
-{
-    return __exec;
-}
-
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-decltype(auto)
-__select_backend_pattern_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first)
-{
-    using __value_type = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
-    if constexpr (std::is_move_constructible_v<__value_type>)
-    {
-        return oneapi::dpl::__internal::__select_backend(__exec, __first);
-    }
-    else
-    {
-        // Special case when value_type is not move constructible: we should use unsequenced policies for sorting
-        return oneapi::dpl::__internal::__select_backend(get_pattern_sort_unvectorized_policy(__exec), __first);
-    }
-}
-
 // [alg.sort]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-    // Special case of __select_backend implementation for __pattern_sort
-    const auto __pattern_sort_dispatch_tag = __select_backend_pattern_sort(__exec, __first);
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    oneapi::dpl::__internal::__pattern_sort(__pattern_sort_dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                            __first, __last, __comp);
+    oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
