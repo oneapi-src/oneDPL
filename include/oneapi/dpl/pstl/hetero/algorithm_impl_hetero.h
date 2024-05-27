@@ -1482,8 +1482,6 @@ _OutIterator
 __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InIterator __first,
                             _InIterator __last, _OutIterator __out_first, _OutIterator __out_last, _Compare __comp)
 {
-    using _ValueType = typename ::std::iterator_traits<_InIterator>::value_type;
-
     auto __in_size = __last - __first;
     auto __out_size = __out_last - __out_first;
 
@@ -1506,17 +1504,21 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to 
         // be asynchronous for better performance.
 
+        using _OutValueType = typename ::std::iterator_traits<_OutIterator>::value_type;
+
         // Use regular sort as partial_sort isn't required to be stable.
         //__pattern_sort is a blocking call.
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp, ::std::true_type{});
+            __out_first, __out_end, __comp, typename ::std::is_move_constructible<_OutValueType>::type());
 
         return __out_end;
     }
     else
     {
+        using _ValueType = typename ::std::iterator_traits<_InIterator>::value_type;
+
         // If our input buffer is smaller than the input buffer do the following:
         // - create a temporary buffer and copy all the elements from the input buffer there
         // - run partial sort on the temporary buffer
