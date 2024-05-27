@@ -1511,7 +1511,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp, typename ::std::is_move_constructible<_OutValueType>::type());
+            __out_first, __out_end, __comp, typename std::is_move_constructible<_OutValueType>::type());
 
         return __out_end;
     }
