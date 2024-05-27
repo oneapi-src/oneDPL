@@ -2397,7 +2397,7 @@ void
 __pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                _IsMoveConstructible) noexcept
 {
-    static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
+    static_assert(__is_host_dispatch_tag_v<_Tag>);
 
     ::std::sort(__first, __last, __comp);
 }
