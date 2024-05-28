@@ -16,6 +16,7 @@
 
 #if __has_include(<sycl/ext/intel/esimd.hpp>)
 #    include "kt/esimd_radix_sort.h"
+#    include "kt/esimd_scan.h"
 #endif
 
 #include "kt/single_pass_scan.h"

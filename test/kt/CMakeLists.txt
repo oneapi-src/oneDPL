@@ -122,12 +122,35 @@ function(_generate_esimd_sort_tests _key_value_pairs)
     endforeach()
 endfunction()
 
+
+function (_generate_esimd_scan_test)
+    if ((NOT TARGET build-esimd-scan-kt-tests) AND (NOT TARGET run-esimd-scan-kt-tests))
+        add_custom_target(build-esimd-scan-kt-tests COMMENT "Build all ESIMD scan kernel template tests")
+        add_custom_target(run-esimd-scan-kt-tests
+            COMMAND "${CMAKE_CTEST_COMMAND}" -R "^run-esimd-scan-kt-tests$" --output-on-failure --no-label-summary
+            DEPENDS build-esimd-scan-kt-tests
+            COMMENT "Build and run all ESIMD scan kernel template tests")
+    endif()
+
+    #string(REPLACE "_t" "" _type_short ${_type})
+    set(_target_name "esimd_scan")
+    set(_test_path "esimd_scan.cpp")
+
+    _generate_test(${_target_name} ${_test_path})
+    if(TARGET ${_target_name})
+        add_dependencies(build-esimd-scan-kt-tests ${_target_name})
+        add_dependencies(run-esimd-scan-kt-tests ${_target_name})
+    endif()
+endfunction()
+
 if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_tests(FALSE) # esimd_radix_sort, random
     _generate_esimd_sort_tests(TRUE) # esimd_radix_sort_by_key, random
 
     # Pin some cases to track them, e.g. because they fail
     _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
+
+    _generate_esimd_scan_test()
 endif()
 
 function (_generate_gpu_scan_test _data_per_work_item _work_group_size _type)
