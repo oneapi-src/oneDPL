@@ -575,7 +575,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    bool result = __par_backend_hetero::__parallel_find_or(
+    bool result = __par_backend_hetero::__parallel_find_or(     // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -747,7 +747,13 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    // https://en.cppreference.com/w/cpp/algorithm/any_of           std::any_of                                                                                                  -> __pattern_any_of
+    // https://en.cppreference.com/w/cpp/algorithm/search_n         std::search_n           -> __pattern_search_n                                                                -> __pattern_any_of
+    // https://en.cppreference.com/w/cpp/algorithm/stable_partition std::stable_partition                                                          -> __pattern_stable_partition -> __pattern_any_of
+    // https://en.cppreference.com/w/cpp/algorithm/partition        std::partition          ->                          __pattern_partition        -> __pattern_stable_partition -> __pattern_any_of
+    // https://en.cppreference.com/w/cpp/algorithm/nth_element      std::nth_element        -> __pattern_nth_element -> __pattern_partition        -> __pattern_stable_partition -> __pattern_any_of
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce ?
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
@@ -775,7 +781,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    return !__par_backend_hetero::__parallel_find_or(
+    return !__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -912,7 +918,8 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     {
         using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
 
-        return __par_backend_hetero::__parallel_find(
+        // https://en.cppreference.com/w/cpp/algorithm/find_end std::find_end -> __pattern_find_end
+        return __par_backend_hetero::__parallel_find(                   // unable switch to __pattern_transform_reduce because we have __s_first and __s_last
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
@@ -938,7 +945,8 @@ __pattern_find_first_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     // TODO: To check whether it makes sense to iterate over the second sequence in case of
     // distance(__first, __last) < distance(__s_first, __s_last).
-    return __par_backend_hetero::__parallel_find(
+    // https://en.cppreference.com/w/cpp/algorithm/find_first_of std::find_first_of -> __pattern_find_first_of
+    return __par_backend_hetero::__parallel_find(                   // unable switch to __pattern_transform_reduce because we have __s_first and __s_last
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
@@ -976,7 +984,8 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
     }
 
     using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
-    return __par_backend_hetero::__parallel_find(
+    // https://en.cppreference.com/w/cpp/algorithm/search std::search -> __pattern_search
+    return __par_backend_hetero::__parallel_find(                   // unable switch to __pattern_transform_reduce because we have __s_first and __s_last
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
@@ -1024,7 +1033,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     }
 
     using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
-    return __par_backend_hetero::__parallel_find(
+    return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
@@ -1049,7 +1058,9 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
     auto __first_zip = __par_backend_hetero::zip(
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
-    auto __result = __par_backend_hetero::__parallel_find(
+
+    // https://en.cppreference.com/w/cpp/algorithm/mismatch std::mismatch -> __pattern_mismatch
+    auto __result = __par_backend_hetero::__parallel_find(     // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
         _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
     __n = __result - __first_zip;
@@ -1296,7 +1307,8 @@ __pattern_is_heap_until(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
-    return __par_backend_hetero::__parallel_find(
+    // https://en.cppreference.com/w/cpp/algorithm/is_heap_until std::is_heap_until -> __pattern_is_heap_until
+    return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
@@ -1314,7 +1326,8 @@ __pattern_is_heap(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomA
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
-    return !__par_backend_hetero::__parallel_or(
+    // https://en.cppreference.com/w/cpp/algorithm/is_heap std::is_heap -> __pattern_is_heap
+    return !__par_backend_hetero::__parallel_or(                   // to __pattern_transform_reduce ?
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
@@ -1577,11 +1590,13 @@ __pattern_includes(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Forwar
     if (__first1 == __last1 || __last2 - __first2 > __last1 - __first1)
         return false;
 
+    // https://en.cppreference.com/w/cpp/algorithm/includes    std::includes -> __pattern_includes
+
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _Size1;
     typedef typename ::std::iterator_traits<_ForwardIterator2>::difference_type _Size2;
 
     using __brick_include_type = unseq_backend::__brick_includes<_ExecutionPolicy, _Compare, _Size1, _Size2>;
-    return !__par_backend_hetero::__parallel_or(
+    return !__par_backend_hetero::__parallel_or(                    // unable switch to __pattern_transform_reduce because we have __first2 and __last2
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last2),
