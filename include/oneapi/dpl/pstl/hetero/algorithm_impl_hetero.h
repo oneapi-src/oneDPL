@@ -35,6 +35,7 @@
 #    define PATTERN_SEARCH_N_1_ON_PATTERN_FIND_IF                1
 #    define PATTERN_SEARCH_N_2_ON_PATTERN_ADJACENT_FIND          1
 #endif
+#define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
 
 namespace oneapi
 {
@@ -739,6 +740,13 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 // any_of
 //------------------------------------------------------------------------
 
+#if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
+_Iterator
+__pattern_find_if_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _Iterator, _Iterator, _Pred,
+                                   _IsFirst);
+#endif // PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 bool
 __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
@@ -747,22 +755,32 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     if (__first == __last)
         return false;
 
-    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
-
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
-    auto __buf = __keep(__first, __last);
-
     // https://en.cppreference.com/w/cpp/algorithm/any_of           std::any_of                                                                                                  -> __pattern_any_of
     // https://en.cppreference.com/w/cpp/algorithm/search_n         std::search_n           -> __pattern_search_n                                                                -> __pattern_any_of
     // https://en.cppreference.com/w/cpp/algorithm/stable_partition std::stable_partition                                                          -> __pattern_stable_partition -> __pattern_any_of
     // https://en.cppreference.com/w/cpp/algorithm/partition        std::partition          ->                          __pattern_partition        -> __pattern_stable_partition -> __pattern_any_of
     // https://en.cppreference.com/w/cpp/algorithm/nth_element      std::nth_element        -> __pattern_nth_element -> __pattern_partition        -> __pattern_stable_partition -> __pattern_any_of
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce ?
+#if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
+
+    auto __result_it = __pattern_find_if_transform_reduce(
+        __hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
+        /*_IsFirst*/ ::std::true_type{});
+    return __result_it != __last;
+
+#else
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
+#endif
 }
 
 //------------------------------------------------------------------------
