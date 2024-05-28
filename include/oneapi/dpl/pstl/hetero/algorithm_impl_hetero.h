@@ -990,10 +990,10 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 }
 
 template <typename _Name>
-class copy_back_wrapper;
+struct copy_back_wrapper;
 
 template <typename _Name>
-class copy_back_wrapper2;
+struct copy_back_wrapper2;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 _Iterator
@@ -1955,7 +1955,7 @@ __pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPo
 }
 
 template <typename _Name>
-class __shift_left_right;
+struct __shift_left_right;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__difference_t<_Range>
