@@ -1021,10 +1021,14 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     if (__count <= 0)
         return __first;
 
-    if (__last - __first < __count)
+    using _It1DifferenceType = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _It1DifferenceType __n = __last - __first;
+
+    if (__n < __count)
         return __last;
 
-    if (__last - __first == __count)
+    if (__n == __count)
     {
         return (!__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                               __search_n_unary_predicate<_Tp, _BinaryPredicate>{__value, __pred}))
