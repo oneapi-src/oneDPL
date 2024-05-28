@@ -28,6 +28,8 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
+#define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 1
+
 namespace oneapi
 {
 namespace dpl
@@ -582,18 +584,102 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     return result ? __first : __last;
 }
 
+#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
+template <typename _Typle, typename _IsFirst>
+struct __find_if_binary_reduce_op;
+
+template <typename _Typle, typename _UnaryTransformOp>
+struct __find_if_unary_transform_op;
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
+          typename _BinaryReduceOp, typename _UnaryTransformOp>
+_Tp
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp,
+                           _BinaryReduceOp, _UnaryTransformOp);
+
+// TODO : The following implementation of __pattern_adjacent_find_on_transform_reduce is not required,
+//        it is a temporary solution. Better to use the implementation from the __pattern_adjacent_find.
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
+_Iterator
+__pattern_adjacent_find_on_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
+                                            _Iterator __first, _Iterator __last, _Pred __pred,
+                                            oneapi::dpl::__internal::__first_semantic)
+{
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
+        return __last;
+
+    // source data:         2 3 0 1 3 3 1 1
+    //                              ^ ^
+    //                      0 1 2 3 4 5 6 7
+    //                              ^ - excepted result(4)
+    // 
+    // adjacent_find()
+    //                      [2, 3], [3, 0], [0, 1], [1, 3], [3, 3], [3, 1], [1, 1]
+    //                      ^                                                     , [1, end]
+    //                      |                                                       ^
+    //                      __itBegin                                               __itEnd
+    // transform:
+    //                      [f, 0], [f, 1], [f, 2], [f, 3], [t, 4], [f, 5], [t, 6]
+    // 
+    // reduce:
+    //                      [t, 4], [t, 6]
+    //                      [t, 4]
+
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
+
+    const auto __itBegin = oneapi::dpl::make_zip_iterator(__first, oneapi::dpl::counting_iterator{0});
+    const auto __itEnd = __itBegin + __n;
+
+    using _zipped_data_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
+    const auto __reduce_op = __find_if_binary_reduce_op<_result_type, /*_IsFirst*/std::true_type>{};
+    const auto __transform_op = __find_if_unary_transform_op<_result_type, adjacent_find_fn<_Pred>>{__pred};
+
+    const auto result = __pattern_transform_reduce(
+        /* __dispatch_tag    */ __tag,
+        /* _ExecutionPolicy  */ std::forward<_ExecutionPolicy>(__exec),
+        /* _ForwardIterator  */ __itBegin,
+        /* _ForwardIterator  */ __itEnd,
+        /* _Tp __init        */ _result_type{false, __itEnd - __itBegin},
+        /* _BinaryReduceOp   */ __reduce_op,
+        /* _UnaryTransformOp */ __transform_op);
+
+    return std::get<0>(result) ? __first + std::get<1>(result) : __last;
+}
+#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 _Iterator
 __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                         _BinaryPredicate __predicate, oneapi::dpl::__internal::__first_semantic)
 {
-    if (__last - __first < 2)
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+    const _difference_type __n = __last - __first;
+
+    if (__n < 2)
         return __last;
 
+#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
+    if (__n == 2)
+        return __predicate(*__first, *(__first + 1)) ? __first : __last;
+
+    auto zip_first = oneapi::dpl::make_zip_iterator(__first, __first + 1);
+    auto zip_last = oneapi::dpl::make_zip_iterator(__first + __n - 1, __last);
+
+    auto __result =
+        __pattern_adjacent_find_on_transform_reduce(
+            __hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec), zip_first, zip_last, __predicate,
+            oneapi::dpl::__internal::__first_semantic{});
+
+    auto __result_iterator = __first + (__result - zip_first);
+    return (__result_iterator == __last - 1) ? __last : __result_iterator;
+#else
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
-    auto __result = __par_backend_hetero::__parallel_find(
+    auto __result = __par_backend_hetero::__parallel_find(      // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
@@ -608,6 +694,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
     _Iterator __result_iterator = __first + (__result - __zip_at_first);
     return (__result_iterator == __last - 1) ? __last : __result_iterator;
+#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
