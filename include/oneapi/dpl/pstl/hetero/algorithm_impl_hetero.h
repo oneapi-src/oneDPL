@@ -168,9 +168,7 @@ __pattern_walk3(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIt
 //------------------------------------------------------------------------
 
 template <typename _Name>
-struct __walk_brick_wrapper
-{
-};
+struct __walk_brick_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 void
@@ -187,9 +185,7 @@ __pattern_walk_brick(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
 }
 
 template <typename _Name>
-struct __walk_brick_n_wrapper
-{
-};
+struct __walk_brick_n_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size,
           typename _Function>
@@ -209,9 +205,7 @@ __pattern_walk_brick_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exe
 //------------------------------------------------------------------------
 
 template <typename _Name>
-struct __walk2_brick_wrapper
-{
-};
+struct __walk2_brick_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _Brick>
@@ -226,9 +220,7 @@ __pattern_walk2_brick(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 }
 
 template <typename _Name>
-struct __walk2_brick_n_wrapper
-{
-};
+struct __walk2_brick_n_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size,
           typename _ForwardIterator2, typename _Brick>
@@ -247,9 +239,7 @@ __pattern_walk2_brick_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 //------------------------------------------------------------------------
 
 template <typename _Name>
-struct __walk2_transform_if_wrapper
-{
-};
+struct __walk2_transform_if_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _Function>
@@ -268,9 +258,7 @@ __pattern_walk2_transform_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&&
 }
 
 template <typename _Name>
-struct __walk3_transform_if_wrapper
-{
-};
+struct __walk3_transform_if_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _ForwardIterator3, typename _Function>
@@ -1002,13 +990,10 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 }
 
 template <typename _Name>
-class copy_back_wrapper
-{
-};
+class copy_back_wrapper;
+
 template <typename _Name>
-class copy_back_wrapper2
-{
-};
+class copy_back_wrapper2;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 _Iterator
@@ -1970,9 +1955,7 @@ __pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPo
 }
 
 template <typename _Name>
-class __shift_left_right
-{
-};
+class __shift_left_right;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__difference_t<_Range>
