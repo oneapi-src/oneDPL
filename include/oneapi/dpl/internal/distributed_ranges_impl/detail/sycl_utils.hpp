@@ -70,7 +70,7 @@ parallel_for_64bit(sycl::queue& q, sycl::range<1> numWorkItems, Fn&& fn)
 
     auto e = q.submit([&](auto&& h) {
         h.depends_on(events);
-        // Empty host task necessary due to [CMPLRLLVM-46542]
+        // Empty host task necessary due to issue in oneAPI.
         h.host_task([] {});
     });
 
@@ -184,7 +184,7 @@ combine_events(sycl::queue& q, const auto& events)
 {
     return q.submit([&](auto&& h) {
         h.depends_on(events);
-        // Empty host task necessary due to [CMPLRLLVM-46542]
+        // Empty host task necessary due to issue in oneAPI.
         h.host_task([] {});
     });
 }
