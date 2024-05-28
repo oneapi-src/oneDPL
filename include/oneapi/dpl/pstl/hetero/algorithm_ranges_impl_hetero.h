@@ -58,10 +58,10 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
 //------------------------------------------------------------------------
 
 template <typename _Name>
-class __swap1_wrapper;
+struct __swap1_wrapper;
 
 template <typename _Name>
-class __swap2_wrapper;
+struct __swap2_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Function>
 bool
@@ -475,10 +475,10 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 //------------------------------------------------------------------------
 
 template <typename _Name>
-class __copy1_wrapper;
+struct __copy1_wrapper;
 
 template <typename _Name>
-class __copy2_wrapper;
+struct __copy2_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Compare>
@@ -632,22 +632,22 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 //------------------------------------------------------------------------
 
 template <typename _Name>
-class __copy_keys_wrapper;
+struct __copy_keys_wrapper;
 
 template <typename _Name>
-class __copy_values_wrapper;
+struct __copy_values_wrapper;
 
 template <typename _Name>
-class __reduce1_wrapper;
+struct __reduce1_wrapper;
 
 template <typename _Name>
-class __reduce2_wrapper;
+struct __reduce2_wrapper;
 
 template <typename _Name>
-class __assign_key1_wrapper;
+struct __assign_key1_wrapper;
 
 template <typename _Name>
-class __assign_key2_wrapper;
+struct __assign_key2_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
