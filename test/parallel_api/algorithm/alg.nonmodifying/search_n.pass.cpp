@@ -59,7 +59,7 @@ test()
     const T value = T(1);
     for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-        ::std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
+        ::std::size_t sub_n[] = {0, 1, 2, 3, n1, (n1 * 10) / 8};
         ::std::size_t res[] = {0, 1, n1 / 2, n1};
         for (auto n2 : sub_n)
         {
