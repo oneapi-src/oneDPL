@@ -451,7 +451,7 @@ main()
             [](size_t k, size_t val) {
             return std::int16_t(val) * (k % 2 ? 1 : -1); });
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
         auto convert = [](size_t k, size_t val) {
             constexpr std::uint16_t mask = 0xFFFFu;
             std::uint16_t raw = std::uint16_t(val & mask);
