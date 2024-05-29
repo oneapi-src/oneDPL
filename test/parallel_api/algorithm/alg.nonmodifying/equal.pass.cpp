@@ -175,6 +175,12 @@ struct test_non_const
     }
 };
 
+// According to https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_is_device_copyable_type_trait
+template <>
+struct sycl::is_device_copyable<UserType> : std::true_type
+{
+};
+
 int
 main()
 {
