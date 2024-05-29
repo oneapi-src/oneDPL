@@ -42,7 +42,7 @@ test(Predicate pred, Generator gen, KernelParam param)
         size_t* out_num = sycl::malloc_device<size_t>(1, q);
 
         q.copy(in.data(), in_ptr, n).wait();
-        oneapi::dpl::experimental::kt::gpu::single_pass_copy_if(q, in_ptr, in_ptr + n, out_ptr, out_num, pred, param);
+        oneapi::dpl::experimental::kt::gpu::copy_if(q, in_ptr, in_ptr + n, out_ptr, out_num, pred, param);
 
         Sequence<T> kt_out(n);
         size_t num_selected = 0;

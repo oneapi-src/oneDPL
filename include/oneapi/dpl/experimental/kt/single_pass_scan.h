@@ -833,7 +833,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
 void
-single_pass_single_wg_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
+copy_if_single_wg(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
                               _OutIterator __out_begin, _NumSelectedRange __num_begin, _UnaryPredicate __pred,
                               _KernelParam __param = {})
 {
@@ -855,7 +855,7 @@ single_pass_single_wg_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIt
 template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
 void
-single_pass_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
                     _NumSelectedRange __num_begin, _UnaryPredicate __pred, _KernelParam __param = {})
 {
     auto __n = __in_end - __in_begin;
