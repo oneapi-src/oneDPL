@@ -36,6 +36,11 @@
 #    define PATTERN_SEARCH_N_2_ON_PATTERN_ADJACENT_FIND          1
 #endif
 #define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
+#define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      1
+#define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                1
+#if PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+#   include "./../../../dpl/iterator"      // include <oneapi/dpl/iterator> for zip_iterator and counting_iterator
+#endif // PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 
 namespace oneapi
 {
@@ -1369,6 +1374,7 @@ __pattern_is_partitioned(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 // is_heap / is_heap_until
 //------------------------------------------------------------------------
 
+#if !PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || !PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 template <class _Comp>
 struct __is_heap_check
 {
@@ -1383,6 +1389,93 @@ struct __is_heap_check
         return __comp_(__acc[(static_cast<_SignedIdx>(__idx) - 1) / 2], __acc[__idx]);
     }
 };
+#endif // !PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || !PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+
+#if PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+struct __heap_check_eval_left_index
+{
+    template <class _Idx>
+    auto
+    operator()(const _Idx __idx) const
+    {
+        // Make sure that we have a signed integer here to avoid getting negative value when __idx == 0
+        using _SignedIdx = std::make_signed_t<_Idx>;
+        const auto __idx_signed = static_cast<_SignedIdx>(__idx);
+        const auto __idx_result = (__idx_signed - 1) / 2;
+        return __idx_result;
+    }
+};
+
+template <typename _Typle, typename _Compare>
+struct __is_heap_check_unary_transform_op
+{
+    _Compare __comp;
+
+    template <typename Arg>
+    _Typle
+    operator()(const Arg& arg) const
+    {
+        const auto result = __comp(std::get<0>(arg), std::get<1>(arg));
+        const auto idx = std::get<2>(arg);
+
+        return {result, idx};
+    }
+};
+
+template <typename _Typle>
+struct __is_heap_check_binary_reduce_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (std::get<0>(op1) && std::get<0>(op2))
+            return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
+
+        return std::get<0>(op1) ? op1 : op2;
+    }
+};
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
+auto
+__pattern_is_heap_until_impl(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                             _RandomAccessIterator __last, _Compare __comp)
+{
+    const auto __n = __last - __first;
+    assert(__n >= 2);
+
+    using __src_data_difference_t = typename std::iterator_traits<_RandomAccessIterator>::difference_type;
+
+    // __permutation_iterator_t - evaluate left operand value from right operand position (index) in source data
+    using __permutation_iterator_t = oneapi::dpl::permutation_iterator<_RandomAccessIterator, __heap_check_eval_left_index>;
+
+    // __counting_iterator_t - iterate right operand position (index) in source data
+    using __counting_iterator_t = oneapi::dpl::counting_iterator<__src_data_difference_t>;
+
+    using __zip_of_src_idx_pairs_iterator_t = decltype(oneapi::dpl::make_zip_iterator(
+        declval<__permutation_iterator_t>(),                                    // left operand from source data
+        declval<_RandomAccessIterator>(),                                       // right operand from source data
+        __counting_iterator_t{0}));                                             // right operand position (index) in source data
+
+    __zip_of_src_idx_pairs_iterator_t __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(
+        __permutation_iterator_t(__first, __heap_check_eval_left_index{}),      // left operand from source data
+        __first,                                                                // right operand from source data
+        __counting_iterator_t{0});                                              // right operand position (index) in source data
+
+    __zip_of_src_idx_pairs_iterator_t __src_data_pairs_end = __src_data_pairs_begin + __n;
+
+    // __transform_result_tuple_t - tuple of __comp(left operand, right operand) and right operand position (index) in source data
+    using __transform_result_tuple_t = oneapi::dpl::__internal::tuple<bool, __src_data_difference_t>;
+
+    __is_heap_check_unary_transform_op<__transform_result_tuple_t, _Compare> __unary_transform_op{__comp};
+    __is_heap_check_binary_reduce_op<__transform_result_tuple_t> __binary_reduce_op;
+
+    return __pattern_transform_reduce(
+        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+        __src_data_pairs_begin, __src_data_pairs_end,
+        __transform_result_tuple_t{false, __src_data_pairs_end - __src_data_pairs_begin},
+        __binary_reduce_op, __unary_transform_op);
+}
+#endif // PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
 _RandomAccessIterator
@@ -1392,33 +1485,49 @@ __pattern_is_heap_until(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     if (__last - __first < 2)
         return __last;
 
+    // https://en.cppreference.com/w/cpp/algorithm/is_heap_until std::is_heap_until -> __pattern_is_heap_until
+
+#if PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+    auto _res = __pattern_is_heap_until_impl(__hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+                                             __first, __last, __comp);
+    return std::get<0>(_res) ? __first + std::get<1>(_res) : __last;
+#else
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
-    // https://en.cppreference.com/w/cpp/algorithm/is_heap_until std::is_heap_until -> __pattern_is_heap_until
-    return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce ?
+    return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
         ::std::true_type{});
+#endif // PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
 bool
-__pattern_is_heap(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
-                  _RandomAccessIterator __last, _Compare __comp)
+__pattern_is_heap(__hetero_tag<_BackendTag>,
+                  _ExecutionPolicy&& __exec,
+                  _RandomAccessIterator __first, _RandomAccessIterator __last,
+                  _Compare __comp)
 {
     if (__last - __first < 2)
         return true;
 
+    // https://en.cppreference.com/w/cpp/algorithm/is_heap std::is_heap -> __pattern_is_heap
+
+#if PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE
+    auto _res = __pattern_is_heap_until_impl(__hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+                                             __first, __last, __comp);
+    return !std::get<0>(_res);
+#else
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
-    // https://en.cppreference.com/w/cpp/algorithm/is_heap std::is_heap -> __pattern_is_heap
-    return !__par_backend_hetero::__parallel_or(                   // to __pattern_transform_reduce ?
+    return !__par_backend_hetero::__parallel_or(                   // to __pattern_transform_reduce - -IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
+#endif // PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
