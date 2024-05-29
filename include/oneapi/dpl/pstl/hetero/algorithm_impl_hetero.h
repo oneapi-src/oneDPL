@@ -29,6 +29,7 @@
 #endif
 
 #define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 1
+#define PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE    1
 #define PATTERN_FIND_IF_ON_TRANSFORM_REDUCE                      1
 #define PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE                     1
 #if PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
@@ -576,6 +577,15 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     if (__last - __first < 2)
         return __last;
 
+    // https://en.cppreference.com/w/cpp/algorithm/is_sorted    std::is_sorted -> __pattern_adjacent_find
+
+#if PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE && PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
+
+    // Looks like in this case __or_semantic isn't required at all
+    return __pattern_adjacent_find(__hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                   __predicate, oneapi::dpl::__internal::__first_semantic{});
+
+#else
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
@@ -586,7 +596,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    bool result = __par_backend_hetero::__parallel_find_or(     // to __pattern_transform_reduce ?
+    bool result = __par_backend_hetero::__parallel_find_or(     // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -594,6 +604,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     // inverted conditional because of
     // reorder_predicate in glue_algorithm_impl.h
     return result ? __first : __last;
+#endif // PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE && PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
 }
 
 #if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
