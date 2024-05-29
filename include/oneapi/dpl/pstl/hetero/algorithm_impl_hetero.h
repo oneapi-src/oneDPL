@@ -973,17 +973,15 @@ __pattern_find_if_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPo
     const auto __itEnd = __itBegin + __n;
 
     using _zipped_data_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
-    const auto __reduce_op = __find_if_binary_reduce_op<_zipped_data_type, _IsFirst>{};
-    const auto __transform_op = __find_if_unary_transform_op<_zipped_data_type, _Pred>{__pred};
+    __find_if_binary_reduce_op<_zipped_data_type, _IsFirst> __reduce_op;
+    __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
 
     const auto result = __pattern_transform_reduce(
-        /* __dispatch_tag    */ __tag,
-        /* _ExecutionPolicy  */ std::forward<_ExecutionPolicy>(__exec),
-        /* _ForwardIterator  */ __itBegin,
-        /* _ForwardIterator  */ __itEnd,
-        /* _Tp __init        */ _result_type{false, __itEnd - __itBegin},
-        /* _BinaryReduceOp   */ __reduce_op,
-        /* _UnaryTransformOp */ __transform_op);
+        __tag, std::forward<_ExecutionPolicy>(__exec),
+        __itBegin, __itEnd,
+        _result_type{false, __itEnd - __itBegin},
+        __reduce_op,
+        __transform_op);
 
     return std::get<0>(result) ? __first + std::get<1>(result) : __last;
 }
