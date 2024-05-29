@@ -605,7 +605,7 @@ struct __copy_if_single_wg_submitter<__data_per_workitem, __workgroup_size,
 
 template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
-void
+sycl::event
 single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng,
                                    _NumSelectedRange __num_rng, _UnaryPredicate __pred, _KernelParam)
 {
@@ -779,7 +779,7 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
 
 template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
-void
+sycl::event
 single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng,
                          _UnaryPredicate __pred, _KernelParam)
 {
@@ -844,7 +844,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
 template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
-void
+sycl::event
 copy_if_single_wg(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
                               _OutIterator __out_begin, _NumSelectedRange __num_begin, _UnaryPredicate __pred,
                               _KernelParam __param = {})
@@ -866,7 +866,7 @@ copy_if_single_wg(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_
 
 template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
-void
+sycl::event
 copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
                     _NumSelectedRange __num_begin, _UnaryPredicate __pred, _KernelParam __param = {})
 {
