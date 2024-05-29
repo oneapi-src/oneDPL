@@ -821,10 +821,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     auto __fill_event = __lookback_init_submitter<_FlagType, _SizeT, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, _FlagType::__padding);
 
-    auto submitter = __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{};
-
-    submitter(__queue, __fill_event, __in_rng, __out_rng, __num_rng, __n, __pred, __status_flags, __status_flags_size,
-              __status_vals_full, __status_vals_partial, __current_num_items, __current_num_wgs)
+    __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{}(
+        __queue, __fill_event, __in_rng, __out_rng, __num_rng, __n, __pred, __status_flags, __status_flags_size,
+        __status_vals_full, __status_vals_partial, __current_num_items, __current_num_wgs)
         .wait();
     __device_mem_mgr.free();
 }
