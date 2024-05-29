@@ -754,8 +754,8 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 #if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
 _Iterator
-__pattern_find_if_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _Iterator, _Iterator, _Pred,
-                                   _IsFirst);
+__pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _Iterator, _Iterator, _Pred,
+                                        _IsFirst);
 #endif // PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
@@ -774,7 +774,7 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
 
 #if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
 
-    auto __result_it = __pattern_find_if_transform_reduce(
+    auto __result_it = __pattern_find_if_transform_reduce_impl(
         __hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
         /*_IsFirst*/ ::std::true_type{});
     return __result_it != __last;
@@ -958,8 +958,8 @@ struct __find_if_binary_reduce_op
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
 _Iterator
-__pattern_find_if_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
-                                   _Iterator __last, _Pred __pred, _IsFirst)
+__pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                                        _Iterator __last, _Pred __pred, _IsFirst)
 {
     using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
 
@@ -1000,9 +1000,9 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
         return __last;
 
 #if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
-    return __pattern_find_if_transform_reduce(__hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                              __first, __last, __pred,
-                                              /*_IsFirst*/ ::std::true_type{});
+    return __pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag>{},
+                                                   ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
+                                                   /*_IsFirst*/ ::std::true_type{});
 #else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
