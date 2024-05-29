@@ -603,25 +603,6 @@ struct __copy_if_single_wg_submitter<__data_per_workitem, __workgroup_size,
     }
 };
 
-template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
-          typename _KernelParam>
-sycl::event
-single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng,
-                                   _NumSelectedRange __num_rng, _UnaryPredicate __pred, _KernelParam)
-{
-
-    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
-    using _KernelName = __copy_if_single_wg_kernel<typename _KernelParam::kernel_name>;
-    using _CopyIfSingleWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __copy_if_kernel<_KernelName, _Type>>;
-    const ::std::size_t __n = __in_rng.size();
-
-    constexpr ::std::size_t __wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
-
-    return __copy_if_single_wg_submitter<__elems_per_workitem, __wgsize, _CopyIfSingleWgKernel>{}(__queue, __in_rng, __out_rng,
-                                                                                 __num_rng, __n, __pred);
-}
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRange,
           typename _OutRange, typename _NumRng, typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues,
@@ -799,6 +780,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     using _CopyIfKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __copy_if_kernel<_KernelName, _Type>>;
 
+    using _CopyIfSingleWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __copy_if_single_wg_kernel<_KernelName, _Type>>;
+
     const std::size_t __n = __in_rng.size();
 
     constexpr std::size_t __workgroup_size = _KernelParam::workgroup_size;
@@ -808,6 +792,15 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     constexpr std::uint32_t __elems_in_tile = __workgroup_size * __elems_per_workitem;
     std::size_t __current_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
     std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
+
+    //If we fit in a single WG, use the single wg version
+    if (__current_num_wgs == 1)
+    {
+        return __copy_if_single_wg_submitter<__elems_per_workitem, __workgroup_size, _CopyIfSingleWgKernel>{}(__queue, __in_rng, __out_rng,
+                                                                                 __num_rng, __n, __pred);
+    }
+
+
 
     __scan_lookback_mem_mgr<_FlagType> __device_mem_mgr(__queue, __current_num_wgs);
     __device_mem_mgr.allocate();
@@ -844,28 +837,6 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 }
 
 } // namespace __impl
-
-template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
-          typename _KernelParam>
-sycl::event
-copy_if_single_wg(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
-                              _OutIterator __out_begin, _NumSelectedRange __num_begin, _UnaryPredicate __pred,
-                              _KernelParam __param = {})
-{
-    auto __n = __in_end - __in_begin;
-
-    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
-    auto __buf1 = __keep1(__in_begin, __in_end);
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
-    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
-
-    auto __keep_num =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
-    auto __buf_num = __keep2(__num_begin, __num_begin + 1);
-
-    return __impl::single_pass_copy_if_impl_single_wg(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(),
-                                               __pred, __param);
-}
 
 template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
           typename _KernelParam>
