@@ -616,9 +616,8 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
     constexpr ::std::size_t __wgsize = _KernelParam::workgroup_size;
     constexpr ::std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
 
-    __copy_if_single_wg_submitter<__elems_per_workitem, __wgsize, _KernelName>{}(__queue, __in_rng, __out_rng,
-                                                                                 __num_rng, __n, __pred)
-        .wait();
+    return __copy_if_single_wg_submitter<__elems_per_workitem, __wgsize, _KernelName>{}(__queue, __in_rng, __out_rng,
+                                                                                 __num_rng, __n, __pred);
 }
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRng,
@@ -821,11 +820,24 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     auto __fill_event = __lookback_init_submitter<_FlagType, _SizeT, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, _FlagType::__padding);
 
-    __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{}(
+    sycl::event __prev_event = __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{}(
         __queue, __fill_event, __in_rng, __out_rng, __num_rng, __n, __pred, __status_flags, __status_flags_size,
-        __status_vals_full, __status_vals_partial, __current_num_items, __current_num_wgs)
-        .wait();
-    __device_mem_mgr.free();
+        __status_vals_full, __status_vals_partial, __current_num_items, __current_num_wgs);
+
+    // TODO: Currently, the following portion of code makes this entire function synchronous.
+    // Ideally, we should be able to use the asynchronous free below, but we have found that doing
+    // so introduces a large unexplainable slowdown. Once this slowdown has been identified and corrected,
+    // we should replace this code with the asynchronous version below.
+    if (0)
+    {
+        return __device_mem_mgr.async_free(__prev_event);
+    }
+    else
+    {
+        __prev_event.wait();
+        __device_mem_mgr.free();
+        return __prev_event;
+    }
 }
 
 } // namespace __impl
@@ -848,7 +860,7 @@ copy_if_single_wg(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
     auto __buf_num = __keep2(__num_begin, __num_begin + 1);
 
-    __impl::single_pass_copy_if_impl_single_wg(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(),
+    return __impl::single_pass_copy_if_impl_single_wg(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(),
                                                __pred, __param);
 }
 
@@ -869,7 +881,7 @@ copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutI
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
     auto __buf_num = __keep2(__num_begin, __num_begin + 1);
 
-    __impl::single_pass_copy_if_impl(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(), __pred,
+    return __impl::single_pass_copy_if_impl(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(), __pred,
                                      __param);
 }
 
