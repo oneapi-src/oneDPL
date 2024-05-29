@@ -39,9 +39,10 @@
 #define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
 #define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      1
 #define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                1
-#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+#define PATTERN_EQUAL_ON_TRANSFORM_REDUCE                        1
+#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE
 #   include "./../../../dpl/iterator"      // include <oneapi/dpl/iterator> for zip_iterator and counting_iterator
-#endif // PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE
 
 namespace oneapi
 {
@@ -797,14 +798,99 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
 // equal
 //------------------------------------------------------------------------
 
+#if PATTERN_EQUAL_ON_TRANSFORM_REDUCE
+
+template <typename _Typle, typename _BinaryPredicate>
+struct __equal_unary_transform_op
+{
+    _BinaryPredicate __predicate;
+
+    template <typename Arg>
+    _Typle
+    operator()(const Arg& arg) const
+    {
+        const auto result = !__predicate(std::get<0>(arg), std::get<1>(arg));
+        const auto idx = std::get<2>(arg);
+
+        return {result, idx};
+    }
+};
+
+template <typename _Typle>
+struct __equal_binary_reduce_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (std::get<0>(op1) && std::get<0>(op2))
+            return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
+
+        return std::get<0>(op1) ? op1 : op2;
+    }
+};
+
+
+#endif // PATTERN_EQUAL_ON_TRANSFORM_REDUCE
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 bool
 __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
                 _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
 {
-    if (__last1 == __first1 || __last2 == __first2 || __last1 - __first1 != __last2 - __first2)
+    using __src_data_difference1_t = typename std::iterator_traits<_Iterator1>::difference_type;
+    using __src_data_difference2_t = typename std::iterator_traits<_Iterator2>::difference_type;
+
+    const __src_data_difference1_t __n1 = __last1 - __first1;
+    const __src_data_difference2_t __n2 = __last2 - __first2;
+
+    if (__n1 == 0 || __n2 == 0 || __n1 != __n2)
         return false;
 
+    // https://en.cppreference.com/w/cpp/algorithm/equal std::equal -> __pattern_equal
+
+#if PATTERN_EQUAL_ON_TRANSFORM_REDUCE
+
+    if (__n1 == 1 && __n2 == 1)
+        return __pred(*__first1, *__first2);
+
+    static_assert(std::is_same_v<__src_data_difference1_t, __src_data_difference2_t>);
+    using __src_data_difference_t = __src_data_difference1_t;
+
+    assert(__n1 == __n2);
+    const auto __n = __n1;
+
+    // __counting_iterator_t - iterate position (index) in source data
+    using __counting_iterator_t = oneapi::dpl::counting_iterator<__src_data_difference1_t>;
+
+    using __zip_of_src_data_pairs_iterator_t = decltype(oneapi::dpl::make_zip_iterator(
+        declval<_Iterator1>(),                                                  // value from dataset 1 [__first1, __last1)
+        declval<_Iterator2>(),                                                  // value from dataset 2 [__first2, __last2)
+        __counting_iterator_t{0}));                                             // left operand position (index) in dataset 1
+
+    __zip_of_src_data_pairs_iterator_t __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(
+        __first1,                                                               // first value from dataset 1 [__first1, __last1)
+        __first2,                                                               // first value from dataset 2 [__first2, __last2)
+        __counting_iterator_t{0});                                              // left operand position (index) in dataset 1
+
+    __zip_of_src_data_pairs_iterator_t __src_data_pairs_end = oneapi::dpl::make_zip_iterator(
+        __last1,                                                                // last value from dataset 1 [__first1, __last1) (invalid, equal to __last1)
+        __last2,                                                                // last value from dataset 2 [__first2, __last2) (invalid, equal to __last2)
+        __counting_iterator_t{__n});                                            // left operand position (index) in dataset 1
+
+    // __transform_result_tuple_t - tuple of __comp(left operand, right operand) and position (index) of the left operand in source data
+    using __transform_result_tuple_t = oneapi::dpl::__internal::tuple<bool, __src_data_difference_t>;
+
+    __equal_unary_transform_op<__transform_result_tuple_t, _Pred> __unary_transform_op{__pred};
+    __equal_binary_reduce_op<__transform_result_tuple_t> __binary_reduce_op;
+
+    auto __res = __pattern_transform_reduce(
+        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+        __src_data_pairs_begin, __src_data_pairs_end,
+        __transform_result_tuple_t{false, __n},
+        __binary_reduce_op, __unary_transform_op);
+
+    return !std::get<0>(__res);
+#else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -814,10 +900,11 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    return !__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce ?
+    return !__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
+#endif // PATTERN_EQUAL_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
