@@ -18,6 +18,7 @@ These templates are available in the ``oneapi::dpl::experimental::kt::gpu::esimd
    :hidden:
 
    esimd/radix_sort
+   esimd/radix_sort_by_key
 
 -------------------
 System Requirements
