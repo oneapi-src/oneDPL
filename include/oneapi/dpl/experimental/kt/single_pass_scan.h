@@ -794,13 +794,11 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
 
     //If we fit in a single WG, use the single wg version
-    // if (__current_num_wgs == 1)
-    // {
-    //     return __copy_if_single_wg_submitter<__elems_per_workitem, __workgroup_size, _CopyIfSingleWgKernel>{}(__queue, __in_rng, __out_rng,
-    //                                                                              __num_rng, __n, __pred);
-    // }
-
-
+    if (__current_num_wgs == 1)
+    {
+        return __copy_if_single_wg_submitter<__elems_per_workitem, __workgroup_size, _CopyIfSingleWgKernel>{}(__queue, __in_rng, __out_rng,
+                                                                                 __num_rng, __n, __pred);
+    }
 
     __scan_lookback_mem_mgr<_FlagType> __device_mem_mgr(__queue, __current_num_wgs);
     __device_mem_mgr.allocate();
