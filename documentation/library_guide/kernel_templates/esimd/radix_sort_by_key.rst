@@ -273,7 +273,7 @@ Global Memory Requirements
 Global memory is used for copying the input sequence(s) and storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-:``radix_sort_by_key``: N\ :sub:`keys` + N\ :sub:`values` + C * N\ :sub:`keys`
+   N\ :sub:`keys` + N\ :sub:`values` + C * N\ :sub:`keys`
 
 where the sequence with keys takes N\ :sub:`keys` space, the sequence with values takes N\ :sub:`values` space,
 and the additional space is C * N\ :sub:`keys`.
@@ -300,7 +300,7 @@ Local memory is used for reordering key-value pairs within a work-group,
 and for storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-:``radix_sort_by_key``: N\ :sub:`keys_per_workgroup` + N\ :sub:`values_per_workgroup` + C
+   N\ :sub:`keys_per_workgroup` + N\ :sub:`values_per_workgroup` + C
 
 where N\ :sub:`keys_per_workgroup` and N\ :sub:`values_per_workgroup` are the amounts of memory
 to store keys and values, respectively.  `C` is some additional space for storing internal data.
