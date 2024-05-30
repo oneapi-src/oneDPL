@@ -75,18 +75,18 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               |                                                                     |
 |                                               | The sequences to apply the algorithm to.                            |
-|                                               | Supported sequence types:                                           |
+| - ``keys_first``, ``keys_last``,              | Supported sequence types:                                           |
+|   ``values_first`` (1),                       |                                                                     |
+| - ``keys``, ``values`` (2),                   | - :ref:`USM pointers <use-usm>` (1,3),                              |
+| - ``keys_first``, ``keys_last``,              | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+|   ``vals_first``, ``keys_out_first``,         |   <use-buffer-wrappers>` (1,3).                                     |
+|   ``values_out_first`` (3)                    | - ``sycl::buffer`` (2,4),                                           |
+| - ``keys``, ``values``,                       | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+|   ``keys_out``, ``values_out`` (4).           |   <viewable-ranges>` (2,4),                                         |
+|                                               | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|                                               |   <viewable-ranges>` (2,4).                                         |
 |                                               |                                                                     |
-|                                               | - :ref:`USM pointers <use-usm>` (1,3),                              |
-|                                               | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-|                                               |   <use-buffer-wrappers>` (1,3).                                     |
-|   ``values_first`` (1),                       | - ``sycl::buffer`` (2,4),                                           |
-| - ``keys``, ``values`` (2),                   | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
-| - ``keys_first``, ``keys_last``,              |   <viewable-ranges>` (2,4),                                         |
-|   ``vals_first``, ``keys_out_first``,         | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|   ``values_out_first`` (3)                    |   <viewable-ranges>` (2,4),                                         |
-| - ``keys``, ``values``,                       |                                                                     |
-|   ``keys_out``, ``values_out`` (4),           |                                                                     |
+|                                               |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 | ``param``                                     | A :doc:`kernel_param <../kernel_configuration>` object.             |

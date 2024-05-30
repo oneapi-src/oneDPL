@@ -72,13 +72,13 @@ Parameters
 | - ``first``, ``last`` (1),                    | Supported sequence types:                                           |
 | - ``r`` (2),                                  |                                                                     |
 | - ``first``, ``last``, ``first_out`` (3),     | - :ref:`USM pointers <use-usm>` (1,3),                              |
-| - ``r``, ``r_out`` (4),                       | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+| - ``r``, ``r_out`` (4).                       | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
 |                                               |   <use-buffer-wrappers>` (1,3).                                     |
 |                                               | - ``sycl::buffer`` (2,4),                                           |
 |                                               | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
 |                                               |   <viewable-ranges>` (2,4),                                         |
 |                                               | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|                                               |   <viewable-ranges>` (2,4)                                          |
+|                                               |   <viewable-ranges>` (2,4).                                         |
 |                                               |                                                                     |
 |                                               |                                                                     |
 |                                               |                                                                     |
