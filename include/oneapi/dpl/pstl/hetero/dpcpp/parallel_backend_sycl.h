@@ -574,11 +574,11 @@ template <typename _Size, ::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize
 struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _WGSize, _IsFullGroup,
                                                         __internal::__optional_kernel_name<_ScanKernelName...>>
 {
-    template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
-              typename _UnaryOp>
+    template <typename _Policy, typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _InitType,
+              typename _BinaryOperation, typename _UnaryOp>
     auto
-    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
-               _BinaryOperation __bin_op, _UnaryOp __unary_op)
+    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_copied_rng,
+               ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = ::std::uint16_t;
 
@@ -589,16 +589,13 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
         constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
-        sycl::buffer<_Size> __res(sycl::range<1>(1));
-
-        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
-            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
+        return __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng, __num_copied_rng);
 
             // Local memory is split into two parts. The first half stores the result of applying the
             // predicate on each element of the input range. The second half stores the index of the output
             // range to copy elements of the input range.
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg * 2}, __hdl);
-            auto __res_acc = __res.template get_access<access_mode::write>(__hdl);
 
             __hdl.parallel_for<_ScanKernelName...>(
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
@@ -656,11 +653,10 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     if (__item_id == 0)
                     {
                         // Add predicate of last element to account for the scan's exclusivity
-                        __res_acc[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
+                        __num_copied_rng[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
                     }
                 });
         });
-        return __future(__event, __res);
     }
 };
 
@@ -832,9 +828,11 @@ struct __invoke_single_group_copy_if
     // Specialization for devices that have a max work-group size of at least 1024
     static constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
-    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
+    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng,
+              typename _NumCopiedRng, typename _Pred>
     auto
-    operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred)
+    operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng,
+               _NumCopiedRng&& __num_copied_rng, _Pred&& __pred)
     {
         constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
@@ -846,23 +844,23 @@ struct __invoke_single_group_copy_if
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                    __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred));
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                    __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
+                                                 std::integral_constant<std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+                std::forward<_NumCopiedRng>(__num_copied_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                    __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred));
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                    __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
+                                                 std::integral_constant<std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+                std::forward<_NumCopiedRng>(__num_copied_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred));
     }
 };
 
@@ -907,36 +905,57 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         __copy_by_mask_op);
 }
 
+template <typename _Size>
+bool
+__group_copy_if_fits_in_slm(const sycl::queue& __queue, _Size __n, std::size_t __n_uniform)
+{
+    using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
+    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__queue);
+
+    // The kernel stores n 16 bit integers for the predicate and another n 16 bit integers for the offsets,
+    // so check "scan" for a 32 bit type.
+    return (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<::std::uint32_t>(__queue, __n, __n_uniform) &&
+            __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size);
+}
+
+template <typename _ExecutionPolicy, typename _Size, typename _InRng, typename _OutRng, typename _NumCopiedRng,
+          typename _Pred>
+auto
+__dispatch_small_copy_if(_ExecutionPolicy&& __exec, _Size __n, _InRng&& __in_rng, _OutRng&& __out_rng,
+                         _NumCopiedRng&& __num_copied_rng, _Pred __pred)
+{
+    using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
+
+    using _SizeBreakpoints =
+        std::integer_sequence<std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+
+    return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
+        _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
+        std::forward<_OutRng>(__out_rng), std::forward<_NumCopiedRng>(__num_copied_rng), __pred);
+}
+
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
 auto
 __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                    _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
 {
-    using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
-
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(static_cast<::std::make_unsigned_t<_Size>>(__n));
 
-    // Pessimistically only use half of the memory to take into account memory used by compiled kernel
-    const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
-
-    // The kernel stores n integers for the predicate and another n integers for the offsets
-    const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform * 2;
-
-    constexpr ::std::uint16_t __single_group_upper_limit = 16384;
-
-    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
-        __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
+    if (oneapi::dpl::__par_backend_hetero::__group_copy_if_fits_in_slm(__exec.queue(), __n, __n_uniform))
     {
-        using _SizeBreakpoints =
-            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+        sycl::buffer<_Size> __res(sycl::range<1>(1));
+        auto __res_iterator = oneapi::dpl::begin(__res);
 
-        return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
-            ::std::forward<_OutRng>(__out_rng), __pred);
+        auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write,
+                                                              decltype(__res_iterator)>();
+        auto __res_rng = __keep(__res_iterator, __res_iterator + 1).all_view();
+
+        sycl::event __event = oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
+            std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
+            std::forward<_OutRng>(__out_rng), std::move(__res_rng), __pred);
+
+        return __future(__event, __res);
     }
     else
     {
