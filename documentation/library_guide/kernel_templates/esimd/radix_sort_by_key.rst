@@ -152,7 +152,7 @@ In-Place Example
       }
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (6)
+      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (2)
       e.wait();
 
       // print
@@ -215,7 +215,7 @@ Out-of-Place Example
 
       // sort
       auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, keys_out, values_out,
-                                                          kt::kernel_param<96, 64>{}); // (8)
+                                                          kt::kernel_param<96, 64>{}); // (4)
       e.wait();
 
       // print
