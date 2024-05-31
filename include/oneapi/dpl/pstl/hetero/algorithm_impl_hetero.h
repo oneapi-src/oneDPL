@@ -28,8 +28,8 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
-#define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 1
-#define PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE    1
+#define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 0      // bad perf ?
+#define PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE    0      // bad perf ?
 #define PATTERN_FIND_IF_ON_TRANSFORM_REDUCE                      1
 #define PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE                     0
 #if PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
@@ -39,8 +39,8 @@
 #define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
 #define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      0      // Switched off due absent benchmark
 #define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                0      // Switched off due absent benchmark
-#define PATTERN_EQUAL_ON_TRANSFORM_REDUCE                        1
-#define PATTERN_MISMATCH_ON_TRANSFORM_REDUCE                     1
+#define PATTERN_EQUAL_ON_TRANSFORM_REDUCE                        0      // bad perf ?
+#define PATTERN_MISMATCH_ON_TRANSFORM_REDUCE                     0      // bad perf ?
 #if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE || PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
 #   include "./../../../dpl/iterator"      // include <oneapi/dpl/iterator> for zip_iterator and counting_iterator
 #endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE
@@ -598,7 +598,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    bool result = __par_backend_hetero::__parallel_find_or(     // to __pattern_transform_reduce - IMPLEMENTED
+    bool result = __par_backend_hetero::__parallel_find_or(     // to __pattern_transform_reduce - IMPLEMENTED, bad performance
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -901,7 +901,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    return !__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce - IMPLEMENTED
+    return !__par_backend_hetero::__parallel_find_or(           // to __pattern_transform_reduce - IMPLEMENTED, bad performance
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -1323,7 +1323,7 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
 
-    auto __result = __par_backend_hetero::__parallel_find(     // to __pattern_transform_reduce - IMPLEMENTED
+    auto __result = __par_backend_hetero::__parallel_find(     // to __pattern_transform_reduce - IMPLEMENTED, bad performance
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
         _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
     __n = __result - __first_zip;
