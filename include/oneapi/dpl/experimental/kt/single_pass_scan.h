@@ -778,15 +778,17 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(__n);
 
-    //If we fit in a single WG SLM, use the single wg version from oneDPL main
-    if (oneapi::dpl::__par_backend_hetero::__group_copy_if_fits_in_slm(__queue, __n, __n_uniform))
+    if constexpr (std::negation_v<typename _KernelParam::single_wg_opt_out>)
     {
-        return oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
-            oneapi::dpl::execution::__dpl::make_device_policy<_CopyIfSingleWgKernel>(__queue), __n,
-            std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng),
-            std::forward<_NumSelectedRange>(__num_rng), __pred);
+        //If we fit in a single WG SLM, use the single wg version from oneDPL main
+        if (oneapi::dpl::__par_backend_hetero::__group_copy_if_fits_in_slm(__queue, __n, __n_uniform))
+        {
+            return oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
+                oneapi::dpl::execution::__dpl::make_device_policy<_CopyIfSingleWgKernel>(__queue), __n,
+                std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng),
+                std::forward<_NumSelectedRange>(__num_rng), __pred);
+        }
     }
-
     constexpr std::size_t __workgroup_size = _KernelParam::workgroup_size;
     constexpr std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
 
