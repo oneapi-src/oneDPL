@@ -40,7 +40,8 @@
 #define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      1
 #define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                1
 #define PATTERN_EQUAL_ON_TRANSFORM_REDUCE                        1
-#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE
+#define PATTERN_MISMATCH_ON_TRANSFORM_REDUCE                     1
+#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE || PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
 #   include "./../../../dpl/iterator"      // include <oneapi/dpl/iterator> for zip_iterator and counting_iterator
 #endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE || PATTERN_EQUAL_ON_TRANSFORM_REDUCE
 
@@ -1227,27 +1228,107 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 // mismatch
 //------------------------------------------------------------------------
 
+#if PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
+
+template <typename _Typle, typename _BinaryPredicate>
+struct __mismatch_unary_transform_op
+{
+    _BinaryPredicate __predicate;
+
+    template <typename Arg>
+    _Typle
+    operator()(const Arg& arg) const
+    {
+        const auto result = !__predicate(std::get<0>(arg), std::get<1>(arg));
+        const auto idx = std::get<2>(arg);
+
+        return {result, idx};
+    }
+};
+
+template <typename _Typle>
+struct __mismatch_binary_reduce_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (std::get<0>(op1) && std::get<0>(op2))
+            return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
+
+        return std::get<0>(op1) ? op1 : op2;
+    }
+};
+
+#endif // PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 ::std::pair<_Iterator1, _Iterator2>
 __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
                    _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
 {
-    auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+    using __src_data_difference1_t = typename std::iterator_traits<_Iterator1>::difference_type;
+    using __src_data_difference2_t = typename std::iterator_traits<_Iterator2>::difference_type;
+
+    const __src_data_difference1_t __n1 = __last1 - __first1;
+    const __src_data_difference2_t __n2 = __last2 - __first2;
+
+    const auto __n = std::min(__n1, __n2);
     if (__n <= 0)
         return ::std::make_pair(__first1, __first2);
 
+    // https://en.cppreference.com/w/cpp/algorithm/mismatch std::mismatch -> __pattern_mismatch
+
+#if PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
+
+    static_assert(std::is_same_v<__src_data_difference1_t, __src_data_difference2_t>);
+    using __src_data_difference_t = __src_data_difference1_t;
+
+    // __counting_iterator_t - iterate position (index) in source data
+    using __counting_iterator_t = oneapi::dpl::counting_iterator<__src_data_difference1_t>;
+
+    using __zip_of_src_data_pairs_iterator_t = decltype(oneapi::dpl::make_zip_iterator(
+        declval<_Iterator1>(),                                                  // value from dataset 1 [__first1, __first1 + __n)
+        declval<_Iterator2>(),                                                  // value from dataset 2 [__first2, __first2 + __n)
+        __counting_iterator_t{0}));                                             // left operand position (index) in dataset 1
+
+    __zip_of_src_data_pairs_iterator_t __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(
+        __first1,                                                               // first value from dataset 1 [__first1, __first1 + __n)
+        __first2,                                                               // first value from dataset 2 [__first2, __first2 + __n)
+        __counting_iterator_t{0});                                              // left operand position (index) in dataset 1
+
+    __zip_of_src_data_pairs_iterator_t __src_data_pairs_end = oneapi::dpl::make_zip_iterator(
+        __first1 + __n,                                                         // last value from dataset 1 [__first1, __first1 + __n) (valid / invalid)
+        __first2 + __n,                                                         // last value from dataset 2 [__first2, __first2 + __n) (valid / invalid)
+        __counting_iterator_t{__n});                                            // left operand position (index) in dataset 1
+
+    // __transform_result_tuple_t - tuple of __comp(left operand, right operand) and position (index) of the left operand in source data
+    using __transform_result_tuple_t = oneapi::dpl::__internal::tuple<bool, __src_data_difference_t>;
+
+    __mismatch_unary_transform_op<__transform_result_tuple_t, _Pred> __unary_transform_op{__pred};
+    __mismatch_binary_reduce_op<__transform_result_tuple_t> __binary_reduce_op;
+
+    auto __res = __pattern_transform_reduce(
+        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+        __src_data_pairs_begin, __src_data_pairs_end,
+        __transform_result_tuple_t{false, __n},
+        __binary_reduce_op, __unary_transform_op);
+
+    return std::get<0>(__res) ? std::make_pair(__first1 + std::get<1>(__res), __first2 + std::get<1>(__res))
+                              : std::make_pair(__first1 + __n, __first2 + __n);
+
+#else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
     auto __first_zip = __par_backend_hetero::zip(
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
 
-    // https://en.cppreference.com/w/cpp/algorithm/mismatch std::mismatch -> __pattern_mismatch
-    auto __result = __par_backend_hetero::__parallel_find(     // to __pattern_transform_reduce ?
+    auto __result = __par_backend_hetero::__parallel_find(     // to __pattern_transform_reduce - IMPLEMENTED
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
         _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
     __n = __result - __first_zip;
     return ::std::make_pair(__first1 + __n, __first2 + __n);
+#endif // PATTERN_MISMATCH_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
