@@ -216,9 +216,9 @@ Out-of-Place Example
 Memory Requirements
 -------------------
 
-The algorithms use global and local device memory (see `SYCL 2020 Specification
+The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
-for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
+for intermediate data storage. For the algorithm to operate correctly, there must be enough memory
 on the device; otherwise, the behavior is undefined. The amount of memory that is required
 depends on input data and configuration parameters, as described below.
 
