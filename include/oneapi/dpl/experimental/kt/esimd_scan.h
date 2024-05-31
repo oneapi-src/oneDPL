@@ -171,14 +171,8 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
 
         // propogate carry in from previous block
         ValueType carry_in = 0;
-        if (b > 0) {
-        #if 0
-        ci = scalar_load<uint>(result,offset+(b*blockSize-1)*sizeof(uint32_t));
-        #else
-        // No scalar_load pointer API. Use a gather with a constant offset
-        carry_in = gather<ValueType, 1>(result, simd<uint32_t, 1>(offset+(b*blockSize-1)*sizeof(ValueType)))[0];
-        #endif
-        }
+        if (b > 0)
+            carry_in = gather<ValueType, 1>(result, simd<uint32_t, 1>(offset+(b*blockSize-1)*sizeof(ValueType)))[0];
 
         // on each Xe T0: 
         // 1. load 64 T-local carry pfix sums (T0..63) to slm
