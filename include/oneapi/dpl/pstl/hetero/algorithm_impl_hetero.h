@@ -1482,6 +1482,8 @@ _OutIterator
 __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InIterator __first,
                             _InIterator __last, _OutIterator __out_first, _OutIterator __out_last, _Compare __comp)
 {
+    using _ValueType = typename std::iterator_traits<_InIterator>::value_type;
+
     auto __in_size = __last - __first;
     auto __out_size = __out_last - __out_first;
 
@@ -1519,7 +1521,6 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // - create a temporary buffer and copy all the elements from the input buffer there
         // - run partial sort on the temporary buffer
         // - copy k elements from the temporary buffer to the output buffer.
-        using _ValueType = typename std::iterator_traits<_InIterator>::value_type;
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
 
         auto __buf_first = __buf.get();
