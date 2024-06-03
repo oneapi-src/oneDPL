@@ -45,7 +45,8 @@ __pattern_for_each_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __
     oneapi::dpl::__internal::__pattern_walk1(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
         std::ranges::begin(__r) + __r.size(), __f_1);
 
-    return std::ranges::borrowed_iterator_t<_R>{__r.begin() + __r.size()};
+    using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
+    return __return_t{__r.begin() + __r.size(), std::move(__f)};
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
