@@ -752,19 +752,48 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 // any_of
 //------------------------------------------------------------------------
 
-#if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
-_Iterator
-__pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _Iterator, _Iterator, _Pred,
-                                        _IsFirst);
-#endif // PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
+#if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
+template <typename _Typle, typename _UnaryTransformOp>
+struct __find_if_unary_transform_op
+{
+    _UnaryTransformOp __transform_op;
+
+    template <typename Arg>
+    _Typle
+    operator()(const Arg& arg) const
+    {
+        return {__transform_op(std::get<0>(arg)), std::get<1>(arg)};
+    }
+};
+
+template <typename _Typle, typename _IsFirst>
+struct __find_if_binary_reduce_op
+{
+    _Typle
+    operator()(const _Typle& op1, const _Typle& op2) const
+    {
+        if (::std::get<0>(op1) && ::std::get<0>(op2))
+        {
+            if constexpr (_IsFirst{})
+                return {true, ::std::min(::std::get<1>(op1), ::std::get<1>(op2))};
+            else
+                return {true, ::std::max(::std::get<1>(op1), ::std::get<1>(op2))};
+        }
+
+        return ::std::get<0>(op1) ? op1 : op2;
+    }
+};
+#endif // PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 bool
 __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                  _Pred __pred)
 {
-    if (__first == __last)
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
         return false;
 
     // https://en.cppreference.com/w/cpp/algorithm/any_of           std::any_of                                                                                                  -> __pattern_any_of
@@ -774,12 +803,23 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     // https://en.cppreference.com/w/cpp/algorithm/nth_element      std::nth_element        -> __pattern_nth_element -> __pattern_partition        -> __pattern_stable_partition -> __pattern_any_of
 
 #if PATTERN_ANY_OF_ON_TRANSFORM_REDUCE
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
 
-    auto __result_it = __pattern_find_if_transform_reduce_impl(
-        __hetero_tag<_BackendTag>{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        /*_IsFirst*/ ::std::true_type{});
-    return __result_it != __last;
+    const auto __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(__first, oneapi::dpl::counting_iterator{0});
+    const auto __src_data_pairs_end = __src_data_pairs_begin + __n;
 
+    using _zipped_data_type = typename std::iterator_traits<decltype(__src_data_pairs_begin)>::value_type;
+    using _IsFirst = std::true_type;
+    __find_if_binary_reduce_op<_zipped_data_type, _IsFirst> __reduce_op;
+    __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
+
+    const auto result = __pattern_transform_reduce(
+        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+        __src_data_pairs_begin, __src_data_pairs_end,
+        _result_type{false, __n},
+        __reduce_op, __transform_op);
+
+    return std::get<0>(result);
 #else
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
@@ -922,73 +962,6 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 }
 
 //------------------------------------------------------------------------
-// parallel_find
-//------------------------------------------------------------------------
-
-#if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
-template <typename _Typle, typename _UnaryTransformOp>
-struct __find_if_unary_transform_op
-{
-    _UnaryTransformOp __transform_op;
-
-    template <typename Arg>
-    _Typle
-    operator()(const Arg& arg) const
-    {
-        return {__transform_op(std::get<0>(arg)), std::get<1>(arg)};
-    }
-};
-
-template <typename _Typle, typename _IsFirst>
-struct __find_if_binary_reduce_op
-{
-    _Typle
-    operator()(const _Typle& op1, const _Typle& op2) const
-    {
-        if (::std::get<0>(op1) && ::std::get<0>(op2))
-        {
-            if constexpr (_IsFirst{})
-                return {true, ::std::min(::std::get<1>(op1), ::std::get<1>(op2))};
-            else
-                return {true, ::std::max(::std::get<1>(op1), ::std::get<1>(op2))};
-        }
-
-        return ::std::get<0>(op1) ? op1 : op2;
-    }
-};
-
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred, typename _IsFirst>
-_Iterator
-__pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
-                                        _Iterator __last, _Pred __pred, _IsFirst)
-{
-    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
-
-    const _difference_type __n = __last - __first;
-    if (__n == 0)
-        return __last;
-
-    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
-
-    const auto __itBegin = oneapi::dpl::make_zip_iterator(__first, oneapi::dpl::counting_iterator{0});
-    const auto __itEnd = __itBegin + __n;
-
-    using _zipped_data_type = typename ::std::iterator_traits<decltype(__itBegin)>::value_type;
-    __find_if_binary_reduce_op<_zipped_data_type, _IsFirst> __reduce_op;
-    __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
-
-    const auto result = __pattern_transform_reduce(
-        __tag, std::forward<_ExecutionPolicy>(__exec),
-        __itBegin, __itEnd,
-        _result_type{false, __itEnd - __itBegin},
-        __reduce_op,
-        __transform_op);
-
-    return std::get<0>(result) ? __first + std::get<1>(result) : __last;
-}
-#endif // PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
-
-//------------------------------------------------------------------------
 // find_if
 //------------------------------------------------------------------------
 
@@ -997,13 +970,30 @@ _Iterator
 __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                   _Pred __pred)
 {
-    if (__first == __last)
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
         return __last;
 
 #if PATTERN_FIND_IF_ON_TRANSFORM_REDUCE
-    return __pattern_find_if_transform_reduce_impl(__hetero_tag<_BackendTag>{},
-                                                   ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-                                                   /*_IsFirst*/ ::std::true_type{});
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
+
+    const auto __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(__first, oneapi::dpl::counting_iterator{0});
+    const auto __src_data_pairs_end = __src_data_pairs_begin + __n;
+
+    using _zipped_data_type = typename std::iterator_traits<decltype(__src_data_pairs_begin)>::value_type;
+    using _IsFirst = std::true_type;
+    __find_if_binary_reduce_op<_zipped_data_type, _IsFirst> __reduce_op;
+    __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
+
+    const auto result = __pattern_transform_reduce(
+        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
+        __src_data_pairs_begin, __src_data_pairs_end,
+        _result_type{false, __n},
+        __reduce_op, __transform_op);
+
+    return std::get<0>(result) ? __first + std::get<1>(result) : __last;
 #else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
@@ -1272,7 +1262,7 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
     const __src_data_difference1_t __n1 = __last1 - __first1;
     const __src_data_difference2_t __n2 = __last2 - __first2;
 
-    const auto __n = std::min(__n1, __n2);
+    auto __n = std::min(__n1, __n2);
     if (__n <= 0)
         return ::std::make_pair(__first1, __first2);
 
