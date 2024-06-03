@@ -113,21 +113,23 @@ sycl::queue get_test_queue()
 
 template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
-test1buffer()
+test1buffer(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
     sycl::queue queue = get_test_queue(); // usm and allocator requires queue
-
+    const size_t local_max_n = max_n * ScaleMax;
+    const size_t incr_by_one_max = 16 * ScaleMax;
+    const size_t local_step = 3.1415 * ScaleStep;
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
-        TestBaseData test_base_data(queue, { { max_n, inout1_offset } });
+        TestBaseData test_base_data(queue, { { local_max_n, inout1_offset } });
 
         // 2. create a pointer at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        for (size_t n = 1; n <= local_max_n; n = n <= incr_by_one_max ? n + 1 : size_t(local_step * n))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -141,13 +143,13 @@ test1buffer()
     { // sycl::buffer
         // 1. create buffers
         using TestBaseData = test_base_data_buffer<TestValueType>;
-        TestBaseData test_base_data({ { max_n, inout1_offset } });
+        TestBaseData test_base_data({ { local_max_n, inout1_offset } });
 
         // 2. create iterators over buffers
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        for (size_t n = 1; n <= local_max_n; n = n <= incr_by_one_max ? n + 1 : size_t(local_step * n))
         {
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -161,23 +163,26 @@ test1buffer()
 
 template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
-test2buffers()
+test2buffers(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
     sycl::queue queue = get_test_queue(); // usm and allocator requires queue
+    const size_t local_max_n = max_n * ScaleMax;
+    const size_t incr_by_one_max = 16 * ScaleMax;
+    const size_t local_step = 3.1415 * ScaleStep;
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
-        TestBaseData test_base_data(queue, { { max_n, inout1_offset },
-                                             { max_n, inout2_offset } });
+        TestBaseData test_base_data(queue, { { local_max_n, inout1_offset },
+                                             { local_max_n, inout2_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
         auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        for (size_t n = 1; n <= local_max_n; n = n <= incr_by_one_max ? n + 1 : size_t(local_step * n))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -192,15 +197,15 @@ test2buffers()
     { // sycl::buffer
         // 1. create buffers
         using TestBaseData = test_base_data_buffer<TestValueType>;
-        TestBaseData test_base_data({ { max_n, inout1_offset },
-                                      { max_n, inout2_offset } });
+        TestBaseData test_base_data({ { local_max_n, inout1_offset },
+                                      { local_max_n, inout2_offset } });
 
         // 2. create iterators over buffers
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
         auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        for (size_t n = 1; n <= local_max_n; n = n <= incr_by_one_max ? n + 1 : size_t(local_step * n))
         {
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -215,18 +220,21 @@ test2buffers()
 
 template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
-test3buffers(int mult = kDefaultMultValue)
+test3buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
     sycl::queue queue = get_test_queue(); // usm requires queue
+    const size_t local_max_n = max_n * ScaleMax;
+    const size_t incr_by_one_max = 16 * ScaleMax;
+    const size_t local_step = 3.1415 * ScaleStep;
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
 
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
-        TestBaseData test_base_data(queue, { { max_n,        inout1_offset },
-                                             { max_n,        inout2_offset },
-                                             { max_n * mult, inout3_offset } });
+        TestBaseData test_base_data(queue, { { local_max_n,        inout1_offset },
+                                             { local_max_n,        inout2_offset },
+                                             { local_max_n * mult, inout3_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -234,7 +242,7 @@ test3buffers(int mult = kDefaultMultValue)
         auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 1; n <= local_max_n; n = (n <= incr_by_one_max ? n + 1 : size_t(local_step * n)))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -250,9 +258,9 @@ test3buffers(int mult = kDefaultMultValue)
     { // sycl::buffer
         // 1. create buffers
         using TestBaseData = test_base_data_buffer<TestValueType>;
-        TestBaseData test_base_data({ { max_n,        inout1_offset },
-                                      { max_n,        inout2_offset },
-                                      { max_n * mult, inout3_offset } });
+        TestBaseData test_base_data({ { local_max_n,        inout1_offset },
+                                      { local_max_n,        inout2_offset },
+                                      { local_max_n * mult, inout3_offset } });
 
         // 2. create iterators over buffers
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -260,7 +268,7 @@ test3buffers(int mult = kDefaultMultValue)
         auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 1; n <= local_max_n; n = (n <= incr_by_one_max ? n + 1 : size_t(local_step * n)))
         {
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -276,19 +284,22 @@ test3buffers(int mult = kDefaultMultValue)
 
 template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
-test4buffers(int mult = kDefaultMultValue)
+test4buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
     sycl::queue queue = get_test_queue(); // usm requires queue
+    const size_t local_max_n = max_n * ScaleMax;
+    const size_t incr_by_one_max = 16 * ScaleMax;
+    const size_t local_step = 3.1415 * ScaleStep;
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
 
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
-        TestBaseData test_base_data(queue, { { max_n,        inout1_offset },
-                                             { max_n,        inout2_offset },
-                                             { max_n * mult, inout3_offset },
-                                             { max_n * mult, inout4_offset } });
+        TestBaseData test_base_data(queue, { { local_max_n,        inout1_offset },
+                                             { local_max_n,        inout2_offset },
+                                             { local_max_n * mult, inout3_offset },
+                                             { local_max_n * mult, inout4_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -297,7 +308,7 @@ test4buffers(int mult = kDefaultMultValue)
         auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 1; n <= local_max_n; n = (n <= incr_by_one_max ? n + 1 : size_t(local_step * n)))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -314,10 +325,10 @@ test4buffers(int mult = kDefaultMultValue)
     { // sycl::buffer
         // 1. create buffers
         using TestBaseData = test_base_data_buffer<TestValueType>;
-        TestBaseData test_base_data({ { max_n,        inout1_offset },
-                                      { max_n,        inout2_offset },
-                                      { max_n * mult, inout3_offset },
-                                      { max_n * mult, inout4_offset } });
+        TestBaseData test_base_data({ { local_max_n,        inout1_offset },
+                                      { local_max_n,        inout2_offset },
+                                      { local_max_n * mult, inout3_offset },
+                                      { local_max_n * mult, inout4_offset } });
 
         // 2. create iterators over buffers
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -326,7 +337,7 @@ test4buffers(int mult = kDefaultMultValue)
         auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 1; n <= local_max_n; n = (n <= incr_by_one_max ? n + 1 : size_t(local_step * n)))
         {
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -345,28 +356,28 @@ template <sycl::usm::alloc alloc_type, typename TestName>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test1buffer()
 {
-    test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
+    test1buffer<alloc_type, typename TestName::UsedValueType, TestName>(TestName::ScaleStep, TestName::ScaleMax);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test2buffers()
 {
-    test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
+    test2buffers<alloc_type, typename TestName::UsedValueType, TestName>(TestName::ScaleStep, TestName::ScaleMax);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test3buffers(int mult = kDefaultMultValue)
 {
-    test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
+    test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult, TestName::ScaleStep, TestName::ScaleMax);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test4buffers(int mult = kDefaultMultValue)
 {
-    test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
+    test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult, TestName::ScaleStep, TestName::ScaleMax);
 }
 
 } /* namespace TestUtils */

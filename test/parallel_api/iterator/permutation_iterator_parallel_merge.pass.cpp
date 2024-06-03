@@ -20,7 +20,7 @@
 // dpl::merge, dpl::inplace_merge -> __parallel_merge
 DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_merge)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_merge, 2.0f, 0.65f)
 
     template <typename TIterator>
     void generate_data(TIterator itBegin, TIterator itEnd, TestValueType initVal)

@@ -142,7 +142,7 @@ struct TestingAlgoritmExclusiveScanExt
 
 DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_scan_non_inplace)
+    DEFINE_TEST_CONSTRUCTOR(test_scan_non_inplace, 1.0f, 1.0f)
 
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
@@ -228,7 +228,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
 DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_scan_inplace)
+    DEFINE_TEST_CONSTRUCTOR(test_scan_inplace, 1.0f, 1.0f)
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Size>

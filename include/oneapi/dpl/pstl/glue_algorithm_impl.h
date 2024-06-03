@@ -664,10 +664,8 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
-
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                            __comp, typename ::std::is_move_constructible<_InputType>::type());
+                                            __comp);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
