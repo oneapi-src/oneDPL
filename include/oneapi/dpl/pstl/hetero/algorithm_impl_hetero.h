@@ -1264,7 +1264,7 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 void
 __pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-               _Compare __comp, /*is_move_constructible=*/::std::true_type)
+               _Compare __comp)
 {
     __stable_sort_with_projection(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
                                   oneapi::dpl::identity{});
@@ -1511,7 +1511,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp, ::std::true_type{});
+            __out_first, __out_end, __comp);
 
         return __out_end;
     }
