@@ -40,6 +40,9 @@ target_compile_definitions(dr_shp INTERFACE USE_MKL
 target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
 target_link_libraries(dr_shp INTERFACE fmt::fmt)
 
+target_compile_options(dr_shp INTERFACE -qopenmp)
+target_link_options(dr_shp INTERFACE -qopenmp)
+
 if (DEFINED ONEDPL_USE_DR)
   target_compile_options(dr_shp INTERFACE "-DONEDPL_USE_DISTRIBUTED_RANGES" "-ftemplate-backtrace-limit=0")
 endif()
