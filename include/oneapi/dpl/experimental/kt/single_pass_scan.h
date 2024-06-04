@@ -551,7 +551,7 @@ struct __copy_if_kernel_func
         if ((__tile_id + 1) * __elems_in_tile <= __n)
         {
 #pragma unroll
-            for (size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
+            for (std::size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
             {
                 // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
                 //  if load is done in a scalar fashion and provides the same performance, we
@@ -576,7 +576,7 @@ struct __copy_if_kernel_func
             // Edge of input, have to handle memory bounds
             // Might have unneccessary group_barrier calls
 #pragma unroll
-            for (size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
+            for (std::size_t __i = 0; __i < __elems_in_tile; __i += __workgroup_size)
             {
                 _SizeT __satisfies_pred = 0;
                 oneapi::dpl::__internal::__lazy_ctor_storage<_Type> __val;
@@ -607,7 +607,7 @@ struct __copy_if_kernel_func
 
         //TODO: explore above comment about scalar load
         // Phase 3: copy values to global memory
-        for (int __i = __wg_local_id; __i < __wg_count; __i += __workgroup_size)
+        for (std::size_t __i = __wg_local_id; __i < __wg_count; __i += __workgroup_size)
         {
             __out_rng[__copied_elements + __i] = __wg_copy_if_values[__i];
         }
@@ -670,7 +670,7 @@ struct __copy_if_kernel_func_scalar
         if ((__wg_local_id + 1) * __data_per_workitem + __tile_id * __elems_in_tile <= __n)
         {
 #pragma unroll
-            for (size_t __i = 0; __i < __data_per_workitem; ++__i)
+            for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
             {
                 // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
                 //  if load is done in a scalar fashion and provides the same performance, we
@@ -692,7 +692,7 @@ struct __copy_if_kernel_func_scalar
         else
         {
             // Edge of input, have to handle memory bounds
-            for (size_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n; ++__i)
+            for (std::uint16_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n; ++__i)
             {
                 if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
                 {
@@ -717,9 +717,9 @@ struct __copy_if_kernel_func_scalar
                                     __wg_count, __copied_elements, _BinaryOp{});
 
         // Phase 3: copy values to global memory
-        for (int __i = 0; __i < __wi_count; ++__i)
+        for (std::uint16_t __i = 0; __i < __wi_count; ++__i)
         {
-            __out_rng[__copied_elements + __wg_count + __i] = __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem];
+            __out_rng[__copied_elements + __wg_count + __i] = __wg_copy_if_values[__i + __wg_local_id * __data_per_workitem];
         }
         if (__tile_id == (__current_num_wgs - 1) && __wg_local_id == (__workgroup_size - 1))
             __num_rng[0] = __copied_elements + __wg_count + __wi_count;
