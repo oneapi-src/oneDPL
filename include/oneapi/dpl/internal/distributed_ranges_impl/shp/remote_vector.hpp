@@ -11,10 +11,10 @@ namespace oneapi::dpl::experimental::dr::shp
 {
 
 template <typename T, typename Allocator>
-class device_vector : public vector<T, Allocator>
+class remote_vector : public vector<T, Allocator>
 {
   public:
-    constexpr device_vector() noexcept {}
+    constexpr remote_vector() noexcept {}
 
     using base = vector<T, Allocator>;
 
@@ -22,7 +22,7 @@ class device_vector : public vector<T, Allocator>
     using size_type = std::size_t;
     using difference_type = std::size_t;
 
-    constexpr device_vector(size_type count, const Allocator& alloc, size_type rank) : base(count, alloc), rank_(rank)
+    constexpr remote_vector(size_type count, const Allocator& alloc, size_type rank) : base(count, alloc), rank_(rank)
     {
     }
 
@@ -37,6 +37,6 @@ class device_vector : public vector<T, Allocator>
 };
 
 template <class Alloc>
-device_vector(std::size_t, const Alloc, std::size_t) -> device_vector<typename Alloc::value_type, Alloc>;
+remote_vector(std::size_t, const Alloc, std::size_t) -> remote_vector<typename Alloc::value_type, Alloc>;
 
 } // namespace oneapi::dpl::experimental::dr::shp
