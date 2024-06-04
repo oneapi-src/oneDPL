@@ -667,18 +667,11 @@ struct __copy_if_kernel_func_scalar
         // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
 
         //TODO: check if it is better to check this at a subgroup or wg level rather than work item
-        if ((__wg_local_id + 1) * __data_per_workitem + __tile_id * __elems_in_tile <= __n)
+        if ((__tile_id + 1) * __elems_in_tile <= __n)
         {
 #pragma unroll
             for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
             {
-                // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
-                //  if load is done in a scalar fashion and provides the same performance, we
-                //  can avoid the broadcast (I think)
-                // would need to loop over the elements per work item first accumulating into
-                // satisfies pred, copying to "my slot" in SLM then do scan, then the copy to
-                // global memory needs to be loaded per work item per element, skipping copies
-                // when they were not saved.
                 _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
 
                 if (__pred(__val))
