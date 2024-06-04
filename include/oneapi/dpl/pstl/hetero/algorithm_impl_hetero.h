@@ -857,10 +857,7 @@ struct __equal_unary_transform_op
     _Typle
     operator()(const Arg& arg) const
     {
-        const auto result = !__predicate(std::get<0>(arg), std::get<1>(arg));
-        const auto idx = std::get<2>(arg);
-
-        return {result, idx};
+        return {!__predicate(std::get<0>(arg), std::get<1>(arg)), std::get<2>(arg)};
     }
 };
 
@@ -870,10 +867,15 @@ struct __equal_binary_reduce_op
     _Typle
     operator()(const _Typle& op1, const _Typle& op2) const
     {
-        if (std::get<0>(op1) && std::get<0>(op2))
-            return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
+        const auto& op1_0 = std::get<0>(op1);
+        const auto& op2_0 = std::get<0>(op2);
 
-        return std::get<0>(op1) ? op1 : op2;
+        const auto& op1_1 = std::get<1>(op1);
+        const auto& op2_1 = std::get<1>(op2);
+
+        return op1_0 && op2_0
+            ? _Typle{true, op1_1 < op2_1 ? op1_1 : op2_1}
+            : _Typle{op1_0 ? op1 : op2};
     }
 };
 
@@ -898,32 +900,14 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
 
 #if PATTERN_EQUAL_ON_TRANSFORM_REDUCE
 
-    if (__n1 == 1 && __n2 == 1)
+    assert(__n1 == __n2);
+    const auto __n = __n1;
+
+    if (__n == 1)
         return __pred(*__first1, *__first2);
 
     static_assert(std::is_same_v<__src_data_difference1_t, __src_data_difference2_t>);
     using __src_data_difference_t = __src_data_difference1_t;
-
-    assert(__n1 == __n2);
-    const auto __n = __n1;
-
-    // __counting_iterator_t - iterate position (index) in source data
-    using __counting_iterator_t = oneapi::dpl::counting_iterator<__src_data_difference1_t>;
-
-    using __zip_of_src_data_pairs_iterator_t = decltype(oneapi::dpl::make_zip_iterator(
-        declval<_Iterator1>(),                                                  // value from dataset 1 [__first1, __last1)
-        declval<_Iterator2>(),                                                  // value from dataset 2 [__first2, __last2)
-        __counting_iterator_t{0}));                                             // left operand position (index) in dataset 1
-
-    __zip_of_src_data_pairs_iterator_t __src_data_pairs_begin = oneapi::dpl::make_zip_iterator(
-        __first1,                                                               // first value from dataset 1 [__first1, __last1)
-        __first2,                                                               // first value from dataset 2 [__first2, __last2)
-        __counting_iterator_t{0});                                              // left operand position (index) in dataset 1
-
-    __zip_of_src_data_pairs_iterator_t __src_data_pairs_end = oneapi::dpl::make_zip_iterator(
-        __last1,                                                                // last value from dataset 1 [__first1, __last1) (invalid, equal to __last1)
-        __last2,                                                                // last value from dataset 2 [__first2, __last2) (invalid, equal to __last2)
-        __counting_iterator_t{__n});                                            // left operand position (index) in dataset 1
 
     // __transform_result_tuple_t - tuple of __comp(left operand, right operand) and position (index) of the left operand in source data
     using __transform_result_tuple_t = oneapi::dpl::__internal::tuple<bool, __src_data_difference_t>;
@@ -931,13 +915,30 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
     __equal_unary_transform_op<__transform_result_tuple_t, _Pred> __unary_transform_op{__pred};
     __equal_binary_reduce_op<__transform_result_tuple_t> __binary_reduce_op;
 
-    auto __res = __pattern_transform_reduce(
-        __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec),
-        __src_data_pairs_begin, __src_data_pairs_end,
-        __transform_result_tuple_t{false, __n},
-        __binary_reduce_op, __unary_transform_op);
+    const auto __init = __transform_result_tuple_t{false, __n};
 
-    return !std::get<0>(__res);
+    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, decltype(__unary_transform_op)>;
+    using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<__transform_result_tuple_t>;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first1, __last1);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __buf2 = __keep2(__first2, __last2);
+
+    // __counting_iterator_t - iterate position (index) in source data
+    using __counting_iterator_t = oneapi::dpl::counting_iterator<__src_data_difference1_t>;
+    __counting_iterator_t __first3{0}, __last3{__n};
+    auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
+    auto __buf3 = __keep3(__first3, __last3);
+
+    auto res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, /*is_commutative*/ std::true_type>(
+               _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
+              __binary_reduce_op, _Functor{__unary_transform_op},
+               unseq_backend::__init_value<_RepackedTp>{__init},
+               oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view(), __buf3.all_view()))
+        .get();
+
+    return !std::get<0>(res);
 #else
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
