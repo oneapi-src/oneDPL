@@ -40,12 +40,6 @@ template <typename... _Name>
 class __copy_if_kernel;
 
 template <typename... _Name>
-class __copy_if_single_wg_kernel;
-
-template <typename... _Name>
-class __inclusive_scan_kernel;
-
-template <typename... _Name>
 class __lookback_init_kernel;
 
 template <typename... _Name>
@@ -420,7 +414,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
-    using _KernelName = __inclusive_scan_kernel<typename _KernelParam::kernel_name>;
+    using _KernelName = typename _KernelParam::kernel_name;
     using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __lookback_init_kernel<_KernelName, _Type, _BinaryOp>>;
     using _LookbackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
@@ -656,9 +650,6 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     using _CopyIfKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__copy_if_kernel<_KernelName, _Type>>;
 
-    using _CopyIfSingleWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __copy_if_single_wg_kernel<_KernelName, _Type>>;
-
     const std::size_t __n = __in_rng.size();
 
     // Next power of 2 greater than or equal to __n
@@ -670,7 +661,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         if (oneapi::dpl::__par_backend_hetero::__group_copy_if_fits_in_slm(__queue, __n, __n_uniform))
         {
             return oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
-                oneapi::dpl::execution::__dpl::make_device_policy<_CopyIfSingleWgKernel>(__queue), __n,
+                oneapi::dpl::execution::__dpl::make_device_policy<_KernelName>(__queue), __n,
                 std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng),
                 std::forward<_NumSelectedRange>(__num_rng), __pred);
         }
