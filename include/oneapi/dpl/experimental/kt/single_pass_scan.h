@@ -267,24 +267,24 @@ __lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlag
                  _StatusValues __status_vals_full, _StatusValues __status_vals_partial, std::uint32_t __tile_id,
                  _Type& __local_reduction, _Type& __prev_tile_reduction, _BinaryOp __binary_op)
 {
-    // The first sub-group will query the previous tiles to find a prefix
-    if (__subgroup.get_group_id() == 0)
+    // The last sub-group will query the previous tiles to find a prefix
+    if (__subgroup.get_group_id() == (__subgroup.get_group_range()[0] - 1))
     {
         _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
 
-        if (__subgroup.get_local_id() == 0)
+        if (__subgroup.get_local_id() == __subgroup.get_local_range()[0] - 1)
         {
             __flag.set_partial(__local_reduction);
         }
 
         __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
 
-        if (__subgroup.get_local_id() == 0)
+        if (__subgroup.get_local_id() == __subgroup.get_local_range()[0] - 1)
         {
             __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
         }
     }
-    __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, 0);
+    __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, __group.get_local_range()[0] - 1);
 }
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
@@ -616,6 +616,116 @@ struct __copy_if_kernel_func
     }
 };
 
+
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRange,
+          typename _OutRange, typename _NumRng, typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues,
+          typename _TileValues>
+struct __copy_if_kernel_func_scalar
+{
+    static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    using _SizeT = std::size_t;
+    using _BinaryOp = std::plus<_SizeT>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _FlagStorageType = typename _FlagType::_FlagStorageType;
+
+    _InRange __in_rng;
+    _OutRange __out_rng;
+    _NumRng __num_rng;
+    _SizeT __n;
+    _UnaryPredicate __pred;
+    _StatusFlags __status_flags;
+    std::size_t __status_flags_size;
+    _StatusValues __status_vals_full;
+    _StatusValues __status_vals_partial;
+    _TileValues __wg_copy_if_values;
+    std::size_t __current_num_wgs;
+
+    [[sycl::reqd_sub_group_size(SUBGROUP_SIZE)]] void
+    operator()(const sycl::nd_item<1>& __item) const
+    {
+        auto __group = __item.get_group();
+        auto __wg_local_id = __item.get_local_id(0);
+        auto __sg = __item.get_sub_group();
+
+        std::uint32_t __tile_id = 0;
+
+        // Obtain unique ID for this work-group that will be used in decoupled lookback
+        if (__group.leader())
+        {
+            sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
+                             sycl::access::address_space::global_space>
+                __idx_atomic(__status_flags[__status_flags_size - 1]);
+            __tile_id = __idx_atomic.fetch_add(1);
+        }
+
+        __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
+
+        std::size_t __current_offset = static_cast<std::size_t>(__tile_id) * __elems_in_tile;
+
+        std::uint16_t __wi_count = 0;
+        // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
+
+        //TODO: check if it is better to check this at a subgroup or wg level rather than work item
+        if ((__wg_local_id + 1) * __data_per_workitem + __tile_id * __elems_in_tile <= __n)
+        {
+#pragma unroll
+            for (size_t __i = 0; __i < __data_per_workitem; ++__i)
+            {
+                // TODO: explore scalar impl.  Does this allow us to avoid the group broadcast (sync)?
+                //  if load is done in a scalar fashion and provides the same performance, we
+                //  can avoid the broadcast (I think)
+                // would need to loop over the elements per work item first accumulating into
+                // satisfies pred, copying to "my slot" in SLM then do scan, then the copy to
+                // global memory needs to be loaded per work item per element, skipping copies
+                // when they were not saved.
+                _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                if (__pred(__val))
+                {
+                    __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                    ++__wi_count;
+                }
+            }
+
+        }
+        else
+        {
+            // Edge of input, have to handle memory bounds
+            for (size_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n; ++__i)
+            {
+                if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
+                {
+                    _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                    if (__pred(__val))
+                    {
+                        __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                        ++__wi_count;
+                    }
+                }
+
+            }
+        }
+        _SizeT __wg_count  = __wi_count;
+        __wg_count = sycl::exclusive_scan_over_group(__group, __wg_count, _BinaryOp{});
+
+        // Phase 2: Global scan across __wg_count
+        _SizeT __copied_elements = 0;
+
+        __lookback_phase<_FlagType>(__group, __sg, __status_flags, __status_vals_full, __status_vals_partial, __tile_id,
+                                    __wg_count, __copied_elements, _BinaryOp{});
+
+        // Phase 3: copy values to global memory
+        for (int __i = 0; __i < __wi_count; ++__i)
+        {
+            __out_rng[__copied_elements + __wg_count + __i] = __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem];
+        }
+        if (__tile_id == (__current_num_wgs - 1) && __wg_local_id == (__workgroup_size - 1))
+            __num_rng[0] = __copied_elements + __wg_count + __wi_count;
+    }
+};
+
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _KernelName>
 struct __copy_if_submitter;
 
@@ -636,7 +746,7 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
         using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
         using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
         using _KernelFunc =
-            __copy_if_kernel_func<__data_per_workitem, __workgroup_size, _FlagType, std::decay_t<_InRange>,
+            __copy_if_kernel_func_scalar<__data_per_workitem, __workgroup_size, _FlagType, std::decay_t<_InRange>,
                                   std::decay_t<_OutRange>, std::decay_t<_NumSelectedRange>, _UnaryPredicate,
                                   std::decay_t<_StatusFlags>, std::decay_t<_StatusValues>,
                                   std::decay_t<_LocalAccessorType>>;
