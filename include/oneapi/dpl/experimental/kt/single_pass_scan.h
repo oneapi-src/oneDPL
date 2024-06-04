@@ -282,15 +282,15 @@ __lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlag
 }
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
-          typename _InRange, typename _OutRange, typename _BinaryOp, typename _StatusFlags, typename _StatusValues,
+          typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues,
           typename _TileVals>
 struct __lookback_kernel_func
 {
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
     static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
 
-    _InRange __in_rng;
-    _OutRange __out_rng;
+    _InRng __in_rng;
+    _OutRng __out_rng;
     _BinaryOp __binary_op;
     std::size_t __n;
     _StatusFlags __status_flags;
@@ -378,17 +378,17 @@ struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _
                                  oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
 
-    template <typename _InRange, typename _OutRange, typename _BinaryOp, typename _StatusFlags, typename _StatusValues>
+    template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues>
     sycl::event
-    operator()(sycl::queue __q, sycl::event __prev_event, _InRange&& __in_rng, _OutRange&& __out_rng,
+    operator()(sycl::queue __q, sycl::event __prev_event, _InRng&& __in_rng, _OutRng&& __out_rng,
                _BinaryOp __binary_op, std::size_t __n, _StatusFlags&& __status_flags, std::size_t __status_flags_size,
                _StatusValues&& __status_vals_full, _StatusValues&& __status_vals_partial,
                std::size_t __current_num_items) const
     {
         using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
         using _KernelFunc =
-            __lookback_kernel_func<__data_per_workitem, __workgroup_size, _Type, _FlagType, std::decay_t<_InRange>,
-                                   std::decay_t<_OutRange>, std::decay_t<_BinaryOp>, std::decay_t<_StatusFlags>,
+            __lookback_kernel_func<__data_per_workitem, __workgroup_size, _Type, _FlagType, std::decay_t<_InRng>,
+                                   std::decay_t<_OutRng>, std::decay_t<_BinaryOp>, std::decay_t<_StatusFlags>,
                                    std::decay_t<_StatusValues>, std::decay_t<_LocalAccessorType>>;
 
         static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
@@ -406,11 +406,11 @@ struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _
     }
 };
 
-template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
+template <bool _Inclusive, typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event
-__single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op, _KernelParam)
+__single_pass_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op, _KernelParam)
 {
-    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
@@ -443,7 +443,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
             return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
                 oneapi::dpl::__internal::__device_backend_tag{},
                 oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue),
-                std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng), __n,
+                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
                 oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op,
                 std::true_type{});
         }
@@ -493,19 +493,19 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     }
 }
 
-template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRange,
-          typename _OutRange, typename _NumRng, typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues,
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRng,
+          typename _OutRng, typename _NumRng, typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues,
           typename _TileValues>
 struct __copy_if_kernel_func
 {
     static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
     using _SizeT = std::size_t;
     using _BinaryOp = std::plus<_SizeT>;
-    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
-    _InRange __in_rng;
-    _OutRange __out_rng;
+    _InRng __in_rng;
+    _OutRng __out_rng;
     _NumRng __num_rng;
     _SizeT __n;
     _UnaryPredicate __pred;
@@ -598,20 +598,20 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
                            oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
 
-    template <typename _Event, typename _InRange, typename _OutRange, typename _NumSelectedRange,
+    template <typename _Event, typename _InRng, typename _OutRng, typename _NumCopiedRng,
               typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues>
     sycl::event
-    operator()(sycl::queue __q, _Event __fill_event, _InRange&& __in_rng, _OutRange&& __out_rng,
-               _NumSelectedRange&& __num_rng, std::size_t __n, _UnaryPredicate __pred, _StatusFlags&& __status_flags,
+    operator()(sycl::queue __q, _Event __fill_event, _InRng&& __in_rng, _OutRng&& __out_rng,
+               _NumCopiedRng&& __num_rng, std::size_t __n, _UnaryPredicate __pred, _StatusFlags&& __status_flags,
                std::size_t __status_flags_size, _StatusValues&& __status_vals_full,
                _StatusValues&& __status_vals_partial, std::size_t __current_num_items,
                std::size_t __current_num_wgs) const
     {
-        using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+        using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
         using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
         using _KernelFunc =
-            __copy_if_kernel_func<__data_per_workitem, __workgroup_size, _FlagType, std::decay_t<_InRange>,
-                                  std::decay_t<_OutRange>, std::decay_t<_NumSelectedRange>, _UnaryPredicate,
+            __copy_if_kernel_func<__data_per_workitem, __workgroup_size, _FlagType, std::decay_t<_InRng>,
+                                  std::decay_t<_OutRng>, std::decay_t<_NumCopiedRng>, _UnaryPredicate,
                                   std::decay_t<_StatusFlags>, std::decay_t<_StatusValues>,
                                   std::decay_t<_LocalAccessorType>>;
 
@@ -631,15 +631,15 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
     }
 };
 
-template <typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate,
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
           typename _KernelParam>
 sycl::event
-single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng,
+single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng __num_rng,
                          _UnaryPredicate __pred, _KernelParam)
 {
     using _SizeT = uint64_t;
     using _KernelName = __copy_if_kernel<typename _KernelParam::kernel_name>;
-    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
     using _FlagType = __scan_status_flag<_SizeT>;
 
     using _BinaryOp = std::plus<_SizeT>;
@@ -662,8 +662,8 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         {
             return oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
                 oneapi::dpl::execution::__dpl::make_device_policy<_KernelName>(__queue), __n,
-                std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng),
-                std::forward<_NumSelectedRange>(__num_rng), __pred);
+                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+                std::forward<_NumCopiedRng>(__num_rng), __pred);
         }
     }
     constexpr std::size_t __workgroup_size = _KernelParam::workgroup_size;
@@ -710,15 +710,15 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
 } // namespace __impl
 
-template <typename _InRange, typename _OutRange, typename _NumCopiedRange, typename _UnaryPredicate,
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
           typename _KernelParam>
 sycl::event
-copy_if(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumCopiedRange&& __num_rng,
+copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
         _UnaryPredicate __pred, _KernelParam __param = {})
 {
-    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRange>(__in_rng));
-    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRange>(__out_rng));
-    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRange>(__num_rng));
+    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
+    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__num_rng));
 
     return __impl::single_pass_copy_if_impl(__queue, std::move(__in_view), std::move(__out_view), std::move(__num_view),
                                             __pred, __param);
@@ -745,13 +745,13 @@ copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutI
                                             __pred, __param);
 }
 
-template <typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
+template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event
-inclusive_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op,
+inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
                _KernelParam __param = {})
 {
-    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRange>(__in_rng));
-    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRange>(__out_rng));
+    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
     return __impl::__single_pass_scan<true>(__queue, std::move(__in_view), std::move(__out_view), __binary_op, __param);
 }
