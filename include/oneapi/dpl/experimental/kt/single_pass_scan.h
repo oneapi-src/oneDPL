@@ -694,17 +694,13 @@ struct __copy_if_kernel_func_scalar
             // Edge of input, have to handle memory bounds
             for (std::uint16_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n; ++__i)
             {
-                if (__i + __wg_local_id + __elems_in_tile * __tile_id < __n)
+                _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                if (__pred(__val))
                 {
-                    _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
-
-                    if (__pred(__val))
-                    {
-                        __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
-                        ++__wi_count;
-                    }
+                    __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                    ++__wi_count;
                 }
-
             }
         }
         _SizeT __wg_count  = __wi_count;
