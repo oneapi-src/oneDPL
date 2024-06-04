@@ -710,7 +710,7 @@ struct __copy_if_kernel_func_scalar
         _SizeT __copied_elements = 0;
 
         __lookback_phase<_FlagType>(__group, __sg, __status_flags, __status_vals_full, __status_vals_partial, __tile_id,
-                                    __wg_count, __copied_elements, _BinaryOp{});
+                                    __wg_count + __wi_count, __copied_elements, _BinaryOp{});
 
         // Phase 3: copy values to global memory
         for (std::uint16_t __i = 0; __i < __wi_count; ++__i)
