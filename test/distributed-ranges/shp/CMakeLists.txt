@@ -37,6 +37,7 @@ add_library(DR::shp ALIAS dr_shp)
 target_include_directories(dr_shp INTERFACE . vendor ../../../include)
 target_compile_definitions(dr_shp INTERFACE USE_MKL
                                             _GLIBCXX_USE_TBB_PAR_BACKEND=0)
+target_compile_options(dr_shp INTERFACE -ftemplate-backtrace-limit=0)
 target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
 target_link_libraries(dr_shp INTERFACE fmt::fmt)
 

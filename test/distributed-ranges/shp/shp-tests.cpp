@@ -22,7 +22,6 @@ int main(int argc, char *argv[]) {
   const std::string dOption = "-d";
   const std::string devicesCountOption = "--devicesCount";
 
-  bool drhelp = false;
   unsigned int devicesCount = 0;
 
   for (int i = 1; i < argc; i++) {
