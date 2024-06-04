@@ -265,7 +265,7 @@ template <typename _FlagType, typename _Group, typename _SubGroup, typename _Sta
 void
 __lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlags __status_flags,
                  _StatusValues __status_vals_full, _StatusValues __status_vals_partial, std::uint32_t __tile_id,
-                 _Type& __local_reduction, _Type& __prev_tile_reduction, _BinaryOp __binary_op)
+                 const _Type& __local_reduction, _Type& __prev_tile_reduction, _BinaryOp __binary_op)
 {
     // The last sub-group will query the previous tiles to find a prefix
     if (__subgroup.get_group_id() == (__subgroup.get_group_range()[0] - 1))
