@@ -406,11 +406,11 @@ struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _
     }
 };
 
-template <bool _Inclusive, typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
+template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
 sycl::event
-__single_pass_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op, _KernelParam)
+__single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op, _KernelParam)
 {
-    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = typename _FlagType::_FlagStorageType;
 
