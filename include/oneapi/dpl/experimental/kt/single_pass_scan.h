@@ -560,12 +560,12 @@ struct __copy_if_kernel_func
                     ++__wi_count;
                 }
             }
-
         }
         else
         {
             // Edge of input, have to handle memory bounds
-            for (std::uint16_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n; ++__i)
+            for (std::uint16_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n;
+                 ++__i)
             {
                 _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
 
@@ -576,7 +576,7 @@ struct __copy_if_kernel_func
                 }
             }
         }
-        _SizeT __wg_count  = __wi_count;
+        _SizeT __wg_count = __wi_count;
         __wg_count = sycl::exclusive_scan_over_group(__group, __wg_count, _BinaryOp{});
 
         // Phase 2: Global scan across __wg_count
@@ -588,7 +588,8 @@ struct __copy_if_kernel_func
         // Phase 3: copy values to global memory
         for (std::uint16_t __i = 0; __i < __wi_count; ++__i)
         {
-            __out_rng[__copied_elements + __wg_count + __i] = __wg_copy_if_values[__i + __wg_local_id * __data_per_workitem];
+            __out_rng[__copied_elements + __wg_count + __i] =
+                __wg_copy_if_values[__i + __wg_local_id * __data_per_workitem];
         }
         if (__tile_id == (__current_num_wgs - 1) && __wg_local_id == (__workgroup_size - 1))
             __num_rng[0] = __copied_elements + __wg_count + __wi_count;
@@ -718,25 +719,39 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
 } // namespace __impl
 
-template <typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate,
+template <typename _InRange, typename _OutRange, typename _NumCopiedRange, typename _UnaryPredicate,
+          typename _KernelParam>
+sycl::event
+copy_if(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumCopiedRange&& __num_rng,
+        _UnaryPredicate __pred, _KernelParam __param = {})
+{
+    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRange>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRange>(__out_rng));
+    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRange>(__num_rng));
+
+    return __impl::single_pass_copy_if_impl(__queue, std::move(__in_view), std::move(__out_view), std::move(__num_view),
+                                            __pred, __param);
+}
+
+template <typename _InIterator, typename _OutIterator, typename _NumCopiedIterator, typename _UnaryPredicate,
           typename _KernelParam>
 sycl::event
 copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
-        _NumSelectedRange __num_begin, _UnaryPredicate __pred, _KernelParam __param = {})
+        _NumCopiedIterator __num_begin, _UnaryPredicate __pred, _KernelParam __param = {})
 {
     auto __n = __in_end - __in_begin;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
-    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __buf_in = __keep1(__in_begin, __in_end);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
-    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+    auto __buf_out = __keep2(__out_begin, __out_begin + __n);
 
     auto __keep_num =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumCopiedIterator>();
     auto __buf_num = __keep2(__num_begin, __num_begin + 1);
 
-    return __impl::single_pass_copy_if_impl(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(), __pred,
-                                            __param);
+    return __impl::single_pass_copy_if_impl(__queue, __buf_in.all_view(), __buf_out.all_view(), __buf_num.all_view(),
+                                            __pred, __param);
 }
 
 template <typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
