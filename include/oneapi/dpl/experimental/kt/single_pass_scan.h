@@ -380,8 +380,8 @@ struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _
 
     template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues>
     sycl::event
-    operator()(sycl::queue __q, sycl::event __prev_event, _InRng&& __in_rng, _OutRng&& __out_rng,
-               _BinaryOp __binary_op, std::size_t __n, _StatusFlags&& __status_flags, std::size_t __status_flags_size,
+    operator()(sycl::queue __q, sycl::event __prev_event, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
+               std::size_t __n, _StatusFlags&& __status_flags, std::size_t __status_flags_size,
                _StatusValues&& __status_vals_full, _StatusValues&& __status_vals_partial,
                std::size_t __current_num_items) const
     {
@@ -598,14 +598,13 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
                            oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
 
-    template <typename _Event, typename _InRng, typename _OutRng, typename _NumCopiedRng,
-              typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues>
+    template <typename _Event, typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
+              typename _StatusFlags, typename _StatusValues>
     sycl::event
-    operator()(sycl::queue __q, _Event __fill_event, _InRng&& __in_rng, _OutRng&& __out_rng,
-               _NumCopiedRng&& __num_rng, std::size_t __n, _UnaryPredicate __pred, _StatusFlags&& __status_flags,
-               std::size_t __status_flags_size, _StatusValues&& __status_vals_full,
-               _StatusValues&& __status_vals_partial, std::size_t __current_num_items,
-               std::size_t __current_num_wgs) const
+    operator()(sycl::queue __q, _Event __fill_event, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
+               std::size_t __n, _UnaryPredicate __pred, _StatusFlags&& __status_flags, std::size_t __status_flags_size,
+               _StatusValues&& __status_vals_full, _StatusValues&& __status_vals_partial,
+               std::size_t __current_num_items, std::size_t __current_num_wgs) const
     {
         using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
         using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
@@ -631,8 +630,7 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
     }
 };
 
-template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
-          typename _KernelParam>
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate, typename _KernelParam>
 sycl::event
 single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng __num_rng,
                          _UnaryPredicate __pred, _KernelParam)
@@ -710,11 +708,10 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out
 
 } // namespace __impl
 
-template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
-          typename _KernelParam>
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate, typename _KernelParam>
 sycl::event
-copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
-        _UnaryPredicate __pred, _KernelParam __param = {})
+copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng, _UnaryPredicate __pred,
+        _KernelParam __param = {})
 {
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
