@@ -1038,15 +1038,15 @@ struct __early_exit_find_or
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
-        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+        const auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
-        ::std::size_t __shift = 16;
-        ::std::size_t __local_idx = __nd_item.get_local_id(0);
-        ::std::size_t __group_idx = __nd_item.get_group(0);
+        std::size_t __shift = 16;
+        const std::size_t __local_idx = __nd_item.get_local_id(0);
+        const std::size_t __group_idx = __nd_item.get_group(0);
 
         // each work_item processes N_ELEMENTS with step SHIFT
-        ::std::size_t __leader = (__local_idx / __shift) * __shift;
-        ::std::size_t __init_index = __group_idx * __wg_size * __n_iter + __leader * __n_iter + __local_idx % __shift;
+        const std::size_t __leader = (__local_idx / __shift) * __shift;
+        const std::size_t __init_index = __group_idx * __wg_size * __n_iter + __leader * __n_iter + __local_idx % __shift;
 
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
@@ -1061,7 +1061,7 @@ struct __early_exit_find_or
             if constexpr (_BackwardTagType::value)
                 __current_iter = __n_iter - 1 - __i;
 
-            _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
+            const _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
             // should be investigated later, with other HW
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
