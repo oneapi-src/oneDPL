@@ -106,7 +106,7 @@ test_all_view(sycl::queue q, std::size_t size, Predicate pred, KernelParam param
     std::string msg1 = "wrong num copied with all_view, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_acc[0], msg1.c_str());
     std::string msg2 = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(out_ref, acc, msg2.c_str());
+    EXPECT_EQ_N(out_ref.begin(), acc.begin(), num_copied_ref, msg2.c_str());
 }
 
 template <typename T, typename Predicate, typename KernelParam>
@@ -137,7 +137,7 @@ test_buffer(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::string msg1 = "wrong num copied with buffer, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_acc[0], msg1.c_str());
     std::string msg2 = "wrong results with buffer, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(out_ref, acc, msg2.c_str());
+    EXPECT_EQ_N(out_ref.begin(), acc.begin(), num_copied_ref, msg2.c_str());
 
 }
 #endif
@@ -174,10 +174,8 @@ test_usm(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::string msg1 = "wrong num copied with USM, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_host[0], msg1.c_str());
     std::string msg2 = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(out_ref.begin(), actual.begin(), size, msg2.c_str());
+    EXPECT_EQ_N(out_ref.begin(), actual.begin(), num_copied_ref, msg2.c_str());
 }
-
-///////////////////
 
 template <typename T, typename Predicate, typename KernelParam>
 void
@@ -207,7 +205,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, Predicate pred, KernelParam
     std::string msg1 = "wrong num copied with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied, msg1.c_str());
     std::string msg2 = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(out_ref, output, msg2.c_str());
+    EXPECT_EQ_N(out_ref.begin(), output.begin(), num_copied_ref, msg2.c_str());
 }
 
 template <typename T, typename Predicate, typename KernelParam>
