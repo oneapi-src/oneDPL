@@ -558,8 +558,8 @@ struct __copy_if_kernel_func
         else
         {
             // Edge of input, have to handle memory bounds
-            for (std::uint16_t __i = 0; __i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id < __n;
-                 ++__i)
+            std::uint16_t __end = std::min(std::size_t{__data_per_workitem}, __n - __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id);
+            for (std::uint16_t __i = 0; __i < __end; ++__i)
             {
                 _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
 
