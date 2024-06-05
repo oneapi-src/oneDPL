@@ -5,7 +5,7 @@ Radix Sort
 radix_sort Function Templates
 -----------------------------
 
-The ``radix_sort`` function sorts keys using the radix sort algorithm.
+The ``radix_sort`` function sorts data using the radix sort algorithm.
 The sorting is stable, preserving the order of elements with equal keys.
 There are in-place and out-of-place overloads. Out-of-place overloads do not alter the input sequence.
 
