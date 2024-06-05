@@ -5,10 +5,11 @@ Radix Sort By Key
 radix_sort_by_key Function Templates
 ------------------------------------
 
-The ``radix_sort_by_key`` function sorts data using the radix sort algorithm.
-The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in-place and out-of-place
-overloads are provided. For out-of-place overloads, the input data order is preserved.
+The ``radix_sort_by_key`` function sorts keys using the radix sort algorithm, applying the same order to the corresponding values.
+The sorting is stable, preserving the order of elements with equal keys.
+There are in-place and out-of-place overloads. Out-of-place overloads do not alter the input sequences.
+
+The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort_by_key`` function is provided below:
 
@@ -18,21 +19,21 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
 
    namespace oneapi::dpl::experimental::kt::gpu::esimd {
 
-   // Sort a sequence of keys and apply the same order to a sequence of values in-place
+   // Sort in-place
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator1, typename Iterator2>
    sycl::event
    radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
-                      Iterator2 values_first, KernelParam param) // (1)
+                      Iterator2 values_first, KernelParam param); // (1)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysRng, typename ValuesRng>
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysRng&& keys,
-                      ValuesRng&& values, KernelParam param) // (2)
+                      ValuesRng&& values, KernelParam param); // (2)
 
 
-   // Sort a sequence of keys and values out-of-place
+   // Sort out-of-place
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysIterator1,
              typename ValuesIterator1, typename KeysIterator2,
@@ -41,7 +42,7 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
    radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
                       KeysIterator1 keys_last, ValuesIterator1 values_first,
                       KeysIterator2 keys_out_first, ValuesIterator2 values_out_first,
-                      KernelParam param) // (3)
+                      KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysRng1, typename ValuesRng1,
@@ -49,7 +50,7 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValuesRng1&& values,
                       KeysRng2&& keys_out, ValuesRng2&& values_out,
-                      KernelParam param) // (4)
+                      KernelParam param); // (4)
    }
 
 

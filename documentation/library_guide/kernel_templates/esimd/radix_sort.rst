@@ -5,10 +5,11 @@ Radix Sort
 radix_sort Function Templates
 -----------------------------
 
-The ``radix_sort`` function sorts data using the radix sort algorithm.
-The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in-place and out-of-place
-overloads are provided. For out-of-place overloads, the input data order is preserved.
+The ``radix_sort`` function sorts keys using the radix sort algorithm.
+The sorting is stable, preserving the order of elements with equal keys.
+There are in-place and out-of-place overloads. Out-of-place overloads do not alter the input sequence.
+
+The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort`` function is provided below:
 
@@ -23,12 +24,12 @@ A synopsis of the ``radix_sort`` function is provided below:
              typename KernelParam, typename Iterator>
    sycl::event
    radix_sort (sycl::queue q, Iterator first, Iterator last,
-               KernelParam param) // (1)
+               KernelParam param); // (1)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range>
    sycl::event
-   radix_sort (sycl::queue q, Range&& r, KernelParam param) // (2)
+   radix_sort (sycl::queue q, Range&& r, KernelParam param); // (2)
 
 
    // Sort out-of-place
@@ -37,13 +38,13 @@ A synopsis of the ``radix_sort`` function is provided below:
              typename Iterator2>
    sycl::event
    radix_sort (sycl::queue q, Iterator1 first, Iterator1 last,
-               Iterator2 first_out, KernelParam param) // (3)
+               Iterator2 first_out, KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range1, typename Range2>
    sycl::event
    radix_sort (sycl::queue q, Range1&& r, Range2&& r_out,
-               KernelParam param) // (4)
+               KernelParam param); // (4)
    }
 
 
