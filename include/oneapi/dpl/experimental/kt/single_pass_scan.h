@@ -558,15 +558,18 @@ struct __copy_if_kernel_func
         else
         {
             // Edge of input, have to handle memory bounds
-            std::uint16_t __end = std::min(std::size_t{__data_per_workitem}, __n - __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id);
-            for (std::uint16_t __i = 0; __i < __end; ++__i)
+#pragma unroll
+            for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
             {
-                _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
-
-                if (__pred(__val))
+                if (__i + (__wg_local_id) * __data_per_workitem + __elems_in_tile * __tile_id < __n)
                 {
-                    __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
-                    ++__wi_count;
+                    _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                    if (__pred(__val))
+                    {
+                        __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                        ++__wi_count;
+                    }
                 }
             }
         }
