@@ -806,8 +806,10 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
-    else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size)
-        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
+    // SIMD16 subgroups are needed to avoid register spillage. In practice, SIMD16 is only available on iGPU
+    // hardware which can be detected by a SPIR-V target check.
+    else if ((__n <= 16384 && __wg_size * 8 <= __max_wg_size) && oneapi::dpl::__internal::__is_spirv_target_v)
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 16, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
     else
     {
