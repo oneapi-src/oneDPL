@@ -2392,10 +2392,10 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
 // sort
 //------------------------------------------------------------------------
 
-template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsMoveConstructible>
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
-               _IsMoveConstructible) noexcept
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
+               _Compare __comp) noexcept
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
@@ -2405,8 +2405,7 @@ __pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomA
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
 __pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
-               _RandomAccessIterator __last, _Compare __comp,
-               /*is_move_constructible=*/::std::true_type)
+               _RandomAccessIterator __last, _Compare __comp)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 

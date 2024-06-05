@@ -741,15 +741,13 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomA
 // sort
 //------------------------------------------------------------------------
 
-template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsMoveConstructible>
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-               _IsMoveConstructible) noexcept;
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare) noexcept;
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-               /*is_move_constructible=*/::std::true_type);
+__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare);
 
 //------------------------------------------------------------------------
 // stable_sort
@@ -803,10 +801,11 @@ _RandomAccessIterator
 __pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
                             _RandomAccessIterator, _Compare) noexcept;
 
-template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
-_RandomAccessIterator
-__pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
-                            _RandomAccessIterator, _Compare) noexcept;
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Compare>
+_RandomAccessIterator2
+__pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                            _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator2, _Compare);
 
 //------------------------------------------------------------------------
 // adjacent_find
