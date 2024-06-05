@@ -35,20 +35,20 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
    // Sort a sequence of keys and values out-of-place
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename KeysIterator1,
-             typename ValsIterator1, typename KeysIterator2,
-             typename ValsIterator2>
+             typename ValuesIterator1, typename KeysIterator2,
+             typename ValuesIterator2>
    sycl::event
    radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
-                      KeysIterator1 keys_last, ValsIterator1 vals_first,
-                      KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
+                      KeysIterator1 keys_last, ValuesIterator1 values_first,
+                      KeysIterator2 keys_out_first, ValuesIterator2 values_out_first,
                       KernelParam param) // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysRng1, typename ValsRng1,
-             typename KeysRng2, typename ValsRng2>
+             typename KernelParam, typename KeysRng1, typename ValuesRng1,
+             typename KeysRng2, typename ValuesRng2>
    sycl::event
-   radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
-                      KeysRng2&& keys_out, ValsRng2&& vals_out,
+   radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValuesRng1&& values,
+                      KeysRng2&& keys_out, ValuesRng2&& values_out,
                       KernelParam param) // (4)
    }
 
@@ -79,7 +79,7 @@ Parameters
 |   ``values_first`` (1),                       |                                                                     |
 | - ``keys``, ``values`` (2),                   | - :ref:`USM pointers <use-usm>` (1,3),                              |
 | - ``keys_first``, ``keys_last``,              | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-|   ``vals_first``, ``keys_out_first``,         |   <use-buffer-wrappers>` (1,3).                                     |
+|   ``values_first``, ``keys_out_first``,       |   <use-buffer-wrappers>` (1,3).                                     |
 |   ``values_out_first`` (3)                    | - ``sycl::buffer`` (2,4),                                           |
 | - ``keys``, ``values``,                       | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
 |   ``keys_out``, ``values_out`` (4).           |   <viewable-ranges>` (2,4),                                         |
