@@ -11,25 +11,25 @@
 namespace oneapi::dpl::experimental::dr::shp
 {
 
-// A `device_span` is simply a normal `std::span` that's
+// A `remote_span` is simply a normal `std::span` that's
 // been decorated with an extra `rank()` function, showing
 // which rank its memory is located on.
 // (Thus fulfilling the `remote_range` concept.)
 /*
 template <class T,
           std::size_t Extent = std::dynamic_extent>
-class device_span : public std::span<T, Extent> {
+class remote_span : public std::span<T, Extent> {
 public:
-  constexpr device_span() noexcept {}
+  constexpr remote_span() noexcept {}
 
   template< class It >
   explicit(Extent != std::dynamic_extent)
-  constexpr device_span(It first, std::size_t count, std::size_t rank)
+  constexpr remote_span(It first, std::size_t count, std::size_t rank)
     : rank_(rank), std::span<T, Extent>(first, count) {}
 
   template< class It, class End >
   explicit(Extent != std::dynamic_extent)
-  constexpr device_span(It first, End last, std::size_t rank)
+  constexpr remote_span(It first, End last, std::size_t rank)
     : rank_(rank), std::span<T, Extent>(first, last) {}
 
   constexpr std::size_t rank() const noexcept {
@@ -42,10 +42,10 @@ private:
 */
 
 template <typename T, typename Iter = T*>
-class device_span : public span<T, Iter>
+class remote_span : public span<T, Iter>
 {
   public:
-    constexpr device_span() noexcept {}
+    constexpr remote_span() noexcept {}
 
     using value_type = T;
     using size_type = std::size_t;
@@ -53,22 +53,22 @@ class device_span : public span<T, Iter>
     using reference = std::iter_reference_t<Iter>;
 
     template <rng::random_access_range R>
-    requires(remote_range<R>) device_span(R&& r) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(ranges::rank(r))
+    requires(remote_range<R>) remote_span(R&& r) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(ranges::rank(r))
     {
     }
 
     template <rng::random_access_range R>
-    device_span(R&& r, std::size_t rank) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank)
+    remote_span(R&& r, std::size_t rank) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank)
     {
     }
 
     template <class It>
-    constexpr device_span(It first, std::size_t count, std::size_t rank) : span<T, Iter>(first, count), rank_(rank)
+    constexpr remote_span(It first, std::size_t count, std::size_t rank) : span<T, Iter>(first, count), rank_(rank)
     {
     }
 
     template <class It, class End>
-    constexpr device_span(It first, End last, std::size_t rank) : span<T, Iter>(first, last), rank_(rank)
+    constexpr remote_span(It first, End last, std::size_t rank) : span<T, Iter>(first, last), rank_(rank)
     {
     }
 
@@ -78,22 +78,22 @@ class device_span : public span<T, Iter>
         return rank_;
     }
 
-    device_span
+    remote_span
     first(std::size_t n) const
     {
-        return device_span(this->begin(), this->begin() + n, rank_);
+        return remote_span(this->begin(), this->begin() + n, rank_);
     }
 
-    device_span
+    remote_span
     last(std::size_t n) const
     {
-        return device_span(this->end() - n, this->end(), rank_);
+        return remote_span(this->end() - n, this->end(), rank_);
     }
 
-    device_span
+    remote_span
     subspan(std::size_t offset, std::size_t count) const
     {
-        return device_span(this->begin() + offset, this->begin() + offset + count, rank_);
+        return remote_span(this->begin() + offset, this->begin() + offset + count, rank_);
     }
 
   private:
@@ -101,9 +101,9 @@ class device_span : public span<T, Iter>
 };
 
 template <rng::random_access_range R>
-device_span(R&&) -> device_span<rng::range_value_t<R>, rng::iterator_t<R>>;
+remote_span(R&&) -> remote_span<rng::range_value_t<R>, rng::iterator_t<R>>;
 
 template <rng::random_access_range R>
-device_span(R&&, std::size_t) -> device_span<rng::range_value_t<R>, rng::iterator_t<R>>;
+remote_span(R&&, std::size_t) -> remote_span<rng::range_value_t<R>, rng::iterator_t<R>>;
 
 } // namespace oneapi::dpl::experimental::dr::shp
