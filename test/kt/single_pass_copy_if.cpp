@@ -85,12 +85,12 @@ test_all_view(sycl::queue q, std::size_t size, Predicate pred, KernelParam param
     std::vector<T> input(size);
     generate_copy_if_data(input.data(), size, 42);
     std::vector<T> ref(input);
-    std::vector<T> out(size);
+    std::vector<T> out_ref(size);
     sycl::buffer<T> buf_out(input.size());
     std::size_t num_copied = 0;
     sycl::buffer<std::size_t> buf_num_copied(&num_copied, 1);
-    auto out_end = std::copy_if(std::begin(ref), std::end(ref), std::begin(out), pred);
-    std::size_t num_copied_ref = out_end - std::begin(out);
+    auto out_end = std::copy_if(std::begin(ref), std::end(ref), std::begin(out_ref), pred);
+    std::size_t num_copied_ref = out_end - std::begin(out_ref);
     {
         sycl::buffer<T> buf(input.data(), input.size());
 
@@ -106,7 +106,7 @@ test_all_view(sycl::queue q, std::size_t size, Predicate pred, KernelParam param
     std::string msg1 = "wrong num copied with all_view, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_acc[0], msg1.c_str());
     std::string msg2 = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, acc, msg2.c_str());
+    EXPECT_EQ_RANGES(out_ref, acc, msg2.c_str());
 }
 
 template <typename T, typename Predicate, typename KernelParam>
@@ -137,7 +137,7 @@ test_buffer(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::string msg1 = "wrong num copied with buffer, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_acc[0], msg1.c_str());
     std::string msg2 = "wrong results with buffer, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, acc, msg2.c_str());
+    EXPECT_EQ_RANGES(out_ref, acc, msg2.c_str());
 
 }
 #endif
@@ -150,16 +150,16 @@ test_usm(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
 #endif
-    std::vector<T> expected(size);
-    generate_copy_if_data(expected.data(), size, 42);
+    std::vector<T> in_ref(size);
+    generate_copy_if_data(in_ref.data(), size, 42);
     std::vector<T> out_ref(size);
 
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, in_ref.begin(), in_ref.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
     TestUtils::usm_data_transfer<_alloc_type, std::size_t> dt_num_copied(q, 1);
 
     std::size_t num_copied = 0;
-    auto out_end = std::copy_if(std::begin(expected), std::end(expected), std::begin(out_ref), pred);
+    auto out_end = std::copy_if(std::begin(in_ref), std::end(in_ref), std::begin(out_ref), pred);
     std::size_t num_copied_ref = out_end - std::begin(out_ref);
 
     oneapi::dpl::experimental::kt::gpu::copy_if(q, dt_input.get_data(), dt_input.get_data() + size,
@@ -174,7 +174,7 @@ test_usm(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::string msg1 = "wrong num copied with USM, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_host[0], msg1.c_str());
     std::string msg2 = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg2.c_str());
+    EXPECT_EQ_N(out_ref.begin(), actual.begin(), size, msg2.c_str());
 }
 
 ///////////////////
@@ -207,7 +207,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, Predicate pred, KernelParam
     std::string msg1 = "wrong num copied with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied, msg1.c_str());
     std::string msg2 = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, output, msg2.c_str());
+    EXPECT_EQ_RANGES(out_ref, output, msg2.c_str());
 }
 
 template <typename T, typename Predicate, typename KernelParam>
