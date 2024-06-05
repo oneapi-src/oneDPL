@@ -1143,8 +1143,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __item_id) {
-                    auto __local_idx = __item_id.get_local_id(0);
+                [=](sycl::nd_item</*dim=*/1> __nd_item) {
+                    auto __local_idx = __nd_item.get_local_id(0);
 
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
@@ -1154,12 +1154,12 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
                         __found_local.store(__init_value);
-                    __dpl_sycl::__group_barrier(__item_id);
+                    __dpl_sycl::__group_barrier(__nd_item);
 
                     // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                    __dpl_sycl::__group_barrier(__item_id);
+                    __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
+                    __dpl_sycl::__group_barrier(__nd_item);
 
                     // Set local atomic value to global atomic
                     if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
