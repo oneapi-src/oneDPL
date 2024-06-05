@@ -10,7 +10,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/remote_span.hpp>
 
 namespace oneapi::dpl::experimental::dr::shp
 {
@@ -151,7 +151,7 @@ class distributed_span : public rng::view_interface<distributed_span<T, L>>
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
 
-    using segment_type = device_span<T, L>;
+    using segment_type = remote_span<T, L>;
 
     using size_type = rng::range_size_t<segment_type>;
     using difference_type = rng::range_difference_t<segment_type>;

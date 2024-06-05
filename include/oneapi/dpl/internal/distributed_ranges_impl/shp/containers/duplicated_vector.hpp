@@ -5,7 +5,7 @@
 #pragma once
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/remote_vector.hpp>
 
 namespace oneapi::dpl::experimental::dr::shp
 {
@@ -14,7 +14,7 @@ template <typename T, typename Allocator = device_allocator<T>>
 class duplicated_vector
 {
   public:
-    using segment_type = device_vector<T, Allocator>;
+    using segment_type = remote_vector<T, Allocator>;
 
     using value_type = T;
     using size_type = std::size_t;
