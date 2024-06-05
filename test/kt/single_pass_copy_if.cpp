@@ -48,12 +48,6 @@ template <typename T>
 struct __less_than_val
 {
     const T __val;
-    __less_than_val() : __val{std::is_signed_v<T> ? 0 : std::numeric_limits<T>::max()/T{2}}
-    {
-    }
-    __less_than_val(const T& __v) : __val{__v}
-    {
-    }
     bool
     operator()(const T& __v) const
     {
@@ -70,7 +64,9 @@ generate_copy_if_data(T* input, std::size_t size, std::uint32_t seed)
     using substitute_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
 
     std::default_random_engine gen{seed};
-    std::uniform_int_distribution<substitute_t> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+    substitute_t start = std::is_signed_v<T> ? -10 : 0;
+    substitute_t end = std::is_signed_v<T> ? 10 : 20;
+    std::uniform_int_distribution<substitute_t> dist(start, end);
     std::generate(input, input + size, [&] { return dist(gen); });
 }
 
@@ -244,7 +240,7 @@ main()
     auto q = TestUtils::get_test_queue();
     bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
 
-    auto __predicate = __less_than_val<TEST_TYPE>{};
+    auto __predicate = __less_than_val<TEST_TYPE>{std::is_signed_v<TEST_TYPE> ? TEST_TYPE{0} : TEST_TYPE{10}};
     if (run_test)
     {
 
