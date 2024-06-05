@@ -1031,7 +1031,7 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
               typename _BrickTag, typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
+    operator()(const _NDItemId __nd_item, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
                _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
     {
         using __par_backend_hetero::__parallel_or_tag;
@@ -1041,8 +1041,8 @@ struct __early_exit_find_or
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
         ::std::size_t __shift = 16;
-        ::std::size_t __local_idx = __item_id.get_local_id(0);
-        ::std::size_t __group_idx = __item_id.get_group(0);
+        ::std::size_t __local_idx = __nd_item.get_local_id(0);
+        ::std::size_t __group_idx = __nd_item.get_group(0);
 
         // each work_item processes N_ELEMENTS with step SHIFT
         ::std::size_t __leader = (__local_idx / __shift) * __shift;
