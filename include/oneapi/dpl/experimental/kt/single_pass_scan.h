@@ -443,7 +443,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
             return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
                 oneapi::dpl::__internal::__device_backend_tag{},
                 oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue),
-                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
+                std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng), __n,
                 oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op,
                 std::true_type{});
         }
@@ -715,7 +715,7 @@ copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedR
 {
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
-    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__num_rng));
+    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_NumCopiedRng>(__num_rng));
 
     return __impl::single_pass_copy_if_impl(__queue, std::move(__in_view), std::move(__out_view), std::move(__num_view),
                                             __pred, __param);
