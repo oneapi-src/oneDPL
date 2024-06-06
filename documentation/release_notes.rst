@@ -13,35 +13,33 @@ New in 2022.6.0
 News
 ------------
 - `oneAPI DPC++ Library Manual Migration Guide`_ to simplify the migration of Thrust* and CUB* APIs from CUDA*. 
-- ``radix_sort`` and ``radix_sort_by_key`` algorithms residing in the ``oneapi::dpl::experimental::kt::esimd`` namespace
-  were moved into ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. 
-  The former namespace is now deprecated and will be removed in the future release.
+- ``radix_sort`` and ``radix_sort_by_key`` kernel templates were moved into
+  ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. The former ``oneapi::dpl::experimental::kt::esimd``
+  namespace is deprecated and will be removed in a future release.
 
 New Features
 ------------
 - oneDPL code is now implemented on tag dispatching approach. 
-  ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` are implemented for the host policies only. 
-- Added experimental ``inclusive_scan`` algorithm residing in
-  the ``oneapi::dpl::experimental::kt::gpu`` namespace. This algorithm is part of
-  the family of kernel templates that allow configuring a variety of parameters
-  including the number of elements to process by a work item, and the size of a workgroup.
-- Added out-of-place overloads for experimental ``radix_sort`` and ``radix_sort_by_key`` APIs found in
-  the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace.
+- The ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` algorithms
+  in `namespace oneapi::dpl::experimental` are enforced to fail with device execution policies.
+- Added experimental ``inclusive_scan`` kernel template algorithm residing in
+  the ``oneapi::dpl::experimental::kt::gpu`` namespace. 
+- ``radix_sort`` and ``radix_sort_by_key`` kernel templates are extended with overloads for out-of-place sorting.
   These overloads preserve the input sequence and sort data into the user provided output sequence.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``,
-  and ``lexicographical_compare`` algorithms with DPC++ execution policies (especially using the CUDA backend).
-- Improved performance of ``binary_search``, ``lower_bound``, and ``upper_bound`` algorithms with device policies.
+  ``lexicographical_compare``, ``binary_search``, ``lower_bound``, and ``upper_bound`` algorithms with device policies.
 -  ``sort``, ``stable_sort``, ``sort_by_key`` algorithms now use Radix sort [#fnote1]_
    for sorting ``sycl::half`` elements compared with ``std::less`` or ``std::greater``.
 
 Fixed Issues
 ------------
 - Fixed compilation errors when using ``reduce``, ``min_element``, ``max_element``,
-  ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` with DPCPP compilers 2023.0 and below.
-- Fixed possible data races in the following algorithms used with DPC++ execution policies: ``remove_if ``, ``unique ``,
-  ``inplace_merge ``, `` stable_partition``, `` partial_sort_copy``, `` rotate``.
-- Fixed handling of ``std::vector`` iterators allocated with USM allocators as input to oneDPL algorithms using
-  a device policy for standard library implementations which include allocator information in the iterator type.
+  ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` with Intel oneAPI DPC++/C++ compiler
+  2023.0 and earlier.
+- Fixed possible data races in the following algorithms used with device execution policies:
+  ``remove_if ``, ``unique ``, ``inplace_merge ``, `` stable_partition``, `` partial_sort_copy``, `` rotate``.
+- Fixed excessive copying of data in ``std::vector`` allocated with a USM allocator for standard library
+  implementations which have allocator information in the ``std::vector::iterator`` type.
 - Fixed an issue with ``transform_iterator`` where checking ``std::is_default_constructible`` of a `transform_iterator``
   with a functor which is not default constructible would result in a build error or an incorrect result for some compilers
   and implementations of the standard library. Added copy assignment of the functor within a ``transform_iterator``
