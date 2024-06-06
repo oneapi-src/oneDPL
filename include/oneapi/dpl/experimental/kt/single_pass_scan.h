@@ -561,7 +561,7 @@ struct __copy_if_kernel_func
 #pragma unroll
             for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
             {
-                if (__i + (__wg_local_id) * __data_per_workitem + __elems_in_tile * __tile_id < __n)
+                if (__i + (__wg_local_id)*__data_per_workitem + __elems_in_tile * __tile_id < __n)
                 {
                     _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
 

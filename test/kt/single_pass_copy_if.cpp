@@ -92,7 +92,8 @@ test_all_view(sycl::queue q, std::size_t size, Predicate pred, KernelParam param
 
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
-        oneapi::dpl::experimental::ranges::all_view<std::size_t, sycl::access::mode::write> view_num_copied(buf_num_copied);
+        oneapi::dpl::experimental::ranges::all_view<std::size_t, sycl::access::mode::write> view_num_copied(
+            buf_num_copied);
         oneapi::dpl::experimental::kt::gpu::copy_if(q, view, view_out, view_num_copied, pred, param).wait();
     }
 
@@ -134,7 +135,6 @@ test_buffer(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     EXPECT_EQ(num_copied_ref, num_copied_acc[0], msg1.c_str());
     std::string msg2 = "wrong results with buffer, n: " + std::to_string(size);
     EXPECT_EQ_N(out_ref.begin(), acc.begin(), num_copied_ref, msg2.c_str());
-
 }
 #endif
 
@@ -159,14 +159,14 @@ test_usm(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
     std::size_t num_copied_ref = out_end - std::begin(out_ref);
 
     oneapi::dpl::experimental::kt::gpu::copy_if(q, dt_input.get_data(), dt_input.get_data() + size,
-                                                       dt_output.get_data(), dt_num_copied.get_data(), pred, param)
+                                                dt_output.get_data(), dt_num_copied.get_data(), pred, param)
         .wait();
 
     std::vector<T> actual(size);
     dt_output.retrieve_data(actual.begin());
     std::vector<std::size_t> num_copied_host(1);
     dt_num_copied.retrieve_data(num_copied_host.begin());
-  
+
     std::string msg1 = "wrong num copied with USM, n: " + std::to_string(size);
     EXPECT_EQ(num_copied_ref, num_copied_host[0], msg1.c_str());
     std::string msg2 = "wrong results with USM, n: " + std::to_string(size);
@@ -222,7 +222,6 @@ void
 test_all_cases(sycl::queue q, std::size_t size, Predicate pred, KernelParam param)
 {
     test_general_cases<T>(q, size, pred, TestUtils::get_new_kernel_params<0>(param));
-
 }
 
 int
@@ -235,8 +234,10 @@ main()
               << "TEST_TYPE               : " << TypeInfo().name<TEST_TYPE>() << std::endl;
 #endif
 
-    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE,
-                                                          /*opt_out_single_wg=*/ std::bool_constant<TEST_SINGLE_WG_OPTOUT>> params;
+    constexpr oneapi::dpl::experimental::kt::kernel_param<
+        TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE,
+        /*opt_out_single_wg=*/std::bool_constant<TEST_SINGLE_WG_OPTOUT>>
+        params;
     auto q = TestUtils::get_test_queue();
     bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
 

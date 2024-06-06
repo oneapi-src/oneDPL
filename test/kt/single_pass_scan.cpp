@@ -210,8 +210,10 @@ main()
               << "TEST_TYPE               : " << TypeInfo().name<TEST_TYPE>() << std::endl;
 #endif
 
-    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE,
-                                                              /*opt_out_single_wg=*/ std::bool_constant<TEST_SINGLE_WG_OPTOUT>> params;
+    constexpr oneapi::dpl::experimental::kt::kernel_param<
+        TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE,
+        /*opt_out_single_wg=*/std::bool_constant<TEST_SINGLE_WG_OPTOUT>>
+        params;
     auto q = TestUtils::get_test_queue();
     bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
 
