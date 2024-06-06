@@ -99,6 +99,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
 
     // Each element is a partial result from a subgroup
     ValueType *tmp_storage = sycl::malloc_device<ValueType>(NUM_THREADS_GLOBAL, q);
+    sycl::event event;
 
     // run scan kernels for all input blocks in the current buffer
     // e.g., scan length 2^24 / MAX_INPUTS_PER_BLOCK = 2 blocks
@@ -108,9 +109,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // the first kernel computes thread-local prefix scans and 
     // thread local carries, one per thread
     // intermediate partial sums and carries write back to the output buffer
-    q.submit([&](handler &h) {
+    event = q.submit([&](handler &h) {
     sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group, h);
-    h.parallel_for( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
+    h.depends_on(event);
+    h.parallel_for<class kernel1>( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
         auto lid = ndi.get_local_id(0);
         auto g = ndi.get_group(0);
@@ -156,7 +158,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         }
         }
     });
-    }).wait();
+    });
     
     // the second kernel computes a prefix sum on thread-local carries
     // then propogates carries inter-Xe to generate thread-local versions
@@ -165,9 +167,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // N.B. the two kernels will be merged once inter-Xe sync has been 
     // fixed in ESIMD.  Currently atomics and global device memory are 
     // not coherent inter-Xe
-    q.submit([&](handler &CGH) {
+    event = q.submit([&](handler &CGH) {
     sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group + 1, CGH);
-    CGH.parallel_for( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
+    CGH.depends_on(event);
+    CGH.parallel_for<class kernel2>( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
         auto lid = ndi.get_local_id(0);
         auto g = ndi.get_group(0);
@@ -287,9 +290,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         init = sycl::group_broadcast(sub_group, v, VL-1);
         }
     });
-    }).wait(); 
+    });
 
     } // block
+    event.wait();
     sycl::free(tmp_storage, q);
 }
 
