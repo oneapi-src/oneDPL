@@ -997,25 +997,27 @@ struct __parallel_find_backward_tag
 // Tag for __parallel_find_or for or-semantic
 struct __parallel_or_tag
 {
-    class __atomic_compare
+    using _AtomicType = unsigned int;
+
+    static constexpr _AtomicType __found_state = 1;
+    static constexpr _AtomicType __not_found_state = 0;
+
+    struct __compare_state
     {
-      public:
-        template <typename _FoundLocalState, typename _GlobalAtomic>
         bool
-        operator()(const _FoundLocalState& __found_local, const _GlobalAtomic& __found) const
+        operator()(const _AtomicType __found_local, const _AtomicType __found) const
         {
-            return __found_local == 1 && __found == 0;
+            return __found_local == __found_state && __found == __not_found_state;
         }
     };
 
-    using _AtomicType = int32_t;
-    using _Compare = __atomic_compare;
+    using _Compare = __compare_state;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
     constexpr static _AtomicType __init_value(_DiffType)
     {
-        return 0;
+        return __not_found_state;
     }
 };
 
@@ -1056,7 +1058,10 @@ struct __early_exit_find_or
 
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
-                __found_local = 1;  //__shifted_idx;
+                __found_local = __parallel_or_tag::__found_state;
+
+                // Doesn't make sense to continue if we found the element
+                break;
             }
         }
     }
@@ -1087,7 +1092,7 @@ struct __early_exit_find_or
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType = decltype(__init_index + __i * __shift);
+            using _ShiftedIdxType = decltype(__found_local.load());
 
             _IterSize __current_iter = __i;
             if constexpr (_BackwardTagType::value)
@@ -1164,20 +1169,18 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __nd_item) {
-                    auto __local_idx = __nd_item.get_local_id(0);
-
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-
-                    _AtomicType __found_local = __init_value;
 
                     constexpr auto __comp = typename __parallel_or_tag::_Compare{};
+                    _AtomicType __found_local = __init_value;
                     __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, __parallel_or_tag{}, __rngs...);
 
-                    // Set local atomic value to global atomic
-                    if (__local_idx == 0 && __comp(__found_local, __found.load()))
+                    // Set found state result to global atomic
+                    if (__found_local == __parallel_or_tag::__found_state)
                     {
-                        __found.store(1);
+                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                            *__dpl_sycl::__get_accessor_ptr(__temp_acc));
+
+                        __found.store(__found_local);
                     }
                 });
         });
