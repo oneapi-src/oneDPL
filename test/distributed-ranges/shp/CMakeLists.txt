@@ -44,10 +44,6 @@ target_link_libraries(dr_shp INTERFACE fmt::fmt)
 target_compile_options(dr_shp INTERFACE -qopenmp)
 target_link_options(dr_shp INTERFACE -qopenmp)
 
-if (DEFINED ONEDPL_USE_DR)
-  target_compile_options(dr_shp INTERFACE "-DONEDPL_USE_DISTRIBUTED_RANGES" "-ftemplate-backtrace-limit=0")
-endif()
-
 # For use, see:
 # https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
 # example: cmake .. -DhipSYCL_DIR=</hipsycl/install/lib/cmake/hipSYCL>
