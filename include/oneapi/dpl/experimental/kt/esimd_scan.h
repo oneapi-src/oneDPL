@@ -1,9 +1,17 @@
-// Pulled from: https://github.com/intel-sandbox/personal.empainte.onedpl/blob/main/scan/esimd/scan.cpp
-///////////////////////////////////////////
-// scan.cpp
-// esimd indlusive prefix sum on uint32_t
-// v0.0.1
-///////////////////////////////////////////
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #include <algorithm>
 #include <array>
@@ -44,13 +52,13 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
     using ValueType = typename std::iterator_traits<InputIterator>::value_type;
 
     // PVC 1 tile
-    constexpr std::uint32_t VL                   = 32;                         // simd vector length
-    constexpr std::uint32_t NUM_THREADS_GLOBAL   = 4096;                       // threads per tile
-    constexpr std::uint32_t NUM_THREADS_LOCAL    = 64;                         // threads per Xe 
-    constexpr std::uint32_t NUM_XE               = 64;                         // number of Xe per tile
-    constexpr std::uint32_t MAX_SLM_BYTES_PER_XE = (512*1024);                 // per opt guide 512, actual 128?
-    constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = (MAX_SLM_BYTES_PER_XE * \
-                                                   NUM_XE / sizeof(ValueType)); // max scan length per outer loop ieration (block) for single-kernel slm scan, N/A for 2-kernel scan
+    constexpr std::uint32_t VL                   = 32;         // simd vector length
+    constexpr std::uint32_t NUM_THREADS_GLOBAL   = 4096;       // threads per tile
+    constexpr std::uint32_t NUM_THREADS_LOCAL    = 64;         // threads per Xe
+    constexpr std::uint32_t NUM_XE               = 64;         // number of Xe per tile
+    constexpr std::uint32_t MAX_SLM_BYTES_PER_XE = (512*1024); // per opt guide 512, actual 128?
+    constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216;   // empirically determined for reduce_then_scan
+
     int M = std::distance(first, last);
     auto mScanLength = M;
     // items per PVC hardware thread
@@ -97,18 +105,6 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
         // N.B. select() operator is broken for uint_32t, replace everywhere with uint
         simd<ValueType,VL> c, t, v, z;
         z = c = t = 0;
-
-        // propogate carry in from previous block
-        ValueType ci = 0;
-        if (b > 0) {
-        #if 0
-        ci = scalar_load<uint>(result,offset+(b*blockSize-1)*sizeof(uint32_t));
-        #else
-        // No scalar_load pointer API. Use a gather with a constant offset
-        ci = gather<ValueType, 1>(result, simd<uint32_t, 1>(offset+(b*blockSize-1)*sizeof(ValueType)))[0];
-        #endif
-        } 
-
         // compute thread-local pfix on T0..63, K samples/T, send to accumulator kernel
         #pragma unroll
         for ( int j=0; j<J; j++ ) {
@@ -121,12 +117,6 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
         v.copy_from(reinterpret_cast<ValueType*>(reinterpret_cast<uint8_t*>(first) + addr));
         #endif
         prefix_sum( v, c, z, t );
-        v += ci;
-        #if 0
-        v.copy_to(result,addr);
-        #else
-        v.copy_to(reinterpret_cast<ValueType*>(reinterpret_cast<uint8_t*>(result) + addr));
-        #endif
         addr += (VL*sizeof(ValueType));
         }
 
@@ -178,6 +168,11 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
         auto g = ndi.get_group(0);
         simd<ValueType,VL> v;
         ValueType carry31;
+
+        // propogate carry in from previous block
+        ValueType carry_in = 0;
+        if (b > 0)
+            carry_in = gather<ValueType, 1>(result, simd<uint32_t, 1>(offset+(b*blockSize-1)*sizeof(ValueType)))[0];
 
         // on each Xe T0: 
         // 1. load 64 T-local carry pfix sums (T0..63) to slm
@@ -255,12 +250,11 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
 
         // get global carry adjusted for thread-local prefix
         auto maddr = id * K * sizeof(ValueType) + offset + (b*blockSize*sizeof(ValueType));
-        ValueType c = 0;
         if ( lid > 0 ) {
-        c = slm_scalar_load<ValueType>((lid-1)*sizeof(ValueType));
+        carry_in += slm_scalar_load<ValueType>((lid-1)*sizeof(ValueType));
         } else {
         if ( g > 0 ) {
-        c = slm_scalar_load<ValueType>(64*sizeof(ValueType));
+        carry_in += slm_scalar_load<ValueType>(64*sizeof(ValueType));
         }
         }
 
@@ -273,10 +267,13 @@ void inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, Outp
         // even through the data so far does not agree with the guidance but for simplicity
         // with variable scan lengths grouping is not used currently
         // grouping and prefetch are likely to improve throughput in future versions
+        simd<ValueType,VL> t, z, c;
+        c = t = z = 0;
         #pragma unroll
         for ( int j=0; j<J; j++ ) {
-        v = block_load<ValueType,VL>(result, maddr);
-        v += c;
+        v = block_load<ValueType,VL>(first, maddr);
+        prefix_sum( v, c, z, t );
+        v += carry_in;
         block_store<ValueType,VL>(result, maddr, v);
         maddr += (VL*sizeof(ValueType));
         }  
