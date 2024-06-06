@@ -38,9 +38,9 @@ inline namespace __dpl
 
 namespace __internal {
 
-struct __lazy_ctor_tag {};
+struct __global_instance_tag {};
 
-struct alignas(sycl::queue) __lazy_queue
+struct alignas(sycl::queue) __queue_holder
 {
     static_assert(sizeof(sycl::queue) >= sizeof(void*));
     static_assert(alignof(sycl::queue) >= alignof(void*));
@@ -48,17 +48,17 @@ struct alignas(sycl::queue) __lazy_queue
     std::byte __buf[sizeof(sycl::queue)];
 
     template <typename... _Args>
-    __lazy_queue(_Args... __args)
+    __queue_holder(_Args... __args)
     {
         new(__buf) sycl::queue(__args...);
     }
 
-    __lazy_queue(__lazy_ctor_tag)
+    __queue_holder(__global_instance_tag)
     {
         new(__buf) std::nullptr_t;
     }
 
-    ~__lazy_queue()
+    ~__queue_holder()
     {
         if (__has_queue())
             __get_queue_ref().~queue();
@@ -131,7 +131,7 @@ class device_policy
     }
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) : q(d_) {}
-    explicit device_policy(__internal::__lazy_ctor_tag t_) : q(t_) {}
+    explicit device_policy(__internal::__global_instance_tag t_) : q(t_) {}
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
@@ -146,7 +146,7 @@ class device_policy
         return q.__get_queue_with_fallback(__f);
     }
   private:
-    __internal::__lazy_queue q;
+    __internal::__queue_holder q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -167,7 +167,7 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
-    explicit fpga_policy(__internal::__lazy_ctor_tag t) : base(t) {}
+    explicit fpga_policy(__internal::__global_instance_tag t) : base(t) {}
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
@@ -186,9 +186,9 @@ class fpga_policy : public device_policy<KernelName>
 // Starting with c++17 we can simply define sycl as inline variable.
 #    if _ONEDPL___cplusplus >= 201703L
 
-inline device_policy<> dpcpp_default{__internal::__lazy_ctor_tag{}};
+inline device_policy<> dpcpp_default{__internal::__global_instance_tag{}};
 #        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<> dpcpp_fpga{__internal::__lazy_ctor_tag{}};
+inline fpga_policy<> dpcpp_fpga{__internal::__global_instance_tag{}};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // _ONEDPL___cplusplus >= 201703L
