@@ -40,7 +40,7 @@ concept has_rank_adl = requires(R& r)
 
 template <typename Iter>
 concept is_remote_iterator_shadow_impl_ =
-    std::forward_iterator<Iter>&& has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>;
+    std::forward_iterator<Iter> && has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>;
 
 } // namespace
 
@@ -97,14 +97,13 @@ namespace
 {
 
 template <typename R>
-concept remote_range_shadow_impl_ = rng::forward_range<R>&&
-requires(R& r)
+concept remote_range_shadow_impl_ = rng::forward_range<R> && requires(R& r)
 {
     ranges::rank(r);
 };
 
 template <typename R>
-concept segments_range = rng::forward_range<R>&& remote_range_shadow_impl_<rng::range_value_t<R>>;
+concept segments_range = rng::forward_range<R> && remote_range_shadow_impl_<rng::range_value_t<R>>;
 
 template <typename R>
 concept has_segments_method = requires(R r)
@@ -169,8 +168,7 @@ concept has_local_adl = requires(Iter& iter)
 };
 
 template <typename Iter>
-concept iter_has_local_method = std::forward_iterator<Iter>&&
-requires(Iter iter)
+concept iter_has_local_method = std::forward_iterator<Iter> && requires(Iter iter)
 {
     {
         iter.local()
@@ -193,10 +191,7 @@ struct is_localizable_helper<T> : std::true_type
 };
 
 template <std::forward_iterator Iter>
-    requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) && requires()
-{
-    std::iter_value_t<Iter>();
-}
+requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) && requires() { std::iter_value_t<Iter>(); }
 struct is_localizable_helper<Iter> : is_localizable_helper<std::iter_value_t<Iter>>
 {
 };
@@ -210,8 +205,7 @@ template <typename T>
 concept is_localizable = is_localizable_helper<T>::value;
 
 template <typename Segment>
-concept segment_has_local_method = rng::forward_range<Segment>&&
-requires(Segment segment)
+concept segment_has_local_method = rng::forward_range<Segment> && requires(Segment segment)
 {
     {
         segment.local()
@@ -226,7 +220,8 @@ struct local_fn_
     // TODO: rewrite using iterator_interface from
     //  https://github.com/boostorg/stl_interfaces
     template <typename Iter>
-    requires rng::forward_range<typename Iter::value_type> struct cursor_over_local_ranges
+    requires rng::forward_range<typename Iter::value_type>
+    struct cursor_over_local_ranges
     {
         Iter iter;
         auto

@@ -299,7 +299,8 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     }
 
     template <std::size_t I, typename R, typename... Rs_>
-    requires(sizeof...(Rs_) > 0) std::size_t get_rank_impl_() const
+    requires(sizeof...(Rs_) > 0) std::size_t get_rank_impl_()
+    const
     {
         static_assert(I < sizeof...(Rs));
         if constexpr (remote_range<R>)

@@ -203,8 +203,8 @@ class iterator_adaptor
     }
 
     friend iterator
-    operator+(difference_type n, iterator iter)
-        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator+(difference_type n,
+              iterator iter) requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return iter + n;
     }

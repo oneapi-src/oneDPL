@@ -53,9 +53,7 @@ class device_span : public span<T, Iter>
     using reference = std::iter_reference_t<Iter>;
 
     template <rng::random_access_range R>
-    requires(remote_range<R>) device_span(R&& r) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(ranges::rank(r))
-    {
-    }
+    requires(remote_range<R>) device_span(R&& r) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(ranges::rank(r)) {}
 
     template <rng::random_access_range R>
     device_span(R&& r, std::size_t rank) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank)
