@@ -306,8 +306,8 @@ struct __lookback_kernel_func
         auto __group = __item.get_group();
         auto __subgroup = __item.get_sub_group();
         auto __local_id = __item.get_local_id(0);
-        constexpr bool __is_active_sg = (__subgroup.get_group_id() == 0);
-        constexpr bool __is_active_wi = (__subgroup.get_local_id() == 0);
+        bool __is_active_sg = (__subgroup.get_group_id() == 0);
+        bool __is_active_wi = (__subgroup.get_local_id() == 0);
         constexpr std::uint16_t __active_wg_wi_id = 0;
 
 
@@ -530,8 +530,8 @@ struct __copy_if_kernel_func
 
         constexpr std::uint16_t __active_sg_id = __workgroup_size / SUBGROUP_SIZE - 1;
         constexpr std::uint16_t __active_sg_wi_id = SUBGROUP_SIZE - 1;
-        bool __is_active_sg = (__subgroup.get_group_id() == __active_sg_id);
-        bool __is_active_wi = (__subgroup.get_local_id() == __active_sg_wi_id);
+        bool __is_active_sg = (__sg.get_group_id() == __active_sg_id);
+        bool __is_active_wi = (__sg.get_local_id() == __active_sg_wi_id);
         constexpr std::uint16_t __active_wg_wi_id = __workgroup_size - 1;
 
         std::uint32_t __tile_id = 0;
