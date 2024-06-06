@@ -1180,14 +1180,14 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                             *__dpl_sycl::__get_accessor_ptr(__temp_acc));
 
-                        __found.store(__found_local);
+                        __found.fetch_or(__found_local);
                     }
                 });
         });
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
-    return __result;
+    return __result != __init_value;
 }
 
 // Specialization for __parallel_find_forward_tag, __parallel_find_backward_tag
