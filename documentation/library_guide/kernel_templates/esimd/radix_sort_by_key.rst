@@ -7,7 +7,7 @@ radix_sort_by_key Function Templates
 
 The ``radix_sort_by_key`` function sorts keys using the radix sort algorithm, applying the same order to the corresponding values.
 The sorting is stable, preserving the relative order of elements with equal keys.
-There are in-place and out-of-place overloads. Out-of-place overloads do not alter the input sequences.
+Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequences.
 
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
