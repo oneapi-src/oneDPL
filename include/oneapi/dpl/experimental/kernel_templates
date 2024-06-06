@@ -20,5 +20,6 @@
 #endif
 
 #include "kt/single_pass_scan.h"
+#include "kt/two_pass_scan.h"
 
 #endif // _ONEDPL_KERNEL_TEMPLATES
