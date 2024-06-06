@@ -110,7 +110,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // intermediate partial sums and carries write back to the output buffer
     q.submit([&](handler &h) {
     sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group, h);
-    h.parallel_for( range, [=](nd_item<1> ndi)  {
+    h.parallel_for( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
         auto lid = ndi.get_local_id(0);
         auto g = ndi.get_group(0);
@@ -167,7 +167,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // not coherent inter-Xe
     q.submit([&](handler &CGH) {
     sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group + 1, CGH);
-    CGH.parallel_for( range, [=](nd_item<1> ndi) {
+    CGH.parallel_for( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
         auto lid = ndi.get_local_id(0);
         auto g = ndi.get_group(0);
