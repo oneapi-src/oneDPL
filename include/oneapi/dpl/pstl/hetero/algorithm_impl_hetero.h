@@ -31,11 +31,6 @@
 #define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 0      // bad perf ?
 #define PATTERN_ADJACENT_FIND_OR_SEMANTIC_ON_TRANSFORM_REDUCE    0      // bad perf ?
 #define PATTERN_FIND_IF_ON_TRANSFORM_REDUCE                      1
-#define PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE                     0
-#if PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
-#    define PATTERN_SEARCH_N_1_ON_PATTERN_FIND_IF                1
-#    define PATTERN_SEARCH_N_2_ON_PATTERN_ADJACENT_FIND          1
-#endif
 #define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
 #define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      0      // Switched off due absent benchmark
 #define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                0      // Switched off due absent benchmark
@@ -1061,33 +1056,6 @@ struct __search_n_unary_predicate
     }
 };
 
-#if PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
-
-template <typename _BinaryPredicate, typename _ValueType>
-struct n_elem_match_pred_equal_to
-{
-    _BinaryPredicate pred;
-    _ValueType value;
-
-    bool
-    operator()(const _ValueType& __x, const _ValueType& __y) const
-    {
-        return pred(__x, __y) && pred(value, __x) && pred(value, __y);
-    }
-};
-
-template <typename _Name>
-struct __pattern_search_1;
-
-template <typename _Name>
-struct __pattern_search_2;
-
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
-_Iterator
-__pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _Iterator, _Iterator, _Pred);
-
-#endif // PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Size, typename _Tp,
           typename _BinaryPredicate>
 _Iterator
@@ -1115,43 +1083,12 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
 
     // https://en.cppreference.com/w/cpp/algorithm/search_n std::search_n -> __pattern_search_n
-#if PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
-    switch (__count)
-    {
-#if PATTERN_SEARCH_N_1_ON_PATTERN_FIND_IF
-    case 1:
-        // Special simple case when we find one value
-        return __pattern_find_if(
-            __tag,
-            __par_backend_hetero::make_wrapped_policy<__pattern_search_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __first, __last, __equal_value<__ref_or_copy<_ExecutionPolicy, const _Tp>>(__value));
-#endif // PATTERN_SEARCH_N_1_ON_PATTERN_FIND_IF
 
-#if PATTERN_SEARCH_N_2_ON_PATTERN_ADJACENT_FIND
-    case 2:
-        // Special simple case when we find two value
-        return __pattern_adjacent_find(
-            __tag,
-            __par_backend_hetero::make_wrapped_policy<__pattern_search_2>(::std::forward<_ExecutionPolicy>(__exec)),
-            __first, __last, /*_BinaryPredicate*/ n_elem_match_pred_equal_to<_BinaryPredicate, _Tp>{__pred, __value},
-            /*_Semantic*/ __first_semantic());
-#endif // PATTERN_SEARCH_N_2_ON_PATTERN_ADJACENT_FIND
-
-    default:
-        return __par_backend_hetero::__parallel_find(                   // to __pattern_transform_reduce ? - LOOKS LIKE UNIMPLEMENTABLE or I don't know how to do this
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-            _Predicate{__pred, __value, __count}, /*_IsFirst*/ ::std::true_type{});
-        break;
-    }
-#else
     return __par_backend_hetero::__parallel_find(                       // to __pattern_transform_reduce ? - LOOKS LIKE UNIMPLEMENTABLE or I don't know how to do this
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         _Predicate{__pred, __value, __count}, ::std::true_type{});
-#endif // PATTERN_SEARCH_N_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
