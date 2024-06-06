@@ -28,14 +28,13 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
-#define PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE 0      // bad perf ?
 #define PATTERN_FIND_IF_ON_TRANSFORM_REDUCE                      1
 #define PATTERN_ANY_OF_ON_TRANSFORM_REDUCE                       1
 #define PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE                      0      // Switched off due absent benchmark
 #define PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE                0      // Switched off due absent benchmark
-#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+#if  PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 #   include "./../../../dpl/iterator"      // include <oneapi/dpl/iterator> for zip_iterator and counting_iterator
-#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
+#endif // PATTERN_IS_HEAP_ON_TRANSFORM_REDUCE || PATTERN_IS_HEAP_UNTIL_ON_TRANSFORM_REDUCE
 
 namespace oneapi
 {
@@ -593,42 +592,6 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     return result ? __first : __last;
 }
 
-#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
-
-template <typename _Typle, typename _BinaryPredicate>
-struct __adjacent_find_unary_transform_op
-{
-    _BinaryPredicate __predicate;
-
-    template <typename Arg>
-    _Typle
-    operator()(const Arg& arg) const
-    {
-        return {__predicate(std::get<0>(arg), std::get<1>(arg)), std::get<2>(arg)};
-    }
-};
-
-template <typename _Typle>
-struct __adjacent_find__binary_reduce_op
-{
-    _Typle
-    operator()(const _Typle& op1, const _Typle& op2) const
-    {
-        if (std::get<0>(op1) && std::get<0>(op2))
-            return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
-
-        return std::get<0>(op1) ? op1 : op2;
-    }
-};
-
-template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
-          typename _BinaryReduceOp, typename _UnaryTransformOp>
-_Tp
-__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp,
-                           _BinaryReduceOp, _UnaryTransformOp);
-
-#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 _Iterator
 __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
@@ -640,43 +603,12 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     if (__n < 2)
         return __last;
 
-#if PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
-    if (__n == 2)
-        return __predicate(*__first, *(__first + 1)) ? __first : __last;
+    // https://en.cppreference.com/w/cpp/algorithm/adjacent_find std::adjacent_find -> __pattern_adjacent_find
 
-    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
-    const auto __init = _result_type{false, __n};
-
-    __adjacent_find__binary_reduce_op<_result_type> __reduce_op;
-    __adjacent_find_unary_transform_op<_result_type, _BinaryPredicate> __transform_op{__predicate};
-
-    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, decltype(__transform_op)>;
-    using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_result_type>;
-
-    auto __keep_src_data = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
-    auto __buf_src_data1 = __keep_src_data(__first, __last - 1);
-    auto __buf_src_data2 = __keep_src_data(__first + 1, __last);
-
-    // __counting_iterator_t - iterate position (index) in source data
-    using __counting_iterator_t = oneapi::dpl::counting_iterator<_difference_type>;
-    const __counting_iterator_t __counting_it_first{0}, __counting_it_last{__n - 1};
-    auto __keep_counting_it = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
-    auto __buf_counting_it = __keep_counting_it(__counting_it_first, __counting_it_last);
-
-    auto res =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, std::true_type /*is_commutative*/>(
-            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-            __reduce_op, _Functor{__transform_op},
-            unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
-            oneapi::dpl::__ranges::make_zip_view(__buf_src_data1.all_view(), __buf_src_data2.all_view(), __buf_counting_it.all_view()))
-            .get();
-
-    return std::get<0>(res) ? __first + std::get<1>(res) : __last;
-#else
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
-    auto __result = __par_backend_hetero::__parallel_find(      // to __pattern_transform_reduce - IMPLEMENTED
+    auto __result = __par_backend_hetero::__parallel_find(      // to __pattern_transform_reduce - not required due bad performance + optimized inside __parallel_find_or for __parallel_or_tag
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
@@ -691,7 +623,6 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
     _Iterator __result_iterator = __first + (__result - __zip_at_first);
     return (__result_iterator == __last - 1) ? __last : __result_iterator;
-#endif // PATTERN_ADJACENT_FIND_FIRST_SEMANTIC_ON_TRANSFORM_REDUCE
 }
 
 //------------------------------------------------------------------------
