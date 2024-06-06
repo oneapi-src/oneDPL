@@ -259,8 +259,8 @@ template <typename _FlagType, typename _Group, typename _SubGroup, typename _Sta
 void
 __lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlags __status_flags,
                  _StatusValues __status_vals_full, _StatusValues __status_vals_partial, std::uint32_t __tile_id,
-                 const _Type& __local_reduction, _Type& __prev_tile_reduction, bool __is_active_sg,
-                 bool __is_active_wi, std::uint16_t __active_wg_wi_id, _BinaryOp __binary_op)
+                 const _Type& __local_reduction, _Type& __prev_tile_reduction, bool __is_active_sg, bool __is_active_wi,
+                 std::uint16_t __active_wg_wi_id, _BinaryOp __binary_op)
 {
     // The last sub-group will query the previous tiles to find a prefix
     if (__is_active_sg)
@@ -309,7 +309,6 @@ struct __lookback_kernel_func
         bool __is_active_sg = (__subgroup.get_group_id() == 0);
         bool __is_active_wi = (__subgroup.get_local_id() == 0);
         constexpr std::uint16_t __active_wg_wi_id = 0;
-
 
         std::uint32_t __tile_id = 0;
 
@@ -366,7 +365,8 @@ struct __lookback_kernel_func
         _Type __prev_tile_reduction{};
 
         __lookback_phase<_FlagType>(__group, __subgroup, __status_flags, __status_vals_full, __status_vals_partial,
-                                    __tile_id, __local_reduction, __prev_tile_reduction, __is_active_sg, __is_active_wi, __active_wg_wi_id, __binary_op);
+                                    __tile_id, __local_reduction, __prev_tile_reduction, __is_active_sg, __is_active_wi,
+                                    __active_wg_wi_id, __binary_op);
 
         sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr + __wg_local_memory_size, __out_begin,
                                    __binary_op, __prev_tile_reduction);
