@@ -24,6 +24,9 @@
 
 #include <type_traits>
 
+#include <cstddef> // std::byte, std::nullptr_t
+#include <cassert>
+
 namespace oneapi
 {
 namespace dpl
@@ -32,6 +35,81 @@ namespace execution
 {
 inline namespace __dpl
 {
+
+namespace __internal {
+
+struct __lazy_ctor_tag {};
+
+struct alignas(sycl::queue) __lazy_queue
+{
+    static_assert(sizeof(sycl::queue) >= sizeof(void*));
+    static_assert(alignof(sycl::queue) >= alignof(void*));
+
+    std::byte __buf[sizeof(sycl::queue)];
+
+    template <typename... _Args>
+    __lazy_queue(_Args... __args)
+    {
+        new(__buf) sycl::queue(__args...);
+    }
+
+    __lazy_queue(__lazy_ctor_tag)
+    {
+        new(__buf) std::nullptr_t;
+    }
+
+    ~__lazy_queue()
+    {
+        if (__has_queue())
+            __get_queue_ref().~queue();
+    }
+
+    bool __has_queue() const
+    {
+        return nullptr!=*reinterpret_cast<void* const*>(__buf);
+    }
+
+    const sycl::queue& __get_queue_ref() const
+    {
+        assert(__has_queue());
+        return *reinterpret_cast<sycl::queue const*>(__buf);
+    }
+    sycl::queue& __get_queue_ref()
+    {
+        assert(__has_queue());
+        return *reinterpret_cast<sycl::queue*>(__buf);
+    }
+
+    sycl::queue __get_queue_with_fallback(sycl::queue(*__f)()) const
+    {
+        return __has_queue()? __get_queue_ref() : __f();
+    }
+};
+
+inline sycl::queue
+__get_default_queue()
+{
+    static sycl::queue __q(sycl::default_selector_v);
+    return __q;
+}
+
+#if _ONEDPL_FPGA_DEVICE
+using __fpga_default_selector = 
+#if _ONEDPL_FPGA_EMU
+    __dpl_sycl::__fpga_emulator_selector;
+#else
+    __dpl_sycl::__fpga_selector;
+#endif
+
+inline sycl::queue
+__get_fpga_default_queue()
+{
+    static sycl::queue __q(__fpga_default_selector());
+    return __q;
+}
+#endif // _ONEDPL_FPGA_DEVICE
+
+} // namespace __internal
 
 struct DefaultKernelName;
 
@@ -53,15 +131,22 @@ class device_policy
     }
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+    explicit device_policy(__internal::__lazy_ctor_tag t_) : q(t_) {}
+
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        return __get_queue_with_fallback(__internal::__get_default_queue);
     }
 
+  protected:
+    sycl::queue __get_queue_with_fallback(sycl::queue(*__f)())
+    {
+        return q.__get_queue_with_fallback(__f);
+    }
   private:
-    sycl::queue q;
+    __internal::__lazy_queue q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -74,14 +159,7 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
-#    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
-#    else
-              __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-                  ))
+    fpga_policy() : base(sycl::queue(__internal::__fpga_default_selector()))
     {
     }
 
@@ -89,8 +167,15 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
-};
+    explicit fpga_policy(__internal::__lazy_ctor_tag t) : base(t) {}
 
+    operator sycl::queue() const { return queue(); }
+    sycl::queue
+    queue() const
+    {
+        return base::__get_queue_with_fallback(__internal::__get_fpga_default_queue);
+    }
+};
 #endif // _ONEDPL_FPGA_DEVICE
 
 // 2.8, Execution policy objects
@@ -101,9 +186,9 @@ class fpga_policy : public device_policy<KernelName>
 // Starting with c++17 we can simply define sycl as inline variable.
 #    if _ONEDPL___cplusplus >= 201703L
 
-inline device_policy<> dpcpp_default{};
+inline device_policy<> dpcpp_default{__internal::__lazy_ctor_tag{}};
 #        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<> dpcpp_fpga{};
+inline fpga_policy<> dpcpp_fpga{__internal::__lazy_ctor_tag{}};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // _ONEDPL___cplusplus >= 201703L
