@@ -24,7 +24,9 @@
 
 #include <type_traits>
 
-#include <cstddef> // std::byte, std::nullptr_t
+#include <cstddef> // std::byte
+#include <cstring> // memset
+#include <atomic>  // atomic_signal_fence
 #include <cassert>
 
 namespace oneapi
@@ -51,68 +53,50 @@ class alignas(sycl::queue) __queue_holder
 
     bool __has_queue() const
     {
-        return nullptr!=*reinterpret_cast<void* const*>(__buf);
-    }
-
-    const sycl::queue& __get_queue_ref() const
-    {
-        assert(__has_queue());
-        return *reinterpret_cast<sycl::queue const*>(__buf);
-    }
-    sycl::queue& __get_queue_ref()
-    {
-        assert(__has_queue());
-        return *reinterpret_cast<sycl::queue*>(__buf);
+        bool res = nullptr!=reinterpret_cast<void*&>(*this);
+        std::atomic_signal_fence(std::memory_order_acq_rel); // mitigate possible reordering due to type punning
+        return res;
     }
 
   public:
     template <typename... _Args>
     __queue_holder(_Args... __args)
     {
-        new(__buf) sycl::queue(__args...);
+        new(this) sycl::queue(__args...);
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
     __queue_holder(__global_instance_tag)
     {
-        new(__buf) std::nullptr_t;
+        if (!sycl::device::get_devices().empty())
+            new(this) sycl::queue;
+        else {
+            // an "impossible" case of SYCL providing no devices, which we however must handle
+            std::memset(this, 0, sizeof(void*));
+            // Since the queue holder does not have a valid queue in this case,
+            // the predefined device policies are de-facto unusable.
+            // That seems OK though, because there is no device to run SYCL anyway.
+        }
     }
 #endif
 
     ~__queue_holder()
     {
         if (__has_queue())
-            __get_queue_ref().~queue();
+            __queue_ref().~queue();
     }
 
-    sycl::queue __get_queue_with_fallback(sycl::queue(*__f)()) const
+    const sycl::queue& __queue_ref() const
     {
-        return __has_queue()? __get_queue_ref() : __f();
+        assert(__has_queue());
+        return reinterpret_cast<const sycl::queue&>(*this);
+    }
+    sycl::queue& __queue_ref()
+    {
+        assert(__has_queue());
+        return reinterpret_cast<sycl::queue&>(*this);
     }
 };
-
-inline sycl::queue
-__get_default_queue()
-{
-    static sycl::queue __q(sycl::default_selector_v);
-    return __q;
-}
-
-#if _ONEDPL_FPGA_DEVICE
-using __fpga_default_selector = 
-#if _ONEDPL_FPGA_EMU
-    __dpl_sycl::__fpga_emulator_selector;
-#else
-    __dpl_sycl::__fpga_selector;
-#endif
-
-inline sycl::queue
-__get_fpga_default_queue()
-{
-    static sycl::queue __q(__fpga_default_selector());
-    return __q;
-}
-#endif // _ONEDPL_FPGA_DEVICE
 
 } // namespace __internal
 
@@ -144,30 +128,35 @@ class device_policy
     sycl::queue
     queue() const
     {
-        return __get_queue_with_fallback(__internal::__get_default_queue);
+        return __q.__queue_ref();
     }
 
-  protected:
-    sycl::queue __get_queue_with_fallback(sycl::queue(*__f)())
-    {
-        return q.__get_queue_with_fallback(__f);
     }
 
   private:
+    static_assert(sizeof(__internal::__queue_holder)==sizeof(sycl::queue));
+    static_assert(alignof(__internal::__queue_holder)==alignof(sycl::queue));
     __internal::__queue_holder q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
 struct DefaultKernelNameFPGA;
+
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
+    using __fpga_default_selector = 
+#if _ONEDPL_FPGA_EMU
+        __dpl_sycl::__fpga_emulator_selector;
+#else
+        __dpl_sycl::__fpga_selector;
+#endif
 
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy() : base(sycl::queue(__internal::__fpga_default_selector()))
+    fpga_policy() : base(sycl::queue(__fpga_default_selector()))
     {
     }
 
@@ -179,12 +168,6 @@ class fpga_policy : public device_policy<KernelName>
     explicit fpga_policy(__internal::__global_instance_tag t) : base(t) {}
 #endif
 
-    operator sycl::queue() const { return queue(); }
-    sycl::queue
-    queue() const
-    {
-        return base::__get_queue_with_fallback(__internal::__get_fpga_default_queue);
-    }
 };
 #endif // _ONEDPL_FPGA_DEVICE
 
