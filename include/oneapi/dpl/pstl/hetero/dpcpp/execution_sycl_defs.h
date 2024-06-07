@@ -38,31 +38,16 @@ inline namespace __dpl
 
 namespace __internal {
 
+#if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
+#endif
 
-struct alignas(sycl::queue) __queue_holder
+class alignas(sycl::queue) __queue_holder
 {
     static_assert(sizeof(sycl::queue) >= sizeof(void*));
     static_assert(alignof(sycl::queue) >= alignof(void*));
 
     std::byte __buf[sizeof(sycl::queue)];
-
-    template <typename... _Args>
-    __queue_holder(_Args... __args)
-    {
-        new(__buf) sycl::queue(__args...);
-    }
-
-    __queue_holder(__global_instance_tag)
-    {
-        new(__buf) std::nullptr_t;
-    }
-
-    ~__queue_holder()
-    {
-        if (__has_queue())
-            __get_queue_ref().~queue();
-    }
 
     bool __has_queue() const
     {
@@ -78,6 +63,26 @@ struct alignas(sycl::queue) __queue_holder
     {
         assert(__has_queue());
         return *reinterpret_cast<sycl::queue*>(__buf);
+    }
+
+  public:
+    template <typename... _Args>
+    __queue_holder(_Args... __args)
+    {
+        new(__buf) sycl::queue(__args...);
+    }
+
+#if _ONEDPL_PREDEFINED_POLICIES
+    __queue_holder(__global_instance_tag)
+    {
+        new(__buf) std::nullptr_t;
+    }
+#endif
+
+    ~__queue_holder()
+    {
+        if (__has_queue())
+            __get_queue_ref().~queue();
     }
 
     sycl::queue __get_queue_with_fallback(sycl::queue(*__f)()) const
@@ -131,7 +136,9 @@ class device_policy
     }
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) : q(d_) {}
+#if _ONEDPL_PREDEFINED_POLICIES
     explicit device_policy(__internal::__global_instance_tag t_) : q(t_) {}
+#endl
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
@@ -145,6 +152,7 @@ class device_policy
     {
         return q.__get_queue_with_fallback(__f);
     }
+
   private:
     __internal::__queue_holder q;
 };
@@ -167,7 +175,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
+#if _ONEDPL_PREDEFINED_POLICIES
     explicit fpga_policy(__internal::__global_instance_tag t) : base(t) {}
+#endif
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
