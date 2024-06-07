@@ -53,7 +53,7 @@ class alignas(sycl::queue) __queue_holder
 
     bool __has_queue() const
     {
-        bool res = nullptr!=reinterpret_cast<void*&>(*this);
+        bool res = nullptr!=reinterpret_cast<void* const&>(*this);
         std::atomic_signal_fence(std::memory_order_acq_rel); // mitigate possible reordering due to type punning
         return res;
     }
@@ -110,7 +110,7 @@ class alignas(sycl::queue) __queue_holder
             __queue_ref() = std::move(__h.__queue_ref());
         return *this;
     }
-    
+
     const sycl::queue& __queue_ref() const
     {
         assert(__has_queue());
