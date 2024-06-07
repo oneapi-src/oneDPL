@@ -1,4 +1,4 @@
-/ / -*- C++ -*-
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
@@ -38,7 +38,7 @@ sub_group_inclusive_scan(const SubGroup& sub_group, ValueType value, const Value
     for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
     {
         auto tmp = sycl::shift_group_right(sub_group, value, shift);
-        if (sub_group_local_id - shift >= 0)
+        if (sub_group_local_id >= shift)
         {
             value += tmp;
         }
