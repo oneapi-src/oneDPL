@@ -38,7 +38,8 @@ namespace execution
 inline namespace __dpl
 {
 
-namespace __internal {
+namespace __internal
+{
 
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
@@ -53,7 +54,7 @@ class alignas(sycl::queue) __queue_holder
 
     bool __has_queue() const
     {
-        bool res = nullptr!=reinterpret_cast<void* const&>(*this);
+        bool res = (nullptr != reinterpret_cast<void* const&>(*this));
         std::atomic_signal_fence(std::memory_order_acq_rel); // mitigate possible reordering due to type punning
         return res;
     }
@@ -70,7 +71,8 @@ class alignas(sycl::queue) __queue_holder
     {
         if (!sycl::device::get_devices().empty())
             new (this) sycl::queue;
-        else {
+        else
+        {
             // an "impossible" case of SYCL providing no devices, which we however must handle
             std::memset(this, 0, sizeof(void*));
             // Since the queue holder does not have a valid queue in this case,
@@ -87,26 +89,19 @@ class alignas(sycl::queue) __queue_holder
     }
 
     // Copy and move operations have to be explicit
-    __queue_holder(const __queue_holder& __h)
-    {
-        new (this) sycl::queue(__h.__queue_ref());
-    }
-
-    __queue_holder(__queue_holder&& __h)
-    {
-        new (this) sycl::queue(std::move(__h.__queue_ref()));
-    }
+    __queue_holder(const __queue_holder& __h) { new (this) sycl::queue(__h.__queue_ref()); }
+    __queue_holder(__queue_holder&& __h)      { new (this) sycl::queue(std::move(__h.__queue_ref())); }
 
     __queue_holder& operator=(const __queue_holder& __h)
     {
-        if (this != &__h) 
+        if (this != &__h)
             __queue_ref() = __h.__queue_ref();
         return *this;
     }
 
     __queue_holder& operator=(__queue_holder&& __h)
     {
-        if (this != &__h) 
+        if (this != &__h)
             __queue_ref() = std::move(__h.__queue_ref());
         return *this;
     }
@@ -147,15 +142,13 @@ class device_policy
     explicit device_policy(sycl::device d_) : q(d_) {}
 #if _ONEDPL_PREDEFINED_POLICIES
     explicit device_policy(__internal::__global_instance_tag t_) : q(t_) {}
-#endl
+#endif
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
         return __q.__queue_ref();
-    }
-
     }
 
   private:
@@ -171,7 +164,7 @@ template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
-    using __fpga_default_selector = 
+    using __fpga_default_selector =
 #if _ONEDPL_FPGA_EMU
         __dpl_sycl::__fpga_emulator_selector;
 #else
@@ -181,9 +174,7 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy() : base(sycl::queue(__fpga_default_selector()))
-    {
-    }
+    fpga_policy() : base(sycl::queue(__fpga_default_selector())) {}
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
@@ -192,7 +183,6 @@ class fpga_policy : public device_policy<KernelName>
 #if _ONEDPL_PREDEFINED_POLICIES
     explicit fpga_policy(__internal::__global_instance_tag t) : base(t) {}
 #endif
-
 };
 #endif // _ONEDPL_FPGA_DEVICE
 
