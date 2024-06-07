@@ -62,14 +62,14 @@ class alignas(sycl::queue) __queue_holder
     template <typename... _Args>
     __queue_holder(_Args... __args)
     {
-        new(this) sycl::queue(__args...);
+        new (this) sycl::queue(__args...);
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
     __queue_holder(__global_instance_tag)
     {
         if (!sycl::device::get_devices().empty())
-            new(this) sycl::queue;
+            new (this) sycl::queue;
         else {
             // an "impossible" case of SYCL providing no devices, which we however must handle
             std::memset(this, 0, sizeof(void*));
@@ -86,6 +86,31 @@ class alignas(sycl::queue) __queue_holder
             __queue_ref().~queue();
     }
 
+    // Copy and move operations have to be explicit
+    __queue_holder(const __queue_holder& __h)
+    {
+        new (this) sycl::queue(__h.__queue_ref());
+    }
+
+    __queue_holder(__queue_holder&& __h)
+    {
+        new (this) sycl::queue(std::move(__h.__queue_ref()));
+    }
+
+    __queue_holder& operator=(const __queue_holder& __h)
+    {
+        if (this != &__h) 
+            __queue_ref() = __h.__queue_ref();
+        return *this;
+    }
+
+    __queue_holder& operator=(__queue_holder&& __h)
+    {
+        if (this != &__h) 
+            __queue_ref() = std::move(__h.__queue_ref());
+        return *this;
+    }
+    
     const sycl::queue& __queue_ref() const
     {
         assert(__has_queue());
