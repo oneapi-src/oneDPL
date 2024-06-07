@@ -69,11 +69,7 @@ endif()
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
-if (ONEDPL_USE_DR)
-    set(run-onedpl-tests-depends build-onedpl-tests shp-tests shp-tests-3)
-else()
-    set(run-onedpl-tests-depends build-onedpl-tests)
-endif()
+set(run-onedpl-tests-depends build-onedpl-tests)
 
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
@@ -252,11 +248,6 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
-
-if (ONEDPL_USE_DR)
-    add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
-    add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
-endif()
 
 # add additional TUs if required
 if (TARGET interop_allocs.pass)
