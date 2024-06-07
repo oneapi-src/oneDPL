@@ -60,11 +60,11 @@ lower_bound(LocalPolicy&& policy, InputIt1 start, InputIt1 end, InputIt2 value_f
 
 } // namespace __detail
 
-template <dr::distributed_range R, typename Compare = std::less<>>
+template <distributed_range R, typename Compare = std::less<>>
 void
 sort(R&& r, Compare comp = Compare())
 {
-    auto&& segments = dr::ranges::segments(r);
+    auto&& segments = ranges::segments(r);
 
     if (rng::size(segments) == 0)
     {
@@ -73,8 +73,8 @@ sort(R&& r, Compare comp = Compare())
     else if (rng::size(segments) == 1)
     {
         auto&& segment = *rng::begin(segments);
-        auto&& local_policy = dr::shp::__detail::dpl_policy(dr::ranges::rank(segment));
-        auto&& local_segment = dr::shp::__detail::local(segment);
+        auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
+        auto&& local_segment = __detail::local(segment);
 
         __detail::sort_async(local_policy, rng::begin(local_segment), rng::end(local_segment), comp).wait();
         return;
@@ -95,10 +95,10 @@ sort(R&& r, Compare comp = Compare())
     for (auto&& [segment_id_, segment] : rng::views::enumerate(segments))
     {
         auto const segment_id = static_cast<std::size_t>(segment_id_);
-        auto&& q = dr::shp::__detail::queue(dr::ranges::rank(segment));
-        auto&& local_policy = dr::shp::__detail::dpl_policy(dr::ranges::rank(segment));
+        auto&& q = __detail::queue(ranges::rank(segment));
+        auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-        auto&& local_segment = dr::shp::__detail::local(segment);
+        auto&& local_segment = __detail::local(segment);
 
         auto s = __detail::sort_async(local_policy, rng::begin(local_segment), rng::end(local_segment), comp);
 
@@ -117,12 +117,12 @@ sort(R&& r, Compare comp = Compare())
         events.push_back(e);
     }
 
-    dr::shp::__detail::wait(events);
+    __detail::wait(events);
     events.clear();
 
     // Compute global medians by sorting medians and
     // computing `n_splitters` medians from the medians.
-    auto&& local_policy = dr::shp::__detail::dpl_policy(0);
+    auto&& local_policy = __detail::dpl_policy(0);
     __detail::sort_async(local_policy, medians, medians + n_segments * n_splitters, comp).wait();
 
     double step_size = static_cast<double>(n_segments * n_splitters) / n_segments;
@@ -130,7 +130,7 @@ sort(R&& r, Compare comp = Compare())
     // - Collect median of medians to get final splitters.
     // - Write splitters to [0, n_splitters) in `medians`
 
-    auto&& q = dr::shp::__detail::queue(0);
+    auto&& q = __detail::queue(0);
     q.single_task([=] {
          for (std::size_t i = 0; i < n_splitters; i++)
          {
@@ -152,10 +152,10 @@ sort(R&& r, Compare comp = Compare())
 
     for (auto&& [segment_id, segment] : rng::views::enumerate(segments))
     {
-        auto&& q = dr::shp::__detail::queue(dr::ranges::rank(segment));
-        auto&& local_policy = dr::shp::__detail::dpl_policy(dr::ranges::rank(segment));
+        auto&& q = __detail::queue(ranges::rank(segment));
+        auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-        auto&& local_segment = dr::shp::__detail::local(segment);
+        auto&& local_segment = __detail::local(segment);
 
         // splitter_i = [ index in local_segment of first element greater or equal
         // 1st global median, index ... 2nd global median, ..., size of
@@ -188,7 +188,7 @@ sort(R&& r, Compare comp = Compare())
 
     for (auto&& [segment_id, segment] : rng::views::enumerate(segments))
     {
-        auto&& q = dr::shp::__detail::queue(dr::ranges::rank(segment));
+        auto&& q = __detail::queue(ranges::rank(segment));
 
         T* buffer = sycl::malloc_device<T>(sorted_seg_sizes[static_cast<std::size_t>(segment_id)], q);
         sorted_segments.push_back(buffer);
@@ -197,7 +197,7 @@ sort(R&& r, Compare comp = Compare())
     // Copy corresponding elements to each "sorted segment"
     for (auto&& [segment_id_, segment] : rng::views::enumerate(segments))
     {
-        auto&& local_segment = dr::shp::__detail::local(segment);
+        auto&& local_segment = __detail::local(segment);
         const auto segment_id = static_cast<std::size_t>(segment_id_);
 
         std::size_t* splitter_i = splitter_indices[segment_id];
@@ -217,7 +217,7 @@ sort(R&& r, Compare comp = Compare())
         }
     }
 
-    dr::shp::__detail::wait(events);
+    __detail::wait(events);
     events.clear();
 
     // merge sorted chunks within each of these new segments
@@ -249,7 +249,7 @@ sort(R&& r, Compare comp = Compare())
 
                 new_chunks.push_back(l);
 
-                oneapi::dpl::inplace_merge(__detail::dpl_policy(dr::ranges::rank(segments[t])), first, middle, last,
+                oneapi::dpl::inplace_merge(__detail::dpl_policy(ranges::rank(segments[t])), first, middle, last,
                                            std::forward<Compare>(comp));
             }
 
@@ -275,7 +275,7 @@ sort(R&& r, Compare comp = Compare())
         rng::advance(d_first, n_elements);
     }
 
-    dr::shp::__detail::wait(events);
+    __detail::wait(events);
 
     // Free temporary memory.
 
@@ -292,7 +292,7 @@ sort(R&& r, Compare comp = Compare())
     sycl::free(medians, shp::context());
 }
 
-template <dr::distributed_iterator RandomIt, typename Compare = std::less<>>
+template <distributed_iterator RandomIt, typename Compare = std::less<>>
 void
 sort(RandomIt first, RandomIt last, Compare comp = Compare())
 {
