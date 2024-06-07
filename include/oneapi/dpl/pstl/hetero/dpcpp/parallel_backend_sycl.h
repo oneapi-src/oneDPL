@@ -1165,7 +1165,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
-        auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
+        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
 
         // main parallel_for
         __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -1250,7 +1250,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
-        auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
+        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
 
         // main parallel_for
         __exec.queue().submit([&](sycl::handler& __cgh) {
