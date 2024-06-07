@@ -71,8 +71,6 @@ add_custom_target(build-onedpl-tests
 
 set(run-onedpl-tests-depends build-onedpl-tests)
 
-option(DR_DOCKER "Build shp DR tests with Docker" OFF)
-
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
@@ -250,12 +248,6 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
-
-if (ONEDPL_USE_DR AND DR_DOCKER)
-    add_custom_target(build-dr-tests COMMENT "Build dr tests" DEPENDS shp-tests shp-tests-3)
-    # run in docker
-    add_custom_target(run-dr-tests COMMENT "Run dr tests" DEPENDS build-dr-tests COMMAND ./distributed-ranges/shp/shp-tests ./distributed-ranges/shp/shp-tests-3)
-endif()
 
 # add additional TUs if required
 if (TARGET interop_allocs.pass)
