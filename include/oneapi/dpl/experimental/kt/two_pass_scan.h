@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "internal/esimd_defs.h"
+#include "../../pstl/utils.h"
 
 namespace oneapi::dpl::experimental::kt::gpu
 {
@@ -59,19 +60,21 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     using ValueType = typename std::iterator_traits<InputIterator>::value_type;
 
     // PVC 1 tile
-    constexpr std::uint32_t VL                   = 32;         // simd vector length
     constexpr std::uint32_t log2_VL              = 5;
-    constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216;   // empirically determined for reduce_then_scan
+    constexpr std::uint32_t VL                   = 1 << log2_VL; // simd vector length 2^5 = 32
+    constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216;     // empirically determined for reduce_then_scan
 
     constexpr std::uint32_t work_group_size = 1024;
     constexpr std::uint32_t num_work_groups = 128;
     constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;
     constexpr std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
 
-    int M = std::distance(first, last);
+    uint32_t M = std::distance(first, last);
+    uint32_t num_remaining = M;
     auto mScanLength = M;
     // items per PVC hardware thread
-    int K = mScanLength >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global : mScanLength / num_sub_groups_global;
+    int K = mScanLength >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
+                    : std::max(std::uint32_t(VL), oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K/VL;
     int j;
@@ -85,7 +88,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // version will rely on blocking to fully utilize slm
     // for scan lengths less than 2^23 block size is reduced accordingly
     auto blockSize = ( M < MAX_INPUTS_PER_BLOCK ) ? M : MAX_INPUTS_PER_BLOCK;
-    auto numBlocks = M / blockSize;
+    auto numBlocks = M / blockSize + (M % blockSize != 0);
 
     auto globalRange = range<1>(num_work_groups * work_group_size);
     auto localRange = range<1>(work_group_size);
@@ -111,18 +114,39 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         auto sub_group = ndi.get_sub_group();
         auto sub_group_id = sub_group.get_group_linear_id();
         auto sub_group_local_id = sub_group.get_local_linear_id();
-        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K) + sub_group_local_id;
+
         ValueType v = 0;
         ValueType init = 0;
-        
+
+        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
+        bool is_full_thread = start_idx + J*VL <= M;
+        start_idx += sub_group_local_id;
         // compute thread-local pfix on T0..63, K samples/T, send to accumulator kernel
-        #pragma unroll
-        for ( int j=0; j<J; j++ ) {
-        v = first[start_idx + j*VL];
-        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-        v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
-        // Last sub-group lane communicates its carry to everyone else in the sub-group
-        init = sycl::group_broadcast(sub_group, v, VL-1);
+        if (is_full_thread)
+        {
+            #pragma unroll
+            for ( int j=0; j<J; j++ )
+            {
+                v = first[start_idx + j*VL];
+                // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                // Last sub-group lane communicates its carry to everyone else in the sub-group
+                init = sycl::group_broadcast(sub_group, v, VL-1);
+            }
+        }
+        else
+        {
+            #pragma unroll
+            for ( int j=0; j<J; j++ )
+            {
+                auto offset = start_idx + j*VL;
+                // Pass through identity if we are past the max range
+                v = offset < M ? first[start_idx + j*VL] : 0;
+                // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                // Last sub-group lane communicates its carry to everyone else in the sub-group
+                init = sycl::group_broadcast(sub_group, v, VL-1);
+            }
         }
 
         if (sub_group_local_id == VL - 1)
@@ -271,20 +295,51 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // even through the data so far does not agree with the guidance but for simplicity
         // with variable scan lengths grouping is not used currently
         // grouping and prefetch are likely to improve throughput in future versions
-        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K) + sub_group_local_id;
+        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
         ValueType init = carry_in;
-        #pragma unroll
-        for ( int j=0; j<J; j++ ) {
-        v = first[start_idx + j*VL];
-        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-        v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
-        result[start_idx + j*VL] = v;
-        // Last sub-group lane communicates its carry to everyone else in the sub-group
-        init = sycl::group_broadcast(sub_group, v, VL-1);
+        bool is_full_thread = start_idx + J*VL <= M;
+        start_idx += sub_group_local_id;
+        if (is_full_thread)
+        {
+            #pragma unroll
+            for ( int j=0; j<J; j++ )
+            {
+                v = first[start_idx + j*VL];
+                // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                result[start_idx + j*VL] = v;
+                // Last sub-group lane communicates its carry to everyone else in the sub-group
+                init = sycl::group_broadcast(sub_group, v, VL-1);
+            }
+        }
+        else
+        {
+            #pragma unroll
+            for ( int j=0; j<J; j++ )
+            {
+                auto offset = start_idx + j*VL;
+                // Pass through identity if we are past the max range
+                v = offset < M ? first[offset] : 0;
+                // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                if (offset < M)
+                    result[offset] = v;
+                // Last sub-group lane communicates its carry to everyone else in the sub-group
+                init = sycl::group_broadcast(sub_group, v, VL-1);
+            }
         }
     });
     });
-
+    // Resize K and J for the last block
+	if (num_remaining > blockSize)
+    {
+        num_remaining -= blockSize;
+        // TODO: add support to invoke a single work-group implementation on either the last iteration
+        K = num_remaining >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
+            : std::max(std::uint32_t(VL), oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
+        // SIMD vectors per PVC hardware thread
+        J = K/VL;
+    }
     } // block
     event.wait();
     sycl::free(tmp_storage, q);
