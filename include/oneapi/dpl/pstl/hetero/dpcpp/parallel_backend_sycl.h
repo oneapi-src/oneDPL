@@ -1293,7 +1293,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
                     // Point #A4
                     // Set local atomic value to global atomic
-                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                    if (__local_idx == 0)
                     {
                         for (auto __old = __found.load(); __comp(__found_local.load(), __old);
                                 __old = __found.load())
