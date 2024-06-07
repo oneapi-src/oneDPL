@@ -502,6 +502,13 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hInst, DWORD callReason, LPVOID reserve
     if (callReason == DLL_PROCESS_ATTACH && reserved && hInst)
     {
         ret = __pstl_offload::__do_functions_replacement() ? TRUE : FALSE;
+
+        if (ret)
+        {
+            // default SYCL context is required for correct operation,
+            // but under Windows it's disabled by default
+            sycl::detail::enable_ext_oneapi_default_context(true);
+        }
     }
 
     return ret;
