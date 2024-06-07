@@ -11,7 +11,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/remote_vector.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 
 namespace oneapi::dpl::experimental::dr::shp
@@ -138,8 +138,8 @@ template <typename T, typename Allocator = device_allocator<T>>
 struct distributed_vector
 {
   public:
-    using segment_type = device_vector<T, Allocator>;
-    using const_segment_type = std::add_const_t<device_vector<T, Allocator>>;
+    using segment_type = remote_vector<T, Allocator>;
+    using const_segment_type = std::add_const_t<remote_vector<T, Allocator>>;
 
     using value_type = T;
     using size_type = std::size_t;

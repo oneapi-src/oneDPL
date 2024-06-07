@@ -10,7 +10,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/owning_view.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/remote_span.hpp>
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -319,7 +319,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     {
         if constexpr (remote_range<T>)
         {
-            return device_span(std::forward<T>(t));
+            return remote_span(std::forward<T>(t));
         }
         else
         {
