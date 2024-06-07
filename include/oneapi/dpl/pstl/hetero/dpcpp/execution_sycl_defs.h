@@ -148,28 +148,29 @@ class device_policy
     sycl::queue
     queue() const
     {
-        return __q.__queue_ref();
+        return q.__queue_ref();
     }
 
   private:
-    static_assert(sizeof(__internal::__queue_holder)==sizeof(sycl::queue));
-    static_assert(alignof(__internal::__queue_holder)==alignof(sycl::queue));
+    static_assert(sizeof(__internal::__queue_holder) == sizeof(sycl::queue));
+    static_assert(alignof(__internal::__queue_holder) == alignof(sycl::queue));
     __internal::__queue_holder q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
 struct DefaultKernelNameFPGA;
 
+using __fpga_default_selector =
+#if _ONEDPL_FPGA_EMU
+    __dpl_sycl::__fpga_emulator_selector;
+#else
+    __dpl_sycl::__fpga_selector;
+#endif
+
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
-    using __fpga_default_selector =
-#if _ONEDPL_FPGA_EMU
-        __dpl_sycl::__fpga_emulator_selector;
-#else
-        __dpl_sycl::__fpga_selector;
-#endif
 
   public:
     static constexpr unsigned int unroll_factor = factor;
