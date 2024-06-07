@@ -160,17 +160,19 @@ class device_policy
 #if _ONEDPL_FPGA_DEVICE
 struct DefaultKernelNameFPGA;
 
-using __fpga_default_selector =
-#if _ONEDPL_FPGA_EMU
-    __dpl_sycl::__fpga_emulator_selector;
-#else
-    __dpl_sycl::__fpga_selector;
-#endif
-
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
+
+    static inline auto __fpga_default_selector()
+    {
+#if _ONEDPL_FPGA_EMU
+        return __dpl_sycl::__fpga_emulator_selector();
+#else
+        return __dpl_sycl::__fpga_selector();
+#endif
+    }
 
   public:
     static constexpr unsigned int unroll_factor = factor;
