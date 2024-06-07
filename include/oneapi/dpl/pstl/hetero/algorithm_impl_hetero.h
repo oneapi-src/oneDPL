@@ -634,6 +634,37 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 // any_of
 //------------------------------------------------------------------------
 
+template <typename _Tuple, typename _UnaryTransformOp>
+struct __find_if_unary_transform_op
+{
+    _UnaryTransformOp __transform_op;
+
+    template <typename Arg>
+    _Tuple
+    operator()(const Arg& arg) const
+    {
+        return {__transform_op(std::get<0>(arg)), std::get<1>(arg)};
+    }
+};
+
+template <typename _Tuple, typename _IsFirst>
+struct __find_if_binary_reduce_op
+{
+    _Tuple
+    operator()(const _Tuple& op1, const _Tuple& op2) const
+    {
+        if (std::get<0>(op1) && std::get<0>(op2))
+        {
+            if constexpr (_IsFirst{})
+                return {true, std::min(std::get<1>(op1), std::get<1>(op2))};
+            else
+                return {true, std::max(std::get<1>(op1), std::get<1>(op2))};
+        }
+
+        return std::get<0>(op1) ? op1 : op2;
+    }
+};
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 bool
 __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
