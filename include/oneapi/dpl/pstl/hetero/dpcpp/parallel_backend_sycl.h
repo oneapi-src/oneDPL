@@ -1157,55 +1157,55 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    _AtomicType __result = __init_value;
 
     const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
-    // scope is to copy data back to __result after destruction of temporary sycl:buffer
-    {
-        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
+    // temporary storage for global atomic based on sycl::buffer or USM memory
+    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
+    __result_and_scratch_storage_t __temp(__exec, 0);
 
-        // main parallel_for
-        __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+    // main parallel_for
+    __exec.queue().submit([&](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+        auto __temp_acc = __temp.__get_scratch_acc(__cgh);
+        auto _usm_or_buffer_accessor_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+        *_usm_or_buffer_accessor_ptr = __init_value;
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_FindOrKernel>(
+        __cgh.parallel_for<_FindOrKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
+            __kernel,
 #endif
-                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                          sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __nd_item) {
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                        sycl::range</*dim=*/1>(__wgroup_size)),
+            [=](sycl::nd_item</*dim=*/1> __nd_item) {
 
-                    // using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    // Point #A1 - not required
+                __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(*_usm_or_buffer_accessor_ptr);
 
-                    // Point #A2 - rewritten
-                    _AtomicType __found_local = __init_value;
-                    // Point #A2.1 - not required
+                // Point #A1 - not required
 
-                    // Point #A3 - rewritten
-                    constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, __parallel_or_tag{}, __rngs...);
-                    // Point #A3.1 - not required
+                // Point #A2 - rewritten
+                _AtomicType __found_local = __init_value;
+                // Point #A2.1 - not required
 
-                    // Point #A4 - rewritten
-                    // Set found state result to global atomic
-                    if (__found_local != __init_value)
-                    {
-                        __found.fetch_or(__found_local);
-                    }
-                });
-        });
-        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
-    }
+                // Point #A3 - rewritten
+                constexpr auto __comp = typename _BrickTag::_Compare{};
+                __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, __parallel_or_tag{}, __rngs...);
+                // Point #A3.1 - not required
 
+                // Point #A4 - rewritten
+                // Set found state result to global atomic
+                if (__found_local != __init_value)
+                {
+                    __found.fetch_or(__found_local);
+                }
+            });
+    }).wait();
+
+    const auto __result = __temp.__get_value();
     return __result != __init_value;
 }
 
@@ -1244,68 +1244,69 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    auto __result = __init_value;
 
     const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
-    // scope is to copy data back to __result after destruction of temporary sycl:buffer
-    {
-        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
+    // temporary storage for global atomic based on sycl::buffer or USM memory
+    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
+    __result_and_scratch_storage_t __temp(__exec, 0);
 
-        // main parallel_for
-        __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+    // main parallel_for
+    __exec.queue().submit([&](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-            // create local accessor to connect atomic with
-            __dpl_sycl::__local_accessor<_AtomicType> __temp_local(1, __cgh);
+        auto __temp_acc = __temp.__get_scratch_acc(__cgh);
+        auto _usm_or_buffer_accessor_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+        *_usm_or_buffer_accessor_ptr = __init_value;
+
+        // create local accessor to connect atomic with
+        __dpl_sycl::__local_accessor<_AtomicType> __temp_local(1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_FindOrKernel>(
+        __cgh.parallel_for<_FindOrKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
+            __kernel,
 #endif
-                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                          sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __nd_item) {
-                    auto __local_idx = __nd_item.get_local_id(0);
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                        sycl::range</*dim=*/1>(__wgroup_size)),
+            [=](sycl::nd_item</*dim=*/1> __nd_item) {
+                auto __local_idx = __nd_item.get_local_id(0);
 
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    // Point #A1
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_local));
+                __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                    *_usm_or_buffer_accessor_ptr);
+                // Point #A1
+                __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
+                    *__dpl_sycl::__get_accessor_ptr(__temp_local));
 
-                    // Point #A2
-                    // 1. Set initial value to local atomic
-                    if (__local_idx == 0)
-                        __found_local.store(__init_value);
-                    // Point #A2.1
-                    __dpl_sycl::__group_barrier(__nd_item);
+                // Point #A2
+                // 1. Set initial value to local atomic
+                if (__local_idx == 0)
+                    __found_local.store(__init_value);
+                // Point #A2.1
+                __dpl_sycl::__group_barrier(__nd_item);
 
-                    // Point #A3
-                    // 2. Find any element that satisfies pred and set local atomic value to global atomic
-                    constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, _BrickTag{}, __rngs...);
-                    // Point #A3.1
-                    __dpl_sycl::__group_barrier(__nd_item);
+                // Point #A3
+                // 2. Find any element that satisfies pred and set local atomic value to global atomic
+                constexpr auto __comp = typename _BrickTag::_Compare{};
+                __pred(__nd_item, __n_iter, __wgroup_size, __comp, __found_local, _BrickTag{}, __rngs...);
+                // Point #A3.1
+                __dpl_sycl::__group_barrier(__nd_item);
 
-                    // Point #A4
-                    // Set local atomic value to global atomic
-                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                // Point #A4
+                // Set local atomic value to global atomic
+                if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                {
+                    for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                            __old = __found.load())
                     {
-                        for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                __old = __found.load())
-                        {
-                            __found.compare_exchange_strong(__old, __found_local.load());
-                        }
+                        __found.compare_exchange_strong(__old, __found_local.load());
                     }
-                });
-        });
-        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
-    }
+                }
+            });
+    }).wait();
 
+    const auto __result = __temp.__get_value();
     return __result != __init_value ? __result : __rng_n;
 }
 
