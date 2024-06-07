@@ -20,9 +20,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <sycl/sycl.hpp>
-#include <sycl/builtins_esimd.hpp>
-#include <time.h>
-#include <sycl/ext/intel/esimd.hpp>
 #include <iterator>
 
 #include "internal/esimd_defs.h"
@@ -62,22 +59,19 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
 
     // PVC 1 tile
     constexpr std::uint32_t VL                   = 32;         // simd vector length
-    constexpr std::uint32_t NUM_THREADS_GLOBAL   = 4096;       // threads per tile (number of subgroups that can execute at once)
-    constexpr std::uint32_t NUM_THREADS_LOCAL    = 64;         // threads per Xe (number of subgroups executing at once per 2028 size work-group)
-    constexpr std::uint32_t NUM_XE               = 64;         // number of Xe per tile
-    constexpr std::uint32_t MAX_SLM_BYTES_PER_XE = (512*1024); // per opt guide 512, actual 128?
     constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216;   // empirically determined for reduce_then_scan
 
     // export NEOReadDebugKeys=1
     // we need export OverrideMaxWorkgroupSize=2048
     constexpr std::uint32_t work_group_size = 2048; // TODO: experiment with 1024. largest supported without experimental driver macros
     constexpr std::uint32_t num_work_groups = 64;   // If above is 1024, then this should be 128 for full saturation of PVC 1-tile 
-    constexpr std::uint32_t sub_groups_per_work_group = work_group_size / VL;   // If above is 1024, then this should be 128 for full saturation of PVC 1-tile
+    constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;   // If above is 1024, then this should be 128 for full saturation of PVC 1-tile
+    constexpr std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
 
     int M = std::distance(first, last);
     auto mScanLength = M;
     // items per PVC hardware thread
-    int K = mScanLength >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / NUM_THREADS_GLOBAL : mScanLength / NUM_THREADS_GLOBAL;
+    int K = mScanLength >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global : mScanLength / num_sub_groups_global;
     // SIMD vectors per PVC hardware thread
     int J = K/VL;
     int j;
@@ -98,19 +92,17 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     nd_range<1> range(globalRange, localRange);
 
     // Each element is a partial result from a subgroup
-    ValueType *tmp_storage = sycl::malloc_device<ValueType>(NUM_THREADS_GLOBAL, q);
+    ValueType *tmp_storage = sycl::malloc_device<ValueType>(num_sub_groups_global, q);
     sycl::event event;
 
     // run scan kernels for all input blocks in the current buffer
     // e.g., scan length 2^24 / MAX_INPUTS_PER_BLOCK = 2 blocks
     for ( int b=0; b<numBlocks; b++ ) {
-    int offset = 0; // TODO remove
-
     // the first kernel computes thread-local prefix scans and 
     // thread local carries, one per thread
     // intermediate partial sums and carries write back to the output buffer
     event = q.submit([&](handler &h) {
-    sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group, h);
+    sycl::local_accessor<ValueType> sub_group_partials(num_sub_groups_local, h);
     h.depends_on(event);
     h.parallel_for<class kernel1>( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
@@ -119,7 +111,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         auto sub_group = ndi.get_sub_group();
         auto sub_group_id = sub_group.get_group_linear_id();
         auto sub_group_local_id = sub_group.get_local_linear_id();
-        uint32_t start_idx = (b*blockSize) + (g * K * sub_groups_per_work_group) + (sub_group_id * K) + sub_group_local_id;
+        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K) + sub_group_local_id;
         ValueType v = 0;
         ValueType init = 0;
         
@@ -145,9 +137,9 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // accumulator kernel takes M thread carries from scratch
         // to compute a prefix sum on global carries
         if ( sub_group_id == 0 ) {
-        start_idx = (g * sub_groups_per_work_group);
-        // TODO: handle if sub_groups_per_work_group < VL
-        constexpr std::uint8_t iters = sub_groups_per_work_group / VL;
+        start_idx = (g * num_sub_groups_local);
+        // TODO: handle if num_sub_groups_local < VL
+        constexpr std::uint8_t iters = num_sub_groups_local / VL;
         init = 0;
         #pragma unroll
         for( std::uint8_t i=0; i<iters; i++ ) {
@@ -168,7 +160,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // fixed in ESIMD.  Currently atomics and global device memory are 
     // not coherent inter-Xe
     event = q.submit([&](handler &CGH) {
-    sycl::local_accessor<ValueType> sub_group_partials(sub_groups_per_work_group + 1, CGH);
+    sycl::local_accessor<ValueType> sub_group_partials(num_sub_groups_local + 1, CGH);
     CGH.depends_on(event);
     CGH.parallel_for<class kernel2>( range, [=](nd_item<1> ndi) [[sycl::reqd_sub_group_size(VL)]] {
         auto id = ndi.get_global_id(0);
@@ -184,7 +176,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // propogate carry in from previous block
         ValueType carry_in = 0;
         if (b > 0 && lid == 0)
-            carry_in = result[offset+(b*blockSize-1)];
+            carry_in = result[b*blockSize-1];
         carry_in = sycl::group_broadcast(ndi.get_group(), carry_in, 0);
 
         // on each Xe T0: 
@@ -202,8 +194,8 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         //         on 64 T-local carries 
         //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
         //           63: sum(T0 carry...T63 carry)
-        constexpr std::uint8_t iters = sub_groups_per_work_group / VL;
-        auto csrc = (g*sub_groups_per_work_group) + offset;
+        constexpr std::uint8_t iters = num_sub_groups_local / VL;
+        auto csrc = g*num_sub_groups_local;
         #pragma unroll
         for(std::uint8_t i=0;i<iters;i++) {
             sub_group_partials[i*VL + sub_group_local_id] = tmp_storage[csrc + i*VL + sub_group_local_id];
@@ -212,12 +204,12 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // step 2) load 32 or 64 Xe carry outs on every Xe; then
         //         compute the prefix to get global Xe carries
         //         v = gather(63, 127, 191, 255, ...)
-        uint32_t offset = sub_groups_per_work_group - 1;
+        uint32_t offset = num_sub_groups_local - 1;
         ValueType init = 0;
         #pragma unroll
         // only need 32 carries for Xe0..Xe31
         for( int i=0; i<(g>>5)+1; i++ ) {
-            v = tmp_storage[i*sub_groups_per_work_group*VL + (sub_groups_per_work_group * sub_group_local_id + offset)];
+            v = tmp_storage[i*num_sub_groups_local*VL + (num_sub_groups_local * sub_group_local_id + offset)];
             v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
             init = sycl::group_broadcast(sub_group, v, VL-1);
             if (i==0) carry31 = init;
@@ -234,24 +226,23 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         //            and apply to slm local prefix carries T0..T63 
         if ( (sub_group_id==0) && (g>0) ) {
         ValueType carry;
-        auto coffset = 0;
+        auto carry_offset = 0;
         if (g!=32) {
             carry = sycl::group_broadcast(sub_group, v, g%32-1);
         } else {
             carry = carry31;
         }
         // TODO: this seems hardcoded for 64 sub groups per work group
-        sub_group_partials[coffset + sub_group_local_id] = sub_group_partials[coffset + sub_group_local_id] + carry;
-        coffset += VL;
-        sub_group_partials[coffset + sub_group_local_id] = sub_group_partials[coffset + sub_group_local_id] + carry;
+        sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
+        carry_offset += VL;
+        sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
         if (sub_group_local_id == 0)
-            sub_group_partials[sub_groups_per_work_group] = carry;
+            sub_group_partials[num_sub_groups_local] = carry;
         }
         //sycl::group_barrier(ndi.get_group());
         ndi.barrier(sycl::access::fence_space::local_space);
 
         // get global carry adjusted for thread-local prefix
-        auto maddr = id * K * sizeof(ValueType) + offset + (b*blockSize*sizeof(ValueType));
         if ( sub_group_id > 0 )
         {
             if (sub_group_local_id == 0)
@@ -264,7 +255,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         {
             if (sub_group_local_id == 0)
             {
-                carry_in += sub_group_partials[sub_groups_per_work_group];
+                carry_in += sub_group_partials[num_sub_groups_local];
             }
             carry_in = sycl::group_broadcast(sub_group, carry_in, 0);
         }
@@ -278,7 +269,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // even through the data so far does not agree with the guidance but for simplicity
         // with variable scan lengths grouping is not used currently
         // grouping and prefetch are likely to improve throughput in future versions
-        uint32_t start_idx = (b*blockSize) + (g * K * sub_groups_per_work_group) + (sub_group_id * K) + sub_group_local_id;
+        uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K) + sub_group_local_id;
         ValueType init = carry_in;
         #pragma unroll
         for ( int j=0; j<J; j++ ) {
