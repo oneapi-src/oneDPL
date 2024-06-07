@@ -1,4 +1,4 @@
-// -*- C++ -*-
+/ / -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
@@ -21,6 +21,7 @@
 #include <iostream>
 #include <sycl/sycl.hpp>
 #include <iterator>
+#include <cmath>
 
 #include "internal/esimd_defs.h"
 
@@ -59,13 +60,12 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
 
     // PVC 1 tile
     constexpr std::uint32_t VL                   = 32;         // simd vector length
+    constexpr std::uint32_t log2_VL              = 5;
     constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216;   // empirically determined for reduce_then_scan
 
-    // export NEOReadDebugKeys=1
-    // we need export OverrideMaxWorkgroupSize=2048
-    constexpr std::uint32_t work_group_size = 2048; // TODO: experiment with 1024. largest supported without experimental driver macros
-    constexpr std::uint32_t num_work_groups = 64;   // If above is 1024, then this should be 128 for full saturation of PVC 1-tile 
-    constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;   // If above is 1024, then this should be 128 for full saturation of PVC 1-tile
+    constexpr std::uint32_t work_group_size = 1024;
+    constexpr std::uint32_t num_work_groups = 128;
+    constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;
     constexpr std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
 
     int M = std::distance(first, last);
@@ -171,7 +171,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         auto sub_group_local_id = sub_group.get_local_linear_id();
 
         ValueType v;
-        ValueType carry31;
+        ValueType carry_last;
 
         // propogate carry in from previous block
         ValueType carry_in = 0;
@@ -207,12 +207,12 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         uint32_t offset = num_sub_groups_local - 1;
         ValueType init = 0;
         #pragma unroll
-        // only need 32 carries for Xe0..Xe31
-        for( int i=0; i<(g>>5)+1; i++ ) {
+        // only need 32 carries for WGs0..Xe32, 64 for WGs32..Wgs64, etc.
+        for( int i=0; i<(g>>log2_VL)+1; i++ ) {
             v = tmp_storage[i*num_sub_groups_local*VL + (num_sub_groups_local * sub_group_local_id + offset)];
             v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
             init = sycl::group_broadcast(sub_group, v, VL-1);
-            if (i==0) carry31 = init;
+            if (i!=(g>>log2_VL)) carry_last = init;
         }
         }
 
@@ -227,15 +227,17 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         if ( (sub_group_id==0) && (g>0) ) {
         ValueType carry;
         auto carry_offset = 0;
-        if (g!=32) {
-            carry = sycl::group_broadcast(sub_group, v, g%32-1);
+        if (g%VL != 0) {
+            carry = sycl::group_broadcast(sub_group, v, g%VL-1);
         } else {
-            carry = carry31;
+            carry = carry_last;
         }
-        // TODO: this seems hardcoded for 64 sub groups per work group
-        sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
-        carry_offset += VL;
-        sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
+        constexpr std::uint8_t iters = num_sub_groups_local / VL;
+        for (std::uint8_t i = 0; i < iters; ++i)
+        {
+            sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
+            carry_offset += VL;
+        }
         if (sub_group_local_id == 0)
             sub_group_partials[num_sub_groups_local] = carry;
         }
