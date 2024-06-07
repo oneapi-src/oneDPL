@@ -93,133 +93,133 @@ jobs:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
 
-  # linux-testing:
-  #   name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
-  #   runs-on: ['${{ matrix.os }}']
-  #   timeout-minutes: 60
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           backend: dpcpp
-  #           device_type: CPU
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           backend: dpcpp
-  #           device_type: FPGA_EMU
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           backend: omp
-  #           device_type: HOST
-  #         - os: ubuntu-latest
-  #           cxx_compiler: g++
-  #           std: 17
-  #           build_type: release
-  #           backend: omp
-  #           device_type: HOST
-  #         - os: ubuntu-latest
-  #           cxx_compiler: g++
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: g++
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: clang++
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: clang++
-  #           std: 17
-  #           build_type: release
-  #           backend: omp
-  #           device_type: HOST
-  #         - os: ubuntu-latest
-  #           cxx_compiler: clang++
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: ubuntu-20.04
-  #           cxx_compiler: g++
-  #           std: 17
-  #           build_type: release
-  #           backend: serial
-  #           device_type: HOST
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Set up Intel APT repository
-  #       if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
-  #       run: |
-  #         # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
-  #         wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-  #         | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-  #         echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-  #         sudo apt-get update -y
-  #     - name: Install Intel® oneAPI Threading Building Blocks
-  #       if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
-  #       run: |
-  #         sudo apt-get install intel-oneapi-tbb-devel -y
-  #     - name: Install Intel® oneAPI DPC++/C++ Compiler
-  #       if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
-  #       run: |
-  #         sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
-  #         # Avoid accidental use of a released version, keeping libpstloffload.so
-  #         sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
-  #     - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
-  #       if: (matrix.device_type == 'FPGA_EMU')
-  #       run: |
-  #         sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emul -y
-  #     - name: Run testing
-  #       shell: bash
-  #       run: |
-  #         set -x
-  #         if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
-  #           source ${LINUX_ONEAPI_PATH}/setvars.sh
-  #         fi
-  #         echo "::warning::CMake: $(cmake --version)"
-  #         echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+  linux-testing:
+    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: FPGA_EMU
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: serial
+            device_type: HOST
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Intel APT repository
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        run: |
+          # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update -y
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        run: |
+          sudo apt-get install intel-oneapi-tbb-devel -y
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        run: |
+          sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
+          # Avoid accidental use of a released version, keeping libpstloffload.so
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
+      - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
+        if: (matrix.device_type == 'FPGA_EMU')
+        run: |
+          sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emul -y
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
+            source ${LINUX_ONEAPI_PATH}/setvars.sh
+          fi
+          echo "::warning::CMake: $(cmake --version)"
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-  #         if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
-  #           make_targets="build-onedpl-sycl_iterator-tests"
-  #           ctest_flags="-R sycl_iterator_.*\.pass"
-  #           echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
-  #         else
-  #           make_targets="build-onedpl-tests"
-  #         fi
-  #         mkdir build && cd build
-  #         lscpu
-  #         cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-  #           -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
-  #         make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
-  #         ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+          if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
+            make_targets="build-onedpl-sycl_iterator-tests"
+            ctest_flags="-R sycl_iterator_.*\.pass"
+            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
+          else
+            make_targets="build-onedpl-tests"
+          fi
+          mkdir build && cd build
+          lscpu
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
+          make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
   dr-testing:
     name: Run DR shp-tests
@@ -242,186 +242,186 @@ jobs:
           docker rm -f dr-test
           exit $exit_code
 
-  # linux-pstl-offload-testing:
-  #   name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
-  #   runs-on: ['${{ matrix.os }}']
-  #   timeout-minutes: 60
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - os: ubuntu-22.04
-  #           cxx_compiler: icpx
-  #           std: 17
-  #           build_type: release
-  #           device_type: cpu
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Set up Intel APT repository
-  #       run: |
-  #         # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
-  #         wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-  #         | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-  #         echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-  #         sudo apt-get update -y
-  #     - name: Install Intel® oneAPI Threading Building Blocks
-  #       run: |
-  #         sudo apt-get install intel-oneapi-tbb-devel -y
-  #     - name: Install Intel® oneAPI DPC++/C++ Compiler
-  #       run: |
-  #         sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
-  #         # Avoid accidental use of a released version, keeping libpstloffload.so
-  #         sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
-  #     - name: Run testing
-  #       shell: bash
-  #       run: |
-  #         set -x
-  #         source ${LINUX_ONEAPI_PATH}/setvars.sh
-  #         echo "::warning::CMake: $(cmake --version)"
-  #         echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+  linux-pstl-offload-testing:
+    name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            device_type: cpu
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Intel APT repository
+        run: |
+          # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update -y
+      - name: Install Intel® oneAPI Threading Building Blocks
+        run: |
+          sudo apt-get install intel-oneapi-tbb-devel -y
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        run: |
+          sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
+          # Avoid accidental use of a released version, keeping libpstloffload.so
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          source ${LINUX_ONEAPI_PATH}/setvars.sh
+          echo "::warning::CMake: $(cmake --version)"
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-  #         make_targets=""
-  #         ctest_regex="^("
+          make_targets=""
+          ctest_regex="^("
 
-  #         test_list="adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
-  #                    transform_reduce.pass transform_reduce.pass.coal transform_scan.pass algorithm.pass \
-  #                    execution.pass functional.pass algorithms_redirection.pass usm_memory_replacement.pass"
+          test_list="adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
+                     transform_reduce.pass transform_reduce.pass.coal transform_scan.pass algorithm.pass \
+                     execution.pass functional.pass algorithms_redirection.pass usm_memory_replacement.pass"
 
-  #         for test in $test_list
-  #         do
-  #           if [ -n "$make_targets" ]
-  #           then
-  #             make_targets+=" "
-  #             ctest_regex+="|"
-  #           fi
+          for test in $test_list
+          do
+            if [ -n "$make_targets" ]
+            then
+              make_targets+=" "
+              ctest_regex+="|"
+            fi
 
-  #           make_targets+="$test"
-  #           ctest_regex+="$test"
-  #         done
+            make_targets+="$test"
+            ctest_regex+="$test"
+          done
 
-  #         ctest_regex+=")"
+          ctest_regex+=")"
 
-  #         mkdir build && cd build
-  #         lscpu
-  #         device_type=${{ matrix.device_type }}
-  #         cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-  #           -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp \
-  #           -D_ONEDPL_PSTL_OFFLOAD=$device_type ..
+          mkdir build && cd build
+          lscpu
+          device_type=${{ matrix.device_type }}
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp \
+            -D_ONEDPL_PSTL_OFFLOAD=$device_type ..
 
-  #         make pstloffload
-  #         source vars.sh
+          make pstloffload
+          source vars.sh
 
-  #         make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
+          make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 
-  #         ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
-  # windows-testing:
-  #   name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
-  #   runs-on: ['${{ matrix.os }}']
-  #   timeout-minutes: 60
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - os: windows-2019
-  #           cxx_compiler: icx-cl
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: windows-2019
-  #           cxx_compiler: cl
-  #           std: 17
-  #           build_type: release
-  #           backend: tbb
-  #           device_type: HOST
-  #         - os: windows-2019
-  #           cxx_compiler: icx
-  #           std: 17
-  #           build_type: release
-  #           backend: dpcpp
-  #           device_type: CPU
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Install Intel® oneAPI Threading Building Blocks
-  #       if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
-  #       shell: cmd
-  #       run: |
-  #         curl %WINDOWS_TBB_DOWNLOAD_LINK% --output tbb_install.exe
-  #         tbb_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
-  #         del tbb_install.exe
-  #     - name: Install Intel® oneAPI DPC++/C++ Compiler
-  #       shell: cmd
-  #       run: |
-  #         curl %WINDOWS_ICPX_DOWNLOAD_LINK% --output icpx_install.exe
-  #         icpx_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
-  #         del icpx_install.exe
-  #         :: Avoid accidental use of a released version
-  #         rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
-  #     - name: Run testing
-  #       shell: cmd
-  #       run: |
-  #         if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
-  #           call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
-  #         )
-  #         if "${{ matrix.cxx_compiler }}" == "cl" (
-  #           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-  #         )
-  #         powershell $output = cmake --version; Write-Host ::warning::CMake: $output
-  #         powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
+  windows-testing:
+    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            cxx_compiler: icx-cl
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: cl
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: icx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        shell: cmd
+        run: |
+          curl %WINDOWS_TBB_DOWNLOAD_LINK% --output tbb_install.exe
+          tbb_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del tbb_install.exe
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        shell: cmd
+        run: |
+          curl %WINDOWS_ICPX_DOWNLOAD_LINK% --output icpx_install.exe
+          icpx_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del icpx_install.exe
+          :: Avoid accidental use of a released version
+          rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
+      - name: Run testing
+        shell: cmd
+        run: |
+          if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
+            call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
+          )
+          if "${{ matrix.cxx_compiler }}" == "cl" (
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          )
+          powershell $output = cmake --version; Write-Host ::warning::CMake: $output
+          powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
 
-  #         if "${{ matrix.backend }}" == "dpcpp" (
-  #           set ninja_targets="build-onedpl-sycl_iterator-tests"
-  #           set ctest_flags=-R sycl_iterator_.*\.pass
-  #           echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator tests
-  #         ) else (
-  #           set ninja_targets=build-onedpl-tests
-  #         )
-  #         mkdir build && cd build
+          if "${{ matrix.backend }}" == "dpcpp" (
+            set ninja_targets="build-onedpl-sycl_iterator-tests"
+            set ctest_flags=-R sycl_iterator_.*\.pass
+            echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator tests
+          ) else (
+            set ninja_targets=build-onedpl-tests
+          )
+          mkdir build && cd build
 
-  #         cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} .. || goto :short_circuit_fail
-  #         ninja -j 2 -v %ninja_targets% || goto :short_circuit_fail
-  #         ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto :short_circuit_fail
-  #         exit /b 0
-  #         :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
-  #         :short_circuit_fail
-  #         exit /b %errorlevel%
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} .. || goto :short_circuit_fail
+          ninja -j 2 -v %ninja_targets% || goto :short_circuit_fail
+          ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto :short_circuit_fail
+          exit /b 0
+          :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
+          :short_circuit_fail
+          exit /b %errorlevel%
 
-  # macos-testing:
-  #   name: HOST,bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
-  #   runs-on: ['${{ matrix.os }}']
-  #   timeout-minutes: 60
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - os: macos-11
-  #           cxx_compiler: icpc
-  #           std: 17
-  #           build_type: release
-  #           backend: omp
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
-  #       run: |
-  #         wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
-  #         mkdir installer
-  #         hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
-  #         sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
-  #     - name: Exclude tests with known issues
-  #       if: matrix.backend == 'omp'
-  #       run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
-  #     - name: Run testing
-  #       shell: bash
-  #       run: |
-  #         set -x
-  #         source /opt/intel/oneapi/setvars.sh
-  #         echo "::warning::CMake: $(cmake --version)"
-  #         if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
-  #           echo "::warning::Compiler: $(icpc --version)"
-  #         fi
-  #         mkdir build && cd build
-  #         cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-  #           -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
-  #         make VERBOSE=1 build-onedpl-tests -j${MACOS_BUILD_CONCURRENCY}
-  #         ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"
+  macos-testing:
+    name: HOST,bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-11
+            cxx_compiler: icpc
+            std: 17
+            build_type: release
+            backend: omp
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
+        run: |
+          wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
+          mkdir installer
+          hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
+          sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
+      - name: Exclude tests with known issues
+        if: matrix.backend == 'omp'
+        run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          source /opt/intel/oneapi/setvars.sh
+          echo "::warning::CMake: $(cmake --version)"
+          if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
+            echo "::warning::Compiler: $(icpc --version)"
+          fi
+          mkdir build && cd build
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
+          make VERBOSE=1 build-onedpl-tests -j${MACOS_BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"
