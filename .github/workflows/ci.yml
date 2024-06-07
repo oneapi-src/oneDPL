@@ -8,6 +8,7 @@ on:
       - release_oneDPL
       - main
       - 'release/**'
+      - distributed-ranges
 
 permissions: read-all
 
