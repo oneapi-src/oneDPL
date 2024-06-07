@@ -78,9 +78,11 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   The ``transform_iterator`` class provides the following constructors:
 
   * ``transform_iterator()``: instantiates the iterator using a default constructed base iterator and unary functor.
-  This constructor participates in overload resolution only if the base iterator and unary functor are both default constructible.
+    This constructor participates in overload resolution only if the base iterator and unary functor are both default constructible.
+  
   * ``transform_iterator(iter)``: instantiates the iterator using the base iterator provided and a default constructed
-  unary functor. This constructor participates in overload resolution only if the unary functor is default constructible.
+    unary functor. This constructor participates in overload resolution only if the unary functor is default constructible.
+  
   * ``transform_iterator(iter, func)``: instantiates the iterator using the base iterator and unary functor provided.
 
   To simplify the construction of the iterator, ``oneapi::dpl::make_transform_iterator`` is provided. The
