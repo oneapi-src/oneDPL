@@ -54,7 +54,7 @@ class alignas(sycl::queue) __queue_holder
 
     bool __has_queue() const
     {
-        bool res = (__buf[0] == 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
+        bool res = (__buf[0] != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
         std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
         return res;
     }
