@@ -1055,11 +1055,10 @@ struct __early_exit_find_or
         {
             // Point #B1 - not required to have _ShiftedIdxType
 
-            _IterSize __current_iter = __i;
             // Point #B2 - not required
 
             // Point #B3 - rewritten
-            const auto __shifted_idx = __init_index + __current_iter * __shift;
+            const auto __shifted_idx = __init_index + __i * __shift;
             // Point #B4 - rewritten
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
