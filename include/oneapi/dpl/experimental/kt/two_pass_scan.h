@@ -82,14 +82,6 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     int J = K/VL;
     int j;
 
-    // block inputs according to slm capacity
-    // such that one block fills slm across the pvc tile
-    // in the current implementaiton constrained by lack of esimd support for global
-    // barriers (root_group) and device memory global atomics 2 kernels are used
-    // for synchronization instead of a single kernel with ineternal sync and carry prop
-    // so slm capacity is not a limiting factor, but the merged kernel
-    // version will rely on blocking to fully utilize slm
-    // for scan lengths less than 2^23 block size is reduced accordingly
     auto blockSize = ( M < MAX_INPUTS_PER_BLOCK ) ? M : MAX_INPUTS_PER_BLOCK;
     auto numBlocks = M / blockSize + (M % blockSize != 0);
 
@@ -104,8 +96,8 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     // run scan kernels for all input blocks in the current buffer
     // e.g., scan length 2^24 / MAX_INPUTS_PER_BLOCK = 2 blocks
     for ( int b=0; b<numBlocks; b++ ) {
-    // the first kernel computes thread-local prefix scans and 
-    // thread local carries, one per thread
+    // the first kernel computes sub-group local prefix scans and
+    // subgroup local carries, one per thread
     // intermediate partial sums and carries write back to the output buffer
     event = q.submit([&](handler &h) {
     sycl::local_accessor<ValueType> sub_group_partials(num_sub_groups_local, h);
@@ -123,8 +115,9 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
 
         uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
         bool is_full_thread = start_idx + J*VL <= M;
+        // adjust for lane-id
         start_idx += sub_group_local_id;
-        // compute thread-local pfix on T0..63, K samples/T, send to accumulator kernel
+        // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
         if (is_full_thread)
         {
             #pragma unroll
@@ -159,7 +152,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         //sycl::group_barrier(ndi.get_group());
         ndi.barrier(sycl::access::fence_space::local_space);
 
-        // compute thread-local prefix sums on (T0..63) carries
+        // compute sub-group local prefix sums on (T0..63) carries
         // and store to scratch space at the end of dst; next
         // accumulator kernel takes M thread carries from scratch
         // to compute a prefix sum on global carries
@@ -179,13 +172,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
     });
     });
     
-    // the second kernel computes a prefix sum on thread-local carries
-    // then propogates carries inter-Xe to generate thread-local versions
-    // of the global carries on each Xe thread; then the ouput stage
-    // does load - add carry - store to compute the final sum
-    // N.B. the two kernels will be merged once inter-Xe sync has been 
-    // fixed in ESIMD.  Currently atomics and global device memory are 
-    // not coherent inter-Xe
+    // the second kernel computes a prefix sum on sub-group local carries
+    // then propogates carries inter-WG to generate thread-local versions
+    // of the global carries on each sub-group; then the ouput stage
+    // recomputes the thread-local prefix scan - add carry - store to compute the final sum
     event = q.submit([&](handler &CGH) {
     sycl::local_accessor<ValueType> sub_group_partials(num_sub_groups_local + 1, CGH);
     CGH.depends_on(event);
@@ -211,21 +201,21 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         }
         sub_group_carry = sycl::group_broadcast(ndi.get_group(), sub_group_carry, 0);
 
-        // on each Xe T0: 
-        // 1. load 64 T-local carry pfix sums (T0..63) to slm
-        // 2. load 32 or 64 T63 Xe carry-outs (32 for Xe num<32, 64 above),
+        // on the first sub-group in a work-group (assuming S subgroups in a work-group):
+        // 1. load S sub-group local carry pfix sums (T0..TS-1) to slm
+        // 2. load 32, 64, 96, etc. TS-1 work-group carry-outs (32 for WG num<32, 64 for WG num<64, etc.),
         //    and then compute the prefix sum to generate global carry out
-        //    for each Xe, i.e., prefix sum on T63 carries over all Xe.
-        // 3. on each Xe select theh adjacent neighboring Xe carry in
-        // 4. on each Xe add the global carry-in to 64 T-local pfix sums to  
+        //    for each WG, i.e., prefix sum on TS-1 carries over all WG.
+        // 3. on each WG select the adjacent neighboring WG carry in
+        // 4. on each WG add the global carry-in to S sub-group local pfix sums to
         //    get a T-local global carry in
-        // 5. load T-local pfix values from memory, add the T-local global carries, 
+        // 5. recompute T-local pfix values, add the T-local global carries,
         //    and then write back the final values to memory
         if ( sub_group_id == 0 ) {
-        // step 1) load to Xe slm the Xe-local 64 prefix sums 
-        //         on 64 T-local carries 
+        // step 1) load to Xe slm the WG-local S prefix sums
+        //         on WG T-local carries
         //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
-        //           63: sum(T0 carry...T63 carry)
+        //           S: sum(T0 carry...TS carry)
         constexpr std::uint8_t iters = num_sub_groups_local / VL;
         auto csrc = g*num_sub_groups_local;
         #pragma unroll
@@ -233,13 +223,13 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
             sub_group_partials[i*VL + sub_group_local_id] = tmp_storage[csrc + i*VL + sub_group_local_id];
         } 
 
-        // step 2) load 32 or 64 Xe carry outs on every Xe; then
-        //         compute the prefix to get global Xe carries
-        //         v = gather(63, 127, 191, 255, ...)
+        // step 2) load 32, 64, 96, etc. work-group carry outs on every work-group; then
+        //         compute the prefix in a sub-group to get global work-group carries
+        //         memory accesses: gather(63, 127, 191, 255, ...)
         uint32_t offset = num_sub_groups_local - 1;
         ValueType carry = identity;
         #pragma unroll
-        // only need 32 carries for WGs0..Xe32, 64 for WGs32..Wgs64, etc.
+        // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
         for( int i=0; i<(g>>log2_VL)+1; i++ ) {
             v = tmp_storage[i*num_sub_groups_local*VL + (num_sub_groups_local * sub_group_local_id + offset)];
             v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, carry);
@@ -248,14 +238,12 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         }
         }
 
-        // wait for step 2 to complete on all Xe, i.e.,
-        // for all Xe to finish computing local vector(s) of global carries
         // N.B. barrier could be earlier, guarantees slm local carry update
         //sycl::group_barrier(ndi.get_group());
         ndi.barrier(sycl::access::fence_space::local_space);
 
-        // steps 3/4) load global carry in from Xe neighbor 
-        //            and apply to slm local prefix carries T0..T63 
+        // steps 3/4) load global carry in from neighbor work-group
+        //            and apply to local sub-group prefix carries
         if ( (sub_group_id==0) && (g>0) ) {
         ValueType adj_work_group_carry;
         auto carry_offset = 0;
@@ -276,7 +264,7 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         //sycl::group_barrier(ndi.get_group());
         ndi.barrier(sycl::access::fence_space::local_space);
 
-        // get global carry adjusted for thread-local prefix
+        // Get inter-work group and adjusted for intra-work group prefix
         if ( sub_group_id > 0 )
         {
             if (sub_group_local_id == 0)
@@ -295,14 +283,6 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         }
 
         // step 5) apply global carries
-        // N.B. grouping loads and stores and using more registers
-        // e.g., load load load load v1+c v2c v3+c v4+c store store store store
-        // for simd carry ops has shown +5-10% perforamnce gain on PVC
-        // but results were inconsistent and the ESIMD design team guidance
-        // was to use block_load / _store without grouping
-        // even through the data so far does not agree with the guidance but for simplicity
-        // with variable scan lengths grouping is not used currently
-        // grouping and prefetch are likely to improve throughput in future versions
         uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
         bool is_full_thread = start_idx + J*VL <= M;
         start_idx += sub_group_local_id;
