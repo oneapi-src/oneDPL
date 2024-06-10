@@ -24,8 +24,7 @@
 
 #include <type_traits>
 
-#include <cstddef> // std::byte
-#include <cstring> // memset
+#include <cstdint> // std::uintptr_t
 #include <atomic>  // atomic_signal_fence
 #include <cassert>
 
@@ -47,15 +46,16 @@ struct __global_instance_tag {};
 
 class alignas(sycl::queue) __queue_holder
 {
-    static_assert(sizeof(sycl::queue) >= sizeof(void*));
-    static_assert(alignof(sycl::queue) >= alignof(void*));
+    static_assert(sizeof(sycl::queue) >= sizeof(std::uintptr_t));
+    static_assert(sizeof(sycl::queue) % sizeof(std::uintptr_t) == 0);
+    static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
 
-    std::byte __buf[sizeof(sycl::queue)];
+    std::uintptr_t __buf[sizeof(sycl::queue)/sizeof(std::uintptr_t)];
 
     bool __has_queue() const
     {
-        bool res = (nullptr != reinterpret_cast<void* const&>(*this));
-        std::atomic_signal_fence(std::memory_order_acq_rel); // mitigate possible reordering due to type punning
+        bool res = (__buf[0] == 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
+        std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
         return res;
     }
 
@@ -74,7 +74,7 @@ class alignas(sycl::queue) __queue_holder
         else
         {
             // an "impossible" case of SYCL providing no devices, which we however must handle
-            std::memset(this, 0, sizeof(void*));
+            __buf[0] = 0; // nullify the first size-of-pointer bytes of the holder
             // Since the queue holder does not have a valid queue in this case,
             // the predefined device policies are de-facto unusable.
             // That seems OK though, because there is no device to run SYCL anyway.
