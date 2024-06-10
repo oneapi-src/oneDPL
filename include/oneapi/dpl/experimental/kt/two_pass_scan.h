@@ -62,15 +62,15 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
     // PVC 1 tile
     constexpr std::uint32_t log2_VL = 5;
     constexpr std::uint32_t VL = 1 << log2_VL;               // simd vector length 2^5 = 32
-    constexpr std::uint32_t MAX_INPUTS_PER_BLOCK = 16777216; // empirically determined for reduce_then_scan
+    constexpr std::size_t MAX_INPUTS_PER_BLOCK = 16777216; // empirically determined for reduce_then_scan
 
     constexpr std::uint32_t work_group_size = 1024;
     constexpr std::uint32_t num_work_groups = 128;
     constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;
     constexpr std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
 
-    uint32_t M = std::distance(first, last);
-    uint32_t num_remaining = M;
+    size_t M = std::distance(first, last);
+    size_t num_remaining = M;
 
     static_assert(oneapi::dpl::unseq_backend::__has_known_identity<BinaryOp, ValueType>::value,
                   "The prototype currently supports only known identity operators + init type");
@@ -80,7 +80,7 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
     // items per PVC hardware thread
     int K = mScanLength >= MAX_INPUTS_PER_BLOCK
                 ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
-                : std::max(std::uint32_t(VL),
+                : std::max(std::size_t(VL),
                            oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
@@ -118,7 +118,7 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                 ValueType v = identity;
                 ValueType sub_group_carry = identity;
 
-                uint32_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
+                size_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = start_idx + J * VL <= M;
                 // adjust for lane-id
                 start_idx += sub_group_local_id;
@@ -301,7 +301,7 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                 }
 
                 // step 5) apply global carries
-                uint32_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
+                size_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = start_idx + J * VL <= M;
                 start_idx += sub_group_local_id;
                 if (is_full_thread)
@@ -342,7 +342,7 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
             // TODO: add support to invoke a single work-group implementation on either the last iteration
             K = num_remaining >= MAX_INPUTS_PER_BLOCK
                     ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
-                    : std::max(std::uint32_t(VL),
+                    : std::max(std::size_t(VL),
                                oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
             // SIMD vectors per PVC hardware thread
             J = K / VL;
