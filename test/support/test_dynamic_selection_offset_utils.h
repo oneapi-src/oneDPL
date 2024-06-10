@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_TEST_DYNAMIC_SELECTION_FIXED_RESOURCE_UTILS_H
-#define _ONEDPL_TEST_DYNAMIC_SELECTION_FIXED_RESOURCE_UTILS_H
+#ifndef _ONEDPL_TEST_DYNAMIC_SELECTION_OFFSET_UTILS_H
+#define _ONEDPL_TEST_DYNAMIC_SELECTION_OFFSET_UTILS_H
 
 #include "test_dynamic_selection_utils.h"
 
