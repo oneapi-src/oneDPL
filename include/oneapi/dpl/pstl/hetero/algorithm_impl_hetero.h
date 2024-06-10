@@ -646,24 +646,24 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 // any_of
 //------------------------------------------------------------------------
 
-template <typename _Typle, typename _UnaryTransformOp>
+template <typename _Tuple, typename _UnaryTransformOp>
 struct __find_if_unary_transform_op
 {
     _UnaryTransformOp __transform_op;
 
     template <typename Arg>
-    _Typle
+    _Tuple
     operator()(const Arg& arg) const
     {
         return {__transform_op(std::get<0>(arg)), std::get<1>(arg)};
     }
 };
 
-template <typename _Typle, typename _IsFirst>
+template <typename _Tuple, typename _IsFirst>
 struct __find_if_binary_reduce_op
 {
-    _Typle
-    operator()(const _Typle& op1, const _Typle& op2) const
+    _Tuple
+    operator()(const _Tuple& op1, const _Tuple& op2) const
     {
         if (std::get<0>(op1) && std::get<0>(op2))
         {
