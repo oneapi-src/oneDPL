@@ -1129,7 +1129,7 @@ struct __early_exit_find_or
 template <typename _ExecutionPolicy, typename _Brick, typename... _Ranges>
 bool
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   __parallel_or_tag /*__brick_tag*/, _Ranges&&... __rngs)
+                   __parallel_or_tag __brick_tag, _Ranges&&... __rngs)
 {
     using _BrickTag = __parallel_or_tag;
 
@@ -1192,7 +1192,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
                     // Point #A3 - rewritten
                     constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __parallel_or_tag{}, __rngs...);
+                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
                     // Point #A3.1 - not required
 
                     // Point #A4 - rewritten
