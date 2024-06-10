@@ -25,39 +25,38 @@
 
 #include "internal/esimd_defs.h"
 #include "../../pstl/utils.h"
+#include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
 
 namespace oneapi::dpl::experimental::kt::gpu
 {
 
 namespace {
-template <std::uint8_t VL, typename SubGroup, typename ValueType>
+template <std::uint8_t VL, typename SubGroup, typename BinaryOp, typename ValueType>
 auto
-sub_group_inclusive_scan(const SubGroup& sub_group, ValueType value, const ValueType& init)
+sub_group_inclusive_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, const ValueType& init)
 {
     std::uint8_t sub_group_local_id = sub_group.get_local_linear_id();
     #pragma unroll
     for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
     {
-        auto tmp = sycl::shift_group_right(sub_group, value, shift);
+        auto partial_carry_in = sycl::shift_group_right(sub_group, value, shift);
         if (sub_group_local_id >= shift)
         {
-            value += tmp;
+            value = binary_op(partial_carry_in, value);
         }
     }
-    value += init;
+    value = binary_op(init, value);
     return std::move(value);
 }
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
-template <typename InputIterator, typename OutputIterator, typename UNUSED1, typename UNUSED2>
-void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result, UNUSED1, UNUSED2)
+template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
+void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result, BinaryOp binary_op, ValueType init)
 {
     using namespace sycl;
     using namespace sycl::ext::intel;
     using namespace sycl::ext::intel::esimd;
-
-    using ValueType = typename std::iterator_traits<InputIterator>::value_type;
 
     // PVC 1 tile
     constexpr std::uint32_t log2_VL              = 5;
@@ -71,6 +70,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
 
     uint32_t M = std::distance(first, last);
     uint32_t num_remaining = M;
+
+    static_assert(oneapi::dpl::unseq_backend::__has_known_identity<BinaryOp, ValueType>::value, "The prototype currently supports only known identity operators + init type");
+    constexpr ValueType identity = oneapi::dpl::unseq_backend::__known_identity<BinaryOp, ValueType>;
+    
     auto mScanLength = M;
     // items per PVC hardware thread
     int K = mScanLength >= MAX_INPUTS_PER_BLOCK ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
@@ -115,8 +118,8 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         auto sub_group_id = sub_group.get_group_linear_id();
         auto sub_group_local_id = sub_group.get_local_linear_id();
 
-        ValueType v = 0;
-        ValueType init = 0;
+        ValueType v = identity;
+        ValueType sub_group_carry = identity;
 
         uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
         bool is_full_thread = start_idx + J*VL <= M;
@@ -129,9 +132,9 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
             {
                 v = first[start_idx + j*VL];
                 // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
                 // Last sub-group lane communicates its carry to everyone else in the sub-group
-                init = sycl::group_broadcast(sub_group, v, VL-1);
+                sub_group_carry = sycl::group_broadcast(sub_group, v, VL-1);
             }
         }
         else
@@ -141,11 +144,11 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
             {
                 auto offset = start_idx + j*VL;
                 // Pass through identity if we are past the max range
-                v = offset < M ? first[start_idx + j*VL] : 0;
+                v = offset < M ? first[start_idx + j*VL] : identity;
                 // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
                 // Last sub-group lane communicates its carry to everyone else in the sub-group
-                init = sycl::group_broadcast(sub_group, v, VL-1);
+                sub_group_carry = sycl::group_broadcast(sub_group, v, VL-1);
             }
         }
 
@@ -164,13 +167,13 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         start_idx = (g * num_sub_groups_local);
         // TODO: handle if num_sub_groups_local < VL
         constexpr std::uint8_t iters = num_sub_groups_local / VL;
-        init = 0;
+        sub_group_carry = identity;
         #pragma unroll
         for( std::uint8_t i=0; i<iters; i++ ) {
             v = sub_group_partials[i*VL + sub_group_local_id];
-            v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+            v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
             tmp_storage[start_idx + i*VL + sub_group_local_id] = v;
-            init = sycl::group_broadcast(sub_group, v, VL-1);
+            sub_group_carry = sycl::group_broadcast(sub_group, v, VL-1);
         }
         }
     });
@@ -194,14 +197,19 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         auto sub_group_id = sub_group.get_group_linear_id();
         auto sub_group_local_id = sub_group.get_local_linear_id();
 
-        ValueType v;
-        ValueType carry_last;
+        ValueType v = identity;
+        ValueType carry_last = identity;
 
         // propogate carry in from previous block
-        ValueType carry_in = 0;
-        if (b > 0 && lid == 0)
-            carry_in = result[b*blockSize-1];
-        carry_in = sycl::group_broadcast(ndi.get_group(), carry_in, 0);
+        ValueType sub_group_carry;
+        if (lid == 0)
+        {
+            if (b == 0)
+                sub_group_carry = init;
+            else
+                sub_group_carry = result[b*blockSize-1];
+        }
+        sub_group_carry = sycl::group_broadcast(ndi.get_group(), sub_group_carry, 0);
 
         // on each Xe T0: 
         // 1. load 64 T-local carry pfix sums (T0..63) to slm
@@ -229,14 +237,14 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         //         compute the prefix to get global Xe carries
         //         v = gather(63, 127, 191, 255, ...)
         uint32_t offset = num_sub_groups_local - 1;
-        ValueType init = 0;
+        ValueType carry = identity;
         #pragma unroll
         // only need 32 carries for WGs0..Xe32, 64 for WGs32..Wgs64, etc.
         for( int i=0; i<(g>>log2_VL)+1; i++ ) {
             v = tmp_storage[i*num_sub_groups_local*VL + (num_sub_groups_local * sub_group_local_id + offset)];
-            v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
-            init = sycl::group_broadcast(sub_group, v, VL-1);
-            if (i!=(g>>log2_VL)) carry_last = init;
+            v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, carry);
+            carry = sycl::group_broadcast(sub_group, v, VL-1);
+            if (i!=(g>>log2_VL)) carry_last = carry;
         }
         }
 
@@ -249,21 +257,21 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // steps 3/4) load global carry in from Xe neighbor 
         //            and apply to slm local prefix carries T0..T63 
         if ( (sub_group_id==0) && (g>0) ) {
-        ValueType carry;
+        ValueType adj_work_group_carry;
         auto carry_offset = 0;
         if (g%VL != 0) {
-            carry = sycl::group_broadcast(sub_group, v, g%VL-1);
+            adj_work_group_carry = sycl::group_broadcast(sub_group, v, g%VL-1);
         } else {
-            carry = carry_last;
+            adj_work_group_carry = carry_last;
         }
         constexpr std::uint8_t iters = num_sub_groups_local / VL;
         for (std::uint8_t i = 0; i < iters; ++i)
         {
-            sub_group_partials[carry_offset + sub_group_local_id] = sub_group_partials[carry_offset + sub_group_local_id] + carry;
+            sub_group_partials[carry_offset + sub_group_local_id] = binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
             carry_offset += VL;
         }
         if (sub_group_local_id == 0)
-            sub_group_partials[num_sub_groups_local] = carry;
+            sub_group_partials[num_sub_groups_local] = adj_work_group_carry;
         }
         //sycl::group_barrier(ndi.get_group());
         ndi.barrier(sycl::access::fence_space::local_space);
@@ -273,17 +281,17 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         {
             if (sub_group_local_id == 0)
             {
-                carry_in += sub_group_partials[sub_group_id - 1];
+                sub_group_carry = binary_op(sub_group_carry, sub_group_partials[sub_group_id - 1]);
             }
-            carry_in = sycl::group_broadcast(sub_group, carry_in, 0);
+            sub_group_carry = sycl::group_broadcast(sub_group, sub_group_carry, 0);
         }
         else if (g > 0)
         {
             if (sub_group_local_id == 0)
             {
-                carry_in += sub_group_partials[num_sub_groups_local];
+                sub_group_carry = binary_op(sub_group_carry, sub_group_partials[num_sub_groups_local]);
             }
-            carry_in = sycl::group_broadcast(sub_group, carry_in, 0);
+            sub_group_carry = sycl::group_broadcast(sub_group, sub_group_carry, 0);
         }
 
         // step 5) apply global carries
@@ -296,7 +304,6 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
         // with variable scan lengths grouping is not used currently
         // grouping and prefetch are likely to improve throughput in future versions
         uint32_t start_idx = (b*blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
-        ValueType init = carry_in;
         bool is_full_thread = start_idx + J*VL <= M;
         start_idx += sub_group_local_id;
         if (is_full_thread)
@@ -306,10 +313,10 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
             {
                 v = first[start_idx + j*VL];
                 // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
                 result[start_idx + j*VL] = v;
                 // Last sub-group lane communicates its carry to everyone else in the sub-group
-                init = sycl::group_broadcast(sub_group, v, VL-1);
+                sub_group_carry = sycl::group_broadcast(sub_group, v, VL-1);
             }
         }
         else
@@ -319,13 +326,13 @@ void two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator l
             {
                 auto offset = start_idx + j*VL;
                 // Pass through identity if we are past the max range
-                v = offset < M ? first[offset] : 0;
+                v = offset < M ? first[offset] : identity;
                 // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), init);
+                v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
                 if (offset < M)
                     result[offset] = v;
                 // Last sub-group lane communicates its carry to everyone else in the sub-group
-                init = sycl::group_broadcast(sub_group, v, VL-1);
+                sub_group_carry = sycl::group_broadcast(sub_group, v, VL-1);
             }
         }
     });
