@@ -694,7 +694,8 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     // __counting_iterator_t - iterate position (index) in source data
     using __counting_iterator_t = oneapi::dpl::counting_iterator<_difference_type>;
 
-    using _zipped_data_type = typename std::iterator_traits<decltype(oneapi::dpl::make_zip_iterator(__first, __counting_iterator_t{0}))>::value_type;
+    using _zipped_data_type = typename std::iterator_traits<decltype(oneapi::dpl::make_zip_iterator(
+        __first, __counting_iterator_t{0}))>::value_type;
 
     __find_if_binary_reduce_op<_zipped_data_type, /*_IsFirst*/ std::true_type> __reduce_op;
     __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
@@ -702,17 +703,18 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, decltype(__transform_op)>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_result_type>;
 
-    auto __keep_src_data = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __keep_src_data =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf_src_data = __keep_src_data(__first, __last);
 
     const __counting_iterator_t __counting_it_first{0}, __counting_it_last{__n};
-    auto __keep_counting_it = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
+    auto __keep_counting_it =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
     auto __buf_counting_it = __keep_counting_it(__counting_it_first, __counting_it_last);
 
     auto res =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, std::true_type /*is_commutative*/>(
-            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-            __reduce_op, _Functor{__transform_op},
+            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
             unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
             oneapi::dpl::__ranges::make_zip_view(__buf_src_data.all_view(), __buf_counting_it.all_view()))
             .get();
@@ -781,7 +783,8 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
     // __counting_iterator_t - iterate position (index) in source data
     using __counting_iterator_t = oneapi::dpl::counting_iterator<_difference_type>;
 
-    using _zipped_data_type = typename std::iterator_traits<decltype(oneapi::dpl::make_zip_iterator(__first, __counting_iterator_t{0}))>::value_type;
+    using _zipped_data_type = typename std::iterator_traits<decltype(oneapi::dpl::make_zip_iterator(
+        __first, __counting_iterator_t{0}))>::value_type;
 
     __find_if_binary_reduce_op<_zipped_data_type, /*_IsFirst*/ std::true_type> __reduce_op;
     __find_if_unary_transform_op<_zipped_data_type, _Pred> __transform_op{__pred};
@@ -789,17 +792,18 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, decltype(__transform_op)>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_result_type>;
 
-    auto __keep_src_data = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __keep_src_data =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf_src_data = __keep_src_data(__first, __last);
 
     const __counting_iterator_t __counting_it_first{0}, __counting_it_last{__n};
-    auto __keep_counting_it = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
+    auto __keep_counting_it =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, __counting_iterator_t>();
     auto __buf_counting_it = __keep_counting_it(__counting_it_first, __counting_it_last);
 
     auto res =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, std::true_type /*is_commutative*/>(
-            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-            __reduce_op, _Functor{__transform_op},
+            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__transform_op},
             unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
             oneapi::dpl::__ranges::make_zip_view(__buf_src_data.all_view(), __buf_counting_it.all_view()))
             .get();

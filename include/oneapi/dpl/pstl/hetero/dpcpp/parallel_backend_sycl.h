@@ -1182,7 +1182,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
-
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
                     // Point #A1 - not required
@@ -1211,8 +1210,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 }
 
 // Specialization for __parallel_find_forward_tag, __parallel_find_backward_tag
-template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag,
-          typename... _Ranges>
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
                    _BrickTag __brick_tag, _Ranges&&... __rngs)
@@ -1295,8 +1293,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // Set local atomic value to global atomic
                     if (__local_idx == 0)
                     {
-                        for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                __old = __found.load())
+                        for (auto __old = __found.load(); __comp(__found_local.load(), __old); __old = __found.load())
                         {
                             __found.compare_exchange_strong(__old, __found_local.load());
                         }
