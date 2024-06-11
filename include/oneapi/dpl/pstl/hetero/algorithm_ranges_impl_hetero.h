@@ -182,7 +182,7 @@ __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
-#endif //_ONEDPL_CPP20_RANGES_PRESENT
+#endif //_ONEDPL___cplusplus
 
 //------------------------------------------------------------------------
 // find_end
