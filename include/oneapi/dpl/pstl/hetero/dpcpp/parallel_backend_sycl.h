@@ -1160,7 +1160,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     _AtomicType __result = __init_value;
 
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    const oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick> __pred{__f};
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1243,7 +1243,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
 
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    const oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick> __pred{__f};
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
