@@ -778,6 +778,8 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
 
     //TODO: 1.to reduce number of the kernels; 2.to define work group size in runtime, depending on number of elements
     constexpr auto __wg_size = 64;
+    auto __subgroup_sizes = __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
+    bool __dev_has_sg16 = std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), static_cast<std::size_t>(16)) != __subgroup_sizes.end();
 
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
     using _RadixSortKernel = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -806,10 +808,10 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
-    // SIMD16 subgroups are needed to avoid register spillage. In practice, SIMD16 is only available on iGPU
-    // hardware which can be detected by a SPIR-V target check.
-    else if ((__n <= 16384 && __wg_size * 8 <= __max_wg_size) && oneapi::dpl::__internal::__is_spirv_target_v)
-        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 16, 16, __radix_bits, __is_ascending>{}(
+    // Size 16 subgroups are needed to avoid register spillage on most hardware. Skip this branch if not supported
+    // to avoid runtime exceptions.
+    else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size && __dev_has_sg16)
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
     else
     {
