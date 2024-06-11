@@ -93,7 +93,7 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
 }
-#endif //_ONEDPL___cplusplus
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
 // swap
