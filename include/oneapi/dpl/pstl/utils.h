@@ -128,6 +128,21 @@ class __pstl_assign
     }
 };
 
+template <typename _Comp, typename _Proj>
+class __compare
+{
+    _Comp __comp;
+    _Proj __proj;
+
+  public:
+    template <typename _Xp, typename _Yp>
+    bool
+    operator()(_Xp&& __x, _Yp&& __y)
+    {
+        return __comp(__proj(std::forward<_Xp>(__x)), __proj(std::forward<_Yp>(__y)));
+    }
+};
+
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
     argument-dependent name lookup by code expecting to find the usual ::std::equal. */
