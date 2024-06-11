@@ -609,12 +609,12 @@ struct __copy_by_mask
                 // operator to ::std::tuple<U...>, but for some reason this doesn't work(conversion from
                 // ::std::tuple<T...> to ::std::tuple<U..> fails). What does work is the explicit cast below:
                 // for internal::tuple<T..> we define a field that provides a corresponding ::std::tuple<T..>
-                // with matching types. We get this type(see __tuple_type definition above) and use it
+                // with matching types. We get this type(see __typle_type definition above) and use it
                 // for static cast to explicitly convert internal::tuple<T..> -> ::std::tuple<T..>.
                 // Now we have the following assignment ::std::tuple<U..> = ::std::tuple<T..> which works as expected.
                 // NOTE: we only need this explicit conversion when we have internal::tuple and
                 // ::std::tuple as operands, in all the other cases this is not necessary and no conversion
-                // is performed(i.e. __tuple_type is the same type as its operand).
+                // is performed(i.e. __typle_type is the same type as its operand).
                 __assigner(static_cast<__tuple_type>(get<0>(__in_acc[__item_idx])), __out_acc[__out_idx]);
         }
     }
