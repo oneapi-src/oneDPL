@@ -20,6 +20,7 @@
 #include <type_traits>
 #include <utility>
 #include <cstdint>
+#include <algorithm>
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
