@@ -39,10 +39,8 @@ Fixed Issues
   ``remove_if``, ``unique``, ``inplace_merge``, ``stable_partition``, ``partial_sort_copy``, ``rotate``.
 - Fixed excessive copying of data in ``std::vector`` allocated with a USM allocator for standard library
   implementations which have allocator information in the ``std::vector::iterator`` type.
-- Fixed an issue with ``transform_iterator`` where checking ``std::is_default_constructible`` of a `transform_iterator``
-  with a functor which is not default constructible would result in a build error or an incorrect result for some compilers
-  and implementations of the standard library. Added copy assignment of the functor within a ``transform_iterator``
-  when the functor is copy assignable.
+- Fixed an issue where checking ``std::is_default_constructible`` for ``transform_iterator`` with a functor
+  that is not default-constructible could cause a build error or an incorrect result.
 - Fixed handling of `sycl device copyable`_ for internal and public oneDPL types.
 - Fixed handling of ``std::reverse_iterator`` as input to oneDPL algorithms using a device policy.
 - Fixed ``set_intersection`` to always copy from the first input sequence to the output, where previously some calls would
