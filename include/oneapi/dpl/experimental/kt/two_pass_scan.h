@@ -84,6 +84,8 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                            oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
+    constexpr int J_max = (MAX_INPUTS_PER_BLOCK / (VL * num_sub_groups_global));
+    bool is_full_block = J == J_max;
     int j;
 
     auto blockSize = (M < MAX_INPUTS_PER_BLOCK) ? M : MAX_INPUTS_PER_BLOCK;
@@ -123,7 +125,19 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                 // adjust for lane-id
                 start_idx += sub_group_local_id;
                 // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
-                if (is_full_thread)
+                if (is_full_thread && is_full_block)
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (int j = 0; j < J_max; j++)
+                    {
+                        v = first[start_idx + j * VL];
+                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                        v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
+                        // Last sub-group lane communicates its carry to everyone else in the sub-group
+                        sub_group_carry = sycl::group_broadcast(sub_group, v, VL - 1);
+                    }
+                }
+                else if (is_full_thread)
                 {
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
@@ -150,8 +164,8 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                     }
                 }
 
-                if (sub_group_local_id == VL - 1)
-                    sub_group_partials[sub_group_id] = v;
+                if (sub_group_local_id == 0)
+                    sub_group_partials[sub_group_id] = sub_group_carry;
 
                 // TODO: This is slower then ndi.barrier which was removed in SYCL2020. Can we do anything about it?
                 //sycl::group_barrier(ndi.get_group());
@@ -304,7 +318,20 @@ two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, 
                 size_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = start_idx + J * VL <= M;
                 start_idx += sub_group_local_id;
-                if (is_full_thread)
+                if (is_full_thread && is_full_block)
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (int j = 0; j < J_max; j++)
+                    {
+                        v = first[start_idx + j * VL];
+                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                        v = sub_group_inclusive_scan<VL>(sub_group, std::move(v), binary_op, sub_group_carry);
+                        result[start_idx + j * VL] = v;
+                        // Last sub-group lane communicates its carry to everyone else in the sub-group
+                        sub_group_carry = sycl::group_broadcast(sub_group, v, VL - 1);
+                    }
+                }
+                else if (is_full_thread)
                 {
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
