@@ -16,12 +16,11 @@ News
 - ``radix_sort`` and ``radix_sort_by_key`` kernel templates were moved into
   ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. The former ``oneapi::dpl::experimental::kt::esimd``
   namespace is deprecated and will be removed in a future release.
+- The ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` algorithms
+  in `namespace oneapi::dpl::experimental` are enforced to fail with device execution policies.
 
 New Features
 ------------
-- oneDPL code is now implemented on tag dispatching approach. 
-- The ``for_loop``, ``for_loop_strided``, ``for_loop_n``,  ``for_loop_n_strided`` algorithms
-  in `namespace oneapi::dpl::experimental` are enforced to fail with device execution policies.
 - Added experimental ``inclusive_scan`` kernel template algorithm residing in
   the ``oneapi::dpl::experimental::kt::gpu`` namespace. 
 - ``radix_sort`` and ``radix_sort_by_key`` kernel templates are extended with overloads for out-of-place sorting.
@@ -37,7 +36,7 @@ Fixed Issues
   ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` with Intel oneAPI DPC++/C++ compiler
   2023.0 and earlier.
 - Fixed possible data races in the following algorithms used with device execution policies:
-  ``remove_if ``, ``unique ``, ``inplace_merge ``, `` stable_partition``, `` partial_sort_copy``, `` rotate``.
+  ``remove_if``, ``unique``, ``inplace_merge``, ``stable_partition``, ``partial_sort_copy``, ``rotate``.
 - Fixed excessive copying of data in ``std::vector`` allocated with a USM allocator for standard library
   implementations which have allocator information in the ``std::vector::iterator`` type.
 - Fixed an issue with ``transform_iterator`` where checking ``std::is_default_constructible`` of a `transform_iterator``
