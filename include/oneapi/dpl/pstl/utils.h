@@ -129,12 +129,11 @@ class __pstl_assign
 };
 
 template <typename _Comp, typename _Proj>
-class __compare
+struct __compare
 {
     _Comp __comp;
     _Proj __proj;
 
-  public:
     template <typename _Xp, typename _Yp>
     bool
     operator()(_Xp&& __x, _Yp&& __y)
