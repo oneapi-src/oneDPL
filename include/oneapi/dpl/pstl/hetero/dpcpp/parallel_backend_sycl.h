@@ -1000,17 +1000,12 @@ struct __parallel_find_backward_tag
 // Tag for __parallel_find_any for or-semantic
 struct __parallel_or_tag
 {
-    using _AtomicType = unsigned int;
+    using _LocalStatusType = unsigned int;
 
-    static constexpr _AtomicType __found_state = 1;
-    static constexpr _AtomicType __not_found_state = 0;
+    static constexpr _LocalStatusType __found_state = 1;
+    static constexpr _LocalStatusType __not_found_state = 0;
 
-    // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
-    {
-        return __not_found_state;
-    }
+    using _AtomicType = _LocalStatusType;
 };
 
 //------------------------------------------------------------------------
@@ -1022,10 +1017,9 @@ struct __early_exit_find_any
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _FoundLocalState, typename... _Ranges>
-    void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size,
-               _FoundLocalState& __found_local, _Ranges&&... __rngs) const
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename... _Ranges>
+    __parallel_or_tag::_LocalStatusType
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Ranges&&... __rngs) const
     {
         const auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
@@ -1047,12 +1041,11 @@ struct __early_exit_find_any
 
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
-                __found_local = __parallel_or_tag::__found_state;
-
-                // Doesn't make sense to continue if we found the element
-                break;
+                return __parallel_or_tag::__found_state;
             }
         }
+
+        return __parallel_or_tag::__not_found_state;
     }
 };
 
@@ -1090,8 +1083,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
-    const _AtomicType __init_value = __parallel_or_tag::__init_value(__rng_n);
-    _AtomicType __result = __init_value;
+    _AtomicType __result = __parallel_or_tag::__not_found_state;
 
     const oneapi::dpl::__par_backend_hetero::__early_exit_find_any<_ExecutionPolicy, _Brick> __pred{__f};
 
@@ -1117,12 +1109,11 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
 
-                    _AtomicType __found_local = __init_value;
-
-                    __pred(__item_id, __n_iter, __wgroup_size, __found_local, __rngs...);
+                    const __parallel_or_tag::_LocalStatusType __found_local =
+                        __pred(__item_id, __n_iter, __wgroup_size, __rngs...);
 
                     // Set found state result to global atomic
-                    if (__found_local != __init_value)
+                    if (__found_local == __parallel_or_tag::__found_state)
                     {
                         __found.store(__found_local);
                     }
@@ -1131,7 +1122,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
-    return __result != __init_value;
+    return __result == __parallel_or_tag::__found_state;
 }
 
 //------------------------------------------------------------------------
