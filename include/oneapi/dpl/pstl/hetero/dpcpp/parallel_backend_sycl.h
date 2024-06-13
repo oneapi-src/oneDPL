@@ -194,7 +194,10 @@ template <typename... _Name>
 class __scan_group_kernel;
 
 template <typename... _Name>
-class __find_or_kernel;
+class __find_any_kernel;
+
+template <typename... _Name>
+class __find_first_kernel;
 
 template <typename... _Name>
 class __scan_propagate_kernel;
@@ -954,7 +957,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 // find_or tags
 //------------------------------------------------------------------------
 
-// Tag for __parallel_find_or to find the first element that satisfies predicate
+// Tag for __parallel_find_first to find the first element that satisfies predicate
 template <typename _RangeType>
 struct __parallel_find_forward_tag
 {
@@ -975,7 +978,7 @@ struct __parallel_find_forward_tag
     }
 };
 
-// Tag for __parallel_find_or to find the last element that satisfies predicate
+// Tag for __parallel_find_first to find the last element that satisfies predicate
 template <typename _RangeType>
 struct __parallel_find_backward_tag
 {
@@ -994,15 +997,13 @@ struct __parallel_find_backward_tag
     }
 };
 
-// Tag for __parallel_find_or for or-semantic
+// Tag for __parallel_find_any for or-semantic
 struct __parallel_or_tag
 {
     using _AtomicType = unsigned int;
 
     static constexpr _AtomicType __found_state = 1;
     static constexpr _AtomicType __not_found_state = 0;
-
-    struct _Compare{};
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1017,16 +1018,14 @@ struct __parallel_or_tag
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Pred>
-struct __early_exit_find_or
+struct __early_exit_find_any
 {
     _Pred __pred;
 
-    // operator() overload for __parallel_or_tag
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _FoundLocalState, typename _Compare,
-              typename... _Ranges>
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _FoundLocalState, typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare,
-               _FoundLocalState& __found_local, __parallel_or_tag, _Ranges&&... __rngs) const
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size,
+               _FoundLocalState& __found_local, _Ranges&&... __rngs) const
     {
         const auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
@@ -1060,8 +1059,101 @@ struct __early_exit_find_or
             }
         }
     }
+};
 
-    // operator() overload for __parallel_find_forward_tag and for __parallel_find_backward_tag
+//------------------------------------------------------------------------
+// parallel_find_or - sync pattern
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Brick, typename... _Ranges>
+bool
+__parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
+                   _Ranges&&... __rngs)
+{
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    using _AtomicType = typename __parallel_or_tag::_AtomicType;
+    using _FindOrKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_any_kernel, _CustomName, _Brick,
+                                                                               _Ranges...>;
+
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    assert(__rng_n > 0);
+
+    // TODO: find a way to generalize getting of reliable work-group size
+    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+#if _ONEDPL_COMPILE_KERNEL
+    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
+#endif
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+
+    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
+    // TODO: try to change __n_groups with another formula for more perfect load balancing
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
+
+    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
+
+    const _AtomicType __init_value = __parallel_or_tag::__init_value(__rng_n);
+    _AtomicType __result = __init_value;
+
+    const oneapi::dpl::__par_backend_hetero::__early_exit_find_any<_ExecutionPolicy, _Brick> __pred{__f};
+
+    // scope is to copy data back to __result after destruction of temporary sycl:buffer
+    {
+        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
+
+        // main parallel_for
+        __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+            __cgh.parallel_for<_FindOrKernel>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
+#endif
+                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                          sycl::range</*dim=*/1>(__wgroup_size)),
+                [=](sycl::nd_item</*dim=*/1> __item_id) {
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
+                    // Point #A1 - not required
+
+                    // Point #A2 - rewritten
+                    _AtomicType __found_local = __init_value;
+                    // Point #A2.1 - not required
+
+                    // Point #A3 - rewritten
+                    __pred(__item_id, __n_iter, __wgroup_size, __found_local, __rngs...);
+                    // Point #A3.1 - not required
+
+                    // Point #A4 - rewritten
+                    // Set found state result to global atomic
+                    if (__found_local != __init_value)
+                    {
+                        __found.fetch_or(__found_local);
+                    }
+                });
+        });
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
+    }
+
+    return __result != __init_value;
+}
+
+//------------------------------------------------------------------------
+// early_exit (find_entry)
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct __early_exit_find_first
+{
+    _Pred __pred;
+
     template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
               typename _BrickTag, typename... _Ranges>
     void
@@ -1112,103 +1204,18 @@ struct __early_exit_find_or
 };
 
 //------------------------------------------------------------------------
-// parallel_find_or - sync pattern
+// parallel_find_entry - sync pattern
 //------------------------------------------------------------------------
 
-// Specialization for __parallel_or_tag
-template <typename _ExecutionPolicy, typename _Brick, typename... _Ranges>
-bool
-__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   __parallel_or_tag __brick_tag, _Ranges&&... __rngs)
-{
-    using _BrickTag = __parallel_or_tag;
-
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _AtomicType = typename _BrickTag::_AtomicType;
-    using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _BrickTag, _Ranges...>;
-
-    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-    assert(__rng_n > 0);
-
-    // TODO: find a way to generalize getting of reliable work-group size
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
-    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
-#endif
-    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-
-    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
-    // TODO: try to change __n_groups with another formula for more perfect load balancing
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
-
-    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
-
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
-
-    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    _AtomicType __result = __init_value;
-
-    const oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick> __pred{__f};
-
-    // scope is to copy data back to __result after destruction of temporary sycl:buffer
-    {
-        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
-
-        // main parallel_for
-        __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
-            __cgh.parallel_for<_FindOrKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
-                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                          sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __item_id) {
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    // Point #A1 - not required
-
-                    // Point #A2 - rewritten
-                    _AtomicType __found_local = __init_value;
-                    // Point #A2.1 - not required
-
-                    // Point #A3 - rewritten
-                    constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                    // Point #A3.1 - not required
-
-                    // Point #A4 - rewritten
-                    // Set found state result to global atomic
-                    if (__found_local != __init_value)
-                    {
-                        __found.fetch_or(__found_local);
-                    }
-                });
-        });
-        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
-    }
-
-    return __result != __init_value;
-}
-
-// Specialization for __parallel_find_forward_tag, __parallel_find_backward_tag
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>
-__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+__parallel_find_first(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
+                      _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
     using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_first_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
 
     static_assert(!std::is_same_v<_BrickTag, __parallel_or_tag>);
@@ -1234,7 +1241,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
 
-    const oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick> __pred{__f};
+    const oneapi::dpl::__par_backend_hetero::__early_exit_find_first<_ExecutionPolicy, _Brick> __pred{__f};
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1315,10 +1322,10 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_any(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{}, __buf.all_view(), __s_buf.all_view());
+        __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1332,10 +1339,10 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_any(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{}, __buf.all_view());
+        __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -1357,9 +1364,9 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
-    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
-    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    using _TagType = std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                        __parallel_find_backward_tag<decltype(__buf.all_view())>>;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_first(
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
@@ -1377,9 +1384,9 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
-    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    using _TagType = std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                        __parallel_find_backward_tag<decltype(__buf.all_view())>>;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_first(
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
