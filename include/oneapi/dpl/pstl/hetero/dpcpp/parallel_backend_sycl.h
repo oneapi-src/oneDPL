@@ -1043,13 +1043,8 @@ struct __early_exit_find_any
             __shift = __wg_size - __leader;
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
-            // Point #B1 - not required to have _ShiftedIdxType
-
-            // Point #B2 - not required
-
-            // Point #B3 - rewritten
             const auto __shifted_idx = __init_index + __i * __shift;
-            // Point #B4 - rewritten
+
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 __found_local = __parallel_or_tag::__found_state;
@@ -1121,17 +1116,11 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    // Point #A1 - not required
 
-                    // Point #A2 - rewritten
                     _AtomicType __found_local = __init_value;
-                    // Point #A2.1 - not required
 
-                    // Point #A3 - rewritten
                     __pred(__item_id, __n_iter, __wgroup_size, __found_local, __rngs...);
-                    // Point #A3.1 - not required
 
-                    // Point #A4 - rewritten
                     // Set found state result to global atomic
                     if (__found_local != __init_value)
                     {
@@ -1178,18 +1167,15 @@ struct __early_exit_find_first
             __shift = __wg_size - __leader;
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
-            // Point #B1
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType = decltype(__found_local.load());
 
             _IterSize __current_iter = __i;
-            // Point #B2
             if constexpr (_BackwardTagType::value)
                 __current_iter = __n_iter - 1 - __i;
 
-            // Point #B3
             const _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
-            // Point #B4
+
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
             // should be investigated later, with other HW
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
@@ -1268,25 +1254,19 @@ __parallel_find_first(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
 
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    // Point #A1
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
                         *__dpl_sycl::__get_accessor_ptr(__temp_local));
 
-                    // Point #A2
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
                         __found_local.store(__init_value);
-                    // Point #A2.1
                     __dpl_sycl::__group_barrier(__item_id);
 
-                    // Point #A3
                     // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
                     __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                    // Point #A3.1
                     __dpl_sycl::__group_barrier(__item_id);
 
-                    // Point #A4
                     // Set local atomic value to global atomic
                     if (__local_idx == 0)
                     {
