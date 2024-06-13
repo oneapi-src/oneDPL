@@ -52,9 +52,6 @@ Known Issues and Limitations
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
 - ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes when used with an FPGA policy.
-- ``reduce_by_segment``, when used with C++ standard policies, imposes limitations on the value type.
-  * Firstly, it must satisfy the ``DefaultConstructible`` requirements.
-  * Secondly, a default-constructed instance of that type should act as the identity element for the binary reduction function.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
