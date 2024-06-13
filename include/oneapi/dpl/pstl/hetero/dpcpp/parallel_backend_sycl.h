@@ -1124,7 +1124,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
                     // Set found state result to global atomic
                     if (__found_local != __init_value)
                     {
-                        __found.fetch_or(__found_local);
+                        __found.store(__found_local);
                     }
                 });
         });
