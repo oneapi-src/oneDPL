@@ -1072,7 +1072,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename __parallel_or_tag::_AtomicType;
-    using _FindOrKernel =
+    using _FindAnyKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_any_kernel, _CustomName, _Brick,
                                                                                _Ranges...>;
 
@@ -1082,7 +1082,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
     // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
+    auto __kernel = __internal::__kernel_compiler<_FindAnyKernel>::__compile(__exec);
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
@@ -1112,7 +1112,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_FindOrKernel>(
+            __cgh.parallel_for<_FindAnyKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel,
 #endif
@@ -1214,7 +1214,7 @@ __parallel_find_first(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
-    using _FindOrKernel =
+    using _FindFirstKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_first_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
 
@@ -1225,7 +1225,7 @@ __parallel_find_first(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
+    auto __kernel = __internal::__kernel_compiler<_FindFirstKernel>::__compile(__exec);
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
@@ -1257,7 +1257,7 @@ __parallel_find_first(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_FindOrKernel>(
+            __cgh.parallel_for<_FindFirstKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel,
 #endif
