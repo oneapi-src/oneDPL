@@ -1002,16 +1002,7 @@ struct __parallel_or_tag
     static constexpr _AtomicType __found_state = 1;
     static constexpr _AtomicType __not_found_state = 0;
 
-    struct __compare_state
-    {
-        bool
-        operator()(const _AtomicType __found_local, const _AtomicType __found) const
-        {
-            return __found_local == __found_state && __found == __not_found_state;
-        }
-    };
-
-    using _Compare = __compare_state;
+    struct _Compare{};
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1034,7 +1025,7 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _FoundLocalState, typename _Compare,
               typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare,
                _FoundLocalState& __found_local, __parallel_or_tag, _Ranges&&... __rngs) const
     {
         const auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
