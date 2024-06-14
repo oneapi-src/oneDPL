@@ -131,14 +131,15 @@ class __pstl_assign
 template <typename _Comp, typename _Proj>
 struct __compare
 {
-    _Comp __comp;
-    _Proj __proj;
+    //'mutable' is to relax the requirements for a user comparator or/and projection type operator() may be non-const
+    mutable _Comp __comp;
+    mutable _Proj __proj;
 
     template <typename _Xp, typename _Yp>
     bool
-    operator()(_Xp&& __x, _Yp&& __y)
+    operator()(const _Xp& __x, const _Yp& __y) const
     {
-        return __comp(__proj(std::forward<_Xp>(__x)), __proj(std::forward<_Yp>(__y)));
+        return __comp(__x, __y);
     }
 };
 
