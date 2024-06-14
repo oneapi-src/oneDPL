@@ -1084,12 +1084,12 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
-        sycl::buffer<_AtomicType, 1> __temp(&__result, 1); // temporary storage for global atomic
+        sycl::buffer<_AtomicType, 1> __result_buf(&__result, 1); // temporary storage for global atomic
 
         // main parallel_for
         __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            auto __result_buf_acc = __result_buf.template get_access<access_mode::read_write>(__cgh);
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -1102,7 +1102,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
+                        *__dpl_sycl::__get_accessor_ptr(__result_buf_acc));
 
                     // Set found state result to global atomic
                     if (__pred(__item_id, __n_iter, __wgroup_size, __rngs...))
