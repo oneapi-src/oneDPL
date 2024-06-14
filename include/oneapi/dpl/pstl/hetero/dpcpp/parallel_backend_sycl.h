@@ -1104,8 +1104,11 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 
                         const std::size_t __local_idx = __item.get_local_id(0);
 
-                        if (__pred(__group_idx, __local_idx, __n_iter, __wgroup_size, __rngs...))
+                        if (!__found_in_any_item_inside_group &&
+                            __pred(__group_idx, __local_idx, __n_iter, __wgroup_size, __rngs...))
+                        {
                             __found_in_any_item_inside_group = true;
+                        }
                     });
 
                     if (__found_in_any_item_inside_group)
