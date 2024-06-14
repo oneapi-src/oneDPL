@@ -1000,12 +1000,7 @@ struct __parallel_find_backward_tag
 // Tag for __parallel_find_any for or-semantic
 struct __parallel_or_tag
 {
-    using _LocalStatusType = unsigned int;
-
-    static constexpr _LocalStatusType __found_state = 1;
-    static constexpr _LocalStatusType __not_found_state = 0;
-
-    using _AtomicType = _LocalStatusType;
+    using _AtomicType = unsigned int;
 };
 
 //------------------------------------------------------------------------
@@ -1018,7 +1013,7 @@ struct __early_exit_find_any
     _Pred __pred;
 
     template <typename _NDItemId, typename _IterSize, typename _WgSize, typename... _Ranges>
-    __parallel_or_tag::_LocalStatusType
+    bool
     operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Ranges&&... __rngs) const
     {
         const auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -1041,11 +1036,11 @@ struct __early_exit_find_any
 
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
-                return __parallel_or_tag::__found_state;
+                return true;
             }
         }
 
-        return __parallel_or_tag::__not_found_state;
+        return false;
     }
 };
 
@@ -1083,7 +1078,7 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
-    _AtomicType __result = __parallel_or_tag::__not_found_state;
+    _AtomicType __result = 0;
 
     const oneapi::dpl::__par_backend_hetero::__early_exit_find_any<_ExecutionPolicy, _Brick> __pred{__f};
 
@@ -1109,20 +1104,17 @@ __parallel_find_any(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
                         *__dpl_sycl::__get_accessor_ptr(__temp_acc));
 
-                    const __parallel_or_tag::_LocalStatusType __found_local =
-                        __pred(__item_id, __n_iter, __wgroup_size, __rngs...);
-
                     // Set found state result to global atomic
-                    if (__found_local == __parallel_or_tag::__found_state)
+                    if (__pred(__item_id, __n_iter, __wgroup_size, __rngs...))
                     {
-                        __found.store(__found_local);
+                        __found.store(1);
                     }
                 });
         });
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
-    return __result == __parallel_or_tag::__found_state;
+    return __result != 0;
 }
 
 //------------------------------------------------------------------------
