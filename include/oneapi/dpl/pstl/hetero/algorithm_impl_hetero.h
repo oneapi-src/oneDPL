@@ -646,24 +646,45 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator 
 // any_of
 //------------------------------------------------------------------------
 
+struct __any_of_binary_reduce_op
+{
+    bool
+    operator()(bool op1, bool op2) const
+    {
+        return op1 || op2;
+    }
+};
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 bool
 __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                  _Pred __pred)
 {
-    if (__first == __last)
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    const _difference_type __n = __last - __first;
+    if (__n == 0)
         return false;
 
-    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
+    using _data_type = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
-    auto __buf = __keep(__first, __last);
+    using _result_type = oneapi::dpl::__internal::tuple<bool, _difference_type>;
+    const bool __init = false;
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        _BackendTag{},
-        __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
+    __any_of_binary_reduce_op __reduce_op;
+
+    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, decltype(__pred)>;
+    using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_result_type>;
+
+    auto __keep_src_data =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf_src_data = __keep_src_data(__first, __last);
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<bool, std::true_type /*is_commutative*/>(
+               _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), __reduce_op, _Functor{__pred},
+               unseq_backend::__init_value<bool>{__init}, // initial value
+               __buf_src_data.all_view())
+        .get();
 }
 
 //------------------------------------------------------------------------
