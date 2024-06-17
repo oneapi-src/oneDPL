@@ -810,8 +810,9 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
-    // Size 16 subgroups are needed to avoid register spillage on most hardware. Skip this branch if not supported
-    // to avoid runtime exceptions.
+    // In __subgroup_radix_sort, we request a sub-group size via _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED
+    // based upon the iters per item. For the below case, register spills that result in runtime exceptions have
+    // been observed on accelerators that do not support the requested sub-group size of 16.
     else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size && __dev_has_sg16)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
