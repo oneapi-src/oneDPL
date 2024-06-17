@@ -32,9 +32,8 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed compilation errors when using ``reduce``, ``min_element``, ``max_element``,
-  ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` with Intel oneAPI DPC++/C++ compiler
-  2023.0 and earlier.
+- Fixed compilation errors when using ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
+  ``is_partitioned``, and ``lexicographical_compare`` with Intel oneAPI DPC++/C++ compiler 2023.0 and earlier.
 - Fixed possible data races in the following algorithms used with device execution policies:
   ``remove_if``, ``unique``, ``inplace_merge``, ``stable_partition``, ``partial_sort_copy``, ``rotate``.
 - Fixed excessive copying of data in ``std::vector`` allocated with a USM allocator for standard library
@@ -43,15 +42,16 @@ Fixed Issues
   that is not default-constructible could cause a build error or an incorrect result.
 - Fixed handling of `sycl device copyable`_ for internal and public oneDPL types.
 - Fixed handling of ``std::reverse_iterator`` as input to oneDPL algorithms using a device policy.
-- Fixed ``set_intersection`` to always copy from the first input sequence to the output, where previously some calls would
-  copy from the second input sequence.
+- Fixed ``set_intersection`` to always copy from the first input sequence to the output,
+  where previously some calls would copy from the second input sequence.
 - Fixed compilation errors when using ``oneapi::dpl::zip_iterator`` with the oneTBB backend and C++20.
 
 Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes when used with an FPGA policy.
+- ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
+  when used with an FPGA policy.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
