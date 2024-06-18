@@ -647,7 +647,7 @@ struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
 
 template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate, typename _KernelParam>
 sycl::event
-single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng __num_rng,
+single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
                          _UnaryPredicate __pred, _KernelParam)
 {
     using _SizeT = uint64_t;
@@ -702,8 +702,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out
         __queue, __status_flags, __status_vals_partial, __status_flags_size, _FlagType::__padding);
 
     sycl::event __prev_event = __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{}(
-        __queue, __fill_event, __in_rng, __out_rng, __num_rng, __n, __pred, __status_flags, __status_flags_size,
-        __status_vals_full, __status_vals_partial, __current_num_items, __current_num_wgs);
+        __queue, __fill_event, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+        std::forward<_NumCopiedRng>(__num_rng), __n, __pred, __status_flags, __status_flags_size, __status_vals_full,
+        __status_vals_partial, __current_num_items, __current_num_wgs);
 
     // TODO: Currently, the following portion of code makes this entire function synchronous.
     // Ideally, we should be able to use the asynchronous free below, but we have found that doing
@@ -728,9 +729,9 @@ sycl::event
 copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng, _UnaryPredicate __pred,
         _KernelParam __param = {})
 {
-    auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
-    auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
-    auto __num_view = oneapi::dpl::__ranges::views::all(std::forward<_NumCopiedRng>(__num_rng));
+    auto __in_view = oneapi::dpl::__ranges::views::all_read(std::forward<_InRng>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all_write(std::forward<_OutRng>(__out_rng));
+    auto __num_view = oneapi::dpl::__ranges::views::all_write(std::forward<_NumCopiedRng>(__num_rng));
 
     return __impl::single_pass_copy_if_impl(__queue, std::move(__in_view), std::move(__out_view), std::move(__num_view),
                                             __pred, __param);
