@@ -130,7 +130,7 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
 endif()
 
-function (_generate_gpu_single_pass_test _alg _data_per_work_item _work_group_size _type)
+function (_generate_gpu_single_pass_test _alg _data_per_work_item _work_group_size _type _single_wg_optout)
 
     if ((NOT TARGET "build-${_alg}-kt-tests") AND (NOT TARGET "run-${_alg}-kt-tests"))
         add_custom_target("build-${_alg}-kt-tests" COMMENT "Build all ${_alg} kernel template tests")
@@ -141,7 +141,7 @@ function (_generate_gpu_single_pass_test _alg _data_per_work_item _work_group_si
     endif()
 
     string(REPLACE "_t" "" _type_short ${_type})
-    set(_target_name "single_pass_${_alg}_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_type_short}")
+    set(_target_name "single_pass_${_alg}_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_type_short}_${_single_wg_optout}")
     set(_test_path "single_pass_${_alg}.cpp")
 
     #_generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
@@ -152,6 +152,7 @@ function (_generate_gpu_single_pass_test _alg _data_per_work_item _work_group_si
 
         target_compile_definitions(${_target_name} PRIVATE TEST_DATA_PER_WORK_ITEM=${_data_per_work_item})
         target_compile_definitions(${_target_name} PRIVATE TEST_WORK_GROUP_SIZE=${_work_group_size})
+        target_compile_definitions(${_target_name} PRIVATE TEST_SINGLE_WG_OPTOUT=${_single_wg_optout})
         target_compile_definitions(${_target_name} PRIVATE TEST_TYPE=${_type})
     endif()
 
@@ -167,13 +168,15 @@ function(_generate_gpu_single_pass_tests)
         foreach (_data_per_work_item ${_data_per_work_item_all})
             foreach (_work_group_size ${_work_group_size_all})
                 foreach (_type ${_type_all})
-                    _generate_gpu_single_pass_test(${_alg} ${_data_per_work_item} ${_work_group_size} ${_type})
+                    _generate_gpu_single_pass_test(${_alg} ${_data_per_work_item} ${_work_group_size} ${_type} "false")
                 endforeach()
             endforeach()
         endforeach()
+        # to not double the number of tests, check single wg output with a single test per alg
+        _generate_gpu_single_pass_test(${_alg} "8" "512" "float" "true")
 
         _generate_test("single_pass_${_alg}" "single_pass_${_alg}.cpp")
-        target_compile_definitions("single_pass_${_alg}" PRIVATE TEST_DATA_PER_WORK_ITEM=8 TEST_WORK_GROUP_SIZE=256 TEST_TYPE=uint32_t)
+        target_compile_definitions("single_pass_${_alg}" PRIVATE TEST_DATA_PER_WORK_ITEM=8 TEST_WORK_GROUP_SIZE=256 TEST_TYPE=uint32_t TEST_SINGLE_WG_OPTOUT=false)
     endforeach()
 
 endfunction()
