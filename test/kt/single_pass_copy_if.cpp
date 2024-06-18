@@ -61,13 +61,18 @@ generate_copy_if_data(T* input, std::size_t size, std::uint32_t seed)
 {
     // Integer numbers are generated even for floating point types in order to avoid rounding errors,
     // and simplify the final check
-    using substitute_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
-
     std::default_random_engine gen{seed};
-    substitute_t start = std::is_signed_v<T> ? -10 : 0;
-    substitute_t end = std::is_signed_v<T> ? 10 : 20;
-    std::uniform_int_distribution<substitute_t> dist(start, end);
-    std::generate(input, input + size, [&] { return dist(gen); });
+
+    if constexpr (std::is_integral_v<T>)
+    {
+        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+        std::generate(input, input + size, [&] { return dist(gen); });
+    }
+    else
+    {
+        std::uniform_real_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+        std::generate(input, input + size, [&] { return dist(gen); });
+    }
 }
 
 #if _ENABLE_RANGES_TESTING
@@ -87,15 +92,12 @@ test_all_view(sycl::queue q, std::size_t size, Predicate pred, KernelParam param
     sycl::buffer<std::size_t> buf_num_copied(&num_copied, 1);
     auto out_end = std::copy_if(std::begin(ref), std::end(ref), std::begin(out_ref), pred);
     std::size_t num_copied_ref = out_end - std::begin(out_ref);
-    {
-        sycl::buffer<T> buf(input.data(), input.size());
+    sycl::buffer<T> buf(input.data(), input.size());
 
-        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
-        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
-        oneapi::dpl::experimental::ranges::all_view<std::size_t, sycl::access::mode::write> view_num_copied(
-            buf_num_copied);
-        oneapi::dpl::experimental::kt::gpu::copy_if(q, view, view_out, view_num_copied, pred, param).wait();
-    }
+    oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
+    oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::write> view_out(buf_out);
+    oneapi::dpl::experimental::ranges::all_view<std::size_t, sycl::access::mode::write> view_num_copied(buf_num_copied);
+    oneapi::dpl::experimental::kt::gpu::copy_if(q, view, view_out, view_num_copied, pred, param).wait();
 
     auto acc = buf_out.get_host_access();
     auto num_copied_acc = buf_num_copied.get_host_access();
@@ -241,7 +243,8 @@ main()
     auto q = TestUtils::get_test_queue();
     bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
 
-    auto __predicate = __less_than_val<TEST_TYPE>{std::is_signed_v<TEST_TYPE> ? TEST_TYPE{0} : TEST_TYPE{10}};
+    TEST_TYPE cutoff = std::is_signed_v<TEST_TYPE> ? TEST_TYPE{0} : std::numeric_limits<TEST_TYPE>::max() / 2;
+    auto __predicate = __less_than_val<TEST_TYPE>{cutoff};
     if (run_test)
     {
 
