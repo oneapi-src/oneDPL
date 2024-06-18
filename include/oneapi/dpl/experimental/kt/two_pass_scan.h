@@ -65,10 +65,10 @@ sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, V
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
-template <bool Inclusive, typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
+template <bool Inclusive, typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp, typename ValueType>
 void
 two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
-              BinaryOp binary_op, ValueType init)
+              BinaryOp binary_op, UnaryOp unary_op, ValueType init)
 {
     using namespace sycl;
 
@@ -143,7 +143,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J_max; j++)
                     {
-                        v = first[start_idx + j * VL];
+                        v = unary_op(first[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                     }
@@ -153,7 +153,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
-                        v = first[start_idx + j * VL];
+                        v = unary_op(first[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                     }
@@ -165,7 +165,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     {
                         auto offset = start_idx + j * VL;
                         // Pass through identity if we are past the max range
-                        v = offset < M ? first[start_idx + j * VL] : identity;
+                        v = offset < M ? unary_op(first[start_idx + j * VL]) : identity;
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                     }
@@ -229,7 +229,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                             sub_group_carry = result[b * blockSize - 1];
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
-                            ValueType last_block_element = first[b * blockSize - 1];
+                            ValueType last_block_element = unary_op(first[b * blockSize - 1]);
                             sub_group_carry = binary_op(result[b * blockSize - 1], last_block_element);
                         }
                     }
@@ -336,7 +336,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J_max; j++)
                     {
-                        v = first[start_idx + j * VL];
+                        v = unary_op(first[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                         result[start_idx + j * VL] = v;
@@ -347,7 +347,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
-                        v = first[start_idx + j * VL];
+                        v = unary_op(first[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                         result[start_idx + j * VL] = v;
@@ -360,7 +360,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
                     {
                         auto offset = start_idx + j * VL;
                         // Pass through identity if we are past the max range
-                        v = offset < M ? first[offset] : identity;
+                        v = offset < M ? unary_op(first[offset]) : identity;
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
                         if (offset < M)
@@ -387,12 +387,28 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
 }
 } // namespace __impl
 
+template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp, typename ValueType>
+void
+two_pass_transform_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
+                                  BinaryOp binary_op, UnaryOp unary_op, ValueType init)
+{
+    __impl::two_pass_scan<true>(q, first, last, result, binary_op, unary_op, init);
+}
+
+template <typename InputIterator, typename OutputIterator, typename ValueType, typename BinaryOp, typename UnaryOp>
+void
+two_pass_transform_exclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
+                        ValueType init, BinaryOp binary_op, UnaryOp unary_op)
+{
+    __impl::two_pass_scan<false>(q, first, last, result, binary_op, unary_op, init);
+}
+
 template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
 void
 two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
                         BinaryOp binary_op, ValueType init)
 {
-    __impl::two_pass_scan<true>(q, first, last, result, binary_op, init);
+    two_pass_transform_inclusive_scan(q, first, last, result, binary_op, oneapi::dpl::__internal::__no_op(), init);
 }
 
 template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
@@ -400,7 +416,7 @@ void
 two_pass_exclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
                         ValueType init, BinaryOp binary_op)
 {
-    __impl::two_pass_scan<false>(q, first, last, result, binary_op, init);
+    two_pass_transform_exclusive_scan(q, first, last, result, init, binary_op, oneapi::dpl::__internal::__no_op());
 }
 
 } // namespace oneapi::dpl::experimental::kt::gpu
