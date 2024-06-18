@@ -59,18 +59,16 @@ template <typename T>
 auto
 generate_copy_if_data(T* input, std::size_t size, std::uint32_t seed)
 {
-    // Integer numbers are generated even for floating point types in order to avoid rounding errors,
-    // and simplify the final check
     std::default_random_engine gen{seed};
 
     if constexpr (std::is_integral_v<T>)
     {
-        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
         std::generate(input, input + size, [&] { return dist(gen); });
     }
     else
     {
-        std::uniform_real_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+        std::uniform_real_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
         std::generate(input, input + size, [&] { return dist(gen); });
     }
 }
