@@ -69,11 +69,7 @@ endif()
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
-if (ONEDPL_USE_DR)
-    set(run-onedpl-tests-depends build-onedpl-tests shp-tests shp-tests-3)
-else()
-    set(run-onedpl-tests-depends build-onedpl-tests)
-endif()
+set(run-onedpl-tests-depends build-onedpl-tests)
 
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
