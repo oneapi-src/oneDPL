@@ -256,7 +256,7 @@ Out-of-Place Example
    s o r t e d
 
 
-.. _pairs-memory-requirements:
+.. _radix-sort-by-key-memory-requirements:
 
 -------------------
 Memory Requirements
@@ -346,7 +346,7 @@ The initial configuration may be selected according to these high-level guidelin
 .. warning::
 
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
-   Make sure that :ref:`Memory requirements <pairs-memory-requirements>` are satisfied.
+   Make sure that :ref:`Memory requirements <radix-sort-by-key-memory-requirements>` are satisfied.
 
 .. note::
 
