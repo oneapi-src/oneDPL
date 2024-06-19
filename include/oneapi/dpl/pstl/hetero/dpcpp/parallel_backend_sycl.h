@@ -1067,7 +1067,10 @@ struct __early_exit_find_or
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 if constexpr (_OrTagType::value)
+                {
                     __found_local.store(1);
+                    break;
+                }
                 else
                 {
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
