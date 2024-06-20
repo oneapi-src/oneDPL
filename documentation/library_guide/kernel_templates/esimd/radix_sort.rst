@@ -5,13 +5,13 @@ Radix Sort
 radix_sort Function Templates
 -----------------------------
 
-The ``radix_sort`` function sorts data using the radix sort algorithm.
+The ``radix_sort`` and ``radix_sort_copy`` functions sort data using the radix sort algorithm.
 The sorting is stable, preserving the relative order of elements with equal keys.
 Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequence.
 
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
-A synopsis of the ``radix_sort`` function is provided below:
+A synopsis of the ``radix_sort`` and ``radix_sort_copy`` functions are provided below:
 
 .. code:: cpp
 
@@ -37,13 +37,13 @@ A synopsis of the ``radix_sort`` function is provided below:
              typename KernelParam, typename Iterator1,
              typename Iterator2>
    sycl::event
-   radix_sort (sycl::queue q, Iterator1 first, Iterator1 last,
+   radix_sort_copy (sycl::queue q, Iterator1 first, Iterator1 last,
                Iterator2 first_out, KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range1, typename Range2>
    sycl::event
-   radix_sort (sycl::queue q, Range1&& r, Range2&& r_out,
+   radix_sort_copy (sycl::queue q, Range1&& r, Range2&& r_out,
                KernelParam param); // (4)
    }
 
@@ -166,7 +166,7 @@ Out-of-Place Example
 .. code:: cpp
 
    // possible build and run commands:
-   //    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include && ./radix_sort
+   //    icpx -fsycl radix_sort_copy.cpp -o radix_sort_copy -I /path/to/oneDPL/include && ./radix_sort_copy
 
    #include <cstdint>
    #include <iostream>
@@ -187,7 +187,7 @@ Out-of-Place Example
       keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort<false, 8>(q, keys, keys + n, keys_out, kt::kernel_param<416, 64>{}); // (3)
+      auto e = kt::gpu::esimd::radix_sort_copy<false, 8>(q, keys, keys + n, keys_out, kt::kernel_param<416, 64>{}); // (3)
       e.wait();
 
       // print
@@ -242,7 +242,7 @@ Incrementing ``RadixBits`` increases `C` up to twice, while doubling either
 .. note::
 
    If the number of elements to sort does not exceed ``param.data_per_workitem * param.workgroup_size``,
-   ``radix_sort`` is executed by a single work-group and does not use any global memory.
+   ``radix_sort[_copy]`` is executed by a single work-group and does not use any global memory.
 
 ..
    The estimation above is not very precise and it seems it is not necessary for the global memory.
@@ -290,7 +290,7 @@ The initial configuration may be selected according to these high-level guidelin
    Increasing ``param.data_per_workitem`` should usually be preferred to increasing ``param.workgroup_size``,
    to avoid extra synchronization overhead within a work-group.
 
-- When the number of elements to sort (N) is small (~16K or less) and the algorithm is ``radix_sort``,
+- When the number of elements to sort (N) is small (~16K or less) and the algorithm is ``radix_sort[_copy]``,
   generally sorting is done more efficiently by a single work-group.
   Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``.
 
