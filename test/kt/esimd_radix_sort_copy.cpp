@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- esimd_radix_sort_out_of_place.cpp ---------------------------------===//
+//===-- esimd_radix_sort_copy.cpp ---------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
