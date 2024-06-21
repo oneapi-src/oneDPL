@@ -149,8 +149,6 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
 
     # Pin some cases to track them, e.g. because they fail
     _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
-
-    _generate_two_pass_scan_test()
 endif()
 
 function (_generate_gpu_scan_test _data_per_work_item _work_group_size _type)
@@ -199,4 +197,5 @@ endfunction()
 
 if (ONEDPL_TEST_ENABLE_KT_SYCL)
     _generate_gpu_scan_tests()
+    _generate_two_pass_scan_test()
 endif()

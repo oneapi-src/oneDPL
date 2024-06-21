@@ -405,26 +405,26 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
 namespace ranges {
 
-template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename ValueType, typename UnaryOp>
+template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp, typename ValueType>
 void
 two_pass_transform_exclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
-                        ValueType init, BinaryOp binary_op, UnaryOp unary_op)
+                        BinaryOp binary_op, UnaryOp unary_op, ValueType init)
 {
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
-    __impl::two_pass_scan<false, _KernelName>(q, std::move(__in_view), std::move(__out_view), init, binary_op, unary_op);
+    __impl::two_pass_scan<false, _KernelName>(q, std::move(__in_view), std::move(__out_view), binary_op, unary_op, init);
 }
 
-template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename ValueType, typename UnaryOp>
+template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp,  typename UnaryOp, typename ValueType>
 void
 two_pass_transform_inclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
-                        ValueType init, BinaryOp binary_op, UnaryOp unary_op)
+                        BinaryOp binary_op, UnaryOp unary_op, ValueType init)
 {
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
-    __impl::two_pass_scan<true, _KernelName>(q, std::move(__in_view), std::move(__out_view), init, binary_op, unary_op);
+    __impl::two_pass_scan<true, _KernelName>(q, std::move(__in_view), std::move(__out_view), binary_op, unary_op, init);
 }
 
 } // namespace ranges
