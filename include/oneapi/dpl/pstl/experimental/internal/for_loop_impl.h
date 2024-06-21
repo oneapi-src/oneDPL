@@ -399,8 +399,8 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
 
     using __backend_tag = typename oneapi::dpl::__internal::__parallel_tag<_IsVector>::__backend_tag;
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(
-                   __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+        return __par_backend<__backend_tag>::__parallel_reduce(
+                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i;
                        const auto __length = __j - __i;
@@ -435,8 +435,8 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
 
     using __backend_tag = typename oneapi::dpl::__internal::__parallel_tag<_IsVector>::__backend_tag;
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(
-                   __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+        return __par_backend<__backend_tag>::__parallel_reduce(
+                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__is_vector, __first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
                        const auto __length = __j - __i;

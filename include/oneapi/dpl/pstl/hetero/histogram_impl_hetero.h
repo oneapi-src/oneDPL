@@ -33,7 +33,9 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __internal
+namespace __backend
+{
+namespace __device_backend_details
 {
 
 template <typename _BinHash>
@@ -101,7 +103,7 @@ __make_binhash_manager(_BinHash&& __bin_hash)
 
 template <typename _RandomAccessIterator>
 auto
-__make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_RandomAccessIterator>&& __bin_hash)
+__make_binhash_manager(__custom_boundary_binhash<_RandomAccessIterator>&& __bin_hash)
 {
     auto __buffer_lifetime_holder =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
@@ -143,8 +145,8 @@ __pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rando
         auto __fill_func = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
         //fill histogram bins with zeros
 
-        auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
-            _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
+        auto __event = __backend_impl<_BackendTag>::__parallel_for(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
             unseq_backend::walk_n<_ExecutionPolicy, decltype(__fill_func)>{__fill_func}, __num_bins, __bins);
 
         if (__n > 0)
@@ -157,8 +159,9 @@ __pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rando
                                                         _RandomAccessIterator1>();
             auto __input_buf = __keep_input(__first, __last);
 
-            __parallel_histogram(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
-                                 __input_buf.all_view(), ::std::move(__bins), __binhash_manager)
+            __backend_impl<_BackendTag>::__parallel_histogram(::std::forward<_ExecutionPolicy>(__exec), __init_event,
+                                                              __input_buf.all_view(), ::std::move(__bins),
+                                                              __binhash_manager)
                 .wait();
         }
         else
@@ -168,7 +171,8 @@ __pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rando
     }
 }
 
-} // namespace __internal
+} // namespace __device_backend_details
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 

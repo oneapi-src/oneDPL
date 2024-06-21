@@ -19,14 +19,30 @@
 // Select a parallel backend
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
-#    include "parallel_backend_tbb.h"
 #elif ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_OPENMP 1
-#    include "parallel_backend_omp.h"
 #else
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
-#    include "parallel_backend_serial.h"
 #endif
+
+namespace oneapi
+{
+namespace dpl
+{
+namespace __backend
+{
+
+// Template for backend implementations
+template <typename __backend_tag>
+struct __backend_impl;
+
+} // namespace __backend
+} // namespace dpl
+} // namespace oneapi
+
+#include "parallel_backend_serial.h"
+#include "parallel_backend_tbb.h"
+#include "parallel_backend_omp.h"
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
@@ -39,15 +55,13 @@ namespace oneapi
 {
 namespace dpl
 {
-#if _ONEDPL_PAR_BACKEND_TBB
-namespace __par_backend = __tbb_backend;
-#elif _ONEDPL_PAR_BACKEND_OPENMP
-namespace __par_backend = __omp_backend;
-#elif _ONEDPL_PAR_BACKEND_SERIAL
-namespace __par_backend = __serial_backend;
-#else
-#    error "Parallel backend was not specified"
-#endif
+
+template <typename __backend_tag>
+using __par_backend = oneapi::dpl::__backend::__backend_impl<__backend_tag>;
+
+template <typename __backend_tag, typename _ExecutionPolicy, typename _Tp>
+using __par_backend_buffer = typename __par_backend<__backend_tag>::template __buffer<_ExecutionPolicy, _Tp>;
+
 } // namespace dpl
 } // namespace oneapi
 

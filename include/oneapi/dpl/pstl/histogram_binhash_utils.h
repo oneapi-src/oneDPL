@@ -27,7 +27,9 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __internal
+namespace __backend
+{
+namespace __device_backend_details
 {
 template <typename _T1, typename = void>
 struct __evenly_divided_binhash;
@@ -119,7 +121,8 @@ struct __custom_boundary_binhash
     }
 };
 
-} // end namespace __internal
+} // end namespace __device_backend_details
+} // end namespace __backend
 } // end namespace dpl
 } // end namespace oneapi
 

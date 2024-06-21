@@ -22,7 +22,9 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __omp_backend
+namespace __backend
+{
+namespace __omp_backend_details
 {
 
 template <typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
@@ -34,7 +36,8 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     __leaf_sort(__xs, __xe, __comp);
 }
 
-} // namespace __omp_backend
+} // namespace __omp_backend_details
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H

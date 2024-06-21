@@ -23,7 +23,9 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __omp_backend
+namespace __backend
+{
+namespace __omp_backend_details
 {
 
 namespace __sort_details
@@ -52,17 +54,16 @@ __parallel_move_range(_RandomAccessIterator __first1, _RandomAccessIterator __la
     }
 
     // Perform parallel moving of larger chunks
-    auto __policy = oneapi::dpl::__omp_backend::__chunk_partitioner(__first1, __last1);
+    auto __policy = __chunk_partitioner(__first1, __last1);
 
     _PSTL_PRAGMA(omp taskloop)
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        oneapi::dpl::__omp_backend::__process_chunk(__policy, __first1, __chunk,
-                                                    [&](auto __chunk_first, auto __chunk_last) {
-                                                        auto __chunk_offset = __chunk_first - __first1;
-                                                        auto __output_it = __d_first + __chunk_offset;
-                                                        std::move(__chunk_first, __chunk_last, __output_it);
-                                                    });
+        __process_chunk(__policy, __first1, __chunk, [&](auto __chunk_first, auto __chunk_last) {
+            auto __chunk_offset = __chunk_first - __first1;
+            auto __output_it = __d_first + __chunk_offset;
+            std::move(__chunk_first, __chunk_last, __output_it);
+        });
     }
 
     return __d_first + __size;
@@ -74,7 +75,7 @@ struct __move_range
     _OutputIterator
     operator()(_RandomAccessIterator __first1, _RandomAccessIterator __last1, _OutputIterator __d_first) const
     {
-        return oneapi::dpl::__omp_backend::__sort_details::__parallel_move_range(__first1, __last1, __d_first);
+        return __parallel_move_range(__first1, __last1, __d_first);
     }
 };
 } // namespace __sort_details
@@ -87,8 +88,8 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     using _ValueType = typename std::iterator_traits<_RandomAccessIterator>::value_type;
     using _VecType = typename std::vector<_ValueType>;
     using _OutputIterator = typename _VecType::iterator;
-    using _MoveValue = oneapi::dpl::__omp_backend::__sort_details::__move_value;
-    using _MoveRange = oneapi::dpl::__omp_backend::__sort_details::__move_range;
+    using _MoveValue = __sort_details::__move_value;
+    using _MoveRange = __sort_details::__move_range;
 
     if (__should_run_serial(__xs, __xe))
     {
@@ -98,16 +99,15 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     {
         std::size_t __size = __xe - __xs;
         auto __mid = __xs + (__size / 2);
-        oneapi::dpl::__omp_backend::__parallel_invoke_body(
-            [&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
-            [&]() { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); });
+        __parallel_invoke_body([&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
+                               [&]() { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); });
 
         // Perform a parallel merge of the sorted ranges into __output_data.
         _VecType __output_data(__size);
         _MoveValue __move_value;
         _MoveRange __move_range;
         __utils::__serial_move_merge __merge(__size);
-        oneapi::dpl::__omp_backend::__parallel_merge_body(
+        __parallel_merge_body(
             __mid - __xs, __xe - __mid, __xs, __mid, __mid, __xe, __output_data.begin(), __comp,
             [&__merge, &__move_value, &__move_range](_RandomAccessIterator __as, _RandomAccessIterator __ae,
                                                      _RandomAccessIterator __bs, _RandomAccessIterator __be,
@@ -116,19 +116,19 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
             });
 
         // Move the values from __output_data back in the original source range.
-        oneapi::dpl::__omp_backend::__sort_details::__parallel_move_range(__output_data.begin(), __output_data.end(),
-                                                                          __xs);
+        __sort_details::__parallel_move_range(__output_data.begin(), __output_data.end(), __xs);
     }
 }
+} // namespace __omp_backend_details
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&& /*__exec*/,
-                       _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort,
-                       std::size_t __nsort = 0)
+__backend_impl<oneapi::dpl::__internal::__omp_backend_tag>::__parallel_stable_sort(
+    _ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
+    _LeafSort __leaf_sort, std::size_t __nsort /*= 0*/)
 {
     auto __count = static_cast<std::size_t>(__xe - __xs);
-    if (__count <= __default_chunk_size || __nsort < __count)
+    if (__count <= __omp_backend_details::__default_chunk_size || __nsort < __count)
     {
         __leaf_sort(__xs, __xe, __comp);
         return;
@@ -141,11 +141,11 @@ __parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPol
     {
         if (__count <= __nsort)
         {
-            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
+            __omp_backend_details::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
         }
         else
         {
-            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
+            __omp_backend_details::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
         }
     }
     else
@@ -154,16 +154,16 @@ __parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPol
         _PSTL_PRAGMA(omp single nowait)
         if (__count <= __nsort)
         {
-            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
+            __omp_backend_details::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
         }
         else
         {
-            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
+            __omp_backend_details::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
         }
     }
 }
 
-} // namespace __omp_backend
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_SORT_H

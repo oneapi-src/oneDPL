@@ -23,7 +23,7 @@
 //{
 //namespace dpl
 //{
-//namespace __par_backend_hetero
+//namespace __device_backend_details
 //{
 
 template <typename... _Name>
@@ -310,7 +310,7 @@ struct __subgroup_radix_sort
     };
 };
 
-//} // namespace __par_backend_hetero
+//} // namespace __device_backend_details
 //} // namespace dpl
 //} // namespace oneapi
 

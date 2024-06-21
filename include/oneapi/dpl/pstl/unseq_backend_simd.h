@@ -834,7 +834,8 @@ __simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _Forwa
         {
             if (__unseq_backend::__simd_or(
                     __s_first, __n2,
-                    __internal::__equal_value_by_pred<decltype(*__first), _BinaryPredicate&>(*__first, __pred)))
+                    ::oneapi::dpl::__internal::__equal_value_by_pred<decltype(*__first), _BinaryPredicate&>(*__first,
+                                                                                                            __pred)))
             {
                 return __first;
             }

@@ -41,24 +41,10 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __omp_backend
+namespace __backend
 {
-
-//------------------------------------------------------------------------
-// use to cancel execution
-//------------------------------------------------------------------------
-inline void
-__cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
+namespace __omp_backend_details
 {
-    // TODO: Figure out how to make cancellation work.
-}
-
-//------------------------------------------------------------------------
-// raw buffer
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;
@@ -153,7 +139,8 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
-} // namespace __omp_backend
+} // namespace __omp_backend_details
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 

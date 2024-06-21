@@ -29,6 +29,9 @@
 #include <limits>
 #include <cstdint>
 
+#include "oneapi/dpl/pstl/parallel_backend.h"
+#include "oneapi/dpl/pstl/execution_defs.h"
+
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
@@ -44,6 +47,7 @@
 #if _USE_RADIX_SORT
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
+#include "parallel_backend_sycl_utils.h"
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
@@ -51,7 +55,116 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend_hetero
+namespace __backend
+{
+template <>
+struct __backend_impl<oneapi::dpl::__internal::__device_backend_tag>
+{
+    template <typename _ExecutionPolicy, typename _T>
+    using __buffer = oneapi::dpl::__backend::__device_backend_details::__internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
+
+    // Tag for __parallel_find_or for or-semantic
+    struct __parallel_or_tag
+    {
+        class __atomic_compare
+        {
+          public:
+            template <typename _LocalAtomic, typename _GlobalAtomic>
+            bool
+            operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
+            {
+                return __found_local == 1 && __found == 0;
+            }
+        };
+
+        using _AtomicType = int32_t;
+        using _Compare = __atomic_compare;
+
+        // The template parameter is intended to unify __init_value in tags.
+        template <typename _DiffType>
+        constexpr static _AtomicType __init_value(_DiffType)
+        {
+            return 0;
+        }
+    };
+
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    static auto
+    __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs);
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
+              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+    static auto
+    __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
+                                   _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                                   _GroupScan __group_scan, _GlobalScan __global_scan);
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
+              typename _InitType, typename _BinaryOperation, typename _Inclusive>
+    static auto
+    __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive);
+
+    template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
+              typename _CopyByMaskOp>
+    static auto
+    __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
+                         _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op);
+
+    template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
+              typename _InitType, typename... _Ranges>
+    static auto
+    __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
+                                _InitType __init, _Ranges&&... __rngs);
+
+    template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
+    static auto
+    __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred);
+
+    template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+    static std::conditional_t<std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
+                              oneapi::dpl::__internal::__difference_t<
+                                  typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
+    __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs);
+
+    template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
+    static bool
+    __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
+                  _Iterator2 __s_last, _Brick __f);
+
+    template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
+    static bool
+    __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f);
+
+    template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
+    static _Iterator1
+    __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
+                    _Iterator2 __s_last, _Brick __f, _IsFirst);
+
+    template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
+    static _Iterator
+    __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst);
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    static auto
+    __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp);
+
+    template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
+    static auto
+    __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+                         const _BinHashMgr& __binhash_manager);
+
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
+    static auto
+    __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj);
+
+    template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+    static auto
+    __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
+                            _Compare __comp);
+};
+
+namespace __device_backend_details
 {
 
 //-----------------------------------------------------------------------------
@@ -249,23 +362,27 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
     }
 };
 
+} // namespace __device_backend_details
+
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
-               _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_for(_ExecutionPolicy&& __exec, _Fp __brick,
+                                                                              _Index __count, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                  ::std::forward<_Ranges>(__rngs)...);
+    return __device_backend_details::__parallel_for_submitter<_ForKernel>()(
+        ::std::forward<_ExecutionPolicy>(__exec), __brick, __count, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
+namespace __device_backend_details
+{
 template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size>
 struct __global_scan_caller
 {
@@ -276,7 +393,8 @@ struct __global_scan_caller
     {
     }
 
-    void operator()(sycl::item<1> __item) const
+    void
+    operator()(sycl::item<1> __item) const
     {
         __m_global_scan(__item, __m_rng2, __m_rng1, __m_wg_sums_acc, __m_n, __m_size_per_wg);
     }
@@ -530,8 +648,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
-                                                              __lacc_ptr, __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n, __lacc_ptr,
+                                                              __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
@@ -635,7 +753,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
                     __scan_work_group<_ValueType, /* _Inclusive */ false>(
                         __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
-                         __init);
+                        __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
@@ -666,10 +784,9 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                       _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
-                                       _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
-                                       _Inclusive)
+__parallel_transform_scan_single_group(
+    _ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op,
+    _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -742,12 +859,14 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     }
 }
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 auto
-__parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                               _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
-                               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transform_scan_base(
+    _ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
+    _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -758,6 +877,9 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
+
+namespace __device_backend_details
+{
 
 template <typename _Type>
 bool
@@ -773,12 +895,14 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                          _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op,
-                          _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_transform_scan(
+    _ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op,
+    _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename _InitType::__value_type;
 
@@ -793,7 +917,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
         {
             return __parallel_transform_scan_single_group(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+                std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
                 ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
         }
     }
@@ -810,7 +934,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
 
     return __future(
         __parallel_transform_scan_base(
-            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
             ::std::forward<_Range2>(__out_rng), __binary_op, __init,
             // local scan
             unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
@@ -824,6 +948,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
             .event());
 }
+
+namespace __device_backend_details
+{
 
 template <typename _SizeType>
 struct __invoke_single_group_copy_if
@@ -845,32 +972,34 @@ struct __invoke_single_group_copy_if
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
-                >()(
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
-                >()(
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
     }
 };
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
           typename _CopyByMaskOp>
 auto
-__parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                     _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _CreateMaskOp __create_mask_op,
-                     _CopyByMaskOp __copy_by_mask_op)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_scan_copy(_ExecutionPolicy&& __exec,
+                                                                                    _InRng&& __in_rng,
+                                                                                    _OutRng&& __out_rng, _Size __n,
+                                                                                    _CreateMaskOp __create_mask_op,
+                                                                                    _CopyByMaskOp __copy_by_mask_op)
 {
     using _ReduceOp = ::std::plus<_Size>;
     using _Assigner = unseq_backend::__scan_assigner;
@@ -885,10 +1014,10 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
     _MaskAssigner __add_mask_op;
 
     // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
+    oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     return __parallel_transform_scan_base(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
+        ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(
             ::std::forward<_InRng>(__in_rng),
             oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
@@ -908,8 +1037,10 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
 auto
-__parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_copy_if(_ExecutionPolicy&& __exec,
+                                                                                  _InRng&& __in_rng,
+                                                                                  _OutRng&& __out_rng, _Size __n,
+                                                                                  _Pred __pred)
 {
     using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
 
@@ -944,15 +1075,17 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ ::std::true_type, 1>;
 
-        return __parallel_scan_copy(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                    ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
-                                    CreateOp{__pred}, CopyOp{});
+        return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
+                                    ::std::forward<_OutRng>(__out_rng), __n, CreateOp{__pred}, CopyOp{});
     }
 }
 
 //------------------------------------------------------------------------
 // find_or tags
 //------------------------------------------------------------------------
+
+namespace __device_backend_details
+{
 
 // Tag for __parallel_find_or to find the first element that satisfies predicate
 template <typename _RangeType>
@@ -994,34 +1127,14 @@ struct __parallel_find_backward_tag
     }
 };
 
-// Tag for __parallel_find_or for or-semantic
-struct __parallel_or_tag
-{
-    class __atomic_compare
-    {
-      public:
-        template <typename _LocalAtomic, typename _GlobalAtomic>
-        bool
-        operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
-        {
-            return __found_local == 1 && __found == 0;
-        }
-    };
-
-    using _AtomicType = int32_t;
-    using _Compare = __atomic_compare;
-
-    // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
-    {
-        return 0;
-    }
-};
+} // namespace __device_backend_details
 
 //------------------------------------------------------------------------
 // early_exit (find_or)
 //------------------------------------------------------------------------
+
+namespace __device_backend_details
+{
 
 template <typename _ExecutionPolicy, typename _Pred>
 struct __early_exit_find_or
@@ -1082,6 +1195,7 @@ struct __early_exit_find_or
         }
     }
 };
+} // namespace __device_backend_details
 
 //------------------------------------------------------------------------
 // parallel_find_or - sync pattern
@@ -1092,8 +1206,9 @@ template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typena
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
-__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f,
+                                                                                  _BrickTag __brick_tag,
+                                                                                  _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
@@ -1193,15 +1308,22 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 // parallel_or - sync pattern
 //------------------------------------------------------------------------
 
+namespace __device_backend_details
+{
+
 template <typename Name>
 class __or_policy_wrapper
 {
 };
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
 bool
-__parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-              _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Brick __f)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_or(_ExecutionPolicy&& __exec,
+                                                                             _Iterator1 __first, _Iterator1 __last,
+                                                                             _Iterator2 __s_first, _Iterator2 __s_last,
+                                                                             _Brick __f)
 {
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf = __keep(__first, __last);
@@ -1209,7 +1331,6 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     auto __s_buf = __s_keep(__s_first, __s_last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
         __parallel_or_tag{}, __buf.all_view(), __s_buf.all_view());
 }
@@ -1219,14 +1340,14 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
 // backend code.
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
 bool
-__parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec, _Iterator __first,
-              _Iterator __last, _Brick __f)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_or(_ExecutionPolicy&& __exec,
+                                                                             _Iterator __first, _Iterator __last,
+                                                                             _Brick __f)
 {
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
         __parallel_or_tag{}, __buf.all_view());
 }
@@ -1235,15 +1356,23 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
 // parallel_find - sync pattern
 //-----------------------------------------------------------------------
 
+namespace __device_backend_details
+{
+
 template <typename Name>
 class __find_policy_wrapper
 {
 };
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
 _Iterator1
-__parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Brick __f, _IsFirst)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find(_ExecutionPolicy&& __exec,
+                                                                               _Iterator1 __first, _Iterator1 __last,
+                                                                               _Iterator2 __s_first,
+                                                                               _Iterator2 __s_last, _Brick __f,
+                                                                               _IsFirst)
 {
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf = __keep(__first, __last);
@@ -1253,7 +1382,6 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                           __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-                         __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
                          __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
@@ -1264,8 +1392,9 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
 // backend code.
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 _Iterator
-__parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                _Iterator __first, _Iterator __last, _Brick __f, _IsFirst)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_find(_ExecutionPolicy&& __exec,
+                                                                               _Iterator __first, _Iterator __last,
+                                                                               _Brick __f, _IsFirst)
 {
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -1273,7 +1402,6 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                           __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-                         __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
                          __f, _TagType{}, __buf.all_view());
@@ -1283,6 +1411,8 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
 // parallel_merge - async pattern
 //-----------------------------------------------------------------------
 
+namespace __device_backend_details
+{
 // Partial merge implementation with O(log(k)) per routine complexity.
 // Note: the routine assumes that the 2nd sequence goes after the first one, meaning that end_1 == start_2.
 //
@@ -1382,12 +1512,12 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
-                auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                return __zero_or_one < __value;
-            });
+        auto __res =
+            ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+                               [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                                   auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                                   return __zero_or_one < __value;
+                               });
         __start1 = *__res;
         __start2 = __q - *__res;
     }
@@ -1398,9 +1528,9 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
+        auto __res = ::std::lower_bound(
+            __diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+            [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
                 auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
                 return __zero_or_one < __value;
             });
@@ -1443,12 +1573,12 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
-                  if (++__start2 == __n2)
-                  {
-                      //copying a residual of the first seq
-                      for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
-                          __rng3[__start3 + __i] = __rng1[__start1];
-                  }
+                if (++__start2 == __n2)
+                {
+                    //copying a residual of the first seq
+                    for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
+                        __rng3[__start3 + __i] = __rng1[__start1];
+                }
             }
             else
             {
@@ -1491,7 +1621,6 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-
                 const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
@@ -1505,10 +1634,13 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 template <typename... _Name>
 class __merge_kernel_name;
 
+} // namespace __device_backend_details
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
-__parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
-                 _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_merge(_ExecutionPolicy&& __exec,
+                                                                                _Range1&& __rng1, _Range2&& __rng2,
+                                                                                _Range3&& __rng3, _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -1536,6 +1668,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 //-----------------------------------------------------------------------
 // parallel_sort: general implementation
 //-----------------------------------------------------------------------
+namespace __device_backend_details
+{
+
 struct __leaf_sort_kernel
 {
     template <typename _Acc, typename _Size1, typename _Compare>
@@ -1585,15 +1720,14 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-            {
+            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
                 __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
             });
         });
 
         // 2. Merge sorting
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         bool __data_in_temp = false;
         _IdType __n_sorted = __leaf;
@@ -1610,12 +1744,13 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
 
-                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-                    {
+                __cgh.parallel_for<_GlobalSortName...>(
+                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
+                        const auto __offset =
+                            ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
                         const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
                         const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
@@ -1625,7 +1760,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                             const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
@@ -1633,10 +1769,11 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                             const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                     });
-                });
+            });
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
@@ -1662,8 +1799,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
-__parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
-                     _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -1714,7 +1850,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
         _Size __n = __rng.size();
         assert(__n > 1);
 
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
@@ -1771,8 +1907,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
 
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
 auto
-__parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
-                             _Merge __merge, _Compare __comp)
+__parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _GlobalSortKernel =
@@ -1785,18 +1920,23 @@ __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _Exe
         ::std::forward<_Range>(__rng), __merge, __comp);
 }
 
+} // namespace __device_backend_details
+
 //------------------------------------------------------------------------
 // parallel_stable_sort - async pattern
 //-----------------------------------------------------------------------
+
+namespace __device_backend_details
+{
 
 template <typename _T, typename _Compare>
 struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
 #if _USE_RADIX_SORT
-        (::std::is_arithmetic_v<_T> || ::std::is_same_v<sycl::half, _T>) &&
-            (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
-            __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
+        (::std::is_arithmetic_v<_T> ||
+         ::std::is_same_v<sycl::half, _T>)&&(__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
+                                             __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
 #else
         false;
 #endif
@@ -1808,11 +1948,10 @@ template <
     ::std::enable_if_t<
         __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                       _Range&& __rng, _Compare, _Proj __proj)
+__parallel_stable_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
 #endif
 
@@ -1821,14 +1960,24 @@ template <
     ::std::enable_if_t<
         !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                       _Range&& __rng, _Compare __comp, _Proj __proj)
+__parallel_stable_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     auto __cmp_f = [__comp, __proj](const auto& __a, const auto& __b) mutable {
         return __comp(__proj(__a), __proj(__b));
     };
-    return __parallel_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                __cmp_f);
+    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
+}
+
+} // namespace __device_backend_details
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
+auto
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_stable_sort(_ExecutionPolicy&& __exec,
+                                                                                      _Range&& __rng, _Compare __comp,
+                                                                                      _Proj __proj)
+{
+    return __par_backend_hetero::__parallel_stable_sort_impl(::std::forward<_ExecutionPolicy>(__exec),
+                                                             ::std::forward<_Range>(__rng), __comp, __proj);
 }
 
 //------------------------------------------------------------------------
@@ -1840,18 +1989,22 @@ __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_t
 //       __full_merge_kernel in order to use __parallel_sort_impl routine
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 auto
-__parallel_partial_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                        _Iterator __first, _Iterator __mid, _Iterator __last, _Compare __comp)
+__backend_impl<oneapi::dpl::__internal::__device_backend_tag>::__parallel_partial_sort(
+    _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last, _Compare __comp)
 {
     const auto __mid_idx = __mid - __first;
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return __parallel_partial_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
                                         __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
-} // namespace __par_backend_hetero
+
+// Create namespace alias __par_backend_hetero for compatibility with already existing code
+namespace __par_backend_hetero = __backend::__device_backend_details;
+
+} // namespace __backend
 } // namespace dpl
 } // namespace oneapi
 

@@ -38,7 +38,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 //------------------------------------------------------------------------
 // radix sort: bitwise order-preserving conversions to unsigned integrals
@@ -760,8 +760,7 @@ struct __parallel_radix_sort_iteration
 //-----------------------------------------------------------------------
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
 auto
-__parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __in_rng,
-                      _Proj __proj)
+__parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj)
 {
     const ::std::size_t __n = __in_rng.size();
     assert(__n > 1);
@@ -838,7 +837,7 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
         sycl::buffer<::std::uint32_t, 1> __tmp_buf{sycl::range<1>(__tmp_buf_size)};
 
         // memory for storing values sorted for an iteration
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
+        oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
         auto __out_rng = oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(
             __out_buffer_holder.get_buffer());
 
@@ -860,7 +859,7 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     return __future(__event);
 }
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 } // namespace dpl
 } // namespace oneapi
 

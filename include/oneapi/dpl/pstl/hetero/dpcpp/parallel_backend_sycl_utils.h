@@ -142,7 +142,7 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
 
 } // namespace __internal
 
-namespace __par_backend_hetero
+namespace __device_backend_details
 {
 
 // aliases for faster access to modes
@@ -449,9 +449,6 @@ struct __memobj_traits<_T*>
 };
 
 } // namespace __internal
-
-template <typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
@@ -767,7 +764,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     }
 };
 
-} // namespace __par_backend_hetero
+} // namespace __device_backend_details
 } // namespace dpl
 } // namespace oneapi
 

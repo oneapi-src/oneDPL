@@ -30,23 +30,23 @@
 #ifndef _ONEDPL_SCAN_BY_SEGMENT_IMPL_H
 #define _ONEDPL_SCAN_BY_SEGMENT_IMPL_H
 
-#if _ONEDPL_BACKEND_SYCL
-
 #include <type_traits>
-#include <cstddef>
-#include <cstdint>
-#include <utility>
-#include <algorithm>
 
-#include "../pstl/algorithm_fwd.h"
-#include "../pstl/parallel_backend.h"
-#include "../pstl/hetero/utils_hetero.h"
+#if _ONEDPL_BACKEND_SYCL
+#    include <cstddef>
+#    include <cstdint>
+#    include <utility>
+#    include <algorithm>
 
-#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
-#include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#    include "../pstl/algorithm_fwd.h"
+#    include "../pstl/parallel_backend.h"
+#    include "../pstl/hetero/utils_hetero.h"
 
-#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+#    include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#    include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+
+#    include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 namespace oneapi
 {
@@ -147,11 +147,12 @@ struct __sycl_scan_by_segment_impl
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, __val_type>(__exec, __n_groups)
+                .get_buffer();
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, bool>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_buffer<_BackendTag, _ExecutionPolicy, bool>(__exec, __n_groups).get_buffer();
 
         // 1. Work group reduction
         auto __wg_scan = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -401,5 +402,51 @@ __scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& po
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
-#endif
-#endif
+
+#endif // _ONEDPL_BACKEND_SYCL
+
+namespace oneapi
+{
+namespace dpl
+{
+namespace __internal
+{
+
+//------------------------------------------------------------------------------
+// __par_buffer_backend_selector staff - for resolve __backend_tag in the places
+// of code where we have backend tags / dispatch tags in the same type
+//------------------------------------------------------------------------------
+
+template <typename, typename = void>
+struct has_member_backend_tag_type : ::std::false_type
+{
+};
+
+template <typename T>
+struct has_member_backend_tag_type<T, ::std::void_t<typename T::__backend_tag>> : ::std::true_type
+{
+};
+
+template <typename T>
+constexpr bool has_member_backend_tag_type_v = has_member_backend_tag_type<T>::value;
+
+template <class _Tag, typename = void>
+struct __par_buffer_backend_selector;
+
+template <class _Tag>
+struct __par_buffer_backend_selector<_Tag, std::enable_if_t<has_member_backend_tag_type_v<_Tag>>>
+{
+    using __backend_tag = typename _Tag::__backend_tag;
+};
+
+template <class _Tag>
+struct __par_buffer_backend_selector<_Tag, std::enable_if_t<!has_member_backend_tag_type_v<_Tag>>>
+{
+    using __backend_tag = oneapi::dpl::__internal::__serial_backend_tag;
+};
+
+} // namespace __internal
+} // namespace dpl
+} // namespace oneapi
+
+#endif // _ONEDPL_SCAN_BY_SEGMENT_IMPL_H
