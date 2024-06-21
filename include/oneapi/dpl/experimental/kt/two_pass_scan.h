@@ -98,7 +98,6 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
     constexpr int J_max = (MAX_INPUTS_PER_BLOCK / (VL * num_sub_groups_global));
-    bool is_full_block = J == J_max;
     int j;
 
     auto blockSize = (M < MAX_INPUTS_PER_BLOCK) ? M : MAX_INPUTS_PER_BLOCK;
@@ -116,6 +115,7 @@ two_pass_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIter
     // e.g., scan length 2^24 / MAX_INPUTS_PER_BLOCK = 2 blocks
     for (int b = 0; b < numBlocks; b++)
     {
+        bool is_full_block = J == J_max;
         // the first kernel computes sub-group local prefix scans and
         // subgroup local carries, one per thread
         // intermediate partial sums and carries write back to the output buffer
