@@ -26,8 +26,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
     const int N = 5;
 
     std::vector<std::thread> threads;
-    std::mutex m;
-    auto func = [&result,&map, &m](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+    auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
 
@@ -38,7 +37,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
             return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
     };
     if(call_select_before_submit){
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 auto s = oneapi::dpl::experimental::select(p);
                 oneapi::dpl::experimental::submit_and_wait(s, func);
@@ -51,7 +50,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         }
     }
     else{
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 oneapi::dpl::experimental::submit_and_wait(p, func);
             }
@@ -82,9 +81,8 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
     std::vector<int> result(u.size(), 0);
     const int N = 5;
 
-    std::mutex m;
     std::vector<std::thread> threads;
-    auto func = [&result,&map, &m](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+    auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
 
@@ -95,7 +93,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
             return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
     };
     if(call_select_before_submit){
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 auto s = oneapi::dpl::experimental::select(p);
 
@@ -108,7 +106,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         }
     }
     else{
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 auto w = oneapi::dpl::experimental::submit(p, func);
             }
@@ -141,8 +139,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
     std::vector<int> result(u.size(), 0);
     const int N = 5;
 
-    std::mutex m;
-    auto func = [&result,&map, &m](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+    auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
 
@@ -154,7 +151,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
     };
     std::vector<std::thread> threads;
     if(call_select_before_submit){
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 auto s = oneapi::dpl::experimental::select(p);
 
@@ -168,7 +165,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         }
     }
     else{
-        auto thread_func = [&p, &func, &m](){
+        auto thread_func = [&p, &func](){
             for(int i=0;i<10;i++){
                 auto w = oneapi::dpl::experimental::submit(p, func);
                 oneapi::dpl::experimental::wait(w);
