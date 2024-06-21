@@ -85,8 +85,8 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 
     inclusive_scan_serial(expected.begin(), expected.end(), expected.begin(), bin_op);
 
-    oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
-                                                       dt_output.get_data(), bin_op, /*TODO identity*/ 0u);
+    oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
+        q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), bin_op, /*TODO identity*/ 0u);
 
     std::vector<T> actual(size);
     dt_output.retrieve_data(actual.begin());
@@ -110,8 +110,8 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam p
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
-        oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                              oneapi::dpl::begin(buf_out), bin_op, 0u /*TODO identity*/);
+        oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
+          q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), bin_op, 0u /*TODO identity*/);
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -124,11 +124,9 @@ test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam pa
 {
     test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param));
     test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<1>(param));
-    //test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param));
-/*#if _ENABLE_RANGES_TESTING
+    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param));
     test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<3>(param));
     test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param));
-#endif*/
 }
 
 template <typename T, typename KernelParam>
