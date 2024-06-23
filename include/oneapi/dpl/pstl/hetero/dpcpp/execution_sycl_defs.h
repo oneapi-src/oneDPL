@@ -23,7 +23,6 @@
 #include "sycl_defs.h"
 
 #include <type_traits>
-
 #include <cstdint> // std::uintptr_t
 #include <atomic>  // atomic_signal_fence
 #include <cassert>
@@ -52,10 +51,13 @@ class alignas(sycl::queue) __queue_holder
 
     std::uintptr_t __buf[sizeof(sycl::queue)/sizeof(std::uintptr_t)];
 
-    bool __has_queue() const
+    bool __device_available_at_policy_construction() const
     {
-        bool res = (__buf[0] != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
+        bool res = true;
+#if _ONEDPL_PREDEFINED_POLICIES
+        res = (__buf[0] != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
         std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
+#endif
         return res;
     }
 
@@ -63,7 +65,7 @@ class alignas(sycl::queue) __queue_holder
     template <typename... _Args>
     __queue_holder(_Args... __args)
     {
-        new (this) sycl::queue(__args...);
+        new (this) sycl::queue{__args...};
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
@@ -84,13 +86,13 @@ class alignas(sycl::queue) __queue_holder
 
     ~__queue_holder()
     {
-        if (__has_queue())
+        if (__device_available_at_policy_construction())
             __queue_ref().~queue();
     }
 
     // Copy and move operations have to be explicit
-    __queue_holder(const __queue_holder& __h) { new (this) sycl::queue(__h.__queue_ref()); }
-    __queue_holder(__queue_holder&& __h)      { new (this) sycl::queue(std::move(__h.__queue_ref())); }
+    __queue_holder(const __queue_holder& __h) { new (this) sycl::queue{__h.__queue_ref()}; }
+    __queue_holder(__queue_holder&& __h)      { new (this) sycl::queue{std::move(__h.__queue_ref())}; }
 
     __queue_holder& operator=(const __queue_holder& __h)
     {
@@ -108,12 +110,12 @@ class alignas(sycl::queue) __queue_holder
 
     const sycl::queue& __queue_ref() const
     {
-        assert(__has_queue());
+        assert(__device_available_at_policy_construction() && "No SYCL devices - cannot use oneDPL device policies");
         return reinterpret_cast<const sycl::queue&>(*this);
     }
     sycl::queue& __queue_ref()
     {
-        assert(__has_queue());
+        assert(__device_available_at_policy_construction() && "No SYCL devices - cannot use oneDPL device policies");
         return reinterpret_cast<sycl::queue&>(*this);
     }
 };
