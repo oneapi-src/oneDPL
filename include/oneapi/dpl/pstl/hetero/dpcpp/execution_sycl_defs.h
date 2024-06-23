@@ -78,8 +78,8 @@ class alignas(sycl::queue) __queue_holder
             // an "impossible" case of SYCL providing no devices, which we however must handle
             __buf[0] = 0; // nullify the first size-of-pointer bytes of the holder
             // Since the queue holder does not have a valid queue in this case,
-            // the predefined device policies are de-facto unusable.
-            // That seems OK though, because there is no device to run SYCL anyway.
+            // the predefined device policies become de-facto unusable.
+            // That seems OK though, because there is no device to use anyway.
         }
     }
 #endif
