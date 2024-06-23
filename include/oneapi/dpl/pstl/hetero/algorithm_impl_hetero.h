@@ -572,9 +572,9 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    bool result = __par_backend_hetero::__parallel_find_or(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
+    bool result = __par_backend_hetero::__parallel_find_any(
+        _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
+        _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 
     // inverted conditional because of
@@ -659,11 +659,11 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_any(
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
+            std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -687,9 +687,8 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
-    return !__par_backend_hetero::__parallel_find_or(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
-        __par_backend_hetero::__parallel_or_tag{},
+    return !__par_backend_hetero::__parallel_find_any(
+        _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 }
 
