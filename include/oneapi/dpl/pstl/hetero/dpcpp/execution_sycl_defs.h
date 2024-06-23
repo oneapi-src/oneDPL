@@ -185,9 +185,6 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
-#if _ONEDPL_PREDEFINED_POLICIES
-    explicit fpga_policy(__internal::__global_instance_tag t) : base(t) {}
-#endif
 };
 #endif // _ONEDPL_FPGA_DEVICE
 
@@ -201,7 +198,7 @@ class fpga_policy : public device_policy<KernelName>
 
 inline device_policy<> dpcpp_default{__internal::__global_instance_tag{}};
 #        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<> dpcpp_fpga{__internal::__global_instance_tag{}};
+inline fpga_policy<> dpcpp_fpga{};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // _ONEDPL___cplusplus >= 201703L
