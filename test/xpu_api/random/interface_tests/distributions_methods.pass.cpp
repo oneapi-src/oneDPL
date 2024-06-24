@@ -218,6 +218,13 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
     params2 = typename Distr::param_type{-2, 10};
 }
 
+template <class T>
+bool
+check_output(oneapi::dpl::bernoulli_distribution<T>& distr, std::ostringstream& out)
+{
+    return out.str() == "0.5";
+}
+
 template <class Distr>
 bool
 test_vec(sycl::queue& queue)
@@ -296,10 +303,41 @@ test(sycl::queue& queue)
 
     // Random number generation
     {
+        {
+            Distr _d1(0.1);
+            Distr _d2(0.1);
+            if (_d1 == _d2)
+            {
+
+            }
+
+            std::ostringstream out;
+            std::istringstream in("0.5");
+
+            in >> _d1;
+            assert(check_params(_d1));
+            out << _d1;
+            assert(check_output);
+
+            if (_d1 != _d2)
+            {
+
+            }
+        }
+
         sycl::buffer<typename Distr::scalar_type> buffer(res, N_GEN);
 
         try
         {
+            queue.submit([&](sycl::handler& cgh) {
+                sycl::stream out(1024, 256, cgh);
+                cgh.single_task<>([=]() {
+                    Distr distr;
+                    out << "params: " << distr << sycl::endl;
+                });
+            });
+            queue.wait_and_throw();
+
             queue.submit([&](sycl::handler& cgh) {
                 sycl::accessor acc(buffer, cgh, sycl::write_only);
 

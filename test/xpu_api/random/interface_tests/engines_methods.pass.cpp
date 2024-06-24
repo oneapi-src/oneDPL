@@ -257,10 +257,31 @@ public:
 
         // Random number generation
         {
+            {
+                Engine engine;
+
+                std::ostringstream out;
+                std::istringstream in("1");
+
+                in >> engine;
+                out << engine;
+                assert(engine() == 1);
+                assert(out.str() == "1");
+            }
+
             sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
 
             try
             {
+                queue.submit([&](sycl::handler& cgh) {
+                    sycl::stream out(1024, 256, cgh);
+                    cgh.single_task<>([=]() {
+                        Engine engine(SEED);
+                        out << "state: " << engine << sycl::endl;
+                    });
+                });
+                queue.wait_and_throw();
+
                 queue.submit([&](sycl::handler& cgh) {
                     auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
@@ -270,7 +291,15 @@ public:
                         Engine engine1;
                         engine1.seed(SEED);
                         engine0.discard(offset);
+                        if (engine0 == engine1)
+                        {
+                            dpstd_acc[offset] = 0;
+                        }
                         engine1.discard(offset);
+                        if (engine0 != engine1)
+                        {
+                            dpstd_acc[offset] = 1;
+                        }
                         typename Engine::result_type res0;
                         res0 = engine0();
                         typename Engine::result_type res1 = engine1();
