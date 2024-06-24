@@ -305,7 +305,7 @@ main()
     std::vector<sycl::queue> u;
     std::unordered_map<sycl::queue, int> map;
     build_dl_universe(u, map);
-
+    int best_resource=0;
     auto n = u.size();
 
     //If building the universe is not a success, return
@@ -315,12 +315,12 @@ main()
         constexpr bool just_call_submit = false;
         constexpr bool call_select_before_submit = true;
 
-        auto actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, map, 0);
-        actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, map, 0);
-        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, map, 0);
-        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, map, 0);
-        actual = test_submit_and_wait<just_call_submit, policy_t>(u, map, 0);
-        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, map, 0);
+        auto actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, map, best_resource);
+        actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, map, best_resource);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, map, best_resource);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, map, best_resource);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u, map, best_resource);
+        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, map, best_resource);
 
         bProcessed = true;
     }

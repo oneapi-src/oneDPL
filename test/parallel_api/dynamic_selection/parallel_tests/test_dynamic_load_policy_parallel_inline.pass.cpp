@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===---------------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
@@ -7,33 +7,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_TEST_FIXED_RESOURCE_PARALLEL_UTILS_H
-#define _ONEDPL_TEST_FIXED_RESOURCE_PARALLEL_UTILS_H
-
 #include "support/test_config.h"
+
 #include "oneapi/dpl/dynamic_selection"
+
+#include "support/inline_backend.h"
 #include "support/utils.h"
-#include <unordered_map>
-#include <thread>
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
-test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> actual, int offset=0)
+test_submit_and_wait(UniverseContainer u, UniverseMapping map, int best_resource)
 {
     using my_policy_t = Policy;
-    my_policy_t p(u, offset);
+    my_policy_t p(u);
     std::vector<int> result(u.size(), 0);
 
     std::vector<std::thread> threads;
     auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
-
-        if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type,
-                                     int>)
-            return e;
-        else
-            return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+        return e;
     };
     if(call_select_before_submit){
         auto thread_func = [&p, &func](){
@@ -62,33 +55,24 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
     for(auto& thread : threads){
         thread.join();
     }
-    bool pass = (actual == result);
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
-    std::cout << "submit_and_wait: OK\n";
+    auto result_element = std::distance(result.begin(),std::max_element(result.begin(), result.end()));
+    EXPECT_TRUE(result_element==best_resource, "ERROR : did not select expected resources\n");
+    std::cout<<"Submit and wait on event : OK\n";
     return 0;
 }
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
-test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vector<int> actual, int offset=0)
+test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, int best_resource)
 {
     using my_policy_t = Policy;
-    my_policy_t p(u, offset);
+    my_policy_t p(u);
     std::vector<int> result(u.size(), 0);
 
     std::vector<std::thread> threads;
     auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
-
-        if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type,
-                                     int>)
-            return e;
-        else
-            return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+        return e;
     };
     if(call_select_before_submit){
         auto thread_func = [&p, &func](){
@@ -119,33 +103,25 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         thread.join();
     }
 
-    bool pass = (actual == result);
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
-    std::cout << "submit_and_wait_on_group: OK\n";
+    auto result_element = std::distance(result.begin(),std::max_element(result.begin(), result.end()));
+    EXPECT_TRUE(result_element==best_resource, "ERROR : did not select expected resources\n");
+    std::cout<<"Submit and wait on event : OK\n";
     return 0;
 }
-template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
+template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMap>
 int
-test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vector<int> actual, int offset=0)
+test_submit_and_wait_on_event(UniverseContainer u, UniverseMap&& map, int best_resource)
 {
     using my_policy_t = Policy;
-    my_policy_t p(u, offset);
+    my_policy_t p(u);
     std::vector<int> result(u.size(), 0);
 
     auto func = [&result,&map](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
         int x = map[e];
         result[x]++;
-
-        if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type,
-                                     int>)
-            return e;
-        else
-            return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+        return e;
     };
+
     std::vector<std::thread> threads;
     if(call_select_before_submit){
         auto thread_func = [&p, &func](){
@@ -176,20 +152,38 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
     for(auto& thread : threads){
         thread.join();
     }
-    bool pass = (actual == result);
-    if (!pass)
-    {
-        std::cout << "ERROR: did not select expected resources\n";
-        return 1;
-    }
-    std::cout << "submit_and_wait_on_event: OK\n";
+
+    auto result_element = std::distance(result.begin(),std::max_element(result.begin(), result.end()));
+    EXPECT_TRUE(result_element==best_resource, "ERROR : did not select expected resources\n");
+    std::cout<<"Submit and wait on event : OK\n";
     return 0;
 }
-
-static inline auto
-build_result(int universe_size, int count, int offset=0){
-    std::vector<int> result(universe_size, 0);
-    result[offset]=count;
-    return result;
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
+static inline void
+build_universe(std::vector<int>& u, std::unordered_map<int, int>& map)
+{
+    for(int i=0;i<u.size();i++){
+        map[u[i]]=i;
+    }
 }
-#endif // _ONEDPL_TEST_FIXED_RESOURCE_PARALLEL_UTILS_H
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
+int
+main()
+{
+    using policy_t = oneapi::dpl::experimental::dynamic_load_policy<TestUtils::int_inline_backend_t>;
+    std::unordered_map<int, int> map;
+    std::vector<int> u{4, 5, 6, 7};
+    build_universe(u, map);
+    int best_resource=0;
+    constexpr bool just_call_submit = false;
+    constexpr bool call_select_before_submit = true;
+
+    auto actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u, map, best_resource);
+    actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, map, best_resource);
+    actual = test_submit_and_wait<just_call_submit, policy_t>(u, map, best_resource);
+    actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, map, best_resource);
+    actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, map, best_resource);
+    actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, map, best_resource);
+
+    return TestUtils::done();
+}
