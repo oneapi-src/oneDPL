@@ -21,9 +21,7 @@
 #    include <iostream>
 #endif
 
-#if _ENABLE_RANGES_TESTING
-#    include <oneapi/dpl/ranges>
-#endif
+#include <oneapi/dpl/ranges>
 
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
@@ -186,7 +184,7 @@ void
 test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
     test_general_cases<T>(q, size, std::plus<T>{}, TestUtils::get_new_kernel_params<0>(param));
-/*#if _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN
+#if _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN
     static constexpr bool int64_mult_broken = std::is_integral_v<T> && (sizeof(T) == 8);
 #else
     static constexpr bool int64_mult_broken = 0;
@@ -194,41 +192,46 @@ test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
     if constexpr (!int64_mult_broken)
     {
         test_general_cases<T>(q, size, std::multiplies<T>{}, TestUtils::get_new_kernel_params<1>(param));
-    }*/
+    }
+}
+
+
+template <typename KernelParam>
+void
+test_all_types(sycl::queue q, std::size_t size, KernelParam params)
+{
+    test_all_cases<uint8_t>(q, size, params);
+    test_all_cases<int8_t>(q, size, params);
+
+    test_all_cases<uint16_t>(q, size, params);
+    test_all_cases<int16_t>(q, size, params);
+
+    test_all_cases<uint32_t>(q, size, params);
+    test_all_cases<int>(q, size, params);
+
+    test_all_cases<size_t>(q, size, params);
+    test_all_cases<uint64_t>(q, size, params);
+
+    test_all_cases<float>(q, size, params);
+    test_all_cases<double>(q, size, params);
 }
 
 int
 main()
 {
-    constexpr int TEST_DATA_PER_WORK_ITEM = 0;
-    constexpr int TEST_WORK_GROUP_SIZE = 0;
-    using TEST_TYPE = uint32_t;
-
-#if 0
-    std::cout << "TEST_DATA_PER_WORK_ITEM : " << TEST_DATA_PER_WORK_ITEM << "\n"
-              << "TEST_WORK_GROUP_SIZE    : " << TEST_WORK_GROUP_SIZE << "\n"
-              << "TEST_TYPE               : " << TypeInfo().name<TEST_TYPE>() << std::endl;
-#endif
-
-    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
+    constexpr oneapi::dpl::experimental::kt::kernel_param<0, 0> params;
     auto q = TestUtils::get_test_queue();
-    //bool run_test = can_run_test<decltype(params), TEST_TYPE>(q, params);
-    bool run_test = true;
 
-    if (run_test)
+    try
     {
-
-        try
-        {
-            for (auto size : scan_sizes)
-                test_all_cases<TEST_TYPE>(q, size, params);
-        }
-        catch (const std::exception& exc)
-        {
-            std::cerr << "Exception: " << exc.what() << std::endl;
-            return EXIT_FAILURE;
-        }
+        for (auto size : scan_sizes)
+            test_all_types(q, size, params);
+    }
+    catch (const std::exception& exc)
+    {
+        std::cerr << "Exception: " << exc.what() << std::endl;
+        return EXIT_FAILURE;
     }
 
-    return TestUtils::done(run_test);
+    return TestUtils::done(true);
 }
