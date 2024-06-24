@@ -55,6 +55,7 @@ discussions.
 
 [How to Contribute]: https://www.oneapi.io/community/how-to-contribute/
 [mailing lists for the UXL Foundation]: https://lists.uxlfoundation.org/g/main/subgroups
+
 ------------------------------------------------------------------------
 Intel and the Intel logo are trademarks of Intel Corporation or its subsidiaries in the U.S. and/or other countries.
 
