@@ -27,6 +27,7 @@
 #include "internal/esimd_defs.h"
 #include "../../pstl/utils.h"
 #include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 namespace oneapi::dpl::experimental::kt::gpu
 {
@@ -40,16 +41,17 @@ template <typename... _Name>
 class __two_pass_scan_kernel2;
 
 
-template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp, typename ValueType>
+template <std::uint8_t VL, bool Inclusive, typename MaskApplyOp, typename InitBroadcastId, typename SubGroup, typename BinaryOp, typename ValueType>
 std::tuple<ValueType, ValueType>
-sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, ValueType init)
+sub_group_masked_scan(const SubGroup& sub_group, MaskApplyOp apply_mask_fn, InitBroadcastId init_broadcast_id,
+                      ValueType value, BinaryOp binary_op, ValueType init)
 {
     std::uint8_t sub_group_local_id = sub_group.get_local_linear_id();
     _ONEDPL_PRAGMA_UNROLL
     for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
     {
         auto partial_carry_in = sycl::shift_group_right(sub_group, value, shift);
-        if (sub_group_local_id >= shift)
+        if (apply_mask_fn(sub_group_local_id, shift))
         {
             value = binary_op(partial_carry_in, value);
         }
@@ -59,16 +61,36 @@ sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, V
     if constexpr (!Inclusive)
     {
         auto old_init = init;
-        init = sycl::group_broadcast(sub_group, value, VL - 1);
+        init = sycl::group_broadcast(sub_group, value, init_broadcast_id);
         value = sycl::shift_group_right(sub_group, value, 1);
         if (sub_group_local_id == 0)
             value = old_init;
     }
     else
     {
-        init = sycl::group_broadcast(sub_group, value, VL - 1);
+        init = sycl::group_broadcast(sub_group, value, init_broadcast_id);
     }
     return std::make_tuple(std::move(value), std::move(init));
+}
+
+template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp, typename ValueType>
+std::tuple<ValueType, ValueType>
+sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, ValueType init)
+{
+    auto apply_mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
+    constexpr auto init_broadcast_id = VL - 1;
+    return sub_group_masked_scan<VL, Inclusive>(sub_group, apply_mask_fn, init_broadcast_id, value, binary_op, init);
+}
+
+template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp, typename ValueType, typename SizeType>
+std::tuple<ValueType, ValueType>
+sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, ValueType init, SizeType num_remaining)
+{
+    auto apply_mask_fn = [num_remaining](auto sub_group_local_id, auto offset) {
+        return sub_group_local_id >= offset && sub_group_local_id < num_remaining;
+    };
+    auto init_broadcast_id = num_remaining - 1;
+    return sub_group_masked_scan<VL, Inclusive>(sub_group, apply_mask_fn, init_broadcast_id, value, binary_op, init);
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
@@ -82,12 +104,16 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     // PVC 1 tile
     constexpr std::uint32_t log2_VL = 5;
     constexpr std::uint32_t VL = 1 << log2_VL;               // simd vector length 2^5 = 32
-    constexpr std::size_t MAX_INPUTS_PER_BLOCK = 16777216; // empirically determined for reduce_then_scan
 
-    constexpr std::uint32_t work_group_size = 1024;
-    constexpr std::uint32_t num_work_groups = 128;
-    constexpr std::uint32_t num_sub_groups_local = work_group_size / VL;
-    constexpr std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
+    std::uint32_t work_group_size = q.get_device().get_info<sycl::info::device::max_work_group_size>();
+    // TODO: develop simple heuristic to determine this value
+    std::uint32_t num_work_groups = 128;
+    std::uint32_t num_sub_groups_local = work_group_size / VL;
+    std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
+    // Is set if the scanner sub-group that scans sub-group carries in a work-group divides evenly into
+    // the vector length (e.g. With a VL of 32 and work-group size of 1024, we have 32 sub-groups which makes this true).
+    // The number of sub-groups being a multiple of the vector length is preferred for performance. 
+    bool is_full_carry_scanner = num_sub_groups_local % VL == 0;
 
     using _FirstKernel = /*TODO: oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<*/
         __two_pass_scan_kernel1<_KernelName, ValueType, BinaryOp>;
@@ -103,6 +129,8 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     constexpr ValueType identity = oneapi::dpl::unseq_backend::__known_identity<BinaryOp, ValueType>;
 
     auto mScanLength = M;
+    constexpr int J_max = 128;
+    std::size_t MAX_INPUTS_PER_BLOCK = work_group_size * J_max * num_work_groups; // empirically determined for reduce_then_scan
     // items per PVC hardware thread
     int K = mScanLength >= MAX_INPUTS_PER_BLOCK
                 ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
@@ -110,7 +138,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                            oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
-    constexpr int J_max = (MAX_INPUTS_PER_BLOCK / (VL * num_sub_groups_global));
     int j;
 
     auto blockSize = (M < MAX_INPUTS_PER_BLOCK) ? M : MAX_INPUTS_PER_BLOCK;
@@ -199,15 +226,39 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 if (sub_group_id == 0)
                 {
                     start_idx = (g * num_sub_groups_local);
-                    // TODO: handle if num_sub_groups_local < VL
-                    constexpr std::uint8_t iters = num_sub_groups_local / VL;
+                    std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
                     sub_group_carry = identity;
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (std::uint8_t i = 0; i < iters; i++)
+                    if (is_full_carry_scanner)
                     {
-                        v = sub_group_partials[i * VL + sub_group_local_id];
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
-                        tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (std::uint8_t i = 0; i < iters; i++)
+                        {
+                            v = sub_group_partials[i * VL + sub_group_local_id];
+                            std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                        }
+                    }
+                    else
+                    {
+                        // In practice iters is usually 1 here when the number of sub-groups is less than the vector length.
+                        // An exception would be the unlikely case where the sub-group size does not divide the work-group size
+                        std::uint8_t i = 0;
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (; i < iters - 1; i++)
+                        {
+                            v = sub_group_partials[sub_group_local_id];
+                            std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op,
+                                                                                    std::move(sub_group_carry));
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                        }
+                        // If we are past the input range, then the previous value of v is passed to the sub-group scan.
+                        // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
+                        if (sub_group_local_id < num_sub_groups_local)
+                            v = sub_group_partials[sub_group_local_id];
+                        std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(
+                            sub_group, std::move(v), binary_op, std::move(sub_group_carry), num_sub_groups_local);
+                        if (sub_group_local_id < num_sub_groups_local)
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                     }
                 }
             });
@@ -267,13 +318,31 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     //         on WG T-local carries
                     //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
                     //           S: sum(T0 carry...TS carry)
-                    constexpr std::uint8_t iters = num_sub_groups_local / VL;
+                    std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
                     auto csrc = g * num_sub_groups_local;
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (std::uint8_t i = 0; i < iters; i++)
+                    if (is_full_carry_scanner)
                     {
-                        sub_group_partials[i * VL + sub_group_local_id] =
-                            tmp_storage[csrc + i * VL + sub_group_local_id];
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (std::uint8_t i = 0; i < iters; i++)
+                        {
+                            sub_group_partials[i * VL + sub_group_local_id] =
+                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                        }
+                    }
+                    else
+                    {
+                        std::uint8_t i = 0;
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (; i < iters - 1; i++)
+                        {
+                            sub_group_partials[i * VL + sub_group_local_id] =
+                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                        }
+                        if (sub_group_local_id < num_sub_groups_local)
+                        {
+                            sub_group_partials[i * VL + sub_group_local_id] =
+                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                        }
                     }
 
                     // step 2) load 32, 64, 96, etc. work-group carry outs on every work-group; then
@@ -311,12 +380,31 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         adj_work_group_carry = carry_last;
                     }
-                    constexpr std::uint8_t iters = num_sub_groups_local / VL;
-                    for (std::uint8_t i = 0; i < iters; ++i)
+                    std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
+                    if (is_full_carry_scanner)
                     {
-                        sub_group_partials[carry_offset + sub_group_local_id] =
-                            binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
-                        carry_offset += VL;
+                        for (std::uint8_t i = 0; i < iters; ++i)
+                        {
+                            sub_group_partials[carry_offset + sub_group_local_id] =
+                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                            carry_offset += VL;
+                        }
+                    }
+                    else
+                    {
+                        std::uint8_t i = 0;
+                        for (; i < iters - 1; ++i)
+                        {
+                            sub_group_partials[carry_offset + sub_group_local_id] =
+                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                            carry_offset += VL;
+                        }
+                        if (sub_group_local_id < num_sub_groups_local)
+                        {
+                            sub_group_partials[carry_offset + sub_group_local_id] =
+                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                            carry_offset += VL;
+                        }
                     }
                     if (sub_group_local_id == 0)
                         sub_group_partials[num_sub_groups_local] = adj_work_group_carry;
