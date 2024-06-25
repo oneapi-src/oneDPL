@@ -126,7 +126,7 @@ radix_sort_copy(sycl::queue __q, _KeysIterator1 __keys_first, _KeysIterator1 __k
 template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysRng1,
           typename _ValsRng1, typename _KeysRng2, typename _ValsRng2>
 sycl::event
-radix_sort_by_key_copy(sycl::queue __q, _KeysRng1&& __keys_rng, _ValsRng1&& __vals_rng, _KeysRng2&& __keys_out_rng,
+radix_sort_copy_by_key(sycl::queue __q, _KeysRng1&& __keys_rng, _ValsRng1&& __vals_rng, _KeysRng2&& __keys_out_rng,
                        _ValsRng2&& __vals_out_rng, _KernelParam __param = {})
 {
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
@@ -144,7 +144,7 @@ radix_sort_by_key_copy(sycl::queue __q, _KeysRng1&& __keys_rng, _ValsRng1&& __va
 template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysIterator1,
           typename _ValsIterator1, typename _KeysIterator2, typename _ValsIterator2>
 sycl::event
-radix_sort_by_key_copy(sycl::queue __q, _KeysIterator1 __keys_first, _KeysIterator1 __keys_last,
+radix_sort_copy_by_key(sycl::queue __q, _KeysIterator1 __keys_first, _KeysIterator1 __keys_last,
                        _ValsIterator1 __vals_first, _KeysIterator2 __keys_out_first, _ValsIterator2 __vals_out_first,
                        _KernelParam __param = {})
 {
@@ -202,12 +202,12 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 [[deprecated("Use of oneapi::dpl::experimental::kt::gpu::radix_sort_by_key "
              "API for out of place operations is deprecated "
              "and will be removed in a future release. "
-             "Use oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_by_key_copy instead")]]
+             "Use oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_copy_by_key instead")]]
 std::enable_if_t<!oneapi::dpl::__internal::__is_iterator_type_v<_KeysRng1>, sycl::event>
 radix_sort_by_key(sycl::queue __q, _KeysRng1&& __keys_rng, _ValsRng1&& __vals_rng, _KeysRng2&& __keys_out_rng,
                       _ValsRng2&& __vals_out_rng, _KernelParam __param = {})
 {
-    return radix_sort_by_key_copy(__q, ::std::forward<_KeysRng1>(__keys_rng), ::std::forward<_ValsRng1>(__vals_rng),
+    return radix_sort_copy_by_key(__q, ::std::forward<_KeysRng1>(__keys_rng), ::std::forward<_ValsRng1>(__vals_rng),
                                   ::std::forward<_KeysRng2>(__keys_out_rng), ::std::forward<_ValsRng2>(__vals_out_rng),
                                   __param);
 }
@@ -217,13 +217,13 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 [[deprecated("Use of oneapi::dpl::experimental::kt::gpu::radix_sort_by_key "
              "API for out of place operations is deprecated "
              "and will be removed in a future release. "
-             "Use oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_by_key_copy instead")]]
+             "Use oneapi::dpl::experimental::kt::gpu::esimd::radix_sort_copy_by_key instead")]]
 std::enable_if_t<oneapi::dpl::__internal::__is_iterator_type_v<_KeysIterator1>, sycl::event>
 radix_sort_by_key(sycl::queue __q, _KeysIterator1 __keys_first, _KeysIterator1 __keys_last,
                       _ValsIterator1 __vals_first, _KeysIterator2 __keys_out_first, _ValsIterator2 __vals_out_first,
                       _KernelParam __param = {})
 {
-    return radix_sort_by_key_copy(__q, __keys_first, __keys_last, __vals_first, __keys_out_first, __vals_out_first,
+    return radix_sort_copy_by_key(__q, __keys_first, __keys_last, __vals_first, __keys_out_first, __vals_out_first,
                                   __param);
 }
 

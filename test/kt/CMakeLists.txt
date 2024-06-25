@@ -98,7 +98,7 @@ endfunction()
 # Parameters #1 and #4 were selected for generation to allow compilation and execution of a test within ~5 minutes
 function(_generate_esimd_sort_tests _key_value_pairs)
     set(_base_file_all "esimd_radix_sort" "esimd_radix_sort_copy")
-    set(_base_file_by_key_all "esimd_radix_sort_by_key" "esimd_radix_sort_by_key_copy")
+    set(_base_file_by_key_all "esimd_radix_sort_by_key" "esimd_radix_sort_copy_by_key")
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
     set(_work_group_size_all "32" "64")
     set(_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
