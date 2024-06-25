@@ -77,20 +77,20 @@ template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp,
 std::tuple<ValueType, ValueType>
 sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, ValueType init)
 {
-    auto apply_mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
+    auto mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
     constexpr auto init_broadcast_id = VL - 1;
-    return sub_group_masked_scan<VL, Inclusive>(sub_group, apply_mask_fn, init_broadcast_id, value, binary_op, init);
+    return sub_group_masked_scan<VL, Inclusive>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init);
 }
 
 template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp, typename ValueType, typename SizeType>
 std::tuple<ValueType, ValueType>
 sub_group_scan(const SubGroup& sub_group, ValueType value, BinaryOp binary_op, ValueType init, SizeType num_remaining)
 {
-    auto apply_mask_fn = [num_remaining](auto sub_group_local_id, auto offset) {
+    auto mask_fn = [num_remaining](auto sub_group_local_id, auto offset) {
         return sub_group_local_id >= offset && sub_group_local_id < num_remaining;
     };
     auto init_broadcast_id = num_remaining - 1;
-    return sub_group_masked_scan<VL, Inclusive>(sub_group, apply_mask_fn, init_broadcast_id, value, binary_op, init);
+    return sub_group_masked_scan<VL, Inclusive>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init);
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
