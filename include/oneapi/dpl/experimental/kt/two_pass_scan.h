@@ -253,11 +253,11 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         }
                         // If we are past the input range, then the previous value of v is passed to the sub-group scan.
                         // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
-                        if (sub_group_local_id < num_sub_groups_local)
+                        if (i * VL + sub_group_local_id < num_sub_groups_local)
                             v = sub_group_partials[sub_group_local_id];
                         std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(
                             sub_group, std::move(v), binary_op, std::move(sub_group_carry), num_sub_groups_local);
-                        if (sub_group_local_id < num_sub_groups_local)
+                        if (i * VL + sub_group_local_id < num_sub_groups_local)
                             tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                     }
                 }
@@ -338,7 +338,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             sub_group_partials[i * VL + sub_group_local_id] =
                                 tmp_storage[csrc + i * VL + sub_group_local_id];
                         }
-                        if (sub_group_local_id < num_sub_groups_local)
+                        if (i * VL + sub_group_local_id < num_sub_groups_local)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
                                 tmp_storage[csrc + i * VL + sub_group_local_id];
@@ -399,7 +399,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                                 binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
                             carry_offset += VL;
                         }
-                        if (sub_group_local_id < num_sub_groups_local)
+                        if (i * VL + sub_group_local_id < num_sub_groups_local)
                         {
                             sub_group_partials[carry_offset + sub_group_local_id] =
                                 binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
