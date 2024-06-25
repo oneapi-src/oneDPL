@@ -22,7 +22,8 @@ class owning_view : public rng::view_interface<owning_view<R>>
   public:
     owning_view(R&& range) : range_(std::move(range)) {}
 
-    owning_view() requires std::default_initializable<R> = default;
+    owning_view() requires std::default_initializable<R>
+    = default;
     owning_view(owning_view&& other) = default;
     owning_view(const owning_view& other) = default;
 

@@ -20,7 +20,7 @@ namespace __detail
 inline constexpr auto local = ranges::__detail::local;
 
 template <typename Src, typename Dest>
-concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest>&& std::is_trivially_copyable_v<Dest>;
+concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest> && std::is_trivially_copyable_v<Dest>;
 
 template <std::contiguous_iterator Iter>
 sycl::usm::alloc

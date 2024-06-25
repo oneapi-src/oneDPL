@@ -41,6 +41,9 @@ target_compile_options(dr_shp INTERFACE -ftemplate-backtrace-limit=0)
 target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
 target_link_libraries(dr_shp INTERFACE fmt::fmt)
 
+target_compile_options(dr_shp INTERFACE -qopenmp)
+target_link_options(dr_shp INTERFACE -qopenmp)
+
 # For use, see:
 # https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
 # example: cmake .. -DhipSYCL_DIR=</hipsycl/install/lib/cmake/hipSYCL>
