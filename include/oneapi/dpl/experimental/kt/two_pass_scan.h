@@ -41,9 +41,9 @@ template <typename... _Name>
 class __two_pass_scan_kernel2;
 
 
-template <std::uint8_t VL, bool Inclusive, typename MaskApplyOp, typename InitBroadcastId, typename SubGroup, typename BinaryOp, typename ValueType>
+template <std::uint8_t VL, bool Inclusive, typename MaskOp, typename InitBroadcastId, typename SubGroup, typename BinaryOp, typename ValueType>
 std::tuple<ValueType, ValueType>
-sub_group_masked_scan(const SubGroup& sub_group, MaskApplyOp apply_mask_fn, InitBroadcastId init_broadcast_id,
+sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId init_broadcast_id,
                       ValueType value, BinaryOp binary_op, ValueType init)
 {
     std::uint8_t sub_group_local_id = sub_group.get_local_linear_id();
@@ -51,7 +51,7 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskApplyOp apply_mask_fn, Init
     for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
     {
         auto partial_carry_in = sycl::shift_group_right(sub_group, value, shift);
-        if (apply_mask_fn(sub_group_local_id, shift))
+        if (mask_fn(sub_group_local_id, shift))
         {
             value = binary_op(partial_carry_in, value);
         }
@@ -106,7 +106,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     constexpr std::uint32_t VL = 1 << log2_VL;               // simd vector length 2^5 = 32
 
     std::uint32_t work_group_size = q.get_device().get_info<sycl::info::device::max_work_group_size>();
-    // TODO: develop simple heuristic to determine this value
+    // TODO: develop simple heuristic to determine this value based on maximum compute units
     std::uint32_t num_work_groups = 128;
     std::uint32_t num_sub_groups_local = work_group_size / VL;
     std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
