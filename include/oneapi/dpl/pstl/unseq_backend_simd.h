@@ -34,7 +34,7 @@ const ::std::size_t __lane_size = 64;
 
 template <class _Iterator, class _DifferenceType, class _Function>
 _Iterator
-__simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f) noexcept
+__simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f)
 {
     _ONEDPL_PRAGMA_SIMD
     for (_DifferenceType __i = 0; __i < __n; ++__i)
