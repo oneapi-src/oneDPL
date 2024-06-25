@@ -191,7 +191,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else if (is_full_thread)
                 {
-                    _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
@@ -201,7 +200,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else
                 {
-                    _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
                         auto offset = start_idx + j * VL;
@@ -230,7 +228,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     sub_group_carry = identity;
                     if (is_full_carry_scanner)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (std::uint8_t i = 0; i < iters; i++)
                         {
                             v = sub_group_partials[i * VL + sub_group_local_id];
@@ -243,7 +240,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         // In practice iters is usually 1 here when the number of sub-groups is less than the vector length.
                         // An exception would be the unlikely case where the sub-group size does not divide the work-group size
                         std::uint8_t i = 0;
-                        _ONEDPL_PRAGMA_UNROLL
                         for (; i < iters - 1; i++)
                         {
                             v = sub_group_partials[sub_group_local_id];
@@ -322,7 +318,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     auto csrc = g * num_sub_groups_local;
                     if (is_full_carry_scanner)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (std::uint8_t i = 0; i < iters; i++)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
@@ -332,7 +327,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     else
                     {
                         std::uint8_t i = 0;
-                        _ONEDPL_PRAGMA_UNROLL
                         for (; i < iters - 1; i++)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
@@ -447,7 +441,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else if (is_full_thread)
                 {
-                    _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
@@ -458,7 +451,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else
                 {
-                    _ONEDPL_PRAGMA_UNROLL
                     for (int j = 0; j < J; j++)
                     {
                         auto offset = start_idx + j * VL;
