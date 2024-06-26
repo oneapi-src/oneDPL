@@ -189,7 +189,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 auto sub_group_id = sub_group.get_group_linear_id();
                 auto sub_group_local_id = sub_group.get_local_linear_id();
 
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> v;
                 oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
 
                 size_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
@@ -199,56 +198,50 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
                 if (is_full_thread && is_full_block)
                 {
-                    v.__setup(unary_op(first[start_idx]));
+                    auto v = unary_op(first[start_idx]);
                     // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                     sub_group_scan<VL, Inclusive, false>(sub_group, v.__v, binary_op, sub_group_carry);
 
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 1; j < J_max; j++)
                     {
-                        v.__v = unary_op(__in_rng[start_idx + j * VL]);
+                        v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                     }
-                    v.__destroy();
                 }
                 else if (is_full_thread)
                 {
-                    v.__setup(unary_op(__in_rng[start_idx + j * VL]));
+                    auto v = unary_op(__in_rng[start_idx + j * VL]);
 
                     sub_group_scan<VL, Inclusive>(sub_group, v.__v, binary_op, sub_group_carry);
                     _ONEDPL_PRAGMA_UNROLL
                     for (int j = 1; j < J; j++)
                     {
-                        v.__v = unary_op(__in_rng[start_idx + j * VL]);
+                        v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                     }
-                    v.__destroy();
                 }
                 else
                 {
-                    auto offset = start_idx;
-                    if (offset < M)
-                    {
-                        v.__setup(unary_op(__in_rng[start_idx]));
+                    auto local_idx = (offset < M) ? start_idx : M - 1;
+                    auto v = unary_op(__in_rng[local_idx]);
+                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                    //TODO: need to skip the scan for elements out of range
+                    sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry, offset < M);
 
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (int j = 1; j < J; j++)
+                    {
+                        offset = start_idx + j * VL;
+
+                        local_idx = (offset < M) ? start_idx + j * VL : M - 1;
+                        v = unary_op(__in_rng[local_idx]);
+                        
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         //TODO: need to skip the scan for elements out of range
-                        sub_group_scan_partial<VL, Inclusive, false>(sub_group, v.__v, binary_op, sub_group_carry, offset < M);
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (int j = 1; j < J; j++)
-                        {
-                            offset = start_idx + j * VL;
-                            if (offset < M)
-                            {
-                                &v.__v = unary_op(__in_rng[start_idx + j * VL]);
-                            }
-                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                            //TODO: need to skip the scan for elements out of range
-                            sub_group_scan_partial<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry, offset < M);
-                        }
-                        v.__destroy();
+                        sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry, offset < M);
                     }
                 }
 
@@ -270,15 +263,15 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     if (is_full_carry_scanner)
                     {
                         //unrolled first iteration to avoid identity
-                        auto v_solo = sub_group_partials[sub_group_local_id];
-                        sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
-                        tmp_storage[start_idx + sub_group_local_id] = v_solo;
+                        auto v = sub_group_partials[sub_group_local_id];
+                        sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                        tmp_storage[start_idx + sub_group_local_id] = v;
 
                         for (std::uint8_t i = 1; i < iters; i++)
                         {
-                            v_solo = sub_group_partials[i * VL + sub_group_local_id];
-                            sub_group_scan<VL, true>(sub_group, v_solo, binary_op, sub_group_carry);
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                            v = sub_group_partials[i * VL + sub_group_local_id];
+                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                         }
                     }
                     else
@@ -288,10 +281,10 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         if (iters == 1)
                         {
                             auto load_idx =  (sub_group_local_id < num_sub_groups_local) ? sub_group_local_id : (num_sub_groups_local - 1); // else is unused dummy value
-                            auto v_solo = sub_group_partials[load_idx];
-                            sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
+                            auto v = sub_group_partials[load_idx];
+                            sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
                             if (sub_group_local_id < num_sub_groups_local)
-                                tmp_storage[start_idx + sub_group_local_id] = v_solo;
+                                tmp_storage[start_idx + sub_group_local_id] = v;
                         }
                         else
                         {
@@ -299,28 +292,27 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             //need to pull out first iteration tp avoid identity
                             if (i < iters - 1)
                             {
-                                auto v_solo = sub_group_partials[sub_group_local_id];
-                                sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                                auto v = sub_group_partials[sub_group_local_id];
+                                sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                                 i++;
                             }
 
                             for (; i < iters - 1; i++)
                             {
-                                //TODO: should this be augmented by i * VL?
-                                auto v_solo = sub_group_partials[sub_group_local_id];
-                                sub_group_scan<VL, true, true>(sub_group, v_solo, binary_op, sub_group_carry);
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                                auto v = sub_group_partials[i * VL + sub_group_local_id];
+                                sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                             }
                             // If we are past the input range, then the previous value of v is passed to the sub-group scan.
                             // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
                             
                             // else is an unused dummy value
-                            auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local) ? sub_group_local_id : (num_sub_groups_local - 1);
-                            auto v_solo = sub_group_partials[load_idx]; //TODO: should this be augmented by i * VL?
-                            sub_group_scan<VL, true>(sub_group, v_solo, binary_op, sub_group_carry, num_sub_groups_local);
+                            auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local) ? (i * VL + sub_group_local_id) : (num_sub_groups_local - 1);
+                            auto v = sub_group_partials[load_idx];
+                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry, num_sub_groups_local);
                             if (i * VL + sub_group_local_id < num_sub_groups_local)
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                         }
                     }
 
@@ -345,8 +337,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 auto sub_group_id = sub_group.get_group_linear_id();
                 auto sub_group_local_id = sub_group.get_local_linear_id();
 
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> v;// = identity;
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry_last;// = identity;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry_last;
 
                 // propogate carry in from previous block
                 oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
@@ -412,17 +403,27 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     //         compute the prefix in a sub-group to get global work-group carries
                     //         memory accesses: gather(63, 127, 191, 255, ...)
                     uint32_t offset = num_sub_groups_local - 1;
-                    ValueType carry = identity;
+                    oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry;
                     _ONEDPL_PRAGMA_UNROLL
                     // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
-                    for (int i = 0; i < (g >> log2_VL) + 1; i++)
+
+                    auto v = tmp_storage[i * num_sub_groups_local * VL +
+                                    (num_sub_groups_local * sub_group_local_id + offset)];
+                    sub_group_scan<VL, true, false>(sub_group, v, binary_op, carry);
+
+                    if (i == (g >> log2_VL) - 1)
+                        carry_last.__setup(carry); // we only need the second to last carry
+
+
+                    for (int i = 1; i < (g >> log2_VL) + 1; i++)
                     {
                         v = tmp_storage[i * num_sub_groups_local * VL +
                                         (num_sub_groups_local * sub_group_local_id + offset)];
-                        sub_group_scan<VL, true>(sub_group, v, binary_op, carry);
-                        if (i != (g >> log2_VL))
-                            carry_last = carry;
+                        sub_group_scan<VL, true, true>(sub_group, v, binary_op, carry);
+                        if (i == (g >> log2_VL) - 1)
+                            carry_last.__setup(carry); // we only need the second to last carry
                     }
+                    carry.__destroy();
                 }
 
                 // N.B. barrier could be earlier, guarantees slm local carry update
@@ -472,6 +473,8 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     if (sub_group_local_id == 0)
                         sub_group_partials[num_sub_groups_local] = adj_work_group_carry;
                 }
+                carry_last.__destroy();
+
                 //sycl::group_barrier(ndi.get_group());
                 ndi.barrier(sycl::access::fence_space::local_space);
 
@@ -499,34 +502,50 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 start_idx += sub_group_local_id;
                 if (is_full_thread && is_full_block)
                 {
+                    auto v = unary_op(__in_rng[start_idx]);
+                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                    __out_rng[start_idx] = v;
+
                     _ONEDPL_PRAGMA_UNROLL
-                    for (int j = 0; j < J_max; j++)
+                    for (int j = 1; j < J_max; j++)
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
                 else if (is_full_thread)
                 {
-                    for (int j = 0; j < J; j++)
+                    auto v = unary_op(__in_rng[start_idx]);
+                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                    __out_rng[start_idx] = v;
+
+                    for (int j = 1; j < J; j++)
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
                 else
                 {
+                    auto local_idx = (offset < M) ? start_idx : M - 1;
+                    auto v = unary_op(__in_rng[local_idx]);
+                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                    if (offset < M)
+                        __out_rng[offset] = v;
+
                     for (int j = 0; j < J; j++)
                     {
-                        auto offset = start_idx + j * VL;
-                        // Pass through identity if we are past the max range
-                        v = offset < M ? unary_op(__in_rng[offset]) : identity;
+                        local_idx = (offset < M) ? start_idx + j * VL : M - 1;
+                        v = unary_op(__in_rng[local_idx]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         if (offset < M)
                             __out_rng[offset] = v;
                     }
