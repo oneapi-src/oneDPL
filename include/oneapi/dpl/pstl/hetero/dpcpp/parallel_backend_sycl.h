@@ -1081,12 +1081,10 @@ struct __early_exit_find_or
                 {
                     // As far as we find the first/last value of the data here, we need to set the atomic value to the index of the found data.
                     // But only in this case when this value is less (if we find the first value)/greater(if we find the last value) than the current value of the atomic.
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
-                    {
-                        // If we replace the atomic value successfully, we can break the loop
-                        if (__found_local.compare_exchange_strong(__old, __shifted_idx))
-                            break;
-                    }
+                    if constexpr (!_BackwardTagType::value)
+                        __found_local.fetch_min(__shifted_idx);
+                    else
+                        __found_local.fetch_max(__shifted_idx);
                 }
 
                 break;
@@ -1113,7 +1111,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
 
-    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
+    constexpr bool __or_tag_check = std::is_same_v<_BrickTag, __parallel_or_tag>;
+    using _BackwardTagType = std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
+
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
@@ -1177,17 +1177,18 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     __dpl_sycl::__group_barrier(__item_id);
 
                     // Set local atomic value to global atomic
-                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                    if (__local_idx == 0)
                     {
-                        if constexpr (__or_tag_check)
-                            __found.store(1);
-                        else
+                        if (__comp(__found_local.load(), __found.load()))
                         {
-                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                 __old = __found.load())
+                            if constexpr (__or_tag_check)
+                                __found.store(1);
+                            else
                             {
-                                if (__found.compare_exchange_strong(__old, __found_local.load()))
-                                    break;
+                                if constexpr (!_BackwardTagType::value)
+                                    __found.fetch_min(__found_local.load());
+                                else
+                                    __found.fetch_max(__found_local.load());
                             }
                         }
                     }
