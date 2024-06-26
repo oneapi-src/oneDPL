@@ -19,4 +19,4 @@
 #error "C++23 required to use Distributed Ranges"
 #endif
 
-#endif /* _ONEDPL_DISTRIBUTED_RANGES */
+#endif // _ONEDPL_DISTRIBUTED_RANGES

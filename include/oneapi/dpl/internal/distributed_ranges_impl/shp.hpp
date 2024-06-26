@@ -4,7 +4,6 @@
 
 #pragma once
 
-// #include "detail/logger.hpp"
 #include "shp/algorithms/algorithms.hpp"
 #include "shp/detail.hpp"
 #include "shp/distributed_span.hpp"

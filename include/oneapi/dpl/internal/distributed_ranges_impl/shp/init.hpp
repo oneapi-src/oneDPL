@@ -122,7 +122,7 @@ queue(std::size_t rank)
     return queues_[rank];
 }
 
-// Retrieve global queues because of CMPLRLLVM-47008
+// Retrieve global queues because of observed significantly reduced copy performance when using newly constructed queues versus using pre-constructed global queues. (CMPLRLLVM-47008)
 inline sycl::queue&
 queue(const sycl::device& device)
 {
