@@ -304,7 +304,7 @@ The used amount depends on many parameters; below is an upper bound approximatio
    N\ :sub:`keys_per_workgroup` + N\ :sub:`values_per_workgroup` + C
 
 where N\ :sub:`keys_per_workgroup` and N\ :sub:`values_per_workgroup` are the amounts of memory
-to store keys and values, respectively.  `C` is some additional space for storing internal data.
+to store keys and values, respectively. `C` is some additional space for storing internal data.
 
 N\ :sub:`keys_per_workgroup` equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``,
 N\ :sub:`values_per_workgroup` equals to ``sizeof(value_type) * param.data_per_workitem * param.workgroup_size``,

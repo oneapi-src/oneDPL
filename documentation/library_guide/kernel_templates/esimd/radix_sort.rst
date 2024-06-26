@@ -259,7 +259,7 @@ The used amount depends on many parameters; below is an upper bound approximatio
 
    N\ :sub:`keys_per_workgroup` + C
 
-where N\ :sub:`keys_per_workgroup` is the amounts of memory to store keys. 
+where N\ :sub:`keys_per_workgroup` is the amount of memory to store keys.
 `C` is some additional space for storing internal data.
 
 N\ :sub:`keys_per_workgroup` equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``,
