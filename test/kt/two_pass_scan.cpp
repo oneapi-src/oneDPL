@@ -83,14 +83,20 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 
     inclusive_scan_serial(expected.begin(), expected.end(), expected.begin(), bin_op);
 
-    oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
-        q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), bin_op, oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+    auto invoke_and_verify = [&](auto& dt_dst) {
+        oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
+            q, dt_input.get_data(), dt_input.get_data() + size, dt_dst.get_data(), bin_op, oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
 
-    std::vector<T> actual(size);
-    dt_output.retrieve_data(actual.begin());
+        std::vector<T> actual(size);
+        dt_dst.retrieve_data(actual.begin());
 
-    std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+        std::string msg = "wrong results with USM, n: " + std::to_string(size);
+        EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+    };
+    // Out-of-place scan
+    invoke_and_verify(dt_output);
+    // In-place scan
+    invoke_and_verify(dt_input);
 }
 
 template <typename T, typename BinOp, typename KernelParam>
