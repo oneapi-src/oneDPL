@@ -5,13 +5,14 @@ Radix Sort By Key
 radix_sort_by_key Function Templates
 ------------------------------------
 
-The ``radix_sort_by_key`` function sorts keys using the radix sort algorithm, applying the same order to the corresponding values.
+The ``radix_sort_by_key`` and ``radix_sort_copy_by_key`` functions sort keys using the radix sort algorithm,
+applying the same order to the corresponding values.
 The sorting is stable, preserving the relative order of elements with equal keys.
-Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequences.
+Both in-place and out-of-place APIs are provided. Out-of-place APIs do not alter the input sequences.
 
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
-A synopsis of the ``radix_sort_by_key`` function is provided below:
+A synopsis of the ``radix_sort_by_key`` and ``radix_sort_copy_by_key`` functions are provided below:
 
 .. code:: cpp
 
@@ -39,7 +40,7 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
              typename ValuesIterator1, typename KeysIterator2,
              typename ValuesIterator2>
    sycl::event
-   radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
+   radix_sort_copy_by_key (sycl::queue q, KeysIterator1 keys_first,
                       KeysIterator1 keys_last, ValuesIterator1 values_first,
                       KeysIterator2 keys_out_first, ValuesIterator2 values_out_first,
                       KernelParam param); // (3)
@@ -48,7 +49,7 @@ A synopsis of the ``radix_sort_by_key`` function is provided below:
              typename KernelParam, typename KeysRng1, typename ValuesRng1,
              typename KeysRng2, typename ValuesRng2>
    sycl::event
-   radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValuesRng1&& values,
+   radix_sort_copy_by_key (sycl::queue q, KeysRng1&& keys, ValuesRng1&& values,
                       KeysRng2&& keys_out, ValuesRng2&& values_out,
                       KernelParam param); // (4)
    }
@@ -185,7 +186,7 @@ Out-of-Place Example
 .. code:: cpp
 
    // possible build and run commands:
-   //    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include && ./radix_sort_by_key
+   //    icpx -fsycl radix_sort_copy_by_key.cpp -o radix_sort_copy_by_key -I /path/to/oneDPL/include && ./radix_sort_copy_by_key
 
    #include <cstdint>
    #include <iostream>
@@ -215,7 +216,7 @@ Out-of-Place Example
       }
 
       // sort
-      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, keys_out, values_out,
+      auto e = kt::gpu::esimd::radix_sort_copy_by_key<true, 8>(q, keys, values, keys_out, values_out,
                                                           kt::kernel_param<96, 64>{}); // (4)
       e.wait();
 
@@ -290,7 +291,7 @@ Incrementing ``RadixBits`` increases `C` up to twice, while doubling either
    The C coefficient base is actually 0.53 instead of 1.
    An increment of RadixBits multiplies C by the factor of ~1.5 on average.
 
-   Additionally, C exceeds 1 for radix_sort_by_key,
+   Additionally, C exceeds 1 for radix_sort[_copy]_by_key,
    when N is small and the global histogram takes more space than the sequences.
    This space is small, single WG implementation will be added, therefore this is neglected.
 
