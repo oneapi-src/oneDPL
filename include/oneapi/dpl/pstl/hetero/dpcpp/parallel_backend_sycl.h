@@ -1077,6 +1077,7 @@ struct __early_exit_find_or
                     {
                         __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
+                    break;
                 }
             }
         }
