@@ -235,8 +235,8 @@ jobs:
             mkdir build &&
             cd build &&
             cmake -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=icpx -DONEDPL_BACKEND=dpcpp -DCMAKE_BUILD_TYPE=Release .. &&
-            cmake --build . --target shp-all-tests -j${nproc} &&
-            ctest --test-dir . -L SHP -j 4"
+            cmake --build . --target shp-all-tests -j${BUILD_CONCURRENCY} &&
+            ctest --test-dir . -L SHP -j${BUILD_CONCURRENCY}"
           docker logs -f dr-test
           exit_code=$(docker inspect dr-test --format='{{.State.ExitCode}}')
           docker rm -f dr-test
