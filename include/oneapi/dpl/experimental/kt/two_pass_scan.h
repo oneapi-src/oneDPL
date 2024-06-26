@@ -147,13 +147,15 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     auto localRange = range<1>(work_group_size);
     nd_range<1> range(globalRange, localRange);
 
-    // Each element is a partial result from a subgroup
-    ValueType* tmp_storage = sycl::malloc_device<ValueType>(num_sub_groups_global, q);
+    // Each element is a partial result from a subgroup. The last element is to support in-place
+    // exclusive scans where we need to store the original input's last element for future use
+    // before it is overwritten.
+    ValueType* tmp_storage = sycl::malloc_device<ValueType>(num_sub_groups_global + 1, q);
     sycl::event event;
 
     // run scan kernels for all input blocks in the current buffer
     // e.g., scan length 2^24 / MAX_INPUTS_PER_BLOCK = 2 blocks
-    for (int b = 0; b < numBlocks; b++)
+    for (std::size_t b = 0; b < numBlocks; b++)
     {
         bool is_full_block = J == J_max;
         // the first kernel computes sub-group local prefix scans and
@@ -287,11 +289,13 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         sub_group_carry = init;
                     else
                     {
-                        if (Inclusive)
+                        if constexpr (Inclusive)
                             sub_group_carry = __out_rng[b * blockSize - 1];
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
-                            ValueType last_block_element = unary_op(__in_rng[b * blockSize - 1]);
+                            // Grab the last element from the previous block that has been cached in temporary
+                            // storage in the first kernel.
+                            ValueType last_block_element = unary_op(tmp_storage[num_sub_groups_global]);
                             sub_group_carry = binary_op(__out_rng[b * blockSize - 1], last_block_element);
                         }
                     }
@@ -353,6 +357,19 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         std::tie(v, carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op, carry);
                         if (i != (g >> log2_VL))
                             carry_last = carry;
+                    }
+                }
+                // For the exclusive scan case:
+                // While the first sub-group is doing work, have the last item in the group store the last element
+                // in the block to temporary storage for use in the next block.
+                // This is required to support in-place exclusive scans as the input values will be overwritten.
+                if constexpr (!Inclusive)
+                {
+                    auto global_id = ndi.get_global_linear_id();
+                    if (global_id == num_work_groups * work_group_size - 1)
+                    {
+                        std::size_t last_idx_in_block = std::min(M - 1, blockSize * (b + 1) - 1);
+                        tmp_storage[num_sub_groups_global] = __in_rng[last_idx_in_block];
                     }
                 }
 
