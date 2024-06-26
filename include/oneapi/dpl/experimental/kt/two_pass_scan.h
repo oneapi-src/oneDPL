@@ -41,11 +41,12 @@ template <typename... _Name>
 class __two_pass_scan_kernel2;
 
 
-template <std::uint8_t VL, bool Inclusive, typename MaskOp, typename InitBroadcastId, typename SubGroup, typename BinaryOp, typename ValueType>
-std::tuple<ValueType, ValueType>
+template <std::uint8_t VL, bool Inclusive, typename MaskOp, typename InitBroadcastId, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType>
+void
 sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId init_broadcast_id,
-                      ValueType value, BinaryOp binary_op, ValueType init)
+                      ValueType& value, BinaryOp binary_op, LazyValueType init)
 {
+
     std::uint8_t sub_group_local_id = sub_group.get_local_linear_id();
     _ONEDPL_PRAGMA_UNROLL
     for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
@@ -56,21 +57,38 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
             value = binary_op(partial_carry_in, value);
         }
     }
-    value = binary_op(init, value);
+    if constexpr(Init)
+    {
+        value = binary_op(init_and_carry.__v, value);
+    }
     // Adjust for an exclusive scan if requested
     if constexpr (!Inclusive)
     {
-        auto old_init = init;
-        init = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+        LazyValueType old_init;
+        if constexpr(Init)
+            old_init.__v = init_and_carry;
+            init_and_carry = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+        else
+            init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
         value = sycl::shift_group_right(sub_group, value, 1);
-        if (sub_group_local_id == 0)
-            value = old_init;
+        if constexpr (Init)
+        {
+            if (sub_group_local_id == 0)
+                value = old_init;
+        }
     }
     else
     {
-        init = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+        if constexpr(Init)
+        {
+            init_and_carry = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+        }
+        else
+        {
+            init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
+        }
     }
-    return std::make_tuple(std::move(value), std::move(init));
+    //return by reference value and init_and_carry
 }
 
 template <std::uint8_t VL, bool Inclusive, typename SubGroup, typename BinaryOp, typename ValueType>
@@ -124,9 +142,9 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     size_t M = __in_rng.size();
     size_t num_remaining = M;
 
-    static_assert(oneapi::dpl::unseq_backend::__has_known_identity<BinaryOp, ValueType>::value,
-                  "The prototype currently supports only known identity operators + init type");
-    constexpr ValueType identity = oneapi::dpl::unseq_backend::__known_identity<BinaryOp, ValueType>;
+//    static_assert(oneapi::dpl::unseq_backend::__has_known_identity<BinaryOp, ValueType>::value,
+//                  "The prototype currently supports only known identity operators + init type");
+//    constexpr ValueType identity = oneapi::dpl::unseq_backend::__known_identity<BinaryOp, ValueType>;
 
     auto mScanLength = M;
     constexpr int J_max = 128;
@@ -171,8 +189,8 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 auto sub_group_id = sub_group.get_group_linear_id();
                 auto sub_group_local_id = sub_group.get_local_linear_id();
 
-                ValueType v = identity;
-                ValueType sub_group_carry = identity;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> v;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
 
                 size_t start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = start_idx + J * VL <= M;
@@ -181,38 +199,62 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
                 if (is_full_thread && is_full_block)
                 {
+                    v.__setup(unary_op(first[start_idx]));
+                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                    sub_group_scan<VL, Inclusive, false>(sub_group, v.__v, binary_op, sub_group_carry);
+
                     _ONEDPL_PRAGMA_UNROLL
-                    for (int j = 0; j < J_max; j++)
+                    for (int j = 1; j < J_max; j++)
                     {
-                        v = unary_op(__in_rng[start_idx + j * VL]);
+                        v.__v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry);
                     }
+                    v.__destroy();
                 }
                 else if (is_full_thread)
                 {
-                    for (int j = 0; j < J; j++)
+                    v.__setup(unary_op(__in_rng[start_idx + j * VL]));
+
+                    sub_group_scan<VL, Inclusive>(sub_group, v.__v, binary_op, sub_group_carry);
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (int j = 1; j < J; j++)
                     {
-                        v = unary_op(__in_rng[start_idx + j * VL]);
+                        v.__v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        sub_group_scan<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry);
                     }
+                    v.__destroy();
                 }
                 else
                 {
-                    for (int j = 0; j < J; j++)
+                    auto offset = start_idx;
+                    if (offset < M)
                     {
-                        auto offset = start_idx + j * VL;
-                        // Pass through identity if we are past the max range
-                        v = offset < M ? unary_op(__in_rng[start_idx + j * VL]) : identity;
+                        v.__setup(unary_op(__in_rng[start_idx]));
+
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        //TODO: need to skip the scan for elements out of range
+                        sub_group_scan_partial<VL, Inclusive, false>(sub_group, v.__v, binary_op, sub_group_carry, offset < M);
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (int j = 1; j < J; j++)
+                        {
+                            offset = start_idx + j * VL;
+                            if (offset < M)
+                            {
+                                &v.__v = unary_op(__in_rng[start_idx + j * VL]);
+                            }
+                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                            //TODO: need to skip the scan for elements out of range
+                            sub_group_scan_partial<VL, Inclusive, true>(sub_group, v.__v, binary_op, sub_group_carry, offset < M);
+                        }
+                        v.__destroy();
                     }
                 }
 
                 if (sub_group_local_id == 0)
                     sub_group_partials[sub_group_id] = sub_group_carry;
-
+                sub_group_carry.__destroy();
                 // TODO: This is slower then ndi.barrier which was removed in SYCL2020. Can we do anything about it?
                 //sycl::group_barrier(ndi.get_group());
                 ndi.barrier(sycl::access::fence_space::local_space);
@@ -225,37 +267,64 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 {
                     start_idx = (g * num_sub_groups_local);
                     std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
-                    sub_group_carry = identity;
                     if (is_full_carry_scanner)
                     {
-                        for (std::uint8_t i = 0; i < iters; i++)
+                        //unrolled first iteration to avoid identity
+                        auto v_solo = sub_group_partials[sub_group_local_id];
+                        sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
+                        tmp_storage[start_idx + sub_group_local_id] = v_solo;
+
+                        for (std::uint8_t i = 1; i < iters; i++)
                         {
-                            v = sub_group_partials[i * VL + sub_group_local_id];
-                            std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                            v_solo = sub_group_partials[i * VL + sub_group_local_id];
+                            sub_group_scan<VL, true>(sub_group, v_solo, binary_op, sub_group_carry);
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
                         }
                     }
                     else
                     {
                         // In practice iters is usually 1 here when the number of sub-groups is less than the vector length.
                         // An exception would be the unlikely case where the sub-group size does not divide the work-group size
-                        std::uint8_t i = 0;
-                        for (; i < iters - 1; i++)
+                        if (iters == 1)
                         {
-                            v = sub_group_partials[sub_group_local_id];
-                            std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op,
-                                                                                    std::move(sub_group_carry));
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                            auto load_idx =  (sub_group_local_id < num_sub_groups_local) ? sub_group_local_id : (num_sub_groups_local - 1); // else is unused dummy value
+                            auto v_solo = sub_group_partials[load_idx];
+                            sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
+                            if (sub_group_local_id < num_sub_groups_local)
+                                tmp_storage[start_idx + sub_group_local_id] = v_solo;
                         }
-                        // If we are past the input range, then the previous value of v is passed to the sub-group scan.
-                        // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
-                        if (i * VL + sub_group_local_id < num_sub_groups_local)
-                            v = sub_group_partials[sub_group_local_id];
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, true>(
-                            sub_group, std::move(v), binary_op, std::move(sub_group_carry), num_sub_groups_local);
-                        if (i * VL + sub_group_local_id < num_sub_groups_local)
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                        else
+                        {
+                            std::uint8_t i = 0;
+                            //need to pull out first iteration tp avoid identity
+                            if (i < iters - 1)
+                            {
+                                auto v_solo = sub_group_partials[sub_group_local_id];
+                                sub_group_scan<VL, true, false>(sub_group, v_solo, binary_op, sub_group_carry);
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                                i++;
+                            }
+
+                            for (; i < iters - 1; i++)
+                            {
+                                //TODO: should this be augmented by i * VL?
+                                auto v_solo = sub_group_partials[sub_group_local_id];
+                                sub_group_scan<VL, true, true>(sub_group, v_solo, binary_op, sub_group_carry);
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                            }
+                            // If we are past the input range, then the previous value of v is passed to the sub-group scan.
+                            // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
+                            
+                            // else is an unused dummy value
+                            auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local) ? sub_group_local_id : (num_sub_groups_local - 1);
+                            auto v_solo = sub_group_partials[load_idx]; //TODO: should this be augmented by i * VL?
+                            sub_group_scan<VL, true>(sub_group, v_solo, binary_op, sub_group_carry, num_sub_groups_local);
+                            if (i * VL + sub_group_local_id < num_sub_groups_local)
+                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v_solo;
+                        }
                     }
+
+                    sub_group_carry.__destroy();
                 }
             });
         });
@@ -276,11 +345,11 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 auto sub_group_id = sub_group.get_group_linear_id();
                 auto sub_group_local_id = sub_group.get_local_linear_id();
 
-                ValueType v = identity;
-                ValueType carry_last = identity;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> v;// = identity;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry_last;// = identity;
 
                 // propogate carry in from previous block
-                ValueType sub_group_carry;
+                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
                 if (lid == 0)
                 {
                     if (b == 0)
@@ -350,7 +419,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         v = tmp_storage[i * num_sub_groups_local * VL +
                                         (num_sub_groups_local * sub_group_local_id + offset)];
-                        std::tie(v, carry) = sub_group_scan<VL, true>(sub_group, std::move(v), binary_op, carry);
+                        sub_group_scan<VL, true>(sub_group, v, binary_op, carry);
                         if (i != (g >> log2_VL))
                             carry_last = carry;
                     }
@@ -435,7 +504,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
@@ -445,7 +514,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
@@ -457,7 +526,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         // Pass through identity if we are past the max range
                         v = offset < M ? unary_op(__in_rng[offset]) : identity;
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        std::tie(v, sub_group_carry) = sub_group_scan<VL, Inclusive>(sub_group, std::move(v), binary_op, std::move(sub_group_carry));
+                        sub_group_scan<VL, Inclusive>(sub_group, v, binary_op, sub_group_carry);
                         if (offset < M)
                             __out_rng[offset] = v;
                     }

@@ -767,6 +767,22 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     }
 };
 
+template <typename _Tp>
+union __lazy_ctor_storage
+{
+    using __value_type = _Tp;
+    _Tp __v;
+    __lazy_ctor_storage() {}
+    void __setup(const _Tp& init)
+    {
+        new (&__v) _Tp(init);
+    }
+    void __destroy()
+    {
+        __v.~_Tp();
+    }
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
