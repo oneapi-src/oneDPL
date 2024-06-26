@@ -1179,16 +1179,18 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // Set local atomic value to global atomic
                     if (__local_idx == 0)
                     {
-                        if (__comp(__found_local.load(), __found.load()))
+                        const auto __found_local_state = __found_local.load();
+
+                        if (__comp(__found_local_state, __found.load()))
                         {
                             if constexpr (__or_tag_check)
                                 __found.store(1);
                             else
                             {
                                 if constexpr (!_BackwardTagType::value)
-                                    __found.fetch_min(__found_local.load());
+                                    __found.fetch_min(__found_local_state);
                                 else
-                                    __found.fetch_max(__found_local.load());
+                                    __found.fetch_max(__found_local_state);
                             }
                         }
                     }
