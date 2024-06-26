@@ -1035,6 +1035,11 @@ struct __early_exit_find_or
                _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
     {
         using __par_backend_hetero::__parallel_or_tag;
+
+        // There is 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
@@ -1067,11 +1072,18 @@ struct __early_exit_find_or
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 if constexpr (_OrTagType::value)
+                {
+                    // As far as we find any value of the data here, we can set the atomic value to 1
+                    // No additional actions required.
                     __found_local.store(1);
+                }
                 else
                 {
+                    // As far as we find the first/last value of the data here, we need to set the atomic value to the index of the found data.
+                    // But only in this case when this value is less (if we find the first value)/greater(if we find the last value) than the current value of the atomic.
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
+                        // If we replace the atomic value successfully, we can break the loop
                         if (__found_local.compare_exchange_strong(__old, __shifted_idx))
                             break;
                     }
