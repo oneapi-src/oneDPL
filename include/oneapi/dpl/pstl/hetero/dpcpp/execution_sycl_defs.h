@@ -61,18 +61,25 @@ class alignas(sycl::queue) __queue_holder
         return res;
     }
 
+    template <typename... _Args>
+    void
+    __create_sycl_queue(_Args&&... __args)
+    {
+        new (this) sycl::queue{std::forward<_Args>(__args)...};
+    }
+
   public:
     template <typename... _Args>
-    __queue_holder(_Args... __args)
+    __queue_holder(_Args&&... __args)
     {
-        new (this) sycl::queue{__args...};
+        __create_sycl_queue(std::forward<_Args>(__args)...);
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
     __queue_holder(__global_instance_tag)
     {
         if (!sycl::device::get_devices().empty())
-            new (this) sycl::queue;
+            __create_sycl_queue();
         else
         {
             // an "impossible" case of SYCL providing no devices, which we however must handle
@@ -91,8 +98,8 @@ class alignas(sycl::queue) __queue_holder
     }
 
     // Copy and move operations have to be explicit
-    __queue_holder(const __queue_holder& __h) { new (this) sycl::queue{__h.__queue_ref()}; }
-    __queue_holder(__queue_holder&& __h)      { new (this) sycl::queue{std::move(__h.__queue_ref())}; }
+    __queue_holder(const __queue_holder& __h) { __create_sycl_queue(__h.__queue_ref()); }
+    __queue_holder(__queue_holder&& __h) { __create_sycl_queue(std::move(__h.__queue_ref())); };
 
     __queue_holder& operator=(const __queue_holder& __h)
     {
