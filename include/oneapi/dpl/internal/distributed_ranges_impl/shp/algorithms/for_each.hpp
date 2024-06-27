@@ -18,7 +18,7 @@ namespace oneapi::dpl::experimental::dr::shp
 
 template <typename ExecutionPolicy, distributed_range R, typename Fn>
 void
-for_each(ExecutionPolicy&& policy, R&& r, Fn&& fn)
+for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 {
     static_assert( // currently only one policy supported
         std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
@@ -44,23 +44,23 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn&& fn)
 
 template <typename ExecutionPolicy, distributed_iterator Iter, typename Fn>
 void
-for_each(ExecutionPolicy&& policy, Iter begin, Iter end, Fn&& fn)
+for_each(ExecutionPolicy&& policy, Iter begin, Iter end, Fn fn)
 {
-    for_each(std::forward<ExecutionPolicy>(policy), rng::subrange(begin, end), std::forward<Fn>(fn));
+    for_each(std::forward<ExecutionPolicy>(policy), rng::subrange(begin, end), fn);
 }
 
 template <distributed_range R, typename Fn>
 void
-for_each(R&& r, Fn&& fn)
+for_each(R&& r, Fn fn)
 {
-    for_each(par_unseq, std::forward<R>(r), std::forward<Fn>(fn));
+    for_each(par_unseq, std::forward<R>(r), fn);
 }
 
 template <distributed_iterator Iter, typename Fn>
 void
-for_each(Iter begin, Iter end, Fn&& fn)
+for_each(Iter begin, Iter end, Fn fn)
 {
-    for_each(par_unseq, begin, end, std::forward<Fn>(fn));
+    for_each(par_unseq, begin, end, fn);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp
