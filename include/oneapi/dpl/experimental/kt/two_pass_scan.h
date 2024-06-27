@@ -348,22 +348,18 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                 // propogate carry in from previous block
                 oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
-                if (lid == 0)
+                if (b == 0)
+                    sub_group_carry.__setup(init);
+                else
                 {
-                    if (b == 0)
-                        sub_group_carry.__setup(init);
-                    else
+                    if (Inclusive)
+                        sub_group_carry.__setup(__out_rng[b * blockSize - 1]);
+                    else // The last block wrote an exclusive result, so we must make it inclusive.
                     {
-                        if (Inclusive)
-                            sub_group_carry.__setup(__out_rng[b * blockSize - 1]);
-                        else // The last block wrote an exclusive result, so we must make it inclusive.
-                        {
-                            ValueType last_block_element = unary_op(__in_rng[b * blockSize - 1]);
-                            sub_group_carry.__setup(binary_op(__out_rng[b * blockSize - 1], last_block_element));
-                        }
+                        ValueType last_block_element = unary_op(__in_rng[b * blockSize - 1]);
+                        sub_group_carry.__setup(binary_op(__out_rng[b * blockSize - 1], last_block_element));
                     }
                 }
-                sub_group_carry.__v = sycl::group_broadcast(ndi.get_group(), sub_group_carry.__v, 0);
 
                 // on the first sub-group in a work-group (assuming S subgroups in a work-group):
                 // 1. load S sub-group local carry pfix sums (T0..TS-1) to slm
