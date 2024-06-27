@@ -160,7 +160,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                            oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
-    int j;
 
     auto blockSize = (M < MAX_INPUTS_PER_BLOCK) ? M : MAX_INPUTS_PER_BLOCK;
     auto numBlocks = M / blockSize + (M % blockSize != 0);
@@ -217,7 +216,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else if (is_full_thread)
                 {
-                    auto v = unary_op(__in_rng[start_idx + j * VL]);
+                    auto v = unary_op(__in_rng[start_idx]);
                     sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
 
                     _ONEDPL_PRAGMA_UNROLL
@@ -230,7 +229,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else
                 {
-                    auto local_idx = (start_idx < M) ? start_idx : M - 1;
+                    auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
                     auto v = unary_op(__in_rng[local_idx]);
                     // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                     //TODO: need to skip the scan for elements out of range
