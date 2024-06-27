@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radix Sort &#8212; oneDPL Documentation 2022.4.0 documentation</title>
+    <title>Radix Sort &#8212; oneDPL Documentation 2022.6.0 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
     <link rel="shortcut icon" href="../../_static/favicons.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Macros" href="../../macros.html" />
+    <link rel="next" title="Inclusive Scan" href="../single_pass_scan.html" />
     <link rel="prev" title="ESIMD-Based Kernel Templates" href="../esimd_main.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
@@ -186,6 +186,7 @@
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Radix Sort</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../macros.html">Macros</a></li>
@@ -388,15 +389,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-and-radix-sort-by-key-function-templates"><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> and <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Function Templates</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-and-radix-sort-by-key-function-templates">radix_sort and radix_sort_by_key Function Templates</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#template-parameters">Template Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-value">Return Value</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage Examples</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-example"><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> Example</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-example"><code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-in-place-example">radix_sort In-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-in-place-example">radix_sort_by_key In-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-out-of-place-example">radix_sort Out-of-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-out-of-place-example">radix_sort_by_key Out-of-Place Example</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-requirements">Memory Requirements</a><ul class="nav section-nav flex-column">
@@ -419,43 +422,76 @@ document.write(`
   <div class="section" id="radix-sort">
 <h1>Radix Sort<a class="headerlink" href="#radix-sort" title="Permalink to this headline">#</a></h1>
 <div class="section" id="radix-sort-and-radix-sort-by-key-function-templates">
-<h2><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> and <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Function Templates<a class="headerlink" href="#radix-sort-and-radix-sort-by-key-function-templates" title="Permalink to this headline">#</a></h2>
+<h2>radix_sort and radix_sort_by_key Function Templates<a class="headerlink" href="#radix-sort-and-radix-sort-by-key-function-templates" title="Permalink to this headline">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> and <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* <a class="footnote-reference brackets" href="#fnote1" id="id1">1</a> algorithm variant.</p>
+The functions implement a Onesweep* <a class="footnote-reference brackets" href="#fnote1" id="id1">1</a> algorithm variant. Both in-place and out-of-place
+overloads are provided. For out-of-place overloads, the input data order is preserved.</p>
 <p>A synopsis of the <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> and <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> functions is provided below:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// defined in &lt;oneapi/dpl/experimental/kernel_templates&gt;</span>
 
-<span class="k">namespace</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">kt</span><span class="o">::</span><span class="nn">esimd</span><span class="w"> </span><span class="p">{</span>
+<span class="k">namespace</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">kt</span><span class="o">::</span><span class="nn">gpu</span><span class="o">::</span><span class="nn">esimd</span><span class="w"> </span><span class="p">{</span>
 
 <span class="c1">// Sort a single sequence</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator</span><span class="o">&gt;</span>
+<span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
+<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">last</span><span class="p">,</span>
+<span class="w">            </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
 
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
 <span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Range</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
+<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Range</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (2)</span>
 
-<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator</span><span class="o">&gt;</span>
+
+<span class="c1">// Sort a single sequence out-of-place</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator1</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator2</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">last</span><span class="p">,</span>
-<span class="w">            </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (2)</span>
+<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">last</span><span class="p">,</span>
+<span class="w">            </span><span class="n">Iterator2</span><span class="w"> </span><span class="n">first_out</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">)</span><span class="w"> </span><span class="c1">// (3)</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range2</span><span class="o">&gt;</span>
+<span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
+<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Range1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">Range2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r_out</span><span class="p">,</span>
+<span class="w">            </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">)</span><span class="w"> </span><span class="c1">// (4)</span>
 
 
 <span class="c1">// Sort a sequence of keys and apply the same order to a sequence of values</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator2</span><span class="o">&gt;</span>
+<span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_last</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">Iterator2</span><span class="w"> </span><span class="n">values_first</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (5)</span>
 
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
 <span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesRng</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
 <span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysRng</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span>
-<span class="w">                   </span><span class="n">ValuesRng</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (3)</span>
+<span class="w">                   </span><span class="n">ValuesRng</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (6)</span>
+
+
+<span class="c1">// Sort a sequence of keys and values out-of-place</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysIterator1</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValsIterator1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysIterator2</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValsIterator2</span><span class="o">&gt;</span>
+<span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysIterator1</span><span class="w"> </span><span class="n">keys_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysIterator1</span><span class="w"> </span><span class="n">keys_last</span><span class="p">,</span><span class="w"> </span><span class="n">ValsIterator1</span><span class="w"> </span><span class="n">vals_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysIterator2</span><span class="w"> </span><span class="n">keys_out_first</span><span class="p">,</span><span class="w"> </span><span class="n">ValsIterator2</span><span class="w"> </span><span class="n">vals_out_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">)</span><span class="w"> </span><span class="c1">// (7)</span>
 
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator2</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValsRng1</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng2</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValsRng2</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_last</span><span class="p">,</span>
-<span class="w">                   </span><span class="n">Iterator2</span><span class="w"> </span><span class="n">values_first</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (4)</span>
-
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysRng1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">ValsRng1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysRng2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">ValsRng2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">vals_out</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">)</span><span class="w"> </span><span class="c1">// (8)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -495,25 +531,31 @@ The functions implement a Onesweep* <a class="footnote-reference brackets" href=
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">q</span></code></p></td>
-<td><p>SYCL* queue to submit the kernels to.</p></td>
+<td><p>The SYCL* queue where kernels are submitted.</p></td>
 </tr>
-<tr class="row-odd"><td><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code> (1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (2)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code> (3)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">keys_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_last</span></code>,</p>
-<p><code class="docutils literal notranslate"><span class="pre">values_first</span></code> (4)</p>
-</li>
+<tr class="row-odd"><td><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code> (2),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, <code class="docutils literal notranslate"><span class="pre">first_out</span></code> (3),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>, <code class="docutils literal notranslate"><span class="pre">r_out</span></code> (4),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_last</span></code>,
+<code class="docutils literal notranslate"><span class="pre">values_first</span></code> (5),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code> (6),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_last</span></code>,
+<code class="docutils literal notranslate"><span class="pre">vals_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_out_first</span></code>,
+<code class="docutils literal notranslate"><span class="pre">values_out_first</span></code> (7)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code>,
+<code class="docutils literal notranslate"><span class="pre">keys_out</span></code>, <code class="docutils literal notranslate"><span class="pre">values_out</span></code> (8),</p></li>
 </ul>
 </td>
-<td><p>The sequences of elements to apply the algorithm to.
+<td><p>The sequences to apply the algorithm to.
 Supported sequence types:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> (1,3),</p></li>
-<li><p><a class="reference internal" href="../../parallel_api/range_based_api.html#viewable-ranges"><span class="std std-ref">oneapi::dpl::experimental::ranges::views::all</span></a> (1,3),</p></li>
-<li><p><a class="reference internal" href="../../parallel_api/range_based_api.html#viewable-ranges"><span class="std std-ref">oneapi::dpl::experimental::ranges::views::subrange</span></a> (1,3),</p></li>
-<li><p><a class="reference internal" href="../../parallel_api/pass_data_algorithms.html#use-usm"><span class="std std-ref">USM pointers</span></a> (2,4),</p></li>
-<li><p><a class="reference internal" href="../../parallel_api/pass_data_algorithms.html#use-buffer-wrappers"><span class="std std-ref">oneapi::dpl::begin and oneapi::dpl::end</span></a> (2,4).</p></li>
+<li><p><a class="reference internal" href="../../parallel_api/pass_data_algorithms.html#use-usm"><span class="std std-ref">USM pointers</span></a> (1,3,5,7),</p></li>
+<li><p><a class="reference internal" href="../../parallel_api/pass_data_algorithms.html#use-buffer-wrappers"><span class="std std-ref">oneapi::dpl::begin and oneapi::dpl::end</span></a> (1,3,5,7).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> (2,4,6,8),</p></li>
+<li><p><a class="reference internal" href="../../parallel_api/range_based_api.html#viewable-ranges"><span class="std std-ref">oneapi::dpl::experimental::ranges::views::all</span></a> (2,4,6,8),</p></li>
+<li><p><a class="reference internal" href="../../parallel_api/range_based_api.html#viewable-ranges"><span class="std std-ref">oneapi::dpl::experimental::ranges::views::subrange</span></a> (2,4,6,8),</p></li>
 </ul>
 </td>
 </tr>
@@ -545,8 +587,8 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 </div>
 <div class="section" id="usage-examples">
 <h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">#</a></h2>
-<div class="section" id="radix-sort-example">
-<h3><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> Example<a class="headerlink" href="#radix-sort-example" title="Permalink to this headline">#</a></h3>
+<div class="section" id="radix-sort-in-place-example">
+<h3>radix_sort In-Place Example<a class="headerlink" href="#radix-sort-in-place-example" title="Permalink to this headline">#</a></h3>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
 <span class="c1">//    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include &amp;&amp; ./radix_sort</span>
 
@@ -568,7 +610,7 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 <span class="w">   </span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
 
 <span class="w">   </span><span class="c1">// sort</span>
-<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort</span><span class="o">&lt;</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">416</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (2)</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort</span><span class="o">&lt;</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">416</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (1)</span>
 <span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
 
 <span class="w">   </span><span class="c1">// print</span>
@@ -586,8 +628,8 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 </pre></div>
 </div>
 </div>
-<div class="section" id="radix-sort-by-key-example">
-<h3><code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Example<a class="headerlink" href="#radix-sort-by-key-example" title="Permalink to this headline">#</a></h3>
+<div class="section" id="radix-sort-by-key-in-place-example">
+<h3>radix_sort_by_key In-Place Example<a class="headerlink" href="#radix-sort-by-key-in-place-example" title="Permalink to this headline">#</a></h3>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
 <span class="c1">//    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include &amp;&amp; ./radix_sort_by_key</span>
 
@@ -616,7 +658,7 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 <span class="w">   </span><span class="p">}</span>
 
 <span class="w">   </span><span class="c1">// sort</span>
-<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort_by_key</span><span class="o">&lt;</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">96</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (3)</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort_by_key</span><span class="o">&lt;</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">96</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (6)</span>
 <span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
 
 <span class="w">   </span><span class="c1">// print</span>
@@ -638,6 +680,126 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 </div>
 <p><strong>Output:</strong></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1 2 3 3 3 5
+s o r t e d
+</pre></div>
+</div>
+</div>
+<div class="section" id="radix-sort-out-of-place-example">
+<h3>radix_sort Out-of-Place Example<a class="headerlink" href="#radix-sort-out-of-place-example" title="Permalink to this headline">#</a></h3>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
+<span class="c1">//    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include &amp;&amp; ./radix_sort</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdint&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/experimental/kernel_templates&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">kt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">kt</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector_v</span><span class="p">};</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">*</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">*</span><span class="w"> </span><span class="n">keys_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+
+<span class="w">   </span><span class="c1">// initialize</span>
+<span class="w">   </span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">   </span><span class="c1">// sort</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort</span><span class="o">&lt;</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">416</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (3)</span>
+<span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
+
+<span class="w">   </span><span class="c1">// print</span>
+<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>3 2 1 5 3 3
+5 3 3 3 2 1
+</pre></div>
+</div>
+</div>
+<div class="section" id="radix-sort-by-key-out-of-place-example">
+<h3>radix_sort_by_key Out-of-Place Example<a class="headerlink" href="#radix-sort-by-key-out-of-place-example" title="Permalink to this headline">#</a></h3>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
+<span class="c1">//    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include &amp;&amp; ./radix_sort_by_key</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdint&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/experimental/kernel_templates&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">kt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">kt</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector_v</span><span class="p">};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="n">values</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="n">values_out</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+
+
+<span class="w">   </span><span class="c1">// initialize</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;r&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;o&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;s&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;d&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;t&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;e&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="c1">// sort</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort_by_key</span><span class="o">&lt;</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">values_out</span><span class="p">,</span>
+<span class="w">                                                       </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">96</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (8)</span>
+<span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
+
+<span class="w">   </span><span class="c1">// print</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_out_acc</span><span class="p">{</span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">k_out_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_out_acc</span><span class="p">{</span><span class="n">values_out</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">v_out_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>3 2 1 5 3 3
+r o s d t e
+
+1 2 3 3 3 5
 s o r t e d
 </pre></div>
 </div>
@@ -754,11 +916,11 @@ Check the number of cores in the device specification, such as <a class="referen
       </div>
     </a>
     <a class="right-next"
-       href="../../macros.html"
+       href="../single_pass_scan.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Macros</p>
+        <p class="prev-next-title">Inclusive Scan</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -780,15 +942,17 @@ Check the number of cores in the device specification, such as <a class="referen
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-and-radix-sort-by-key-function-templates"><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> and <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Function Templates</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-and-radix-sort-by-key-function-templates">radix_sort and radix_sort_by_key Function Templates</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#template-parameters">Template Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-value">Return Value</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage Examples</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-example"><code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> Example</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-example"><code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-in-place-example">radix_sort In-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-in-place-example">radix_sort_by_key In-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-out-of-place-example">radix_sort Out-of-Place Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-out-of-place-example">radix_sort_by_key Out-of-Place Example</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-requirements">Memory Requirements</a><ul class="nav section-nav flex-column">

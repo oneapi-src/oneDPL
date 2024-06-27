@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iterators &#8212; oneDPL Documentation 2022.4.0 documentation</title>
+    <title>Iterators &#8212; oneDPL Documentation 2022.6.0 documentation</title>
   
   
   
@@ -186,6 +186,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
@@ -455,16 +456,22 @@ a stencil iterator range, and copies the elements of the input whose correspondi
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code>: an iterator defined over another iterator whose dereferenced value is the result
-of a function applied to the corresponding element of the original iterator. Both the type of the original
+of a function applied to the corresponding element of the base iterator. Both the type of the base
 iterator and the unary function applied during dereference operations are required template parameters of
-the <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class. The <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class provides three constructors:</p>
+the <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class.</p>
+<p>The unary functor provided to a <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> should have a <code class="docutils literal notranslate"><span class="pre">const</span></code>-qualified call operator which accepts
+the reference type of the base iterator as argument. The functor’s call operator should not have any side effects and
+should not modify the state of the functor object.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class provides the following constructors:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator()</span></code>: instantiates the iterator using a default constructed base iterator and unary functor.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator(iter)</span></code>: instantiates the iterator using the base iterator provided and a default constructed unary functor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator()</span></code>: instantiates the iterator using a default constructed base iterator and unary functor.
+This constructor participates in overload resolution only if the base iterator and unary functor are both default constructible.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator(iter)</span></code>: instantiates the iterator using the base iterator provided and a default constructed
+unary functor. This constructor participates in overload resolution only if the unary functor is default constructible.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator(iter,</span> <span class="pre">func)</span></code>: instantiates the iterator using the base iterator and unary functor provided.</p></li>
 </ul>
 <p>To simplify the construction of the iterator, <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::make_transform_iterator</span></code> is provided. The
-function receives the original iterator and transform operation instance as arguments, and constructs the
+function receives the base iterator and transform operation instance as arguments, and constructs the
 <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> instance:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
 <span class="n">dpl</span><span class="p">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="n">first</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
