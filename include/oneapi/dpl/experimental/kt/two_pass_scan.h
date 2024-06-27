@@ -596,7 +596,8 @@ two_pass_transform_exclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __
 template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp,  typename UnaryOp, typename ValueType>
 void
 two_pass_transform_inclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
-                        BinaryOp binary_op, UnaryOp unary_op, ValueType init){
+                        BinaryOp binary_op, UnaryOp unary_op, ValueType init)
+{
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
