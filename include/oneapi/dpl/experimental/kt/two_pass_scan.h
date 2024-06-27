@@ -108,6 +108,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     std::uint32_t work_group_size = q.get_device().get_info<sycl::info::device::max_work_group_size>();
     // TODO: develop simple heuristic to determine this value based on maximum compute units
     std::uint32_t num_work_groups = 128;
+    std::uint32_t num_work_items = work_group_size * num_work_groups;
     std::uint32_t num_sub_groups_local = work_group_size / VL;
     std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
     // Is set if the scanner sub-group that scans sub-group carries in a work-group divides evenly into
@@ -143,7 +144,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     auto blockSize = (M < MAX_INPUTS_PER_BLOCK) ? M : MAX_INPUTS_PER_BLOCK;
     auto numBlocks = M / blockSize + (M % blockSize != 0);
 
-    auto globalRange = range<1>(num_work_groups * work_group_size);
+    auto globalRange = range<1>(num_work_items);
     auto localRange = range<1>(work_group_size);
     nd_range<1> range(globalRange, localRange);
 
@@ -366,7 +367,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 if constexpr (!Inclusive)
                 {
                     auto global_id = ndi.get_global_linear_id();
-                    if (global_id == num_work_groups * work_group_size - 1)
+                    if (global_id == num_work_items - 1)
                     {
                         std::size_t last_idx_in_block = std::min(M - 1, blockSize * (b + 1) - 1);
                         tmp_storage[num_sub_groups_global] = __in_rng[last_idx_in_block];
