@@ -61,16 +61,26 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
     {
         value = binary_op(init_and_carry.__v, value);
     }
+    LazyValueType old_init;
     // Adjust for an exclusive scan if requested
+    if constexpr (!Inclusive && InitPresent)
+    {
+        if (sub_group_local_id == 0)
+            old_init.__setup(init_and_carry);
+    }
+
+    //both inclusive and exclusive need to save the carry forward
+    if constexpr (InitPresent)
+    {
+        init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+    }
+    else
+    {
+        init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
+    }
+    
     if constexpr (!Inclusive)
     {
-        LazyValueType old_init;
-        if constexpr (InitPresent)
-        {
-            if (sub_group_local_id == 0)
-                old_init.__setup(init_and_carry);
-            init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
-        }
         value = sycl::shift_group_right(sub_group, value, 1);
         if constexpr (InitPresent)
         {
@@ -79,17 +89,6 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
                 value = old_init.__v;
                 old_init.__destroy();
             }
-        }
-    }
-    else
-    {
-        if constexpr (InitPresent)
-        {
-            init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
-        }
-        else
-        {
-            init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
         }
     }
     //return by reference value and init_and_carry
