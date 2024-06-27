@@ -67,10 +67,11 @@ generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
     }
 }
 
-template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename KernelParam1, typename KernelParam2>
+template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename InclKernelParam>
 void
-test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam1 param1, KernelParam2 param2)
+test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_param)
 {
+    auto excl_param = TestUtils::get_new_kernel_params<0>(incl_param);
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
@@ -94,14 +95,14 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam1 param1, Ker
         if constexpr (is_inclusive_scan)
         {
             msg = "wrong results with USM for inclusive_scan, n: " + std::to_string(size);
-            oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam1::kernel_name>(
+            oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename InclKernelParam::kernel_name>(
                 q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op,
                 oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
         }
         else
         {
             msg = "wrong results with USM for exclusive_scan, n: " + std::to_string(size);
-            oneapi::dpl::experimental::kt::gpu::two_pass_exclusive_scan<typename KernelParam2::kernel_name>(
+            oneapi::dpl::experimental::kt::gpu::two_pass_exclusive_scan<typename decltype(excl_param)::kernel_name>(
                 q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(),
                 oneapi::dpl::unseq_backend::__known_identity<BinOp, T>, bin_op);
         }
@@ -200,13 +201,11 @@ template <typename T, typename BinOp, typename KernelParam>
 void
 test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
-    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param),
-                                          TestUtils::get_new_kernel_params<1>(param));
-    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param),
-                                          TestUtils::get_new_kernel_params<3>(param));
-    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param));
-    test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<5>(param));
-    test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<6>(param));
+    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param));
+    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<1>(param));
+    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param));
+    test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<3>(param));
+    test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param));
 }
 
 template <typename T, typename KernelParam>
