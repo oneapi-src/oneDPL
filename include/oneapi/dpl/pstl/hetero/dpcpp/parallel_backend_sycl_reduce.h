@@ -47,14 +47,6 @@ class __reduce_mid_work_group_kernel;
 template <typename... _Name>
 class __reduce_kernel;
 
-// Storage helper since _Tp may not have a default constructor.
-template <typename _Tp>
-union __lazy_ctor_storage
-{
-    _Tp __v;
-    __lazy_ctor_storage() {}
-};
-
 // Adjust number of sequential operations per work-item based on the vector size. Single elements are kept to
 // improve performance of small arrays or remainder loops.
 template <std::uint8_t _VecSize, typename _Size>
