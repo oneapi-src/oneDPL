@@ -1080,7 +1080,7 @@ struct __early_exit_find_or
                 else
                 {
                     // As far as we found the first/last data entry here, we need to set the atomic value to the index of the found data entry.
-                    // But only in this case when this value is less (if we find the first value)/greater(if we find the last value) than the current value of the atomic.
+                    // But only in this case when this value is less (if we find the first value)/greater (if we find the last value) than the current value of the atomic.
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
