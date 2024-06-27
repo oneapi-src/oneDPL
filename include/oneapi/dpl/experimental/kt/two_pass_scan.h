@@ -294,7 +294,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
-                            // storage in the first kernel.
+                            // storage in the second kernel of the previous block.
                             ValueType last_block_element = unary_op(tmp_storage[num_sub_groups_global]);
                             sub_group_carry = binary_op(__out_rng[b * blockSize - 1], last_block_element);
                         }
