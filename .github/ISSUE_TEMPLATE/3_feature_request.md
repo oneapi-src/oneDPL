@@ -14,7 +14,7 @@ A clear and concise description of the request.
 Describe the problem you are trying to solve.
 
 **Preferred solution**
-Document your thoughts on what solution may look like.
+If you have thoughts on what a solution may look like, please document them here.
 
 **Additional context**
 Add any other context about the feature request here.
