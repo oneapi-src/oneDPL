@@ -67,14 +67,18 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
         LazyValueType old_init;
         if constexpr (InitPresent)
         {
-            old_init.__v = init_and_carry;
+            if (sub_group_local_id == 0)
+                old_init.__setup(init_and_carry);
             init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
         }
         value = sycl::shift_group_right(sub_group, value, 1);
         if constexpr (InitPresent)
         {
             if (sub_group_local_id == 0)
+            {
                 value = old_init.__v;
+                old_init.__destroy();
+            }
         }
     }
     else
