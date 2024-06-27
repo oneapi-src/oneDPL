@@ -10,6 +10,11 @@
 namespace oneapi::dpl::experimental::dr::shp
 {
 
+// A `remote_vector` is simply a normal `std::vector` that's
+// been decorated with an extra `rank()` function, showing
+// which rank its memory is located on.
+// (Thus fulfilling the `remote_range` concept.)
+
 template <typename T, typename Allocator>
 class remote_vector : public vector<T, Allocator>
 {

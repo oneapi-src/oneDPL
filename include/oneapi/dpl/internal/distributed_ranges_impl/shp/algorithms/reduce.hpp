@@ -54,7 +54,7 @@ namespace oneapi::dpl::experimental::dr::shp
 
 template <typename ExecutionPolicy, distributed_range R, typename T, typename BinaryOp>
 T
-reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp&& binary_op)
+reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
 {
 
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
@@ -132,10 +132,9 @@ reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init)
 
 template <typename ExecutionPolicy, distributed_iterator Iter, typename T, typename BinaryOp>
 T
-reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init, BinaryOp&& binary_op)
+reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init, BinaryOp binary_op)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init,
-                  std::forward<BinaryOp>(binary_op));
+    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init, binary_op);
 }
 
 // Execution policy-less algorithms
@@ -156,9 +155,9 @@ reduce(R&& r, T init)
 
 template <distributed_range R, typename T, typename BinaryOp>
 T
-reduce(R&& r, T init, BinaryOp&& binary_op)
+reduce(R&& r, T init, BinaryOp binary_op)
 {
-    return reduce(par_unseq, std::forward<R>(r), init, std::forward<BinaryOp>(binary_op));
+    return reduce(par_unseq, std::forward<R>(r), init, binary_op);
 }
 
 template <distributed_iterator Iter>
@@ -177,9 +176,9 @@ reduce(Iter first, Iter last, T init)
 
 template <distributed_iterator Iter, typename T, typename BinaryOp>
 T
-reduce(Iter first, Iter last, T init, BinaryOp&& binary_op)
+reduce(Iter first, Iter last, T init, BinaryOp binary_op)
 {
-    return reduce(par_unseq, first, last, init, std::forward<BinaryOp>(binary_op));
+    return reduce(par_unseq, first, last, init, binary_op);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

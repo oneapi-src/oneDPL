@@ -24,14 +24,13 @@ namespace __detail
 
 template <typename LocalPolicy, typename InputIt, typename Compare>
 sycl::event
-sort_async(LocalPolicy&& policy, InputIt first, InputIt last, Compare&& comp)
+sort_async(LocalPolicy&& policy, InputIt first, InputIt last, Compare comp)
 {
     if (rng::distance(first, last) >= 2)
     {
         dr::__detail::direct_iterator d_first(first);
         dr::__detail::direct_iterator d_last(last);
-        return oneapi::dpl::experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last,
-                                                     std::forward<Compare>(comp));
+        return oneapi::dpl::experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last, comp);
     }
     else
     {
@@ -249,8 +248,7 @@ sort(R&& r, Compare comp = Compare())
 
                 new_chunks.push_back(l);
 
-                oneapi::dpl::inplace_merge(__detail::dpl_policy(ranges::rank(segments[t])), first, middle, last,
-                                           std::forward<Compare>(comp));
+                oneapi::dpl::inplace_merge(__detail::dpl_policy(ranges::rank(segments[t])), first, middle, last, comp);
             }
 
             _segments = (_segments + 1) / 2;
