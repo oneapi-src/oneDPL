@@ -507,7 +507,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 {
                     auto v = unary_op(__in_rng[start_idx]);
                     // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                    sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                     __out_rng[start_idx] = v;
 
                     _ONEDPL_PRAGMA_UNROLL
@@ -523,7 +523,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 {
                     auto v = unary_op(__in_rng[start_idx]);
                     // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                    sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                     __out_rng[start_idx] = v;
 
                     for (int j = 1; j < J; j++)
@@ -539,7 +539,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     auto local_idx = (start_idx < M) ? start_idx : M - 1;
                     auto v = unary_op(__in_rng[local_idx]);
                     // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry, M - subgroup_start_idx);
+                    sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry, M - subgroup_start_idx);
                     if (start_idx < M)
                         __out_rng[start_idx] = v;
 
