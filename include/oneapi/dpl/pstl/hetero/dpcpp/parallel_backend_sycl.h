@@ -1083,9 +1083,9 @@ struct __early_exit_find_or
                     // But only in this case when this value is less (if we find the first value)/greater (if we find the last value) than the current value of the atomic.
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
-                        // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
-                        if (__found_local.compare_exchange_strong(__old, __shifted_idx))
-                            break;
+                        // From algorithm point of view, if we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic.
+                        // But probably more quickly to not use break here, because the atomic operation is not so expensive.
+                        __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
                 }
 
@@ -1196,9 +1196,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                             for (auto __old = __found.load(); __comp(__found_local_state, __old);
                                  __old = __found.load())
                             {
-                                // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
-                                if (__found.compare_exchange_strong(__old, __found_local_state))
-                                    break;
+                                // From algorithm point of view, if we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic.
+                                // But probably more quickly to not use break here, because the atomic operation is not so expensive.
+                                __found.compare_exchange_strong(__old, __found_local_state);
                             }
                         }
                     }
