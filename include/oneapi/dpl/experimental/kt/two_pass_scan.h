@@ -115,14 +115,14 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
 template <bool Inclusive, typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp,
           typename ValueType>
 void
-two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp binary_op, UnaryOp unary_op,
-              ValueType init)
+two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
+              BinaryOp binary_op, UnaryOp unary_op, ValueType init)
 {
     using namespace sycl;
 
     // PVC 1 tile
     constexpr std::uint32_t log2_VL = 5;
-    constexpr std::uint32_t VL = 1 << log2_VL; // simd vector length 2^5 = 32
+    constexpr std::uint32_t VL = 1 << log2_VL;               // simd vector length 2^5 = 32
 
     std::uint32_t work_group_size = q.get_device().get_info<sycl::info::device::max_work_group_size>();
     // TODO: develop simple heuristic to determine this value based on maximum compute units
@@ -131,7 +131,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp bi
     std::uint32_t num_sub_groups_global = num_sub_groups_local * num_work_groups;
     // Is set if the scanner sub-group that scans sub-group carries in a work-group divides evenly into
     // the vector length (e.g. With a VL of 32 and work-group size of 1024, we have 32 sub-groups which makes this true).
-    // The number of sub-groups being a multiple of the vector length is preferred for performance.
+    // The number of sub-groups being a multiple of the vector length is preferred for performance. 
     bool is_full_carry_scanner = num_sub_groups_local % VL == 0;
 
     using _FirstKernel = /*TODO: oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<*/
@@ -149,13 +149,12 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp bi
 
     auto mScanLength = M;
     constexpr int J_max = 128;
-    std::size_t MAX_INPUTS_PER_BLOCK =
-        work_group_size * J_max * num_work_groups; // empirically determined for reduce_then_scan
+    std::size_t MAX_INPUTS_PER_BLOCK = work_group_size * J_max * num_work_groups; // empirically determined for reduce_then_scan
     // items per PVC hardware thread
-    int K =
-        mScanLength >= MAX_INPUTS_PER_BLOCK
-            ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
-            : std::max(std::size_t(VL), oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
+    int K = mScanLength >= MAX_INPUTS_PER_BLOCK
+                ? MAX_INPUTS_PER_BLOCK / num_sub_groups_global
+                : std::max(std::size_t(VL),
+                           oneapi::dpl::__internal::__dpl_bit_ceil(num_remaining) / num_sub_groups_global);
     // SIMD vectors per PVC hardware thread
     int J = K / VL;
     int j;
@@ -581,28 +580,23 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp bi
 
 } // namespace __impl
 
-namespace ranges
-{
+namespace ranges {
 
-template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp,
-          typename ValueType>
+template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp, typename ValueType>
 void
-two_pass_transform_exclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp binary_op,
-                                  UnaryOp unary_op, ValueType init)
+two_pass_transform_exclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
+                        BinaryOp binary_op, UnaryOp unary_op, ValueType init)
 {
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
-    __impl::two_pass_scan<false, _KernelName>(q, std::move(__in_view), std::move(__out_view), binary_op, unary_op,
-                                              init);
+    __impl::two_pass_scan<false, _KernelName>(q, std::move(__in_view), std::move(__out_view), binary_op, unary_op, init);
 }
 
-template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp,
-          typename ValueType>
+template <typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp,  typename UnaryOp, typename ValueType>
 void
-two_pass_transform_inclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp binary_op,
-                                  UnaryOp unary_op, ValueType init)
-{
+two_pass_transform_inclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
+                        BinaryOp binary_op, UnaryOp unary_op, ValueType init){
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
@@ -611,8 +605,7 @@ two_pass_transform_inclusive_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __
 
 } // namespace ranges
 
-template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator,
-          typename OutputIterator, typename BinaryOp, typename UnaryOp, typename ValueType>
+template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp, typename ValueType>
 void
 two_pass_transform_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
                                   BinaryOp binary_op, UnaryOp unary_op, ValueType init)
@@ -624,15 +617,13 @@ two_pass_transform_inclusive_scan(sycl::queue q, InputIterator first, InputItera
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, OutputIterator>();
     auto __buf2 = __keep2(result, result + __n);
 
-    ranges::two_pass_transform_inclusive_scan<_KernelName>(q, __buf1.all_view(), __buf2.all_view(), binary_op, unary_op,
-                                                           init);
+    ranges::two_pass_transform_inclusive_scan<_KernelName>(q, __buf1.all_view(), __buf2.all_view(), binary_op, unary_op, init);
 }
 
-template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator,
-          typename OutputIterator, typename ValueType, typename BinaryOp, typename UnaryOp>
+template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator, typename OutputIterator, typename ValueType, typename BinaryOp, typename UnaryOp>
 void
 two_pass_transform_exclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
-                                  ValueType init, BinaryOp binary_op, UnaryOp unary_op)
+                        ValueType init, BinaryOp binary_op, UnaryOp unary_op)
 {
     auto __n = last - first;
 
@@ -641,28 +632,23 @@ two_pass_transform_exclusive_scan(sycl::queue q, InputIterator first, InputItera
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, OutputIterator>();
     auto __buf2 = __keep2(result, result + __n);
 
-    ranges::two_pass_transform_exclusive_scan<_KernelName>(q, __buf1.all_view(), __buf2.all_view(), binary_op, unary_op,
-                                                           init);
+    ranges::two_pass_transform_exclusive_scan<_KernelName>(q, __buf1.all_view(), __buf2.all_view(), binary_op, unary_op, init);
 }
 
-template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator,
-          typename OutputIterator, typename BinaryOp, typename ValueType>
+template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
 void
 two_pass_inclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
                         BinaryOp binary_op, ValueType init)
 {
-    two_pass_transform_inclusive_scan<_KernelName>(q, first, last, result, binary_op,
-                                                   oneapi::dpl::__internal::__no_op(), init);
+    two_pass_transform_inclusive_scan<_KernelName>(q, first, last, result, binary_op, oneapi::dpl::__internal::__no_op(), init);
 }
 
-template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator,
-          typename OutputIterator, typename BinaryOp, typename ValueType>
+template <typename _KernelName = oneapi::dpl::execution::DefaultKernelName, typename InputIterator, typename OutputIterator, typename BinaryOp, typename ValueType>
 void
-two_pass_exclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result, ValueType init,
-                        BinaryOp binary_op)
+two_pass_exclusive_scan(sycl::queue q, InputIterator first, InputIterator last, OutputIterator result,
+                        ValueType init, BinaryOp binary_op)
 {
-    two_pass_transform_exclusive_scan<_KernelName>(q, first, last, result, init, binary_op,
-                                                   oneapi::dpl::__internal::__no_op());
+    two_pass_transform_exclusive_scan<_KernelName>(q, first, last, result, init, binary_op, oneapi::dpl::__internal::__no_op());
 }
 
 } // namespace oneapi::dpl::experimental::kt::gpu
