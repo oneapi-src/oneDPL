@@ -1191,11 +1191,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                             __found.store(1);
                         else
                         {
-                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                            const auto __found_local_state = __found_local.load();
+
+                            for (auto __old = __found.load(); __comp(__found_local_state, __old);
                                  __old = __found.load())
                             {
                                 // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
-                                if (__found.compare_exchange_strong(__old, __found_local.load()))
+                                if (__found.compare_exchange_strong(__old, __found_local_state))
                                     break;
                             }
                         }
