@@ -1073,13 +1073,13 @@ struct __early_exit_find_or
             {
                 if constexpr (_OrTagType::value)
                 {
-                    // As far as we find any value of the data here, we can set the atomic value to 1
+                    // As far as we found any data entry, we can set the atomic value to 1.
                     // No additional actions required.
                     __found_local.store(1);
                 }
                 else
                 {
-                    // As far as we find the first/last value of the data here, we need to set the atomic value to the index of the found data.
+                    // As far as we found the first/last data entry here, we need to set the atomic value to the index of the found data entry.
                     // But only in this case when this value is less (if we find the first value)/greater(if we find the last value) than the current value of the atomic.
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
