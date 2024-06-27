@@ -1091,7 +1091,7 @@ struct __early_exit_find_or
 
                 // This break is mandatory from the performance point of view.
                 // This break is safe for all our cases:
-                // 1) __parallel_find_forward_tag : when we find the first data entry we processing data we process data from start to end (forward direction).
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
                 //    This means that after first found entry there is no reason to process data anymore.
                 // 2) __parallel_find_backward_tag  : when we search for the last matching data entry, we process data from end to start (backward direction).
                 //    This means that after the first found entry there is no reason to process data anymore too.
