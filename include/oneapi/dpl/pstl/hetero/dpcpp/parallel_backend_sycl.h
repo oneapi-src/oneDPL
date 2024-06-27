@@ -1036,7 +1036,7 @@ struct __early_exit_find_or
     {
         using __par_backend_hetero::__parallel_or_tag;
 
-        // There is 3 possible tag types here:
+        // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
         //  - __parallel_or_tag : in case when we find any value in the data.
