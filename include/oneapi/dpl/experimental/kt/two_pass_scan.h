@@ -426,7 +426,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     for (int i = 1; i < (g >> log2_VL) + 1; i++)
                     {
                         proposed_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
-                        num_remaining = (csrc - (offset + i * num_sub_groups_local * VL)) / num_subgroups_local;
+                        num_remaining = (csrc - (offset + i * num_sub_groups_local * VL)) / num_sub_groups_local;
 
                         reduction_idx = (proposed_idx < csrc) ? (proposed_idx) : csrc - 1;
                         value.__v = tmp_storage[i * num_sub_groups_local * VL +
