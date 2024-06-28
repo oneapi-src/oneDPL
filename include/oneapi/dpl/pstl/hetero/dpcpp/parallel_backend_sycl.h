@@ -1152,7 +1152,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                                                                                _BrickTag, _Ranges...>;
 
     assert("This device does not support 64-bit atomics" &&
-           (sizeof(_AtomicType) < 64 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
+           (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
