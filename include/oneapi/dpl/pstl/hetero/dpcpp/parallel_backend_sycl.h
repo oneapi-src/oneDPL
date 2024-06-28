@@ -982,6 +982,13 @@ struct __parallel_find_forward_tag
         // As far as we make search from begin to the end of data, we should save the first (minimal) found state.
         __atomic.fetch_min(__new_state);
     }
+
+    template <typename _DiffType>
+    static auto
+    __eval_res(_AtomicType __result, _DiffType __rng_n)
+    {
+        return __result != __init_value(__rng_n) ? __result : __rng_n;
+    }
 };
 
 // Tag for __parallel_find_or to find the last element that satisfies predicate
@@ -1010,6 +1017,13 @@ struct __parallel_find_backward_tag
         // As far as we make search from end to the begin of data, we should save the last (maximal) found state.
         __atomic.fetch_max(__new_state);
     }
+
+    template <typename _DiffType>
+    static auto
+    __eval_res(_AtomicType __result, _DiffType __rng_n)
+    {
+        return __result != __init_value(__rng_n) ? __result : __rng_n;
+    }
 };
 
 // Tag for __parallel_find_or for or-semantic
@@ -1032,6 +1046,13 @@ struct __parallel_or_tag
     {
         // As far as we make search from end to the begin of data, we simple save the fact of finding.
         __atomic.store(1);
+    }
+
+    template <typename _DiffType>
+    static auto
+    __eval_res(_AtomicType __result, _DiffType /*__rng_n*/)
+    {
+        return __result;
     }
 };
 
@@ -1138,8 +1159,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
 
-    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
-
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_AtomicType) < 64 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
@@ -1219,10 +1238,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
-    if constexpr (__or_tag_check)
-        return __result;
-    else
-        return __result != __init_value ? __result : __rng_n;
+    return _BrickTag::__eval_res(__result, __rng_n);
 }
 
 //------------------------------------------------------------------------
