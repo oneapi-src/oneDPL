@@ -1078,8 +1078,6 @@ struct __early_exit_find_or
     operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size,
                _LocalAtomic& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
-        using __par_backend_hetero::__parallel_or_tag;
-
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
