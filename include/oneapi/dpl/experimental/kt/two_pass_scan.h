@@ -40,10 +40,10 @@ class __two_pass_scan_kernel1;
 template <typename... _Name>
 class __two_pass_scan_kernel2;
 
-template <std::uint8_t VL, bool Inclusive, bool InitPresent, typename MaskOp, typename InitBroadcastId, typename SubGroup,
+template <std::uint8_t VL, bool InitPresent, typename MaskOp, typename InitBroadcastId, typename SubGroup,
           typename BinaryOp, typename ValueType, typename LazyValueType>
 void
-sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId init_broadcast_id, ValueType& value,
+exclusive_sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId init_broadcast_id, ValueType& value,
                       BinaryOp binary_op, LazyValueType& init_and_carry)
 {
 
@@ -62,14 +62,52 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
         value = binary_op(init_and_carry.__v, value);
     }
     LazyValueType old_init;
-    // Adjust for an exclusive scan if requested
-    if constexpr (!Inclusive && InitPresent)
+    if constexpr (InitPresent)
     {
         if (sub_group_local_id == 0)
             old_init.__setup(init_and_carry);
+        init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
+    }
+    else
+    {
+        init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
+    }
+    
+    value = sycl::shift_group_right(sub_group, value, 1);
+    if constexpr (InitPresent)
+    {
+        if (sub_group_local_id == 0)
+        {
+            value = old_init.__v;
+            old_init.__destroy();
+        }
+    }
+    //return by reference value and init_and_carry
+}
+
+
+template <std::uint8_t VL, bool InitPresent, typename MaskOp, typename InitBroadcastId, typename SubGroup,
+          typename BinaryOp, typename ValueType, typename LazyValueType>
+void
+inclusive_sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId init_broadcast_id, ValueType& value,
+                      BinaryOp binary_op, LazyValueType& init_and_carry)
+{
+
+    std::uint8_t sub_group_local_id = sub_group.get_local_linear_id();
+    _ONEDPL_PRAGMA_UNROLL
+    for (std::uint8_t shift = 1; shift <= VL / 2; shift <<= 1)
+    {
+        auto partial_carry_in = sycl::shift_group_right(sub_group, value, shift);
+        if (mask_fn(sub_group_local_id, shift))
+        {
+            value = binary_op(partial_carry_in, value);
+        }
+    }
+    if constexpr (InitPresent)
+    {
+        value = binary_op(init_and_carry.__v, value);
     }
 
-    //both inclusive and exclusive need to save the carry forward
     if constexpr (InitPresent)
     {
         init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
@@ -79,20 +117,10 @@ sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitBroadcastId
         init_and_carry.__setup(sycl::group_broadcast(sub_group, value, init_broadcast_id));
     }
     
-    if constexpr (!Inclusive)
-    {
-        value = sycl::shift_group_right(sub_group, value, 1);
-        if constexpr (InitPresent)
-        {
-            if (sub_group_local_id == 0)
-            {
-                value = old_init.__v;
-                old_init.__destroy();
-            }
-        }
-    }
     //return by reference value and init_and_carry
 }
+
+
 
 template <std::uint8_t VL, bool Inclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType>
 void
@@ -100,7 +128,14 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
 {
     auto mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
     constexpr auto init_broadcast_id = VL - 1;
-    return sub_group_masked_scan<VL, Inclusive, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    if consexpr (Inclusive)
+    {
+        inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    }
+    else
+    {
+        exclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    }
 }
 
 template <std::uint8_t VL, bool Inclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType, typename SizeType>
@@ -111,7 +146,14 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
         return sub_group_local_id >= offset && sub_group_local_id < num_remaining;
     };
     auto init_broadcast_id = num_remaining - 1;
-    return sub_group_masked_scan<VL, Inclusive, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    if consexpr (Inclusive)
+    {
+        inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    }
+    else
+    {
+        exclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
+    }
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
