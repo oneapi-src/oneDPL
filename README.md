@@ -42,6 +42,9 @@ You can find oneDPL samples at the [oneDPL Samples](https://github.com/oneapi-sr
 ## Support and Contribution
 Please report issues and suggestions via [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
 
+You can also contact oneDPL developers via [UXL Foundation Slack](https://slack-invite.uxlfoundation.org/) using
+the [#onedpl](https://uxlfoundation.slack.com/channels/onedpl) channel.
+
 ## Governance
 
 The oneDPL project is governed by the [UXL Foundation] and you can get involved in
