@@ -414,7 +414,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     
                     //TODO: fix this calculation to be limited by the the group number (or go back to identity to see if this is the last problem...)
                     auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
-                    auto num_remaining = (csrc - offset) / num_subgroups_local;
+                    auto num_remaining = (csrc - offset) / num_sub_groups_local;
                     auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
                     value.__setup(tmp_storage[reduction_idx]);
                     sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry, num_remaining); 
