@@ -1056,7 +1056,9 @@ struct __early_exit_find_or
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
             __shift = __wg_size - __leader;
-        for (_IterSize __i = 0; __i < __n_iter; ++__i)
+
+        bool __something_was_found = false;
+        for (_IterSize __i = 0; !__something_was_found && __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
@@ -1081,11 +1083,11 @@ struct __early_exit_find_or
                 {
                     // As far as we found the first/last data entry here, we need to set the atomic value to the index of the found data entry.
                     // But only in this case when this value is less (if we find the first value)/greater (if we find the last value) than the current value of the atomic.
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
+                    bool __compare_exchange_processed = false;
+                    for (auto __old = __found_local.load(); !__compare_exchange_processed && __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
-                        if (__found_local.compare_exchange_strong(__old, __shifted_idx))
-                            break;
+                        __compare_exchange_processed = __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
                 }
 
@@ -1097,7 +1099,7 @@ struct __early_exit_find_or
                 //    This means that after the first found entry there is no reason to process data anymore too.
                 // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
                 //    This means that after the first found entry there is no reason to process data anymore too.
-                break;
+                __something_was_found = true; // break statement here shows poor perf then bool variable state check in the for-loop header in some cases
             }
         }
     }
@@ -1193,12 +1195,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         {
                             const auto __found_local_state = __found_local.load();
 
-                            for (auto __old = __found.load(); __comp(__found_local_state, __old);
-                                 __old = __found.load())
+                            bool __compare_exchange_processed = false;
+                            for (auto __old = __found.load(); !__compare_exchange_processed && __comp(__found_local_state, __old); __old = __found.load())
                             {
                                 // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
-                                if (__found.compare_exchange_strong(__old, __found_local_state))
-                                    break;
+                                __compare_exchange_processed = __found.compare_exchange_strong(__old, __found_local_state);
                             }
                         }
                     }
