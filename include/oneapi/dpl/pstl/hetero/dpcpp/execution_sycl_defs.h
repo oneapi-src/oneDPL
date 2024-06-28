@@ -23,6 +23,7 @@
 #include "sycl_defs.h"
 
 #include <type_traits>
+#include <utility> // std::pair
 #include <cstdint> // std::uintptr_t
 #include <atomic>  // atomic_signal_fence
 #include <cassert>
@@ -42,14 +43,12 @@ namespace __internal
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
-using _Queue_factory =  sycl::queue (*)();
+using _Queue_factory = sycl::queue (*)();
 
 class alignas(sycl::queue) __queue_holder
 {
-    static_assert(sizeof(sycl::queue) >= 2*sizeof(std::uintptr_t));
-    static_assert(sizeof(sycl::queue) % sizeof(std::uintptr_t) == 0);
+    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _Queue_factory>));
     static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
-
 
     union {
         sycl::queue __q;
@@ -60,7 +59,7 @@ class alignas(sycl::queue) __queue_holder
     {
         bool res = true;
 #if _ONEDPL_PREDEFINED_POLICIES
-        res = (__flag_and_factory.first != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue
+        res = (__flag_and_factory.first != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue.
         std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
 #endif
         return res;
@@ -71,9 +70,9 @@ class alignas(sycl::queue) __queue_holder
     __queue_holder(_Args... __args) : __q{std::forward<_Args>(__args)...} {}
 
 #if _ONEDPL_PREDEFINED_POLICIES
-     // The ctor for predefined policy instances which store a queue factory, not a queue.
-     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue
-     // Then a pointer to a factory function is stored
+     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
+     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
+     // Then a pointer to a factory function is stored.
     __queue_holder(_Queue_factory __f) : __flag_and_factory{0, __f} {}
 #endif
 
@@ -87,7 +86,7 @@ class alignas(sycl::queue) __queue_holder
 
     // Copy and move operations have to be explicit
     __queue_holder(const __queue_holder& __h) : __q{__h.__get_queue()} {}
-    __queue_holder(__queue_holder&& __h) : __q{std::move(__h.__get_queue())} {}
+    __queue_holder(__queue_holder&& __h) : __q{__h.__get_queue()} {}
 
     __queue_holder& operator=(const __queue_holder& __h)
     {
@@ -99,7 +98,7 @@ class alignas(sycl::queue) __queue_holder
     __queue_holder& operator=(__queue_holder&& __h)
     {
         if (this != &__h)
-            __q = std::move(__h.__get_queue());
+            __q = __h.__get_queue();
         return *this;
     }
 
@@ -107,8 +106,7 @@ class alignas(sycl::queue) __queue_holder
     {
         if (__has_queue())
             return __q;
-        else
-            return (__flag_and_factory.second)();
+        return (__flag_and_factory.second)();
     }
 };
 
@@ -175,9 +173,9 @@ class fpga_policy : public device_policy<KernelName>
     {
         static sycl::queue __q{
 #if _ONEDPL_FPGA_EMU
-            __dpl_sycl::__fpga_emulator_selector();
+            __dpl_sycl::__fpga_emulator_selector()
 #else
-            __dpl_sycl::__fpga_selector();
+            __dpl_sycl::__fpga_selector()
 #endif
         };
         return __q;
