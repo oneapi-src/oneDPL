@@ -2,7 +2,8 @@
 
 The oneDPL project provides algorithms that are implemented using parallel patterns and bricks implemented
 for the various backends supported to allow oneDPL to run on CPU, GPU, and FPGA platforms. The API areas
-which a developer is a lead maintainer are listed below.
+which a developer is a lead maintainer are listed below. If you have questions, PRs, etc. which do not fit
+into one these categories you can check the git blame information to identify a contact or tag all maintainers.
 
 
 | Name                  | Github ID           | API Area |
