@@ -1083,11 +1083,12 @@ struct __early_exit_find_or
                 {
                     // As far as we found the first/last data entry here, we need to set the atomic value to the index of the found data entry.
                     // But only in this case when this value is less (if we find the first value)/greater (if we find the last value) than the current value of the atomic.
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
+                    bool __compare_exchange_processed = false;
+                    for (auto __old = __found_local.load(); !__compare_exchange_processed && __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         // From algorithm point of view, if we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic.
                         // But probably more quickly to not use break here, because the atomic operation is not so expensive.
-                        __found_local.compare_exchange_strong(__old, __shifted_idx);
+                        __compare_exchange_processed = __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
                 }
 
@@ -1195,12 +1196,12 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         {
                             const auto __found_local_state = __found_local.load();
 
-                            for (auto __old = __found.load(); __comp(__found_local_state, __old);
-                                 __old = __found.load())
+                            bool __compare_exchange_processed = false;
+                            for (auto __old = __found.load(); !__compare_exchange_processed && __comp(__found_local_state, __old); __old = __found.load())
                             {
                                 // From algorithm point of view, if we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic.
                                 // But probably more quickly to not use break here, because the atomic operation is not so expensive.
-                                __found.compare_exchange_strong(__old, __found_local_state);
+                                __compare_exchange_processed = __found.compare_exchange_strong(__old, __found_local_state);
                             }
                         }
                     }
