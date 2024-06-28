@@ -33,8 +33,8 @@ Running clang-format is required, except in the [test folder](https://github.com
 
 The oneDPL test suite is organized in the test directory by the area of code tested.
 * `general` - Basic tests of oneDPL policies and SYCL functionality needed
-* `general/sycl_iterator` - Tests of oneDPL algorithms on SYCL buffers.
-* `kt` - Tests of the oneDPL experimental kernel template algorithms that require specific hardware support.
+* `general/sycl_iterator` - Tests of oneDPL algorithms on SYCL buffers
+* `kt` - Tests of the oneDPL experimental kernel template algorithms that require specific hardware support
 * `parallel_api` - Tests of oneDPL Parallel Algorithms
 * `pstl_offload` - Tests of support for offload using standard execution policies
 * `xpu_api` - Tests of the use of C++ standard APIs in SYCL kernels
