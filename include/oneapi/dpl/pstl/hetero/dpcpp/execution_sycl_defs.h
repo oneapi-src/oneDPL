@@ -50,16 +50,19 @@ class alignas(sycl::queue) __queue_holder
     static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _Queue_factory>));
     static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
 
-    union {
+    union
+    {
         sycl::queue __q;
         std::pair<uintptr_t, _Queue_factory> __flag_and_factory;
     };
 
-    bool __has_queue() const
+    bool
+    __has_queue() const
     {
         bool res = true;
 #if _ONEDPL_PREDEFINED_POLICIES
-        res = (__flag_and_factory.first != 0); // If the first size-of-pointer bytes are zeros, we consider there is no valid queue.
+        // If the first size-of-pointer bytes are zeros, we consider there is no valid queue.
+        res = (__flag_and_factory.first != 0);
         std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
 #endif
         return res;
@@ -70,9 +73,9 @@ class alignas(sycl::queue) __queue_holder
     __queue_holder(_Args... __args) : __q{std::forward<_Args>(__args)...} {}
 
 #if _ONEDPL_PREDEFINED_POLICIES
-     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
-     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
-     // Then a pointer to a factory function is stored.
+    // The ctor for predefined policy instances does not create a queue but stores a queue factory.
+    // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
+    // Then a pointer to a factory function is stored.
     __queue_holder(_Queue_factory __f) : __flag_and_factory{0, __f} {}
 #endif
 
@@ -88,21 +91,24 @@ class alignas(sycl::queue) __queue_holder
     __queue_holder(const __queue_holder& __h) : __q{__h.__get_queue()} {}
     __queue_holder(__queue_holder&& __h) : __q{__h.__get_queue()} {}
 
-    __queue_holder& operator=(const __queue_holder& __h)
+    __queue_holder&
+    operator=(const __queue_holder& __h)
     {
         if (this != &__h)
             __q = __h.__get_queue();
         return *this;
     }
 
-    __queue_holder& operator=(__queue_holder&& __h)
+    __queue_holder&
+    operator=(__queue_holder&& __h)
     {
         if (this != &__h)
             __q = __h.__get_queue();
         return *this;
     }
 
-    sycl::queue __get_queue() const
+    sycl::queue
+    __get_queue() const
     {
         if (__has_queue())
             return __q;
@@ -148,7 +154,7 @@ class device_policy
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit device_policy(__internal::__global_instance_tag) : q(/*factory*/__get_default_queue) {}
+    explicit device_policy(__internal::__global_instance_tag) : q(/*factory*/ __get_default_queue) {}
 
   protected:
     device_policy(__internal::_Queue_factory __f) : q(__f) {}
@@ -180,6 +186,7 @@ class fpga_policy : public device_policy<KernelName>
         };
         return __q;
     }
+
   public:
     static constexpr unsigned int unroll_factor = factor;
 
@@ -190,7 +197,7 @@ class fpga_policy : public device_policy<KernelName>
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit fpga_policy(__internal::__global_instance_tag) : base(/*factory*/__get_fpga_default_queue) {}
+    explicit fpga_policy(__internal::__global_instance_tag) : base(/*factory*/ __get_fpga_default_queue) {}
 #endif
 };
 #endif // _ONEDPL_FPGA_DEVICE
