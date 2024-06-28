@@ -70,13 +70,13 @@ class alignas(sycl::queue) __queue_holder
 
   public:
     template <typename... _Args>
-    __queue_holder(_Args... __args) : __q{std::forward<_Args>(__args)...} {}
+    __queue_holder(_Args... __args) : __q(std::forward<_Args>(__args)...) {}
 
 #if _ONEDPL_PREDEFINED_POLICIES
     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
     // Then a pointer to a factory function is stored.
-    __queue_holder(_Queue_factory __f) : __flag_and_factory{0, __f} {}
+    __queue_holder(__global_instance_tag, _Queue_factory __f) : __flag_and_factory(0, __f) {}
 #endif
 
     ~__queue_holder()
@@ -88,8 +88,8 @@ class alignas(sycl::queue) __queue_holder
     }
 
     // Copy and move operations have to be explicit
-    __queue_holder(const __queue_holder& __h) : __q{__h.__get_queue()} {}
-    __queue_holder(__queue_holder&& __h) : __q{__h.__get_queue()} {}
+    __queue_holder(const __queue_holder& __h) : __q(__h.__get_queue()) {}
+    __queue_holder(__queue_holder&& __h) : __q(__h.__get_queue()) {}
 
     __queue_holder&
     operator=(const __queue_holder& __h)
@@ -140,9 +140,7 @@ class device_policy
 
     device_policy() = default;
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
-    {
-    }
+    device_policy(const device_policy<OtherName>& other) : q(other.queue()) {}
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) : q(d_) {}
 
@@ -154,10 +152,10 @@ class device_policy
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit device_policy(__internal::__global_instance_tag) : q(/*factory*/ __get_default_queue) {}
+    explicit device_policy(__internal::__global_instance_tag __t) : q(__t, /*factory*/__get_default_queue) {}
 
   protected:
-    device_policy(__internal::_Queue_factory __f) : q(__f) {}
+    device_policy(__internal::__global_instance_tag __t, __internal::_Queue_factory __f) : q(__t, __f) {}
 #endif
 
   private:
@@ -193,11 +191,11 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy() : base(__get_fpga_default_queue()) {}
 
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()) {}
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit fpga_policy(__internal::__global_instance_tag) : base(/*factory*/ __get_fpga_default_queue) {}
+    explicit fpga_policy(__internal::__global_instance_tag __t) : base(__t, /*factory*/__get_fpga_default_queue) {}
 #endif
 };
 #endif // _ONEDPL_FPGA_DEVICE
