@@ -31,6 +31,14 @@ Running clang-format is required, except in the [test folder](https://github.com
 
 # Validation Testing
 
+The oneDPL test suite is organized in the test directory by the area of code tested.
+* `general` - Basic tests of oneDPL policies and SYCL functionality needed
+* `general/sycl_iterator` - Tests of oneDPL algorithms on SYCL buffers.
+* `kt` - Tests of the oneDPL experimental kernel template algorithms that require specific hardware support.
+* `parallel_api` - Tests of oneDPL Parallel Algorithms
+* `pstl_offload` - Tests of support for offload using standard execution policies
+* `xpu_api` - Tests of the use of C++ standard APIs in SYCL kernels
+
 oneDPL validation tests can be configured through CMake to run on different devices including CPU and GPU by specifying the oneDPL backend to use and
 the device type to be used if the DPC++ backend is being tested. The oneTBB and OpenMP backends for oneDPL can be used when the device type is CPU or HOST.
 
