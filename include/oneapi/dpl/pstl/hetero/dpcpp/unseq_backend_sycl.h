@@ -453,11 +453,7 @@ struct multiple_match_pred
         if (__result)
         {
             for (_Size2 __ii = 0; __ii < __s_n; ++__ii)
-            {
-                __result = __pred(__acc[__total_shift + __ii], __s_acc[__ii]);
-                if (!__result)
-                    break;
-            }
+                __result = __result && __pred(__acc[__total_shift + __ii], __s_acc[__ii]);
         }
 
         return __result;
@@ -475,12 +471,14 @@ struct n_elem_match_pred
     bool
     operator()(const _Idx __shifted_idx, const _Acc& __acc) const
     {
-
         bool __result = ((__shifted_idx + __count) <= __acc.size());
         const auto __total_shift = __shifted_idx;
 
-        for (auto __idx = 0; __idx < __count && __result; ++__idx)
-            __result = __pred(__acc[__total_shift + __idx], __value);
+        if (__result)
+        {
+            for (auto __idx = 0; __idx < __count; ++__idx)
+                __result = __result && __pred(__acc[__total_shift + __idx], __value);
+        }
 
         return __result;
     }
@@ -495,7 +493,6 @@ struct first_match_pred
     bool
     operator()(const _Idx __shifted_idx, const _Acc1& __acc, const _Acc2& __s_acc) const
     {
-
         // assert: __shifted_idx < __n
         const auto __elem = __acc[__shifted_idx];
         auto __s_n = __s_acc.size();
