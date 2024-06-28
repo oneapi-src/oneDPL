@@ -36,13 +36,18 @@ the device type to be used if the DPC++ backend is being tested. The oneTBB and 
 
 To run oneDPL validation tests on the gpu on your local system using the Intel® oneAPI DPC++ Compiler 
 
-1. Configure the Makefiles by running the following command from the test directory
+1. Configure the Makefiles by running the following command from the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
+```
 cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp
 -DONEDPL_DEVICE_TYPE=gpu -DCMAKE_BUILD_TYPE=release ..
+```
 
 2. Build the tests
+```
 cmake --build . --target build-onedpl-tests # specify a specific test name (e.g., reduce.pass) to build a single test
+```
 
 3. Run the tests
+```
 ctest --output-on-failure --timeout 1200 -R ^reduce.pass$ # Add -R testname (e.g., -R ^reduce.pass$) to run just one test.
-
+```
