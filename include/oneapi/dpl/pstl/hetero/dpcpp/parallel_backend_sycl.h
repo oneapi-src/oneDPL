@@ -1056,7 +1056,9 @@ struct __early_exit_find_or
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
             __shift = __wg_size - __leader;
-        for (_IterSize __i = 0; __i < __n_iter; ++__i)
+
+        bool __something_was_found = false;
+        for (_IterSize __i = 0; __i < __n_iter && !__something_was_found; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
@@ -1097,7 +1099,7 @@ struct __early_exit_find_or
                 //    This means that after the first found entry there is no reason to process data anymore too.
                 // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
                 //    This means that after the first found entry there is no reason to process data anymore too.
-                break;
+                __something_was_found = true; // break here shown perf poor perf in some cases
             }
         }
     }
