@@ -331,7 +331,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Practically this is the better value that was found
         constexpr decltype(__wgroup_size) __iters_per_witem = 16;
         auto __size_per_wg = __iters_per_witem * __wgroup_size;
-        auto __n_groups = (__n - 1) / __size_per_wg + 1;
+        auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_wg);
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
 
@@ -357,7 +357,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // 2. Scan for the entire group of values scanned from each workgroup (runs on a single workgroup)
         if (__n_groups > 1)
         {
-            auto __iters_per_single_wg = (__n_groups - 1) / __wgroup_size + 1;
+            auto __iters_per_single_wg = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __wgroup_size);
             __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__submit_event);
                 auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
