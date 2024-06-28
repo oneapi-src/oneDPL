@@ -958,8 +958,6 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 template <typename _RangeType>
 struct __parallel_find_forward_tag
 {
-    using _RangeTypeT = _RangeType;
-
 // FPGA devices don't support 64-bit atomics
 #if _ONEDPL_FPGA_DEVICE
     using _AtomicType = uint32_t;
@@ -995,8 +993,6 @@ struct __parallel_find_forward_tag
 template <typename _RangeType>
 struct __parallel_find_backward_tag
 {
-    using _RangeTypeT = _RangeType;
-
 // FPGA devices don't support 64-bit atomics
 #if _ONEDPL_FPGA_DEVICE
     using _AtomicType = int32_t;
@@ -1029,8 +1025,6 @@ struct __parallel_find_backward_tag
 // Tag for __parallel_find_or for or-semantic
 struct __parallel_or_tag
 {
-    using _RangeTypeT = void;
-
     using _AtomicType = int32_t;
 
     // The template parameter is intended to unify __init_value in tags.
