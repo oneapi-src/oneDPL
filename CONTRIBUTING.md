@@ -37,14 +37,14 @@ the device type to be used if the DPC++ backend is being tested. The oneTBB and 
 To run oneDPL validation tests with the oneDPL build system you will need CMake and CTest installed. The following example shows how to build and run tests
 using the GPU on your local system using the Intel® oneAPI DPC++ Compiler.
 
-1. Configure the build files by running the following command from the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
+1. Configure the build files by running the following command that creates a build directory named `build_gpu_tests`.
 ```
-cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=gpu -DCMAKE_BUILD_TYPE=release ..
+cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=gpu -DCMAKE_BUILD_TYPE=release -B build_gpu_tests
 ```
 
 2. Build the tests
 ```
-cmake --build . --target build-onedpl-tests # specify a specific test name (e.g., reduce.pass) to build a single test
+cmake --build build_gpu_tests --target build-onedpl-tests # specify a specific test name (e.g., reduce.pass) to build a single test
 ```
 
 3. Run the tests
