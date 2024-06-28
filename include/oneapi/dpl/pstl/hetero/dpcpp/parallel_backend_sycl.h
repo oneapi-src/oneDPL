@@ -1058,7 +1058,8 @@ __is_backward_tag(__parallel_find_backward_tag<_RangeType>)
 }
 
 template <typename _TagType>
-constexpr bool __is_backward_tag(_TagType)
+constexpr bool
+__is_backward_tag(_TagType)
 {
     return false;
 }
