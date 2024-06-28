@@ -1038,7 +1038,7 @@ struct __parallel_or_tag
     static void
     __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType /*__new_state*/)
     {
-        // As far as we make search from end to the begin of data, we simple save the fact of finding.
+        // Store that a match was found. Its position is not relevant for or semantics.
         __atomic.store(1);
     }
 
