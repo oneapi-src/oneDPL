@@ -63,3 +63,5 @@ ctest --output-on-failure --timeout 1200 -R ^reduce.pass$ # Add -R testname (e.g
 Before submitting a PR to the oneDPL repository please run the tests that exercise the code you have updated. If you need help identifying those tests please
 check with the maintainers on [UXL Foundation Slack](https://slack-invite.uxlfoundation.org/) using the [#onedpl](https://uxlfoundation.slack.com/channels/onedpl) channel
 or ask a question through [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
+
+For more details on configurations available for oneDPL testing see the [CMake README](https://github.com/oneapi-src/oneDPL/blob/main/cmake/README.md).
