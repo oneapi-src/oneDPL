@@ -24,10 +24,206 @@
 #    include "hetero/algorithm_impl_hetero.h" //TODO: for __brick_copy
 #endif
 
+#if _ONEDPL_CPP20_RANGES_PRESENT
+#    include <ranges>
+#    include <functional>
+#    include "algorithm_ranges_impl.h"
+#endif
+
 namespace oneapi
 {
 namespace dpl
 {
+namespace ext
+{
+
+#if _ONEDPL_CPP20_RANGES_PRESENT
+namespace ranges
+{
+
+// [alg.foreach]
+
+struct for_each_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Fun,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_for_each(
+            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
+    }
+}; //for_each_fn
+
+inline constexpr for_each_fn for_each;
+
+// [alg.transform]
+
+struct transform_fn
+{
+    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj = std::identity,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __op, __proj);
+    }
+};//transform_fn
+
+inline constexpr transform_fn transform;
+
+// [alg.find_if]
+
+struct find_if_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //find_if_fn
+
+inline constexpr find_if_fn find_if;
+
+// [alg.find_if_not]
+
+struct find_if_not_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
+    {
+        return oneapi::dpl::ext::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+            _Pred>>(__pred), __proj);
+    }
+}; //find_if_not_fn
+
+inline constexpr find_if_not_fn find_if_not;
+
+// [alg.find]
+
+struct find_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj = std::identity,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
+    {
+        return oneapi::dpl::ext::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+            const _T>>(__value), __proj);
+    }
+}; //find_fn
+
+inline constexpr find_fn find;
+
+struct any_of_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //any_of_fn
+
+inline constexpr any_of_fn any_of;
+
+struct all_of_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
+    {
+        return !oneapi::dpl::ext::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Pred>>(__pred),
+            __proj);
+    }
+}; //all_of_fn
+
+inline constexpr all_of_fn all_of;
+
+struct none_of_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
+    {
+        return !oneapi::dpl::ext::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            __pred, __proj);
+    }
+}; //none_of_fn
+
+inline constexpr none_of_fn none_of;
+
+struct adjacent_find_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred =  std::ranges::equal_to,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred = {}, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //adjacent_find_fn
+
+inline constexpr adjacent_find_fn adjacent_find;
+
+struct search_fn
+{
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred = std::ranges::equal_to, typename _Proj1 = std::identity,
+        typename _Proj2 = std::identity,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred = {}, _Proj1 __proj1 = {},
+        _Proj2 __proj2 = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_search(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1,
+            __proj2);
+    }
+}; //search_fn
+
+inline constexpr search_fn search;
+
+struct search_n_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred = std::ranges::equal_to,
+        typename _Proj = std::identity,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
+        _Pred __pred = {}, _Proj __proj = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_search_n(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __count, __value, __pred, __proj);
+    }
+}; //search_n_fn
+
+inline constexpr search_n_fn search_n;
+
+} //ranges
+
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
+
+} //namespace ext
+
+#if _ONEDPL_HETERO_BACKEND
 namespace experimental
 {
 namespace ranges
@@ -743,6 +939,9 @@ reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __value
 
 } // namespace ranges
 } // namespace experimental
+
+#endif //_ONEDPL_HETERO_BACKEND
+
 } // namespace dpl
 } // namespace oneapi
 
