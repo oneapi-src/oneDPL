@@ -410,9 +410,14 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     uint32_t offset = num_sub_groups_local - 1;
                     oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry;
                     // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
-
-                    value.__setup(tmp_storage[num_sub_groups_local * sub_group_local_id + offset]);
-                    sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry);
+                    
+                    
+                    //TODO: fix this calculation to be limited by the the group number (or go back to identity to see if this is the last problem...)
+                    auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
+                    auto num_remaining = (csrc - offset) / num_subgroups_local;
+                    auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
+                    value.__setup(tmp_storage[reduction_idx]);
+                    sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry, num_remaining); 
 
                     if (g >> log2_VL == 1)
                         carry_last.__setup(carry.__v); // we only need the second to last carry
@@ -420,9 +425,13 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     _ONEDPL_PRAGMA_UNROLL
                     for (int i = 1; i < (g >> log2_VL) + 1; i++)
                     {
+                        proposed_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
+                        num_remaining = (csrc - (offset + i * num_sub_groups_local * VL) / num_subgroups_local;
+
+                        reduction_idx = (proposed_idx < csrc) ? (proposed_idx) : csrc - 1;
                         value.__v = tmp_storage[i * num_sub_groups_local * VL +
                                         (num_sub_groups_local * sub_group_local_id + offset)];
-                        sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry);
+                        sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry, num_remaining);
                         if (i == (g >> log2_VL) - 1)
                             carry_last.__setup(carry.__v); // we only need the second to last carry
                     }
