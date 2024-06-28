@@ -35,7 +35,7 @@ oneDPL validation tests can be configured through CMake to run on different devi
 the device type to be used if the DPC++ backend is being tested. The oneTBB and OpenMP backends for oneDPL can be used when the device type is CPU or HOST.
 
 To run oneDPL validation tests with the oneDPL build system you will need CMake and CTest installed. The following example shows how to build and run tests
-using the gpu on your local system using the Intel® oneAPI DPC++ Compiler.
+using the GPU on your local system using the Intel® oneAPI DPC++ Compiler.
 
 1. Configure the Makefiles by running the following command from the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
 ```
