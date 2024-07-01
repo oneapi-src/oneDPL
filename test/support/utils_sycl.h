@@ -32,7 +32,11 @@
 #include "utils_invoke.h"
 #include "utils_test_base.h"
 
-#define TEST_USE_PREDEFINED_POLICIES (!defined(ONEDPL_USE_PREDEFINED_POLICIES) || ONEDPL_USE_PREDEFINED_POLICIES)
+#ifdef ONEDPL_USE_PREDEFINED_POLICIES
+#  define TEST_USE_PREDEFINED_POLICIES ONEDPL_USE_PREDEFINED_POLICIES
+#else
+#  define TEST_USE_PREDEFINED_POLICIES 1
+#endif
 #include _PSTL_TEST_HEADER(execution)
 
 namespace TestUtils
