@@ -975,11 +975,12 @@ struct __parallel_find_forward_tag
         return __val;
     }
 
+    // As far as we make search from begin to the end of data, we should save the first (minimal) found state in the __save_state_to methods.
+
     template <sycl::access::address_space _Space>
     static void
     __save_state_to(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
     {
-        // As far as we make search from begin to the end of data, we should save the first (minimal) found state.
         __atomic.fetch_min(__new_state);
     }
 
@@ -987,7 +988,6 @@ struct __parallel_find_forward_tag
     static void
     __save_state_to(_TFoundState& __found, _AtomicType __new_state)
     {
-        // As far as we make search from begin to the end of data, we should save the first (minimal) found state.
         __found = std::min(__found, __new_state);
     }
 };
@@ -1011,11 +1011,12 @@ struct __parallel_find_backward_tag
         return _AtomicType{-1};
     }
 
+    // As far as we make search from end to the begin of data, we should save the last (maximal) found state in the __save_state_to methods.
+
     template <sycl::access::address_space _Space>
     static void
     __save_state_to(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
     {
-        // As far as we make search from end to the begin of data, we should save the last (maximal) found state.
         __atomic.fetch_max(__new_state);
     }
 
@@ -1023,7 +1024,6 @@ struct __parallel_find_backward_tag
     static void
     __save_state_to(_TFoundState& __found, _AtomicType __new_state)
     {
-        // As far as we make search from end to the begin of data, we should save the last (maximal) found state.
         __found = std::max(__found, __new_state);
     }
 };
@@ -1042,11 +1042,12 @@ struct __parallel_or_tag
         return 0;
     }
 
+    // Store that a match was found. Its position is not relevant for or semantics in the __save_state_to methods.
+
     template <sycl::access::address_space _Space>
     static void
     __save_state_to(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType /*__new_state*/)
     {
-        // Store that a match was found. Its position is not relevant for or semantics.
         __atomic.store(1);
     }
 
@@ -1054,7 +1055,6 @@ struct __parallel_or_tag
     static void
     __save_state_to(_TFoundState& __found, _AtomicType /*__new_state*/)
     {
-        // Store that a match was found. Its position is not relevant for or semantics.
         __found = 1;
     }
 };
