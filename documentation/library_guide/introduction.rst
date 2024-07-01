@@ -24,7 +24,7 @@ page for:
 * Fixed Issues
 * Deprecation Notice
 * Known Issues and Limitations
-* Previous Release Notes 
+* Previous Release Notes
 
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv>`_
 to use |onedpl_short|.
@@ -99,7 +99,7 @@ Known Limitations
   standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
   in accordance with the ``-fsycl-pstl-offload`` option value.
 * For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
-  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``,
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls is undefined.
@@ -112,25 +112,18 @@ Known Limitations
   may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
 * When compiling on Windows, add the option ``/EHsc`` to the compilation command to avoid errors with oneDPL's experimental
   ranges API that uses exceptions.
-* The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
-  compilation errors (caused by oneTBB API changes).
-  Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
-  using C++17 or C++20 and TBB is not found in the environment, even if its use in |onedpl_short| is switched off.
-  To overcome these issues, include |onedpl_short| header files before the standard C++ header files,
-  or disable parallel algorithms support in the standard library. 
-  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 * The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
-  ``oneapi::dpl`` namespace, or create a namespace alias. 
+  ``oneapi::dpl`` namespace, or create a namespace alias.
 * ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
   use ``std::array::operator[]`` instead.
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
-  for double precision. 
+  for double precision.
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
-  when used with C++ standard policies, impose limitations on the initial value type if an 
-  initial value is provided, and on the value type of the input iterator if an initial value is 
+  when used with C++ standard policies, impose limitations on the initial value type if an
+  initial value is provided, and on the value type of the input iterator if an initial value is
   not provided.
   Firstly, it must satisfy the ``DefaultConstructible`` requirements.
   Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.
@@ -144,7 +137,7 @@ Known Limitations
   the dereferenced value type of the provided iterators should satisfy the ``DefaultConstructible`` requirements.
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
   iterators should be ``MoveConstructible``.
-* The algorithms that process uninitialized storage: ``uninitialized_copy``, ``uninitialized_copy_n``, ``uninitialized_fill``, ``uninitialized_fill_n``, ``uninitialized_fill_n``, ``uninitialized_move``, 
+* The algorithms that process uninitialized storage: ``uninitialized_copy``, ``uninitialized_copy_n``, ``uninitialized_fill``, ``uninitialized_fill_n``, ``uninitialized_fill_n``, ``uninitialized_move``,
   ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``
   should be called with a device policy when using device data and should be called with a host policy when using host data. Otherwise, the result is undefined.
 * The algorithms that destroy data: ``destroy`` and ``destroy_n`` should be called with a host policy when using host data that was initialized on the host, and should be called with a device policy when using device data that was initialized on the device. Otherwise, the result is undefined.
