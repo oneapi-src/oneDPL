@@ -466,18 +466,13 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     uint32_t offset = num_sub_groups_local - 1;
                     if (g > 0)
                     {
-                        oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry;
-                        carry.__setup(identity);
                         _ONEDPL_PRAGMA_UNROLL
                         // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
                         for (int i = 0; i < (g >> log2_VL) + 1; i++)
                         {
                             v = tmp_storage[i * num_sub_groups_local * VL +
                                             (num_sub_groups_local * sub_group_local_id + offset)];
-                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, carry);
-
-                            if (i != (g >> log2_VL))
-                                carry_last = carry;
+                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, carry_last);
                         }
                     }
                 }
