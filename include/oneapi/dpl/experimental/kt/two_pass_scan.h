@@ -494,7 +494,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                             // final partial iteration
                             auto proposed_idx = (iters - 1) * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
-                            auto num_remaining = (subgroups_before_my_group - ((iters - 1) * VL)) / num_sub_groups_local;
+                            auto num_remaining = (subgroups_before_my_group / num_sub_groups_local) - ((iters - 1) * VL);
                             auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
                             value.__setup(tmp_storage[reduction_idx]);
                             sub_group_scan_partial<VL, true, true>(sub_group, value.__v, binary_op, carry_last, num_remaining);
