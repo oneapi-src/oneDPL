@@ -1193,7 +1193,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
             // Setup initial value into result storage
             auto __res_acc = __result_scratch_container.__get_result_acc(__cgh);
-            *__res_acc.__get_pointer() = __init_value;
+            _AtomicType* __result_ptr = _ScratchStorage::__get_usm_or_buffer_accessor_ptr(__res_acc);
+            *__result_ptr = __init_value;
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -1221,8 +1222,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // Set local found state value value to global atomic
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
-                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                            *_ScratchStorage::__get_usm_or_buffer_accessor_ptr(__res_acc));
+                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(*__result_ptr);
 
                         // Update global (for all groups) atomic state with the found index
                         _BrickTag::__save_state_to(__found, __found_local);
