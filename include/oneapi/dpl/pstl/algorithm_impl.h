@@ -104,7 +104,7 @@ __for_each_n_it_serial(_ForwardIterator __first, _Size __n, _Function __f)
 //------------------------------------------------------------------------
 template <class _ForwardIterator, class _Function>
 void
-__brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, /*vector=*/::std::false_type) noexcept
+__brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, /*vector=*/::std::false_type)
 {
     ::std::for_each(__first, __last, __f);
 }

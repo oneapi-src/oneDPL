@@ -326,7 +326,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
                   "Only binary operators with known identity values are supported");
 
     assert("This device does not support 64-bit atomics" &&
-           (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
+           (sizeof(_Type) < 8 || __queue.get_device().has(sycl::aspect::atomic64)));
 
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(__n);

@@ -1,6 +1,11 @@
-![](https://spec.oneapi.io/oneapi-logo-white-scaled.jpg)
+[![UXL Foundation Logo](https://github.com/uxlfoundation/artwork/blob/main/foundation/uxl-foundation-logo-horizontal-color.png)][UXL Foundation]
 
-oneDPL is part of [oneAPI](https://oneapi.io)
+oneDPL is part of the [UXL Foundation] and is an implementation of the
+[oneAPI specification] for the oneDPL component.
+
+[UXL Foundation]: http://www.uxlfoundation.org
+[oneAPI specification]: https://spec.oneapi.io
+
 # oneAPI DPC++ Library (oneDPL)
 
 oneAPI DPC++ Library (oneDPL) works with the Intel® oneAPI DPC++/C++ Compiler to
@@ -36,6 +41,23 @@ You can find oneDPL samples at the [oneDPL Samples](https://github.com/oneapi-sr
 
 ## Support and Contribution
 Please report issues and suggestions via [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
+
+You can also contact oneDPL developers via [UXL Foundation Slack](https://slack-invite.uxlfoundation.org/) using
+the [#onedpl](https://uxlfoundation.slack.com/channels/onedpl) channel.
+
+## Governance
+
+The oneDPL project is governed by the [UXL Foundation] and you can get involved in
+this project. Members can join the Open Source and Specification Working Group
+meetings to participate in discussions on the evolution of oneDPL and other oneAPI components
+governed by th [UXL Foundation]. See [How to Contribute] for more details.
+
+You can also join the [mailing lists for the UXL Foundation] to be informed
+of when meetings are happening and receive the latest information and
+discussions.
+
+[How to Contribute]: https://www.oneapi.io/community/how-to-contribute/
+[mailing lists for the UXL Foundation]: https://lists.uxlfoundation.org/g/main/subgroups
 
 ------------------------------------------------------------------------
 Intel and the Intel logo are trademarks of Intel Corporation or its subsidiaries in the U.S. and/or other countries.

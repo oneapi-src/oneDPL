@@ -1035,6 +1035,11 @@ struct __early_exit_find_or
                _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
     {
         using __par_backend_hetero::__parallel_or_tag;
+
+        // There are 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
@@ -1051,7 +1056,9 @@ struct __early_exit_find_or
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
             __shift = __wg_size - __leader;
-        for (_IterSize __i = 0; __i < __n_iter; ++__i)
+
+        bool __something_was_found = false;
+        for (_IterSize __i = 0; !__something_was_found && __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
@@ -1068,16 +1075,34 @@ struct __early_exit_find_or
             {
                 if constexpr (_OrTagType::value)
                 {
+                    // As far as we found any data entry, we can set the atomic value to 1.
+                    // No additional actions required.
                     __found_local.store(1);
-                    break;
                 }
                 else
                 {
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
+                    // As far as we found the first/last data entry here, we need to set the atomic value to the index of the found data entry.
+                    // But only in this case when this value is less (if we find the first value)/greater (if we find the last value) than the current value of the atomic.
+                    bool __compare_exchange_processed = false;
+                    for (auto __old = __found_local.load();
+                         !__compare_exchange_processed && __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
-                        __found_local.compare_exchange_strong(__old, __shifted_idx);
+                        // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
+                        __compare_exchange_processed = __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
                 }
+
+                // This break is mandatory from the performance point of view.
+                // This break is safe for all our cases:
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                //    This means that after first found entry there is no reason to process data anymore.
+                // 2) __parallel_find_backward_tag  : when we search for the last matching data entry, we process data from end to start (backward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // But break statement here shows poor perf in some cases.
+                // So we use bool variable state check in the for-loop header.
+                __something_was_found = true;
             }
         }
     }
@@ -1171,10 +1196,16 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                             __found.store(1);
                         else
                         {
-                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                            const auto __found_local_state = __found_local.load();
+
+                            bool __compare_exchange_processed = false;
+                            for (auto __old = __found.load();
+                                 !__compare_exchange_processed && __comp(__found_local_state, __old);
                                  __old = __found.load())
                             {
-                                __found.compare_exchange_strong(__old, __found_local.load());
+                                // If we replace the atomic value successfully, we should break the loop to avoid extra operations with atomic
+                                __compare_exchange_processed =
+                                    __found.compare_exchange_strong(__old, __found_local_state);
                             }
                         }
                     }
