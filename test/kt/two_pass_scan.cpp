@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- single_pass_scan.cpp ----------------------------------------------===//
+//===-- two_pass_scan.cpp ----------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -67,30 +67,59 @@ generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
     }
 }
 
-template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename KernelParam>
+template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename InclKernelParam>
 void
-test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_param)
 {
+    auto excl_param = TestUtils::get_new_kernel_params<0>(incl_param);
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
 #endif
-    std::vector<T> expected(size);
-    generate_scan_data<BinOp>(expected.data(), size, 42);
+    std::vector<T> expected1(size);
+    std::vector<T> expected2(size);
+    generate_scan_data<BinOp>(expected1.data(), size, 42);
+    generate_scan_data<BinOp>(expected2.data(), size, 42);
 
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected1.begin(), expected1.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input2(q, expected2.begin(), expected2.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
 
-    inclusive_scan_serial(expected.begin(), expected.end(), expected.begin(), bin_op);
+    inclusive_scan_serial(expected1.begin(), expected1.end(), expected1.begin(), bin_op);
+    exclusive_scan_serial(expected2.begin(), expected2.end(), expected2.begin(),
+                          oneapi::dpl::unseq_backend::__known_identity<BinOp, T>, bin_op);
 
-    oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
-        q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), bin_op, oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+    auto invoke_and_verify = [&](auto& dt_src, auto& dt_dst, auto& expected_res, auto is_inclusive) {
+        constexpr bool is_inclusive_scan = decltype(is_inclusive)::value;
+        std::string msg;
+        if constexpr (is_inclusive_scan)
+        {
+            msg = "wrong results with USM for inclusive_scan, n: " + std::to_string(size);
+            oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename InclKernelParam::kernel_name>(
+                q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op,
+                oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+        }
+        else
+        {
+            msg = "wrong results with USM for exclusive_scan, n: " + std::to_string(size);
+            oneapi::dpl::experimental::kt::gpu::two_pass_exclusive_scan<typename decltype(excl_param)::kernel_name>(
+                q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(),
+                oneapi::dpl::unseq_backend::__known_identity<BinOp, T>, bin_op);
+        }
 
-    std::vector<T> actual(size);
-    dt_output.retrieve_data(actual.begin());
+        std::vector<T> actual(size);
+        dt_dst.retrieve_data(actual.begin());
 
-    std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+        EXPECT_EQ_N(expected_res.begin(), actual.begin(), size, msg.c_str());
+    };
+    // Out-of-place inclusive scan
+    invoke_and_verify(dt_input, dt_output, expected1, std::true_type{});
+    // In-place inclusive scan
+    invoke_and_verify(dt_input, dt_input, expected1, std::true_type{});
+    // Out-of-place exclusive scan
+    invoke_and_verify(dt_input2, dt_output, expected2, std::false_type{});
+    // In-place exclusive scan
+    invoke_and_verify(dt_input2, dt_input2, expected2, std::false_type{});
 }
 
 template <typename T, typename BinOp, typename KernelParam>
@@ -213,7 +242,9 @@ test_all_types(sycl::queue q, std::size_t size, KernelParam params)
     test_all_cases<uint64_t>(q, size, params);
 
     test_all_cases<float>(q, size, params);
-    test_all_cases<double>(q, size, params);
+
+    if (TestUtils::has_type_support<double>(q.get_device()))
+        test_all_cases<double>(q, size, params);
 }
 
 int
