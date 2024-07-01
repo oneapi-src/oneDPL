@@ -465,7 +465,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                     if (g > 0)
                     {
-                        if (csrc <= VL)
+                        if ((csrc - offset) / num_sub_groups_local <= VL)
                         {
                             // single partial scan
                             auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
@@ -510,21 +510,14 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 {
                     ValueType adj_work_group_carry;
                     auto carry_offset = 0;
-                    if (g % VL != 0)
-                    {
-                        adj_work_group_carry = sycl::group_broadcast(sub_group, value.__v, g % VL - 1);
-                    }
-                    else
-                    {
-                        adj_work_group_carry = carry_last.__v;
-                    }
+
                     std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
                     if (is_full_carry_scanner)
                     {
                         for (std::uint8_t i = 0; i < iters; ++i)
                         {
                             sub_group_partials[carry_offset + sub_group_local_id] =
-                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                                binary_op(carry_last.__v, sub_group_partials[carry_offset + sub_group_local_id]);
                             carry_offset += VL;
                         }
                     }
@@ -534,18 +527,18 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         for (; i < iters - 1; ++i)
                         {
                             sub_group_partials[carry_offset + sub_group_local_id] =
-                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                                binary_op(carry_last.__v, sub_group_partials[carry_offset + sub_group_local_id]);
                             carry_offset += VL;
                         }
                         if (i * VL + sub_group_local_id < num_sub_groups_local)
                         {
                             sub_group_partials[carry_offset + sub_group_local_id] =
-                                binary_op(adj_work_group_carry, sub_group_partials[carry_offset + sub_group_local_id]);
+                                binary_op(carry_last.__v, sub_group_partials[carry_offset + sub_group_local_id]);
                             carry_offset += VL;
                         }
                     }
                     if (sub_group_local_id == 0)
-                        sub_group_partials[num_sub_groups_local] = adj_work_group_carry;
+                        sub_group_partials[num_sub_groups_local] = carry_last.__v;
                     carry_last.__destroy();
                 }
                 value.__destroy();
