@@ -458,34 +458,46 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     //         compute the prefix in a sub-group to get global work-group carries
                     //         memory accesses: gather(63, 127, 191, 255, ...)
                     uint32_t offset = num_sub_groups_local - 1;
-                    oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry;
                     // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
                     
                     
                     //TODO: fix this calculation to be limited by the the group number (or go back to identity to see if this is the last problem...)
-                    auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
-                    auto num_remaining = (csrc - offset) / num_sub_groups_local;
-                    auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
-                    value.__setup(tmp_storage[reduction_idx]);
-                    sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry, num_remaining); 
 
-                    if (g >> log2_VL == 1)
-                        carry_last.__setup(carry.__v); // we only need the second to last carry
-
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (int i = 1; i < (g >> log2_VL) + 1; i++)
+                    if (g > 0)
                     {
-                        proposed_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
-                        num_remaining = (csrc - (offset + i * num_sub_groups_local * VL)) / num_sub_groups_local;
+                        if (csrc <= VL)
+                        {
+                            // single partial scan
+                            auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
+                            auto num_remaining = (csrc - offset) / num_sub_groups_local;
+                            auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
+                            value.__setup(tmp_storage[reduction_idx]);
+                            sub_group_scan_partial<VL, true, false>(sub_group, value.__v, binary_op, carry_last, num_remaining);
+                        }
+                        else
+                        {
+                            // multiple iterations
+                            // first 1 full
+                            value.__setup(tmp_storage[num_sub_groups_local * sub_group_local_id + offset]);
+                            sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry_last);
 
-                        reduction_idx = (proposed_idx < csrc) ? (proposed_idx) : csrc - 1;
-                        value.__v = tmp_storage[i * num_sub_groups_local * VL +
-                                        (num_sub_groups_local * sub_group_local_id + offset)];
-                        sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry, num_remaining);
-                        if (i == (g >> log2_VL) - 1)
-                            carry_last.__setup(carry.__v); // we only need the second to last carry
+                            // then some number of full iterations
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (int i = 1; i < (g >> log2_VL); i++)
+                            {
+                                reduction_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
+                                value.__v = tmp_storage[reduction_idx];
+                                sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry_last);
+                            }
+
+                            // final partial iteration
+                            auto proposed_idx = (g >> log2_VL) * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
+                            auto num_remaining = (csrc - (offset + (g >> log2_VL) * num_sub_groups_local * VL)) / num_sub_groups_local;
+                            auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
+                            value.__setup(tmp_storage[reduction_idx]);
+                            sub_group_scan_partial<VL, true, true>(sub_group, value.__v, binary_op, carry_last, num_remaining);
+                        }
                     }
-                    carry.__destroy();
                 }
 
                 // N.B. barrier could be earlier, guarantees slm local carry update
@@ -534,8 +546,8 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     }
                     if (sub_group_local_id == 0)
                         sub_group_partials[num_sub_groups_local] = adj_work_group_carry;
+                    carry_last.__destroy();
                 }
-                carry_last.__destroy();
                 value.__destroy();
 
                 //sycl::group_barrier(ndi.get_group());
