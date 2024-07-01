@@ -271,20 +271,28 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
                 else
                 {
-                    auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
-                    auto v = unary_op(__in_rng[local_idx]);
-                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    //TODO: need to skip the scan for elements out of range
-                    sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
-
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (int j = 1; j < J; j++)
+                    if (subgroup_start_idx + VL >= M)
                     {
-                        local_idx = (start_idx + j * VL < M) ? start_idx + j * VL : M - 1;
+                        auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
+                        auto v = unary_op(__in_rng[local_idx]);
+                        sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
+                    }
+                    else
+                    {
+                        auto v = unary_op(__in_rng[start_idx]);
+                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                        sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (int j = 1; j < J - 1; j++)
+                        {
+                            v = unary_op(__in_rng[start_idx + j * VL]);
+                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                        }
+
+                        auto local_idx = (start_idx + (J - 1) * VL < M) ? start_idx + (J - 1) * VL : M - 1;
                         v = unary_op(__in_rng[local_idx]);
 
-                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        //TODO: need to skip the scan for elements out of range
                         sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry,
                                                                     M - (subgroup_start_idx + j * VL));
                     }
@@ -329,7 +337,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                                                 ? sub_group_local_id
                                                 : (num_sub_groups_local - 1); // else is unused dummy value
                             auto v = sub_group_partials[load_idx];
-                            sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan_partial<VL, true, false>(sub_group, v, binary_op, sub_group_carry, num_sub_groups_local - subgroup_start_idx);
                             if (sub_group_local_id < num_sub_groups_local)
                                 tmp_storage[start_idx + sub_group_local_id] = v;
                         }
