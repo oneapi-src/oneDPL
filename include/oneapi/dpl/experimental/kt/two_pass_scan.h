@@ -128,7 +128,7 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
 {
     auto mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
     constexpr auto init_broadcast_id = VL - 1;
-    if consexpr (Inclusive)
+    if constexpr (Inclusive)
     {
         inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
     }
@@ -146,7 +146,7 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
         return sub_group_local_id >= offset && sub_group_local_id < num_remaining;
     };
     auto init_broadcast_id = num_remaining - 1;
-    if consexpr (Inclusive)
+    if constexpr (Inclusive)
     {
         inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
     }
