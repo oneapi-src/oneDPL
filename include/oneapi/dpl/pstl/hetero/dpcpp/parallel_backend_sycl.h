@@ -973,12 +973,12 @@ struct __parallel_find_forward_tag
         return __val;
     }
 
-    template <sycl::access::address_space _Space>
+    template <typename _TAtomic>
     static void
-    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
+    __save_state_to_atomic(_TAtomic& __found, _AtomicType __new_state)
     {
         // As far as we make search from begin to the end of data, we should save the first (minimal) found state.
-        __atomic.fetch_min(__new_state);
+        __found.fetch_min(__new_state);
     }
 };
 
@@ -999,12 +999,12 @@ struct __parallel_find_backward_tag
         return _AtomicType{-1};
     }
 
-    template <sycl::access::address_space _Space>
+    template <typename _TAtomic>
     static void
-    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
+    __save_state_to_atomic(_TAtomic& __found, _AtomicType __new_state)
     {
         // As far as we make search from end to the begin of data, we should save the last (maximal) found state.
-        __atomic.fetch_max(__new_state);
+        __found.fetch_max(__new_state);
     }
 };
 
@@ -1020,12 +1020,12 @@ struct __parallel_or_tag
         return 0;
     }
 
-    template <sycl::access::address_space _Space>
+    template <typename _TAtomic>
     static void
-    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType /*__new_state*/)
+    __save_state_to_atomic(_TAtomic& __found, _AtomicType /*__new_state*/)
     {
         // Store that a match was found. Its position is not relevant for or semantics.
-        __atomic.store(1);
+        __found.store(1);
     }
 };
 
