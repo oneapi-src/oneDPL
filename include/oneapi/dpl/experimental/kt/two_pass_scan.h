@@ -430,13 +430,13 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
                     //           S: sum(T0 carry...TS carry)
                     std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(num_sub_groups_local, VL);
-                    auto csrc = g * num_sub_groups_local;
+                    auto subgroups_before_my_group = g * num_sub_groups_local;
                     if (is_full_carry_scanner)
                     {
                         for (std::uint8_t i = 0; i < iters; i++)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
-                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                                tmp_storage[subgroups_before_my_group + i * VL + sub_group_local_id];
                         }
                     }
                     else
@@ -445,12 +445,12 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         for (; i < iters - 1; i++)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
-                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                                tmp_storage[subgroups_before_my_group + i * VL + sub_group_local_id];
                         }
                         if (i * VL + sub_group_local_id < num_sub_groups_local)
                         {
                             sub_group_partials[i * VL + sub_group_local_id] =
-                                tmp_storage[csrc + i * VL + sub_group_local_id];
+                                tmp_storage[subgroups_before_my_group + i * VL + sub_group_local_id];
                         }
                     }
 
@@ -465,12 +465,14 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                     if (g > 0)
                     {
-                        if ((csrc - offset) / num_sub_groups_local <= VL)
+                        // only need the last element from each scan of num_sub_groups_local subgroup reductions, and an iteration processes VL at a time
+                        auto iters = oneapi::dpl::__internal::__dpl_ceiling_div(subgroups_before_my_group / num_sub_groups_local, VL);
+                        if (iters == 1)
                         {
                             // single partial scan
                             auto proposed_idx = num_sub_groups_local * sub_group_local_id + offset;
-                            auto num_remaining = (csrc - offset) / num_sub_groups_local;
-                            auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
+                            auto num_remaining = subgroups_before_my_group / num_sub_groups_local;
+                            auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
                             value.__setup(tmp_storage[reduction_idx]);
                             sub_group_scan_partial<VL, true, false>(sub_group, value.__v, binary_op, carry_last, num_remaining);
                         }
@@ -483,7 +485,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                             // then some number of full iterations
                             _ONEDPL_PRAGMA_UNROLL
-                            for (int i = 1; i < (g >> log2_VL) - 1; i++)
+                            for (int i = 1; i < iters - 1; i++)
                             {
                                 auto reduction_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
                                 value.__v = tmp_storage[reduction_idx];
@@ -491,9 +493,9 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             }
 
                             // final partial iteration
-                            auto proposed_idx = ((g >> log2_VL) - 1) * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
-                            auto num_remaining = (csrc - (offset + ((g >> log2_VL) - 1) * num_sub_groups_local * VL)) / num_sub_groups_local;
-                            auto reduction_idx = (proposed_idx < csrc) ? proposed_idx : csrc - 1;
+                            auto proposed_idx = (iters - 1) * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
+                            auto num_remaining = (subgroups_before_my_group - ((iters - 1) * VL)) / num_sub_groups_local;
+                            auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
                             value.__setup(tmp_storage[reduction_idx]);
                             sub_group_scan_partial<VL, true, true>(sub_group, value.__v, binary_op, carry_last, num_remaining);
                         }
