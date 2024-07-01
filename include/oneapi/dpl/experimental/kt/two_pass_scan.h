@@ -294,7 +294,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         v = unary_op(__in_rng[local_idx]);
 
                         sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry,
-                                                                    M - (subgroup_start_idx + j * VL));
+                                                                    M - (subgroup_start_idx + (J - 1) * VL));
                     }
                 }
 
@@ -485,7 +485,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             _ONEDPL_PRAGMA_UNROLL
                             for (int i = 1; i < (g >> log2_VL); i++)
                             {
-                                reduction_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
+                                auto reduction_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
                                 value.__v = tmp_storage[reduction_idx];
                                 sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry_last);
                             }
