@@ -1180,18 +1180,20 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    auto __result = __init_value;
+
+    using _ScratchStorage = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
+    _ScratchStorage __result_scratch_container(__exec, 0);
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
-    // scope is to copy data back to __result after destruction of temporary sycl:buffer
-    {
-        sycl::buffer<_AtomicType, 1> __result_sycl_buf(&__result, 1); // temporary storage for global atomic
-
-        // main parallel_for
-        __exec.queue().submit([&](sycl::handler& __cgh) {
+    // main parallel_for
+    __exec.queue()
+        .submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
+
+            // Setup initial value into result storage
+            auto __res_acc = __result_scratch_container.__get_result_acc(__cgh);
+            *__res_acc.__get_pointer() = __init_value;
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -1220,15 +1222,16 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
                         __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                            *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
+                            *_ScratchStorage::__get_usm_or_buffer_accessor_ptr(__res_acc));
 
                         // Update global (for all groups) atomic state with the found index
                         _BrickTag::__save_state_to(__found, __found_local);
                     }
                 });
-        });
-        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
-    }
+        })
+        .wait();
+
+    const auto __result = __result_scratch_container.__get_value(0);
 
     if constexpr (__or_tag_check)
         return __result;
