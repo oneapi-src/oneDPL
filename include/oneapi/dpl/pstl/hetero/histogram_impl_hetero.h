@@ -113,9 +113,7 @@ __make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_Rando
 }
 
 template <typename _Name>
-struct __hist_fill_zeros_wrapper
-{
-};
+struct __hist_fill_zeros_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
           typename _BinHash, typename _RandomAccessIterator2>
