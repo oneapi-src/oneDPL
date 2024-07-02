@@ -34,7 +34,6 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         result[x]++;
         int index = counter++;
         auto target = index%u.size();
-        std::cout<<"Target : "<<target<<"\n";
         if (index<2*u.size() && target!=best_resource)
         {
             return e.submit([=](sycl::handler& h) {
@@ -211,11 +210,6 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
 
     using my_policy_t = Policy;
     std::vector<int> result(u.size(), 0);
-    std::cout<<"actual size : "<<actual.size()<<"\n";
-    for(auto a : actual){
-        std::cout<<a<<"\t";
-    }
-    std::cout<<"\n";
     // they are cpus so this is ok
     double* v = sycl::malloc_shared<double>(1000000, u[0]);
 
@@ -404,15 +398,15 @@ main()
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u1, map, build_result(n,total_elements,1), 1);
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u1, map, build_result(n,total_elements,2), 2);
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u1, map, build_result(n,total_elements,3), 3);
-       /* auto actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
-        */actual = test_submit_and_wait<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
         actual = test_submit_and_wait<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
         actual = test_submit_and_wait<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
         actual = test_submit_and_wait<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
@@ -429,22 +423,23 @@ main()
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u2, map, build_result(n,total_elements,1), 1);
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u2, map, build_result(n,total_elements,2), 2);
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u2, map, build_result(n,total_elements,3), 3);
-       /* auto actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
-         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
-         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
-        */actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 0), 0);
-          actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 1), 1);
-          actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 2), 2);
-          actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 3), 3);
-          actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 0), 0);
-          actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 1), 1);
-          actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 2), 2);
-          actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u1, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait<just_call_submit, policy_t>(u2, map, build_result(n, total_elements, 3), 3);
+        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 0), 0);
+        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 1), 1);
+        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 2), 2);
+        actual = test_submit_and_wait<call_select_before_submit, policy_t>(u2, map, build_result(n, total_elements, 3), 3);
+
         bProcessed = true;
     }
 #endif // Devices available are CPU and GPU
