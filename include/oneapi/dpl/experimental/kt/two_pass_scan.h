@@ -236,7 +236,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                 oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
 
-                size_t subgroup_start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K)
+                size_t subgroup_start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = subgroup_start_idx + J * VL <= M;
                 size_t start_idx = subgroup_start_idx + sub_group_local_id;
                 // adjust for lane-id
