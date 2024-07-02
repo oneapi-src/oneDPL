@@ -118,7 +118,8 @@ required_test_sycl_buffer()
     return alloc_type == sycl::usm::alloc::shared;
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName, bool TestSyclBuffer>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          bool TestSyclBuffer = required_test_sycl_buffer<alloc_type>()>
 void
 test1buffer(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
@@ -171,7 +172,8 @@ test1buffer(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName, bool TestSyclBuffer>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          bool TestSyclBuffer = required_test_sycl_buffer<alloc_type>()>
 void
 test2buffers(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
@@ -231,7 +233,8 @@ test2buffers(float ScaleStep = 1.0f, float ScaleMax = 1.0f)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName, bool TestSyclBuffer>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          bool TestSyclBuffer = required_test_sycl_buffer<alloc_type>()>
 void
 test3buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
@@ -298,7 +301,8 @@ test3buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMa
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName, bool TestSyclBuffer>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          bool TestSyclBuffer = required_test_sycl_buffer<alloc_type>()>
 void
 test4buffers(int mult = kDefaultMultValue, float ScaleStep = 1.0f, float ScaleMax = 1.0f)
 {
