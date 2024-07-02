@@ -99,6 +99,61 @@ class linear_congruential_engine
         return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
+    friend bool
+    operator==(const linear_congruential_engine& _x, const linear_congruential_engine& _y)
+    {
+        return _x.state_ == _y.state_;
+    }
+
+    friend bool
+    operator!=(const linear_congruential_engine& _x, const linear_congruential_engine& _y)
+    {
+        return !(_x == _y);
+    }
+
+    template<class CharT, class Traits>
+    friend ::std::basic_ostream<CharT,Traits>&
+    operator<<(::std::basic_ostream<CharT,Traits>& os,
+               const linear_congruential_engine& e)
+    {
+        const std::ios_base::fmtflags _flags = os.flags();
+        const CharT prev_fill = os.fill();
+
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        os.fill(os.widen(' '));
+
+        os << e.state_;
+
+        os.flags(_flags);
+        os.fill(prev_fill);
+
+        return os;
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& os, const linear_congruential_engine& e)
+    {
+        return os << e.state_;
+    }
+
+    template<class CharT, class Traits>
+    friend ::std::basic_istream<CharT,Traits>&
+    operator>>(::std::basic_istream<CharT,Traits>& is,
+               linear_congruential_engine& e)
+    {
+        const std::ios_base::fmtflags _flags = is.flags();
+
+        is.setf(std::ios_base::dec);
+
+        result_type __t;
+        if (is >> __t)
+            e.state_ = __t;
+
+        is.flags(_flags);
+
+        return is;
+    }
+
   private:
     // Static asserts
     static_assert(((_M == 0) || ((_A < _M) && (_C < _M))),
