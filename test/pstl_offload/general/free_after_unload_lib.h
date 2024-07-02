@@ -10,6 +10,9 @@
 #ifndef _FREE_AFTER_UNLOAD_LIB_HEADERS_H
 #define _FREE_AFTER_UNLOAD_LIB_HEADERS_H
 
+#if free_after_unload_lib_EXPORTS && _WIN64
+__declspec(dllexport)
+#endif
 void register_mem_to_later_release(void *);
 
 #endif // _FREE_AFTER_UNLOAD_LIB_HEADERS_H

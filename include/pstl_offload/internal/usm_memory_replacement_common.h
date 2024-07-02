@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cassert>
-#include <cstring>
+#include <cstring> // for memcpy
 #include <limits>
 
 #if __linux__
@@ -114,12 +114,45 @@ struct __block_header
 
 static_assert(__is_power_of_two(sizeof(__block_header)));
 
+using __realloc_func_type = void* (*)(void*, std::size_t);
+
 #if __linux__
+
+inline std::size_t
+__get_page_size()
+{
+    return sysconf(_SC_PAGESIZE);
+}
+
+inline void*
+__original_realloc(void* __user_ptr, std::size_t __new_size)
+{
+    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
+    return __orig_realloc(__user_ptr, __new_size);
+}
+
+#elif _WIN64
+
+// export to not have windows.h in public header
+std::size_t
+__get_page_size();
+
+// have to export them, as original realloc/malloc/etc are locally replaced
+// in case of usm_memory_replacement.h inclusion
+void*
+__original_realloc(void* __user_ptr, std::size_t __new_size);
+void* __original_malloc(std::size_t);
+void*
+__original_aligned_alloc(std::size_t __size, std::size_t __alignment);
+void*
+__original_aligned_realloc(void* __user_ptr, std::size_t __size, std::size_t __alignment);
+
+#endif
 
 inline std::size_t
 __get_memory_page_size()
 {
-    static std::size_t __memory_page_size = sysconf(_SC_PAGESIZE);
+    static std::size_t __memory_page_size = __get_page_size();
     assert(__is_power_of_two(__memory_page_size));
     return __memory_page_size;
 }
@@ -172,15 +205,6 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
     return __ptr;
 }
 
-inline void*
-__original_realloc(void* __user_ptr, std::size_t __new_size)
-{
-    using __realloc_func_type = void* (*)(void*, std::size_t);
-
-    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
-    return __orig_realloc(__user_ptr, __new_size);
-}
-
 inline void
 __free_usm_pointer(__block_header* __header)
 {
@@ -195,9 +219,15 @@ inline void*
 __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
 {
     assert(__user_ptr != nullptr);
-    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+
+    if (__new_size == 0)
+    {
+        free(__user_ptr);
+        return nullptr;
+    }
 
     void* __result = nullptr;
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
@@ -239,7 +269,63 @@ __internal_realloc(void* __user_ptr, std::size_t __new_size)
     return __user_ptr == nullptr ? std::malloc(__new_size) : __realloc_real_pointer(__user_ptr, __new_size);
 }
 
-#endif // __linux__
+#if _WIN64
+
+inline void*
+__aligned_realloc_real_pointer(void* __user_ptr, std::size_t __new_size, std::size_t __alignment)
+{
+    assert(__user_ptr != nullptr);
+
+    if (__new_size == 0)
+    {
+        _aligned_free(__user_ptr);
+        return nullptr;
+    }
+
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+
+    void* __result = nullptr;
+
+    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    {
+        if (__header->_M_requested_number_of_bytes >= __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
+        {
+            __result = __user_ptr;
+        }
+        else
+        {
+            assert(__header->_M_device);
+            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, __alignment);
+
+            if (__new_ptr != nullptr)
+            {
+                std::memcpy(__new_ptr, __user_ptr, std::min(__header->_M_requested_number_of_bytes, __new_size));
+
+                // Free previously allocated memory
+                __free_usm_pointer(__header);
+                __result = __new_ptr;
+            }
+            else
+            {
+                errno = ENOMEM;
+            }
+        }
+    }
+    else
+    {
+        // __user_ptr is not a USM pointer, use original realloc function
+        __result = __original_aligned_realloc(__user_ptr, __new_size, __alignment);
+    }
+    return __result;
+}
+
+static void*
+__internal_aligned_realloc(void* __user_ptr, std::size_t __new_size, std::size_t __alignment)
+{
+    return __user_ptr == nullptr ? _aligned_malloc(__new_size, __alignment)
+                                 : __aligned_realloc_real_pointer(__user_ptr, __new_size, __alignment);
+}
+#endif // _WIN64
 
 } // namespace __pstl_offload
 

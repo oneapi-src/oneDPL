@@ -63,6 +63,12 @@ void do_allocation()
     void *ptr1 = realloc(ptr, 2*size);
     for (std::size_t i = 0; i < size; i++)
         EXPECT_TRUE(static_cast<char*>(ptr1)[i] == 1, "Data broken after realloc in dtor");
-    EXPECT_TRUE(malloc_usable_size(ptr1) >= 2*size, "Invalid size after realloc in dtor");
-    free(ptr);
+#if __linux__
+    size_t sz_ptr1 = malloc_usable_size(ptr1);
+#elif _WIN64
+    size_t sz_ptr1 = _msize(ptr1);
+#endif
+    EXPECT_TRUE(sz_ptr1 >= 2*size, "Invalid size after realloc in dtor");
+
+    free(ptr1);
 }

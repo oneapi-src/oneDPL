@@ -18,18 +18,35 @@
 #define _PSTL_OFFLOAD_BINARY_VERSION_MINOR 0
 #define _PSTL_OFFLOAD_BINARY_VERSION_PATCH 0
 
-#if __linux__
+/*
+Functions that allocates memory are replaced on per-TU base. For better reliability, releasing
+functions are replaced globally and an origin of a releasing object is checked to call right
+releasing function. realloc can do both allocation and releasing, so it must be both replaced
+on per-TU base and globally, but with different semantics in wrt newly allocated memory.
 
-#define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
+Global replacement under Linux is done during link-time or during load via LD_PRELOAD. To implememnt
+global replacement under Windows the dynamic runtime libraries are instrumented with help of
+Microsoft Detours.
+*/
 
-#include <dlfcn.h>
-#include <string.h>
-#include <unistd.h>
+#if _WIN64
+
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#include <detours.h>
+#pragma GCC diagnostic pop
+
+#endif
 
 namespace __pstl_offload
 {
 
 using __free_func_type = void (*)(void*);
+
+#if __linux__
 
 // list of objects for delayed releasing
 struct __delayed_free_list {
@@ -130,31 +147,262 @@ __internal_free(void* __user_ptr)
     }
 }
 
-static std::size_t
-__internal_msize(void* __user_ptr)
+#elif _WIN64
+
+static __free_func_type __original_free_ptr = free;
+#if _DEBUG
+static void (*__original_free_dbg_ptr)(void* userData, int blockType) = _free_dbg;
+#endif
+static __realloc_func_type __original_realloc_ptr = realloc;
+static __free_func_type __original_aligned_free_ptr = _aligned_free;
+static size_t (*__original_msize)(void *) = _msize;
+static size_t (*__original_aligned_msize_ptr)(void *, std::size_t alignment, std::size_t offset) = _aligned_msize;
+static void* (*__original_aligned_realloc_ptr)(void *, std::size_t size, std::size_t alignment) = _aligned_realloc;
+static void* (*__original_expand_ptr)(void *, std::size_t size) = _expand;
+
+static void
+__internal_free_param(void* __user_ptr, __free_func_type __custom_free)
 {
-    std::size_t __res = 0;
     if (__user_ptr != nullptr)
     {
-
         __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __res = __header->_M_requested_number_of_bytes;
+            __free_usm_pointer(__header);
         }
         else
         {
-            __res = __original_msize(__user_ptr);
+            __custom_free(__user_ptr);
         }
+    }
+}
+
+static void
+__internal_free(void* __user_ptr)
+{
+    __internal_free_param(__user_ptr, __original_free_ptr);
+}
+
+#endif // _WIN64
+
+static std::size_t
+__internal_msize(void* __user_ptr)
+{
+    if (__user_ptr == nullptr)
+    {
+#if _WIN64
+        errno = EINVAL;
+        _invalid_parameter_noinfo();
+        return -1;
+#else
+        return 0;
+#endif
+    }
+
+    std::size_t __res = 0;
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+
+    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    {
+        __res = __header->_M_requested_number_of_bytes;
+    }
+    else
+    {
+        __res = __original_msize(__user_ptr);
     }
     return __res;
 }
 
+#if _WIN64
+
+#if _DEBUG
+
+static void
+__internal_free_dbg(void* __user_ptr, int __type)
+{
+    if (__user_ptr != nullptr)
+    {
+        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+
+        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+        {
+            __free_usm_pointer(__header);
+        }
+        else
+        {
+            __original_free_dbg_ptr(__user_ptr, __type);
+        }
+    }
+}
+
+#endif // _DEBUG
+
+static std::size_t
+__internal_aligned_msize(void* __user_ptr, std::size_t __alignment, std::size_t __offset)
+{
+    if (__user_ptr == nullptr || !__is_power_of_two(__alignment))
+    {
+        errno = EINVAL;
+        _invalid_parameter_noinfo();
+        return -1;
+    }
+
+    std::size_t __res = 0;
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+
+    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    {
+        __res = __header->_M_requested_number_of_bytes;
+    }
+    else
+    {
+        __res = __original_aligned_msize_ptr(__user_ptr, __alignment, __offset);
+    }
+    return __res;
+}
+
+static void
+__internal_aligned_free(void* __user_ptr)
+{
+    __internal_free_param(__user_ptr, __original_aligned_free_ptr);
+}
+
+void*
+__original_malloc(std::size_t size)
+{
+    return malloc(size);
+}
+
+void*
+__original_aligned_alloc(std::size_t size, std::size_t alignment)
+{
+    return _aligned_malloc(size, alignment);
+}
+
+void*
+__original_realloc(void* __user_ptr, std::size_t __new_size)
+{
+    return __original_realloc_ptr(__user_ptr, __new_size);
+}
+
+void*
+__original_aligned_realloc(void* __user_ptr, std::size_t __new_size, std::size_t __new_alignment)
+{
+    return __original_aligned_realloc_ptr(__user_ptr, __new_size, __new_alignment);
+}
+
+static void*
+__internal_expand(void* /*__user_ptr*/, std::size_t /*__size*/)
+{
+    // do not support _expand()
+    return nullptr;
+}
+
+std::size_t
+__get_page_size()
+{
+    static struct __system_info
+    {
+        SYSTEM_INFO _M_si;
+        __system_info()
+        {
+            GetSystemInfo(&_M_si);
+        }
+    } __info;
+
+    return __info._M_si.dwPageSize;
+}
+
+static bool
+__do_functions_replacement()
+{
+    // May fail, because process commonly not started with DetourCreateProcessWithDll*. Ignore it.
+    DetourRestoreAfterWith();
+
+    LONG ret = DetourTransactionBegin();
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: DetourTransactionBegin returns %ld\n", ret);
+        return false;
+    }
+
+    // Operators from delete family is implemented by compiler with call to an appropriate free function.
+    // Those functions are in the dll and they are replaced, so no need to directly replaced delete.
+    // TODO: rarely-used _aligned_offset_* and _set*_invalid_parameter_handler functions are not supported yet
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmicrosoft-cast"
+    ret = DetourAttach(&(PVOID&)__original_free_ptr, __internal_free);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: free replacement failed with %ld\n", ret);
+        return false;
+    }
+#if _DEBUG
+    // _free_dbg is called by delete in debug mode
+    ret = DetourAttach(&(PVOID&)__original_free_dbg_ptr, __internal_free_dbg);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _free_dbg replacement failed with %ld\n", ret);
+        return false;
+    }
+#endif
+    ret = DetourAttach(&(PVOID&)__original_realloc_ptr, __internal_realloc);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: realloc replacement failed with %ld\n", ret);
+        return false;
+    }
+    ret = DetourAttach(&(PVOID&)__original_aligned_free_ptr, __internal_aligned_free);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _aligned_free replacement failed with %ld\n", ret);
+        return false;
+    }
+    ret = DetourAttach(&(PVOID&)__original_msize, __internal_msize);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _msize replacement failed with %ld\n", ret);
+        return false;
+    }
+    ret = DetourAttach(&(PVOID&)__original_aligned_msize_ptr, __internal_aligned_msize);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _aligned_msize replacement failed with %ld\n", ret);
+        return false;
+    }
+    ret = DetourAttach(&(PVOID&)__original_aligned_realloc_ptr, __internal_aligned_realloc);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _aligned_realloc replacement failed with %ld\n", ret);
+        return false;
+    }
+    ret = DetourAttach(&(PVOID&)__original_expand_ptr, __internal_expand);
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: _expand replacement failed with %ld\n", ret);
+        return false;
+    }
+#pragma GCC diagnostic pop
+
+    ret = DetourTransactionCommit();
+    if (NO_ERROR != ret)
+    {
+        fprintf(stderr, "Failed function replacement: DetourTransactionCommit returns %ld\n", ret);
+        return false;
+    }
+    return true;
+}
+
+#endif // _WIN64
+
 } // namespace __pstl_offload
 
+#if __linux__
 extern "C"
 {
+
+#define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
 
 _PSTL_OFFLOAD_EXPORT void free(void* __ptr)
 {
@@ -243,4 +491,21 @@ operator delete[](void* __ptr, std::align_val_t) noexcept
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-#endif // __linux__
+#elif _WIN64
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+extern "C" BOOL WINAPI DllMain(HINSTANCE hInst, DWORD callReason, LPVOID reserved)
+{
+    BOOL ret = TRUE;
+
+    if (callReason == DLL_PROCESS_ATTACH && reserved && hInst)
+    {
+        ret = __pstl_offload::__do_functions_replacement() ? TRUE : FALSE;
+    }
+
+    return ret;
+}
+#pragma GCC diagnostic pop
+
+#endif // _WIN64

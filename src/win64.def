@@ -1,0 +1,12 @@
+; Copyright (C) 2023 Intel Corporation
+;
+; SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+;
+
+EXPORTS
+
+?__get_page_size@__pstl_offload@@YA_KXZ
+?__original_malloc@__pstl_offload@@YAPEAX_K@Z
+?__original_aligned_alloc@__pstl_offload@@YAPEAX_K0@Z
+?__original_realloc@__pstl_offload@@YAPEAXPEAX_K@Z
+?__original_aligned_realloc@__pstl_offload@@YAPEAXPEAX_K1@Z

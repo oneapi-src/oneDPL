@@ -15,9 +15,23 @@
 #include <cstdlib>
 
 #include "support/utils.h"
+#if _WIN64
+#include <windows.h>
+
+static std::size_t get_page_size_impl() {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
+}
+
+#endif
 
 static std::size_t get_page_size() {
+#if __linux__
     static std::size_t page_size = sysconf(_SC_PAGESIZE);
+#elif _WIN64
+    static std::size_t page_size = get_page_size_impl();
+#endif
     return page_size;
 }
 
@@ -28,12 +42,14 @@ void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction
 
         for (std::size_t size : sizes) {
             void* ptr = allocate(size, alignment);
+            EXPECT_TRUE(ptr != nullptr, "nullptr returned by allocation");
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
-            deallocate(ptr, alignment);
+            deallocate(ptr, size, alignment);
         }
     }
 }
 
+#if __linux__
 // aligned_alloc requires size to be integral multiple of alignment
 // test_alignment_allocation tests different sizes values because other functions
 // only requires the alignment to be power of two
@@ -48,6 +64,7 @@ void test_aligned_alloc_alignment() {
         }
     }
 }
+#endif
 
 void test_new_alignment() {
     auto new_allocate = [](std::size_t size, std::size_t alignment) {
@@ -64,17 +81,17 @@ void test_new_alignment() {
         return ::operator new[](size, std::align_val_t(alignment), std::nothrow);
     };
 
-    auto delete_deallocate = [](void* ptr, std::size_t alignment) {
+    auto delete_deallocate = [](void* ptr, std::size_t, std::size_t alignment) {
         return ::operator delete(ptr, std::align_val_t(alignment));
     };
-    auto delete_nothrow_deallocate = [](void* ptr, std::size_t alignment) {
+    auto delete_nothrow_deallocate = [](void* ptr, std::size_t, std::size_t alignment) {
         return ::operator delete(ptr, std::align_val_t(alignment), std::nothrow);
     };
 
-    auto delete_array_deallocate = [](void* ptr, std::size_t alignment) {
+    auto delete_array_deallocate = [](void* ptr, std::size_t, std::size_t alignment) {
         return ::operator delete[](ptr, std::align_val_t(alignment));
     };
-    auto delete_array_nothrow_deallocate = [](void* ptr, std::size_t alignment) {
+    auto delete_array_nothrow_deallocate = [](void* ptr, std::size_t, std::size_t alignment) {
         return ::operator delete[](ptr, std::align_val_t(alignment), std::nothrow);
     };
 
@@ -86,10 +103,14 @@ void test_new_alignment() {
 }
 
 int main() {
+#if __linux__
+    auto aligned_alloc_allocate = [](std::size_t size, std::size_t alignment)
+    {
+        return aligned_alloc(alignment, size);
+    };
     auto memalign_allocate = [](std::size_t size, std::size_t alignment) {
         return memalign(alignment, size);
     };
-#if __linux__
     auto posix_memalign_allocate = [](std::size_t size, std::size_t alignment) {
         void* ptr = nullptr;
         posix_memalign(&ptr, alignment, size);
@@ -98,18 +119,46 @@ int main() {
     auto __libc_memalign_allocate = [](std::size_t size, std::size_t alignment) {
         return __libc_memalign(alignment, size);
     };
-#endif
 
-    auto free_deallocate = [](void* ptr, std::size_t) {
+    auto free_deallocate = [](void* ptr, std::size_t, std::size_t) {
         free(ptr);
     };
 
     test_alignment_allocation(memalign_allocate, free_deallocate);
-#if __linux__
     test_alignment_allocation(posix_memalign_allocate, free_deallocate);
     test_alignment_allocation(__libc_memalign_allocate, free_deallocate);
-#endif
     test_aligned_alloc_alignment();
+#elif _WIN64
+    auto _aligned_malloc_allocate = [](std::size_t size, std::size_t alignment) {
+        return _aligned_malloc(size, alignment);
+    };
+    auto _aligned_free_deallocate = [](void* ptr, std::size_t, std::size_t) {
+        _aligned_free(ptr);
+    };
+
+    test_alignment_allocation(_aligned_malloc_allocate, _aligned_free_deallocate);
+
+    auto _aligned_realloc_allocate = [](std::size_t size, std::size_t alignment) {
+        return _aligned_realloc(nullptr, size, alignment);
+    };
+    auto _aligned_realloc_existing_allocate = [](std::size_t size, std::size_t alignment) {
+        // "It's an error to reallocate memory and change the alignment of a block.",
+        // so have to re-use the alignment.
+        void* ptr = _aligned_malloc(size, alignment);
+        EXPECT_TRUE(ptr, "nullptr returned");
+        EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+        // this can be called with zero size, but _aligned_realloc() in zero case became _aligned_free()
+        return _aligned_realloc(ptr, size ? size : 1, alignment);
+    };
+    auto _aligned_realloc_deallocate = [](void* ptr, std::size_t size, std::size_t alignment) {
+        EXPECT_TRUE(_aligned_msize(ptr, alignment, 0) >= size, "Invalid size returned by _aligned_msize");
+        void * ret = _aligned_realloc(ptr, 0, alignment);
+        EXPECT_TRUE(ret == nullptr, "_aligned_realloc(ptr, 0, alignment) must return nullptr");
+    };
+
+    test_alignment_allocation(_aligned_realloc_allocate, _aligned_realloc_deallocate);
+    test_alignment_allocation(_aligned_realloc_existing_allocate, _aligned_realloc_deallocate);
+#endif
 
     test_new_alignment();
 
