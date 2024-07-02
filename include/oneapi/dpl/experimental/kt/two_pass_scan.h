@@ -239,69 +239,72 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 size_t subgroup_start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
                 bool is_full_thread = subgroup_start_idx + J * VL <= M;
                 size_t start_idx = subgroup_start_idx + sub_group_local_id;
-                // adjust for lane-id
-                // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
-                if (is_full_thread && is_full_block)
-                {
-                    auto v = unary_op(__in_rng[start_idx]);
-                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                auto iters = oneapi::dpl::__internal::__dpl_ceiling_div(M - subgroup_start_idx, VL);
 
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (int j = 1; j < J_max; j++)
-                    {
-                        v = unary_op(__in_rng[start_idx + j * VL]);
-                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
-                    }
-                }
-                else if (is_full_thread)
+                if (iters > 0)
                 {
-                    auto v = unary_op(__in_rng[start_idx]);
-                    sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
-
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (int j = 1; j < J; j++)
-                    {
-                        v = unary_op(__in_rng[start_idx + j * VL]);
-                        // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
-                    }
-                }
-                else
-                {
-                    auto iters = oneapi::dpl::__internal::__dpl_ceiling_div(M - subgroup_start_idx, VL);
-
-                    if (iters == 1)
-                    {
-                        auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
-                        auto v = unary_op(__in_rng[local_idx]);
-                        sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
-                    }
-                    else
+                    // adjust for lane-id
+                    // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
+                    if (is_full_thread && is_full_block)
                     {
                         auto v = unary_op(__in_rng[start_idx]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                         sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
 
                         _ONEDPL_PRAGMA_UNROLL
-                        for (int j = 1; j < iters - 1; j++)
+                        for (int j = 1; j < J_max; j++)
                         {
                             v = unary_op(__in_rng[start_idx + j * VL]);
+                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
                             sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         }
-
-                        auto local_idx = (start_idx + (iters - 1) * VL < M) ? start_idx + (iters - 1) * VL : M - 1;
-                        v = unary_op(__in_rng[local_idx]);
-
-                        sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry,
-                                                                    M - (subgroup_start_idx + (iters - 1) * VL));
                     }
-                }
+                    else if (is_full_thread)
+                    {
+                        auto v = unary_op(__in_rng[start_idx]);
+                        sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
 
-                if (sub_group_local_id == 0)
-                    sub_group_partials[sub_group_id] = sub_group_carry.__v;
-                sub_group_carry.__destroy();
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (int j = 1; j < J; j++)
+                        {
+                            v = unary_op(__in_rng[start_idx + j * VL]);
+                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                        }
+                    }
+                    else
+                    {
+                        if (iters == 1)
+                        {
+                            auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
+                            auto v = unary_op(__in_rng[local_idx]);
+                            sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
+                        }
+                        else
+                        {
+                            auto v = unary_op(__in_rng[start_idx]);
+                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                            sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (int j = 1; j < iters - 1; j++)
+                            {
+                                v = unary_op(__in_rng[start_idx + j * VL]);
+                                sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                            }
+
+                            auto local_idx = (start_idx + (iters - 1) * VL < M) ? start_idx + (iters - 1) * VL : M - 1;
+                            v = unary_op(__in_rng[local_idx]);
+
+                            sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry,
+                                                                        M - (subgroup_start_idx + (iters - 1) * VL));
+                        }
+                    }
+
+                    if (sub_group_local_id == 0)
+                        sub_group_partials[sub_group_id] = sub_group_carry.__v;
+                    sub_group_carry.__destroy();
+                }
                 // TODO: This is slower then ndi.barrier which was removed in SYCL2020. Can we do anything about it?
                 //sycl::group_barrier(ndi.get_group());
                 ndi.barrier(sycl::access::fence_space::local_space);
@@ -597,22 +600,25 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 else
                 {
                     auto iters = oneapi::dpl::__internal::__dpl_ceiling_div(M - subgroup_start_idx, VL);
-                    for (int j = 0; j < iters - 1; j++)
+                    if (iters > 0)
                     {
-                        auto local_idx = start_idx + j * VL;
+                        for (int j = 0; j < iters - 1; j++)
+                        {
+                            auto local_idx = start_idx + j * VL;
+                            auto v = unary_op(__in_rng[local_idx]);
+                            // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
+                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                            __out_rng[local_idx] = v;
+                        }
+
+                        auto offset = start_idx + (iters - 1) * VL;
+                        auto local_idx = (offset < M) ? offset : M - 1;
                         auto v = unary_op(__in_rng[local_idx]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
-                        __out_rng[local_idx] = v;
+                        sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry, M - (subgroup_start_idx + (iters - 1) * VL));
+                        if (offset < M)
+                            __out_rng[offset] = v;
                     }
-
-                    auto offset = start_idx + (iters - 1) * VL;
-                    auto local_idx = (offset < M) ? offset : M - 1;
-                    auto v = unary_op(__in_rng[local_idx]);
-                    // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                    sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry, M - (subgroup_start_idx + (iters - 1) * VL));
-                    if (offset < M)
-                        __out_rng[offset] = v;
                 }
                 sub_group_carry.__destroy();
             });
