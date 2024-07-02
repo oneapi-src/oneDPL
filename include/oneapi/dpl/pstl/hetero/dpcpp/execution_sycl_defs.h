@@ -23,6 +23,10 @@
 #include "sycl_defs.h"
 
 #include <type_traits>
+#include <utility> // std::pair
+#include <cstdint> // std::uintptr_t
+#include <atomic>  // atomic_signal_fence
+#include <cassert>
 
 namespace oneapi
 {
@@ -32,6 +36,87 @@ namespace execution
 {
 inline namespace __dpl
 {
+
+namespace __internal
+{
+
+#if _ONEDPL_PREDEFINED_POLICIES
+struct __global_instance_tag {};
+#endif
+using _Queue_factory = sycl::queue (*)();
+
+class alignas(sycl::queue) __queue_holder
+{
+    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _Queue_factory>));
+    static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
+
+    union
+    {
+        sycl::queue __q;
+        std::pair<uintptr_t, _Queue_factory> __flag_and_factory;
+    };
+
+    bool
+    __has_queue() const
+    {
+        bool res = true;
+#if _ONEDPL_PREDEFINED_POLICIES
+        // If the first size-of-pointer bytes are zeros, we consider there is no valid queue.
+        res = (__flag_and_factory.first != 0);
+        std::atomic_signal_fence(std::memory_order_acq_rel); // to prevent possible reordering due to type punning
+#endif
+        return res;
+    }
+
+  public:
+    template <typename... _Args>
+    __queue_holder(_Args... __args) : __q(std::forward<_Args>(__args)...) {}
+
+#if _ONEDPL_PREDEFINED_POLICIES
+    // The ctor for predefined policy instances does not create a queue but stores a queue factory.
+    // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
+    // Then a pointer to a factory function is stored.
+    __queue_holder(__global_instance_tag, _Queue_factory __f) : __flag_and_factory(0, __f) {}
+#endif
+
+    ~__queue_holder()
+    {
+        if (__has_queue())
+            __q.~queue();
+        else
+            __flag_and_factory.second = nullptr;
+    }
+
+    // Copy and move operations have to be explicit
+    __queue_holder(const __queue_holder& __h) : __q(__h.__get_queue()) {}
+    __queue_holder(__queue_holder&& __h) : __q(__h.__get_queue()) {}
+
+    __queue_holder&
+    operator=(const __queue_holder& __h)
+    {
+        if (this != &__h)
+            __q = __h.__get_queue();
+        return *this;
+    }
+
+    __queue_holder&
+    operator=(__queue_holder&& __h)
+    {
+        if (this != &__h)
+            __q = __h.__get_queue();
+        return *this;
+    }
+
+    sycl::queue
+    __get_queue() const
+    {
+        if (__has_queue())
+            return __q;
+        return (__flag_and_factory.second)();
+    }
+};
+
+} // namespace __internal
 
 struct DefaultKernelName;
 
@@ -43,54 +128,76 @@ struct DefaultKernelName;
 template <typename KernelName = DefaultKernelName>
 class device_policy
 {
+    static inline sycl::queue
+    __get_default_queue()
+    {
+        static sycl::queue __q(sycl::default_selector_v);
+        return __q;
+    }
+
   public:
     using kernel_name = KernelName;
 
     device_policy() = default;
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
-    {
-    }
+    device_policy(const device_policy<OtherName>& other) : q(other.queue()) {}
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        return q.__get_queue();
     }
 
+#if _ONEDPL_PREDEFINED_POLICIES
+    explicit device_policy(__internal::__global_instance_tag __t) : q(__t, /*factory*/__get_default_queue) {}
+
+  protected:
+    device_policy(__internal::__global_instance_tag __t, __internal::_Queue_factory __f) : q(__t, __f) {}
+#endif
+
   private:
-    sycl::queue q;
+    static_assert(sizeof(__internal::__queue_holder) == sizeof(sycl::queue));
+    static_assert(alignof(__internal::__queue_holder) == alignof(sycl::queue));
+    __internal::__queue_holder q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
 struct DefaultKernelNameFPGA;
+
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
 
+    static inline sycl::queue
+    __get_fpga_default_queue()
+    {
+        static sycl::queue __q{
+#if _ONEDPL_FPGA_EMU
+            __dpl_sycl::__fpga_emulator_selector()
+#else
+            __dpl_sycl::__fpga_selector()
+#endif
+        };
+        return __q;
+    }
+
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
-#    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
-#    else
-              __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-                  ))
-    {
-    }
+    fpga_policy() : base(__get_fpga_default_queue()) {}
 
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()) {}
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
+#if _ONEDPL_PREDEFINED_POLICIES
+    explicit fpga_policy(__internal::__global_instance_tag __t) : base(__t, /*factory*/__get_fpga_default_queue) {}
+#endif
 };
-
 #endif // _ONEDPL_FPGA_DEVICE
 
 // 2.8, Execution policy objects
@@ -101,9 +208,9 @@ class fpga_policy : public device_policy<KernelName>
 // Starting with c++17 we can simply define sycl as inline variable.
 #    if _ONEDPL___cplusplus >= 201703L
 
-inline device_policy<> dpcpp_default{};
+inline device_policy<> dpcpp_default{__internal::__global_instance_tag{}};
 #        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<> dpcpp_fpga{};
+inline fpga_policy<> dpcpp_fpga{__internal::__global_instance_tag{}};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // _ONEDPL___cplusplus >= 201703L
