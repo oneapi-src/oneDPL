@@ -143,20 +143,21 @@ static __free_func_type __original_free_ptr = free;
 inline bool
 __is_ptr_page_aligned(void* __p)
 {
-    return (uintptr_t)__p % __get_memory_page_size() == 0;
+    // using that __get_memory_page_size() returns only power of 2 values
+    return ((std::uintptr_t)__p & (__get_memory_page_size() - 1)) == 0;
 }
 
 struct __hash_aligned_ptr
 {
-    uintptr_t operator()(void* __p) const
+    std::uintptr_t operator()(void* __p) const
     {
         // We know that addresses are at least page-aligned, so, expecting page at least
         // 4K-aligned, drop 11 right bits that are zeros, and treat rest as a pointer,
         // hoping that an underlying Standard Library support this well.
         static constexpr unsigned __ptr_shift = 11;
         // current page size is at least 4K
-        assert(__get_memory_page_size() >= 1 << __ptr_shift);
-        return std::hash<void*>()((void*)((uintptr_t)__p >> __ptr_shift));
+        assert(__get_memory_page_size() >= (1 << __ptr_shift));
+        return std::hash<void*>()((void*)((std::uintptr_t)__p >> __ptr_shift));
     }
 };
 
@@ -220,7 +221,6 @@ public:
     // So, no need for special support for adding to not-yet-created __large_aligned_ptrs_map.
     __large_aligned_ptrs_map()
     {
-        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
         _M_map = new __map_ptr_to_object_prop;
     }
 
