@@ -568,10 +568,10 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 }
 
                 // step 5) apply global carries
-                size_t subgroup_start_idx = (b * blockSize) + (g * K * num_sub_groups_local);
-                size_t start_idx = subgroup_start_idx + (sub_group_id * K);
+                size_t subgroup_start_idx = (b * blockSize) + (g * K * num_sub_groups_local) + (sub_group_id * K);
+                size_t start_idx = subgroup_start_idx + sub_group_local_id;
                 bool is_full_thread = start_idx + J * VL <= M;
-                start_idx += sub_group_local_id;
+
                 if (is_full_thread && is_full_block)
                 {
                     _ONEDPL_PRAGMA_UNROLL
