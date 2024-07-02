@@ -7,6 +7,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// TBB ETS includes windows.h, that define max macro conflicting with max() from <limits>
+// see https://github.com/oneapi-src/oneTBB/issues/832
+#define NOMINMAX 1
 #include <oneapi/tbb/concurrent_map.h>
 #include "support/utils.h"
 
