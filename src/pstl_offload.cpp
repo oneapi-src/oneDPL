@@ -362,7 +362,7 @@ __internal_free_param(void* __user_ptr, __free_func_type __custom_free)
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __free_usm_pointer(__header);
+            __header->__free();
         }
         else
         {
@@ -523,7 +523,7 @@ __aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __a
                 std::memcpy(__new_ptr, __user_ptr, std::min(__header->_M_requested_number_of_bytes, __new_size));
 
                 // Free previously allocated memory
-                __free_usm_pointer(__header);
+                __header->__free();
                 __result = __new_ptr;
             }
             else
@@ -551,7 +551,7 @@ __internal_free_dbg(void* __user_ptr, int __type)
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __free_usm_pointer(__header);
+            __header->__free();
         }
         else
         {
