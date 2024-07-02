@@ -406,7 +406,7 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
     static constexpr float ScaleMax = ScaleMaxNValue;                                                             \
     static constexpr float ScaleStep = ScaleStepValue;
 #else
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName, ScaleStepValue, ScaleMaxNValue)
+#define DEFINE_TEST_CONSTRUCTOR(TestClassName, ScaleMaxNValue, ScaleStepValue)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//
