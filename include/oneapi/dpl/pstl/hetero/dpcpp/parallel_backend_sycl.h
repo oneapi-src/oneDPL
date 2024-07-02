@@ -965,7 +965,7 @@ struct __parallel_find_forward_tag
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
 
-    using FoundLocalReduceOp = sycl::minimum<_AtomicType>;
+    using FoundLocalReduceOp = __dpl_sycl::__minimum<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1003,7 +1003,7 @@ struct __parallel_find_backward_tag
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
 
-    using FoundLocalReduceOp = sycl::maximum<_AtomicType>;
+    using FoundLocalReduceOp = __dpl_sycl::__maximum<_AtomicType>;
 
     template <typename _DiffType>
     constexpr static _AtomicType __init_value(_DiffType)
@@ -1033,7 +1033,7 @@ struct __parallel_or_tag
 {
     using _AtomicType = int32_t;
 
-    using FoundLocalReduceOp = sycl::bit_or<_AtomicType>;
+    using FoundLocalReduceOp = __dpl_sycl::__plus<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1211,8 +1211,10 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // 2. Find any element that satisfies pred
                     __pred(__item_id, __n_iter, __wgroup_size, __found_local, __brick_tag, __rngs...);
 
-                    // 3. Reduce over group: find minimum (for the __parallel_find_forward_tag) / maximum (for the __parallel_find_backward_tag) / bit_or (for the __parallel_or_tag)
-                    //    value of __found_local inside all our group items
+                    // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
+                    // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
+                    // or calculate the sum with __dpl_sycl::__plus (for the __parallel_or_tag)
+                    // inside all our group items
                     __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
                                                                     typename _BrickTag::FoundLocalReduceOp{});
 
@@ -1231,7 +1233,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     }
 
     if constexpr (__or_tag_check)
-        return __result;
+        return __result != __init_value;
     else
         return __result != __init_value ? __result : __rng_n;
 }
