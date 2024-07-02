@@ -435,7 +435,7 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; 
         __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
-        if (__header->_M_requested_number_of_bytes == __new_size)
+        if (__header->_M_requested_number_of_bytes >= __new_size)
         {
             return __user_ptr;
         }
@@ -452,13 +452,6 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
             __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr))
     {
-        if (__desc->_M_requested_number_of_bytes == __new_size)
-        {
-            // same-size realloc is a corner case, so restoring registration, not calling __get_size beforehand
-            __large_aligned_ptrs_map::__register_ptr(__large_aligned_ptrs, __user_ptr, __new_size, std::move(__desc->_M_device));
-            return __user_ptr;
-        }
-
         void* __result = __realloc_allocate_shared(__desc->_M_device, __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
         if (__result)
         {
@@ -492,6 +485,23 @@ __allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_p
 
 #if _WIN64
 
+static void*
+__realloc_allocate_aligned_shared(__sycl_device_shared_ptr __device_ptr, void* __user_ptr,
+                                  std::size_t __old_size, std::size_t __new_size, std::size_t __alignment)
+{
+    void* __new_ptr = __allocate_shared_for_device(std::move(__device_ptr), __new_size, __alignment);
+
+    if (__new_ptr != nullptr)
+    {
+        std::memcpy(__new_ptr, __user_ptr, std::min(__old_size, __new_size));
+    }
+    else
+    {
+        errno = ENOMEM;
+    }
+    return __new_ptr;
+}
+
 void*
 __aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __alignment)
 {
@@ -503,41 +513,40 @@ __aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __a
         return nullptr;
     }
 
-    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
-
-    void* __result = nullptr;
-
-    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+        __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
         if (__header->_M_requested_number_of_bytes >= __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
         {
-            __result = __user_ptr;
+            return __user_ptr;
         }
-        else
+        void* __result = __realloc_allocate_aligned_shared(__header->_M_device, __user_ptr,
+                                                           __header->_M_requested_number_of_bytes, __new_size, __alignment);
+
+        if (__result != nullptr)
         {
-            assert(__header->_M_device);
-            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, __alignment);
-
-            if (__new_ptr != nullptr)
-            {
-                std::memcpy(__new_ptr, __user_ptr, std::min(__header->_M_requested_number_of_bytes, __new_size));
-
-                // Free previously allocated memory
-                __header->__free();
-                __result = __new_ptr;
-            }
-            else
-            {
-                errno = ENOMEM;
-            }
+            // Free previously allocated memory
+            __header->__free();
         }
+        return __result;
     }
-    else
+
+    if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
+            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr))
     {
-        // __user_ptr is not a USM pointer, use original realloc function
-        __result = __original_aligned_realloc(__user_ptr, __new_size, __alignment);
+        void* __result = __realloc_allocate_aligned_shared(__desc->_M_device, __user_ptr,
+                                                           __desc->_M_requested_number_of_bytes, __new_size, __alignment);
+
+        if (__result != nullptr)
+        {
+            sycl::context __context = __desc->_M_device.__get_context();
+            sycl::free(__user_ptr, __context);
+        }
+        return __result;
     }
-    return __result;
+
+    // __user_ptr is not a USM pointer, use original realloc function
+    return __original_aligned_realloc(__user_ptr, __new_size, __alignment);
 }
 
 #if _DEBUG
