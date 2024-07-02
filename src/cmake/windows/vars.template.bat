@@ -15,6 +15,7 @@ REM
 REM ===----------------------------------------------------------------------===
 REM
 
+set SYCL_ENABLE_DEFAULT_CONTEXTS=1
 set DPL_ROOT=@DPLROOT_REPLACEMENT@
 
 set LIB=@LIBRARY_PATH_REPLACEMENT@;%LIB%
