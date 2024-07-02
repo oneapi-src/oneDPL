@@ -1,0 +1,22 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2023 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _ONEDPL_DISTRIBUTED_RANGES
+#define _ONEDPL_DISTRIBUTED_RANGES
+
+#include "oneapi/dpl/internal/common_config.h"
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#if __cplusplus > 202002L
+#include "oneapi/dpl/internal/distributed_ranges_impl/shp.hpp"
+#else
+#error "C++23 required to use Distributed Ranges"
+#endif
+
+#endif // _ONEDPL_DISTRIBUTED_RANGES

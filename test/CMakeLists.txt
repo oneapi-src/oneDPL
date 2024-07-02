@@ -13,6 +13,9 @@
 ##===----------------------------------------------------------------------===##
 add_subdirectory(kt)
 
+if (ONEDPL_USE_DR)
+    add_subdirectory(distributed-ranges/shp)
+endif()
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
@@ -66,10 +69,12 @@ endif()
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
+set(run-onedpl-tests-depends build-onedpl-tests)
+
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
-    DEPENDS build-onedpl-tests
+    DEPENDS ${run-onedpl-tests-depends}
     COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define)
