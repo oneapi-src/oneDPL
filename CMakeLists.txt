@@ -273,16 +273,16 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             if (ONEDPL_USE_DEVICE_GPU)
                 # -cl-kernel-debug-enable is not needed since https://github.com/intel/compute-runtime/commit/9c237d99ec49ceb3678c815314bc7c745226e4a2
                 # TODO: remove that option when older driver versions are not expected to be used
-                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=${ONEDPL_AOT_TARGETS}") # -Xs \"-device ${ONEDPL_AOT_ARCH} ${ONEDPL_AOT_EXTRA_BACKEND_OPTIONS}\"")
+                set(ONEDPL_AOT_OPTIONS -fsycl-targets=${ONEDPL_AOT_TARGETS})
                 if (ONEDPL_AOT_ARCH)
                     set(ONEDPL_AOT_EXTRA_BACKEND_OPTIONS "$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-internal_options -cl-kernel-debug-enable>")
-                    string(CONCAT ONEDPL_AOT_OPTIONS ${ONEDPL_AOT_OPTIONS} "-Xs \"-device ${ONEDPL_AOT_ARCH} ${ONEDPL_AOT_EXTRA_BACKEND_OPTIONS}\"")
+                    set(ONEDPL_AOT_OPTIONS "${ONEDPL_AOT_OPTIONS} -Xs \"-device ${ONEDPL_AOT_ARCH} ${ONEDPL_AOT_EXTRA_BACKEND_OPTIONS}\"")
                 endif()
             endif()
             if (ONEDPL_USE_DEVICE_CPU)
-                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=${ONEDPL_AOT_TARGETS}")
+                set(ONEDPL_AOT_OPTIONS -fsycl-targets=${ONEDPL_AOT_TARGETS})
                 if (ONEDPL_AOT_ARCH)
-                    string(CONCAT ONEDPL_AOT_OPTIONS ${ONEDPL_AOT_OPTIONS} "-Xs \"-march=${ONEDPL_AOT_ARCH}\"")
+                    set(ONEDPL_AOT_OPTIONS "${ONEDPL_AOT_OPTIONS} -Xs \"-march=${ONEDPL_AOT_ARCH}\"")
                 endif()
             endif()
         endif()
@@ -291,7 +291,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         target_compile_options(oneDPL INTERFACE
             $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
-            ${ONEDPL_AOT_OPTIONS}
+            SHELL:${ONEDPL_AOT_OPTIONS} # pass options as-is and do not add quotes around string
             )
         if (DEFINED ONEDPL_USE_UNNAMED_LAMBDA)
             if(ONEDPL_USE_UNNAMED_LAMBDA)
