@@ -219,23 +219,20 @@ public:
     // We suppose that all users of libpstloffload have dependence on it, so it's impossible to
     // register >=4K-aligned USM memory before ctor of static objects in libpstloffload is executed.
     // So, no need for special support for adding to not-yet-created __large_aligned_ptrs_map.
-    __large_aligned_ptrs_map()
-    {
-        _M_map = new __map_ptr_to_object_prop;
-    }
+    __large_aligned_ptrs_map() : _M_map(new __map_ptr_to_object_prop) { }
 
     // Do not destroy (i.e., intentionally leak) _M_map to able use it after static object dtor is
     // executed. Global free/delete/realloc/etc are overloaded, so we need to use it even after
     // static object dtor has been executed.
     ~__large_aligned_ptrs_map() { }
 
-    void
-    __register_ptr(void* __ptr, std::size_t __size, __sycl_device_shared_ptr __device_ptr)
+    static void
+    __register_ptr(__large_aligned_ptrs_map& __this, void* __ptr, std::size_t __size, __sycl_device_shared_ptr __device_ptr)
     {
         assert(__is_ptr_page_aligned(__ptr));
 
         std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
-        [[maybe_unused]] auto __ret = _M_map->emplace(__ptr, __ptr_desc{std::move(__device_ptr), __size});
+        [[maybe_unused]] auto __ret = __this._M_map->emplace(__ptr, __ptr_desc{std::move(__device_ptr), __size});
         assert(__ret.second); // the pointer must be unique
     }
 
@@ -457,6 +454,8 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     {
         if (__desc->_M_requested_number_of_bytes == __new_size)
         {
+            // same-size realloc is a corner case, so restoring registration, not calling __get_size beforehand
+            __large_aligned_ptrs_map::__register_ptr(__large_aligned_ptrs, __user_ptr, __new_size, std::move(__desc->_M_device));
             return __user_ptr;
         }
 
@@ -486,7 +485,7 @@ __allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_p
 
     if (__ptr)
     {
-        __large_aligned_ptrs.__register_ptr(__ptr, __size, std::move(__device_ptr));
+        __large_aligned_ptrs_map::__register_ptr(__large_aligned_ptrs, __ptr, __size, std::move(__device_ptr));
     }
     return __ptr;
 }
