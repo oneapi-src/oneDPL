@@ -1025,9 +1025,6 @@ main()
     try
     {
 #if TEST_DPCPP_BACKEND_PRESENT
-        //TODO: There is the over-testing here - each algorithm is run with sycl::buffer as well.
-        //So, in case of a couple of 'test_usm_and_buffer' call we get double-testing case with sycl::buffer.
-
         // Run tests for USM shared memory
         test_usm_and_buffer<sycl::usm::alloc::shared>();
         // Run tests for USM device memory
