@@ -332,9 +332,9 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
                         tmp_storage[start_idx + sub_group_local_id] = v;
 
-                        for (i = 1; i < iters - 1; i++)
+                        for (int i = 1; i < iters - 1; i++)
                         {
-                            auto v = sub_group_partials[i * VL + sub_group_local_id];
+                            v = sub_group_partials[i * VL + sub_group_local_id];
                             sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
                             tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                         }
@@ -342,14 +342,16 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
 
                         // else is an unused dummy value
-                        auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local)
-                                            ? (i * VL + sub_group_local_id)
+                        auto proposed_idx = (iters - 1) * VL + sub_group_local_id;
+                        auto load_idx = (proposed_idx < num_sub_groups_local)
+                                            ? proposed_idx
                                             : (num_sub_groups_local - 1);
-                        auto v = sub_group_partials[load_idx];
+
+                        v = sub_group_partials[load_idx];
                         sub_group_scan_partial<VL, true, true>(sub_group, v, binary_op, sub_group_carry,
                                                         num_sub_groups_local);
-                        if (i * VL + sub_group_local_id < num_sub_groups_local)
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                        if (proposed_idx < num_sub_groups_local)
+                            tmp_storage[start_idx + proposed_idx] = v;
                     }
 
                     sub_group_carry.__destroy();
