@@ -379,7 +379,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install OpenMP for Clang++
-        if: (matrix.backend == 'omp' && matrix.compiler == 'clang++')
+        if: (matrix.backend == 'omp' && matrix.cxx_compiler == 'clang++')
         run: |
           brew install libomp
       - name: Run testing
