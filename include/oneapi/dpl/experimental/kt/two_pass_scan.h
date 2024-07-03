@@ -327,17 +327,12 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     }
                     else
                     {
-                        std::uint8_t i = 0;
                         //need to pull out first iteration tp avoid identity
-                        if (i < iters - 1)
-                        {
-                            auto v = sub_group_partials[sub_group_local_id];
-                            sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
-                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
-                            i++;
-                        }
+                        auto v = sub_group_partials[sub_group_local_id];
+                        sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                        tmp_storage[start_idx + sub_group_local_id] = v;
 
-                        for (; i < iters - 1; i++)
+                        for (i = 1; i < iters - 1; i++)
                         {
                             auto v = sub_group_partials[i * VL + sub_group_local_id];
                             sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
