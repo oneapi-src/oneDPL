@@ -365,7 +365,7 @@ inline void* __attribute__((always_inline)) __libc_valloc(std::size_t __size) { 
 // __THROW to match system declaration of pvalloc
 inline void* __attribute__((always_inline)) pvalloc(std::size_t __size) __THROW
 {
-    size_t __page_size = __pstl_offload::__get_memory_page_size();
+    std::size_t __page_size = __pstl_offload::__get_memory_page_size();
     // align size up to the page size
     __size = __size ? ((__size - 1) | (__page_size - 1)) + 1 : __page_size;
     return memalign(__page_size, __size);

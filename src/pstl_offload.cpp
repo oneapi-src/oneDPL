@@ -188,13 +188,15 @@ struct __orig_free_allocator
         __original_free_ptr(__ptr);
 #endif
     }
+
+    template<class U>
+        friend bool operator==(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return true; }
+    template<class U>
+        friend bool operator!=(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return false; }
 };
 
-template<class T, class U>
-bool operator==(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return true; }
-template<class T, class U>
-bool operator!=(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return false; }
-
+// this mutex protects only __large_aligned_ptrs_map, do not put it inside __large_aligned_ptrs_map
+// to freely use after execution __large_aligned_ptrs_map's dtor
 static __spin_mutex __large_aligned_ptrs_map_mtx;
 
 class __large_aligned_ptrs_map
@@ -225,6 +227,9 @@ public:
     // executed. Global free/delete/realloc/etc are overloaded, so we need to use it even after
     // static object dtor has been executed.
     ~__large_aligned_ptrs_map() { }
+
+    __large_aligned_ptrs_map(const __large_aligned_ptrs_map&) = delete;
+    __large_aligned_ptrs_map& operator=(const __large_aligned_ptrs_map&) = delete;
 
     static void
     __register_ptr(__large_aligned_ptrs_map& __this, void* __ptr, std::size_t __size, __sycl_device_shared_ptr __device_ptr)
@@ -314,7 +319,8 @@ __internal_free(void* __user_ptr)
         }
 
         if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
-                __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr))
+                __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+                __desc.has_value())
         {
             sycl::context __context = __desc->_M_device.__get_context();
             sycl::free(__user_ptr, __context);
@@ -402,7 +408,7 @@ __internal_msize(void* __user_ptr)
 
     std::optional<std::size_t> __size = __large_aligned_ptrs_map::__get_size(__large_aligned_ptrs, __user_ptr);
 
-    return __size.has_value() ? __size.value() : __original_msize(__user_ptr);
+    return __size.has_value() ? *__size : __original_msize(__user_ptr);
 }
 
 static void*
@@ -450,7 +456,8 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     }
 
     if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
-            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr))
+            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+            __desc.has_value())
     {
         void* __result = __realloc_allocate_shared(__desc->_M_device, __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
         if (__result)
@@ -532,7 +539,8 @@ __aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __a
     }
 
     if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
-            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr))
+            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+            __desc.has_value())
     {
         void* __result = __realloc_allocate_aligned_shared(__desc->_M_device, __user_ptr,
                                                            __desc->_M_requested_number_of_bytes, __new_size, __alignment);

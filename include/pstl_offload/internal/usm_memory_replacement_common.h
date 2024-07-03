@@ -156,7 +156,12 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size);
 inline std::size_t
 __get_page_size()
 {
-    return sysconf(_SC_PAGESIZE);
+    int ret = sysconf(_SC_PAGESIZE);
+    if (-1 == ret)
+    {
+        throw std::runtime_error(std::string("sysconf() failed with ") + std::to_string(errno));
+    }
+    return ret;
 }
 
 inline void*
