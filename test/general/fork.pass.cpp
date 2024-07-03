@@ -1,3 +1,11 @@
+// -*- C++ -*-
+//===-- fork.pass.cpp -----------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
 #include <oneapi/dpl/execution>
 #include "support/utils.h"
 

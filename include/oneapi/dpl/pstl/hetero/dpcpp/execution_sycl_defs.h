@@ -43,17 +43,17 @@ namespace __internal
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
-using _Queue_factory = sycl::queue (*)();
+using _QueueFactory = sycl::queue (*)();
 
 class alignas(sycl::queue) __queue_holder
 {
-    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _Queue_factory>));
+    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _QueueFactory>));
     static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
 
     union
     {
         sycl::queue __q;
-        std::pair<uintptr_t, _Queue_factory> __flag_and_factory;
+        std::pair<uintptr_t, _QueueFactory> __flag_and_factory;
     };
 
     bool
@@ -76,7 +76,7 @@ class alignas(sycl::queue) __queue_holder
     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
     // Then a pointer to a factory function is stored.
-    __queue_holder(__global_instance_tag, _Queue_factory __f) : __flag_and_factory(0, __f) {}
+    __queue_holder(__global_instance_tag, _QueueFactory __f) : __flag_and_factory(0, __f) {}
 #endif
 
     ~__queue_holder()
@@ -155,7 +155,7 @@ class device_policy
     explicit device_policy(__internal::__global_instance_tag __t) : q(__t, /*factory*/__get_default_queue) {}
 
   protected:
-    device_policy(__internal::__global_instance_tag __t, __internal::_Queue_factory __f) : q(__t, __f) {}
+    device_policy(__internal::__global_instance_tag __t, __internal::_QueueFactory __f) : q(__t, __f) {}
 #endif
 
   private:
