@@ -19,8 +19,6 @@ env:
   WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a1d6c917-05ab-4883-b67b-4bd60abb74e5/w_dpcpp-cpp-compiler_p_2024.1.0.469_offline.exe
   WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
-  # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
-  MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -373,19 +371,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
-            cxx_compiler: icpc
+          - os: macos-13
+            cxx_compiler: clang++
             std: 17
             build_type: release
             backend: omp
     steps:
       - uses: actions/checkout@v3
-      - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
-        run: |
-          wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
-          mkdir installer
-          hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
-          sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
       - name: Exclude tests with known issues
         if: matrix.backend == 'omp'
         run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
@@ -395,9 +387,6 @@ jobs:
           set -x
           source /opt/intel/oneapi/setvars.sh
           echo "::warning::CMake: $(cmake --version)"
-          if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
-            echo "::warning::Compiler: $(icpc --version)"
-          fi
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
