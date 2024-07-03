@@ -1,16 +1,16 @@
 ---
 Name: Bug or performance issue report
-About: Create a report to help us improve oneDPL
+About: Create a report to help us improve oneDPL.
 Title: ''
 Labels: bug
 Assignees: ''
 
 ---
 
-**Describe the bug**
+**Describe the Bug:**
 A clear and concise description of what the bug or performance issue is.
 
-**To Reproduce**
+**To Reproduce:**
 Steps to reproduce the behavior:
 
 The following information might be useful: 
@@ -21,8 +21,8 @@ The following information might be useful:
  - OS: [e.g. Ubuntu 22.04]
  - Device and driver version: [e.g. Intel(R) Iris(R) Xe Graphics, 1.3.29138]
 
-**Expected behavior**
+**Expected Behavior:**
 A clear and concise description of what you expected to happen.
 
-**Additional context**
+**Additional Context:**
 Add any other context about the problem here.

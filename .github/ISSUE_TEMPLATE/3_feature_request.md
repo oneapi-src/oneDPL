@@ -1,20 +1,20 @@
 ---
 Name: Feature request
-About: Suggest an idea for oneDPL
+About: Suggest an idea for oneDPL.
 Title: ''
 Labels: feature_request
 Assignees: ''
 
 ---
 
-**Summary**
+**Summary:**
 A clear and concise description of the request. 
 
-**Problem statement**
+**Problem Statement:**
 Describe the problem you are trying to solve.
 
-**Preferred solution**
+**Preferred Solution:**
 If you have thoughts on what a solution may look like, please document them here.
 
-**Additional context**
+**Additional Context:**
 Add any other context about the feature request here.
