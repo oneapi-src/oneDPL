@@ -73,8 +73,8 @@ __pattern_for_each(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _P
 
 template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
 auto
-__pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
-                    _F __op, _Proj __proj)
+__pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op,
+                         _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
     assert(__in_r.size() == __out_r.size());
@@ -206,7 +206,7 @@ __pattern_adjacent_find_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _P
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 auto
-__pattern_adjacent_find2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
+__pattern_adjacent_find_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
                         _Proj __proj)
 {
     return __pattern_adjacent_find_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred,
@@ -215,7 +215,7 @@ __pattern_adjacent_find2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __e
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 auto
-__pattern_adjacent_find2(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+__pattern_adjacent_find_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     if constexpr(typename _Tag::__is_vector{})
         return __pattern_adjacent_find_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
