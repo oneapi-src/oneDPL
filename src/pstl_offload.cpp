@@ -8,9 +8,9 @@
 //===----------------------------------------------------------------------===//
 
 #include <new>
-#include <cassert>
 #include <cstdint>
 #include <mutex> // std::scoped_lock
+#include <optional>
 #include <sycl/sycl.hpp>
 
 #include <pstl_offload/internal/usm_memory_replacement_common.h>
@@ -44,15 +44,9 @@ Microsoft Detours.
 
 #elif __linux__
 
-#include <dlfcn.h>
-#include <unistd.h>
-
 #define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
 
 #endif
-
-#include <string.h>
-#include <atomic>
 
 namespace __pstl_offload
 {

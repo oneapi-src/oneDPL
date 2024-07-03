@@ -18,7 +18,6 @@
 #include <atomic>
 #include <cassert>
 #include <cerrno>
-#include <optional>
 #include <mutex> // std::scoped_lock
 
 #include <sycl/sycl.hpp>
