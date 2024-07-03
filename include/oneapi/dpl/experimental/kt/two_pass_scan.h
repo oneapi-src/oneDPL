@@ -185,10 +185,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
     size_t M = __in_rng.size();
     size_t num_remaining = M;
 
-    //    static_assert(oneapi::dpl::unseq_backend::__has_known_identity<BinaryOp, ValueType>::value,
-    //                  "The prototype currently supports only known identity operators + init type");
-    //    constexpr ValueType identity = oneapi::dpl::unseq_backend::__known_identity<BinaryOp, ValueType>;
-
     constexpr int J_max = 128;
     std::size_t MAX_INPUTS_PER_BLOCK = work_group_size * J_max * num_work_groups; // empirically determined for reduce_then_scan
     // items per PVC hardware thread
@@ -235,7 +231,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
                 std::size_t group_start_idx = (b * blockSize) + (g * K * num_sub_groups_local);
                 if (M <= group_start_idx)
-                    return; // exit early for empty groups
+                    return; // exit early for empty groups (TODO: avoid launching these?)
 
                     
                 std::size_t elements_in_group = std::min(M - group_start_idx, std::size_t(num_sub_groups_local * K));
@@ -319,65 +315,46 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 {
                     start_idx = (g * num_sub_groups_local);
                     std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(active_subgroups, VL);
-                    // if (is_full_carry_scanner)
-                    // {
-                    //     //unrolled first iteration to avoid identity
-                    //     auto v = sub_group_partials[sub_group_local_id];
-                    //     sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
-                    //     tmp_storage[start_idx + sub_group_local_id] = v;
-
-                    //     for (std::uint8_t i = 1; i < iters; i++)
-                    //     {
-                    //         v = sub_group_partials[i * VL + sub_group_local_id];
-                    //         sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
-                    //         tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
-                    //     }
-                    // }
-                    // else
+                    if (iters == 1)
                     {
-                        // In practice iters is usually 1 here when the number of sub-groups is less than the vector length.
-                        // An exception would be the unlikely case where the sub-group size does not divide the work-group size
-                        if (iters == 1)
+                        auto load_idx = (sub_group_local_id < active_subgroups)
+                                            ? sub_group_local_id
+                                            : (active_subgroups - 1); // else is unused dummy value
+                        auto v = sub_group_partials[load_idx];
+                        sub_group_scan_partial<VL, true, false>(sub_group, v, binary_op, sub_group_carry, active_subgroups - subgroup_start_idx);
+                        if (sub_group_local_id < active_subgroups)
+                            tmp_storage[start_idx + sub_group_local_id] = v;
+                    }
+                    else
+                    {
+                        std::uint8_t i = 0;
+                        //need to pull out first iteration tp avoid identity
+                        if (i < iters - 1)
                         {
-                            auto load_idx = (sub_group_local_id < active_subgroups)
-                                                ? sub_group_local_id
-                                                : (active_subgroups - 1); // else is unused dummy value
-                            auto v = sub_group_partials[load_idx];
-                            sub_group_scan_partial<VL, true, false>(sub_group, v, binary_op, sub_group_carry, active_subgroups - subgroup_start_idx);
-                            if (sub_group_local_id < active_subgroups)
-                                tmp_storage[start_idx + sub_group_local_id] = v;
+                            auto v = sub_group_partials[sub_group_local_id];
+                            sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                            i++;
                         }
-                        else
+
+                        for (; i < iters - 1; i++)
                         {
-                            std::uint8_t i = 0;
-                            //need to pull out first iteration tp avoid identity
-                            if (i < iters - 1)
-                            {
-                                auto v = sub_group_partials[sub_group_local_id];
-                                sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
-                                i++;
-                            }
-
-                            for (; i < iters - 1; i++)
-                            {
-                                auto v = sub_group_partials[i * VL + sub_group_local_id];
-                                sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
-                            }
-                            // If we are past the input range, then the previous value of v is passed to the sub-group scan.
-                            // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
-
-                            // else is an unused dummy value
-                            auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local)
-                                                ? (i * VL + sub_group_local_id)
-                                                : (num_sub_groups_local - 1);
-                            auto v = sub_group_partials[load_idx];
-                            sub_group_scan_partial<VL, true, true>(sub_group, v, binary_op, sub_group_carry,
-                                                           num_sub_groups_local);
-                            if (i * VL + sub_group_local_id < num_sub_groups_local)
-                                tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
+                            auto v = sub_group_partials[i * VL + sub_group_local_id];
+                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                         }
+                        // If we are past the input range, then the previous value of v is passed to the sub-group scan.
+                        // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
+
+                        // else is an unused dummy value
+                        auto load_idx = (i * VL + sub_group_local_id < num_sub_groups_local)
+                                            ? (i * VL + sub_group_local_id)
+                                            : (num_sub_groups_local - 1);
+                        auto v = sub_group_partials[load_idx];
+                        sub_group_scan_partial<VL, true, true>(sub_group, v, binary_op, sub_group_carry,
+                                                        num_sub_groups_local);
+                        if (i * VL + sub_group_local_id < num_sub_groups_local)
+                            tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                     }
 
                     sub_group_carry.__destroy();
@@ -404,7 +381,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                 auto group_start_idx = (b * blockSize) + (g * K * num_sub_groups_local);
                 if (M <= group_start_idx)
-                    return; // exit early for empty groups
+                    return; // exit early for empty groups (TODO: avoid launching these?)
 
                 std::size_t elements_in_group = std::min(M - group_start_idx, std::size_t(num_sub_groups_local * K));
                 auto active_subgroups = oneapi::dpl::__internal::__dpl_ceiling_div(elements_in_group, K);
@@ -463,10 +440,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     //         memory accesses: gather(63, 127, 191, 255, ...)
                     uint32_t offset = num_sub_groups_local - 1;
                     // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
-                    
-                    
-                    //TODO: fix this calculation to be limited by the the group number (or go back to identity to see if this is the last problem...)
-
                     if (g > 0)
                     {
                         // only need the last element from each scan of num_sub_groups_local subgroup reductions
