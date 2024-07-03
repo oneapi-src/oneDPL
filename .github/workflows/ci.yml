@@ -378,14 +378,10 @@ jobs:
             backend: omp
     steps:
       - uses: actions/checkout@v3
-      - name: Exclude tests with known issues
-        if: matrix.backend == 'omp'
-        run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
       - name: Run testing
         shell: bash
         run: |
           set -x
-          source /opt/intel/oneapi/setvars.sh
           echo "::warning::CMake: $(cmake --version)"
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
