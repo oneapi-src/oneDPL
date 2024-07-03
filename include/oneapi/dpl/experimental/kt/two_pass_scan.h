@@ -497,7 +497,6 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 //            and apply to local sub-group prefix carries
                 if ((sub_group_id == 0) && (g > 0))
                 {
-                    ValueType adj_work_group_carry;
                     auto carry_offset = 0;
 
                     std::uint8_t iters = oneapi::dpl::__internal::__dpl_ceiling_div(active_subgroups, VL);
