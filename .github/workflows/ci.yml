@@ -388,9 +388,10 @@ jobs:
           echo "::warning::CMake: $(cmake --version)"
           sysctl -a | grep machdep.cpu
           # workaround for CMake not being able to find OpenMP: see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
-          export OpenMP_ROOT=$(brew --prefix)/opt/libomp 
+          # -DCMAKE_POLICY_DEFAULT_CMP0074=NEW below is forced to make sure CMake uses <PackageName>_ROOT variables.
+          export OpenMP_ROOT=$(brew --prefix)/opt/libomp
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DCMAKE_POLICY_DEFAULT_CMP0074=NEW ..
           make VERBOSE=1 build-onedpl-tests -j${MACOS_BUILD_CONCURRENCY}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"
