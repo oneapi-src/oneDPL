@@ -42,6 +42,31 @@ inline const std::vector<std::size_t> scan_sizes = {
     100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
     888'235, 1'000'000, 1 << 20, 10'000'000};
 
+template <typename T>
+class no_default
+{
+  private:
+    T __t;
+  public:
+    no_default() = delete;
+    no_default(const T& t)
+    {
+        __t = t;
+    }
+    //define arithmetic operators
+    no_default& operator=(const T& t) { this->__t = t; return *this; }
+    no_default& operator+=(const T& t) { this->__t += t; return *this; }
+    no_default& operator*=(const T& t) { this->__t *= t; return *this; }
+
+    //create ostream operator
+    friend std::ostream& operator<<(std::ostream& os, const no_default& a) { return os << a.__t; }
+
+    friend bool operator==(const no_default& a, const no_default& b) { return a.__t == b.__t; }
+    friend no_default operator+(const no_default& a, const no_default& b) { return no_default{a.__t + b.__t}; }
+    friend no_default operator*(const no_default& a, const no_default& b) { return no_default{a.__t * b.__t}; }
+};
+//add arithmetic operators
+
 
 template <typename BinOp, typename T>
 auto
@@ -69,15 +94,15 @@ generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 
 template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename InclKernelParam>
 void
-test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_param)
+test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_param, T init)
 {
     auto excl_param = TestUtils::get_new_kernel_params<0>(incl_param);
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
 #endif
-    std::vector<T> expected1(size);
-    std::vector<T> expected2(size);
+    std::vector<T> expected1(size, init);
+    std::vector<T> expected2(size, init);
     generate_scan_data<BinOp>(expected1.data(), size, 42);
     generate_scan_data<BinOp>(expected2.data(), size, 42);
 
@@ -87,7 +112,7 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_par
 
     inclusive_scan_serial(expected1.begin(), expected1.end(), expected1.begin(), bin_op);
     exclusive_scan_serial(expected2.begin(), expected2.end(), expected2.begin(),
-                          oneapi::dpl::unseq_backend::__known_identity<BinOp, T>, bin_op);
+                          init, bin_op);
 
     auto invoke_and_verify = [&](auto& dt_src, auto& dt_dst, auto& expected_res, auto is_inclusive) {
         constexpr bool is_inclusive_scan = decltype(is_inclusive)::value;
@@ -97,17 +122,17 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_par
             msg = "wrong results with USM for inclusive_scan, n: " + std::to_string(size);
             oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename InclKernelParam::kernel_name>(
                 q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op,
-                oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+                init);
         }
         else
         {
             msg = "wrong results with USM for exclusive_scan, n: " + std::to_string(size);
             oneapi::dpl::experimental::kt::gpu::two_pass_exclusive_scan<typename decltype(excl_param)::kernel_name>(
                 q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(),
-                oneapi::dpl::unseq_backend::__known_identity<BinOp, T>, bin_op);
+                init, bin_op);
         }
 
-        std::vector<T> actual(size);
+        std::vector<T> actual(size, init);
         dt_dst.retrieve_data(actual.begin());
 
         EXPECT_EQ_N(expected_res.begin(), actual.begin(), size, msg.c_str());
@@ -124,13 +149,13 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_par
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param, T init)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
-    std::vector<T> input(size);
-    std::vector<T> output(size);
+    std::vector<T> input(size, init);
+    std::vector<T> output(size, init);
     generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     inclusive_scan_serial(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
@@ -138,7 +163,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam p
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
         oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename KernelParam::kernel_name>(
-          q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), bin_op, oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+          q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), bin_op, init);
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -147,12 +172,12 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam p
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param, T init)
 {
 #    if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
-    std::vector<T> input(size);
+    std::vector<T> input(size, init);
     generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
@@ -163,7 +188,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read> view(buf);
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view_out(buf_out);
         oneapi::dpl::experimental::kt::gpu::ranges::two_pass_transform_inclusive_scan<typename KernelParam::kernel_name>(
-          q, view, view_out, bin_op, oneapi::dpl::__internal::__no_op(), oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+          q, view, view_out, bin_op, oneapi::dpl::__internal::__no_op(), init);
     }
 
     auto acc = buf_out.get_host_access();
@@ -174,12 +199,12 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param, T init)
 {
 #    if LOG_TEST_INFO
     std::cout << "\ttest_buffer(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #    endif
-    std::vector<T> input(size);
+    std::vector<T> input(size, init);
     generate_scan_data<BinOp>(input.data(), size, 42);
     std::vector<T> ref(input);
     sycl::buffer<T> buf_out(input.size());
@@ -188,7 +213,7 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::kt::gpu::ranges::two_pass_transform_inclusive_scan<typename KernelParam::kernel_name>(
-          q, buf, buf_out, bin_op, oneapi::dpl::__internal::__no_op(), oneapi::dpl::unseq_backend::__known_identity<BinOp, T>);
+          q, buf, buf_out, bin_op, oneapi::dpl::__internal::__no_op(), init);
     }
 
     auto acc = buf_out.get_host_access();
@@ -199,20 +224,22 @@ test_buffer(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 
 template <typename T, typename BinOp, typename KernelParam>
 void
-test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param, T init)
 {
-    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param));
-    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<1>(param));
-    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param));
-    test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<3>(param));
-    test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param));
+    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, TestUtils::get_new_kernel_params<0>(param), init);
+    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, TestUtils::get_new_kernel_params<1>(param), init);
+
+    test_sycl_iterators<T>(q, size, bin_op, TestUtils::get_new_kernel_params<2>(param), init);
+    test_all_view<T>(q, size, bin_op, TestUtils::get_new_kernel_params<3>(param), init);
+    test_buffer<T>(q, size, bin_op, TestUtils::get_new_kernel_params<4>(param), init);
 }
 
 template <typename T, typename KernelParam>
 void
 test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
-    test_general_cases<T>(q, size, std::plus<T>{}, TestUtils::get_new_kernel_params<0>(param));
+    test_general_cases<T>(q, size, std::plus<T>{}, TestUtils::get_new_kernel_params<0>(param), oneapi::dpl::unseq_backend::__known_identity<std::plus<T>, T>);
+    test_general_cases<no_default<T>>(q, size, std::plus<no_default<T>>{}, TestUtils::get_new_kernel_params<1>(param), no_default<T>{oneapi::dpl::unseq_backend::__known_identity<std::plus<T>, T>});
 #if _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN
     static constexpr bool int64_mult_broken = std::is_integral_v<T> && (sizeof(T) == 8);
 #else
@@ -220,7 +247,8 @@ test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 #endif
     if constexpr (!int64_mult_broken)
     {
-        test_general_cases<T>(q, size, std::multiplies<T>{}, TestUtils::get_new_kernel_params<1>(param));
+        test_general_cases<T>(q, size, std::multiplies<T>{}, TestUtils::get_new_kernel_params<2>(param), oneapi::dpl::unseq_backend::__known_identity<std::multiplies<T>, T>);
+        test_general_cases<no_default<T>>(q, size, std::multiplies<no_default<T>>{}, TestUtils::get_new_kernel_params<3>(param), no_default<T>{oneapi::dpl::unseq_backend::__known_identity<std::multiplies<T>, T>});
     }
 }
 
