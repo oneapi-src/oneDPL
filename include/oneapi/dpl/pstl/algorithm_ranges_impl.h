@@ -44,10 +44,10 @@ __pattern_for_each_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __
         [__f, __proj](auto&& __val) { std::invoke(__f, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
     oneapi::dpl::__internal::__pattern_walk1(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
-        std::ranges::begin(__r) + __r.size(), __f_1);
+        std::ranges::begin(__r) + std::ranges::size(__r), __f_1);
 
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
-    return __return_t{__r.begin() + __r.size(), std::move(__f)};
+    return __return_t{std::ranges::begin(__r) + std::ranges::size(__r), std::move(__f)};
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
@@ -77,19 +77,20 @@ __pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_
                          _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
-    assert(__in_r.size() == __out_r.size());
+    assert(std::ranges::size(__in_r) == std::ranges::size(__out_r));
 
     auto __unary_op = [=](auto&& __val) -> decltype(auto) { 
         return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
     oneapi::dpl::__internal::__pattern_walk2(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__in_r),
-        std::ranges::begin(__in_r) + __in_r.size(), std::ranges::begin(__out_r),
+        std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r),
         oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{std::move(__unary_op)});
 
     using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
+    return __return_t{std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r) + 
+        std::ranges::size(__out_r)};
 }
 
 template<typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F,
@@ -111,7 +112,7 @@ __pattern_transform(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
         return __pattern_transform_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
                                         std::forward<_OutRange>(__out_r), __op, __proj);
     else
-        return std::ranges::transform(std::forward<_InRange>(__in_r), __out_r.begin(), __op, __proj);
+        return std::ranges::transform(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r), __op, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -128,8 +129,8 @@ __pattern_find_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __
         return std::invoke(__pred, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
     return std::ranges::borrowed_iterator_t<_R>(oneapi::dpl::__internal::__pattern_find_if(__tag,
-        std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(),
-        __pred_1));
+        std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r), std::ranges::begin(__r) +
+        std::ranges::size(__r), __pred_1));
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
@@ -163,7 +164,7 @@ __pattern_any_of_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __p
     auto __pred_1 = [__pred, __proj](auto&& __val) { 
         return std::invoke(__pred, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
     return oneapi::dpl::__internal::__pattern_any_of(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(), __pred_1);
+        std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __pred_1);
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
@@ -199,7 +200,7 @@ __pattern_adjacent_find_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _P
         std::forward<decltype(__val)>(__val)), std::invoke(__proj, std::forward<decltype(__next)>(__next)));};
 
     auto __res = oneapi::dpl::__internal::__pattern_adjacent_find(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(), __pred_2,
+        std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __pred_2,
         oneapi::dpl::__internal::__first_semantic());
     return std::ranges::borrowed_iterator_t<_R>(__res);
 }
@@ -241,8 +242,8 @@ __pattern_search_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& _
         std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     auto __res = oneapi::dpl::__internal::__pattern_search(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r1), std::ranges::begin(__r1) + __r1.size(), std::ranges::begin(__r2),
-        std::ranges::begin(__r2) + __r2.size(), __pred_2);
+        std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
+        std::ranges::begin(__r2) + std::ranges::size(__r2), __pred_2);
 
     return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1) ? __res : __res + __r2.size());
 }
@@ -284,7 +285,7 @@ __pattern_search_n_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r,
         std::invoke(__proj, std::forward<decltype(__val1)>(__val1)), std::forward<decltype(__val2)>(__val2));};
 
     auto __res = oneapi::dpl::__internal::__pattern_search_n(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r), std::ranges::begin(__r) + __r.size(), __count, __value, __pred_2);
+        std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __count, __value, __pred_2);
 
     return std::ranges::borrowed_subrange_t<_R>(__res, __res == std::ranges::end(__r) ? __res : __res + __count);
 }
