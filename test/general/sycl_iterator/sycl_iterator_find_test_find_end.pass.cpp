@@ -132,7 +132,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_find_end");
     test2buffers<alloc_type, test_find_end<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

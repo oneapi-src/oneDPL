@@ -75,7 +75,6 @@ template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    PRINT_DEBUG("test_destroy_n");
     test1buffer<alloc_type, test_destroy_n<SyclTypeWrapper<ValueType>>>();
     test1buffer<alloc_type, test_destroy_n<ValueType>>();
 }

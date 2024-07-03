@@ -90,8 +90,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    // test1buffer
-    PRINT_DEBUG("test_any_all_none_of");
     test1buffer<alloc_type, test_any_all_none_of<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

@@ -50,7 +50,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_uninitialized_move_n");
     test2buffers<alloc_type, test_uninitialized_move_n<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

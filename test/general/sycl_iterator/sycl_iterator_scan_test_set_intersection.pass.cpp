@@ -93,7 +93,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_set_intersection");
     test3buffers<alloc_type, test_set_intersection<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

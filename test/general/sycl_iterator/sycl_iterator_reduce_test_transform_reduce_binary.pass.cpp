@@ -47,7 +47,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_transform_reduce_binary");
     test2buffers<alloc_type, test_transform_reduce_binary<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

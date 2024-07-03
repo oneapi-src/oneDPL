@@ -74,7 +74,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_is_partitioned");
     test1buffer<alloc_type, test_is_partitioned<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

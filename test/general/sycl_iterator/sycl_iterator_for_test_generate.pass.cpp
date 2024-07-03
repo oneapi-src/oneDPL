@@ -63,7 +63,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_generate");
     test1buffer<alloc_type, test_generate<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

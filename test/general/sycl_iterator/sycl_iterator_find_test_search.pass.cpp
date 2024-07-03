@@ -82,7 +82,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_search");
     test2buffers<alloc_type, test_search<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

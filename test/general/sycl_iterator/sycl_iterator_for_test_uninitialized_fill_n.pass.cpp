@@ -45,7 +45,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_uninitialized_fill_n");
     test1buffer<alloc_type, test_uninitialized_fill_n<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

@@ -49,7 +49,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_replace_copy_if");
     test2buffers<alloc_type, test_replace_copy_if<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

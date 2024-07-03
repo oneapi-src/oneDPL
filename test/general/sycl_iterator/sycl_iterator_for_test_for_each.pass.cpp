@@ -62,8 +62,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    // test1buffer
-    PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_for_each<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

@@ -87,7 +87,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_partial_sort_copy");
     test2buffers<alloc_type, test_partial_sort_copy<ValueType>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

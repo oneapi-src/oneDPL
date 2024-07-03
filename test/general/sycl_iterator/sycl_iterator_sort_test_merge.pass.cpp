@@ -69,7 +69,6 @@ test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
-    PRINT_DEBUG("test_merge");
     test3buffers<alloc_type, test_merge<ValueType>>(2);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

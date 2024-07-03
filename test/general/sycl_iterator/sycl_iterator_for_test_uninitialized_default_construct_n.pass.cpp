@@ -67,7 +67,6 @@ template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    PRINT_DEBUG("test_uninitialized_default_construct_n");
     test1buffer<alloc_type, test_uninitialized_default_construct_n<SyclTypeWrapper<ValueType>>>();
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
