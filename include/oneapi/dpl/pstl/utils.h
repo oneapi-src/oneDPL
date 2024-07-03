@@ -139,7 +139,7 @@ struct __compare
     bool
     operator()(const _Xp& __x, const _Yp& __y) const
     {
-        return __comp(__x, __y);
+        return __comp(__proj(__x), __proj(__y));
     }
 };
 
