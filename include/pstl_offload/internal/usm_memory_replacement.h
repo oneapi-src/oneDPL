@@ -41,7 +41,7 @@ static std::atomic_bool __device_ready;
 // Under Windows, we must not use functions with explicit alignment for malloc replacement, as
 // an allocated memory would be released by free() replacement, that has no alignment argument.
 // Mark such allocations with special alignment. Use 0, as this is not valid alignment.
-static constexpr std::size_t __ignore_alignment = 0;
+inline constexpr std::size_t __ignore_alignment = 0;
 
 static void
 __set_device_status(bool __ready)
@@ -200,7 +200,7 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
         if (__sycl_device_shared_ptr __dev = __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
         {
             void* __res = __allocate_shared_for_device(std::move(__dev), __size, __alignment);
-            if (__res && __alignment)
+            if (__res != nullptr && __alignment != 0)
                 assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
             return __res;
         }
@@ -216,7 +216,7 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
     void* __res =
         __original_aligned_alloc((__ignore_alignment == __alignment) ? alignof(std::max_align_t) : __alignment, __size);
 #endif
-    if (__res && __alignment)
+    if (__res != nullptr && __alignment != 0)
         assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
     return __res;
 }
