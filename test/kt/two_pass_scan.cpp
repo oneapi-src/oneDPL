@@ -67,6 +67,20 @@ class no_default
 };
 //add arithmetic operators
 
+template <typename T>
+struct test_is_signed
+{
+    static constexpr bool value = std::is_signed_v<T>;
+};
+
+template <typename T>
+struct test_is_signed<no_default<T>>
+{
+    static constexpr bool value = std::is_signed_v<T>;
+};
+
+template <typename T>
+static constexpr bool test_is_signed_v = test_is_signed<T>::value;
 
 template <typename BinOp, typename T>
 auto
@@ -74,9 +88,9 @@ generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
 {
     // Integer numbers are generated even for floating point types in order to avoid rounding errors,
     // and simplify the final check
-    using substitute_t = std::conditional_t<std::is_signed_v<T>, std::int64_t, std::uint64_t>;
+    using substitute_t = std::conditional_t<test_is_signed_v<T>, std::int64_t, std::uint64_t>;
 
-    const substitute_t start = std::is_signed_v<T> ? -10 : 0;
+    const substitute_t start = test_is_signed_v<T> ? -10 : 0;
     const substitute_t end = 10;
 
     std::default_random_engine gen{seed};
