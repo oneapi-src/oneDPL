@@ -387,6 +387,7 @@ jobs:
         run: |
           set -x
           echo "::warning::CMake: $(cmake --version)"
+          sysctl -a | grep machdep.cpu
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
