@@ -369,7 +369,7 @@ __internal_free_param(void* __user_ptr, __free_func_type __custom_free)
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __header->__free();
+            __free_usm_pointer(__header);
         }
         else
         {
@@ -534,7 +534,7 @@ __aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __a
         if (__result != nullptr)
         {
             // Free previously allocated memory
-            __header->__free();
+            __free_usm_pointer(__header);
         }
         return __result;
     }
