@@ -8,8 +8,9 @@
 //===----------------------------------------------------------------------===//
 
 #include <new>
-#include <cassert>
 #include <cstdint>
+#include <mutex> // std::scoped_lock
+#include <optional>
 #include <sycl/sycl.hpp>
 
 #include <pstl_offload/internal/usm_memory_replacement_common.h>
@@ -38,6 +39,12 @@ Microsoft Detours.
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #include <detours.h>
 #pragma GCC diagnostic pop
+
+#define _PSTL_OFFLOAD_EXPORT
+
+#elif __linux__
+
+#define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
 
 #endif
 
@@ -113,43 +120,237 @@ __original_msize(void* __user_ptr)
     return __orig_msize(__user_ptr);
 }
 
+static auto
+__get_original_realloc()
+{
+    using __realloc_func_type = void* (*)(void*, std::size_t);
+
+    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
+    return __orig_realloc;
+}
+#elif _WIN64
+
+static __free_func_type __original_free_ptr = free;
+
+#endif
+
+inline bool
+__is_ptr_page_aligned(void* __p)
+{
+    // using that __get_memory_page_size() returns only power of 2 values
+    return ((std::uintptr_t)__p & (__get_memory_page_size() - 1)) == 0;
+}
+
+struct __hash_aligned_ptr
+{
+    std::uintptr_t operator()(void* __p) const
+    {
+        // We know that addresses are at least page-aligned, so, expecting page at least
+        // 4K-aligned, drop 11 right bits that are zeros, and treat rest as a pointer,
+        // hoping that an underlying Standard Library support this well.
+        constexpr unsigned __ptr_shift = 11;
+        // current page size is at least 4K
+        assert(__get_memory_page_size() >= (1 << __ptr_shift));
+        return std::hash<void*>()((void*)((std::uintptr_t)__p >> __ptr_shift));
+    }
+};
+
+template <class T>
+struct __orig_free_allocator
+{
+    using value_type = T;
+
+    __orig_free_allocator() = default;
+
+    template <class U>
+    constexpr __orig_free_allocator(const __orig_free_allocator<U>&) noexcept {}
+
+    T* allocate(std::size_t __n)
+    {
+        T *ptr = static_cast<T*>(std::malloc(__n * sizeof(T)));
+        if (ptr == nullptr)
+        {
+            throw std::bad_alloc();
+        }
+        return ptr;
+    }
+
+    void deallocate(T* __ptr, std::size_t) noexcept
+    {
+#if __linux__
+        __original_free(__ptr);
+#elif _WIN64
+        __original_free_ptr(__ptr);
+#endif
+    }
+
+    template <class U>
+    friend bool operator==(const __orig_free_allocator<T>&, const __orig_free_allocator<U>&) { return true; }
+    template <class U>
+    friend bool operator!=(const __orig_free_allocator<T>&, const __orig_free_allocator<U>&) { return false; }
+};
+
+// this mutex protects only __large_aligned_ptrs_map, do not put it inside __large_aligned_ptrs_map
+// to freely use after execution __large_aligned_ptrs_map's dtor
+static __spin_mutex __large_aligned_ptrs_map_mtx;
+
+class __large_aligned_ptrs_map
+{
+public:
+    struct __ptr_desc
+    {
+        __sycl_device_shared_ptr _M_device;
+        std::size_t _M_requested_number_of_bytes;
+    };
+
+private:
+    // Find sycl::device and requested size by user pointer. Use __orig_free_allocator to not
+    // call global delete during delete processing (overloaded global delete includes
+    // __unregister_ptr call).
+    using __map_ptr_to_object_prop =
+        std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
+        __orig_free_allocator<std::pair<void* const, __ptr_desc>>>;
+    __map_ptr_to_object_prop* _M_map;
+
+public:
+    // We suppose that all users of libpstloffload have dependence on it, so it's impossible to
+    // register >=4K-aligned USM memory before ctor of static objects in libpstloffload is executed.
+    // So, no need for special support for adding to not-yet-created __large_aligned_ptrs_map.
+    // Suppose that _M_map contains zero before ctor run, so __unregister_ptr()/__get_size() can be
+    // used in this case.
+    __large_aligned_ptrs_map()
+    {
+        // must have lock because __unregister_ptr()/__get_size() can be called concurrently with ctor
+        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
+        _M_map = new __map_ptr_to_object_prop;
+    }
+
+    // Do not destroy (i.e., intentionally leak) _M_map to able use it after static object dtor is
+    // executed. Global free/delete/realloc/etc are overloaded, so we need to use it even after
+    // static object dtor has been executed.
+    ~__large_aligned_ptrs_map() { }
+
+    __large_aligned_ptrs_map(const __large_aligned_ptrs_map&) = delete;
+    __large_aligned_ptrs_map& operator=(const __large_aligned_ptrs_map&) = delete;
+
+    static void
+    __register_ptr(__large_aligned_ptrs_map& __this, void* __ptr, std::size_t __size, __sycl_device_shared_ptr __device_ptr)
+    {
+        assert(__is_ptr_page_aligned(__ptr));
+
+        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
+        [[maybe_unused]] auto __ret = __this._M_map->emplace(__ptr, __ptr_desc{std::move(__device_ptr), __size});
+        assert(__ret.second); // the pointer must be unique
+    }
+
+    // nullopt means "it's not our pointer"
+    static std::optional<__ptr_desc>
+    __unregister_ptr(__large_aligned_ptrs_map& __this, void* __ptr)
+    {
+        // only page-aligned can be registered, so they may not be in the map
+        if (!__is_ptr_page_aligned(__ptr))
+        {
+            return std::nullopt;
+        }
+
+        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
+        if (!__this._M_map)
+        {
+            // ctor of static object not yet run, so it can't be our pointer
+            return std::nullopt;
+        }
+        auto __iter = __this._M_map->find(__ptr);
+        if (__iter == __this._M_map->end())
+        {
+            return std::nullopt;
+        }
+        __ptr_desc __header = std::move(__iter->second);
+        __this._M_map->erase(__iter);
+        return __header;
+    }
+
+    // nullopt means "it's not our pointer"
+    static std::optional<std::size_t>
+    __get_size(__large_aligned_ptrs_map& __this, void* __ptr)
+    {
+        // only page-aligned can be registered
+        if (!__is_ptr_page_aligned(__ptr))
+        {
+            return std::nullopt;
+        }
+
+        std::scoped_lock __l(__large_aligned_ptrs_map_mtx);
+        if (!__this._M_map)
+        {
+            // ctor of static object not yet run, so it can't be our pointer
+            return std::nullopt;
+        }
+        auto __iter = __this._M_map->find(__ptr);
+        if (__iter == __this._M_map->end())
+        {
+            return std::nullopt;
+        }
+        return __iter->second._M_requested_number_of_bytes;
+    }
+};
+
+static __large_aligned_ptrs_map __large_aligned_ptrs;
+
+static void
+__free_usm_pointer(__block_header* __header)
+{
+    __header->_M_uniq_const = 0;
+    sycl::context __context = __header->_M_device.__get_context();
+    void* __original_pointer = __header->_M_original_pointer;
+    __header->~__block_header();
+    sycl::free(__original_pointer, __context);
+}
+
+#if __linux__
+
 static void
 __internal_free(void* __user_ptr)
 {
     if (__user_ptr != nullptr)
     {
-        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
-
-        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+        if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+            __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
             __free_usm_pointer(__header);
+            return;
+        }
+
+        if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
+                __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+                __desc.has_value())
+        {
+            sycl::context __context = __desc->_M_device.__get_context();
+            sycl::free(__user_ptr, __context);
+            return;
+        }
+
+        if (__dlsym_called)
+        {
+            // Delay releasing till exit of dlsym. We do not overload malloc globally,
+            // so can use it safely. Do not use new to able to use free() during
+            // __delayed_free_list releasing.
+            void* __buf = malloc(sizeof(__delayed_free_list));
+            if (!__buf)
+            {
+                throw std::bad_alloc();
+            }
+            __delayed_free_list* __h = new (__buf) __delayed_free_list{__delayed_free, __user_ptr};
+            __delayed_free = __h;
         }
         else
         {
-            if (__dlsym_called)
-            {
-                // Delay releasing till exit of dlsym. We do not overload malloc globally,
-                // so can use it safely. Do not use new to able to use free() during
-                // __delayed_free_list releasing.
-                void* __buf = malloc(sizeof(__delayed_free_list));
-                if (!__buf)
-                {
-                    throw std::bad_alloc();
-                }
-                __delayed_free_list* __h = new(__buf) __delayed_free_list{__delayed_free, __user_ptr};
-                __delayed_free = __h;
-            }
-            else
-            {
-                __original_free(__user_ptr);
-            }
+            __original_free(__user_ptr);
         }
     }
 }
 
 #elif _WIN64
 
-static __free_func_type __original_free_ptr = free;
 #if _DEBUG
 static void (*__original_free_dbg_ptr)(void* userData, int blockType) = _free_dbg;
 #endif
@@ -200,21 +401,163 @@ __internal_msize(void* __user_ptr)
 #endif
     }
 
-    std::size_t __res = 0;
     __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
-        __res = __header->_M_requested_number_of_bytes;
+        return __header->_M_requested_number_of_bytes;
+    }
+
+    std::optional<std::size_t> __size = __large_aligned_ptrs_map::__get_size(__large_aligned_ptrs, __user_ptr);
+
+    return __size.has_value() ? *__size : __original_msize(__user_ptr);
+}
+
+static void*
+__realloc_allocate_shared(__sycl_device_shared_ptr __device_ptr, void* __user_ptr, std::size_t __old_size, std::size_t __new_size)
+{
+    void* __new_ptr = __allocate_shared_for_device(std::move(__device_ptr), __new_size, alignof(std::max_align_t));
+
+    if (__new_ptr != nullptr)
+    {
+        std::memcpy(__new_ptr, __user_ptr, std::min(__old_size, __new_size));
     }
     else
     {
-        __res = __original_msize(__user_ptr);
+        errno = ENOMEM;
     }
-    return __res;
+    return __new_ptr;
+}
+
+_PSTL_OFFLOAD_EXPORT void*
+__realloc_impl(void* __user_ptr, std::size_t __new_size)
+{
+    assert(__user_ptr != nullptr);
+
+    if (!__new_size)
+    {
+        __internal_free(__user_ptr);
+        return nullptr;
+    }
+
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; 
+        __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    {
+        if (__header->_M_requested_number_of_bytes >= __new_size)
+        {
+            return __user_ptr;
+        }
+
+        void* __result = __realloc_allocate_shared(__header->_M_device, __user_ptr,
+                                                   __header->_M_requested_number_of_bytes, __new_size);
+        if (__result)
+        {
+            __free_usm_pointer(__header);
+        }
+        return __result;
+    }
+
+    if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
+            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+            __desc.has_value())
+    {
+        void* __result = __realloc_allocate_shared(__desc->_M_device, __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
+        if (__result)
+        {
+            sycl::context __context = __desc->_M_device.__get_context();
+            sycl::free(__user_ptr, __context);
+        }
+        return __result;
+    }
+
+    // __user_ptr is not a USM pointer, use original realloc function
+#if __linux__
+    return __get_original_realloc()(__user_ptr, __new_size);
+#elif _WIN64
+    return __original_realloc(__user_ptr, __new_size);
+#endif
+}
+
+_PSTL_OFFLOAD_EXPORT void*
+__allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_ptr, std::size_t __size, std::size_t __alignment)
+{
+    sycl::device __device = __device_ptr.__get_device();
+    sycl::context __context = __device_ptr.__get_context();
+    void* __ptr = sycl::aligned_alloc_shared(__alignment, __size, __device, __context);
+
+    if (__ptr)
+    {
+        __large_aligned_ptrs_map::__register_ptr(__large_aligned_ptrs, __ptr, __size, std::move(__device_ptr));
+    }
+    return __ptr;
 }
 
 #if _WIN64
+
+static void*
+__realloc_allocate_aligned_shared(__sycl_device_shared_ptr __device_ptr, void* __user_ptr,
+                                  std::size_t __old_size, std::size_t __new_size, std::size_t __alignment)
+{
+    void* __new_ptr = __allocate_shared_for_device(std::move(__device_ptr), __new_size, __alignment);
+
+    if (__new_ptr != nullptr)
+    {
+        std::memcpy(__new_ptr, __user_ptr, std::min(__old_size, __new_size));
+    }
+    else
+    {
+        errno = ENOMEM;
+    }
+    return __new_ptr;
+}
+
+void*
+__aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __alignment)
+{
+    assert(__user_ptr != nullptr);
+
+    if (__new_size == 0)
+    {
+        _aligned_free(__user_ptr);
+        return nullptr;
+    }
+
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+        __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    {
+        if (__header->_M_requested_number_of_bytes >= __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
+        {
+            return __user_ptr;
+        }
+        void* __result = __realloc_allocate_aligned_shared(__header->_M_device, __user_ptr,
+                                                           __header->_M_requested_number_of_bytes, __new_size, __alignment);
+
+        if (__result != nullptr)
+        {
+            // Free previously allocated memory
+            __free_usm_pointer(__header);
+        }
+        return __result;
+    }
+
+    if (std::optional<__large_aligned_ptrs_map::__ptr_desc>
+            __desc = __large_aligned_ptrs_map::__unregister_ptr(__large_aligned_ptrs, __user_ptr);
+            __desc.has_value())
+    {
+        void* __result = __realloc_allocate_aligned_shared(__desc->_M_device, __user_ptr,
+                                                           __desc->_M_requested_number_of_bytes, __new_size, __alignment);
+
+        if (__result != nullptr)
+        {
+            sycl::context __context = __desc->_M_device.__get_context();
+            sycl::free(__user_ptr, __context);
+        }
+        return __result;
+    }
+
+    // __user_ptr is not a USM pointer, use original realloc function
+    return __original_aligned_realloc(__user_ptr, __new_size, __alignment);
+}
 
 #if _DEBUG
 
@@ -227,7 +570,7 @@ __internal_free_dbg(void* __user_ptr, int __type)
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            __free_usm_pointer(__header);
+            __header->__free();
         }
         else
         {
@@ -401,8 +744,6 @@ __do_functions_replacement()
 #if __linux__
 extern "C"
 {
-
-#define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
 
 _PSTL_OFFLOAD_EXPORT void free(void* __ptr)
 {
