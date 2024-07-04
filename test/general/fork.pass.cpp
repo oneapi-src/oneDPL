@@ -16,7 +16,8 @@
 #include <cerrno>
 #endif
 
-int main(){
+int main()
+{
 #ifdef _POSIX_VERSION // defined in <unistd.h>
     pid_t pid = fork();
     if (pid < 0) // error
