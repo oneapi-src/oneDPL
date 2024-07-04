@@ -27,6 +27,7 @@
 #include "internal/random_impl/linear_congruential_engine.h"
 #include "internal/random_impl/subtract_with_carry_engine.h"
 #include "internal/random_impl/discard_block_engine.h"
+#include "internal/random_impl/philox_engine.h"
 #include "internal/random_impl/uniform_real_distribution.h"
 #include "internal/random_impl/uniform_int_distribution.h"
 #include "internal/random_impl/normal_distribution.h"
@@ -44,6 +45,12 @@ namespace dpl
 {
 
 // Engines and engine adaptors with predefined parameters
+
+// philox engine with using-s, !! here instantiate the templates for various cases, with
+using philox4x32 = philox_engine<uint_fast32_t, 32, 4, 10, 0xD2511F53, 0x9E3779B9,
+0xCD9E8D57, 0xBB67AE85>;
+using philox4x64 = philox_engine<uint_fast64_t, 64, 4, 10, 0xD2E7470EE14C6C93,
+0x9E3779B97F4A7C15, 0xCA5A826395121157, 0xBB67AE8584CAA73B>;
 using minstd_rand0 = linear_congruential_engine<uint_fast32_t, 16807, 0, 2147483647>;
 using minstd_rand = linear_congruential_engine<uint_fast32_t, 48271, 0, 2147483647>;
 using default_engine = minstd_rand;
