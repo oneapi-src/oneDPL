@@ -77,99 +77,118 @@ add_custom_target(run-onedpl-tests
     DEPENDS ${run-onedpl-tests-depends}
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define)
-    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
-    target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
-
-    if (NOT ${custom_define} STREQUAL "")
-        target_compile_definitions(${_test_name} PRIVATE ${custom_define})
-    endif()
-    if (MSVC)
-        target_compile_options(${_test_name} PRIVATE /bigobj)
-    endif()
-
+macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define extra_test_label)
     # Disable checked iterators on Windows for debug mode
     # For details please see
     #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
     #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
     #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
     if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug" AND ${switch_off_checked_iterators})
-        target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-        target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
+        set(_use_release_in_debug 1)
+    else()
+        set(_use_release_in_debug 0)
     endif()
 
-    # oneDPL test harness may initialize a C++ iterator using iterator with different type
-    # that may break code when using Intel(R) C++ Compiler Classic with -O3 flag on Linux
-    if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL Intel)
-        target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
-    endif()
+    if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off AND _use_release_in_debug)
+        # link with release runtime is not supported for debug PSTL offload while one is requested, skip
+    else()
+        add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
+        target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
 
-    target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-    target_link_libraries(${_test_name} PRIVATE oneDPL)
-    if (_gcc_link_tbb)
-        target_link_libraries(${_test_name} PRIVATE TBB::tbb)
-    endif()
-    set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
-
-    add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
-
-    if (DEFINED ${_test_name}_timeout_${_build_type_in_lower})
-        message(STATUS
-        "Timeout for ${_test_name} is set to ${${_test_name}_timeout_${_build_type_in_lower}}, "
-        "it overrides user-defined timeout for CTest")
-        set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_${_build_type_in_lower}})
-    elseif (DEFINED ${_test_name}_timeout_release)
-        # Apply default (release) timeout
-        message(STATUS
-        "Timeout for ${_test_name} is set to ${${_test_name}_timeout_release}, "
-        "it overrides user-defined timeout for CTest")
-        set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_release})
-    endif()
-
-    set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
-
-    if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
-        if (DEFINED DEVICE_SELECTION_LINE)
-            message(FATAL_ERROR "PSTL offload tests ${_test_name} don't need ${DEVICE_SELECTION_LINE} variable, so one should be not set.")
+        if (NOT ${custom_define} STREQUAL "")
+            target_compile_definitions(${_test_name} PRIVATE ${custom_define})
         endif()
-        # This test is only one requiring device selection environment, set it manually.
-        if ("${_test_name}" STREQUAL selected_different_device.pass AND _ONEDPL_PSTL_OFFLOAD MATCHES "(cpu|gpu)")
-            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT  "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
+        if (MSVC)
+            target_compile_options(${_test_name} PRIVATE /bigobj)
         endif()
-    elseif (DEFINED DEVICE_SELECTION_LINE)
-        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
-        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
-            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+
+        if (_use_release_in_debug)
+            target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+            target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
         endif()
+
+        # oneDPL test harness may initialize a C++ iterator using iterator with different type
+        # that may break code when using Intel(R) C++ Compiler Classic with -O3 flag on Linux
+        if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL Intel)
+            target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
+        endif()
+
+        target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+        target_link_libraries(${_test_name} PRIVATE oneDPL)
+        if (_gcc_link_tbb)
+            target_link_libraries(${_test_name} PRIVATE TBB::tbb)
+        endif()
+        set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
+
+        add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
+
+        if (DEFINED ${_test_name}_timeout_${_build_type_in_lower})
+            message(STATUS
+            "Timeout for ${_test_name} is set to ${${_test_name}_timeout_${_build_type_in_lower}}, "
+            "it overrides user-defined timeout for CTest")
+            set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_${_build_type_in_lower}})
+        elseif (DEFINED ${_test_name}_timeout_release)
+            # Apply default (release) timeout
+            message(STATUS
+            "Timeout for ${_test_name} is set to ${${_test_name}_timeout_release}, "
+            "it overrides user-defined timeout for CTest")
+            set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_release})
+        endif()
+
+        set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
+
+        if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+            if (DEFINED DEVICE_SELECTION_LINE)
+                message(FATAL_ERROR "PSTL offload tests ${_test_name} don't need ${DEVICE_SELECTION_LINE} variable, so one should be not set.")
+            endif()
+            # This test is only one requiring device selection environment, set it manually.
+            if ("${_test_name}" STREQUAL selected_different_device.pass AND _ONEDPL_PSTL_OFFLOAD MATCHES "(cpu|gpu)")
+                set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
+            endif()
+            target_link_directories(${_test_name} PRIVATE "${PROJECT_BINARY_DIR}/src")
+        elseif (DEFINED DEVICE_SELECTION_LINE)
+            file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+            if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
+                set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+            endif()
+        endif()
+
+        add_custom_target(run-${_test_name}
+            COMMAND "${CMAKE_CTEST_COMMAND}" -R ^${_test_name}$$ --output-on-failure --no-label-summary
+            USES_TERMINAL
+            DEPENDS ${_test_name}
+            COMMENT "Build and run test ${_test_name}")
+
+        # Add labels and group targets
+        set(_test_labels "")
+
+        file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${test_source_file})
+        get_filename_component(_test_rel_path ${_test_rel_path} DIRECTORY)
+        if (_test_rel_path)
+            string(REPLACE "/" ";" _test_labels ${_test_rel_path})
+        endif()
+
+        list(APPEND _test_labels ${extra_test_label})
+
+        if (_test_labels)
+            set_tests_properties(${_test_name} PROPERTIES LABELS "${_test_labels}")
+        endif()
+
+        foreach (_label ${_test_labels})
+            if (NOT TARGET build-onedpl-${_label}-tests)
+                add_custom_target(build-onedpl-${_label}-tests COMMENT "Build tests with label ${_label}")
+
+                add_custom_target(run-onedpl-${_label}-tests
+                    COMMAND "${CMAKE_CTEST_COMMAND}" -L ^${_label}$$ --output-on-failure --no-label-summary
+                    USES_TERMINAL
+                    DEPENDS build-onedpl-${_label}-tests
+                    COMMENT "Build and run tests with label ${_label}")
+            endif()
+            add_dependencies(build-onedpl-${_label}-tests ${_test_name})
+        endforeach()
+        add_dependencies(build-onedpl-tests ${_test_name})
+
     endif()
-
-    add_custom_target(run-${_test_name}
-        COMMAND "${CMAKE_CTEST_COMMAND}" -R ^${_test_name}$$ --output-on-failure --no-label-summary
-        USES_TERMINAL
-        DEPENDS ${_test_name}
-        COMMENT "Build and run test ${_test_name}")
-
-    # Add labels and group targets
-    file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${test_source_file})
-    get_filename_component(_test_rel_path ${_test_rel_path} DIRECTORY)
-    if (_test_rel_path)
-        string(REPLACE "/" ";" _test_labels ${_test_rel_path})
-        set_tests_properties(${_test_name} PROPERTIES LABELS "${_test_labels}")
-    endif()
-
-    foreach (_label ${_test_labels})
-        if (NOT TARGET build-onedpl-${_label}-tests)
-            add_custom_target(build-onedpl-${_label}-tests COMMENT "Build tests with label ${_label}")
-
-            add_custom_target(run-onedpl-${_label}-tests
-                COMMAND "${CMAKE_CTEST_COMMAND}" -L ^${_label}$$ --output-on-failure --no-label-summary
-                USES_TERMINAL
-                DEPENDS build-onedpl-${_label}-tests
-                COMMENT "Build and run tests with label ${_label}")
-        endif()
-        add_dependencies(build-onedpl-${_label}-tests ${_test_name})
-    endforeach()
-    add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
@@ -183,15 +202,25 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass" "sycl_iterator_reduce.pass" "minmax_element.pass")
     set(workaround_for_igpu_64bit_reduction_tests "reduce_by_segment.pass")
+    # mark those tests with pstloffload_smoke_tests label
+    set (pstloffload_smoke_tests "adjacent_find.pass" "copy_move.pass" "merge.pass" "partial_sort.pass" "remove_copy.pass"
+        "transform_reduce.pass" "transform_reduce.pass.coal" "transform_scan.pass" "algorithm.pass"
+        "execution.pass" "functional.pass" "algorithms_redirection.pass" "usm_memory_replacement.pass")
+
+    set(extra_test_label "")
+    if (_test_name IN_LIST pstloffload_smoke_tests)
+        set(extra_test_label "pstloffload_smoke_tests")
+    endif()
+
     if (_test_name IN_LIST coal_tests)
-        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1")
-        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=0")
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1" "${extra_test_label}")
+        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=0" "${extra_test_label}")
     elseif (_test_name IN_LIST workaround_for_igpu_64bit_reduction_tests)
-        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "" "${extra_test_label}")
         string(REPLACE "\.pass" "_workaround_64bit_reduction\.pass" _test_name ${_test_name})
-        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1")
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1" "${extra_test_label}")
     else()
-        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "" "${extra_test_label}")
     endif()
 endmacro()
 
@@ -215,11 +244,11 @@ foreach (_file IN LISTS UNIT_TESTS)
                 get_filename_component(_filename "${_file}" NAME_WE)
                 CHECK_INCLUDE_FILE_CXX(${_filename} _has_header_file)
                 if (_has_header_file)
-                    onedpl_add_test(${_file} true)
+                    onedpl_add_test(${_file} false)
                 endif()
                 unset(_has_header_file CACHE)
             else()
-                onedpl_add_test(${_file} true)
+                onedpl_add_test(${_file} false)
             endif()
         else()
             continue()
