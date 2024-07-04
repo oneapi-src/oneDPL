@@ -26,14 +26,14 @@ concurrency:
   cancel-in-progress: ${{ !contains(github.ref, 'refs/heads/main') }}
 
 jobs:
-#  clang-format:
-#    if: github.event_name == 'pull_request'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#        with:
-#          fetch-depth: 0
-#          ref:  ${{ github.event.pull_request.head.sha }}
+  clang-format:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref:  ${{ github.event.pull_request.head.sha }}
 #      - uses: actions/setup-python@v3
 #        with:
 #          python-version: '3.x'
@@ -57,23 +57,23 @@ jobs:
 #          name: clang-format-diff
 #          path: clang-format.diff
 #          retention-days: 3
-#
-#  codespell:
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    steps:
-#      - uses: actions/checkout@v3
+
+  codespell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
 #      - name: Install prerequisites
 #        run: |
 #          sudo apt update && sudo apt install -y codespell
 #      - name: Run scan
 #        run: |
 #          ${GITHUB_WORKSPACE}/.github/scripts/codespell.sh $(pwd)
-#
-#  documentation:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 #      - uses: actions/setup-python@v4
 #        with:
 #          python-version: '3.x'
@@ -99,78 +99,78 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - os: ubuntu-20.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            backend: dpcpp
-#            device_type: CPU
-#          - os: ubuntu-20.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            backend: dpcpp
-#            device_type: FPGA_EMU
-#          - os: ubuntu-20.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            backend: omp
-#            device_type: HOST
-#          - os: ubuntu-latest
-#            cxx_compiler: g++
-#            std: 17
-#            build_type: release
-#            backend: omp
-#            device_type: HOST
-#          - os: ubuntu-latest
-#            cxx_compiler: g++
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: g++
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: clang++
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: clang++
-#            std: 17
-#            build_type: release
-#            backend: omp
-#            device_type: HOST
-#          - os: ubuntu-latest
-#            cxx_compiler: clang++
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: ubuntu-20.04
-#            cxx_compiler: g++
-#            std: 17
-#            build_type: release
-#            backend: serial
-#            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: FPGA_EMU
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-latest
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: serial
+            device_type: HOST
           - os: ubuntu-latest
             cxx_compiler: icpx
             std: 23
@@ -180,7 +180,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository
-        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        if: (matrix.std == '23' && (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'))
         run: |
           # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
           wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -188,20 +188,21 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update -y
       - name: Install Intel® oneAPI Threading Building Blocks
-        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        if: (matrix.std == '23' && (matrix.backend == 'tbb' || matrix.backend == 'dpcpp'))
         run: |
           sudo apt-get install intel-oneapi-tbb-devel -y
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        if: (matrix.std == '23' && (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'))
         run: |
           sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
           # Avoid accidental use of a released version, keeping libpstloffload.so
           sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
       - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
-        if: (matrix.device_type == 'FPGA_EMU')
+        if: (matrix.std == '23' && (matrix.device_type == 'FPGA_EMU'))
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
       - name: Run testing
+        if: (matrix.std == '23')
         shell: bash
         run: |
           set -x
@@ -246,21 +247,21 @@ jobs:
 #          docker rm -f dr-test
 #          exit $exit_code
 #
-#  linux-pstl-offload-testing:
-#    name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
-#    runs-on: ['${{ matrix.os }}']
-#    timeout-minutes: 60
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: ubuntu-22.04
-#            cxx_compiler: icpx
-#            std: 17
-#            build_type: release
-#            device_type: cpu
-#    steps:
-#      - uses: actions/checkout@v3
+  linux-pstl-offload-testing:
+    name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            device_type: cpu
+    steps:
+      - uses: actions/checkout@v3
 #      - name: Set up Intel APT repository
 #        run: |
 #          # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
@@ -300,23 +301,23 @@ jobs:
 #          make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 #
 #          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
-#
-#  windows-pstl-offload-testing:
-#    name: PSTL offload ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
-#    runs-on: ['${{ matrix.os }}']
-#    timeout-minutes: 60
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: windows-2019
-#            cxx_compiler: icx-cl
-#            std: 17
-#            build_type: release
-#            backend: dpcpp
-#            device_type: cpu
-#    steps:
-#      - uses: actions/checkout@v3
+
+  windows-pstl-offload-testing:
+    name: PSTL offload ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            cxx_compiler: icx-cl
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: cpu
+    steps:
+      - uses: actions/checkout@v3
 #      - name: Install Intel® oneAPI Threading Building Blocks
 #        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
 #        shell: cmd
@@ -358,35 +359,35 @@ jobs:
 #          :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
 #          :short_circuit_fail
 #          exit /b %errorlevel%
-#
-#  windows-testing:
-#    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
-#    runs-on: ['${{ matrix.os }}']
-#    timeout-minutes: 60
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: windows-2019
-#            cxx_compiler: icx-cl
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: windows-2019
-#            cxx_compiler: cl
-#            std: 17
-#            build_type: release
-#            backend: tbb
-#            device_type: HOST
-#          - os: windows-2019
-#            cxx_compiler: icx
-#            std: 17
-#            build_type: release
-#            backend: dpcpp
-#            device_type: CPU
-#    steps:
-#      - uses: actions/checkout@v3
+
+  windows-testing:
+    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            cxx_compiler: icx-cl
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: cl
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: icx
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+    steps:
+      - uses: actions/checkout@v3
 #      - name: Install Intel® oneAPI Threading Building Blocks
 #        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
 #        shell: cmd
@@ -430,22 +431,22 @@ jobs:
 #          :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
 #          :short_circuit_fail
 #          exit /b %errorlevel%
-#
-#  macos-testing:
-#    name: HOST,bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
-#    runs-on: ['${{ matrix.os }}']
-#    timeout-minutes: 60
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: macos-13
-#            cxx_compiler: clang++
-#            std: 17
-#            build_type: release
-#            backend: omp
-#    steps:
-#      - uses: actions/checkout@v3
+
+  macos-testing:
+    name: HOST,bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: omp
+    steps:
+      - uses: actions/checkout@v3
 #      - name: Install OpenMP for Clang++
 #        run: |
 #          brew install libomp
