@@ -34,10 +34,18 @@ struct DelayedReleaser
         ::operator delete (ptrs.aligned_new_allocated, std::align_val_t(8 * 1024));
 
         constexpr std::size_t updated_size = 1024;
+#if __linux__
         void* p = realloc(ptrs.aligned_alloc_allocated, updated_size);
         EXPECT_TRUE(p, "reallocation failed");
         EXPECT_TRUE(malloc_usable_size(p) >= updated_size, "Invalid size after reallocation");
         free(p);
+#elif _WIN64
+        constexpr std::size_t updated_alignment = 64 * 1024;
+        void* p = _aligned_realloc(ptrs.aligned_alloc_allocated, updated_size, updated_alignment);
+        EXPECT_TRUE(p, "_aligned_realloc failed");
+        EXPECT_TRUE(_aligned_msize(p, updated_alignment, 0) >= updated_size, "Invalid size after reallocation");
+        _aligned_free(p);
+#endif
     }
 };
 

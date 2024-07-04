@@ -41,7 +41,13 @@ int main()
 {
     sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
 
-    pointers ptrs{malloc(8), new (std::align_val_t(8 * 1024)) int{}, std::aligned_alloc(8 * 1024, 10)};
+    pointers ptrs{malloc(8), new (std::align_val_t(8 * 1024)) int{},
+#if __linux__
+        std::aligned_alloc(8 * 1024, 10)
+#elif _WIN64
+        _aligned_malloc(10, 8 * 1024)
+#endif
+    };
 
     EXPECT_TRUE(ptrs.malloc_allocated, "Can't get memory while allocating with overloaded malloc");
     EXPECT_TRUE(ptrs.aligned_new_allocated, "Can't get memory while allocating with overloaded aligned new");
