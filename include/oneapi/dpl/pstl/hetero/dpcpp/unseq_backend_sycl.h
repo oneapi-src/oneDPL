@@ -345,6 +345,9 @@ struct transform_reduce
     }
 };
 
+template <typename _T>
+using _TPassRefOrVal = std::conditional_t<sizeof(_T*) < sizeof(_T), _T&, _T>;
+
 // Reduce local reductions of each work item to a single reduced element per work group. The local reductions are held
 // in local memory. sycl::reduce_over_group is used for supported data types and operations. All other operations are
 // processed in order and without a known identity.
