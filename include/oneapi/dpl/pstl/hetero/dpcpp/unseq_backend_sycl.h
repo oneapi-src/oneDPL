@@ -373,19 +373,20 @@ struct reduce_over_group
         {
             const auto __group_size = __item_id.get_local_range().size();
 
-            __local_mem[__local_idx] = __val;
+            auto& __val_in_local_mem = __local_mem[__local_idx];
+
+            __val_in_local_mem = __val;
             for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
             {
                 __dpl_sycl::__group_barrier(__item_id);
                 if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
                     __global_idx + __power_2 < __n)
                 {
-                    __local_mem[__local_idx] =
-                        __bin_op1(__local_mem[__local_idx], __local_mem[__local_idx + __power_2]);
+                    __val_in_local_mem = __bin_op1(__val_in_local_mem, __local_mem[__local_idx + __power_2]);
                 }
             }
 
-            return __local_mem[__local_idx];
+            return __val_in_local_mem;
         }
     }
 
