@@ -171,7 +171,7 @@ jobs:
 #            build_type: release
 #            backend: serial
 #            device_type: HOST
-          - os: ubuntu-24.10
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 23
             build_type: release
