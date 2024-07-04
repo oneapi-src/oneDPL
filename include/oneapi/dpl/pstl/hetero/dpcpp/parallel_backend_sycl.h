@@ -1164,11 +1164,14 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     assert(__rng_n > 0);
 
     // TODO: find a way to generalize getting of reliable work-group size
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
+    // Limit the maximum work-group size to minimize the cost of work-group reduction.
+    // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
+    __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
