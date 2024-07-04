@@ -30,11 +30,11 @@ struct DelayedReleaser
 {
     ~DelayedReleaser()
     {
-        free(ptrs.p1);
-        ::operator delete (ptrs.p2, std::align_val_t(8*1024));
+        free(ptrs.malloc_allocated);
+        ::operator delete (ptrs.aligned_new_allocated, std::align_val_t(8 * 1024));
 
-        constexpr size_t updated_size = 1024;
-        void* p = realloc(ptrs.p3, updated_size);
+        constexpr std::size_t updated_size = 1024;
+        void* p = realloc(ptrs.aligned_alloc_allocated, updated_size);
         EXPECT_TRUE(p, "reallocation failed");
         EXPECT_TRUE(malloc_usable_size(p) >= updated_size, "Invalid size after reallocation");
         free(p);

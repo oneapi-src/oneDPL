@@ -38,7 +38,7 @@ static std::size_t get_page_size() {
 
 template <typename AllocatingFunction, typename DeallocatingFunction>
 void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction deallocate) {
-    for (std::size_t alignment = 1; alignment < 16*get_page_size(); alignment <<= 1) {
+    for (std::size_t alignment = 1; alignment < 16 * get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { 1, 2, 8, 24, alignment / 2, alignment, alignment * 2};
 
         for (std::size_t size : sizes) {
