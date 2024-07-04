@@ -103,7 +103,8 @@ class alignas(sycl::queue) __queue_holder
     __queue_holder&
     operator=(__queue_holder&& __h)
     {
-        if (this != &__h) {
+        if (this != &__h)
+        {
             // predefined policies should never be moved, so the move-from one must have a queue
             assert(h.__has_queue());
             __q = std::move(__h.__q);
