@@ -301,10 +301,12 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
-#if defined(_MSVC_LANG)
-#define _ONEDPL_CPP20_RANGES_PRESENT (_MSVC_LANG >= 202002L)
+#if defined(_MSVC_LANG) && _MSVC_LANG >= 202002L
+#   define _ONEDPL_CPP20_RANGES_PRESENT (__cpp_lib_ranges >= 201911L)
+#elif __cplusplus >= 202002L
+#   define _ONEDPL_CPP20_RANGES_PRESENT (__cpp_lib_ranges >= 201911L)
 #else
-#define _ONEDPL_CPP20_RANGES_PRESENT (__cplusplus >= 202002L)
+#    define _ONEDPL_CPP20_RANGES_PRESENT 0
 #endif
 
 #if _ONEDPL_STD_FEATURE_MACROS_PRESENT
