@@ -28,7 +28,6 @@ namespace dpl
 template<typename UIntType, std::size_t w, std::size_t n, std::size_t r, UIntType ...consts>
 class philox_engine
 {
-    static_assert((c > 0) && (c <= n));
     static_assert(n > 0);
     static_assert(sizeof...(consts) == n);
 
