@@ -167,11 +167,12 @@ struct __orig_free_allocator
 
     T* allocate(std::size_t __n)
     {
-        if (T *ptr = static_cast<T*>(std::malloc(__n * sizeof(T))))
+        T *ptr = static_cast<T*>(std::malloc(__n * sizeof(T)));
+        if (ptr == nullptr)
         {
-            return ptr;
+            throw std::bad_alloc();
         }
-        throw std::bad_alloc();
+        return ptr;
     }
 
     void deallocate(T* __ptr, std::size_t) noexcept
