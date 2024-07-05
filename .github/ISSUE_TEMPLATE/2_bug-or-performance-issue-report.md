@@ -1,10 +1,9 @@
 ---
-Name: Bug or performance issue report
-About: Create a report to help us improve oneDPL.
-Title: ''
-Labels: bug
-Assignees: ''
-
+name: Bug or performance issue report
+about: Create a report to help us improve oneDPL.
+title: ''
+labels: bug
+assignees: ''
 ---
 
 **Describe the Bug:**
