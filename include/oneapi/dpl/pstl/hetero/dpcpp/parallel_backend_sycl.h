@@ -965,7 +965,7 @@ struct __parallel_find_forward_tag
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
 
-    using FoundLocalReduceOp = __dpl_sycl::__minimum<_AtomicType>;
+    using _LocalResultsReduceOp = __dpl_sycl::__minimum<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1004,7 +1004,7 @@ struct __parallel_find_backward_tag
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
 
-    using FoundLocalReduceOp = __dpl_sycl::__maximum<_AtomicType>;
+    using _LocalResultsReduceOp = __dpl_sycl::__maximum<_AtomicType>;
 
     template <typename _DiffType>
     constexpr static _AtomicType __init_value(_DiffType)
@@ -1035,7 +1035,7 @@ struct __parallel_or_tag
 {
     using _AtomicType = int32_t;
 
-    using FoundLocalReduceOp = __dpl_sycl::__plus<_AtomicType>;
+    using _LocalResultsReduceOp = __dpl_sycl::__plus<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1225,7 +1225,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // or calculate the sum with __dpl_sycl::__plus (for the __parallel_or_tag)
                     // inside all our group items
                     __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
-                                                                    typename _BrickTag::FoundLocalReduceOp{});
+                                                                    typename _BrickTag::_LocalResultsReduceOp{});
 
                     // Set local found state value value to global atomic
                     if (__local_idx == 0 && __found_local != __init_value)
