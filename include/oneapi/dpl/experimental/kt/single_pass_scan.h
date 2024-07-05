@@ -89,7 +89,8 @@ struct __scan_status_flag
         _T __running = oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
         auto __local_id = __subgroup.get_local_id();
 
-        for (int __tile = static_cast<int>(__tile_id) - 1; __tile >= 0; __tile -= SUBGROUP_SIZE)
+        std::uint32_t __is_full_ballot_bits{};
+        for (int __tile = static_cast<int>(__tile_id) - 1; __tile >= 0 && !__is_full_ballot_bits; __tile -= SUBGROUP_SIZE)
         {
             _AtomicFlagT __tile_flag_atomic(*(__flags_begin + __tile + __padding - __local_id));
             _T __tile_flag = __initialized_status;
@@ -103,7 +104,7 @@ struct __scan_status_flag
 
             bool __is_full = __tile_flag == __full_status;
             auto __is_full_ballot = sycl::ext::oneapi::group_ballot(__subgroup, __is_full);
-            std::uint32_t __is_full_ballot_bits{};
+            __is_full_ballot_bits = 0;
             __is_full_ballot.extract_bits(__is_full_ballot_bits);
 
             _AtomicValueT __tile_value_atomic(
@@ -121,8 +122,9 @@ struct __scan_status_flag
             // If we found a full value, we can stop looking at previous tiles. Otherwise,
             // keep going through tiles until we either find a full tile or we've completely
             // recomputed the prefix using partial values
-            if (__is_full_ballot_bits)
-                break;
+            //if (__is_full_ballot_bits)
+            //    break;
+            // - this break statement has been moved into the loop condition
         }
         return __running;
     }
