@@ -414,9 +414,10 @@ __simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred, boo
     const _DifferenceType __n = __last - __first - 1;
     _ONEDPL_PRAGMA_VECTOR_UNALIGNED
     _ONEDPL_PRAGMA_SIMD_EARLYEXIT
-    for (; __i < __n; ++__i)
+    bool __need_continue = true;
+    for (; __need_continue && __i < __n; ++__i)
         if (__pred(__first[__i], __first[__i + 1]))
-            break;
+            __need_continue = false;        // break;
 
     return __i < __n ? __first + __i : __last;
 #else
@@ -447,9 +448,10 @@ __simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred, boo
                 return __first;
 
             // This will vectorize
-            for (__i = 0; __i < __block_size; ++__i)
+            bool __need_continue = true;
+            for (__i = 0; __need_continue && __i < __block_size; ++__i)
                 if (__lane[__i])
-                    break;
+                    __need_continue = false;        // break;
             return __first + __i; //As far as found is true a __result (__lane[__i] is true) is guaranteed
         }
         __first += __block_size;
