@@ -48,7 +48,7 @@ struct DefaultQueueParam { };
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
-using __queue_factory = sycl::queue (*)();
+using __queue_factory = sycl::queue (*)(DefaultQueueParam);
 
 class alignas(sycl::queue) __queue_holder
 {
@@ -122,21 +122,19 @@ class alignas(sycl::queue) __queue_holder
     {
         if (__has_queue())
             return __q;
-        return (__flag_and_factory.second)();
+        return (__flag_and_factory.second)(DefaultQueueParam{});
     }
 };
 
 // Queue factory functions to use with the queue holder
-inline sycl::queue
-__get_default_queue()
+inline sycl::queue __get_default_queue(DefaultQueueParam)
 {
     static sycl::queue __q(sycl::default_selector_v);
     return __q;
 }
 
 #if _ONEDPL_FPGA_DEVICE
-inline sycl::queue
-__get_fpga_default_queue()
+inline sycl::queue __get_fpga_default_queue(DefaultQueueParam)
 {
     static sycl::queue __q(
 #if _ONEDPL_FPGA_EMU
@@ -164,7 +162,7 @@ class device_policy
   public:
     using kernel_name = KernelName;
 
-    device_policy() : device_policy(__internal::__get_default_queue()) {}
+    device_policy() : device_policy(__internal::__get_default_queue(DefaultQueueParam{})) {}
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
     explicit device_policy(sycl::queue q) : __qh(q) {}
@@ -202,7 +200,7 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy() : base(__internal::__get_fpga_default_queue()) {}
+    fpga_policy() : base(__internal::__get_fpga_default_queue(DefaultQueueParam{})) {}
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()) {}
