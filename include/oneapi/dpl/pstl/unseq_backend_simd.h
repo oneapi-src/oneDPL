@@ -129,12 +129,12 @@ __simd_first(_Index __first, _DifferenceType __begin, _DifferenceType __end, _Co
 #if (_PSTL_EARLYEXIT_PRESENT || _ONEDPL_EARLYEXIT_PRESENT)
     _DifferenceType __i = __begin;
     _ONEDPL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
-        _ONEDPL_PRAGMA_SIMD_EARLYEXIT for (; __i < __end; ++__i)
+    _ONEDPL_PRAGMA_SIMD_EARLYEXIT
+    bool __need_continue = true;
+    for (; __need_continue && __i < __end; ++__i)
     {
         if (__comp(__first, __i))
-        {
-            break;
-        }
+            __need_continue = false;        // break;
     }
     return __first + __i;
 #else
@@ -157,12 +157,11 @@ __simd_first(_Index __first, _DifferenceType __begin, _DifferenceType __end, _Co
         {
             _DifferenceType __i;
             // This will vectorize
-            for (__i = 0; __i < __block_size; ++__i)
+            bool __need_continue = true;
+            for (__i = 0; __need_continue && __i < __block_size; ++__i)
             {
                 if (__lane[__i])
-                {
-                    break;
-                }
+                    __need_continue = false;        // break;
             }
             return __first + __begin + __i;
         }
