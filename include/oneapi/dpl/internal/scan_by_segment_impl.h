@@ -227,12 +227,13 @@ struct __sycl_scan_by_segment_impl
                                             __identity, __binary_op, __wgroup_size); // need to use exclusive scan delta
 
                     // 1c. Update local partial reductions and write to global memory.
-                    for (::std::size_t __i = __start; __i < __end; ++__i)
+                    bool __need_continue = true;
+                    for (::std::size_t __i = __start; __need_continue && __i < __end; ++__i)
                     {
                         __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
                         if (__i >= __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
-                            break;
+                            __need_continue = false;        // break;
                     }
 
                     if (__local_id == __wgroup_size - 1) // last work item writes the group's carry out
@@ -301,14 +302,17 @@ struct __sycl_scan_by_segment_impl
                             {
                                 __val_type __local_collector = __identity;
                                 // Parallel exploration phase
+                                bool __need_continue = true;
                                 for (::std::int32_t __j = __i;
-                                     __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
+                                     __need_continue &&
+                                     __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore);
+                                     --__j)
                                 {
                                     __local_collector = __binary_op(__partials_acc[__j], __local_collector);
                                     if (__seg_ends_acc[__j] || __j == 0)
                                     {
                                         __loc_seg_ends_acc[__local_id] = true;
-                                        break;
+                                        __need_continue = false;        // break;
                                     }
                                 }
                                 __loc_partials_acc[__local_id] = __local_collector;
@@ -316,13 +320,14 @@ struct __sycl_scan_by_segment_impl
                                 // Serial aggregate collection and synchronization
                                 if (__local_id == 0)
                                 {
-                                    for (::std::size_t __j = 0; __j < __wgroup_size; ++__j)
+                                    __need_continue = true;
+                                    for (::std::size_t __j = 0; __need_continue && __j < __wgroup_size; ++__j)
                                     {
                                         __agg_collector = __binary_op(__loc_partials_acc[__j], __agg_collector);
                                         if (__loc_seg_ends_acc[__j])
                                         {
                                             __last_it = true;
-                                            break;
+                                            __need_continue = false;        // break;
                                         }
                                     }
                                 }
