@@ -73,9 +73,10 @@ __simd_or_impl(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
     _DifferenceType __i;
     _ONEDPL_PRAGMA_VECTOR_UNALIGNED
     _ONEDPL_PRAGMA_SIMD_EARLYEXIT
-    for (__i = 0; __i < __n; ++__i)
+    bool __need_continue = true;
+    for (__i = 0; __need_continue && __i < __n; ++__i)
         if (__pred(__first + __i))
-            break;
+            __need_continue = false;        // break;
     return __i < __n;
 #else
     _DifferenceType __block_size = 4 < __n ? 4 : __n;
