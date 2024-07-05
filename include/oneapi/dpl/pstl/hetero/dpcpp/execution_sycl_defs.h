@@ -121,6 +121,29 @@ class alignas(sycl::queue) __queue_holder
     }
 };
 
+// Queue factory functions to use with the queue holder
+inline sycl::queue
+__get_default_queue()
+{
+    static sycl::queue __q(sycl::default_selector_v);
+    return __q;
+}
+
+#if _ONEDPL_FPGA_DEVICE
+inline sycl::queue
+__get_fpga_default_queue()
+{
+    static sycl::queue __q(
+#if _ONEDPL_FPGA_EMU
+        __dpl_sycl::__fpga_emulator_selector()
+#else
+        __dpl_sycl::__fpga_selector()
+#endif
+    );
+    return __q;
+}
+#endif // _ONEDPL_FPGA_DEVICE
+
 } // namespace __internal
 
 struct DefaultKernelName;
@@ -133,17 +156,10 @@ struct DefaultKernelName;
 template <typename KernelName = DefaultKernelName>
 class device_policy
 {
-    static sycl::queue
-    __get_default_queue()
-    {
-        static sycl::queue __q(sycl::default_selector_v);
-        return __q;
-    }
-
   public:
     using kernel_name = KernelName;
 
-    device_policy() : device_policy(__get_default_queue()) {}
+    device_policy() : device_policy(__internal::__get_default_queue()) {}
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
     explicit device_policy(sycl::queue q) : __qh(q) {}
@@ -157,7 +173,8 @@ class device_policy
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit device_policy(__internal::__global_instance_tag __t) : __qh(__t, /*factory*/__get_default_queue) {}
+    explicit device_policy(__internal::__global_instance_tag __t)
+        : __qh(__t, /*factory*/__internal::__get_default_queue) {}
 
   protected:
     device_policy(__internal::__global_instance_tag __t, __internal::__queue_factory __f) : __qh(__t, __f) {}
@@ -177,30 +194,18 @@ class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
 
-    static sycl::queue
-    __get_fpga_default_queue()
-    {
-        static sycl::queue __q(
-#if _ONEDPL_FPGA_EMU
-            __dpl_sycl::__fpga_emulator_selector()
-#else
-            __dpl_sycl::__fpga_selector()
-#endif
-        );
-        return __q;
-    }
-
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy() : base(__get_fpga_default_queue()) {}
+    fpga_policy() : base(__internal::__get_fpga_default_queue()) {}
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()) {}
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit fpga_policy(__internal::__global_instance_tag __t) : base(__t, /*factory*/__get_fpga_default_queue) {}
+    explicit fpga_policy(__internal::__global_instance_tag __t)
+        : base(__t, /*factory*/__internal::__get_fpga_default_queue) {}
 #endif
 };
 #endif // _ONEDPL_FPGA_DEVICE
