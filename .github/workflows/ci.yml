@@ -201,6 +201,10 @@ jobs:
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
+      - name: Install libfmt and gtest needed by Distributed Ranges tests
+        if: (matrix.std == '23')
+        run: |
+          sudo apt-get install libgtest-dev libcxxopts-dev -y
       - name: Run testing
         shell: bash
         run: |
