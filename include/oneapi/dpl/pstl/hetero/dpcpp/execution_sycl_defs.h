@@ -103,7 +103,7 @@ class fpga_policy : public device_policy<KernelName>
 
 inline const device_policy<> dpcpp_default{};
 #        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<> dpcpp_fpga{};
+inline const fpga_policy<> dpcpp_fpga{};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // _ONEDPL___cplusplus >= 201703L
