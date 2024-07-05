@@ -450,15 +450,8 @@ struct multiple_match_pred
 
         using _Size2 = decltype(__s_n);
         // Moving __result out of the loop condition produces more optimized code
-        if (__result)
-        {
-            for (_Size2 __ii = 0; __ii < __s_n; ++__ii)
-            {
-                __result = __pred(__acc[__total_shift + __ii], __s_acc[__ii]);
-                if (!__result)
-                    break;
-            }
-        }
+        for (_Size2 __ii = 0; __result && __ii < __s_n; ++__ii)
+            __result = __pred(__acc[__total_shift + __ii], __s_acc[__ii]);
 
         return __result;
     }
