@@ -1035,7 +1035,7 @@ struct __parallel_or_tag
 {
     using _AtomicType = int32_t;
 
-    using FoundLocalReduceOp = sycl::bit_or<_AtomicType>;
+    using FoundLocalReduceOp = __dpl_sycl::__plus<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
