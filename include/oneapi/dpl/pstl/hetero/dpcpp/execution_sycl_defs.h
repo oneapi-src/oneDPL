@@ -40,6 +40,11 @@ inline namespace __dpl
 namespace __internal
 {
 
+namespace
+{
+struct DefaultQueueParam { };
+}; // namespace
+
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
