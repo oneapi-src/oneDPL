@@ -143,7 +143,7 @@ class device_policy
   public:
     using kernel_name = KernelName;
 
-    device_policy() = default;
+    device_policy() : device_policy(__get_default_queue()) {}
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
     explicit device_policy(sycl::queue q) : __qh(q) {}
