@@ -42,13 +42,13 @@ namespace __internal
 
 namespace
 {
-struct DefaultQueueParam { };
+struct __default_queue_param { };
 }; // namespace
 
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
-using __queue_factory = sycl::queue (*)(DefaultQueueParam);
+using __queue_factory = sycl::queue (*)(__default_queue_param);
 
 class alignas(sycl::queue) __queue_holder
 {
@@ -122,19 +122,19 @@ class alignas(sycl::queue) __queue_holder
     {
         if (__has_queue())
             return __q;
-        return (__flag_and_factory.second)(DefaultQueueParam{});
+        return (__flag_and_factory.second)(__default_queue_param{});
     }
 };
 
 // Queue factory functions to use with the queue holder
-inline sycl::queue __get_default_queue(DefaultQueueParam)
+inline sycl::queue __get_default_queue(__default_queue_param)
 {
     static sycl::queue __q(sycl::default_selector_v);
     return __q;
 }
 
 #if _ONEDPL_FPGA_DEVICE
-inline sycl::queue __get_fpga_default_queue(DefaultQueueParam)
+inline sycl::queue __get_fpga_default_queue(__default_queue_param)
 {
     static sycl::queue __q(
 #if _ONEDPL_FPGA_EMU
@@ -162,7 +162,7 @@ class device_policy
   public:
     using kernel_name = KernelName;
 
-    device_policy() : device_policy(__internal::__get_default_queue(DefaultQueueParam{})) {}
+    device_policy() : device_policy(__internal::__get_default_queue(__default_queue_param{})) {}
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
     explicit device_policy(sycl::queue q) : __qh(q) {}
@@ -200,7 +200,7 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy() : base(__internal::__get_fpga_default_queue(DefaultQueueParam{})) {}
+    fpga_policy() : base(__internal::__get_fpga_default_queue(__default_queue_param{})) {}
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()) {}
