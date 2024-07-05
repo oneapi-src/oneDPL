@@ -1,10 +1,9 @@
 ---
-Name: Feature request
-About: Suggest an idea for oneDPL.
-Title: ''
-Labels: feature_request
-Assignees: ''
-
+name: Feature request
+about: Suggest an idea for oneDPL.
+title: ''
+labels: 'feature request'
+assignees: ''
 ---
 
 **Summary:**
