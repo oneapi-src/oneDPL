@@ -189,9 +189,10 @@ __simd_first(_Index1 __first1, _DifferenceType __n, _Index2 __first2, _Pred __pr
     _DifferenceType __i = 0;
     _ONEDPL_PRAGMA_VECTOR_UNALIGNED
     _ONEDPL_PRAGMA_SIMD_EARLYEXIT
-    for (; __i < __n; ++__i)
+    bool __need_continue = true;
+    for (; __need_continue && __i < __n; ++__i)
         if (__pred(__first1[__i], __first2[__i]))
-            break;
+            __need_continue = false;        // break;
     return ::std::make_pair(__first1 + __i, __first2 + __i);
 #else
     const _Index1 __last1 = __first1 + __n;
@@ -215,10 +216,11 @@ __simd_first(_Index1 __first1, _DifferenceType __n, _Index2 __first2, _Pred __pr
         {
             _DifferenceType __i;
             // This will vectorize
-            for (__i = 0; __i < __block_size; ++__i)
+            bool __need_continue = true;
+            for (__i = 0; __need_continue && __i < __block_size; ++__i)
             {
                 if (__lane[__i])
-                    break;
+                    __need_continue = false;        // break;
             }
             return ::std::make_pair(__first1 + __i, __first2 + __i);
         }
