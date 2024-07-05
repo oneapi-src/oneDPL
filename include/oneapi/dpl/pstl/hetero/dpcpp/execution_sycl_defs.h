@@ -43,17 +43,17 @@ namespace __internal
 #if _ONEDPL_PREDEFINED_POLICIES
 struct __global_instance_tag {};
 #endif
-using _QueueFactory = sycl::queue (*)();
+using __queue_factory = sycl::queue (*)();
 
 class alignas(sycl::queue) __queue_holder
 {
-    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<std::uintptr_t, _QueueFactory>));
+    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<std::uintptr_t, __queue_factory>));
     static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
 
     union
     {
         sycl::queue __q;
-        std::pair<std::uintptr_t, _QueueFactory> __flag_and_factory;
+        std::pair<std::uintptr_t, __queue_factory> __flag_and_factory;
     };
 
     bool
@@ -76,7 +76,7 @@ class alignas(sycl::queue) __queue_holder
     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
     // The first size-of-pointer bytes - the "flag" - are nullified to indicate that there is no valid queue.
     // Then a pointer to a factory function is stored.
-    __queue_holder(__global_instance_tag, _QueueFactory __f) : __flag_and_factory(0, __f) {}
+    __queue_holder(__global_instance_tag, __queue_factory __f) : __flag_and_factory(0, __f) {}
 #endif
 
     ~__queue_holder()
@@ -87,7 +87,7 @@ class alignas(sycl::queue) __queue_holder
             __flag_and_factory.second = nullptr;
     }
 
-    // Copy and move operations have to be explicit
+    // Copy and move operations have to be provided explicitly
     __queue_holder(const __queue_holder& __h) : __q(__h.__get_queue()) {}
     // predefined policies should never be moved, so the move-from one must have a queue
     __queue_holder(__queue_holder&& __h) : __q(std::move(__h.__q)) {}
@@ -145,28 +145,28 @@ class device_policy
 
     device_policy() = default;
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue()) {}
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
+    device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
+    explicit device_policy(sycl::queue q) : __qh(q) {}
+    explicit device_policy(sycl::device d) : __qh(d) {}
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q.__get_queue();
+        return __qh.__get_queue();
     }
 
 #if _ONEDPL_PREDEFINED_POLICIES
-    explicit device_policy(__internal::__global_instance_tag __t) : q(__t, /*factory*/__get_default_queue) {}
+    explicit device_policy(__internal::__global_instance_tag __t) : __qh(__t, /*factory*/__get_default_queue) {}
 
   protected:
-    device_policy(__internal::__global_instance_tag __t, __internal::_QueueFactory __f) : q(__t, __f) {}
+    device_policy(__internal::__global_instance_tag __t, __internal::__queue_factory __f) : __qh(__t, __f) {}
 #endif
 
   private:
     static_assert(sizeof(__internal::__queue_holder) == sizeof(sycl::queue));
     static_assert(alignof(__internal::__queue_holder) == alignof(sycl::queue));
-    __internal::__queue_holder q;
+    __internal::__queue_holder __qh;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -180,13 +180,13 @@ class fpga_policy : public device_policy<KernelName>
     static sycl::queue
     __get_fpga_default_queue()
     {
-        static sycl::queue __q{
+        static sycl::queue __q(
 #if _ONEDPL_FPGA_EMU
             __dpl_sycl::__fpga_emulator_selector()
 #else
             __dpl_sycl::__fpga_selector()
 #endif
-        };
+        );
         return __q;
     }
 
