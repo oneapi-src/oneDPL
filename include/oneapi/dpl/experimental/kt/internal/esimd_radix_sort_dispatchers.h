@@ -111,9 +111,10 @@ class __onesweep_memory_holder
     __allocate_raw_memory()
     {
         // Non-typed allocation is guaranteed to be aligned for any fundamental type according to SYCL spec
-        // TODO: handle a case when malloc_device fails to allocate the memory
         void* __mem = sycl::malloc_device(__m_raw_mem_bytes, __m_q);
         __m_raw_mem_ptr = reinterpret_cast<::std::uint8_t*>(__mem);
+        if (!__m_raw_mem_ptr)
+            throw std::bad_alloc();
     }
 
     void
