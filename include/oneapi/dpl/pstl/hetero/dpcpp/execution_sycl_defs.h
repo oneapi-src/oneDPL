@@ -47,13 +47,13 @@ using _QueueFactory = sycl::queue (*)();
 
 class alignas(sycl::queue) __queue_holder
 {
-    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<uintptr_t, _QueueFactory>));
+    static_assert(sizeof(sycl::queue) >= sizeof(std::pair<std::uintptr_t, _QueueFactory>));
     static_assert(alignof(sycl::queue) >= alignof(std::uintptr_t));
 
     union
     {
         sycl::queue __q;
-        std::pair<uintptr_t, _QueueFactory> __flag_and_factory;
+        std::pair<std::uintptr_t, _QueueFactory> __flag_and_factory;
     };
 
     bool
@@ -70,7 +70,7 @@ class alignas(sycl::queue) __queue_holder
 
   public:
     template <typename... _Args>
-    __queue_holder(_Args... __args) : __q(std::forward<_Args>(__args)...) {}
+    __queue_holder(_Args&&... __args) : __q(std::forward<_Args>(__args)...) {}
 
 #if _ONEDPL_PREDEFINED_POLICIES
     // The ctor for predefined policy instances does not create a queue but stores a queue factory.
@@ -133,7 +133,7 @@ struct DefaultKernelName;
 template <typename KernelName = DefaultKernelName>
 class device_policy
 {
-    static inline sycl::queue
+    static sycl::queue
     __get_default_queue()
     {
         static sycl::queue __q(sycl::default_selector_v);
@@ -177,7 +177,7 @@ class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
 
-    static inline sycl::queue
+    static sycl::queue
     __get_fpga_default_queue()
     {
         static sycl::queue __q{
