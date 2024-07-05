@@ -175,7 +175,7 @@ jobs:
             cxx_compiler: icpx
             std: 23
             build_type: release
-            backend: dpcpp
+            backend: tbb
             device_type: HOST
     steps:
       - uses: actions/checkout@v3
@@ -204,7 +204,7 @@ jobs:
       - name: Install libfmt and gtest needed by Distributed Ranges tests
         if: (matrix.std == '23')
         run: |
-          sudo apt-get install libgtest-dev libcxxopts-dev -y
+          sudo apt-get install libgtest-dev libcxxopts-dev libfmt-dev -y
       - name: Run testing
         shell: bash
         run: |
