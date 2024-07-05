@@ -500,14 +500,17 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
                         {
                             __val_type __local_collector = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
                             // exploration phase
+                            bool __need_continue = true;
                             for (::std::int32_t __j = __i;
-                                 __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
+                                 __need_continue &&
+                                 __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore);
+                                 --__j)
                             {
                                 __local_collector = __binary_op(__partials_acc[__j], __local_collector);
                                 if (__seg_ends_acc[__j] || __j == 0)
                                 {
                                     __loc_seg_ends_acc[__local_id] = true;
-                                    break;
+                                    __need_continue = false;        //break;
                                 }
                             }
                             __loc_partials_acc[__local_id] = __local_collector;
@@ -515,13 +518,14 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
                             // serial aggregate collection and synchronization
                             if (__local_id == 0)
                             {
-                                for (::std::size_t __j = 0; __j < __wgroup_size; ++__j)
+                                __need_continue = true;
+                                for (::std::size_t __j = 0; __need_continue && __j < __wgroup_size; ++__j)
                                 {
                                     __agg_collector = __binary_op(__loc_partials_acc[__j], __agg_collector);
                                     if (__loc_seg_ends_acc[__j])
                                     {
                                         __last_it = true;
-                                        break;
+                                        __need_continue = false;        // break;
                                     }
                                 }
                             }
