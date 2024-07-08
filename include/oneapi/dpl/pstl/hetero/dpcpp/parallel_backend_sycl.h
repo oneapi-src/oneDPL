@@ -1174,7 +1174,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
 
-#if _ONEDPL_FPGA_DEVICE
+#if _ONEDPL_FPGA_EMU
     // Limit the maximum work-group size to minimize the cost of work-group reduction.
     // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
     __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
