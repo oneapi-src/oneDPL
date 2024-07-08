@@ -230,7 +230,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 std::size_t elements_in_group = std::min(M - group_start_idx, std::size_t(num_sub_groups_local * K));
                 auto active_subgroups = oneapi::dpl::__internal::__dpl_ceiling_div(elements_in_group, K);
                 std::size_t subgroup_start_idx = group_start_idx + (sub_group_id * K);
-                bool is_full_thread = subgroup_start_idx + J * VL <= M;
+                bool is_full_thread = subgroup_start_idx + J * VL < M;
                 size_t start_idx = subgroup_start_idx + sub_group_local_id;
 
                 if (sub_group_id < active_subgroups)
@@ -536,7 +536,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                 // step 5) apply global carries
                 size_t subgroup_start_idx = group_start_idx + (sub_group_id * K);
-                bool is_full_thread = subgroup_start_idx + J * VL <= M;
+                bool is_full_thread = subgroup_start_idx + J * VL < M;
                 size_t start_idx = subgroup_start_idx + sub_group_local_id;
 
                 if (is_full_thread && is_full_block)
