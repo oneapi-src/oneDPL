@@ -1088,6 +1088,63 @@ struct __brick_reduce_idx
     _Size __n;
 };
 
+// Kernel 1 body of reduce-then-scan
+// Reduces the input per work-group and stores sub-group carry outs
+template <std::uint32_t __sub_group_size, std::uint32_t __max_inputs_per_item, bool _Inclusive, typename _BinaryOp,
+          typename _UnaryOp, typename _WrappedInitType>
+struct __sub_group_reduce
+{
+    // TODO: Implement this operator.
+    template <typename _ItemId, typename _InAcc, typename _CarryOutAcc>
+    void
+    operator()(const _ItemId __ndi, _InAcc __input, _CarryOutAcc __global_carry_out,
+               const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
+               const std::size_t __block_num, const bool __is_full_block) const
+    {
+    }
+
+    const std::size_t __block_size;
+    const std::size_t __num_sub_groups_local;
+    const std::size_t __num_sub_groups_global;
+    const std::size_t __num_work_items;
+    const std::size_t __n;
+
+    const _BinaryOp __binary_op;
+    const _UnaryOp __unary_op;
+    const _WrappedInitType __wrapped_init;
+
+    // TODO: Add the mask functors here to generalize for scan-based algorithms
+};
+
+// Kernel 2 body of reduce-then-scan
+// Determines inter and intra work-group carry ins and stores the full scan results to output buffer
+// for an input block
+template <std::uint32_t __sub_group_size, std::uint32_t __max_inputs_per_item, bool _Inclusive, typename _BinaryOp,
+          typename _UnaryOp, typename _WrappedInitType>
+struct __sub_group_carry_and_scan
+{
+    // TODO: Implement this operator
+    template <typename _ItemId, typename _InAcc, typename _OutAcc, typename _CarryInAcc>
+    void
+    operator()(const _ItemId __ndi, _InAcc __input, _OutAcc __output, _CarryInAcc __global_carry_in,
+               const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
+               const std::size_t __block_num, const bool __is_full_block) const
+    {
+    }
+
+    const std::size_t __block_size;
+    const std::size_t __num_sub_groups_local;
+    const std::size_t __num_sub_groups_global;
+    const std::size_t __num_work_items;
+    const std::size_t __n;
+
+    const _BinaryOp __binary_op;
+    const _UnaryOp __unary_op;
+    const _WrappedInitType __wrapped_init;
+
+    // TODO: Add the mask functors here to generalize for scan-based algorithms
+};
+
 } // namespace unseq_backend
 } // namespace dpl
 } // namespace oneapi
