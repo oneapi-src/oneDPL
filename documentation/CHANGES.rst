@@ -369,8 +369,8 @@ Changes to Existing Features
 
 - The following API elements of oneDPL were changed or removed:
 
-  - the ``default_policy`` object was renamed to ``dpcpp_default`` and declared as ``const``;
-  - the ``fpga_policy`` object was renamed to ``dpcpp_fpga`` and declared as ``const``;
+  - the ``default_policy`` object was renamed to ``dpcpp_default``;
+  - the ``fpga_policy`` object was renamed to ``dpcpp_fpga``;
   - the ``fpga_device_policy`` class was renamed to ``fpga_policy``;
   - the ``_PSTL_FPGA_DEVICE`` macro was renamed to ``ONEDPL_FPGA_DEVICE``;
   - the ``_PSTL_FPGA_EMU`` macro was renamed to ``ONEDPL_FPGA_EMULATOR``;
