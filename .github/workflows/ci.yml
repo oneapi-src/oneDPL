@@ -205,6 +205,7 @@ jobs:
         if: (matrix.std == '23')
         run: |
           sudo apt-get install libgtest-dev libcxxopts-dev libfmt-dev -y
+          sudo apt-get remove gcc-14 -y
       - name: Run testing
         shell: bash
         run: |
