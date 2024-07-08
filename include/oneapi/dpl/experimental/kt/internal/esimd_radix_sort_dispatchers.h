@@ -10,6 +10,7 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 
+#include <new>
 #include <memory>
 #include <cstdint>
 #include <cassert>
