@@ -1182,7 +1182,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
-    // TODO: try to change __n_groups with another formula for more perfect load balancing
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     auto __n_iter = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
