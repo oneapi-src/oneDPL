@@ -576,6 +576,10 @@ struct __radix_sort_onesweep_kernel
                 __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(
                     __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
         }
+        // Make sure the histogram updated at the step 1.3 is visible to other groups
+        __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
+                                 __dpl_esimd::__ns::fence_flush_op::none,
+                                 __dpl_esimd::__ns::fence_scope::gpu>();
         __dpl_esimd::__ns::barrier();
 
         // 1.4 One work-item finalizes scan performed at stage 1.2
@@ -631,6 +635,10 @@ struct __radix_sort_onesweep_kernel
                 __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
                 __prev_group_hist_sum);
         }
+        // Make sure the histogram updated at the step 2 is visible to other groups
+        __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
+                                 __dpl_esimd::__ns::fence_flush_op::none,
+                                 __dpl_esimd::__ns::fence_scope::gpu>();
         __dpl_esimd::__ns::barrier();
 
         // 3. Get total offsets for each work-item
