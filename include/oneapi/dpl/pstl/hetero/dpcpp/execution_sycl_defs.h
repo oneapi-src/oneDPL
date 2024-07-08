@@ -69,7 +69,7 @@ class alignas(sycl::queue) __queue_holder
     }
 
   public:
-    template <typename T, typename = std::enable_if_t<std::is_constructible_v<sycl::queue, T&&>>>
+    template <typename T, std::enable_if_t<std::is_constructible_v<sycl::queue, T&&>, int> = 0>
     __queue_holder(T&& __qarg) : __q(std::forward<T>(__qarg)) {}
 
 #if _ONEDPL_PREDEFINED_POLICIES
@@ -162,8 +162,8 @@ class device_policy
     device_policy() : device_policy(__internal::__get_default_queue()) {}
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : __qh(other.queue()) {}
-    explicit device_policy(sycl::queue q) : __qh(q) {}
-    explicit device_policy(sycl::device d) : __qh(d) {}
+    explicit device_policy(sycl::queue q) : __qh(std::move(q)) {}
+    explicit device_policy(sycl::device d) : __qh(std::move(d)) {}
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
