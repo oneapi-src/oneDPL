@@ -573,10 +573,16 @@ struct __radix_sort_onesweep_kernel
             // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
             // Set the status as "updated".
             if (__wg_id != 0)
-                __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(
+            {
+                __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
+                                                    __dpl_esimd::__ens::lsc_data_size::default_size,
+                                                    __dpl_esimd::__ens::cache_hint::uncached,
+                                                    __dpl_esimd::__ens::cache_hint::uncached>(
                     __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
+            }
         }
         // Make sure the histogram updated at the step 1.3 is visible to other groups
+        // The histogram data above is explicitly written to the global memory: no need to flush the cache
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
@@ -611,6 +617,7 @@ struct __radix_sort_onesweep_kernel
             {
                 do
                 {
+                    // It is assumed that L1 cache is not coherent, and L2 is coherent
                     __prev_group_hist = __dpl_esimd::__ens::lsc_block_load<
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
@@ -627,15 +634,19 @@ struct __radix_sort_onesweep_kernel
             __prev_group_hist_sum &= __global_offset_mask;
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum =
                 __prev_group_hist_sum + __thread_grf_hist_summary;
-            __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
-                                                                     after_group_hist_sum | __hist_updated |
-                                                                         __global_accumulated);
+            __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
+                                                __dpl_esimd::__ens::lsc_data_size::default_size,
+                                                __dpl_esimd::__ens::cache_hint::uncached,
+                                                __dpl_esimd::__ens::cache_hint::uncached>(
+                __p_this_group_hist + __local_tid * __bin_width,
+                after_group_hist_sum | __hist_updated | __global_accumulated);
 
             __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
                 __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
                 __prev_group_hist_sum);
         }
         // Make sure the histogram updated at the step 2 is visible to other groups
+        // The histogram data above is explicitly written to the global memory: no need to flush the cache
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
