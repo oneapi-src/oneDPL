@@ -1222,7 +1222,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
-                    // or calculate the sum with __dpl_sycl::__plus (for the __parallel_or_tag)
+                    // or update state with __dpl_sycl::__bit_or (for the __parallel_or_tag)
                     // inside all our group items
                     __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
                                                                     typename _BrickTag::_LocalResultsReduceOp{});
