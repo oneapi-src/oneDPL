@@ -45,7 +45,6 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
 #define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_LIBSYCL_VERSION >= 60200)
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
@@ -307,15 +306,7 @@ using __buffer_allocator =
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
-#if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
-#else
-struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
-{
-    explicit __atomic_ref(_AtomicType& ref)
-        : sycl::atomic<_AtomicType, _Space>(sycl::multi_ptr<_AtomicType, _Space>(&ref)){};
-};
-#endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
 template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
