@@ -1046,19 +1046,20 @@ struct __parallel_or_tag
 
     // Store that a match was found. Its position is not relevant for or semantics
     // in the __save_state_to (local state) / __save_state_to_atomic (global state) methods.
+    static constexpr _AtomicType __found_state = 1;
 
     template <sycl::access::address_space _Space>
     static void
     __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType /*__new_state*/)
     {
-        __atomic.store(1);
+        __atomic.store(__found_state);
     }
 
     template <typename _TFoundState>
     static void
     __save_state_to(_TFoundState& __found, _AtomicType /*__new_state*/)
     {
-        __found = 1;
+        __found = __found_state;
     }
 };
 
