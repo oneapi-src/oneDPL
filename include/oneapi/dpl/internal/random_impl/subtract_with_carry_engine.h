@@ -94,6 +94,101 @@ class subtract_with_carry_engine
         return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
+    friend bool
+    operator==(const subtract_with_carry_engine& __x, const subtract_with_carry_engine& __y)
+    {
+        if (__x.c_ != __y.c_)
+            return false;
+        if (__x.i_ == __y.i_)
+            return std::equal(__x.x_, __x.x_ + _R, __y.x_);
+        if (__x.i_ == 0 || __y.i_ == 0) {
+            size_t __j = std::min(_R - __x.i_, _R - __y.i_);
+            if (!std::equal(__x.x_ + __x.i_, __x.x_ + __x.i_ + __j, __y.x_ + __y.i_))
+                return false;
+            if (__x.i_ == 0)
+                return std::equal(__x.x_ + __j, __x.x_ + _R, __y.x_);
+            return std::equal(__x.x_, __x.x_ + (_R - __j), __y.x_ + __j);
+        }
+        if (__x.i_ < __y.i_) {
+            size_t __j = _R - __y.i_;
+            if (!std::equal(__x.x_ + __x.i_, __x.x_ + (__x.i_ + __j), __y.x_ + __y.i_))
+                return false;
+            if (!std::equal(__x.x_ + (__x.i_ + __j), __x.x_ + _R, __y.x_))
+                return false;
+            return std::equal(__x.x_, __x.x_ + __x.i_, __y.x_ + (_R - (__x.i_ + __j)));
+        }
+        size_t __j = _R - __x.i_;
+        if (!std::equal(__y.x_ + __y.i_, __y.x_ + (__y.i_ + __j), __x.x_ + __x.i_))
+            return false;
+        if (!std::equal(__y.x_ + (__y.i_ + __j), __y.x_ + _R, __x.x_))
+            return false;
+        return std::equal(__y.x_, __y.x_ + __y.i_, __x.x_ + (_R - (__y.i_ + __j)));
+    }
+
+    friend bool
+    operator!=(const subtract_with_carry_engine& __x, const subtract_with_carry_engine& __y)
+    {
+        return !(__x == __y);
+    }
+
+    template<class CharT, class Traits>
+    friend ::std::basic_ostream<CharT,Traits>&
+    operator<<(::std::basic_ostream<CharT,Traits>& os,
+               const subtract_with_carry_engine& e)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(os);
+
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = os.widen(' ');
+        os.fill(__sp);
+
+        os << e.x_[e.i_];
+        for (size_t j = e.i_ + 1; j < _R; ++j)
+            os << __sp << e.x_[j];
+        for (size_t j = 0; j < e.i_; ++j)
+            os << __sp << e.x_[j];
+
+        os << __sp << e.c_;
+
+        return os;
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& os, const subtract_with_carry_engine& e)
+    {
+        os << e.x_[e.i_];
+        for (size_t j = e.i_ + 1; j < _R; ++j)
+            os << ' ' << e.x_[j];
+        for (size_t j = 0; j < e.i_; ++j)
+            os << ' ' << e.x_[j];
+
+        os << ' ' << e.c_;
+
+        return os;
+    }
+
+    template<class CharT, class Traits, class __UIntType, std::size_t __W, std::size_t __S, std::size_t __R>
+    friend ::std::basic_istream<CharT,Traits>&
+    operator>>(::std::basic_istream<CharT,Traits>& is,
+               subtract_with_carry_engine<__UIntType,__W,__S,__R>& e)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(is);
+
+        is.setf(std::ios_base::dec);
+
+        __UIntType __t[__R + 1];
+        for (size_t i = 0; i < __R + 1; ++i)
+            is >> __t[i];
+        if (!is.fail()) {
+            for (size_t i = 0; i < __R; ++i)
+            e.x_[i] = __t[i];
+            e.c_ = __t[__R];
+            e.i_ = 0;
+        }         
+
+        return is;
+    }
+
   private:
     // Static asserts
     static_assert((0 < _S) && (_S < _R), "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");

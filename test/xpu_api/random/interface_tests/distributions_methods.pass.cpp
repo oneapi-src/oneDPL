@@ -218,11 +218,136 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
     params2 = typename Distr::param_type{-2, 10};
 }
 
-template <class T>
-bool
-check_output(oneapi::dpl::bernoulli_distribution<T>& distr, std::ostringstream& out)
+template <class Distr>
+std::int32_t
+check_input_output(Distr& distr)
 {
-    return out.str() == "0.5";
+    using params_type = typename Distr::scalar_type;
+
+    std::int32_t status = 0;
+
+    if constexpr (std::is_same_v<Distr, oneapi::dpl::bernoulli_distribution<result_type>>
+            || std::is_same_v<Distr, oneapi::dpl::geometric_distribution<result_type>>) {
+        double p = 0.5;
+
+        std::stringstream s;
+        s << p;
+
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+    else if constexpr (std::is_same_v<Distr, oneapi::dpl::exponential_distribution<result_type>>) {
+        params_type lambda{1.0};
+
+        std::stringstream s;
+        s << lambda;
+
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+    else if constexpr (std::is_same_v<Distr, oneapi::dpl::normal_distribution<result_type>> 
+                    || std::is_same_v<Distr, oneapi::dpl::lognormal_distribution<result_type>>) {
+        params_type mean{0.0};
+        params_type stddev{1.0};
+
+        std::stringstream s;
+        s << mean << ' ' << stddev;
+
+        bool flag_ = true;
+        params_type saved_ln_{1.2};
+        params_type saved_u2_{1.3};
+
+        s << ' ' << flag_ << ' ' << saved_ln_ << ' ' << saved_u2_;
+
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+    else if constexpr (std::is_same_v<Distr, oneapi::dpl::weibull_distribution<result_type>>) {
+        params_type a{1.0};
+        params_type b{1.0};
+
+        std::stringstream s;
+        s << a << ' ' << b;
+        
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+    else if constexpr (std::is_same_v<Distr, oneapi::dpl::uniform_int_distribution<result_type>>) {
+        params_type a{0};
+        params_type b = std::numeric_limits<params_type>::max();
+
+        std::stringstream s;
+        s << a << ' ' << b;
+
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+    else { // uniform_real_distribution, cauchy_distribution, extreme_value_distribution
+        params_type a{0.0};
+        params_type b{1.0};
+
+        std::stringstream s;
+        s << a << ' ' << b;
+
+        std::ostringstream out;
+        std::istringstream in(s.str());
+
+        in >> distr;
+        status += check_params(distr);
+
+        out << distr;
+        if (!(out.str() == s.str()))
+        {
+            status += 1;
+        }
+    }
+
+    return status;
 }
 
 template <class Distr>
@@ -296,7 +421,7 @@ test(sycl::queue& queue)
 
     make_param<Distr>(params1, params2);
 
-    int sum = 0;
+    int status = 0;
 
     // Memory allocation
     typename Distr::scalar_type res[N_GEN];
@@ -304,24 +429,20 @@ test(sycl::queue& queue)
     // Random number generation
     {
         {
-            Distr _d1(0.1);
-            Distr _d2(0.1);
-            if (_d1 == _d2)
-            {
-
-            }
-
-            std::ostringstream out;
-            std::istringstream in("0.5");
-
-            in >> _d1;
-            assert(check_params(_d1));
-            out << _d1;
-            assert(check_output);
-
+            Distr _d1(2);
+            Distr _d2(2);
             if (_d1 != _d2)
             {
+                status += 1;
+                std::cout << "Error: d1 != d2" << std::endl;
+            }
 
+            status += check_input_output(_d1);
+
+            if (_d1 == _d2)
+            {
+                status += 1;
+                std::cout << "Error: d1 == d2" << std::endl;
             }
         }
 
@@ -364,10 +485,10 @@ test(sycl::queue& queue)
         }
 
         Distr distr;
-        sum += check_params(distr);
+        status += check_params(distr);
     }
 
-    return sum;
+    return status;
 }
 
 #endif // TEST_UNNAMED_LAMBDAS

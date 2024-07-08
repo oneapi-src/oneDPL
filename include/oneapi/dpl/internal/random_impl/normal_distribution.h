@@ -160,6 +160,75 @@ class normal_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
+    friend bool operator==(const normal_distribution& __x, const normal_distribution& __y)
+    {
+        return __x.param() == __y.param();
+    }
+
+    friend bool operator!=(const normal_distribution& __x, const normal_distribution& __y)
+    {
+        return !(__x == __y);
+    }
+
+    template <class CharT, class Traits>
+    friend ::std::basic_ostream<CharT, Traits>&
+    operator<<(::std::basic_ostream<CharT,Traits>& os,
+               const normal_distribution& d)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(os);
+
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = os.widen(' ');
+        os.fill(__sp);
+
+        os << d.mean() << __sp << d.stddev() << __sp << d.flag_;
+        if (d.flag_)
+            os << __sp << d.saved_ln_ << __sp << d.saved_u2_;
+
+        return os;
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& os, const normal_distribution& d)
+    {
+        os << d.mean() << ' ' << d.stddev() << ' ' << d.flag_;
+
+        if (d.flag_)
+            os << ' ' << d.saved_ln_ << ' ' << d.saved_u2_;
+
+        return os;
+    }
+
+    template< class CharT, class Traits >
+    friend ::std::basic_istream<CharT,Traits>&
+    operator>>(::std::basic_istream<CharT,Traits>& is,
+               normal_distribution& d)
+    {
+        using __scalar_type = normal_distribution::scalar_type;
+
+        internal::save_stream_flags<CharT, Traits> __flags(is);
+
+        is.setf(std::ios_base::dec);
+
+        __scalar_type __mean;
+        __scalar_type __stddev;
+        bool __flag_;
+        __scalar_type __saved_ln_;
+        __scalar_type __saved_u2_;
+
+        if (is >> __mean >> __stddev)
+            d.param(param_type(__mean, __stddev));
+        if (is >> __flag_) {
+            d.flag_ = __flag_;
+            if (__flag_ && (is >> __saved_ln_ >> __saved_u2_)) {
+                d.saved_ln_ = __saved_ln_;
+                d.saved_u2_ = __saved_u2_;
+            }
+        }
+
+        return is;
+    }
+
   private:
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;

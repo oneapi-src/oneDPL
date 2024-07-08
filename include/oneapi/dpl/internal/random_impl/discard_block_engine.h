@@ -133,6 +133,57 @@ class discard_block_engine
         return engine_;
     }
 
+    friend bool
+    operator==(const discard_block_engine& __x, const discard_block_engine& __y)
+    {
+        return (__x.n_ == __y.n_ && __x.engine_ == __y.engine_);
+    }
+
+    friend bool
+    operator!=(const discard_block_engine& __x, const discard_block_engine& __y)
+    {
+        return !(__x == __y);
+    }
+
+    template<class CharT, class Traits>
+    friend ::std::basic_ostream<CharT,Traits>&
+    operator<<(::std::basic_ostream<CharT,Traits>& os,
+               const discard_block_engine& e)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(os);
+
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = os.widen(' ');
+        os.fill(__sp);
+
+        return os << e.engine_ << __sp << e.n_;
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& os, const discard_block_engine& e)
+    {
+        return os << e.engine_ << ' ' << e.n_;
+    }
+
+    template<class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
+    friend ::std::basic_istream<CharT,Traits>&
+    operator>>(::std::basic_istream<CharT,Traits>& is,
+               discard_block_engine<__Engine,__P,__R>& e)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(is);
+
+        is.setf(std::ios_base::dec);
+
+        __Engine __engine_;
+        std::size_t __n_;
+        if (is >> __engine_ >> __n_) {
+            e.engine_ = __engine_;
+            e.n_ = __n_;
+        }            
+
+        return is;
+    }
+
   private:
     // Static asserts
     static_assert((0 < _R) && (_R <= _P), "oneapi::dpl::discard_block_engine. Error: unsupported parameters");

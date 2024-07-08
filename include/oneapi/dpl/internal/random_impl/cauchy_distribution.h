@@ -141,6 +141,54 @@ class cauchy_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
+    friend bool operator==(const cauchy_distribution& __x, const cauchy_distribution& __y)
+    {
+        return __x.param() == __y.param();
+    }
+
+    friend bool operator!=(const cauchy_distribution& __x, const cauchy_distribution& __y)
+    {
+        return !(__x == __y);
+    }
+
+    template <class CharT, class Traits>
+    friend ::std::basic_ostream<CharT, Traits>&
+    operator<<(::std::basic_ostream<CharT,Traits>& os,
+            const cauchy_distribution& d)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(os);
+
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = os.widen(' ');
+        os.fill(__sp);
+
+        return os << d.a() << __sp << d.b();
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& os, const cauchy_distribution& d)
+    {
+        return os << d.a() << ' ' << d.b();
+    }
+
+    template< class CharT, class Traits >
+    friend ::std::basic_istream<CharT,Traits>&
+    operator>>(::std::basic_istream<CharT,Traits>& is,
+               cauchy_distribution& d)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(is);
+
+        is.setf(std::ios_base::dec);
+
+        scalar_type __a;
+        scalar_type __b;
+
+        if (is >> __a >> __b)
+            d.param(cauchy_distribution::param_type(__a, __b));
+
+        return is;
+    }
+
   private:
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;

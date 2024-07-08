@@ -128,13 +128,14 @@ class bernoulli_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
-    friend bool operator==(const bernoulli_distribution& _x, const bernoulli_distribution& _y)
+    friend bool operator==(const bernoulli_distribution& __x, const bernoulli_distribution& __y)
     {
-        return _x.p_ == _y.p_;
+        return __x.p_ == __y.p_;
     }
-    friend bool operator!=(const bernoulli_distribution& _x, const bernoulli_distribution& _y)
+
+    friend bool operator!=(const bernoulli_distribution& __x, const bernoulli_distribution& __y)
     {
-        return !(_x == _y);
+        return !(__x == __y);
     }
 
     template <class CharT, class Traits>
@@ -142,18 +143,10 @@ class bernoulli_distribution
     operator<<(::std::basic_ostream<CharT,Traits>& os,
             const bernoulli_distribution& d)
     {
-        // const std::ios_base::fmtflags _flags = os.flags();
-        // const CharT prev_fill = os.fill();
+        internal::save_stream_flags<CharT, Traits> __flags(os);
 
-        // os.setf(std::ios_base::dec|std::ios_base::left);
-        // os.fill(os.widen(' '));
-
-        // os << d.p();
-
-        // os.flags(_flags);
-        // os.fill(prev_fill);
-
-        // return os;
+        os.setf(std::ios_base::dec|std::ios_base::left);
+        os.fill(os.widen(' '));
 
         return os << d.p();
     }
@@ -167,12 +160,16 @@ class bernoulli_distribution
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
     operator>>(::std::basic_istream<CharT,Traits>& is,
-                    bernoulli_distribution& d)
+               bernoulli_distribution& d)
     {
-        // is.setf(std::ios_base::dec);
+        internal::save_stream_flags<CharT, Traits> __flags(is);
+
+        is.setf(std::ios_base::dec);
+
         double __p;
         if (is >> __p)
             d.param(bernoulli_distribution::param_type(__p));
+
         return is;
     }
 

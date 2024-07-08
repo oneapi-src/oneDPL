@@ -258,15 +258,19 @@ public:
         // Random number generation
         {
             {
-                Engine engine;
+                Engine e1;
+                e1.discard(100);
 
-                std::ostringstream out;
-                std::istringstream in("1");
+                std::ostringstream os;
+                os << e1;
 
-                in >> engine;
-                out << engine;
-                assert(engine() == 1);
-                assert(out.str() == "1");
+                Engine e2;
+
+                std::istringstream in(os.str());
+                in >> e2;
+
+                if (e1 != e2)
+                    sum += 1;
             }
 
             sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
@@ -298,18 +302,14 @@ public:
                         engine1.discard(offset);
                         if (engine0 != engine1)
                         {
-                            dpstd_acc[offset] = 1;
+                            dpstd_acc[offset] += 1;
                         }
                         typename Engine::result_type res0;
                         res0 = engine0();
                         typename Engine::result_type res1 = engine1();
                         if (res0 != res1)
                         {
-                            dpstd_acc[offset] = 1;
-                        }
-                        else
-                        {
-                            dpstd_acc[offset] = 0;
+                            dpstd_acc[offset] += 1;
                         }
                     });
                 });
