@@ -111,6 +111,8 @@ void
 test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_param, T init)
 {
     auto excl_param = TestUtils::get_new_kernel_params<0>(incl_param);
+    auto incl_init_param = TestUtils::get_new_kernel_params<1>(incl_param);
+    auto incl_noinit_param = TestUtils::get_new_kernel_params<2>(incl_param);
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ">("
               << size << ");" << std::endl;
@@ -128,15 +130,25 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_par
     exclusive_scan_serial(expected2.begin(), expected2.end(), expected2.begin(),
                           init, bin_op);
 
-    auto invoke_and_verify = [&](auto& dt_src, auto& dt_dst, auto& expected_res, auto is_inclusive) {
+    auto invoke_and_verify = [&](auto& dt_src, auto& dt_dst, auto& expected_res, auto is_inclusive, auto has_init) {
         constexpr bool is_inclusive_scan = decltype(is_inclusive)::value;
+        constexpr bool has_init_value = decltype(has_init)::value;
         std::string msg;
         if constexpr (is_inclusive_scan)
         {
-            msg = "wrong results with USM for inclusive_scan, n: " + std::to_string(size);
-            oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename InclKernelParam::kernel_name>(
-                q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op,
-                init);
+            if constexpr(has_init_value)
+            {
+                msg = "wrong results with USM for inclusive_scan with init, n: " + std::to_string(size);
+                oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename decltype(incl_init_param)::kernel_name>(
+                    q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op,
+                    init);
+            }
+            else
+            {
+                msg = "wrong results with USM for inclusive_scan without init, n: " + std::to_string(size);
+                oneapi::dpl::experimental::kt::gpu::two_pass_inclusive_scan<typename decltype(incl_noinit_param)::kernel_name>(
+                    q, dt_src.get_data(), dt_src.get_data() + size, dt_dst.get_data(), bin_op);
+            }
         }
         else
         {
@@ -151,14 +163,16 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, InclKernelParam incl_par
 
         EXPECT_EQ_N(expected_res.begin(), actual.begin(), size, msg.c_str());
     };
-    // Out-of-place inclusive scan
-    invoke_and_verify(dt_input, dt_output, expected1, std::true_type{});
+    // Out-of-place inclusive scan with init
+    invoke_and_verify(dt_input, dt_output, expected1, std::true_type{}, std::true_type{});
+    // Out-of-place inclusive scan without init
+    invoke_and_verify(dt_input, dt_output, expected1, std::true_type{}, std::false_type{});
     // In-place inclusive scan
-    invoke_and_verify(dt_input, dt_input, expected1, std::true_type{});
+    invoke_and_verify(dt_input, dt_input, expected1, std::true_type{}, std::true_type{});
     // Out-of-place exclusive scan
-    invoke_and_verify(dt_input2, dt_output, expected2, std::false_type{});
+    invoke_and_verify(dt_input2, dt_output, expected2, std::false_type{}, std::true_type{});
     // In-place exclusive scan
-    invoke_and_verify(dt_input2, dt_input2, expected2, std::false_type{});
+    invoke_and_verify(dt_input2, dt_input2, expected2, std::false_type{}, std::true_type{});
 }
 
 template <typename T, typename BinOp, typename KernelParam>
