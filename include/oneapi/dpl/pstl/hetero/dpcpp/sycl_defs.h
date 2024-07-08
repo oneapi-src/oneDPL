@@ -45,7 +45,6 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_NO_INIT_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
@@ -97,12 +96,7 @@
 namespace __dpl_sycl
 {
 
-using __no_init =
-#if _ONEDPL_NO_INIT_PRESENT
-    sycl::property::no_init;
-#else
-    sycl::property::noinit;
-#endif
+using __no_init = sycl::property::no_init;
 
 #if _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 template <typename _BinaryOp, typename _T>
