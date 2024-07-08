@@ -45,7 +45,6 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
@@ -96,20 +95,11 @@ namespace __dpl_sycl
 
 using __no_init = sycl::property::no_init;
 
-#if _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 template <typename _BinaryOp, typename _T>
 using __known_identity = sycl::known_identity<_BinaryOp, _T>;
 
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
-
-#elif _ONEDPL_LIBSYCL_VERSION == 50200
-template <typename _BinaryOp, typename _T>
-using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
-
-template <typename _BinaryOp, typename _T>
-using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
-#endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 
 template <typename _BinaryOp, typename _T>
 inline constexpr auto __known_identity_v = __known_identity<_BinaryOp, _T>::value;
