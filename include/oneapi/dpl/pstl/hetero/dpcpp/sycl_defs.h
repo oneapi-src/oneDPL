@@ -65,11 +65,7 @@
 #    endif
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
-#if _ONEDPL_LIBSYCL_VERSION >= 50300
-#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
-#else
-#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
-#endif
+#define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 
 // This macro is intended to be used for specifying a subgroup size as a SYCL kernel attribute for SPIR-V targets
 // only. For non-SPIR-V targets, it will be empty. This macro should only be used in device code and may lead
@@ -121,22 +117,14 @@ template <typename _Buffer>
 constexpr auto
 __get_buffer_size(const _Buffer& __buffer)
 {
-#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return __buffer.size();
-#else
-    return __buffer.get_count();
-#endif
 }
 
 template <typename _Accessor>
 constexpr auto
 __get_accessor_size(const _Accessor& __accessor)
 {
-#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return __accessor.size();
-#else
-    return __accessor.get_count();
-#endif
 }
 
 template <typename _Item>
@@ -255,7 +243,7 @@ inline auto __fpga_selector()
     return sycl::ext::intel::fpga_selector_v;
 }
 
-#    elif _ONEDPL_LIBSYCL_VERSION >= 50300
+#    else
 inline auto __fpga_emulator_selector()
 {
     return sycl::ext::intel::fpga_emulator_selector{};
@@ -263,15 +251,6 @@ inline auto __fpga_emulator_selector()
 inline auto __fpga_selector()
 {
     return sycl::ext::intel::fpga_selector{};
-}
-#    else
-inline auto __fpga_emulator_selector()
-{
-    return sycl::INTEL::fpga_emulator_selector{};
-}
-inline auto __fpga_selector()
-{
-    return sycl::INTEL::fpga_selector{};
 }
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
