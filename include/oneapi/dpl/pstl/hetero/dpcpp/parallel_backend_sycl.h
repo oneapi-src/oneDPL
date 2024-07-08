@@ -217,6 +217,12 @@ class __scan_single_wg_dynamic_kernel;
 template <typename... Name>
 class __scan_copy_single_wg_kernel;
 
+template <typename... _Name>
+class __reduce_then_scan_reduce_kernel;
+
+template <typename... _Name>
+class __reduce_then_scan_scan_kernel;
+
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -391,6 +397,60 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
 
         return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
     }
+};
+
+template <std::size_t __sub_group_size, typename _KernelName>
+struct __parallel_reduce_then_scan_reduce_submitter;
+
+template <std::size_t __sub_group_size, typename... _KernelName>
+struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size,
+                                                    __internal::__optional_kernel_name<_KernelName...>>
+{
+    // Step 1 - SubGroupReduce is expected to perform sub-group reductions to global memory
+    // input buffer
+    template <typename _ExecutionPolicy, typename _Range, typename _TmpStorageAcc, typename _SubGroupReduce>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _TmpStorageAcc __tmp_storage_acc,
+               const _SubGroupReduce& __sub_group_reduce, const sycl::event& __prior_event,
+               const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
+               const std::size_t __block_num, const bool __is_full_block) const
+    {
+        return __exec.queue().submit([&](sycl::handler& __cgh) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
+            __cgh.depends_on(__prior_event);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            __cgh.parallel_for<_KernelName...>(__nd_range, [=](sycl::nd_item<1> __ndi) {
+                __sub_group_reduce(__ndi, __rng, __tmp_storage_acc, __inputs_per_sub_group, __inputs_per_item,
+                                   __block_num, __is_full_block);
+            });
+        });
+    }
+    const sycl::nd_range<1> __nd_range;
+};
+
+template <std::size_t __sub_group_size, typename _KernelName>
+struct __parallel_reduce_then_scan_scan_submitter;
+
+template <std::size_t __sub_group_size, typename... _KernelName>
+struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __internal::__optional_kernel_name<_KernelName...>>
+{
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _TmpStorageAcc,
+              typename _SubGroupCarryAndScan>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _TmpStorageAcc __tmp_storage_acc,
+               const _SubGroupCarryAndScan& __sub_group_carry_and_scan, const sycl::event& __prior_event,
+               const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
+               const std::size_t __block_num, const bool __is_full_block) const
+    {
+        return __exec.queue().submit([&](sycl::handler& __cgh) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
+            __cgh.depends_on(__prior_event);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
+            __cgh.parallel_for<_KernelName...>(__nd_range, [=](sycl::nd_item<1> __ndi) {
+                __sub_group_carry_and_scan(__ndi, __rng1, __rng2, __tmp_storage_acc, __inputs_per_sub_group,
+                                           __inputs_per_item, __block_num, __is_full_block);
+            });
+        });
+    }
+    const sycl::nd_range<1> __nd_range;
 };
 
 template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End, typename _OutIt,
@@ -759,6 +819,100 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
+          typename _UnaryOperation, typename _InitType, typename _Inclusive>
+auto
+__parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                      _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op,
+                                      _UnaryOperation __unary_op,
+                                      _InitType __init /*TODO mask assigners for generalization go here*/, _Inclusive)
+{
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __reduce_then_scan_reduce_kernel<_CustomName>>;
+    using _ScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __reduce_then_scan_scan_kernel<_CustomName>>;
+    using _ValueType = typename _InitType::__value_type;
+
+    constexpr std::size_t __sub_group_size = 32;
+    // Empirically determined maximum. May be less for non-full blocks.
+    constexpr std::uint8_t __max_inputs_per_item = 128;
+    constexpr bool __inclusive = _Inclusive::value;
+
+    // TODO: Do we need to adjust for slm usage or is the amount we use reasonably small enough
+    // that no check is needed?
+    const std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+    // TODO: base on max compute units. Recall disconnect in vendor definitions (# SMs vs. # XVEs)
+    const std::size_t __num_work_groups = 128;
+    const std::size_t __num_work_items = __num_work_groups * __work_group_size;
+    const std::size_t __num_sub_groups_local = __work_group_size / __sub_group_size;
+    const std::size_t __num_sub_groups_global = __num_sub_groups_local * __num_work_groups;
+    const std::size_t __n = __in_rng.size();
+    const std::size_t __max_inputs_per_block = __work_group_size * __max_inputs_per_item * __num_work_groups;
+    std::size_t __num_remaining = __n;
+    auto __inputs_per_sub_group =
+        __n >= __max_inputs_per_block
+            ? __max_inputs_per_block / __num_sub_groups_global
+            : std::max(__sub_group_size,
+                       oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+    auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
+    const auto __global_range = sycl::range<1>(__num_work_items);
+    const auto __local_range = sycl::range<1>(__work_group_size);
+    const auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
+    const auto __block_size = (__n < __max_inputs_per_block) ? __n : __max_inputs_per_block;
+    const auto __num_blocks = __n / __block_size + (__n % __block_size != 0);
+
+    // TODO: Use the trick in reduce to wrap in a shared_ptr with custom deleter to support asynchronous frees.
+    _ValueType* __tmp_storage = sycl::malloc_device<_ValueType>(__num_sub_groups_global + 1, __exec.queue());
+
+    // Kernel submitters to build event dependency chain
+    __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, _ReduceKernel> __reduce_submitter{__kernel_nd_range};
+    __parallel_reduce_then_scan_scan_submitter<__sub_group_size, _ScanKernel> __scan_submitter{__kernel_nd_range};
+
+    // Reduce and scan step implementations
+    using _ReduceImpl = unseq_backend::__sub_group_reduce<__sub_group_size, __max_inputs_per_item, __inclusive,
+                                                          _BinaryOperation, _UnaryOperation, _InitType>;
+    using _ScanImpl = unseq_backend::__sub_group_carry_and_scan<__sub_group_size, __max_inputs_per_item, __inclusive,
+                                                                _BinaryOperation, _UnaryOperation, _InitType>;
+
+    _ReduceImpl __reduce_step{__max_inputs_per_block, __num_sub_groups_local, __num_sub_groups_global, __num_work_items,
+                              __n, __binary_op, __unary_op, __init};
+    _ScanImpl __scan_step{__max_inputs_per_block, __num_sub_groups_local, __num_sub_groups_global, __num_work_items,
+                          __n, __binary_op, __unary_op, __init};
+
+    sycl::event __event;
+    // Data is processed in 2-kernel blocks to allow contiguous input segment to persist in LLC between the first and second kernel for accelerators
+    // with sufficiently large L2 / L3 caches.
+    for (std::size_t __b = 0; __b < __num_blocks; ++__b)
+    {
+        bool __is_full_block = __inputs_per_item == __max_inputs_per_item;
+        // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
+        __event = __reduce_submitter(__exec, __in_rng, __tmp_storage, __reduce_step, __event, __inputs_per_sub_group,
+                                     __inputs_per_item, __b, __is_full_block);
+        // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
+        __event = __scan_submitter(__exec, __in_rng, __out_rng, __tmp_storage, __scan_step, __event,
+                                   __inputs_per_sub_group, __inputs_per_item, __b, __is_full_block);
+        if (__num_remaining > __block_size)
+        {
+            // Resize for the next block.
+            __num_remaining -= __block_size;
+            // TODO: This recalculation really only matters for the second to last iteration
+            // of the loop since the last iteration is the only non-full block.
+            __inputs_per_sub_group =
+                __num_remaining >= __max_inputs_per_block
+                    ? __max_inputs_per_block / __num_sub_groups_global
+                    : std::max(__sub_group_size,
+                               oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+            __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
+        }
+    }
+    // TODO: Remove to make asynchronous. Depends on completing async USM free TODO.
+    __event.wait();
+    sycl::free(__tmp_storage, __exec.queue());
+    return __future(__event);
+}
+
 template <typename _Type>
 bool
 __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
@@ -787,6 +941,8 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     if ((__n_uniform & (__n_uniform - 1)) != 0)
         __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
 
+    // TODO: can we reimplement this with support fort non-identities as well? We can then use in reduce-then-scan
+    // for the last block if it is sufficiently small
     constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
     if constexpr (__can_use_group_scan)
     {
@@ -798,31 +954,20 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    // Either we can't use group scan or this input is too big for one workgroup
-    using _Assigner = unseq_backend::__scan_assigner;
-    using _NoAssign = unseq_backend::__scan_no_assign;
-    using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+    // TODO: Reintegrate once support has been added
+    //// Either we can't use group scan or this input is too big for one workgroup
+    //using _Assigner = unseq_backend::__scan_assigner;
+    //using _NoAssign = unseq_backend::__scan_no_assign;
+    //using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
+    //using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
-    _Assigner __assign_op;
-    _NoAssign __no_assign_op;
-    _NoOpFunctor __get_data_op;
-
-    return __future(
-        __parallel_transform_scan_base(
-            __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-            ::std::forward<_Range2>(__out_rng), __binary_op, __init,
-            // local scan
-            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
-                                                           __assign_op, __get_data_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-            // global scan
-            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
-            .event());
+    //_Assigner __assign_op;
+    //_NoAssign __no_assign_op;
+    //_NoOpFunctor __get_data_op;
+    return __future(__parallel_transform_reduce_then_scan(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
+                                                          __binary_op, __unary_op, __init, _Inclusive{})
+                    .event());
 }
 
 template <typename _SizeType>
