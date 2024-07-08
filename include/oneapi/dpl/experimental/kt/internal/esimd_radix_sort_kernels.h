@@ -570,7 +570,7 @@ struct __radix_sort_onesweep_kernel
                                                __local_tid * __bin_width * sizeof(_LocOffsetT),
                                            __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
 
-            // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
+            // 1.3. Copy the histogram at the region designited for synchronization between work-groups.
             // Set the status as "updated".
             if (__wg_id != 0)
             {
@@ -613,7 +613,7 @@ struct __radix_sort_onesweep_kernel
         // 2. Chained scan. Synchronization between work-groups.
         else if (__local_tid < __bin_summary_group_size)
         {
-            // 2.1 Read the histograms from the previous groups
+            // 2.1. Read the histograms scanned across work-groups
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
             __dpl_esimd::__ns::simd_mask<__bin_width> __is_not_accumulated(1);
             do
@@ -626,8 +626,8 @@ struct __radix_sort_onesweep_kernel
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
                         __p_prev_group_hist + __local_tid * __bin_width);
-                    // Software barrier is used in order to trick the compiler,
-                    // thus it generates memory operations with better performance
+                    // Software barrier is used in order to trick the compiler
+                    // to generate memory operations in an order, which results in better performance
                     // TODO: check if it is still necessary.
                     __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
                 } while (((__prev_group_hist & __hist_updated) == 0).any() && __wg_id != 0);
@@ -638,14 +638,14 @@ struct __radix_sort_onesweep_kernel
             __prev_group_hist_sum &= __global_offset_mask;
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum =
                 __prev_group_hist_sum + __thread_grf_hist_summary;
-            // 2.2. Write the histogram updated with the current work-group data
+            // 2.2. Write the histogram scanned across work-group, updated with the current work-group data
             __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                 __dpl_esimd::__ens::lsc_data_size::default_size,
                                                 __dpl_esimd::__ens::cache_hint::write_through,
                                                 __dpl_esimd::__ens::cache_hint::write_back>(
                 __p_this_group_hist + __local_tid * __bin_width,
                 after_group_hist_sum | __hist_updated | __global_accumulated);
-            // 2.3 Save the scanned histogram from previous work-groups
+            // 2.3. Save the scanned histogram from previous work-groups locally
             __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
                 __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
                 __prev_group_hist_sum);
@@ -662,7 +662,7 @@ struct __radix_sort_onesweep_kernel
         // TODO: rename the variable to represent its purpose better.
         __global_fix =
             __dpl_esimd::__block_load_slm<_GlobOffsetT, __bin_count>(__slm_bin_hist_global_incoming) - __group_incoming;
-        // 3.2 Get historam with offsets for each work-item within its work-group.
+        // 3.2. Get historam with offsets for each work-item within its work-group.
         if (__local_tid > 0)
         {
             __subgroup_offset = __group_incoming + __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(
