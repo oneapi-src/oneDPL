@@ -281,9 +281,9 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
     auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __keys);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
-#if _ONEDPL_COMPILE_KERNEL
+#    if _ONEDPL_COMPILE_KERNEL
         __cgh.use_kernel_bundle(__seg_reduce_count_kernel.get_kernel_bundle());
-#endif
+#    endif
         __cgh.parallel_for<_SegReduceCountKernel>(
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
@@ -315,9 +315,9 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
         __cgh.depends_on(__seg_end_identification);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read_write>(__cgh);
-#if _ONEDPL_COMPILE_KERNEL
+#    if _ONEDPL_COMPILE_KERNEL
         __cgh.use_kernel_bundle(__seg_reduce_offset_kernel.get_kernel_bundle());
-#endif
+#    endif
         __cgh.parallel_for<_SegReduceOffsetKernel>(
             sycl::nd_range<1>{__wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 auto __beg = __dpl_sycl::__get_accessor_ptr(__seg_ends_acc);
@@ -335,9 +335,9 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
         auto __partials_acc = __partials.template get_access<sycl::access_mode::read_write>(__cgh);
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read>(__cgh);
         __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL
+#    if _ONEDPL_COMPILE_KERNEL
         __cgh.use_kernel_bundle(__seg_reduce_wg_kernel.get_kernel_bundle());
-#endif
+#    endif
         __cgh.parallel_for<_SegReduceWgKernel>(
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 ::std::array<__val_type, __vals_per_item> __loc_partials;
@@ -455,9 +455,9 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
             __dpl_sycl::__local_accessor<__diff_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
 
             __cgh.depends_on(__wg_reduce);
-#if _ONEDPL_COMPILE_KERNEL
+#    if _ONEDPL_COMPILE_KERNEL
             __cgh.use_kernel_bundle(__seg_reduce_prefix_kernel.get_kernel_bundle());
-#endif
+#    endif
             __cgh.parallel_for<_SegReducePrefixKernel>(
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     auto __group = __item.get_group();

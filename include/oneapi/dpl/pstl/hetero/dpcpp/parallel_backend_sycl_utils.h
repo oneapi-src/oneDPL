@@ -267,7 +267,6 @@ class __kernel_compiler
     static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
-
     template <typename _Exec>
     static auto
     __compile(_Exec&& __exec)

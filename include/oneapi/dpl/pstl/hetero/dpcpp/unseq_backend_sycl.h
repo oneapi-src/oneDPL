@@ -60,7 +60,7 @@ using __has_known_identity = ::std::conditional_t<
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
-    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
+    ::std::false_type>; // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
