@@ -574,15 +574,17 @@ struct __radix_sort_onesweep_kernel
             // Set the status as "updated".
             if (__wg_id != 0)
             {
+                // Write the histogram explicitly to L2, bypassing L1.
+                // L2 is assumed to be coherent, thus other work-groups can read from there if possible
                 __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                     __dpl_esimd::__ens::lsc_data_size::default_size,
-                                                    __dpl_esimd::__ens::cache_hint::uncached,
-                                                    __dpl_esimd::__ens::cache_hint::uncached>(
+                                                    __dpl_esimd::__ens::cache_hint::write_through,
+                                                    __dpl_esimd::__ens::cache_hint::write_back>(
                     __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
             }
         }
         // Make sure the histogram updated at the step 1.3 is visible to other groups
-        // The histogram data above is explicitly written to the global memory: no need to flush the cache
+        // The histogram data above is explicitly written to L2, which is assumed to be coherent: no need to flush it
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
@@ -611,13 +613,15 @@ struct __radix_sort_onesweep_kernel
         // 2. Chained scan. Synchronization between work-groups.
         else if (__local_tid < __bin_summary_group_size)
         {
+            // 2.1 Read the histograms from the previous groups
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
             __dpl_esimd::__ns::simd_mask<__bin_width> __is_not_accumulated(1);
             do
             {
                 do
                 {
-                    // It is assumed that L1 cache is not coherent, and L2 is coherent
+                    // Read the histgogram from L2, bypassing L1
+                    // L1 is assumed to be non-coherent, thus it is avoided to prevent reading stale data
                     __prev_group_hist = __dpl_esimd::__ens::lsc_block_load<
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
@@ -634,19 +638,19 @@ struct __radix_sort_onesweep_kernel
             __prev_group_hist_sum &= __global_offset_mask;
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum =
                 __prev_group_hist_sum + __thread_grf_hist_summary;
+            // 2.2. Write the histogram updated with the current work-group data
             __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                 __dpl_esimd::__ens::lsc_data_size::default_size,
-                                                __dpl_esimd::__ens::cache_hint::uncached,
-                                                __dpl_esimd::__ens::cache_hint::uncached>(
+                                                __dpl_esimd::__ens::cache_hint::write_through,
+                                                __dpl_esimd::__ens::cache_hint::write_back>(
                 __p_this_group_hist + __local_tid * __bin_width,
                 after_group_hist_sum | __hist_updated | __global_accumulated);
-
+            // 2.3 Save the scanned histogram from previous work-groups
             __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
                 __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
                 __prev_group_hist_sum);
         }
-        // Make sure the histogram updated at the step 2 is visible to other groups
-        // The histogram data above is explicitly written to the global memory: no need to flush the cache
+        // Make sure the histogram updated at the step 2.2 is visible to other groups
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
