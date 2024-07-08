@@ -37,11 +37,7 @@
 #endif
 
 #if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50400
-#        include <sycl/ext/intel/fpga_extensions.hpp>
-#    else
-#        include <CL/sycl/INTEL/fpga_extensions.hpp>
-#    endif
+#    include <sycl/ext/intel/fpga_extensions.hpp>
 #endif
 
 // Macros to check the new SYCL features
@@ -255,19 +251,9 @@ inline auto __fpga_selector()
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
 
-using __target =
-#if _ONEDPL_LIBSYCL_VERSION >= 50400
-    sycl::target;
-#else
-    sycl::access::target;
-#endif
+using __target = sycl::target;
 
-constexpr __target __target_device =
-#if _ONEDPL_LIBSYCL_VERSION >= 50400
-    __target::device;
-#else
-    __target::global_buffer;
-#endif
+constexpr __target __target_device = __target::device;
 
 constexpr __target __host_target =
 #if _ONEDPL_LIBSYCL_VERSION >= 60200
