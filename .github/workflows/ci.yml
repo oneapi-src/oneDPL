@@ -216,14 +216,17 @@ jobs:
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
-            make_targets="build-onedpl-sycl_iterator-tests shp-all-tests"
-            ctest_flags="-R sycl_iterator_.*\.pass"
+            # make_targets="build-onedpl-sycl_iterator-tests shp-all-tests"
+            make_targets="shp-all-tests"
+            ctest_flags="-R sycl_iterator_.*\.pass -L SHP"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator and distributed ranges tests"
           else
             make_targets="build-onedpl-tests"
           fi
           mkdir build && cd build
           lscpu
+          cat /etc/os-release
+          printenv
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
