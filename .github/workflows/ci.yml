@@ -216,19 +216,19 @@ jobs:
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
-            make_targets="build-onedpl-sycl_iterator-tests"
+            make_targets="build-onedpl-sycl_iterator-tests shp-all-tests"
             ctest_flags="-R sycl_iterator_.*\.pass"
-            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
+            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator and distributed ranges tests"
           else
-            make_targets="shp-all-tests" # make_targets="build-onedpl-tests"
+            make_targets="build-onedpl-tests"
           fi
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
-          # ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
-          ctest --test-dir . -L SHP -j${BUILD_CONCURRENCY}
+          # ctest -L SHP -j${BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
 #  dr-testing:
 #    name: Run DR shp-tests
