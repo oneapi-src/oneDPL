@@ -49,7 +49,6 @@ inline constexpr bool __can_use_known_identity =
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = ::std::conditional_t<
     __can_use_known_identity<_Tp>,
-#    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
         ::std::conjunction<::std::is_arithmetic<_Tp>,
@@ -61,14 +60,6 @@ using __has_known_identity = ::std::conditional_t<
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
-#    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
-    typename ::std::conjunction<
-        ::std::is_arithmetic<_Tp>,
-        ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
-#    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
     ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
@@ -89,12 +80,7 @@ struct __known_identity_for_plus
 };
 
 template <typename _BinaryOp, typename _Tp>
-inline constexpr _Tp __known_identity =
-#if _ONEDPL_LIBSYCL_VERSION >= 50200
-    __dpl_sycl::__known_identity<_BinaryOp, _Tp>::value;
-#else  //_ONEDPL_LIBSYCL_VERSION >= 50200
-    __known_identity_for_plus<_BinaryOp, _Tp>::value; //for plus only
-#endif //_ONEDPL_LIBSYCL_VERSION >= 50200
+inline constexpr _Tp __known_identity = __dpl_sycl::__known_identity<_BinaryOp, _Tp>::value;
 
 template <typename _ExecutionPolicy, typename _F>
 struct walk_n
