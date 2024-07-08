@@ -32,6 +32,9 @@
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
 #    define _ONEDPL_LIBSYCL_VERSION                                                                                    \
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
+#    if _ONEDPL_LIBSYCL_VERSION < 57000
+#        error "oneDPL requires Intel(R) oneAPI DPC++/C++ Compiler 2022.2.0 or newer"
+#    endif
 #else
 #    define _ONEDPL_LIBSYCL_VERSION 0
 #endif
