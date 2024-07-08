@@ -265,7 +265,7 @@ Memory Requirements
 The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
 for intermediate data storage. For the algorithm to operate correctly, there must be enough memory on the device.
-It throws a ``std::bad_alloc`` exception if there is not enough global device memory.
+If there is not enough global device memory, a ``std::bad_alloc`` exception is thrown.
 The behavior is undefined if there is not enough local memory.
 The amount of memory that is required depends on input data and configuration parameters, as described below.
 
