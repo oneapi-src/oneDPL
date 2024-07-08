@@ -45,7 +45,6 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
 #define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_LIBSYCL_VERSION >= 60200)
@@ -104,7 +103,6 @@ using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
 template <typename _BinaryOp, typename _T>
 inline constexpr auto __known_identity_v = __known_identity<_BinaryOp, _T>::value;
 
-#if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
@@ -113,16 +111,6 @@ using __maximum = sycl::maximum<_T>;
 
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
-#else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
-template <typename _T>
-using __plus = sycl::ONEAPI::plus<_T>;
-
-template <typename _T>
-using __maximum = sycl::ONEAPI::maximum<_T>;
-
-template <typename _T>
-using __minimum = sycl::ONEAPI::minimum<_T>;
-#endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 
 #if _ONEDPL_SYCL_SUB_GROUP_PRESENT
 using __sub_group = sycl::sub_group;
