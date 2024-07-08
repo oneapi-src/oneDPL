@@ -45,7 +45,6 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
@@ -181,143 +180,91 @@ template <typename... _Args>
 constexpr auto
 __group_broadcast(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::group_broadcast(__args...);
-#else
-    return sycl::ONEAPI::broadcast(__args...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __exclusive_scan_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::exclusive_scan_over_group(__args...);
-#else
-    return sycl::ONEAPI::exclusive_scan(__args...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __inclusive_scan_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::inclusive_scan_over_group(__args...);
-#else
-    return sycl::ONEAPI::inclusive_scan(__args...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __reduce_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::reduce_over_group(__args...);
-#else
-    return sycl::ONEAPI::reduce(__args...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __any_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::any_of_group(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __all_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::all_of_group(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __none_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::none_of_group(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_exclusive_scan(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_inclusive_scan(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_reduce(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_reduce(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::reduce(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_any_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_any_of(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_all_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_all_of(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 template <typename... _Args>
 constexpr auto
 __joint_none_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_none_of(::std::forward<_Args>(__args)...);
-#else
-    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
-#endif
 }
 
 #if _ONEDPL_FPGA_DEVICE
