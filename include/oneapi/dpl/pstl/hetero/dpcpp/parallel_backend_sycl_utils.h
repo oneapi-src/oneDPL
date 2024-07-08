@@ -267,7 +267,7 @@ class __kernel_compiler
     static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+
     template <typename _Exec>
     static auto
     __compile(_Exec&& __exec)
@@ -290,18 +290,6 @@ class __kernel_compiler
     {
         return __kernel_array_type{__kernel_bundle.get_kernel(__kernel_ids[_Ip])...};
     }
-#else
-    template <typename _Exec>
-    static auto
-    __compile(_Exec&& __exec)
-    {
-        sycl::program __program(__exec.queue().get_context());
-
-        using __return_type = std::conditional_t<(__kernel_count > 1), __kernel_array_type, sycl::kernel>;
-        return __return_type{
-            (__program.build_with_kernel_type<_KernelNames>(), __program.get_kernel<_KernelNames>())...};
-    }
-#endif
 };
 
 #if _ONEDPL_DEBUG_SYCL
