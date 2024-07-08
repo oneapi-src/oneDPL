@@ -7,7 +7,11 @@
 #include <memory>
 #include <type_traits>
 
-#include <sycl/sycl.hpp>
+#if __has_include(<sycl/sycl.hpp>)
+#    include <sycl/sycl.hpp>
+#else
+#    include <CL/sycl.hpp>
+#endif
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
