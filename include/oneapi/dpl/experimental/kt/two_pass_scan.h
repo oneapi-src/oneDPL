@@ -115,13 +115,13 @@ inclusive_sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitB
 
 
 
-template <std::uint8_t VL, bool Inclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType>
+template <std::uint8_t VL, bool IsInclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType>
 void
 sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, LazyValueType& init_and_carry)
 {
     auto mask_fn = [](auto sub_group_local_id, auto offset) { return sub_group_local_id >= offset; };
     constexpr auto init_broadcast_id = VL - 1;
-    if constexpr (Inclusive)
+    if constexpr (IsInclusive)
     {
         inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
     }
@@ -131,7 +131,7 @@ sub_group_scan(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, 
     }
 }
 
-template <std::uint8_t VL, bool Inclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType, typename SizeType>
+template <std::uint8_t VL, bool IsInclusive, bool InitPresent, typename SubGroup, typename BinaryOp, typename ValueType, typename LazyValueType, typename SizeType>
 void
 sub_group_scan_partial(const SubGroup& sub_group, ValueType& value, BinaryOp binary_op, LazyValueType& init_and_carry, SizeType elements_to_process)
 {
@@ -139,7 +139,7 @@ sub_group_scan_partial(const SubGroup& sub_group, ValueType& value, BinaryOp bin
         return sub_group_local_id >= offset && sub_group_local_id < elements_to_process;
     };
     auto init_broadcast_id = elements_to_process - 1;
-    if constexpr (Inclusive)
+    if constexpr (IsInclusive)
     {
         inclusive_sub_group_masked_scan<VL, InitPresent>(sub_group, mask_fn, init_broadcast_id, value, binary_op, init_and_carry);
     }
@@ -150,7 +150,7 @@ sub_group_scan_partial(const SubGroup& sub_group, ValueType& value, BinaryOp bin
 }
 
 // Named two_pass_scan for now to avoid name clash with single pass KT
-template <bool Inclusive, typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp,
+template <bool IsInclusive, typename _KernelName, typename _InRng, typename _OutRng, typename BinaryOp, typename UnaryOp,
           typename ValueType>
 void
 two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
@@ -241,26 +241,26 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         auto v = unary_op(__in_rng[start_idx]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, IsInclusive, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry);
 
                         _ONEDPL_PRAGMA_UNROLL
                         for (int j = 1; j < J_max; j++)
                         {
                             v = unary_op(__in_rng[start_idx + j * VL]);
                             // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan<VL, IsInclusive, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry);
                         }
                     }
                     else if (is_full_thread)
                     {
                         auto v = unary_op(__in_rng[start_idx]);
-                        sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, IsInclusive, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry);
 
                         for (int j = 1; j < J; j++)
                         {
                             v = unary_op(__in_rng[start_idx + j * VL]);
                             // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan<VL, IsInclusive, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry);
                         }
                     }
                     else
@@ -270,24 +270,24 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         {
                             auto local_idx = (start_idx < M) ? start_idx : M - 1; // use a dummy value for unused elements out of range
                             auto v = unary_op(__in_rng[local_idx]);
-                            sub_group_scan_partial<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
+                            sub_group_scan_partial<VL, IsInclusive, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry,  M - subgroup_start_idx);
                         }
                         else
                         {
                             auto v = unary_op(__in_rng[start_idx]);
                             // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                            sub_group_scan<VL, Inclusive, false>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan<VL, IsInclusive, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry);
 
                             for (int j = 1; j < iters - 1; j++)
                             {
                                 v = unary_op(__in_rng[start_idx + j * VL]);
-                                sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                                sub_group_scan<VL, IsInclusive, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry);
                             }
 
                             auto local_idx = (start_idx + (iters - 1) * VL < M) ? start_idx + (iters - 1) * VL : M - 1;
                             v = unary_op(__in_rng[local_idx]);
 
-                            sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry,
+                            sub_group_scan_partial<VL, IsInclusive, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry,
                                                                         M - (subgroup_start_idx + (iters - 1) * VL));
                         }
                     }
@@ -314,7 +314,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                                             ? sub_group_local_id
                                             : (active_subgroups - 1); // else is unused dummy value
                         auto v = sub_group_partials[load_idx];
-                        sub_group_scan_partial<VL, true, false>(sub_group, v, binary_op, sub_group_carry, active_subgroups - subgroup_start_idx);
+                        sub_group_scan_partial<VL, /*IsInclusive=*/true, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry, active_subgroups - subgroup_start_idx);
                         if (sub_group_local_id < active_subgroups)
                             tmp_storage[start_idx + sub_group_local_id] = v;
                     }
@@ -322,13 +322,13 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         //need to pull out first iteration tp avoid identity
                         auto v = sub_group_partials[sub_group_local_id];
-                        sub_group_scan<VL, true, false>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, /*IsInclusive=*/true, /*InitPresent=*/false>(sub_group, v, binary_op, sub_group_carry);
                         tmp_storage[start_idx + sub_group_local_id] = v;
 
                         for (int i = 1; i < iters - 1; i++)
                         {
                             v = sub_group_partials[i * VL + sub_group_local_id];
-                            sub_group_scan<VL, true, true>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan<VL, /*IsInclusive=*/true, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry);
                             tmp_storage[start_idx + i * VL + sub_group_local_id] = v;
                         }
                         // If we are past the input range, then the previous value of v is passed to the sub-group scan.
@@ -341,7 +341,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                                             : (num_sub_groups_local - 1);
 
                         v = sub_group_partials[load_idx];
-                        sub_group_scan_partial<VL, true, true>(sub_group, v, binary_op, sub_group_carry,
+                        sub_group_scan_partial<VL, /*IsInclusive=*/true, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry,
                                                         num_sub_groups_local);
                         if (proposed_idx < num_sub_groups_local)
                             tmp_storage[start_idx + proposed_idx] = v;
@@ -384,7 +384,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     sub_group_carry.__setup(init);
                 else
                 {
-                    if constexpr (Inclusive)
+                    if constexpr (IsInclusive)
                         sub_group_carry.__setup(__out_rng[b * blockSize - 1]);
                     else // The last block wrote an exclusive result, so we must make it inclusive.
                     {
@@ -442,21 +442,21 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             auto remaining_elements = elements_to_process;
                             auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
                             value.__setup(tmp_storage[reduction_idx]);
-                            sub_group_scan_partial<VL, true, false>(sub_group, value.__v, binary_op, carry_last, remaining_elements);
+                            sub_group_scan_partial<VL, /*IsInclusive=*/true, /*InitPresent=*/false>(sub_group, value.__v, binary_op, carry_last, remaining_elements);
                         }
                         else
                         {
                             // multiple iterations
                             // first 1 full
                             value.__setup(tmp_storage[num_sub_groups_local * sub_group_local_id + offset]);
-                            sub_group_scan<VL, true, false>(sub_group, value.__v, binary_op, carry_last);
+                            sub_group_scan<VL, /*IsInclusive=*/true, /*InitPresent=*/false>(sub_group, value.__v, binary_op, carry_last);
 
                             // then some number of full iterations
                             for (int i = 1; i < pre_carry_iters - 1; i++)
                             {
                                 auto reduction_idx = i * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
                                 value.__v = tmp_storage[reduction_idx];
-                                sub_group_scan<VL, true, true>(sub_group, value.__v, binary_op, carry_last);
+                                sub_group_scan<VL, /*IsInclusive=*/true, /*InitPresent=*/true>(sub_group, value.__v, binary_op, carry_last);
                             }
 
                             // final partial iteration
@@ -464,7 +464,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             auto remaining_elements = elements_to_process - ((pre_carry_iters - 1) * VL);
                             auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
                             value.__v = tmp_storage[reduction_idx];
-                            sub_group_scan_partial<VL, true, true>(sub_group, value.__v, binary_op, carry_last, remaining_elements);
+                            sub_group_scan_partial<VL, /*IsInclusive=*/true, /*InitPresent=*/true>(sub_group, value.__v, binary_op, carry_last, remaining_elements);
                         }
                     }
                 }
@@ -472,7 +472,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 // While the first sub-group is doing work, have the last item in the group store the last element
                 // in the block to temporary storage for use in the next block.
                 // This is required to support in-place exclusive scans as the input values will be overwritten.
-                if constexpr (!Inclusive)
+                if constexpr (!IsInclusive)
                 {
                     auto global_id = ndi.get_global_linear_id();
                     if (global_id == num_work_items - 1)
@@ -546,7 +546,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         auto v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, IsInclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
@@ -556,7 +556,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                     {
                         auto v = unary_op(__in_rng[start_idx + j * VL]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                        sub_group_scan<VL, IsInclusive, true>(sub_group, v, binary_op, sub_group_carry);
                         __out_rng[start_idx + j * VL] = v;
                     }
                 }
@@ -570,7 +570,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             auto local_idx = start_idx + j * VL;
                             auto v = unary_op(__in_rng[local_idx]);
                             // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                            sub_group_scan<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry);
+                            sub_group_scan<VL, IsInclusive, true>(sub_group, v, binary_op, sub_group_carry);
                             __out_rng[local_idx] = v;
                         }
 
@@ -578,7 +578,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                         auto local_idx = (offset < M) ? offset : M - 1;
                         auto v = unary_op(__in_rng[local_idx]);
                         // In principle we could use SYCL group scan. Stick to our own for now for full control of implementation.
-                        sub_group_scan_partial<VL, Inclusive, true>(sub_group, v, binary_op, sub_group_carry, M - (subgroup_start_idx + (iters - 1) * VL));
+                        sub_group_scan_partial<VL, IsInclusive, /*InitPresent=*/true>(sub_group, v, binary_op, sub_group_carry, M - (subgroup_start_idx + (iters - 1) * VL));
                         if (offset < M)
                             __out_rng[offset] = v;
                     }
