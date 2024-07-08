@@ -342,13 +342,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::discard_write>(__cgh);
             __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_LocalScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel_1,
-#endif
                 sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                     __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg, __wgroup_size,
                                  __iters_per_witem, __init);
@@ -362,13 +359,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 __cgh.depends_on(__submit_event);
                 auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
                 __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL
                 __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
                 __cgh.parallel_for<_GroupScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel_2,
-#endif
                     // TODO: try to balance work between several workgroups instead of one
                     sycl::nd_range<1>(__wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                         __group_scan(__item, __n_groups, __local_acc, __wg_sums_acc, __wg_sums_acc,
@@ -1170,13 +1164,10 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
             // create local accessor to connect atomic with
             __dpl_sycl::__local_accessor<_AtomicType> __temp_local(1, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_FindOrKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
