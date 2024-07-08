@@ -57,13 +57,10 @@ exclusive_sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitB
             value = binary_op(partial_carry_in, value);
         }
     }
-    if constexpr (InitPresent)
-    {
-        value = binary_op(init_and_carry.__v, value);
-    }
     LazyValueType old_init;
     if constexpr (InitPresent)
     {
+        value = binary_op(init_and_carry.__v, value);
         if (sub_group_local_id == 0)
             old_init.__setup(init_and_carry.__v);
         init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
@@ -106,10 +103,6 @@ inclusive_sub_group_masked_scan(const SubGroup& sub_group, MaskOp mask_fn, InitB
     if constexpr (InitPresent)
     {
         value = binary_op(init_and_carry.__v, value);
-    }
-
-    if constexpr (InitPresent)
-    {
         init_and_carry.__v = sycl::group_broadcast(sub_group, value, init_broadcast_id);
     }
     else
@@ -228,7 +221,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                 auto sub_group_id = sub_group.get_group_linear_id();
                 auto sub_group_local_id = sub_group.get_local_linear_id();
 
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
+                oneapi::dpl::__internal::__lazy_ctor_storage<ValueType> sub_group_carry;
                 std::size_t group_start_idx = (b * blockSize) + (g * K * num_sub_groups_local);
                 if (M <= group_start_idx)
                     return; // exit early for empty groups (TODO: avoid launching these?)
@@ -382,16 +375,16 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
 
                 std::size_t elements_in_group = std::min(M - group_start_idx, std::size_t(num_sub_groups_local * K));
                 auto active_subgroups = oneapi::dpl::__internal::__dpl_ceiling_div(elements_in_group, K);
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> carry_last;
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> value;
+                oneapi::dpl::__internal::__lazy_ctor_storage<ValueType> carry_last;
+                oneapi::dpl::__internal::__lazy_ctor_storage<ValueType> value;
 
                 // propogate carry in from previous block
-                oneapi::dpl::__par_backend_hetero::__lazy_ctor_storage<ValueType> sub_group_carry;
+                oneapi::dpl::__internal::__lazy_ctor_storage<ValueType> sub_group_carry;
                 if (b == 0)
                     sub_group_carry.__setup(init);
                 else
                 {
-                    if (Inclusive)
+                    if constexpr (Inclusive)
                         sub_group_carry.__setup(__out_rng[b * blockSize - 1]);
                     else // The last block wrote an exclusive result, so we must make it inclusive.
                     {
@@ -470,7 +463,7 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng,
                             auto proposed_idx = (pre_carry_iters - 1) * num_sub_groups_local * VL + num_sub_groups_local * sub_group_local_id + offset;
                             auto remaining_elements = elements_to_process - ((pre_carry_iters - 1) * VL);
                             auto reduction_idx = (proposed_idx < subgroups_before_my_group) ? proposed_idx : subgroups_before_my_group - 1;
-                            value.__setup(tmp_storage[reduction_idx]);
+                            value.__v = tmp_storage[reduction_idx];
                             sub_group_scan_partial<VL, true, true>(sub_group, value.__v, binary_op, carry_last, remaining_elements);
                         }
                     }
