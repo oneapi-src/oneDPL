@@ -8,7 +8,8 @@ This technology only supports Intel GPU devices.
 
 These templates are available in the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. The following are implemented:
 
-* :doc:`radix_sort and radix_sort_by_key <esimd/radix_sort>`
+* :doc:`radix_sort <esimd/radix_sort>`
+* :doc:`radix_sort_by_key <esimd/radix_sort_by_key>`
 
 .. toctree::
    :maxdepth: 2
@@ -17,6 +18,7 @@ These templates are available in the ``oneapi::dpl::experimental::kt::gpu::esimd
    :hidden:
 
    esimd/radix_sort
+   esimd/radix_sort_by_key
 
 -------------------
 System Requirements
