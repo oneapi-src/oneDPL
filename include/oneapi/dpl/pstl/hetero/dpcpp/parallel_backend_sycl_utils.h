@@ -56,10 +56,14 @@ __device_info(const _ExecutionPolicy& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-::std::size_t
-__max_work_group_size(const _ExecutionPolicy& __policy)
+std::size_t
+__max_work_group_size(const _ExecutionPolicy& __policy, std::size_t __wg_size_limit = 8192)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    std::size_t __wg_size = __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    // Limit the maximum work-group size supported by the device to optimize the throughput or minimize communication
+    // costs. This is limited to 8192 which is the highest current limit of the tested hardware (opencl:cpu devices) to
+    // prevent huge work-group sizes returned on some devices (e.g., FPGU emulation).
+    return std::min(__wg_size, __wg_size_limit);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
