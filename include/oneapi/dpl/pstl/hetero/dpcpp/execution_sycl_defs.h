@@ -87,10 +87,8 @@ class alignas(sycl::queue) __queue_holder
             __flag_and_factory.second = nullptr;
     }
 
-    // Copy and move operations have to be provided explicitly
+    // Copy operations must be provided explicitly
     __queue_holder(const __queue_holder& __h) : __q(__h.__get_queue()) {}
-    // predefined policies should never be moved, so the move-from one must have a queue
-    __queue_holder(__queue_holder&& __h) : __q(std::move(__h.__q)) {}
 
     __queue_holder&
     operator=(const __queue_holder& __h)
@@ -100,15 +98,15 @@ class alignas(sycl::queue) __queue_holder
         return *this;
     }
 
+    // Move operations must be provided explicitly
+    // Predefined policies should never be moved, so the move-from object must have a valid queue
+    __queue_holder(__queue_holder&& __h) : __q(std::move(__h.__q)) {}
+
     __queue_holder&
     operator=(__queue_holder&& __h)
     {
         if (this != &__h)
-        {
-            // predefined policies should never be moved, so the move-from one must have a queue
-            assert(__h.__has_queue());
             __q = std::move(__h.__q);
-        }
         return *this;
     }
 
