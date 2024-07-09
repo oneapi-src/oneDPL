@@ -130,6 +130,8 @@ using __maximum = sycl::maximum<_T>;
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
 
+template <typename _T = void>
+using __bit_or = sycl::bit_or<_T>;
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T>
 using __plus = sycl::ONEAPI::plus<_T>;
@@ -139,6 +141,9 @@ using __maximum = sycl::ONEAPI::maximum<_T>;
 
 template <typename _T>
 using __minimum = sycl::ONEAPI::minimum<_T>;
+
+template <typename _T = void>
+using __bit_or = sycl::ONEAPI::bit_or<_T>;
 #endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 
 template <typename _Buffer>
