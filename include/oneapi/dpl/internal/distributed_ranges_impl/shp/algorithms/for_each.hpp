@@ -63,20 +63,21 @@ for_each(Iter begin, Iter end, Fn fn)
     for_each(par_unseq, begin, end, fn);
 }
 
-template <typename ExecutionPolicy, dr::distributed_iterator Iter,
-          std::integral I, typename Fn>
-Iter for_each_n(ExecutionPolicy &&policy, Iter begin, I n, Fn fn) {
-  auto end = begin;
-  rng::advance(end, n);
-  for_each(std::forward<ExecutionPolicy>(policy), begin, end,
-           std::forward<Fn>(fn));
-  return end;
+template <typename ExecutionPolicy, dr::distributed_iterator Iter, std::integral I, typename Fn>
+Iter
+for_each_n(ExecutionPolicy&& policy, Iter begin, I n, Fn fn)
+{
+    auto end = begin;
+    rng::advance(end, n);
+    for_each(std::forward<ExecutionPolicy>(policy), begin, end, std::forward<Fn>(fn));
+    return end;
 }
 
 template <dr::distributed_iterator Iter, std::integral I, typename Fn>
-Iter for_each_n(Iter &&r, I n, Fn fn) {
-  return for_each_n(dr::shp::par_unseq, std::forward<Iter>(r), n, fn);
+Iter
+for_each_n(Iter&& r, I n, Fn fn)
+{
+    return for_each_n(dr::shp::par_unseq, std::forward<Iter>(r), n, fn);
 }
-
 
 } // namespace oneapi::dpl::experimental::dr::shp
