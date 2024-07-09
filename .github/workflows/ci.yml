@@ -176,7 +176,7 @@ jobs:
             std: 23
             build_type: release
             backend: dpcpp
-            device_type: HOST
+            device_type: CPU
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository
