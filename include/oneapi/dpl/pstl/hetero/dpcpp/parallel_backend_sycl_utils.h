@@ -56,10 +56,19 @@ __device_info(const _ExecutionPolicy& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-::std::size_t
+std::size_t
 __max_work_group_size(const _ExecutionPolicy& __policy)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    std::size_t __wgroup_size =
+        __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+
+#if _ONEDPL_FPGA_EMU
+    // Limit the maximum work-group size, for example to minimize the cost of work-group reduction.
+    // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
+    __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
+#endif
+
+    return __wgroup_size;
 }
 
 template <typename _ExecutionPolicy, typename _Size>
