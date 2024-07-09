@@ -81,12 +81,11 @@ TEST(Sort, RevPyramid) { test_sort2s({6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6}); }
 
 TEST(Sort, Wave) { test_sort2s({1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1}); }
 
-// fails: https://github.com/oneapi-src/distributed-ranges/issues/785
-//TEST(Sort, LongSorted) {
-//  LV v(100000);
-//  rng::iota(v, 1);
-//  test_sort2s(v);
-//
-//  rng::reverse(v);
-//  test_sort2s(v);
-//}
+TEST(Sort, LongSorted) {
+  LV v(100000);
+  rng::iota(v, 1);
+  test_sort2s(v);
+
+  rng::reverse(v);
+  test_sort2s(v);
+}

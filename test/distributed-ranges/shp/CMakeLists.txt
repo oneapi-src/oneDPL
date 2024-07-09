@@ -44,7 +44,7 @@ add_executable(
   ../common/for_each.cpp
   ../common/iota.cpp
   # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
-  ../common/reduce.cpp 
+  ../common/reduce.cpp
   ../common/sort.cpp
   ../common/subrange.cpp
   ../common/take.cpp 
@@ -75,6 +75,7 @@ function(add_shp_ctest test_name name)
   add_dependencies(shp-all-tests ${name})
 endfunction()
 
+# Sort excluded due to https://github.com/oneapi-src/distributed-ranges/issues/785
 add_shp_ctest(shp-tests shp-tests)
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3)
+add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*)
 add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)
