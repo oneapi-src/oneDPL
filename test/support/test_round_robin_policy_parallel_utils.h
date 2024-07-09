@@ -45,7 +45,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -56,7 +56,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){
@@ -101,7 +101,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -112,7 +112,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     oneapi::dpl::experimental::wait(p.get_submission_group());
@@ -160,7 +160,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -172,7 +172,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){
