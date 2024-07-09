@@ -570,7 +570,7 @@ struct __radix_sort_onesweep_kernel
                                                __local_tid * __bin_width * sizeof(_LocOffsetT),
                                            __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
 
-            // 1.3. Copy the histogram at the region designited for synchronization between work-groups.
+            // 1.3. Copy the histogram at the region designated for synchronization between work-groups.
             // Set the status as "updated".
             if (__wg_id != 0)
             {
@@ -662,7 +662,7 @@ struct __radix_sort_onesweep_kernel
         // TODO: rename the variable to represent its purpose better.
         __global_fix =
             __dpl_esimd::__block_load_slm<_GlobOffsetT, __bin_count>(__slm_bin_hist_global_incoming) - __group_incoming;
-        // 3.2. Get historam with offsets for each work-item within its work-group.
+        // 3.2. Get histogram with offsets for each work-item within its work-group.
         if (__local_tid > 0)
         {
             __subgroup_offset = __group_incoming + __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(
