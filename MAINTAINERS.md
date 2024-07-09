@@ -7,7 +7,7 @@ This document provides a list of the maintainers for each area of development in
 | C++ standard policies and CPU backends | Dan Hoeflinger | @danhoeflinger |
 | SYCL device policies and SYCL backends | Mikhail Dvorskiy<br>Adam Fidel | @MikeDvorskiy<br>@adamfidel | 
 | Tested Standard C++ APIs & Utility Function Object Classes | Sergey Kopienko | @SergeyKopeinko |
-| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@julianmi<br>@SergeyKopienko<br>@dmitriy-sobolev |
+| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev |
 | Range-Based Algorithms | Mikhail Dvorskiy | @MikeDvorskiy |
 | Asynchronous API Algorithms | | |
 | Additional Algorithms | Dan Hoeflinger<br>Matt Michel | @danhoeflinger<br>@mmichel11 |
