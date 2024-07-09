@@ -64,6 +64,7 @@ main()
 
     //TODO: to add the calls for algorithms below with &P2::x and &P2::proj
     test_range_algo{}(dpl_ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, proj);
+    test_range_algo<P2>{}(dpl_ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, &P2::x);
     test_range_algo<int, data_in_in>{}(dpl_ranges::search,  std::ranges::search, pred_2, proj, proj);
     test_range_algo{}(dpl_ranges::search_n,  std::ranges::search_n, 3, 5, pred_2, proj);
 #endif //_ENABLE_STD_RANGES_TESTING
