@@ -29,31 +29,6 @@ if (NOT GTest_FOUND)
   return()
 endif ()
 
-find_package(MKL REQUIRED)
-
-add_library(dr_shp INTERFACE)
-add_library(DR::shp ALIAS dr_shp)
-
-target_include_directories(dr_shp INTERFACE . vendor ../../../include)
-target_compile_definitions(dr_shp INTERFACE USE_MKL
-                                            _GLIBCXX_USE_TBB_PAR_BACKEND=0)
-target_compile_options(dr_shp INTERFACE -ftemplate-backtrace-limit=0)
-target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
-target_link_libraries(dr_shp INTERFACE fmt::fmt)
-
-target_compile_options(dr_shp INTERFACE -qopenmp)
-target_link_options(dr_shp INTERFACE -qopenmp)
-
-# For use, see:
-# https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
-# example: cmake .. -DhipSYCL_DIR=</hipsycl/install/lib/cmake/hipSYCL>
-# -DHIPSYCL_TARGETS="<targets>"
-if($(HIPSYCL_TARGETS))
-  find_package(hipSYCL REQUIRED)
-  add_sycl_to_target(TARGET dr_shp)
-  target_compile_options(dr_shp INTERFACE --hipsycl-targets='cuda:sm_75')
-endif()
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_executable(
@@ -69,7 +44,7 @@ add_executable(
   ../common/for_each.cpp
   ../common/iota.cpp
   # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
-  ../common/reduce.cpp 
+  ../common/reduce.cpp
   ../common/sort.cpp
   ../common/subrange.cpp
   ../common/take.cpp 
@@ -88,8 +63,8 @@ add_executable(
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
-  target_link_libraries(${test-exec} GTest::gtest_main DR::shp)
-  target_link_libraries(${test-exec} fmt::fmt)
+  target_link_libraries(${test-exec} PRIVATE GTest::gtest_main fmt::fmt oneDPL)
+  target_link_options(${test-exec} PRIVATE -qopenmp)
 endforeach()
 
 add_custom_target(shp-all-tests)
@@ -100,6 +75,7 @@ function(add_shp_ctest test_name name)
   add_dependencies(shp-all-tests ${name})
 endfunction()
 
+# Sort excluded due to https://github.com/oneapi-src/distributed-ranges/issues/785
 add_shp_ctest(shp-tests shp-tests)
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3)
+add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*:ShpTests.Sort*)
 add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)

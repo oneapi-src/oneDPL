@@ -171,6 +171,12 @@ jobs:
             build_type: release
             backend: serial
             device_type: HOST
+          - os: ubuntu-24.04
+            cxx_compiler: icpx
+            std: 23
+            build_type: release
+            backend: dpcpp
+            device_type: HOST
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository
@@ -195,6 +201,11 @@ jobs:
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
+      - name: Install libfmt and gtest needed by Distributed Ranges tests
+        if: (matrix.std == '23')
+        run: |
+          sudo apt-get install libgtest-dev libcxxopts-dev libfmt-dev -y
+          sudo apt-get remove libgcc-14-dev cpp-14-x86-64-linux-gnu -y  # gcc14 toolkit not supported yet by DR
       - name: Run testing
         shell: bash
         run: |
@@ -205,7 +216,11 @@ jobs:
           echo "::warning::CMake: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-          if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
+          if [[ "${{ matrix.std }}" == "23" ]]; then
+            make_targets="shp-all-tests"
+            ctest_flags="-L SHP"
+            echo "::warning::23 standard is set. Compile and run only distributed ranges tests"
+          elif [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="build-onedpl-sycl_iterator-tests"
             ctest_flags="-R sycl_iterator_.*\.pass"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
@@ -218,27 +233,6 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
-
-  dr-testing:
-    name: Run DR shp-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build docker image
-        run: docker build . -t dr-test -f .github/Dockerfile
-      - name: Run tests
-        run: |
-          docker run --name dr-test -d -v $(pwd):/repo dr-test sh -c "
-            cd repo &&
-            mkdir build &&
-            cd build &&
-            cmake -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=icpx -DONEDPL_BACKEND=dpcpp -DCMAKE_BUILD_TYPE=Release .. &&
-            cmake --build . --target shp-all-tests -j${BUILD_CONCURRENCY} &&
-            ctest --test-dir . -L SHP -j${BUILD_CONCURRENCY}"
-          docker logs -f dr-test
-          exit_code=$(docker inspect dr-test --format='{{.State.ExitCode}}')
-          docker rm -f dr-test
-          exit $exit_code
 
   linux-pstl-offload-testing:
     name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
