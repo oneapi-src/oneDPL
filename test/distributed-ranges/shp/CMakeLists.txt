@@ -77,5 +77,5 @@ endfunction()
 
 # Sort excluded due to https://github.com/oneapi-src/distributed-ranges/issues/785
 add_shp_ctest(shp-tests shp-tests)
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*)
+add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*:ShpTests.Sort*)
 add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)
