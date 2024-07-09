@@ -11,10 +11,13 @@
 #define _ONEDPL_TEST_ROUND_ROBIN_PARALLEL_UTILS_H
 
 #include "support/test_config.h"
-#include "oneapi/dpl/dynamic_selection"
-#include "support/utils.h"
+
 #include <unordered_map>
 #include <thread>
+
+#include "oneapi/dpl/dynamic_selection"
+
+#include "support/utils.h"
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
