@@ -128,6 +128,7 @@ struct __sycl_scan_by_segment_impl
             4; // Assigning 4 elements per work item resulted in best performance on gpu.
 
         // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
+        // This value exceeds the current practical limit for GPUs, but may need to be re-evaluated in the future.
         std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)2048);
 
         // We require 2 * sizeof(__val_type) * __wgroup_size of SLM for the work group segmented scan. We add
