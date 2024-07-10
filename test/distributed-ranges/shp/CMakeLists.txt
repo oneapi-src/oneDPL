@@ -53,7 +53,7 @@ add_executable(
   ../common/fill.cpp 
   ../common/for_each.cpp
   ../common/iota.cpp
-  # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
+  ../common/iota_view.cpp
   ../common/reduce.cpp
   ../common/sort.cpp
   ../common/subrange.cpp

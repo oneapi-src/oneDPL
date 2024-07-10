@@ -35,26 +35,28 @@ TYPED_TEST(IotaView, ZipWithDR) {
   EXPECT_TRUE(equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
 }
 
-TYPED_TEST(IotaView, Copy) {
-  TypeParam dv(10);
-  auto v = dr::views::iota(1, 11);
+// https://github.com/oneapi-src/distributed-ranges/issues/787
+//TYPED_TEST(IotaView, Copy) {
+//  TypeParam dv(10);
+//  auto v = dr::views::iota(1, 11);
+//
+//  xhp::copy(v, dv.begin());
+//
+//  barrier();
+//  EXPECT_TRUE(equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
+//}
 
-  xhp::copy(v, dv.begin());
-
-  barrier();
-  EXPECT_TRUE(equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
-}
-
-TYPED_TEST(IotaView, Transform) {
-  TypeParam dv(10);
-  auto v = dr::views::iota(1, 11);
-  auto negate = [](auto v) { return -v; };
-
-  xhp::transform(v, dv.begin(), negate);
-
-  EXPECT_TRUE(
-      equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
-}
+// https://github.com/oneapi-src/distributed-ranges/issues/788
+//TYPED_TEST(IotaView, Transform) {
+//  TypeParam dv(10);
+//  auto v = dr::views::iota(1, 11);
+//  auto negate = [](auto v) { return -v; };
+//
+//  xhp::transform(v, dv.begin(), negate);
+//
+//  EXPECT_TRUE(
+//      equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
+//}
 
 TYPED_TEST(IotaView, ForEach) {
   TypeParam dv(10);

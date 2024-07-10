@@ -69,12 +69,10 @@ endif()
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
-set(run-onedpl-tests-depends build-onedpl-tests)
-
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
-    DEPENDS ${run-onedpl-tests-depends}
+    DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define extra_test_label)
