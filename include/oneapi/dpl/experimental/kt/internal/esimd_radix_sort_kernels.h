@@ -619,7 +619,7 @@ struct __radix_sort_onesweep_kernel
             {
                 do
                 {
-                    // Read the histgogram from L2, bypassing L1
+                    // Read the histogram from L2, bypassing L1
                     // L1 is assumed to be non-coherent, thus it is avoided to prevent reading stale data
                     __prev_group_hist = __dpl_esimd::__ens::lsc_block_load<
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
