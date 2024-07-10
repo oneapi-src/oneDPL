@@ -1199,7 +1199,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
-    _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
