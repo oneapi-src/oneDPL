@@ -765,6 +765,22 @@ struct __is_iterator_type<_T, std::void_t<typename std::iterator_traits<_T>::dif
 template <typename _T>
 static constexpr bool __is_iterator_type_v = __is_iterator_type<_T>::value;
 
+template <typename _Tp>
+union __lazy_ctor_storage
+{
+    using __value_type = _Tp;
+    _Tp __v;
+    __lazy_ctor_storage() {}
+    void __setup(const _Tp& init)
+    {
+        new (&__v) _Tp(init);
+    }
+    void __destroy()
+    {
+        __v.~_Tp();
+    }
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
