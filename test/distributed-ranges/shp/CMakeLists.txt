@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: Intel Corporation
-#
-# SPDX-License-Identifier: BSD-3-Clause
 
 if(${CMAKE_VERSION} VERSION_LESS "3.26")
     message(WARNING "disabled distributed ranges tests, use cmake>=3.26")

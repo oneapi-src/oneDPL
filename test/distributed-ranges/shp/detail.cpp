@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Intel Corporation
-//
-// SPDX-License-Identifier: BSD-3-Clause
 
 #include "xhp-tests.hpp"
 #include <oneapi/dpl/internal/distributed_ranges_impl//shp.hpp>

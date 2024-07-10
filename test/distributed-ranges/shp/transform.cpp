@@ -1,6 +1,4 @@
-// SPDX-FileCopyrightText: Intel Corporation
-//
-// SPDX-License-Identifier: BSD-3-Clause
+
 #include "xhp-tests.hpp"
 
 template <typename AllocT> class TransformTest : public testing::Test {
