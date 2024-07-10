@@ -50,13 +50,16 @@ add_executable(
   ../common/distributed_vector.cpp 
   ../common/drop.cpp
   ../common/enumerate.cpp
+  ../common/exclusive_scan.cpp
   ../common/fill.cpp 
   ../common/for_each.cpp
+  ../common/inclusive_scan.cpp
   ../common/iota.cpp
   ../common/iota_view.cpp
   ../common/reduce.cpp
   ../common/sort.cpp
   ../common/subrange.cpp
+  ../common/sycl_utils.cpp
   ../common/take.cpp 
   ../common/transform.cpp 
   ../common/transform_view.cpp
@@ -65,8 +68,8 @@ add_executable(
   algorithms.cpp
   containers.cpp 
   copy.cpp 
-  detail.cpp 
-  fill.cpp 
+  detail.cpp
+  fill.cpp
   transform.cpp
   )
 
