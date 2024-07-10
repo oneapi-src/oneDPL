@@ -1138,7 +1138,7 @@ struct __early_exit_find_or
             }
 
             // Share found into state between items in our sub-group to early exit if something was found
-            // - this approach is applicable only for __parallel_or_tag (hen we search for any matching data entry)
+            // - this approach is applicable only for __parallel_or_tag (when we search for any matching data entry)
             // - for __parallel_find_forward_tag and __parallel_find_backward_tag we should process all data
             if constexpr (_OrTagType{})
             {
