@@ -586,7 +586,8 @@ two_pass_scan(sycl::queue q, _InRng&& __in_rng, _OutRng&& __out_rng, BinaryOp bi
                     }
                     else
                     {
-                        if constexpr (std::is_void_v<typename InitType::__value_type>)
+                        if constexpr (std::is_same_v<InitType, oneapi::dpl::unseq_backend::__no_init_value<
+                                                                   typename InitType::__value_type>>)
                         {
                             // This is the only case where we still don't have a carry in.  No init value, 0th block,
                             // group, and subgroup. This changes the final scan through elements below.
