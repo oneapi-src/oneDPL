@@ -1088,8 +1088,7 @@ struct __early_exit_find_or
               typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size,
-               const _LocalFoundState __init_value, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1143,9 +1142,9 @@ struct __early_exit_find_or
             // - for __parallel_find_forward_tag and __parallel_find_backward_tag we should process all data
             if constexpr (_OrTagType{})
             {
-                __found_local = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __found_local);
-                if (__found_local != __init_value)
-                    __something_was_found = true;
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+
+                // The update of __found_local state isn't required here because it updates later on the caller side
             }
         }
     }
@@ -1227,7 +1226,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     _AtomicType __found_local = __init_value;
 
                     // 2. Find any element that satisfies pred
-                    __pred(__item_id, __n_iter, __wgroup_size, __init_value, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __n_iter, __wgroup_size, __found_local, __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
