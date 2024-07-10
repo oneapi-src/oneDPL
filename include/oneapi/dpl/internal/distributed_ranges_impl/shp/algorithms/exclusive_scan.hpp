@@ -41,12 +41,12 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 {
     using T = rng::range_value_t<O>;
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
     auto zipped_view = views::zip(r, o);
     auto zipped_segments = zipped_view.zipped_segments();
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>)
+    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
     {
 
         U* d_inits = sycl::malloc_device<U>(rng::size(zipped_segments), devices()[0], context());

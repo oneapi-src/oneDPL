@@ -50,13 +50,16 @@ add_executable(
   ../common/distributed_vector.cpp 
   ../common/drop.cpp
   ../common/enumerate.cpp
+  ../common/exclusive_scan.cpp
   ../common/fill.cpp 
   ../common/for_each.cpp
+  ../common/inclusive_scan.cpp
   ../common/iota.cpp
-  # ../common/iota_view.cpp # compile fail, even in distributed-ranges project
+  ../common/iota_view.cpp
   ../common/reduce.cpp
   ../common/sort.cpp
   ../common/subrange.cpp
+  ../common/sycl_utils.cpp
   ../common/take.cpp 
   ../common/transform.cpp 
   ../common/transform_view.cpp
@@ -65,8 +68,8 @@ add_executable(
   algorithms.cpp
   containers.cpp 
   copy.cpp 
-  detail.cpp 
-  fill.cpp 
+  detail.cpp
+  fill.cpp
   transform.cpp
   )
 
@@ -85,7 +88,11 @@ function(add_shp_ctest test_name name)
   add_dependencies(shp-all-tests ${name})
 endfunction()
 
-# Sort excluded due to https://github.com/oneapi-src/distributed-ranges/issues/785
-add_shp_ctest(shp-tests shp-tests)
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*:ShpTests.Sort*)
+# sort: https://github.com/oneapi-src/distributed-ranges/issues/785
+# ExclusiveScan.empty: https://github.com/oneapi-src/distributed-ranges/issues/791
+# IotaView.ZipWithDR: https://github.com/oneapi-src/distributed-ranges/issues/792
+set(test-exclusions Sort*:ShpTests.Sort*:ExclusiveScan*empty:IotaView*ZipWithDR)
+
+add_shp_ctest(shp-tests shp-tests --gtest_filter=-${test-exclusions})
+add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-${test-exclusions})
 add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)

@@ -68,9 +68,9 @@ T
 reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
 {
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>)
+    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
     {
         using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
                                                ranges::segments(r)[0].end(), init, binary_op));
