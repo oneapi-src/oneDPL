@@ -1,3 +1,16 @@
+##===-- CMakeLists.txt ----------------------------------------------------===##
+#
+# Copyright (C) Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
 
 if(${CMAKE_VERSION} VERSION_LESS "3.26")
     message(WARNING "disabled distributed ranges tests, use cmake>=3.26")
