@@ -575,7 +575,6 @@ struct __radix_sort_onesweep_kernel
             if (__wg_id != 0)
             {
                 // Write the histogram explicitly to L2, bypassing L1.
-                // L2 is assumed to be coherent, thus other work-groups can read from there if possible
                 __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                     __dpl_esimd::__ens::lsc_data_size::default_size,
                                                     __dpl_esimd::__ens::cache_hint::write_through,
@@ -584,7 +583,7 @@ struct __radix_sort_onesweep_kernel
             }
         }
         // Make sure the histogram updated at the step 1.3 is visible to other groups
-        // The histogram data above is explicitly written to L2, which is assumed to be coherent: no need to flush it
+        // The histogram data above is in L2, which is assumed to be coherent: no need to flush it
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
@@ -639,21 +638,14 @@ struct __radix_sort_onesweep_kernel
             __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum =
                 __prev_group_hist_sum + __thread_grf_hist_summary;
             // 2.2. Write the histogram scanned across work-group, updated with the current work-group data
-            __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
-                                                __dpl_esimd::__ens::lsc_data_size::default_size,
-                                                __dpl_esimd::__ens::cache_hint::write_through,
-                                                __dpl_esimd::__ens::cache_hint::write_back>(
-                __p_this_group_hist + __local_tid * __bin_width,
-                after_group_hist_sum | __hist_updated | __global_accumulated);
+            __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
+                                                                     after_group_hist_sum | __hist_updated |
+                                                                         __global_accumulated);
             // 2.3. Save the scanned histogram from previous work-groups locally
             __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
                 __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
                 __prev_group_hist_sum);
         }
-        // Make sure the histogram updated at the step 2.2 is visible to other groups
-        __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
-                                 __dpl_esimd::__ns::fence_flush_op::none,
-                                 __dpl_esimd::__ns::fence_scope::gpu>();
         __dpl_esimd::__ns::barrier();
 
         // 3. Get total offsets for each work-item
