@@ -88,7 +88,9 @@ function(add_shp_ctest test_name name)
   add_dependencies(shp-all-tests ${name})
 endfunction()
 
-# Sort excluded due to https://github.com/oneapi-src/distributed-ranges/issues/785
+# sort: https://github.com/oneapi-src/distributed-ranges/issues/785
+# ExclusiveScan.empty: https://github.com/oneapi-src/distributed-ranges/issues/791
+# IotaView.ZipWithDR: https://github.com/oneapi-src/distributed-ranges/issues/792
 add_shp_ctest(shp-tests shp-tests)
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*:ShpTests.Sort*)
+add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-Sort*:ShpTests.Sort*:ExclusiveScan*empty:IotaView*ZipWithDR)
 add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)
