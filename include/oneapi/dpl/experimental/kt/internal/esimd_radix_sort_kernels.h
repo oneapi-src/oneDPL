@@ -577,7 +577,7 @@ struct __radix_sort_onesweep_kernel
                 // Write the histogram explicitly to L2, bypassing L1.
                 __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                     __dpl_esimd::__ens::lsc_data_size::default_size,
-                                                    __dpl_esimd::__ens::cache_hint::write_through,
+                                                    __dpl_esimd::__ens::cache_hint::uncached,
                                                     __dpl_esimd::__ens::cache_hint::write_back>(
                     __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
             }
