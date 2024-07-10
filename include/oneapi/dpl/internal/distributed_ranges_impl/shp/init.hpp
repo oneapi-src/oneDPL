@@ -80,7 +80,7 @@ nprocs()
     return __detail::ngpus();
 }
 
-inline device_policy par_unseq;
+inline distributed_device_policy par_unseq;
 
 template <rng::range R>
 inline void
@@ -98,7 +98,7 @@ init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<rng:
         __detail::dpl_policies_.emplace_back(__detail::queues_.back());
     }
 
-    par_unseq = device_policy(__detail::devices_);
+    par_unseq = distributed_device_policy(__detail::devices_);
 }
 
 template <__detail::sycl_device_selector Selector>
