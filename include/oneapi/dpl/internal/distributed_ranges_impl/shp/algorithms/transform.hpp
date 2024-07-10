@@ -1,6 +1,4 @@
-// SPDX-FileCopyrightText: Intel Corporation
-//
-// SPDX-License-Identifier: BSD-3-Clause
+
 #pragma once
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
