@@ -1276,7 +1276,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     assert(__rng_n > 0);
 
     // TODO: find a way to generalize getting of reliable work-group size
-    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
+    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)4096);
 
     const auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
