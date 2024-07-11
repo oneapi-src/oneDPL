@@ -177,7 +177,7 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
 
 #if _ONEDPL___cplusplus >= 202002L
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-decltype(auto)
+auto
 __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     auto __pred_1 = [__pred, __proj](auto&& __val)
@@ -315,7 +315,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 #if _ONEDPL_CPP20_RANGES_PRESENT
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
          typename _Proj2>
-decltype(auto)
+auto
 __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
                  _Proj1 __proj1, _Proj2 __proj2)
 {
@@ -353,7 +353,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
 #if _ONEDPL_CPP20_RANGES_PRESENT
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
-decltype(auto)
+auto
 __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r,
                    std::ranges::range_difference_t<_R> __count, const _T& __value, _Pred __pred, _Proj __proj)
 {
@@ -368,20 +368,6 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     return std::ranges::borrowed_subrange_t<_R>(std::ranges::begin(__r) + __idx, __end);
 }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
-
-template <typename _Size>
-_Size
-return_value(bool __res, _Size __size, std::true_type)
-{
-    return __res ? 0 : __size;
-}
-
-template <typename _Size1, typename _Size2>
-auto
-return_value(_Size1 __res, _Size2 __size, std::false_type)
-{
-    return __res == __size - 1 ? __size : __res;
-}
 
 //------------------------------------------------------------------------
 // adjacent_find
@@ -418,12 +404,15 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
 
     // inverted conditional because of
     // reorder_predicate in glue_algorithm_impl.h
-    return return_value(result, __rng.size(), __is__or_semantic);
+    if constexpr (__is__or_semantic())
+        return result ? 0 : __rng.size();
+    else
+        return result == __rng.size() - 1 ? __rng.size() : result;
 }
 
 #if _ONEDPL_CPP20_RANGES_PRESENT
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-decltype(auto)
+auto
 __pattern_adjacent_find_ranges(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
                         _Proj __proj)
 {
