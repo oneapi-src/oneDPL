@@ -128,9 +128,9 @@ struct all_view_fn
         return ::std::forward<_R>(__r);
     }
 #if _ONEDPL_CPP20_RANGES_PRESENT
-    template <typename _T>
+    template <typename _T, sycl::usm::alloc _AllocType>
     auto
-    operator()(std::vector<_T, sycl::usm_allocator<_T, sycl::usm::alloc::shared>>& __vec) const 
+    operator()(std::vector<_T, sycl::usm_allocator<_T, _AllocType>>& __vec) const 
         -> decltype(std::ranges::subrange(__vec.begin(), __vec.end()))
     {
         return std::ranges::subrange(__vec.begin(), __vec.end());
