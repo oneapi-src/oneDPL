@@ -1035,8 +1035,6 @@ struct __parallel_or_tag
 {
     using _AtomicType = int32_t;
 
-    using _LocalResultsReduceOp = __dpl_sycl::__bit_or<_AtomicType>;
-
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
     constexpr static _AtomicType __init_value(_DiffType)
@@ -1138,6 +1136,16 @@ struct __early_exit_find_or
                 // So we use bool variable state check in the for-loop header.
                 __something_was_found = true;
             }
+
+            // Share found into state between items in our sub-group to early exit if something was found
+            // - this approach is applicable only for __parallel_or_tag (when we search for any matching data entry)
+            // - for __parallel_find_forward_tag and __parallel_find_backward_tag we should process all data
+            if constexpr (_OrTagType{})
+            {
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+
+                // The update of __found_local state isn't required here because it updates later on the caller side
+            }
         }
     }
 };
@@ -1188,7 +1196,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
-    _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
@@ -1222,10 +1230,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
-                    // or update state with __dpl_sycl::__bit_or (for the __parallel_or_tag)
+                    // or update state with __dpl_sycl::__any_of_group (for the __parallel_or_tag)
                     // inside all our group items
-                    __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
-                                                                    typename _BrickTag::_LocalResultsReduceOp{});
+                    if constexpr (__or_tag_check)
+                        __found_local = __dpl_sycl::__any_of_group(__item_id.get_group(), __found_local);
+                    else
+                        __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
+                                                                        typename _BrickTag::_LocalResultsReduceOp{});
 
                     // Set local found state value value to global atomic
                     if (__local_idx == 0 && __found_local != __init_value)
