@@ -1135,14 +1135,8 @@ struct __early_exit_find_or
             }
 
             // Share found into state between items in our sub-group to early exit if something was found
-            // - this approach is applicable only for __parallel_or_tag (when we search for any matching data entry)
-            // - for __parallel_find_forward_tag and __parallel_find_backward_tag we should process all data
-            if constexpr (_OrTagType{})
-            {
-                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
-
-                // The update of __found_local state isn't required here because it updates later on the caller side
-            }
+            //  - the update of __found_local state isn't required here because it updates later on the caller side
+            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
         }
     }
 };
