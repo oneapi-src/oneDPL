@@ -574,7 +574,7 @@ struct __radix_sort_onesweep_kernel
             // Set the status as "updated".
             if (__wg_id != 0)
             {
-                // Write the histogram explicitly to L2, bypassing L1.
+                // Write the histogram explicitly to global memory, bypassing caches.
                 __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                     __dpl_esimd::__ens::lsc_data_size::default_size,
                                                     __dpl_esimd::__ens::cache_hint::uncached,
@@ -583,7 +583,7 @@ struct __radix_sort_onesweep_kernel
             }
         }
         // Make sure the histogram updated at the step 1.3 is visible to other groups
-        // The histogram data above is in L2, which is assumed to be coherent: no need to flush it
+        // The histogram data above is in global memory: no need to flush caches
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global,
                                  __dpl_esimd::__ns::fence_flush_op::none,
                                  __dpl_esimd::__ns::fence_scope::gpu>();
