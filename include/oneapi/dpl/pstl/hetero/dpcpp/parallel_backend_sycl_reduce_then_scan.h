@@ -148,56 +148,56 @@ __sub_group_scan_partial(const _SubGroup& __sub_group, _ValueType& __value, _Bin
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, bool __capture_output,
-          std::uint32_t __max_inputs_per_item, typename _SubGroup, typename _UnaryOp, typename _BinaryOp,
-          typename _LazyValueType, typename _InRng, typename _OutRng>
+          std::uint32_t __max_inputs_per_item, typename _SubGroup, typename _GenInput, typename _BinaryOp,
+          typename _FinalOp, typename _LazyValueType, typename _InRng, typename _OutRng>
 void
-__scan_through_elements_helper(const _SubGroup& __sub_group, _UnaryOp __unary_op, _BinaryOp __binary_op,
-                               _LazyValueType& __sub_group_carry, _InRng __in_rng, _OutRng __out_rng,
-                               std::size_t __start_idx, std::size_t __n, std::uint32_t __iters_per_item,
-                               std::size_t __subgroup_start_idx, std::uint32_t __sub_group_id,
-                               std::uint32_t __active_subgroups)
+__scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_input, _BinaryOp __binary_op,
+                               _FinalOp __final_op, _LazyValueType& __sub_group_carry, _InRng __in_rng,
+                               _OutRng __out_rng, std::size_t __start_idx, std::size_t __n,
+                               std::uint32_t __iters_per_item, std::size_t __subgroup_start_idx,
+                               std::uint32_t __sub_group_id, std::uint32_t __active_subgroups)
 {
     bool __is_full_block = (__iters_per_item == __max_inputs_per_item);
     bool __is_full_thread = __subgroup_start_idx + __iters_per_item * __sub_group_size <= __n;
     if (__is_full_thread && __is_full_block)
     {
-        auto __v = __unary_op(__in_rng[__start_idx]);
+        auto __v = __gen_input(__in_rng, __start_idx);
         __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v, __binary_op,
                                                                            __sub_group_carry);
         if constexpr (__capture_output)
         {
-            __out_rng[__start_idx] = __v;
+            __final_op(__out_rng, __start_idx, __v);
         }
 
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint32_t __j = 1; __j < __max_inputs_per_item; __j++)
         {
-            __v = __unary_op(__in_rng[__start_idx + __j * __sub_group_size]);
+            __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
             __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __v, __binary_op,
                                                                                         __sub_group_carry);
             if constexpr (__capture_output)
             {
-                __out_rng[__start_idx + __j * __sub_group_size] = __v;
+                __final_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
             }
         }
     }
     else if (__is_full_thread)
     {
-        auto __v = __unary_op(__in_rng[__start_idx]);
+        auto __v = __gen_input(__in_rng, __start_idx);
         __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v, __binary_op,
                                                                            __sub_group_carry);
         if constexpr (__capture_output)
         {
-            __out_rng[__start_idx] = __v;
+            __final_op(__out_rng, __start_idx, __v);
         }
         for (std::uint32_t __j = 1; __j < __iters_per_item; __j++)
         {
-            __v = __unary_op(__in_rng[__start_idx + __j * __sub_group_size]);
+            __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
             __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __v, __binary_op,
                                                                                         __sub_group_carry);
             if constexpr (__capture_output)
             {
-                __out_rng[__start_idx + __j * __sub_group_size] = __v;
+                __final_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
             }
         }
     }
@@ -209,47 +209,47 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _UnaryOp __unary_op
 
             if (__iters == 1)
             {
-                auto __v = __unary_op(__in_rng[__start_idx]);
+                auto __v = __gen_input(__in_rng, __start_idx);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, __init_present>(
                     __sub_group, __v, __binary_op, __sub_group_carry, __n - __subgroup_start_idx);
                 if constexpr (__capture_output)
                 {
                     if (__start_idx < __n)
-                        __out_rng[__start_idx] = __v;
+                        __final_op(__out_rng, __start_idx, __v);
                 }
             }
             else
             {
-                auto __v = __unary_op(__in_rng[__start_idx]);
+                auto __v = __gen_input(__in_rng, __start_idx);
                 __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v, __binary_op,
                                                                                    __sub_group_carry);
                 if constexpr (__capture_output)
                 {
-                    __out_rng[__start_idx] = __v;
+                    __final_op(__out_rng, __start_idx, __v);
                 }
 
                 for (int __j = 1; __j < __iters - 1; __j++)
                 {
                     auto __local_idx = __start_idx + __j * __sub_group_size;
-                    __v = __unary_op(__in_rng[__local_idx]);
+                    __v = __gen_input(__in_rng, __local_idx);
                     __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
                         __sub_group, __v, __binary_op, __sub_group_carry);
                     if constexpr (__capture_output)
                     {
-                        __out_rng[__local_idx] = __v;
+                        __final_op(__out_rng, __local_idx, __v);
                     }
                 }
 
                 auto __offset = __start_idx + (__iters - 1) * __sub_group_size;
                 auto __local_idx = (__offset < __n) ? __offset : __n - 1;
-                __v = __unary_op(__in_rng[__local_idx]);
+                __v = __gen_input(__in_rng, __local_idx);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
                     __sub_group, __v, __binary_op, __sub_group_carry,
                     __n - (__subgroup_start_idx + (__iters - 1) * __sub_group_size));
                 if constexpr (__capture_output)
                 {
                     if (__offset < __n)
-                        __out_rng[__offset] = __v;
+                        __final_op(__out_rng, __offset, __v);
                 }
             }
         }
@@ -263,13 +263,13 @@ template <typename... _Name>
 class __reduce_then_scan_scan_kernel;
 
 template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _BinaryOperation, typename _UnaryOperation, typename _InitType, typename _KernelName>
+          typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter;
 
-template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _BinaryOperation, typename _UnaryOperation, typename _InitType, typename... _KernelName>
+template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive, 
+          typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename... _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive,
-                                                    _BinaryOperation, _UnaryOperation, _InitType,
+                                                    _GenReduceInput, _ReduceOp, _InitType,
                                                     __internal::__optional_kernel_name<_KernelName...>>
 {
     // Step 1 - SubGroupReduce is expected to perform sub-group reductions to global memory
@@ -316,8 +316,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                     __scan_through_elements_helper<__sub_group_size, __is_inclusive,
                                                    /*__init_present=*/false,
                                                    /*__capture_output=*/false, __max_inputs_per_item>(
-                        __sub_group, __unary_op, __binary_op, __sub_group_carry, __in_rng, nullptr, __start_idx, __n,
-                        __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
+                        __sub_group, __gen_reduce_input, __reduce_op, nullptr,__sub_group_carry, __in_rng, nullptr,
+                        __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                     if (__sub_group_local_id == 0)
                         __sub_group_partials[__sub_group_id] = __sub_group_carry.__v;
                     __sub_group_carry.__destroy();
@@ -342,7 +342,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                                               : (__active_subgroups - 1); // else is unused dummy value
                         auto __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
-                            __sub_group, __v, __binary_op, __sub_group_carry,
+                            __sub_group, __v, __reduce_op, __sub_group_carry,
                             __active_subgroups - __subgroup_start_idx);
                         if (__sub_group_local_id < __active_subgroups)
                             __tmp_storage[__start_idx + __sub_group_local_id] = __v;
@@ -352,14 +352,14 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         //need to pull out first iteration tp avoid identity
                         auto __v = __sub_group_partials[__sub_group_local_id];
                         __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
-                            __sub_group, __v, __binary_op, __sub_group_carry);
+                            __sub_group, __v, __reduce_op, __sub_group_carry);
                         __tmp_storage[__start_idx + __sub_group_local_id] = __v;
 
                         for (int __i = 1; __i < __iters - 1; __i++)
                         {
                             __v = __sub_group_partials[__i * __sub_group_size + __sub_group_local_id];
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
-                                __sub_group, __v, __binary_op, __sub_group_carry);
+                                __sub_group, __v, __reduce_op, __sub_group_carry);
                             __tmp_storage[__start_idx + __i * __sub_group_size + __sub_group_local_id] = __v;
                         }
                         // If we are past the input range, then the previous value of v is passed to the sub-group scan.
@@ -372,7 +372,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
 
                         __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
-                            __sub_group, __v, __binary_op, __sub_group_carry, __num_sub_groups_local);
+                            __sub_group, __v, __reduce_op, __sub_group_carry, __num_sub_groups_local);
                         if (__proposed_idx < __num_sub_groups_local)
                             __tmp_storage[__start_idx + __proposed_idx] = __v;
                     }
@@ -392,22 +392,24 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     const std::size_t __num_work_items;
     const std::size_t __n;
 
-    const _BinaryOperation __binary_op;
-    const _UnaryOperation __unary_op;
+    const _GenReduceInput __gen_reduce_input;
+    const _ReduceOp __reduce_op;
     _InitType __init;
 
     // TODO: Add the mask functors here to generalize for scan-based algorithms
 };
 
 template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _BinaryOperation, typename _UnaryOperation, typename _InitType, typename _KernelName>
+          typename _GenReduceInput, typename _ReduceOp, typename _GenScanInput, typename _ScanOp, typename _FinalOp,
+          typename _InitType, typename _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter;
 
 template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _BinaryOperation, typename _UnaryOperation, typename _InitType, typename... _KernelName>
+          typename _GenReduceInput, typename _ReduceOp, typename _GenScanInput, typename _ScanOp, typename _FinalOp,
+          typename _InitType, typename... _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive,
-                                                  _BinaryOperation, _UnaryOperation, _InitType,
-                                                  __internal::__optional_kernel_name<_KernelName...>>
+                                                  _GenReduceInput, _ReduceOp, _GenScanInput, _ScanOp, _FinalOp,
+                                                  _InitType, __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _TmpStorageAcc>
     auto
@@ -498,7 +500,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                        : __subgroups_before_my_group - 1;
                             __value.__setup(__tmp_storage[__reduction_idx]);
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
-                                                     /*__init_present=*/false>(__sub_group, __value.__v, __binary_op,
+                                                     /*__init_present=*/false>(__sub_group, __value.__v, __reduce_op,
                                                                                __carry_last, __remaining_elements);
                         }
                         else
@@ -507,7 +509,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                             // first 1 full
                             __value.__setup(__tmp_storage[__num_sub_groups_local * __sub_group_local_id + __offset]);
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
-                                __sub_group, __value.__v, __binary_op, __carry_last);
+                                __sub_group, __value.__v, __reduce_op, __carry_last);
 
                             // then some number of full iterations
                             for (int __i = 1; __i < __pre_carry_iters - 1; __i++)
@@ -516,7 +518,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                        __num_sub_groups_local * __sub_group_local_id + __offset;
                                 __value.__v = __tmp_storage[__reduction_idx];
                                 __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
-                                    __sub_group, __value.__v, __binary_op, __carry_last);
+                                    __sub_group, __value.__v, __reduce_op, __carry_last);
                             }
 
                             // final partial iteration
@@ -529,7 +531,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                        : __subgroups_before_my_group - 1;
                             __value.__v = __tmp_storage[__reduction_idx];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
-                                                     /*__init_present=*/true>(__sub_group, __value.__v, __binary_op,
+                                                     /*__init_present=*/true>(__sub_group, __value.__v, __reduce_op,
                                                                               __carry_last, __remaining_elements);
                         }
                     }
@@ -552,13 +554,13 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     for (; __i < __iters - 1; ++__i)
                     {
                         __sub_group_partials[__carry_offset + __sub_group_local_id] =
-                            __binary_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
                         __carry_offset += __sub_group_size;
                     }
                     if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
                     {
                         __sub_group_partials[__carry_offset + __sub_group_local_id] =
-                            __binary_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
                         __carry_offset += __sub_group_size;
                     }
                     if (__sub_group_local_id == 0)
@@ -577,13 +579,13 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__sub_group_id > 0)
                     {
                         auto __value = __sub_group_partials[__sub_group_id - 1];
-                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __binary_op);
+                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
                         __sub_group_carry.__setup(__value);
                     }
                     else if (__g > 0)
                     {
                         auto __value = __sub_group_partials[__active_subgroups];
-                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __binary_op);
+                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
                         __sub_group_carry.__setup(__value);
                     }
                     else
@@ -605,30 +607,30 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__sub_group_id > 0)
                     {
                         if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__binary_op(__out_rng[__block_num * __max_block_size - 1],
+                            __sub_group_carry.__setup(__reduce_op(__out_rng[__block_num * __max_block_size - 1],
                                                                   __sub_group_partials[__sub_group_id - 1]));
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __unary_op(__tmp_storage[__num_sub_groups_global]);
-                            __sub_group_carry.__setup(__binary_op(
-                                __binary_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
+                            _InValueType __last_block_element = __tmp_storage[__num_sub_groups_global];
+                            __sub_group_carry.__setup(__reduce_op(
+                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
                                 __sub_group_partials[__sub_group_id - 1]));
                         }
                     }
                     else if (__g > 0)
                     {
                         if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__binary_op(__out_rng[__block_num * __max_block_size - 1],
+                            __sub_group_carry.__setup(__reduce_op(__out_rng[__block_num * __max_block_size - 1],
                                                                   __sub_group_partials[__active_subgroups]));
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __unary_op(__tmp_storage[__num_sub_groups_global]);
-                            __sub_group_carry.__setup(__binary_op(
-                                __binary_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
+                            _InValueType __last_block_element = __tmp_storage[__num_sub_groups_global];
+                            __sub_group_carry.__setup(__reduce_op(
+                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
                                 __sub_group_partials[__active_subgroups]));
                         }
                     }
@@ -640,9 +642,9 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __unary_op(__tmp_storage[__num_sub_groups_global]);
+                            _InValueType __last_block_element = __tmp_storage[__num_sub_groups_global];
                             __sub_group_carry.__setup(
-                                __binary_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element));
+                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element));
                         }
                     }
                 }
@@ -656,7 +658,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__global_id == __num_work_items - 1)
                     {
                         std::size_t __last_idx_in_block = std::min(__n - 1, __max_block_size * (__block_num + 1) - 1);
-                        __tmp_storage[__num_sub_groups_global] = __in_rng[__last_idx_in_block];
+                        __tmp_storage[__num_sub_groups_global] = __gen_reduce_input(__in_rng, __last_idx_in_block);
                     }
                 }
 
@@ -669,8 +671,9 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     __scan_through_elements_helper<__sub_group_size, __is_inclusive,
                                                    /*__init_present=*/true,
                                                    /*__capture_output=*/true, __max_inputs_per_item>(
-                        __sub_group, __unary_op, __binary_op, __sub_group_carry, __in_rng, __out_rng, __start_idx, __n,
-                        __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
+                        __sub_group, __gen_scan_input, __scan_op, __final_op, __sub_group_carry, __in_rng,
+                        __out_rng, __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id,
+                        __active_subgroups);
 
                     __sub_group_carry.__destroy();
                 }
@@ -679,8 +682,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     __scan_through_elements_helper<__sub_group_size, __is_inclusive,
                                                    /*__init_present=*/false,
                                                    /*__capture_output=*/true, __max_inputs_per_item>(
-                        __sub_group, __unary_op, __binary_op, __sub_group_carry, __in_rng, __out_rng, __start_idx, __n,
-                        __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
+                        __sub_group, __gen_scan_input, __scan_op, __final_op, __sub_group_carry, __in_rng, __out_rng,
+                        __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                 }
             });
         });
@@ -694,19 +697,23 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
     const std::size_t __num_work_items;
     const std::size_t __n;
 
-    const _BinaryOperation __binary_op;
-    const _UnaryOperation __unary_op;
+    const _GenReduceInput __gen_reduce_input;
+    const _ReduceOp __reduce_op;
+    const _GenScanInput __gen_scan_input;
+    const _ScanOp __scan_op;
+    const _FinalOp __final_op;
     _InitType __init;
 
     // TODO: Add the mask functors here to generalize for scan-based algorithms
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _BinaryOperation,
-          typename _UnaryOperation, typename _InitType, typename _Inclusive>
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _GenReduceInput, typename _ReduceOp,
+          typename _GenScanInput, typename _ScanOp, typename _FinalOp, typename _InitType, typename _Inclusive>
 auto
 __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                      _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOperation __binary_op,
-                                      _UnaryOperation __unary_op,
+                                      _InRng&& __in_rng, _OutRng&& __out_rng, _GenReduceInput __gen_reduce_input,
+                                      _ReduceOp __reduce_op, _GenScanInput __gen_scan_input, _ScanOp __scan_op,
+                                      _FinalOp __final_op,
                                       _InitType __init /*TODO mask assigners for generalization go here*/, _Inclusive)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -751,16 +758,18 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // Reduce and scan step implementations
     using _ReduceSubmitter =
         __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
-                                                     _BinaryOperation, _UnaryOperation, _InitType, _ReduceKernel>;
+                                                     _GenReduceInput, _ReduceOp, _InitType, _ReduceKernel>;
     using _ScanSubmitter =
         __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
-                                                   _BinaryOperation, _UnaryOperation, _InitType, _ScanKernel>;
+                                                   _GenReduceInput, _ReduceOp, _GenScanInput, _ScanOp, _FinalOp,
+                                                   _InitType, _ScanKernel>;
     // TODO: remove below before merging. used for convenience now
     // clang-format off
     _ReduceSubmitter __reduce_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
-        __num_sub_groups_global, __num_work_items, __n, __binary_op, __unary_op, __init};
-    _ScanSubmitter __scan_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local, 
-        __num_sub_groups_global, __num_work_items, __n, __binary_op, __unary_op, __init};
+        __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __init};
+    _ScanSubmitter __scan_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
+        __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_op,
+        __final_op, __init};
     // clang-format on
 
     sycl::event __event;

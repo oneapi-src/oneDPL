@@ -774,6 +774,26 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
 
+template <typename _UnaryOp>
+struct __gen_transform_input
+{
+    template <typename InRng>
+    auto operator()(InRng&& __in_rng, std::size_t __idx) const
+    {
+        return __unary_op(__in_rng[__idx]);
+    }
+    _UnaryOp __unary_op;
+};
+
+struct __simple_write_to_idx
+{
+    template<typename _OutRng, typename ValueType>
+    void operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
+    {
+        __out[__idx] = __v;
+    }
+};
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
@@ -811,9 +831,12 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     //_Assigner __assign_op;
     //_NoAssign __no_assign_op;
     //_NoOpFunctor __get_data_op;
+    oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
     return __future(__parallel_transform_reduce_then_scan(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
-                                                          __binary_op, __unary_op, __init, _Inclusive{})
+                                                          ::std::forward<_Range1>(__in_rng),
+                                                          ::std::forward<_Range2>(__out_rng),
+                                                          __gen_transform, __binary_op, __gen_transform, __binary_op,
+                                                          __simple_write_to_idx{}, __init, _Inclusive{})
                     .event());
 }
 
