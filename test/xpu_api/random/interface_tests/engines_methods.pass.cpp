@@ -278,7 +278,7 @@ public:
             try
             {
                 queue.submit([&](sycl::handler& cgh) {
-                    sycl::stream out(1024, 256, cgh);
+                    sycl::stream out(1024, 512, cgh);
                     cgh.single_task<>([=]() {
                         Engine engine(SEED);
                         out << "state: " << engine << sycl::endl;
@@ -287,15 +287,19 @@ public:
                 queue.wait_and_throw();
 
                 queue.submit([&](sycl::handler& cgh) {
-                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::read_write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id();
+                        unsigned long long offset = idx.get_linear_id() + 1;
                         Engine engine0(SEED);
                         Engine engine1;
                         engine1.seed(SEED);
                         engine0.discard(offset);
                         if (engine0 == engine1)
+                        {
+                            dpstd_acc[offset] = 1;
+                        }
+                        else
                         {
                             dpstd_acc[offset] = 0;
                         }
@@ -355,20 +359,58 @@ public:
 
         // Random number generation
         {
+            {
+                {
+                    oneapi::dpl::ranlux24 e1;
+                    e1.discard(100);
+
+                    std::ostringstream os;
+                    os << e1;
+
+                    oneapi::dpl::ranlux24 e2;
+
+                    std::istringstream in(os.str());
+                    in >> e2;
+
+                    if (e1 != e2)
+                        sum += 1;
+                }
+            }
             sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
 
             try
             {
                 queue.submit([&](sycl::handler& cgh) {
-                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+                    sycl::stream out(1024, 512, cgh);
+                    cgh.single_task<>([=]() {
+                        oneapi::dpl::ranlux24 engine(SEED);
+                        out << "state: " << engine << sycl::endl;
+                    });
+                });
+                queue.wait_and_throw();
+
+                queue.submit([&](sycl::handler& cgh) {
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::read_write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id();
+                        unsigned long long offset = idx.get_linear_id() + 1;
                         oneapi::dpl::ranlux24 engine0(SEED);
                         oneapi::dpl::ranlux24 engine1;
                         engine1.seed(SEED);
                         engine0.discard(offset);
+                        if (engine0 == engine1)
+                        {
+                            dpstd_acc[offset] = 1;
+                        }
+                        else
+                        {
+                            dpstd_acc[offset] = 0;
+                        }
                         engine1.discard(offset);
+                        if (engine0 != engine1)
+                        {
+                            dpstd_acc[offset] += 1;
+                        }
                         typename oneapi::dpl::ranlux24::result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
                         auto eng = engine.base();
@@ -376,11 +418,7 @@ public:
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
                         if (res0 != res1)
                         {
-                            dpstd_acc[offset] = 1;
-                        }
-                        else
-                        {
-                            dpstd_acc[offset] = 0;
+                            dpstd_acc[offset] += 1;
                         }
                     });
                 });
