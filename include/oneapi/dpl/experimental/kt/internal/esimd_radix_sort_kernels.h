@@ -578,7 +578,7 @@ struct __radix_sort_onesweep_kernel
                 __dpl_esimd::__ens::lsc_block_store<::std::uint32_t, __bin_width,
                                                     __dpl_esimd::__ens::lsc_data_size::default_size,
                                                     __dpl_esimd::__ens::cache_hint::uncached,
-                                                    __dpl_esimd::__ens::cache_hint::write_back>(
+                                                    __dpl_esimd::__ens::cache_hint::uncached>(
                     __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
             }
         }
