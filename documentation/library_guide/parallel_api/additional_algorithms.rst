@@ -87,10 +87,10 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     output_keys:   [0,    0,   3,   3,   4,   5]
     output_values: ['c', 'f', 'a', 'e', 'd', 'b']
 
-.. note::
+  .. note::
 
-   ``sort_by_key`` may implement an unstable sort in the future.
-   Use ``stable_sort_by_key`` if the stability is important.
+     ``sort_by_key`` may implement an unstable sort in the future.
+     Use ``stable_sort_by_key`` if the stability is important.
 
 * ``stable_sort_by_key``: performs a stable key-value sort. The algorithm sorts the sequence's keys according to 
   a comparioson operator. If no comparator is provided, then the elements are compared with ``operator<``.
