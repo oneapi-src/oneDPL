@@ -278,7 +278,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     auto
     operator()(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _TmpStorageAcc __tmp_storage,
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
-               const std::size_t __inputs_per_item, const std::size_t __block_num, const bool __is_full_block) const
+               const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
         using _InValueType = oneapi::dpl::__internal::__value_t<_InRng>;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
@@ -413,7 +413,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
     auto
     operator()(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _TmpStorageAcc __tmp_storage,
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
-               const std::size_t __inputs_per_item, const std::size_t __block_num, const bool __is_full_block) const
+               const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
         using _InValueType = oneapi::dpl::__internal::__value_t<_InRng>;
         using _InitValueType = typename _InitType::__value_type;
@@ -768,13 +768,12 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
-        bool __is_full_block = __inputs_per_item == __max_inputs_per_item;
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
         __event = __reduce_submitter(__exec, __in_rng, __tmp_storage, __event, __inputs_per_sub_group,
-                                     __inputs_per_item, __b, __is_full_block);
+                                     __inputs_per_item, __b);
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
         __event = __scan_submitter(__exec, __in_rng, __out_rng, __tmp_storage, __event, __inputs_per_sub_group,
-                                   __inputs_per_item, __b, __is_full_block);
+                                   __inputs_per_item, __b);
         if (__num_remaining > __block_size)
         {
             // Resize for the next block.
