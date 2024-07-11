@@ -533,19 +533,6 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         }
                     }
                 }
-                // For the exclusive scan case:
-                // While the first sub-group is doing work, have the last item in the group store the last element
-                // in the block to temporary storage for use in the next block.
-                // This is required to support in-place exclusive scans as the input values will be overwritten.
-                if constexpr (!__is_inclusive)
-                {
-                    auto __global_id = __ndi.get_global_linear_id();
-                    if (__global_id == __num_work_items - 1)
-                    {
-                        std::size_t __last_idx_in_block = std::min(__n - 1, __max_block_size * (__block_num + 1) - 1);
-                        __tmp_storage[__num_sub_groups_global] = __in_rng[__last_idx_in_block];
-                    }
-                }
 
                 // N.B. barrier could be earlier, guarantees slm local carry update
                 //sycl::group_barrier(ndi.get_group());
@@ -657,6 +644,19 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                             __sub_group_carry.__setup(
                                 __binary_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element));
                         }
+                    }
+                }
+                // For the exclusive scan case:
+                // Have the last item in the group store the last element
+                // in the block to temporary storage for use in the next block.
+                // This is required to support in-place exclusive scans as the input values will be overwritten.
+                if constexpr (!__is_inclusive)
+                {
+                    auto __global_id = __ndi.get_global_linear_id();
+                    if (__global_id == __num_work_items - 1)
+                    {
+                        std::size_t __last_idx_in_block = std::min(__n - 1, __max_block_size * (__block_num + 1) - 1);
+                        __tmp_storage[__num_sub_groups_global] = __in_rng[__last_idx_in_block];
                     }
                 }
 
