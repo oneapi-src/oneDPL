@@ -719,7 +719,7 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
                              oneapi::dpl::__internal::__pstl_less());
 }
 
-// oneapi::dpl::sort_by_key
+// oneapi::dpl::stable_sort_by_key
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare>
