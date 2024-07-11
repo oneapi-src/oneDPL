@@ -416,6 +416,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                const std::size_t __inputs_per_item, const std::size_t __block_num, const bool __is_full_block) const
     {
         using _InValueType = oneapi::dpl::__internal::__value_t<_InRng>;
+        using _InitValueType = typename _InitType::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
             sycl::local_accessor<_InValueType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
             __cgh.depends_on(__prior_event);
@@ -576,19 +577,18 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__sub_group_id > 0)
                     {
                         auto __value = __sub_group_partials[__sub_group_id - 1];
-                        oneapi::dpl::unseq_backend::__init_processing<_InValueType>{}(__init, __value, __binary_op);
+                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __binary_op);
                         __sub_group_carry.__setup(__value);
                     }
                     else if (__g > 0)
                     {
                         auto __value = __sub_group_partials[__active_subgroups];
-                        oneapi::dpl::unseq_backend::__init_processing<_InValueType>{}(__init, __value, __binary_op);
+                        oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __binary_op);
                         __sub_group_carry.__setup(__value);
                     }
                     else
                     {
-                        if constexpr (std::is_same_v<_InitType, oneapi::dpl::unseq_backend::__no_init_value<
-                                                                    typename _InitType::__value_type>>)
+                        if constexpr (std::is_same_v<_InitType, oneapi::dpl::unseq_backend::__no_init_value<_InitValueType>>)
                         {
                             // This is the only case where we still don't have a carry in.  No init value, 0th block,
                             // group, and subgroup. This changes the final scan through elements below.
