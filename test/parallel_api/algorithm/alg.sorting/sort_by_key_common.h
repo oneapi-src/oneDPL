@@ -73,8 +73,8 @@ test_with_std_policy(_Policy&& policy, StabilityTag stability_tag)
     std::vector<int> keys_buf(n); //keys
     std::vector<int> vals_buf(n); //values
 
-    call_sort_by_key(policy, keys_buf.begin(), vals_buf.begin(), n);
-    check_sort_by_key_results(keys_buf, vals_buf, n, stability_tag);
+    call_sort_by_key(policy, keys_buf.begin(), vals_buf.begin(), n, stability_tag);
+    check_sort_by_key_results(keys_buf, vals_buf, n);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -148,6 +148,8 @@ test_with_buffers(sycl::queue& q, StabilityTag stability_tag)
     check_sort_by_key_results(host_keys, host_vals, n);
 }
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 template <typename StabilityTag>
 void
 test_all_policies(StabilityTag stability_tag)
@@ -173,5 +175,3 @@ test_all_policies(StabilityTag stability_tag)
     test_with_std_policy(oneapi::dpl::execution::par_unseq, stability_tag);
 #endif // !TEST_DPCPP_BACKEND_PRESENT
 }
-
-#endif // TEST_DPCPP_BACKEND_PRESENT
