@@ -395,7 +395,7 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
                                                           oneapi::dpl::__par_backend_hetero::__gen_count_pred<_SizeType, _ReduceOp>{__pred},
                                                           _ReduceOp{},
                                                           oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_SizeType, _ReduceOp>{__pred},
-                                                          oneapi::dpl::__par_backend_hetero::__scan_expanded_count<_SizeType, _ReduceOp>{},
+                                                          oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
                                                           oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
                                                           oneapi::dpl::unseq_backend::__no_init_value{},
                                                           /*_Inclusive=*/std::true_type{})

@@ -821,23 +821,14 @@ struct __gen_expand_count_pred
     _Predicate __pred;
 };
 
-
-template <typename _SizeType, typename _BinaryOp>
-struct __scan_expanded_count
+struct __get_zeroth_element
 {
-    template <typename _ValueType>
-    auto operator()(_SizeType __carry_in, const std::tuple<_SizeType, bool, _ValueType>& b)
+    template <typename _Tp>
+    auto&
+    operator()(_Tp&& __a) const
     {
-        return std::tuple(__binary_op(__carry_in, std::get<0>(b)), std::get<1>(b), std::get<2>(b));
+        return std::get<0>(std::forward<_Tp>(__a));
     }
-
-    template <typename _ValueType>
-    auto operator()(const std::tuple<_SizeType, bool, _ValueType>& a, const std::tuple<_SizeType, bool, _ValueType>& b)
-    {
-        return this->operator()(std::get<0>(a), b);
-    }
-
-    _BinaryOp __binary_op;
 };
 
 struct __write_to_idx_if
@@ -892,8 +883,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     return __future(__parallel_transform_reduce_then_scan(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                           ::std::forward<_Range1>(__in_rng),
                                                           ::std::forward<_Range2>(__out_rng),
-                                                          __gen_transform, __binary_op, __gen_transform, __binary_op,
-                                                          __simple_write_to_idx{}, __init, _Inclusive{})
+                                                          __gen_transform, __binary_op, __gen_transform,
+                                                          oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{},
+                                                          __init, _Inclusive{})
                     .event());
 }
 
@@ -1019,7 +1011,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
                                                      oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Size, _Pred>{__pred},
                                                      _ReduceOp{},
                                                      oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
-                                                     oneapi::dpl::__par_backend_hetero::__scan_expanded_count<_Size, _ReduceOp>{},
+                                                     oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
                                                      oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
                                                      oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::__value_t<_InRng>>{},
                                                      /*_Inclusive=*/std::true_type{});
