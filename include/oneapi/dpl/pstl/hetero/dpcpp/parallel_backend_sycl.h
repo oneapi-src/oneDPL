@@ -1086,11 +1086,11 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _SrcDataSize, typename _DataPerWorkItemSize, typename _LocalFoundState,
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _DataPerWorkItemSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                _Ranges&&... __rngs) const
     {
         // Calculate the amount of processing data in each work-item
@@ -1107,7 +1107,7 @@ struct __early_exit_find_or
         const auto __item_global_linear_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
-        for (_DataPerWorkItemSize __i = 0; !__something_was_found && __i < __data_per_work_item; ++__i)
+        for (_DataPerWorkItemSize __i = 0; !__something_was_found && __i < \; ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
