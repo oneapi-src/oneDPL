@@ -968,11 +968,11 @@ struct __parallel_find_forward_tag
     using _LocalResultsReduceOp = __dpl_sycl::__minimum<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
+    template <typename _SrcDataSize>
     constexpr static _AtomicType
-    __init_value(_DiffType __val)
+    __init_value(_SrcDataSize __source_data_size)
     {
-        return __val;
+        return __source_data_size;
     }
 
     // As far as we make search from begin to the end of data, we should save the first (minimal) found state
@@ -1006,8 +1006,9 @@ struct __parallel_find_backward_tag
 
     using _LocalResultsReduceOp = __dpl_sycl::__maximum<_AtomicType>;
 
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
+    template <typename _SrcDataSize>
+    constexpr static _AtomicType
+    __init_value(_SrcDataSize /*__source_data_size*/)
     {
         return _AtomicType{-1};
     }
@@ -1036,8 +1037,9 @@ struct __parallel_or_tag
     using _AtomicType = int32_t;
 
     // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
+    template <typename _SrcDataSize>
+    constexpr static _AtomicType
+    __init_value(_SrcDataSize /*__source_data_size*/)
     {
         return 0;
     }
