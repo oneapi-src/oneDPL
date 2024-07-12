@@ -1107,7 +1107,7 @@ struct __early_exit_find_or
         const auto __item_global_linear_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
-        for (_DataPerWorkItemSize __i = 0; !__something_was_found && __i < \; ++__i)
+        for (_DataPerWorkItemSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
