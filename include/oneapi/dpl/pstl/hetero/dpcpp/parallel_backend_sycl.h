@@ -1093,7 +1093,7 @@ struct __early_exit_find_or
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                _Ranges&&... __rngs) const
     {
-        // Calculate the amount of processing data in each work-item
+        // Calculate the number of elements to be processed by each work-item.
         const auto __data_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
