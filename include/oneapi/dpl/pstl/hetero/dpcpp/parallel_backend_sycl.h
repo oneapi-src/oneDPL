@@ -756,7 +756,7 @@ template <typename _Type>
 bool
 __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
 {
-    constexpr int __single_group_upper_limit = 16384;
+    constexpr int __single_group_upper_limit = 2048;
 
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
