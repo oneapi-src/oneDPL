@@ -1094,7 +1094,8 @@ struct __early_exit_find_or
                _Ranges&&... __rngs) const
     {
         // Calculate the amount of processing data in each work-item
-        const auto __data_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+        const auto __data_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
