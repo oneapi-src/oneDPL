@@ -1111,10 +1111,7 @@ struct __early_exit_find_or
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
-            {
-                assert(__iters_per_work_item >= __i + 1);
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
-            }
 
             const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
             if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
