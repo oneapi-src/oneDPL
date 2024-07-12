@@ -45,8 +45,9 @@ namespace ranges
 
 struct for_each_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Fun,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirectly_unary_invocable<std::projected<std::ranges::iterator_t<_R>, _Proj>>  _Fun>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj = {}) const
     {
