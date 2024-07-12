@@ -1218,7 +1218,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // 2. Find any element that satisfies pred
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
-                    //    2) early exit from sub-group occurred: in this case the state of __found_local will updated on the next group operation
+                    //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
                     __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
