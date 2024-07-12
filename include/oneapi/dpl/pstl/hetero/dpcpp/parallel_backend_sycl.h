@@ -1094,9 +1094,7 @@ struct __early_exit_find_or
                _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
-        using _Iteration =
-            decltype(oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size));
-        const _Iteration __iters_per_work_item =
+        const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
         // There are 3 possible tag types here:
@@ -1109,7 +1107,7 @@ struct __early_exit_find_or
         const auto __global_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
-        for (_Iteration __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
