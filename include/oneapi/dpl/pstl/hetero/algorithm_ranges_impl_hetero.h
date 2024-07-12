@@ -380,59 +380,6 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
     return __res;
 }
 
-template <typename _SizeType, typename _Predicate>
-struct __gen_count_pred
-{
-    template <typename _InRng>
-    _SizeType operator()(_InRng&& __in_rng, _SizeType __idx)
-    {
-        return __pred(__in_rng[__idx]) ? _SizeType{1} : _SizeType{0};
-    }
-    _Predicate __pred;
-};
-
-template <typename _SizeType, typename _Predicate>
-struct __gen_expand_count_pred
-{
-    template <typename _InRng>
-    auto operator()(_InRng&& __in_rng, _SizeType __idx)
-    {
-        auto ele = __in_rng[__idx];
-        bool mask = __pred(ele);
-        return std::tuple( mask ? _SizeType{1} : _SizeType{0}, mask, ele);
-    }
-    _Predicate __pred;
-};
-
-
-template <typename _BinaryOp>
-struct __scan_expanded_count
-{
-    template <typename _SizeType, typename _ValueType>
-    auto operator()(_SizeType __carry_in, const std::tuple<_SizeType, bool, _ValueType>& b)
-    {
-        return std::tuple(__binary_op(__carry_in, std::get<0>(b)), std::get<1>(b), std::get<2>(b));
-    }
-
-    template <typename _ValueType>
-    auto operator()(const std::tuple<_SizeType, bool, _ValueType>& a, const std::tuple<_SizeType, bool, _ValueType>& b)
-    {
-        return this->operator()(std::get<0>(a), b);
-    }
-
-    _BinaryOp __binary_op;
-};
-
-struct __write_to_idx_if
-{
-    template<typename _OutRng, typename _SizeType, typename ValueType>
-    void operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
-    {
-        if (std::get<1>(__v))
-            __out[std::get<0>(__v)] = std::get<2>(__v);
-    }
-};
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
@@ -445,10 +392,11 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     return __future(__parallel_transform_reduce_then_scan(__tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                           ::std::forward<_Range1>(__rng1),
                                                           ::std::forward<_Range2>(__rng2),
-                                                          __gen_count_pred<_SizeType, _ReduceOp>{__pred}, std::plus<std::size_t>{},
-                                                          __gen_expand_count_pred<_SizeType, _ReduceOp>{__pred},
-                                                          __scan_expanded_count<std::plus<std::size_t>>{},
-                                                          __write_to_idx_if{},
+                                                          oneapi::dpl::__par_backend_hetero::__gen_count_pred<_SizeType, _ReduceOp>{__pred},
+                                                          _ReduceOp{},
+                                                          oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_SizeType, _ReduceOp>{__pred},
+                                                          oneapi::dpl::__par_backend_hetero::__scan_expanded_count<_SizeType, _ReduceOp>{},
+                                                          oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
                                                           oneapi::dpl::unseq_backend::__no_init_value{},
                                                           /*_Inclusive=*/std::true_type{})
                     .event());

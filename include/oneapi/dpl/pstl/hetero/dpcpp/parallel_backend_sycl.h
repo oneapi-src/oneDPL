@@ -774,9 +774,10 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
 
-template <typename _UnaryOp>
+template <typename _ValueType, typename _UnaryOp>
 struct __gen_transform_input
 {
+    using __out_value_type = std::decay_t<decltype(::std::declval<_UnaryOp>()(::std::declval<_ValueType>()))>;
     template <typename InRng>
     auto operator()(InRng&& __in_rng, std::size_t __idx) const
     {
@@ -793,6 +794,62 @@ struct __simple_write_to_idx
         __out[__idx] = __v;
     }
 };
+
+
+template <typename _SizeType, typename _Predicate>
+struct __gen_count_pred
+{
+    using __out_value_type = _SizeType;
+    template <typename _InRng>
+    _SizeType operator()(_InRng&& __in_rng, _SizeType __idx)
+    {
+        return __pred(__in_rng[__idx]) ? _SizeType{1} : _SizeType{0};
+    }
+    _Predicate __pred;
+};
+
+template <typename _SizeType, typename _Predicate>
+struct __gen_expand_count_pred
+{
+    template <typename _InRng>
+    auto operator()(_InRng&& __in_rng, _SizeType __idx)
+    {
+        auto ele = __in_rng[__idx];
+        bool mask = __pred(ele);
+        return std::tuple( mask ? _SizeType{1} : _SizeType{0}, mask, ele);
+    }
+    _Predicate __pred;
+};
+
+
+template <typename _SizeType, typename _BinaryOp>
+struct __scan_expanded_count
+{
+    template <typename _ValueType>
+    auto operator()(_SizeType __carry_in, const std::tuple<_SizeType, bool, _ValueType>& b)
+    {
+        return std::tuple(__binary_op(__carry_in, std::get<0>(b)), std::get<1>(b), std::get<2>(b));
+    }
+
+    template <typename _ValueType>
+    auto operator()(const std::tuple<_SizeType, bool, _ValueType>& a, const std::tuple<_SizeType, bool, _ValueType>& b)
+    {
+        return this->operator()(std::get<0>(a), b);
+    }
+
+    _BinaryOp __binary_op;
+};
+
+struct __write_to_idx_if
+{
+    template<typename _OutRng, typename _SizeType, typename ValueType>
+    void operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
+    {
+        if (std::get<1>(__v))
+            __out[std::get<0>(__v)] = std::get<2>(__v);
+    }
+};
+
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
@@ -831,7 +888,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     //_Assigner __assign_op;
     //_NoAssign __no_assign_op;
     //_NoOpFunctor __get_data_op;
-    oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
+    oneapi::dpl::__par_backend_hetero::__gen_transform_input<oneapi::dpl::__internal::__value_t<_Range1>, _UnaryOperation> __gen_transform{__unary_op};
     return __future(__parallel_transform_reduce_then_scan(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                           ::std::forward<_Range1>(__in_rng),
                                                           ::std::forward<_Range2>(__out_rng),
@@ -942,26 +999,30 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
-        __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
-    {
-        using _SizeBreakpoints =
-            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+    // if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
+    //     __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
+    // {
+    //     using _SizeBreakpoints =
+    //         ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
-        return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
-            ::std::forward<_OutRng>(__out_rng), __pred);
-    }
-    else
+    //     return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
+    //         _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
+    //         ::std::forward<_OutRng>(__out_rng), __pred);
+    // }
+    // else
     {
         using _ReduceOp = ::std::plus<_Size>;
-        using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
-        using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
-                                                     /*inclusive*/ ::std::true_type, 1>;
 
-        return __parallel_scan_copy(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                    ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
-                                    CreateOp{__pred}, CopyOp{});
+        return __parallel_transform_reduce_then_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                     std::forward<_InRng>(__in_rng),
+                                                     std::forward<_OutRng>(__out_rng),
+                                                     oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Size, _Pred>{__pred},
+                                                     _ReduceOp{},
+                                                     oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
+                                                     oneapi::dpl::__par_backend_hetero::__scan_expanded_count<_Size, _ReduceOp>{},
+                                                     oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
+                                                     oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::__value_t<_InRng>>{},
+                                                     /*_Inclusive=*/std::true_type{});
     }
 }
 
