@@ -1104,7 +1104,7 @@ struct __early_exit_find_or
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
 
         // Return the index of this item in the kernel's execution range
-        const auto __item_global_linear_id = __item_id.get_global_linear_id();
+        const auto __global_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
         for (_DataPerWorkItemSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
@@ -1116,7 +1116,7 @@ struct __early_exit_find_or
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
             }
 
-            const auto __src_data_idx_current = __item_global_linear_id + __local_src_data_idx * __iteration_data_size;
+            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
             if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
             {
                 // Update local found state
