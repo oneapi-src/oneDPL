@@ -380,6 +380,59 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
     return __res;
 }
 
+template <typename _Predicate>
+struct __gen_count_pred
+{
+    template <typename _InRng>
+    std::size_t operator()(_InRng&& __in_rng, std::size_t __idx)
+    {
+        return __pred(__in_rng[__idx]) ? std::size_t{1} : std::size_t{0};
+    }
+    _Predicate __pred;
+};
+
+template <typename _Predicate>
+struct __gen_expand_count_pred
+{
+    template <typename _InRng>
+    auto operator()(_InRng&& __in_rng, std::size_t __idx)
+    {
+        auto ele = __in_rng[__idx];
+        bool mask = __pred(ele);
+        return std::tuple( mask ? std::size_t{1} : std::size_t{0}, mask, ele);
+    }
+    _Predicate __pred;
+};
+
+
+template <typename _BinaryOp>
+struct __scan_expanded_count
+{
+    template <typename _ValueType>
+    auto operator()(std::size_t __carry_in, const std::tuple<std::size_t, bool, _ValueType>& b)
+    {
+        return std::tuple(__binary_op(__carry_in, std::get<0>(b)), std::get<1>(b), std::get<2>(b));
+    }
+
+    template <typename _ValueType>
+    auto operator()(const std::tuple<std::size_t, bool, _ValueType>& a, const std::tuple<std::size_t, bool, _ValueType>& b)
+    {
+        return this->operator()(std::get<0>(a), b);
+    }
+
+    _BinaryOp __binary_op;
+};
+
+struct __write_to_idx_if
+{
+    template<typename _OutRng, typename ValueType>
+    void operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
+    {
+        if (std::get<1>(__v))
+            __out[std::get<0>(__v)] = std::get<2>(__v);
+    }
+};
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
@@ -392,9 +445,17 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
     unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
 
-    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-                                         __create_mask_op, __copy_by_mask_op);
+
+    return __future(__parallel_transform_reduce_then_scan(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          ::std::forward<_Range1>(__rng1),
+                                                          ::std::forward<_Range2>(__rng2),
+                                                          __gen_count_pred{__pred}, std::plus<std::size_t>{},
+                                                          __gen_expand_count_pred{__pred},
+                                                          __scan_expanded_count<std::plus<std::size_t>>{},
+                                                          __write_to_idx_if{},
+                                                          oneapi::dpl::unseq_backend::__no_init_value{},
+                                                          /*_Inclusive=*/std::true_type{})
+                    .event());
 }
 
 //------------------------------------------------------------------------
