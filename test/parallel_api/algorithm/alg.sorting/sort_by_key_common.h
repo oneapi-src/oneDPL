@@ -13,6 +13,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef _SORT_BY_KEY_COMMON_H
+#define _SORT_BY_KEY_COMMON_H
+
 #include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -175,3 +178,5 @@ test_all_policies(StabilityTag stability_tag)
     test_with_std_policy(oneapi::dpl::execution::par_unseq, stability_tag);
 #endif // !TEST_DPCPP_BACKEND_PRESENT
 }
+
+#endif // _SORT_BY_KEY_COMMON_H
