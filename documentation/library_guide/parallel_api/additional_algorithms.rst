@@ -76,22 +76,6 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     search sequence: [0, 2, 4, 7, 6]
     result sequence: [1, 4, 8, 10, 10]
 
-* ``sort_by_key``: performs a stable key-value sort. The algorithm sorts the sequence's keys according to 
-  a comparioson operator. If no comparator is provided, then the elements are compared with ``operator<``.
-  The sequence's values are permutated according to the sorted sequence's keys. The prerequisite for correct
-  behavior is that the size for both keys sequence and values sequence shall be the same.  
-  For example::
-
-    keys:   [3,    5,   0,   4,   3,   0]
-    values: ['a', 'b', 'c', 'd', 'e', 'f']
-    output_keys:   [0,    0,   3,   3,   4,   5]
-    output_values: ['c', 'f', 'a', 'e', 'd', 'b']
-
-  .. note::
-
-     ``sort_by_key`` may implement an unstable sort in the future.
-     Use ``stable_sort_by_key`` if the stability is important.
-
 * ``stable_sort_by_key``: performs a stable key-value sort. The algorithm sorts the sequence's keys according to 
   a comparioson operator. If no comparator is provided, then the elements are compared with ``operator<``.
   The sequence's values are permutated according to the sorted sequence's keys. The prerequisite for correct
@@ -102,6 +86,13 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     values: ['a', 'b', 'c', 'd', 'e', 'f']
     output_keys:   [0,    0,   3,   3,   4,   5]
     output_values: ['c', 'f', 'a', 'e', 'd', 'b']
+
+* ``sort_by_key``: performs a stable key-value sort, equivalent to ``stable_sort_by_key``.
+
+  .. note::
+
+     ``sort_by_key`` may implement an unstable sort in the future.
+     Use ``stable_sort_by_key`` if the stability is essential.
 
 * ``transform_if``: performs a transform on the input sequence(s) elements and stores the result into the
   corresponding position in the output sequence at each position for which the predicate applied to the 
