@@ -23,6 +23,8 @@
 
 #include "support/utils.h"
 
+#include <vector>
+#include <algorithm>
 #include <type_traits>
 
 struct StableSort{};
@@ -34,22 +36,25 @@ call_sort_by_key(_Policy&& policy, _KeyIt keys_begin, _ValIt vals_begin, _Size n
 {
     auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
 
-    // 1. Initialization of buffers
+    // 1. Generate sequences. Example for n = 10:
+    // Keys:    1 2 1 2 1 2 1 2 1 2
+    // Values:  0 1 2 3 4 5 6 7 8 9
     std::transform(policy, counting_begin, counting_begin + n, keys_begin,
                    [](int i) { return i % 2 + 1; });
-    // fill vals_buf with the analogue of std::iota using counting_iterator
     std::copy(policy, counting_begin, counting_begin + n, vals_begin);
 
-    // 2. Sorting
+    // 2. Sort sequences. Example for n = 10, stable sort:
+    // Keys:    1 1 1 1 1 2 2 2 2 2
+    // Values:  0 2 4 6 8 1 3 5 7 9
     if constexpr (std::is_same_v<StabilityTag, StableSort>)
         oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
     else
         oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
 }
 
-template<typename _Keys, typename _Vals, typename _Size>
+template<typename _Keys, typename _Vals, typename _Size, typename StabilityTag>
 void
-check_sort_by_key_results(const _Keys& keys_buf, const _Vals& vals_buf,  _Size n)
+check_sort_by_key_results(const _Keys& keys_buf, const _Vals& vals_buf, _Size n, StabilityTag)
 {
     //Checking results
     const int k = (n - 1) / 2 + 1;
@@ -58,13 +63,21 @@ check_sort_by_key_results(const _Keys& keys_buf, const _Vals& vals_buf,  _Size n
         if(i - k < 0)
         {
              //a key should be 1 and value should be even
-            EXPECT_TRUE(keys_buf[i] == 1 && vals_buf[i] % 2 == 0, "wrong sort_by_key result with a standard policy");
+            EXPECT_TRUE(keys_buf[i] == 1 && vals_buf[i] % 2 == 0, "wrong result with a standard policy");
         }
         else
         {
             //a key should be 2 and value should be odd
-            EXPECT_TRUE(keys_buf[i] == 2 && vals_buf[i] % 2 == 1, "wrong sort_by_key result with a standard policy");
+            EXPECT_TRUE(keys_buf[i] == 2 && vals_buf[i] % 2 == 1, "wrong result with a standard policy");
         }
+    }
+    //Check both sort_by_key and stable_sort_by_key, as they are both claimed to be stable
+    if constexpr (/*check stability*/ 1)
+    {
+        EXPECT_TRUE(std::is_sorted(vals_buf.begin(), vals_buf.begin() + k),
+                    "wrong result with a standard policy, sort stability issue");
+        EXPECT_TRUE(std::is_sorted(vals_buf.begin() + k, vals_buf.begin() + n),
+                    "wrong result with a standard policy, sort stability issue");
     }
 }
 
@@ -77,7 +90,7 @@ test_with_std_policy(_Policy&& policy, StabilityTag stability_tag)
     std::vector<int> vals_buf(n); //values
 
     call_sort_by_key(policy, keys_buf.begin(), vals_buf.begin(), n, stability_tag);
-    check_sort_by_key_results(keys_buf, vals_buf, n);
+    check_sort_by_key_results(keys_buf, vals_buf, n, stability_tag);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -90,12 +103,15 @@ test_with_usm(sycl::queue& q, StabilityTag)
 {
     constexpr int N = 32;
 
+    // 1. Generate sequences. Example for n = 10:
+    // Keys:    0 10 20 30 40 50 60 70 80 90
+    // Values:  9  8  7  6  5  4  3  2  1  0
     int h_key[N] = {};
     int h_val[N] = {};
     for (int i = 0; i < N; i++)
     {
-        h_val[i] = ((N - 1 - i) / 3) * 3;
         h_key[i] = i * 10;
+        h_val[i] = N - i - 1;
     }
 
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_key(q, ::std::begin(h_key), ::std::end(h_key));
@@ -107,6 +123,9 @@ test_with_usm(sycl::queue& q, StabilityTag)
     auto myPolicy = TestUtils::make_device_policy<
         TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
 
+    // 2. Sort sequences. Example for n = 10, stable sort:
+    // Keys:    90 80 70 60 50 40 30 20 10  0
+    // Values:   0  1  2  3  4  5  6  7  8  9
     if constexpr (std::is_same_v<StabilityTag, StableSort>)
         oneapi::dpl::stable_sort_by_key(myPolicy, d_key, d_key + N, d_val, std::greater<void>());
     else
@@ -118,12 +137,12 @@ test_with_usm(sycl::queue& q, StabilityTag)
     dt_helper_h_key.retrieve_data(h_skey);
     dt_helper_h_val.retrieve_data(h_sval);
 
-    for (int i = 0; i < N; i++)
+    EXPECT_TRUE(std::is_sorted(h_skey, h_skey + N, std::greater<void>()), "wrong result with hetero policy, USM data");
+    //Check both sort_by_key and stable_sort_by_key, as they are both claimed to be stable
+    if constexpr (/*check stability*/ 1)
     {
-        if (i < (N - 1))
-        {
-            EXPECT_TRUE(h_skey[i] >= h_skey[i + 1], "wrong sort result with hetero policy, USM data");
-        }
+        EXPECT_TRUE(std::is_sorted(h_sval, h_sval + N),
+                    "wrong result with hetero policy, USM data, sort stability issue");
     }
 }
 
@@ -148,7 +167,7 @@ test_with_buffers(sycl::queue& q, StabilityTag stability_tag)
     sycl::host_accessor host_keys(keys_buf, sycl::read_only);
     sycl::host_accessor host_vals(vals_buf, sycl::read_only);
 
-    check_sort_by_key_results(host_keys, host_vals, n);
+    check_sort_by_key_results(host_keys, host_vals, n, stability_tag);
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
