@@ -837,7 +837,8 @@ struct __write_to_idx_if
     void operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
     {
         if (std::get<1>(__v))
-            __out[std::get<0>(__v)] = std::get<2>(__v);
+            __out[std::get<0>(__v) - 1] = std::get<2>(__v);
+
     }
 };
 
@@ -1013,7 +1014,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
                                                      oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
                                                      oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
                                                      oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
-                                                     oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::__value_t<_InRng>>{},
+                                                     oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
                                                      /*_Inclusive=*/std::true_type{});
     }
 }

@@ -290,8 +290,6 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                                                             *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
                                                                __sub_group_size)]] {
                 auto __temp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
-                auto __id = __ndi.get_global_id(0);
-                auto __lid = __ndi.get_local_id(0);
                 auto __g = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
                 auto __sub_group_id = __sub_group.get_group_linear_id();
@@ -434,7 +432,6 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                                __sub_group_size)]] {
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 1);
-                auto __id = __ndi.get_global_id(0);
                 auto __lid = __ndi.get_local_id(0);
                 auto __g = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
@@ -693,7 +690,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                 }
                 //if last element in the sequence, then we need to write out the last carry out
-                if (__n - 1 == __group_start_idx + __id)
+                if (__n - 1 == __group_start_idx + __lid)
                 {
                     __res_ptr[0] = __sub_group_carry.__v;
                 }
