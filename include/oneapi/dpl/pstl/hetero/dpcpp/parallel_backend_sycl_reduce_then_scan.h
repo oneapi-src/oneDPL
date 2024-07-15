@@ -280,9 +280,9 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
                const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
-        using _InValueType = oneapi::dpl::__internal::__value_t<_InRng>;
+        using _CarryType = typename _TmpStorageAcc::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
-            sycl::local_accessor<_InValueType> __sub_group_partials(__num_sub_groups_local, __cgh);
+            sycl::local_accessor<_CarryType> __sub_group_partials(__num_sub_groups_local, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng);
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
@@ -295,7 +295,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 auto __sub_group_id = __sub_group.get_group_linear_id();
                 auto __sub_group_local_id = __sub_group.get_local_linear_id();
 
-                oneapi::dpl::__internal::__lazy_ctor_storage<_InValueType> __sub_group_carry;
+                oneapi::dpl::__internal::__lazy_ctor_storage<_CarryType> __sub_group_carry;
                 std::size_t __group_start_idx =
                     (__block_num * __max_block_size) + (__g * __inputs_per_sub_group * __num_sub_groups_local);
                 if (__n <= __group_start_idx)
@@ -418,10 +418,10 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
                const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
-        using _InValueType = oneapi::dpl::__internal::__value_t<_InRng>;
         using _InitValueType = typename _InitType::__value_type;
+        using _CarryType = typename _TmpStorageAcc::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
-            sycl::local_accessor<_InValueType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
+            sycl::local_accessor<_CarryType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng, __out_rng);
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
@@ -447,11 +447,11 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
-                oneapi::dpl::__internal::__lazy_ctor_storage<_InValueType> __carry_last;
-                oneapi::dpl::__internal::__lazy_ctor_storage<_InValueType> __value;
+                oneapi::dpl::__internal::__lazy_ctor_storage<_CarryType> __carry_last;
+                oneapi::dpl::__internal::__lazy_ctor_storage<_CarryType> __value;
 
                 // propogate carry in from previous block
-                oneapi::dpl::__internal::__lazy_ctor_storage<_InValueType> __sub_group_carry;
+                oneapi::dpl::__internal::__lazy_ctor_storage<_CarryType> __sub_group_carry;
 
                 // on the first sub-group in a work-group (assuming S subgroups in a work-group):
                 // 1. load S sub-group local carry pfix sums (T0..TS-1) to slm
@@ -618,7 +618,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
                             __sub_group_carry.__setup(__reduce_op(
                                 __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
                                 __sub_group_partials[__sub_group_id - 1]));
@@ -633,7 +633,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
                             __sub_group_carry.__setup(__reduce_op(
                                 __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
                                 __sub_group_partials[__active_subgroups]));
@@ -647,7 +647,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _InValueType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
                             __sub_group_carry.__setup(
                                 __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element));
                         }
@@ -668,8 +668,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 }
 
                 // step 5) apply global carries
-                size_t __subgroup_start_idx = __group_start_idx + (__sub_group_id * __inputs_per_sub_group);
-                size_t __start_idx = __subgroup_start_idx + __sub_group_local_id;
+                std::size_t __subgroup_start_idx = __group_start_idx + (__sub_group_id * __inputs_per_sub_group);
+                std::size_t __start_idx = __subgroup_start_idx + __sub_group_local_id;
 
                 if (__sub_group_carry_initialized)
                 {
@@ -690,7 +690,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                 }
                 //if at the last element in the sequence, then we need to write out the last carry out
-                if (__sub_group_local_id == 0 && (__n - 1) / __inputs_per_sub_group  == __sub_group_id + __block_num * __num_sub_groups_global + __g * __num_sub_groups_local)
+                if (__sub_group_local_id == 0 &&  __subgroup_start_idx < __n && __subgroup_start_idx + __inputs_per_sub_group >= __n)
                 {
                     __res_ptr[0] = __sub_group_carry.__v;
                 }
