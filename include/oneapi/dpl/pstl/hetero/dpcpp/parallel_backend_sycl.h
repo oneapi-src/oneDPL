@@ -1113,23 +1113,27 @@ struct __early_exit_find_or
             if constexpr (__is_backward_tag(__brick_tag))
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
-            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
-            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            // Doing success search only once
+            if (!__something_was_found)
             {
-                // Update local found state
-                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+                const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+                if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+                {
+                    // Update local found state
+                    _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
 
-                // This break is mandatory from the performance point of view.
-                // This break is safe for all our cases:
-                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
-                //    This means that after first found entry there is no reason to process data anymore.
-                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // But break statement here shows poor perf in some cases.
-                // So we use bool variable state check in the for-loop header.
-                __something_was_found = true;
+                    // This break is mandatory from the performance point of view.
+                    // This break is safe for all our cases:
+                    // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                    //    This means that after first found entry there is no reason to process data anymore.
+                    // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // But break statement here shows poor perf in some cases.
+                    // So we use bool variable state check in the for-loop header.
+                    __something_was_found = true;
+                }
             }
 
             // Share found into state between items in our sub-group to early exit if something was found
