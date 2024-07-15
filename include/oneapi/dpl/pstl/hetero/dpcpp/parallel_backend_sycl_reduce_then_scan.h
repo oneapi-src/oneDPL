@@ -689,8 +689,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         __sub_group, __gen_scan_input, __scan_pred, __reduce_op, __final_op, __sub_group_carry, __in_rng, __out_rng,
                         __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                 }
-                //if last element in the sequence, then we need to write out the last carry out
-                if (__n - 1 == __group_start_idx + __lid)
+                //if at the last element in the sequence, then we need to write out the last carry out
+                if (__sub_group_local_id == 0 && (__n - 1) / __inputs_per_sub_group  == __sub_group_id + __block_num * __num_sub_groups_global + __g * __num_sub_groups_local)
                 {
                     __res_ptr[0] = __sub_group_carry.__v;
                 }
