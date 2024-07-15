@@ -1213,7 +1213,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
-    constexpr std::size_t __early_exit_check_interval_div = 200;
+    constexpr std::size_t __early_exit_check_interval_div = 400;
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
