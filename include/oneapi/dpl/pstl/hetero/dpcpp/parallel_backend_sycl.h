@@ -1089,9 +1089,8 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+    impl_small(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               const std::size_t __early_exit_check_interval_div,
                _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
@@ -1107,15 +1106,63 @@ struct __early_exit_find_or
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
 
-        _SrcDataSize __early_exit_check_interval =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
-        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
+        bool __something_was_found = false;
+        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        {
+            auto __local_src_data_idx = __i;
+            if constexpr (__is_backward_tag(__brick_tag))
+                __local_src_data_idx = __iters_per_work_item - 1 - __i;
+
+            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            {
+                // Update local found state
+                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+
+                // This break is mandatory from the performance point of view.
+                // This break is safe for all our cases:
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                //    This means that after first found entry there is no reason to process data anymore.
+                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // But break statement here shows poor perf in some cases.
+                // So we use bool variable state check in the for-loop header.
+                __something_was_found = true;
+            }
+
+            // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
+            //  - get __i state like for the next iteration for exit on next interation if something will found.
+            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+        }
+    }
+
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+              typename _BrickTag, typename... _Ranges>
+    void
+    impl_large(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+               const _SrcDataSize __early_exit_check_interval,
+               _Ranges&&... __rngs) const
+    {
+        // Calculate the number of elements to be processed by each work-item.
+        const auto __iters_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+
+        // There are 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
+        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+
+        // Return the index of this item in the kernel's execution range
+        const auto __global_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0;
-             __i < __iters_per_work_item &&
-             !(__something_was_found && (__early_exit_check_interval == 0 || __i % __early_exit_check_interval == 0));
-             ++__i)
+                __i < __iters_per_work_item && !(__something_was_found && __i % __early_exit_check_interval == 0);
+                ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
@@ -1146,21 +1193,42 @@ struct __early_exit_find_or
 
             // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
             //  - get __i state like for the next iteration for exit on next interation if something will found.
-            //if (__early_exit_check_interval == 0)
-            //{
-                // Share found into state between items in our sub-group to early exit if something was found
-                //  - the update of __found_local state isn't required here because it updates later on the caller side
-                __something_was_found =
-                    __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
-            //}
-            //else
-            if (0 < __early_exit_check_interval && (__i + 1) % __early_exit_check_interval == 0)
+            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+
+            if ((__i + 1) % __early_exit_check_interval == 0)
             {
                 // Share found into state between items in our sub-group to early exit if something was found
                 //  - the update of __found_local state isn't required here because it updates later on the caller side
-                __something_was_found =
-                    __dpl_sycl::__any_of_group(__item_id.get_group(), __something_was_found);
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_group(), __something_was_found);
             }
+        }
+    }
+
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+              typename _BrickTag, typename... _Ranges>
+    void
+    operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+               _Ranges&&... __rngs) const
+    {
+        constexpr std::size_t __early_exit_check_interval_div = 800;
+
+        // Calculate the number of elements to be processed by each work-item.
+        const auto __iters_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+
+        _SrcDataSize __early_exit_check_interval =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
+        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
+
+        if (0 == __early_exit_check_interval)
+        {
+            impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
+        }
+        else
+        {
+            impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                       __early_exit_check_interval, __rngs...);
         }
     }
 };
@@ -1213,7 +1281,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
-    constexpr std::size_t __early_exit_check_interval_div = 800;
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1243,8 +1310,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag,
-                           __early_exit_check_interval_div, __rngs...);
+                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
