@@ -1160,47 +1160,47 @@ struct __early_exit_find_or
         const auto __global_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
-        for (_SrcDataSize __i = 0;
-                __i < __iters_per_work_item && !(__something_was_found && __i % __early_exit_check_interval == 0);
-                ++__i)
+        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item;
+             __i += __early_exit_check_interval)
         {
-            auto __local_src_data_idx = __i;
-            if constexpr (__is_backward_tag(__brick_tag))
-                __local_src_data_idx = __iters_per_work_item - 1 - __i;
-
-            // Doing success search only once
-            if (!__something_was_found)
+            #pragma unroll
+            for (_SrcDataSize __j = 0; __j < __early_exit_check_interval; ++__j)
             {
-                const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
-                if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+                auto __local_src_data_idx = __i + __j;
+                if constexpr (__is_backward_tag(__brick_tag))
+                    __local_src_data_idx = __iters_per_work_item - 1 - __i - __j;
+
+                // Doing success search only once
+                if (!__something_was_found)
                 {
-                    // Update local found state
-                    _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+                    const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+                    if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+                    {
+                        // Update local found state
+                        _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
 
-                    // This break is mandatory from the performance point of view.
-                    // This break is safe for all our cases:
-                    // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
-                    //    This means that after first found entry there is no reason to process data anymore.
-                    // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
-                    //    This means that after the first found entry there is no reason to process data anymore too.
-                    // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
-                    //    This means that after the first found entry there is no reason to process data anymore too.
-                    // But break statement here shows poor perf in some cases.
-                    // So we use bool variable state check in the for-loop header.
-                    __something_was_found = true;
+                        // This break is mandatory from the performance point of view.
+                        // This break is safe for all our cases:
+                        // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                        //    This means that after first found entry there is no reason to process data anymore.
+                        // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                        //    This means that after the first found entry there is no reason to process data anymore too.
+                        // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                        //    This means that after the first found entry there is no reason to process data anymore too.
+                        // But break statement here shows poor perf in some cases.
+                        // So we use bool variable state check in the for-loop header.
+                        __something_was_found = true;
+                    }
                 }
+
+                // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
+                //  - get __i state like for the next iteration for exit on next interation if something will found.
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
             }
 
-            // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
-            //  - get __i state like for the next iteration for exit on next interation if something will found.
-            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
-
-            if ((__i + 1) % __early_exit_check_interval == 0)
-            {
-                // Share found into state between items in our sub-group to early exit if something was found
-                //  - the update of __found_local state isn't required here because it updates later on the caller side
-                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_group(), __something_was_found);
-            }
+            // Share found into state between items in our sub-group to early exit if something was found
+            //  - the update of __found_local state isn't required here because it updates later on the caller side
+            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_group(), __something_was_found);
         }
     }
 
@@ -1220,6 +1220,7 @@ struct __early_exit_find_or
         _SrcDataSize __early_exit_check_interval =
             oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
         __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
+        __early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
 
         if (0 == __early_exit_check_interval)
         {
