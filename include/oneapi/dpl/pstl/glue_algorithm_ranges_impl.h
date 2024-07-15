@@ -63,9 +63,10 @@ inline constexpr for_each_fn for_each;
 
 struct transform_fn
 {
-    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F,
-             typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
+             std::ranges::random_access_range _OutRange, std::copy_constructible _F, typename _Proj = std::identity>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_InRange>
+        && std::ranges::sized_range<_OutRange>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const
     {
@@ -83,8 +84,9 @@ inline constexpr transform_fn transform;
 
 struct find_if_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred,
-        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
@@ -100,8 +102,9 @@ inline constexpr find_if_fn find_if;
 
 struct find_if_not_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred,
-        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>>  _Pred>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
@@ -117,8 +120,11 @@ inline constexpr find_if_not_fn find_if_not;
 
 struct find_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj = std::identity,
-        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             typename _T = std::projected_value_t<std::ranges::iterator_t<_R>, _Proj>>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+        && std::indirect_binary_predicate<std::ranges::equal_to, std::projected<std::ranges::iterator_t<_R>, _Proj>,
+        const _T*>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
@@ -132,8 +138,10 @@ inline constexpr find_fn find;
 
 struct any_of_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>>  _Pred>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    bool
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, std::ranges::begin(__r));
@@ -146,8 +154,10 @@ inline constexpr any_of_fn any_of;
 
 struct all_of_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    bool
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         return !oneapi::dpl::ext::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
@@ -160,8 +170,10 @@ inline constexpr all_of_fn all_of;
 
 struct none_of_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    bool
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         return !oneapi::dpl::ext::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
@@ -173,9 +185,10 @@ inline constexpr none_of_fn none_of;
 
 struct adjacent_find_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity,
-             typename _Pred =  std::ranges::equal_to,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_binary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>,
+             std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred = std::ranges::equal_to>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred = {}, _Proj __proj = {}) const
     {
@@ -189,9 +202,11 @@ inline constexpr adjacent_find_fn adjacent_find;
 
 struct search_fn
 {
-    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred = std::ranges::equal_to,
-             typename _Proj1 = std::identity, typename _Proj2 = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
+             typename _Pred = std::ranges::equal_to, typename _Proj1 = std::identity, typename _Proj2 = std::identity>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+        && std::ranges::sized_range<_R1> && std::ranges::sized_range<_R2>
+        && std::indirectly_comparable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>, _Pred, _Proj1, _Proj2>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred = {}, _Proj1 __proj1 = {},
         _Proj2 __proj2 = {}) const
@@ -208,9 +223,10 @@ inline constexpr search_fn search;
 
 struct search_n_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred = std::ranges::equal_to,
-        typename _Proj = std::identity,
-        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Pred = std::ranges::equal_to,
+             typename _Proj = std::identity, typename _T = std::projected_value_t<std::ranges::iterator_t<_R>, _Proj>>
+    requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+        && std::indirectly_comparable<std::ranges::iterator_t<_R>, const _T*, _Pred, _Proj>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
         _Pred __pred = {}, _Proj __proj = {}) const
