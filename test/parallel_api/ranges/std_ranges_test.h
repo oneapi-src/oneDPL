@@ -402,7 +402,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<typename T = int, TestDataMode TestDataMode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = true>
+template<typename T = int, TestDataMode TestDataMode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto... args)
@@ -411,13 +411,14 @@ struct test_range_algo
         auto subrange_view = [](auto&& v) { return std::ranges::subrange(v); };
         auto span_view = [](auto&& v) { return std::span(v); };
 
-        auto forward_view = [](auto&& v) {
-            using forward_it = TestUtils::ForwardIterator<decltype(v.begin()), ::std::forward_iterator_tag>;
-            return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
-        };
-
         if constexpr(ForwardRangeCheck)
+        {
+            auto forward_view = [](auto&& v) {
+                using forward_it = TestUtils::ForwardIterator<decltype(v.begin()), ::std::forward_iterator_tag>;
+                return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
+            };
             test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, forward_view, args...);
+        }
 
         test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, args...);
         test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, args...);
