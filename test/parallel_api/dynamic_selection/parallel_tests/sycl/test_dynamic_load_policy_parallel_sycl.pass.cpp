@@ -14,6 +14,11 @@
 #include "support/utils.h"
 #include <unordered_map>
 #include <thread>
+#include <random>
+#include <chrono>
+#include <random>
+#include <algorithm>
+#include "support/barriers.h"
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
@@ -27,10 +32,6 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, int best
     double* v = sycl::malloc_shared<double>(1000000, u[0]);
 
     my_policy_t p{u};
-    auto n_samples = u.size();
-
-    const int N = 10;
-
     auto func = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e, int index) {
         int x = map[e];
         result[x]++;
@@ -57,34 +58,35 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, int best
 
     std::vector<std::thread> threads;
     std::atomic<int> counter = 1;
+    int n_threads = 3;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func,&counter](){
+        auto thread_func = [&p, &func,&counter, &sync_point](){
             for(int i=0;i<3;i++){
                 int tmp = counter++;
                 auto s = oneapi::dpl::experimental::select(p);
-
                 auto w = oneapi::dpl::experimental::submit(s, func, tmp);
-                if (i > 0)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
     else{
 
-        auto thread_func = [&p, &func, &counter](){
+        auto thread_func = [&p, &func, &counter, &sync_point](){
             for(int i=0;i<3;i++){
                 int tmp=counter++;
                 auto w = oneapi::dpl::experimental::submit(p, func, tmp);
-                if (i > 0)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
@@ -111,10 +113,6 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, int best_resource
     double* v = sycl::malloc_shared<double>(1000000, u[0]);
 
     my_policy_t p{u};
-    auto n_samples = u.size();
-
-    const int N = 10;
-
     auto func = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e, int index) {
         int x = map[e];
         result[x]++;
@@ -141,29 +139,33 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, int best_resource
 
     std::vector<std::thread> threads;
     std::atomic<int> counter = 1;
+    int n_threads = 3;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func,&counter](){
+        auto thread_func = [&p, &func,&counter, &sync_point](){
             for(int i=0;i<3;i++){
                 int tmp = counter++;
                 auto s = oneapi::dpl::experimental::select(p);
                 oneapi::dpl::experimental::submit_and_wait(s, func, tmp);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
     else{
 
-        auto thread_func = [&p, &func, &counter](){
+        auto thread_func = [&p, &func, &counter, &sync_point](){
             for(int i=0;i<3;i++){
                 int tmp=counter++;
                 oneapi::dpl::experimental::submit_and_wait(p, func, tmp);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
@@ -190,10 +192,6 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, int best
     double* v = sycl::malloc_shared<double>(1000000, u[0]);
 
     my_policy_t p{u};
-    auto n_samples = u.size();
-
-    const int N = 10;
-
     auto func = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e, int index) {
         int x = map[e];
         result[x]++;
@@ -219,37 +217,38 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, int best
     };
 
     std::vector<std::thread> threads;
-    std::atomic<int> counter = 1;
+    std::atomic<int> counter = 0;
+    int n_threads = 3;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func,&counter](){
-            for(int i=0;i<3;i++){
+        auto thread_func = [&p, &func,&counter, &sync_point](){
+            for(int i=0;i<5;i++){
                 int tmp = counter++;
                 auto s = oneapi::dpl::experimental::select(p);
-
                 auto w = oneapi::dpl::experimental::submit(s, func, tmp);
-                if (i > 0)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(3));
                 oneapi::dpl::experimental::wait(w);
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
     else{
 
-        auto thread_func = [&p, &func, &counter](){
+        auto thread_func = [&p, &func, &counter, &sync_point](){
             for(int i=0;i<3;i++){
                 int tmp=counter++;
                 auto w = oneapi::dpl::experimental::submit(p, func, tmp);
-                if (i > 0)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
                 oneapi::dpl::experimental::wait(w);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<3;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
@@ -321,7 +320,6 @@ main()
         actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, map, best_resource);
         actual = test_submit_and_wait<just_call_submit, policy_t>(u, map, best_resource);
         actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, map, best_resource);
-
         bProcessed = true;
     }
 #endif // Devices available are CPU and GPU

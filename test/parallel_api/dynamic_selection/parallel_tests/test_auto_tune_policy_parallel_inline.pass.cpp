@@ -14,6 +14,7 @@
 #include <thread>
 #include "support/inline_backend.h"
 #include "support/utils.h"
+#include "support/barriers.h"
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
@@ -31,41 +32,45 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
     };
     std::vector<std::thread> threads;
+    int n_threads = 2;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 auto s = oneapi::dpl::experimental::select(p, func);
                 oneapi::dpl::experimental::submit_and_wait(s, func);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
         for(auto& thread : threads){
             thread.join();
         }
         threads.clear();
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
 
     }
     else{
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 oneapi::dpl::experimental::submit_and_wait(p, func);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
         for(auto& thread : threads){
             thread.join();
         }
         threads.clear();
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
@@ -99,15 +104,18 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
     };
     std::vector<std::thread> threads;
+    int n_threads = 2;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 auto s = oneapi::dpl::experimental::select(p, func);
 
                 auto w = oneapi::dpl::experimental::submit(s, func);
             }
+            sync_point.arrive_and_wait();
         };
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
         oneapi::dpl::experimental::wait(p.get_submission_group());
@@ -115,19 +123,20 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
             thread.join();
         }
         threads.clear();
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
     else{
 
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 auto w = oneapi::dpl::experimental::submit(p, func);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
         oneapi::dpl::experimental::wait(p.get_submission_group());
@@ -135,7 +144,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
             thread.join();
         }
         threads.clear();
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
@@ -171,17 +180,20 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
     };
     std::vector<std::thread> threads;
+    int n_threads = 2;
+    Barrier sync_point(n_threads);
     if(call_select_before_submit){
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 auto s = oneapi::dpl::experimental::select(p, func);
 
                 auto w = oneapi::dpl::experimental::submit(s, func);
                 oneapi::dpl::experimental::wait(w);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
 
@@ -191,21 +203,22 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         }
         threads.clear();
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
 
     }
     else{
 
-        auto thread_func = [&p, &func](){
+        auto thread_func = [&p, &func, &sync_point](){
             for(int i=0;i<4;i++){
                 auto w = oneapi::dpl::experimental::submit(p, func);
                 oneapi::dpl::experimental::wait(w);
             }
+            sync_point.arrive_and_wait();
         };
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
         for(auto& thread : threads){
@@ -213,7 +226,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         }
         threads.clear();
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<n_threads;i++){
             threads.push_back(std::thread(thread_func));
         }
     }
