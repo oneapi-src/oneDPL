@@ -1144,14 +1144,18 @@ struct __early_exit_find_or
                 }
             }
 
-            // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
-            //  - get __i state like for the next iteration for exit on next interation if something will found.
-            if (__early_exit_check_interval == 0 || (__i + 1) % __early_exit_check_interval == 0)
+            // Share data between work-items in the same sub-group only if we have a lot of iterations and it isn't the last iteration's group
+            if (10 < __iters_per_work_item && __i + 10 < __iters_per_work_item)
             {
-                // Share found into state between items in our sub-group to early exit if something was found
-                //  - the update of __found_local state isn't required here because it updates later on the caller side
-                __something_was_found =
-                    __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+                // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
+                //  - get __i state like for the next iteration for exit on next interation if something will found.
+                if (__early_exit_check_interval == 0 || (__i + 1) % __early_exit_check_interval == 0)
+                {
+                    // Share found into state between items in our sub-group to early exit if something was found
+                    //  - the update of __found_local state isn't required here because it updates later on the caller side
+                    __something_was_found =
+                        __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+                }
             }
         }
     }
