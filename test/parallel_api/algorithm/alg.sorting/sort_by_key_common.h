@@ -71,8 +71,8 @@ check_sort_by_key_results(const _Keys& keys_buf, const _Vals& vals_buf, _Size n,
             EXPECT_TRUE(keys_buf[i] == 2 && vals_buf[i] % 2 == 1, "wrong result with a standard policy");
         }
     }
-    //Check both sort_by_key and stable_sort_by_key, as they are both claimed to be stable
-    if constexpr (/*check stability*/ 1)
+
+    if constexpr (std::is_same_v<StabilityTag, StableSort>)
     {
         EXPECT_TRUE(std::is_sorted(vals_buf.begin(), vals_buf.begin() + k),
                     "wrong result with a standard policy, sort stability issue");
@@ -138,7 +138,7 @@ test_with_usm(sycl::queue& q, StabilityTag)
     dt_helper_h_val.retrieve_data(h_sval);
 
     EXPECT_TRUE(std::is_sorted(h_skey, h_skey + N, std::greater<void>()), "wrong result with hetero policy, USM data");
-    //Check both sort_by_key and stable_sort_by_key, as they are both claimed to be stable
+    // sort_by_key with device policy guarantees stability
     if constexpr (/*check stability*/ 1)
     {
         EXPECT_TRUE(std::is_sorted(h_sval, h_sval + N),
@@ -167,7 +167,8 @@ test_with_buffers(sycl::queue& q, StabilityTag stability_tag)
     sycl::host_accessor host_keys(keys_buf, sycl::read_only);
     sycl::host_accessor host_vals(vals_buf, sycl::read_only);
 
-    check_sort_by_key_results(host_keys, host_vals, n, stability_tag);
+   // sort_by_key with device policy guarantees stability
+    check_sort_by_key_results(host_keys, host_vals, n, StableSort{});
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
