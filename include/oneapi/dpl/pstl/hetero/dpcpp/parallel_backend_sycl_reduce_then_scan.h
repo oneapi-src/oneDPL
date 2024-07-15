@@ -735,7 +735,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     // TODO: Use the trick in reduce to wrap in a shared_ptr with custom deleter to support asynchronous frees.
 
-    __result_and_scratch_storage<_ExecutionPolicy, typename _GenReduceInput::__out_value_type> __result_and_scratch{__exec, __num_sub_groups_global + 2};
+    __result_and_scratch_storage<_ExecutionPolicy, typename _GenReduceInput::__out_value_type> __result_and_scratch{__exec, __num_sub_groups_global + 1};
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
