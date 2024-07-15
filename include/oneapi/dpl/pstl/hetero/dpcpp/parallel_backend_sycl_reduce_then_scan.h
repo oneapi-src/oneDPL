@@ -418,6 +418,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
                const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
+        std::size_t __elements_in_block = std::min(__n - __block_num * __max_block_size, std::size_t(__max_block_size));
+        std::size_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_block, __inputs_per_sub_group * __num_sub_groups_local);
         using _InitValueType = typename _InitType::__value_type;
         using _CarryType = typename _TmpStorageAcc::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
@@ -431,7 +433,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                             *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
                                                                __sub_group_size)]] {
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
-                auto __res_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 1);
+                auto __res_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
                 auto __lid = __ndi.get_local_id(0);
                 auto __g = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
@@ -612,44 +614,44 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__sub_group_id > 0)
                     {
                         if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__reduce_op(__out_rng[__block_num * __max_block_size - 1],
+                            __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
                                                                   __sub_group_partials[__sub_group_id - 1]));
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
                             __sub_group_carry.__setup(__reduce_op(
-                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
+                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element),
                                 __sub_group_partials[__sub_group_id - 1]));
                         }
                     }
                     else if (__g > 0)
                     {
                         if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__reduce_op(__out_rng[__block_num * __max_block_size - 1],
+                            __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
                                                                   __sub_group_partials[__active_subgroups]));
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
                             __sub_group_carry.__setup(__reduce_op(
-                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element),
+                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element),
                                 __sub_group_partials[__active_subgroups]));
                         }
                     }
                     else
                     {
                         if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__out_rng[__block_num * __max_block_size - 1]);
+                            __sub_group_carry.__setup(__tmp_ptr[__num_sub_groups_global]);
                         else // The last block wrote an exclusive result, so we must make it inclusive.
                         {
                             // Grab the last element from the previous block that has been cached in temporary
                             // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global];
+                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
                             __sub_group_carry.__setup(
-                                __reduce_op(__out_rng[__block_num * __max_block_size - 1], __last_block_element));
+                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element));
                         }
                     }
                 }
@@ -663,7 +665,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     if (__global_id == __num_work_items - 1)
                     {
                         std::size_t __last_idx_in_block = std::min(__n - 1, __max_block_size * (__block_num + 1) - 1);
-                        __tmp_ptr[__num_sub_groups_global] = __gen_reduce_input(__in_rng, __last_idx_in_block);
+                        __tmp_ptr[__num_sub_groups_global + 1] = __gen_reduce_input(__in_rng, __last_idx_in_block);
                     }
                 }
 
@@ -690,9 +692,17 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id, __active_subgroups);
                 }
                 //if at the last element in the sequence, then we need to write out the last carry out
-                if (__sub_group_local_id == 0 &&  __subgroup_start_idx < __n && __subgroup_start_idx + __inputs_per_sub_group >= __n)
+                if (__sub_group_local_id == 0 && (__active_groups == __g + 1) && (__active_subgroups == __sub_group_id + 1))
                 {
-                    __res_ptr[0] = __sub_group_carry.__v;
+                    if (__block_num + 1 == __num_blocks)
+                    {
+                        __res_ptr[0] = __sub_group_carry.__v;
+                    }
+                    else
+                    {
+                        //capture the last carry out for the next block
+                        __tmp_ptr[__num_sub_groups_global] = __sub_group_carry.__v;
+                    }
                 }
 
                 __sub_group_carry.__destroy();
@@ -706,6 +716,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
     const std::size_t __num_sub_groups_local;
     const std::size_t __num_sub_groups_global;
     const std::size_t __num_work_items;
+    const std::size_t __num_blocks;
     const std::size_t __n;
 
     const _GenReduceInput __gen_reduce_input;
@@ -765,7 +776,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     // TODO: Use the trick in reduce to wrap in a shared_ptr with custom deleter to support asynchronous frees.
 
-    __result_and_scratch_storage<_ExecutionPolicy, typename _GenReduceInput::__out_value_type> __result_and_scratch{__exec, __num_sub_groups_global + 1};
+    __result_and_scratch_storage<_ExecutionPolicy, typename _GenReduceInput::__out_value_type> __result_and_scratch{__exec, __num_sub_groups_global + 2};
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
@@ -780,7 +791,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     _ReduceSubmitter __reduce_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
         __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __init};
     _ScanSubmitter __scan_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
-        __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_pred,
+        __num_sub_groups_global, __num_work_items, __num_blocks, __n, __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_pred,
         __final_op, __init};
     // clang-format on
 
