@@ -9,11 +9,9 @@ oneDPL is part of the [UXL Foundation] and is an implementation of the
 [UXL Foundation]: http://www.uxlfoundation.org
 [oneAPI specification]: https://spec.oneapi.io
 
-# oneAPI DPC++ Library (oneDPL)
-
-oneAPI DPC++ Library (oneDPL) works with the Intel® oneAPI DPC++/C++ Compiler to
-provide high-productivity APIs to developers, which can minimize Data Parallel C++ (DPC++)
-programming efforts across devices for high performance parallel applications.
+oneDPL works with the Intel® oneAPI DPC++/C++ Compiler to provide high-productivity
+APIs to developers, which can minimize Data Parallel C++ (DPC++) programming efforts
+across devices for high performance parallel applications.
 
 ## Prerequisites
 Install the Intel® oneAPI Base Toolkit (Base Kit) to use oneDPL. Refer to the specific
