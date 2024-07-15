@@ -121,7 +121,7 @@ inline constexpr find_if_not_fn find_if_not;
 struct find_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
-             typename _T = std::projected_value_t<std::ranges::iterator_t<_R>, _Proj>>
+             typename _T>
     requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
         && std::indirect_binary_predicate<std::ranges::equal_to, std::projected<std::ranges::iterator_t<_R>, _Proj>,
         const _T*>
@@ -224,7 +224,7 @@ inline constexpr search_fn search;
 struct search_n_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Pred = std::ranges::equal_to,
-             typename _Proj = std::identity, typename _T = std::projected_value_t<std::ranges::iterator_t<_R>, _Proj>>
+             typename _Proj = std::identity, typename _T>
     requires std::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
         && std::indirectly_comparable<std::ranges::iterator_t<_R>, const _T*, _Pred, _Proj>
     constexpr auto
