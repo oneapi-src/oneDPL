@@ -1091,6 +1091,7 @@ struct __early_exit_find_or
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+               const std::size_t __early_exit_check_interval_div,
                _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
@@ -1106,8 +1107,15 @@ struct __early_exit_find_or
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
 
+        _SrcDataSize __early_exit_check_interval =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
+        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
+
         bool __something_was_found = false;
-        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        for (_SrcDataSize __i = 0;
+             __i < __iters_per_work_item &&
+             !(__something_was_found && (__early_exit_check_interval == 0 || __i % __early_exit_check_interval == 0));
+             ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
@@ -1136,9 +1144,15 @@ struct __early_exit_find_or
                 }
             }
 
-            // Share found into state between items in our sub-group to early exit if something was found
-            //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+            // Share found into state between items in our sub-group with some periodicity to reduce workload of __any_of_group
+            //  - get __i state like for the next iteration for exit on next interation if something will found.
+            if (__early_exit_check_interval == 0 || (__i + 1) % __early_exit_check_interval == 0)
+            {
+                // Share found into state between items in our sub-group to early exit if something was found
+                //  - the update of __found_local state isn't required here because it updates later on the caller side
+                __something_was_found =
+                    __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+            }
         }
     }
 };
@@ -1191,6 +1205,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    constexpr std::size_t __early_exit_check_interval_div = 10;
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1220,7 +1235,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag,
+                           __early_exit_check_interval_div, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
