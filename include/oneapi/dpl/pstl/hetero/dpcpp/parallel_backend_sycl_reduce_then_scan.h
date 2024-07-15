@@ -433,7 +433,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                                                             *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
                                                                __sub_group_size)]] {
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
-                auto __res_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
+                auto __res_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 1);
                 auto __lid = __ndi.get_local_id(0);
                 auto __g = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
@@ -613,61 +613,20 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 {
                     if (__sub_group_id > 0)
                     {
-                        if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
-                                                                  __sub_group_partials[__sub_group_id - 1]));
-                        else // The last block wrote an exclusive result, so we must make it inclusive.
-                        {
-                            // Grab the last element from the previous block that has been cached in temporary
-                            // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
-                            __sub_group_carry.__setup(__reduce_op(
-                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element),
-                                __sub_group_partials[__sub_group_id - 1]));
-                        }
+                        __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
+                                                                __sub_group_partials[__sub_group_id - 1]));
                     }
                     else if (__g > 0)
                     {
-                        if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
-                                                                  __sub_group_partials[__active_subgroups]));
-                        else // The last block wrote an exclusive result, so we must make it inclusive.
-                        {
-                            // Grab the last element from the previous block that has been cached in temporary
-                            // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
-                            __sub_group_carry.__setup(__reduce_op(
-                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element),
-                                __sub_group_partials[__active_subgroups]));
-                        }
+                        __sub_group_carry.__setup(__reduce_op(__tmp_ptr[__num_sub_groups_global],
+                                                                __sub_group_partials[__active_subgroups]));
                     }
                     else
                     {
-                        if constexpr (__is_inclusive)
-                            __sub_group_carry.__setup(__tmp_ptr[__num_sub_groups_global]);
-                        else // The last block wrote an exclusive result, so we must make it inclusive.
-                        {
-                            // Grab the last element from the previous block that has been cached in temporary
-                            // storage in the second kernel of the previous block.
-                            _CarryType __last_block_element = __tmp_ptr[__num_sub_groups_global + 1];
-                            __sub_group_carry.__setup(
-                                __reduce_op(__tmp_ptr[__num_sub_groups_global], __last_block_element));
-                        }
+                        __sub_group_carry.__setup(__tmp_ptr[__num_sub_groups_global]);
                     }
                 }
-                // For the exclusive scan case:
-                // Have the last item in the group store the last element
-                // in the block to temporary storage for use in the next block.
-                // This is required to support in-place exclusive scans as the input values will be overwritten.
-                if constexpr (!__is_inclusive)
-                {
-                    auto __global_id = __ndi.get_global_linear_id();
-                    if (__global_id == __num_work_items - 1)
-                    {
-                        std::size_t __last_idx_in_block = std::min(__n - 1, __max_block_size * (__block_num + 1) - 1);
-                        __tmp_ptr[__num_sub_groups_global + 1] = __gen_reduce_input(__in_rng, __last_idx_in_block);
-                    }
-                }
+
 
                 // step 5) apply global carries
                 std::size_t __subgroup_start_idx = __group_start_idx + (__sub_group_id * __inputs_per_sub_group);
