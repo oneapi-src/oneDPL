@@ -26,8 +26,8 @@ main()
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
     test_range_algo{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, proj_mutuable);
-    test_range_algo<P2, data_in, true>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::x);
-    test_range_algo<P2, data_in, true>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::proj);
+    test_range_algo<P2>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::x);
+    test_range_algo<P2>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::proj);
 
     //TODO: dpl_ranges::transform has output range as return type, std::ranges::trasnform - output iterator.
     test_range_algo<int, data_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, f, proj);
