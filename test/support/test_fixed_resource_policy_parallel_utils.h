@@ -11,11 +11,14 @@
 #define _ONEDPL_TEST_FIXED_RESOURCE_PARALLEL_UTILS_H
 
 #include "support/test_config.h"
-#include "oneapi/dpl/dynamic_selection"
-#include "support/utils.h"
+
 #include <unordered_map>
 #include <thread>
 #include "support/barriers.h"
+
+#include "oneapi/dpl/dynamic_selection"
+
+#include "support/utils.h"
 
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename UniverseMapping>
 int
@@ -49,7 +52,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -61,7 +64,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, std::vector<int> 
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){
@@ -107,7 +110,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -119,7 +122,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     oneapi::dpl::experimental::wait(p.get_submission_group());
@@ -169,7 +172,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -182,7 +185,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMapping map, std::vec
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){

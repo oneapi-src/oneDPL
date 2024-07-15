@@ -42,7 +42,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, int best_resource
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -54,7 +54,7 @@ test_submit_and_wait(UniverseContainer u, UniverseMapping map, int best_resource
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){
@@ -92,7 +92,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, int best
         };
 
         for(int i=0;i<5;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -104,7 +104,7 @@ test_submit_and_wait_on_group(UniverseContainer u, UniverseMapping map, int best
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     oneapi::dpl::experimental::wait(p.get_submission_group());
@@ -146,7 +146,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMap&& map, int best_r
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     else{
@@ -159,7 +159,7 @@ test_submit_and_wait_on_event(UniverseContainer u, UniverseMap&& map, int best_r
         };
 
         for(int i=0;i<n_threads;i++){
-            threads.push_back(std::thread(thread_func));
+            threads.emplace_back(thread_func);
         }
     }
     for(auto& thread : threads){
