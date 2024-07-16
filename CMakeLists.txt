@@ -311,14 +311,6 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
             ${ONEDPL_AOT_OPTIONS}
             )
-        
-        # if C++23 or newer, include Distributed Ranges (experimental)
-        if (CMAKE_CXX_STANDARD GREATER_EQUAL 23)
-            set(ONEDPL_USE_DR TRUE)
-            message(STATUS "Adding Distributed Ranges to the project")
-        else()
-            message(STATUS "C++23 required to use Distributed Ranges in oneDPL")
-        endif()
     endif()
 
 elseif(ONEDPL_BACKEND MATCHES "^(serial)$")

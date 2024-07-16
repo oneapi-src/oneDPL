@@ -19,6 +19,13 @@ else ()
     message(STATUS "suitable for distributed ranges cmake version ${CMAKE_VERSION} found")
 endif()
 
+if (CMAKE_CXX_STANDARD LESS 23)
+    message(STATUS "disabled distributed ranges tests, C++23 or higher standard is required")
+    return()
+else()
+    message(STATUS "suitable for distributed ranges C++ standard ${CMAKE_CXX_STANDARD}")
+endif()
+
 find_package(fmt QUIET)
 if(fmt_FOUND)
     if(fmt_VERSION VERSION_GREATER_EQUAL 8.1 AND fmt_VERSION VERSION_LESS 10)
