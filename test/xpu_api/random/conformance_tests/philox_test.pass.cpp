@@ -17,10 +17,15 @@
 //
 // Test for Philox random number generation engine - comparison of 10 000th element
 
+#include "support/utils.h"
+#include "support/test_config.h"
+#include "common_for_conformance_tests.hpp"
+
 #include <oneapi/dpl/random>
 
-
 int main() {
+    sycl::queue queue = TestUtils::get_test_queue();
+
     uint_fast32_t philox4_32_ref = 1955073260;
     uint_fast64_t philox4_64_ref = 3409172418970261260;
     int err = 0;
@@ -31,4 +36,6 @@ int main() {
     err += test<oneapi::dpl::philox4x64, 10000, 1>(queue) != philox4_64_ref;
 
     EXPECT_TRUE(!err, "Test FAILED");
+
+    return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }
