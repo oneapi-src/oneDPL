@@ -1087,8 +1087,8 @@ struct __early_exit_find_or
     _Pred __pred;
 
     //static constexpr std::size_t __small_data_size = 65'536;                // Source data sizes till this will be processed in __impl_small
-    static constexpr std::size_t __small_data_size = 1;                // Source data sizes till this will be processed in __impl_small
-    static constexpr std::size_t __small_middle_size = 4'194'304;           // Source data sizes till this will be processed in __impl_middle
+    static constexpr std::size_t __small_data_size = 1;                     // Source data sizes till this will be processed in __impl_small
+    static constexpr std::size_t __middle_data_size = 4'194'304;            // Source data sizes till this will be processed in __impl_middle
                                                                             // All other data sizes will be processed in __impl_large
     static constexpr std::size_t __early_exit_check_interval_div = 800;
 
@@ -1274,7 +1274,7 @@ struct __early_exit_find_or
             __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
                          std::forward<_Ranges>(__rngs)...);
         }
-        else if (__source_data_size < __small_middle_size)
+        else if (__source_data_size < __middle_data_size)
         {
             __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
                           std::forward<_Ranges>(__rngs)...);
