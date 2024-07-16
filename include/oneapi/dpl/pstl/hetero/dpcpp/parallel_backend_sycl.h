@@ -1270,11 +1270,13 @@ struct __early_exit_find_or
     {
         if (__source_data_size < __small_data_size)
         {
-            __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
+            __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                         std::forward<_Ranges>(__rngs)...);
         }
         else if (__source_data_size < __small_middle_size)
         {
-            __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
+            __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                          std::forward<_Ranges>(__rngs)...);
         }
         else
         {
@@ -1290,12 +1292,12 @@ struct __early_exit_find_or
             if (0 < __early_exit_check_interval)
             {
                 __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                             __early_exit_check_interval, __rngs...);
+                             __early_exit_check_interval, std::forward<_Ranges>(__rngs)...);
             }
             else
             {
                 __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                              __rngs...);
+                              std::forward<_Ranges>(__rngs)...);
             }
         }
     }
