@@ -162,7 +162,8 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
     if (__is_full_thread && __is_full_block)
     {
         auto __v = __gen_input(__in_rng, __start_idx);
-        __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_pred(__v), __binary_op,
+        auto& __v_scan = __scan_pred(__v);
+        __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v_scan, __binary_op,
                                                                            __sub_group_carry);
         if constexpr (__capture_output)
         {
@@ -173,7 +174,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
         for (std::uint32_t __j = 1; __j < __max_inputs_per_item; __j++)
         {
             __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
-            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __scan_pred(__v),
+            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __v_scan,
                                                                                         __binary_op, __sub_group_carry);
             if constexpr (__capture_output)
             {
@@ -184,7 +185,8 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
     else if (__is_full_thread)
     {
         auto __v = __gen_input(__in_rng, __start_idx);
-        __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_pred(__v), __binary_op,
+        auto& __v_scan = __scan_pred(__v);
+        __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v_scan, __binary_op,
                                                                            __sub_group_carry);
         if constexpr (__capture_output)
         {
@@ -193,7 +195,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
         for (std::uint32_t __j = 1; __j < __iters_per_item; __j++)
         {
             __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
-            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __scan_pred(__v),
+            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(__sub_group, __v_scan,
                                                                                         __binary_op, __sub_group_carry);
             if constexpr (__capture_output)
             {
@@ -210,8 +212,9 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
             if (__iters == 1)
             {
                 auto __v = __gen_input(__in_rng, __start_idx);
+                auto& __v_scan = __scan_pred(__v);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, __init_present>(
-                    __sub_group, __scan_pred(__v), __binary_op, __sub_group_carry, __n - __subgroup_start_idx);
+                    __sub_group, __v_scan, __binary_op, __sub_group_carry, __n - __subgroup_start_idx);
                 if constexpr (__capture_output)
                 {
                     if (__start_idx < __n)
@@ -221,8 +224,9 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
             else
             {
                 auto __v = __gen_input(__in_rng, __start_idx);
-                __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_pred(__v),
-                                                                                   __binary_op, __sub_group_carry);
+                auto& __v_scan = __scan_pred(__v);
+                __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __v_scan, __binary_op,
+                                                                                   __sub_group_carry);
                 if constexpr (__capture_output)
                 {
                     __final_op(__out_rng, __start_idx, __v);
@@ -233,7 +237,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
                     auto __local_idx = __start_idx + __j * __sub_group_size;
                     __v = __gen_input(__in_rng, __local_idx);
                     __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
-                        __sub_group, __scan_pred(__v), __binary_op, __sub_group_carry);
+                        __sub_group, __v_scan, __binary_op, __sub_group_carry);
                     if constexpr (__capture_output)
                     {
                         __final_op(__out_rng, __local_idx, __v);
@@ -244,7 +248,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
                 auto __local_idx = (__offset < __n) ? __offset : __n - 1;
                 __v = __gen_input(__in_rng, __local_idx);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
-                    __sub_group, __scan_pred(__v), __binary_op, __sub_group_carry,
+                    __sub_group, __v_scan, __binary_op, __sub_group_carry,
                     __n - (__subgroup_start_idx + (__iters - 1) * __sub_group_size));
                 if constexpr (__capture_output)
                 {
