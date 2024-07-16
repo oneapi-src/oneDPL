@@ -779,7 +779,7 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
 template <typename _ValueType, typename _UnaryOp>
 struct __gen_transform_input
 {
-    using __out_value_type = typename std::invoke_result<_UnaryOp, _ValueType>::type;
+    using __out_value_type = std::decay_t<typename std::invoke_result<_UnaryOp, _ValueType>::type>;
     template <typename InRng>
     auto
     operator()(InRng&& __in_rng, std::size_t __idx) const
