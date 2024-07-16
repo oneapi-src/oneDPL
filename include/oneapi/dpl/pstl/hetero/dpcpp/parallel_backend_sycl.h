@@ -602,7 +602,8 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
             __hdl.parallel_for<_ScanKernelName...>(
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
-                    auto __res_ptr = __result_and_scratch_storage<_Policy, _Size>::__get_usm_or_buffer_accessor_ptr(__res_acc);
+                    auto __res_ptr =
+                        __result_and_scratch_storage<_Policy, _Size>::__get_usm_or_buffer_accessor_ptr(__res_acc);
                     const auto& __group = __self_item.get_group();
                     const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
@@ -780,7 +781,8 @@ struct __gen_transform_input
 {
     using __out_value_type = std::decay_t<decltype(::std::declval<_UnaryOp>()(::std::declval<_ValueType>()))>;
     template <typename InRng>
-    auto operator()(InRng&& __in_rng, std::size_t __idx) const
+    auto
+    operator()(InRng&& __in_rng, std::size_t __idx) const
     {
         return __unary_op(__in_rng[__idx]);
     }
@@ -789,20 +791,21 @@ struct __gen_transform_input
 
 struct __simple_write_to_idx
 {
-    template<typename _OutRng, typename ValueType>
-    void operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
+    template <typename _OutRng, typename ValueType>
+    void
+    operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
     {
         __out[__idx] = __v;
     }
 };
-
 
 template <typename _SizeType, typename _Predicate>
 struct __gen_count_pred
 {
     using __out_value_type = _SizeType;
     template <typename _InRng>
-    _SizeType operator()(_InRng&& __in_rng, _SizeType __idx)
+    _SizeType
+    operator()(_InRng&& __in_rng, _SizeType __idx)
     {
         return __pred(__in_rng[__idx]) ? _SizeType{1} : _SizeType{0};
     }
@@ -813,11 +816,12 @@ template <typename _SizeType, typename _Predicate>
 struct __gen_expand_count_pred
 {
     template <typename _InRng>
-    auto operator()(_InRng&& __in_rng, _SizeType __idx)
+    auto
+    operator()(_InRng&& __in_rng, _SizeType __idx)
     {
         auto ele = __in_rng[__idx];
         bool mask = __pred(ele);
-        return std::tuple( mask ? _SizeType{1} : _SizeType{0}, mask, ele);
+        return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
     _Predicate __pred;
 };
@@ -834,15 +838,14 @@ struct __get_zeroth_element
 
 struct __write_to_idx_if
 {
-    template<typename _OutRng, typename _SizeType, typename ValueType>
-    void operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
+    template <typename _OutRng, typename _SizeType, typename ValueType>
+    void
+    operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
     {
         if (std::get<1>(__v))
             __out[std::get<0>(__v) - 1] = std::get<2>(__v);
-
     }
 };
-
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
@@ -871,24 +874,14 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    // TODO: Reintegrate once support has been added
-    //// Either we can't use group scan or this input is too big for one workgroup
-    //using _Assigner = unseq_backend::__scan_assigner;
-    //using _NoAssign = unseq_backend::__scan_no_assign;
-    //using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
-    //using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-
-    //_Assigner __assign_op;
-    //_NoAssign __no_assign_op;
-    //_NoOpFunctor __get_data_op;
-    oneapi::dpl::__par_backend_hetero::__gen_transform_input<oneapi::dpl::__internal::__value_t<_Range1>, _UnaryOperation> __gen_transform{__unary_op};
-    return __future(__parallel_transform_reduce_then_scan(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          ::std::forward<_Range1>(__in_rng),
-                                                          ::std::forward<_Range2>(__out_rng),
-                                                          __gen_transform, __binary_op, __gen_transform,
-                                                          oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{},
-                                                          __init, _Inclusive{})
-                    .event());
+    oneapi::dpl::__par_backend_hetero::__gen_transform_input<oneapi::dpl::__internal::__value_t<_Range1>,
+                                                             _UnaryOperation>
+        __gen_transform{__unary_op};
+    return __future(__parallel_transform_reduce_then_scan(
+                        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+                        ::std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                        oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{})
+                        .event());
 }
 
 template <typename _SizeType>
@@ -996,8 +989,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
         __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
     {
-        using _SizeBreakpoints =
-            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
+        using _SizeBreakpoints = ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
             _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
@@ -1007,16 +999,14 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     {
         using _ReduceOp = ::std::plus<_Size>;
 
-        return __parallel_transform_reduce_then_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                                     std::forward<_InRng>(__in_rng),
-                                                     std::forward<_OutRng>(__out_rng),
-                                                     oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Size, _Pred>{__pred},
-                                                     _ReduceOp{},
-                                                     oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
-                                                     oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-                                                     oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
-                                                     oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-                                                     /*_Inclusive=*/std::true_type{});
+        return __parallel_transform_reduce_then_scan(
+            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+            std::forward<_OutRng>(__out_rng), oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Size, _Pred>{__pred},
+            _ReduceOp{}, oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
+            oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
+            oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
+            oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+            /*_Inclusive=*/std::true_type{});
     }
 }
 
