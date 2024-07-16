@@ -1219,7 +1219,8 @@ struct __early_exit_find_or
         const auto __global_id = __item_id.get_global_linear_id();
 
         bool __something_was_found = false;
-        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        for (_SrcDataSize __i = 0;
+             !(__something_was_found && __i % __early_exit_check_interval == 0) && __i < __iters_per_work_item; ++__i)
         {
             // Doing success search only once
             if (!__something_was_found)
