@@ -1089,7 +1089,7 @@ struct __early_exit_find_or
     static constexpr std::size_t __iters_per_work_item_small = 100;         // Source data sizes till this will be processed in __impl_small
     static constexpr std::size_t __iters_per_work_item_middle = 10000;      // Source data sizes till this will be processed in __impl_middle
                                                                             // All other data sizes will be processed in __impl_large
-    static constexpr std::size_t __early_exit_check_interval_div = 800;
+    static constexpr std::size_t __early_exit_check_interval_div = 10;
 
     template <typename _BrickTag, typename _ItersPerWorkItem, typename _SrcDataSize>
     inline _SrcDataSize
@@ -1293,15 +1293,15 @@ struct __early_exit_find_or
             __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
             //__early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
 
-            if (0 < __early_exit_check_interval)
-            {
-                __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                             __early_exit_check_interval, std::forward<_Ranges>(__rngs)...);
-            }
-            else
+            if (0 == __early_exit_check_interval)
             {
                 __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
                               std::forward<_Ranges>(__rngs)...);
+            }
+            else
+            {
+                __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                             __early_exit_check_interval, std::forward<_Ranges>(__rngs)...);
             }
         //}
     }
