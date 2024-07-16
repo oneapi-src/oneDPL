@@ -1218,9 +1218,8 @@ struct __early_exit_find_or
         const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
-        _SrcDataSize __early_exit_check_interval =
+        const _SrcDataSize __early_exit_check_interval =
             oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
-        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
 
         if (0 == __early_exit_check_interval)
         {
