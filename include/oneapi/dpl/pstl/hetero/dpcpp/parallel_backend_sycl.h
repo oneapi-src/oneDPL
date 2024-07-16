@@ -1226,7 +1226,7 @@ struct __early_exit_find_or
                                      ? __iters_per_work_item
                                      : __i + __early_exit_check_interval;
 
-            _ONEDPL_PRAGMA_UNROLL
+            //_ONEDPL_PRAGMA_UNROLL
             for (_SrcDataSize __j = __i; __j < __j_end; ++__j)
             {
                 // Doing success search only once
