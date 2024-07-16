@@ -1103,7 +1103,7 @@ struct __early_exit_find_or
 
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
-    void
+    inline void
     __impl_small(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                     const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local,
                     _BrickTag __brick_tag, _Ranges&&... __rngs) const
@@ -1149,7 +1149,7 @@ struct __early_exit_find_or
 
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
-    void
+    inline void
     __impl_middle(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                   const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                   _Ranges&&... __rngs) const
@@ -1199,7 +1199,7 @@ struct __early_exit_find_or
 
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
-    void
+    inline void
     __impl_large(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                  const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                  const _SrcDataSize __early_exit_check_interval,
