@@ -1086,8 +1086,8 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    static constexpr std::size_t __small_data_size = 65'536;                // Source data sizes till this will be processed in __impl_small
-    static constexpr std::size_t __middle_data_size = 4'194'304;            // Source data sizes till this will be processed in __impl_middle
+    static constexpr std::size_t __iters_per_work_item_small = 100;         // Source data sizes till this will be processed in __impl_small
+    static constexpr std::size_t __iters_per_work_item_middle = 10000;      // Source data sizes till this will be processed in __impl_middle
                                                                             // All other data sizes will be processed in __impl_large
     static constexpr std::size_t __early_exit_check_interval_div = 400;
 
@@ -1272,22 +1272,22 @@ struct __early_exit_find_or
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                _Ranges&&... __rngs) const
     {
-        if (__source_data_size < __small_data_size)
+        // Calculate the number of elements to be processed by each work-item.
+        const auto __iters_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+
+        if (__iters_per_work_item < __iters_per_work_item_small)
         {
             __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
                          std::forward<_Ranges>(__rngs)...);
         }
-        else if (__source_data_size < __middle_data_size)
+        else if (__iters_per_work_item < __iters_per_work_item_middle)
         {
             __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
                           std::forward<_Ranges>(__rngs)...);
         }
         else
         {
-            // Calculate the number of elements to be processed by each work-item.
-            const auto __iters_per_work_item =
-                oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
-
             _SrcDataSize __early_exit_check_interval =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
             __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
