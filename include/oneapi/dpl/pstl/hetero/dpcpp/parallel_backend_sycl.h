@@ -1086,11 +1086,6 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    static constexpr std::size_t __iters_per_work_item_small = 100;         // Source data sizes till this will be processed in __impl_small
-    static constexpr std::size_t __iters_per_work_item_middle = 10000;      // Source data sizes till this will be processed in __impl_middle
-                                                                            // All other data sizes will be processed in __impl_large
-    static constexpr std::size_t __early_exit_check_interval_div = 5;
-
     template <typename _BrickTag, typename _ItersPerWorkItem, typename _SrcDataSize>
     inline _SrcDataSize
     __get_local_src_data_idx(_BrickTag __brick_tag, _ItersPerWorkItem __iters_per_work_item, _SrcDataSize __i) const
@@ -1217,6 +1212,8 @@ struct __early_exit_find_or
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                _Ranges&&... __rngs) const
     {
+        constexpr std::size_t __early_exit_check_interval_div = 5;
+
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
