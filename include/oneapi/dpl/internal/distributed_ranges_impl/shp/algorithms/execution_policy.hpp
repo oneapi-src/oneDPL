@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -11,15 +22,15 @@
 namespace oneapi::dpl::experimental::dr::shp
 {
 
-struct device_policy
+struct distributed_device_policy
 {
-    device_policy(sycl::device device) : devices_({device}) {}
-    device_policy(sycl::queue queue) : devices_({queue.get_device()}) {}
+    distributed_device_policy(sycl::device device) : devices_({device}) {}
+    distributed_device_policy(sycl::queue queue) : devices_({queue.get_device()}) {}
 
-    device_policy() : devices_({sycl::queue{}.get_device()}) {}
+    distributed_device_policy() : devices_({sycl::queue{}.get_device()}) {}
 
     template <rng::range R>
-    requires(std::is_same_v<rng::range_value_t<R>, sycl::device>) device_policy(R&& devices)
+    requires(std::is_same_v<rng::range_value_t<R>, sycl::device>) distributed_device_policy(R&& devices)
         : devices_(rng::begin(devices), rng::end(devices))
     {
     }

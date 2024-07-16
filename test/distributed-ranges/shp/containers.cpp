@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #include "containers.hpp"
 
@@ -105,13 +116,13 @@ TYPED_TEST(DistributedVectorTest, Resize) {
   EXPECT_EQ(dv, v);
 }
 
-template <typename AllocT> class DeviceVectorTest : public testing::Test {
+template <typename AllocT> class RemoteVectorTest : public testing::Test {
 public:
-  using DeviceVec = dr::shp::remote_vector<typename AllocT::value_type, AllocT>;
+  using RemoteVec = dr::shp::remote_vector<typename AllocT::value_type, AllocT>;
 };
 
-TYPED_TEST_SUITE(DeviceVectorTest, AllocatorTypes);
+TYPED_TEST_SUITE(RemoteVectorTest, AllocatorTypes);
 
-TYPED_TEST(DeviceVectorTest, is_remote_contiguous_range) {
-  static_assert(dr::remote_contiguous_range<typename TestFixture::DeviceVec>);
+TYPED_TEST(RemoteVectorTest, is_remote_contiguous_range) {
+  static_assert(dr::remote_contiguous_range<typename TestFixture::RemoteVec>);
 }

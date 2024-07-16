@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -26,16 +37,16 @@ namespace oneapi::dpl::experimental::dr::shp
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename U,
           typename BinaryOp>
 void
-exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp&& binary_op)
+exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp binary_op)
 {
     using T = rng::range_value_t<O>;
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
     auto zipped_view = views::zip(r, o);
     auto zipped_segments = zipped_view.zipped_segments();
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>)
+    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
     {
 
         U* d_inits = sycl::malloc_device<U>(rng::size(zipped_segments), devices()[0], context());
@@ -157,10 +168,10 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp&& 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename T,
           typename BinaryOp>
 void
-exclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, T init, BinaryOp&& binary_op)
+exclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, T init, BinaryOp binary_op)
 {
     exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), init,
-                         std::forward<BinaryOp>(binary_op));
+                         binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename T>
@@ -173,9 +184,9 @@ exclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, T init)
 
 template <distributed_contiguous_range R, distributed_contiguous_range O, typename T, typename BinaryOp>
 void
-exclusive_scan(R&& r, O&& o, T init, BinaryOp&& binary_op)
+exclusive_scan(R&& r, O&& o, T init, BinaryOp binary_op)
 {
-    exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, std::forward<BinaryOp>(binary_op));
+    exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, binary_op);
 }
 
 template <distributed_contiguous_range R, distributed_contiguous_range O, typename T>
@@ -190,13 +201,13 @@ exclusive_scan(R&& r, O&& o, T init)
 template <typename ExecutionPolicy, distributed_iterator Iter, distributed_iterator OutputIter, typename T,
           typename BinaryOp>
 void
-exclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first, T init, BinaryOp&& binary_op)
+exclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first, T init, BinaryOp binary_op)
 {
     auto dist = rng::distance(first, last);
     auto d_last = d_first;
     rng::advance(d_last, dist);
     exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last),
-                         rng::subrange(d_first, d_last), init, std::forward<BinaryOp>(binary_op));
+                         rng::subrange(d_first, d_last), init, binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_iterator Iter, distributed_iterator OutputIter, typename T>
@@ -208,9 +219,9 @@ exclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_fir
 
 template <distributed_iterator Iter, distributed_iterator OutputIter, typename T, typename BinaryOp>
 void
-exclusive_scan(Iter first, Iter last, OutputIter d_first, T init, BinaryOp&& binary_op)
+exclusive_scan(Iter first, Iter last, OutputIter d_first, T init, BinaryOp binary_op)
 {
-    exclusive_scan(par_unseq, first, last, d_first, init, std::forward<BinaryOp>(binary_op));
+    exclusive_scan(par_unseq, first, last, d_first, init, binary_op);
 }
 
 template <distributed_iterator Iter, distributed_iterator OutputIter, typename T>

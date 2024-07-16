@@ -331,7 +331,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Practically this is the better value that was found
         constexpr decltype(__wgroup_size) __iters_per_witem = 16;
         auto __size_per_wg = __iters_per_witem * __wgroup_size;
-        auto __n_groups = (__n - 1) / __size_per_wg + 1;
+        auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_wg);
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
 
@@ -357,7 +357,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // 2. Scan for the entire group of values scanned from each workgroup (runs on a single workgroup)
         if (__n_groups > 1)
         {
-            auto __iters_per_single_wg = (__n_groups - 1) / __wgroup_size + 1;
+            auto __iters_per_single_wg = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __wgroup_size);
             __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__submit_event);
                 auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
@@ -964,7 +964,8 @@ struct __parallel_find_forward_tag
 #else
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
-    using _Compare = oneapi::dpl::__internal::__pstl_less;
+
+    using _LocalResultsReduceOp = __dpl_sycl::__minimum<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -972,6 +973,23 @@ struct __parallel_find_forward_tag
     __init_value(_DiffType __val)
     {
         return __val;
+    }
+
+    // As far as we make search from begin to the end of data, we should save the first (minimal) found state
+    // in the __save_state_to (local state) / __save_state_to_atomic (global state) methods.
+
+    template <sycl::access::address_space _Space>
+    static void
+    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
+    {
+        __atomic.fetch_min(__new_state);
+    }
+
+    template <typename _TFoundState>
+    static void
+    __save_state_to(_TFoundState& __found, _AtomicType __new_state)
+    {
+        __found = std::min(__found, __new_state);
     }
 };
 
@@ -985,31 +1003,39 @@ struct __parallel_find_backward_tag
 #else
     using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
-    using _Compare = oneapi::dpl::__internal::__pstl_greater;
+
+    using _LocalResultsReduceOp = __dpl_sycl::__maximum<_AtomicType>;
 
     template <typename _DiffType>
     constexpr static _AtomicType __init_value(_DiffType)
     {
         return _AtomicType{-1};
     }
+
+    // As far as we make search from end to the begin of data, we should save the last (maximal) found state
+    // in the __save_state_to (local state) / __save_state_to_atomic (global state) methods.
+
+    template <sycl::access::address_space _Space>
+    static void
+    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType __new_state)
+    {
+        __atomic.fetch_max(__new_state);
+    }
+
+    template <typename _TFoundState>
+    static void
+    __save_state_to(_TFoundState& __found, _AtomicType __new_state)
+    {
+        __found = std::max(__found, __new_state);
+    }
 };
 
 // Tag for __parallel_find_or for or-semantic
 struct __parallel_or_tag
 {
-    class __atomic_compare
-    {
-      public:
-        template <typename _LocalAtomic, typename _GlobalAtomic>
-        bool
-        operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
-        {
-            return __found_local == 1 && __found == 0;
-        }
-    };
-
     using _AtomicType = int32_t;
-    using _Compare = __atomic_compare;
+
+    using _LocalResultsReduceOp = __dpl_sycl::__bit_or<_AtomicType>;
 
     // The template parameter is intended to unify __init_value in tags.
     template <typename _DiffType>
@@ -1017,7 +1043,39 @@ struct __parallel_or_tag
     {
         return 0;
     }
+
+    // Store that a match was found. Its position is not relevant for or semantics
+    // in the __save_state_to (local state) / __save_state_to_atomic (global state) methods.
+    static constexpr _AtomicType __found_state = 1;
+
+    template <sycl::access::address_space _Space>
+    static void
+    __save_state_to_atomic(__dpl_sycl::__atomic_ref<_AtomicType, _Space>& __atomic, _AtomicType /*__new_state*/)
+    {
+        __atomic.store(__found_state);
+    }
+
+    template <typename _TFoundState>
+    static void
+    __save_state_to(_TFoundState& __found, _AtomicType /*__new_state*/)
+    {
+        __found = __found_state;
+    }
 };
+
+template <typename _RangeType>
+constexpr bool
+__is_backward_tag(__parallel_find_backward_tag<_RangeType>)
+{
+    return true;
+}
+
+template <typename _TagType>
+constexpr bool
+__is_backward_tag(_TagType)
+{
+    return false;
+}
 
 //------------------------------------------------------------------------
 // early_exit (find_or)
@@ -1028,15 +1086,17 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
-              typename _BrickTag, typename... _Ranges>
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalFoundState, typename _BrickTag,
+              typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
-               _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size,
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
-        using __par_backend_hetero::__parallel_or_tag;
+        // There are 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
-        using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
@@ -1051,30 +1111,32 @@ struct __early_exit_find_or
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
         if (__wg_size - __leader < __shift)
             __shift = __wg_size - __leader;
-        for (_IterSize __i = 0; __i < __n_iter; ++__i)
-        {
-            //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                                         decltype(__found_local.load())>;
 
+        bool __something_was_found = false;
+        for (_IterSize __i = 0; !__something_was_found && __i < __n_iter; ++__i)
+        {
             _IterSize __current_iter = __i;
-            if constexpr (_BackwardTagType::value)
+            if constexpr (__is_backward_tag(__brick_tag))
                 __current_iter = __n_iter - 1 - __i;
 
-            _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
-            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
-            // should be investigated later, with other HW
+            const auto __shifted_idx = __init_index + __current_iter * __shift;
+
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
-                if constexpr (_OrTagType::value)
-                    __found_local.store(1);
-                else
-                {
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
-                    {
-                        __found_local.compare_exchange_strong(__old, __shifted_idx);
-                    }
-                }
+                // Update local found state
+                _BrickTag::__save_state_to(__found_local, __shifted_idx);
+
+                // This break is mandatory from the performance point of view.
+                // This break is safe for all our cases:
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                //    This means that after first found entry there is no reason to process data anymore.
+                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // But break statement here shows poor perf in some cases.
+                // So we use bool variable state check in the for-loop header.
+                __something_was_found = true;
             }
         }
     }
@@ -1097,24 +1159,32 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     using _FindOrKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
-
     constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
+
+    assert("This device does not support 64-bit atomics" &&
+           (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
+
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
     // TODO: find a way to generalize getting of reliable work-group size
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
+
+#if _ONEDPL_FPGA_EMU
+    // Limit the maximum work-group size to minimize the cost of work-group reduction.
+    // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
+    __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
+#endif
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
-    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
-    // TODO: try to change __n_groups with another formula for more perfect load balancing
+    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
-    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
+    auto __n_iter = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
@@ -1125,15 +1195,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
-        auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
+        sycl::buffer<_AtomicType, 1> __result_sycl_buf(&__result, 1); // temporary storage for global atomic
 
         // main parallel_for
         __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
 
-            // create local accessor to connect atomic with
-            __dpl_sycl::__local_accessor<_AtomicType> __temp_local(1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -1146,34 +1214,27 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
-                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                        *__dpl_sycl::__get_accessor_ptr(__temp_local));
+                    // 1. Set initial value to local found state
+                    _AtomicType __found_local = __init_value;
 
-                    // 1. Set initial value to local atomic
-                    if (__local_idx == 0)
-                        __found_local.store(__init_value);
-                    __dpl_sycl::__group_barrier(__item_id);
+                    // 2. Find any element that satisfies pred
+                    __pred(__item_id, __n_iter, __wgroup_size, __found_local, __brick_tag, __rngs...);
 
-                    // 2. Find any element that satisfies pred and set local atomic value to global atomic
-                    constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                    __dpl_sycl::__group_barrier(__item_id);
+                    // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
+                    // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
+                    // or update state with __dpl_sycl::__bit_or (for the __parallel_or_tag)
+                    // inside all our group items
+                    __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
+                                                                    typename _BrickTag::_LocalResultsReduceOp{});
 
-                    // Set local atomic value to global atomic
-                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                    // Set local found state value value to global atomic
+                    if (__local_idx == 0 && __found_local != __init_value)
                     {
-                        if constexpr (__or_tag_check)
-                            __found.store(1);
-                        else
-                        {
-                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                 __old = __found.load())
-                            {
-                                __found.compare_exchange_strong(__old, __found_local.load());
-                            }
-                        }
+                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                            *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
+
+                        // Update global (for all groups) atomic state with the found index
+                        _BrickTag::__save_state_to_atomic(__found, __found_local);
                     }
                 });
         });
@@ -1181,7 +1242,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     }
 
     if constexpr (__or_tag_check)
-        return __result;
+        return __result != __init_value;
     else
         return __result != __init_value ? __result : __rng_n;
 }

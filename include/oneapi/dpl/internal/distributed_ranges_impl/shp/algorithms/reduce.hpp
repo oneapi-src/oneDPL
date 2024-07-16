@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -54,12 +65,12 @@ namespace oneapi::dpl::experimental::dr::shp
 
 template <typename ExecutionPolicy, distributed_range R, typename T, typename BinaryOp>
 T
-reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp&& binary_op)
+reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
 {
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>)
+    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
     {
         using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
                                                ranges::segments(r)[0].end(), init, binary_op));
@@ -132,10 +143,9 @@ reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init)
 
 template <typename ExecutionPolicy, distributed_iterator Iter, typename T, typename BinaryOp>
 T
-reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init, BinaryOp&& binary_op)
+reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init, BinaryOp binary_op)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init,
-                  std::forward<BinaryOp>(binary_op));
+    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init, binary_op);
 }
 
 // Execution policy-less algorithms
@@ -156,9 +166,9 @@ reduce(R&& r, T init)
 
 template <distributed_range R, typename T, typename BinaryOp>
 T
-reduce(R&& r, T init, BinaryOp&& binary_op)
+reduce(R&& r, T init, BinaryOp binary_op)
 {
-    return reduce(par_unseq, std::forward<R>(r), init, std::forward<BinaryOp>(binary_op));
+    return reduce(par_unseq, std::forward<R>(r), init, binary_op);
 }
 
 template <distributed_iterator Iter>
@@ -177,9 +187,9 @@ reduce(Iter first, Iter last, T init)
 
 template <distributed_iterator Iter, typename T, typename BinaryOp>
 T
-reduce(Iter first, Iter last, T init, BinaryOp&& binary_op)
+reduce(Iter first, Iter last, T init, BinaryOp binary_op)
 {
-    return reduce(par_unseq, first, last, init, std::forward<BinaryOp>(binary_op));
+    return reduce(par_unseq, first, last, init, binary_op);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -299,7 +310,8 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     }
 
     template <std::size_t I, typename R, typename... Rs_>
-    requires(sizeof...(Rs_) > 0) std::size_t get_rank_impl_() const
+    requires(sizeof...(Rs_) > 0) std::size_t get_rank_impl_()
+    const
     {
         static_assert(I < sizeof...(Rs));
         if constexpr (remote_range<R>)

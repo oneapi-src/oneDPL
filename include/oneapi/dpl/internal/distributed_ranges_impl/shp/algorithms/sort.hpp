@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -12,6 +23,8 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
+
+#include <omp.h>
 #include <sycl/sycl.hpp>
 
 namespace oneapi::dpl::experimental::dr::shp
@@ -22,14 +35,13 @@ namespace __detail
 
 template <typename LocalPolicy, typename InputIt, typename Compare>
 sycl::event
-sort_async(LocalPolicy&& policy, InputIt first, InputIt last, Compare&& comp)
+sort_async(LocalPolicy&& policy, InputIt first, InputIt last, Compare comp)
 {
     if (rng::distance(first, last) >= 2)
     {
         dr::__detail::direct_iterator d_first(first);
         dr::__detail::direct_iterator d_last(last);
-        return oneapi::dpl::experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last,
-                                                     std::forward<Compare>(comp));
+        return oneapi::dpl::experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last, comp);
     }
     else
     {
@@ -77,21 +89,22 @@ sort(R&& r, Compare comp = Compare())
         __detail::sort_async(local_policy, rng::begin(local_segment), rng::end(local_segment), comp).wait();
         return;
     }
+
     using T = rng::range_value_t<R>;
     std::vector<sycl::event> events;
 
-    std::size_t n_segments = std::size_t(rng::size(segments));
-    std::size_t n_splitters = n_segments - 1;
+    const std::size_t n_segments = std::size_t(rng::size(segments));
+    const std::size_t n_splitters = n_segments - 1;
 
     // Sort each local segment, then compute medians.
     // Each segment has `n_splitters` medians,
     // so `n_segments * n_splitters` medians total.
 
-    T* medians = sycl::malloc_device<T>(n_segments * n_splitters, devices()[0], context());
-    std::size_t segment_id = 0;
+    T* medians = sycl::malloc_device<T>(n_segments * n_splitters, shp::devices()[0], shp::context());
 
-    for (auto&& segment : segments)
+    for (auto&& [segment_id_, segment] : rng::views::enumerate(segments))
     {
+        auto const segment_id = static_cast<std::size_t>(segment_id_);
         auto&& q = __detail::queue(ranges::rank(segment));
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
@@ -112,7 +125,6 @@ sort(R&& r, Compare comp = Compare())
         });
 
         events.push_back(e);
-        ++segment_id;
     }
 
     __detail::wait(events);
@@ -137,118 +149,124 @@ sort(R&& r, Compare comp = Compare())
      }).wait();
 
     std::vector<std::size_t*> splitter_indices;
-    std::vector<std::size_t> sorted_seg_sizes(n_splitters + 1);
+    // sorted_seg_sizes[i]: how many elements exists in all segments between
+    // medians[i-1] and medians[i]
+    std::vector<std::size_t> sorted_seg_sizes(n_segments, 0);
+    // push_positions[snd_idx][rcv_idx]: shift inside final segment of rcv_idx for
+    // data being sent from initial snd_idx segment
     std::vector<std::vector<std::size_t>> push_positions(n_segments);
 
     // Compute how many elements will be sent to each of the new "sorted
     // segments". Simultaneously compute the offsets `push_positions` where each
     // segments' corresponding elements will be pushed.
 
-    segment_id = 0;
-    for (auto&& segment : segments)
+    for (auto&& [segment_id, segment] : rng::views::enumerate(segments))
     {
         auto&& q = __detail::queue(ranges::rank(segment));
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
         auto&& local_segment = __detail::local(segment);
 
-        std::size_t* splitter_i = sycl::malloc_shared<std::size_t>(n_splitters, q.get_device(), context());
+        // splitter_i = [ index in local_segment of first element greater or equal
+        // 1st global median, index ... 2nd global median, ..., size of
+        // local_segment]
+        std::size_t* splitter_i = sycl::malloc_shared<std::size_t>(n_segments, q.get_device(), shp::context());
         splitter_indices.push_back(splitter_i);
 
-        // Local copy `medians_l` necessary due to bug in Level Zero.
-        T* medians_l = sycl::malloc_device<T>(n_splitters, q.get_device(), context());
+        // Local copy `medians_l` necessary due to https://github.com/oneapi-src/distributed-ranges/issues/777
+        T* medians_l = sycl::malloc_device<T>(n_splitters, q.get_device(), shp::context());
 
         q.memcpy(medians_l, medians, sizeof(T) * n_splitters).wait();
 
         __detail::lower_bound(local_policy, rng::begin(local_segment), rng::end(local_segment), medians_l,
                               medians_l + n_splitters, splitter_i, comp);
 
-        sycl::free(medians_l, context());
+        sycl::free(medians_l, shp::context());
 
-        auto p_first = rng::begin(local_segment);
-        auto p_last = p_first;
-        for (std::size_t i = 0; i < n_splitters; i++)
+        splitter_i[n_splitters] = rng::size(local_segment);
+
+        for (std::size_t i = 0; i < n_segments; i++)
         {
-            p_last = rng::begin(local_segment) + splitter_i[i];
-
-            std::size_t n_elements = rng::distance(p_first, p_last);
-            std::size_t pos = std::atomic_ref(sorted_seg_sizes[i]).fetch_add(n_elements);
-
-            push_positions[segment_id].push_back(pos);
-
-            p_first = p_last;
+            const std::size_t n_elements = splitter_i[i] - (i == 0 ? 0 : splitter_i[i - 1]);
+            const std::size_t pos = std::atomic_ref(sorted_seg_sizes[i]).fetch_add(n_elements);
+            push_positions[static_cast<std::size_t>(segment_id)].push_back(pos);
         }
-
-        std::size_t n_elements = rng::distance(p_first, rng::end(local_segment));
-        std::size_t pos = std::atomic_ref(sorted_seg_sizes.back()).fetch_add(n_elements);
-
-        push_positions[segment_id].push_back(pos);
-
-        ++segment_id;
     }
 
     // Allocate new "sorted segments"
     std::vector<T*> sorted_segments;
 
-    segment_id = 0;
-    for (auto&& segment : segments)
+    for (auto&& [segment_id, segment] : rng::views::enumerate(segments))
     {
         auto&& q = __detail::queue(ranges::rank(segment));
 
-        T* buffer = sycl::malloc_device<T>(sorted_seg_sizes[segment_id], q);
+        T* buffer = sycl::malloc_device<T>(sorted_seg_sizes[static_cast<std::size_t>(segment_id)], q);
         sorted_segments.push_back(buffer);
-
-        ++segment_id;
     }
 
     // Copy corresponding elements to each "sorted segment"
-    segment_id = 0;
-    for (auto&& segment : segments)
+    for (auto&& [segment_id_, segment] : rng::views::enumerate(segments))
     {
         auto&& local_segment = __detail::local(segment);
+        const auto segment_id = static_cast<std::size_t>(segment_id_);
 
         std::size_t* splitter_i = splitter_indices[segment_id];
 
         auto p_first = rng::begin(local_segment);
         auto p_last = p_first;
-        for (std::size_t i = 0; i < n_splitters; i++)
+        for (std::size_t i = 0; i < n_segments; i++)
         {
             p_last = rng::begin(local_segment) + splitter_i[i];
 
-            std::size_t pos = push_positions[segment_id][i];
+            const std::size_t pos = push_positions[segment_id][i];
 
-            auto e = copy_async(p_first, p_last, sorted_segments[i] + pos);
+            auto e = shp::copy_async(p_first, p_last, sorted_segments[i] + pos);
             events.push_back(e);
 
             p_first = p_last;
         }
-
-        std::size_t pos = push_positions[segment_id].back();
-
-        auto e = copy_async(p_first, rng::end(local_segment), sorted_segments.back() + pos);
-
-        events.push_back(e);
-
-        ++segment_id;
     }
 
     __detail::wait(events);
     events.clear();
 
-    // Sort each of these new segments
-    for (std::size_t i = 0; i < sorted_segments.size(); i++)
+    // merge sorted chunks within each of these new segments
+
+#pragma omp parallel num_threads(n_segments)
     {
-        auto&& local_policy = __detail::dpl_policy(ranges::rank(segments[i]));
-        T* seg = sorted_segments[i];
-        std::size_t n_elements = sorted_seg_sizes[i];
+        int t = omp_get_thread_num();
 
-        auto e = __detail::sort_async(local_policy, seg, seg + n_elements, comp);
+        std::vector<std::size_t> chunks_ind;
+        for (std::size_t i = 0; i < n_segments; i++)
+        {
+            chunks_ind.push_back(push_positions[i][t]);
+        }
 
-        events.push_back(e);
-    }
+        auto _segments = n_segments;
+        while (_segments > 1)
+        {
+            std::vector<std::size_t> new_chunks;
+            new_chunks.push_back(0);
 
-    __detail::wait(events);
-    events.clear();
+            for (int s = 0; s < _segments / 2; s++)
+            {
+
+                const std::size_t l = (2 * s + 2 < _segments) ? chunks_ind[2 * s + 2] : sorted_seg_sizes[t];
+
+                auto first = dr::__detail::direct_iterator(sorted_segments[t] + chunks_ind[2 * s]);
+                auto middle = dr::__detail::direct_iterator(sorted_segments[t] + chunks_ind[2 * s + 1]);
+                auto last = dr::__detail::direct_iterator(sorted_segments[t] + l);
+
+                new_chunks.push_back(l);
+
+                oneapi::dpl::inplace_merge(__detail::dpl_policy(ranges::rank(segments[t])), first, middle, last, comp);
+            }
+
+            _segments = (_segments + 1) / 2;
+
+            std::swap(chunks_ind, new_chunks);
+        }
+    } // End of omp parallel region
 
     // Copy the results into the output.
 
@@ -259,7 +277,7 @@ sort(R&& r, Compare comp = Compare())
         T* seg = sorted_segments[i];
         std::size_t n_elements = sorted_seg_sizes[i];
 
-        auto e = copy_async(seg, seg + n_elements, d_first);
+        auto e = shp::copy_async(seg, seg + n_elements, d_first);
 
         events.push_back(e);
 
@@ -272,15 +290,15 @@ sort(R&& r, Compare comp = Compare())
 
     for (auto&& sorted_seg : sorted_segments)
     {
-        sycl::free(sorted_seg, context());
+        sycl::free(sorted_seg, shp::context());
     }
 
     for (auto&& splitter_i : splitter_indices)
     {
-        sycl::free(splitter_i, context());
+        sycl::free(splitter_i, shp::context());
     }
 
-    sycl::free(medians, context());
+    sycl::free(medians, shp::context());
 }
 
 template <distributed_iterator RandomIt, typename Compare = std::less<>>

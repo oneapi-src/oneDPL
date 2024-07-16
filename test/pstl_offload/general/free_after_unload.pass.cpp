@@ -41,10 +41,22 @@ int main()
 {
     sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
 
-    void* ptr = malloc(8);
-    EXPECT_TRUE(ptr, "Can't get memory while allocating with overloaded malloc");
-    EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with overloaded malloc");
-    register_mem_to_later_release(ptr);
+    pointers ptrs{malloc(8), new (std::align_val_t(8 * 1024)) int{},
+#if __linux__
+        std::aligned_alloc(8 * 1024, 10)
+#elif _WIN64
+        _aligned_malloc(10, 8 * 1024)
+#endif
+    };
+
+    EXPECT_TRUE(ptrs.malloc_allocated, "Can't get memory while allocating with overloaded malloc");
+    EXPECT_TRUE(ptrs.aligned_new_allocated, "Can't get memory while allocating with overloaded aligned new");
+    EXPECT_TRUE(ptrs.aligned_alloc_allocated, "Can't get memory while allocating with overloaded aligned_alloc");
+
+    EXPECT_TRUE(sycl::get_pointer_type(ptrs.malloc_allocated, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with malloc");
+    EXPECT_TRUE(sycl::get_pointer_type(ptrs.aligned_new_allocated, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with aligned new");
+    EXPECT_TRUE(sycl::get_pointer_type(ptrs.aligned_alloc_allocated, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with aligned_alloc");
+    register_mem_to_later_release(&ptrs);
 
     return TestUtils::done();
 }
@@ -63,6 +75,12 @@ void do_allocation()
     void *ptr1 = realloc(ptr, 2*size);
     for (std::size_t i = 0; i < size; i++)
         EXPECT_TRUE(static_cast<char*>(ptr1)[i] == 1, "Data broken after realloc in dtor");
-    EXPECT_TRUE(malloc_usable_size(ptr1) >= 2*size, "Invalid size after realloc in dtor");
-    free(ptr);
+#if __linux__
+    size_t sz_ptr1 = malloc_usable_size(ptr1);
+#elif _WIN64
+    size_t sz_ptr1 = _msize(ptr1);
+#endif
+    EXPECT_TRUE(sz_ptr1 >= 2*size, "Invalid size after realloc in dtor");
+
+    free(ptr1);
 }

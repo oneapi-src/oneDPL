@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -24,7 +35,7 @@ requires(!std::is_const_v<std::iter_value_t<Iter>> && std::is_trivially_copyable
 {
     auto&& q = __detail::get_queue_for_pointer(first);
     std::iter_value_t<Iter>* arr = std::to_address(first);
-    // not using q.fill because of CMPLRLLVM-46438
+    // not using q.fill because of https://github.com/oneapi-src/distributed-ranges/issues/775
     return dr::__detail::parallel_for(q, sycl::range<>(last - first), [=](auto idx) { arr[idx] = value; });
 }
 
@@ -41,7 +52,7 @@ requires(std::indirectly_writable<device_ptr<T>, U>) sycl::event
 {
     auto&& q = __detail::get_queue_for_pointer(first);
     auto* arr = first.get_raw_pointer();
-    // not using q.fill because of CMPLRLLVM-46438
+    // not using q.fill because of https://github.com/oneapi-src/distributed-ranges/issues/775
     return dr::__detail::parallel_for(q, sycl::range<>(last - first), [=](auto idx) { arr[idx] = value; });
 }
 
@@ -57,7 +68,7 @@ fill_async(R&& r, const T& value)
 {
     auto&& q = __detail::queue(ranges::rank(r));
     auto* arr = std::to_address(rng::begin(ranges::local(r)));
-    // not using q.fill because of CMPLRLLVM-46438
+    // not using q.fill because of https://github.com/oneapi-src/distributed-ranges/issues/775
     return dr::__detail::parallel_for(q, sycl::range<>(rng::distance(r)), [=](auto idx) { arr[idx] = value; });
 }
 

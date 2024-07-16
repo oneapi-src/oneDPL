@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -23,7 +34,6 @@ template <std::contiguous_iterator InputIt, std::contiguous_iterator OutputIt>
 requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
-    // auto &&q = __detail::default_queue();
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
     return q.memcpy(std::to_address(d_first), std::to_address(first),
                     sizeof(std::iter_value_t<InputIt>) * (last - first));
@@ -43,7 +53,6 @@ template <std::contiguous_iterator Iter, typename T>
 requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T> sycl::event
 copy_async(Iter first, Iter last, device_ptr<T> d_first)
 {
-    // auto &&q = __detail::default_queue();
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
     return q.memcpy(d_first.get_raw_pointer(), std::to_address(first), sizeof(T) * (last - first));
 }
@@ -61,7 +70,6 @@ template <typename T, std::contiguous_iterator Iter>
 requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>> sycl::event
 copy_async(device_ptr<T> first, device_ptr<T> last, Iter d_first)
 {
-    // auto &&q = __detail::default_queue();
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
     return q.memcpy(std::to_address(d_first), first.get_raw_pointer(), sizeof(T) * (last - first));
 }
@@ -79,7 +87,6 @@ template <typename T>
 requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>) sycl::event
     copy_async(device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last, device_ptr<T> d_first)
 {
-    // auto &&q = __detail::default_queue();
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
     return q.memcpy(d_first.get_raw_pointer(), first.get_raw_pointer(), sizeof(T) * (last - first));
 }

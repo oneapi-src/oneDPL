@@ -1,16 +1,17 @@
 Radix Sort
 ##########
 
----------------------------------------------------
-radix_sort and radix_sort_by_key Function Templates
----------------------------------------------------
+-----------------------------
+radix_sort Function Templates
+-----------------------------
 
-The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
-The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement a Onesweep* [#fnote1]_ algorithm variant. Both in-place and out-of-place
-overloads are provided. For out-of-place overloads, the input data order is preserved.
+The ``radix_sort`` function sorts data using the radix sort algorithm.
+The sorting is stable, preserving the relative order of elements with equal keys.
+Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequence.
 
-A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
+The functions implement a Onesweep* [#fnote1]_ algorithm variant.
+
+A synopsis of the ``radix_sort`` function is provided below:
 
 .. code:: cpp
 
@@ -18,7 +19,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
 
    namespace oneapi::dpl::experimental::kt::gpu::esimd {
 
-   // Sort a single sequence
+   // Sort in-place
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator>
    sycl::event
@@ -31,53 +32,19 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    radix_sort (sycl::queue q, Range&& r, KernelParam param); // (2)
 
 
-   // Sort a single sequence out-of-place
+   // Sort out-of-place
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator1,
              typename Iterator2>
    sycl::event
    radix_sort (sycl::queue q, Iterator1 first, Iterator1 last,
-               Iterator2 first_out, KernelParam param) // (3)
+               Iterator2 first_out, KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range1, typename Range2>
    sycl::event
    radix_sort (sycl::queue q, Range1&& r, Range2&& r_out,
-               KernelParam param) // (4)
-
-
-   // Sort a sequence of keys and apply the same order to a sequence of values
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename Iterator1, typename Iterator2>
-   sycl::event
-   radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
-                      Iterator2 values_first, KernelParam param); // (5)
-
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysRng, typename ValuesRng>
-   sycl::event
-   radix_sort_by_key (sycl::queue q, KeysRng&& keys,
-                      ValuesRng&& values, KernelParam param); // (6)
-
-
-   // Sort a sequence of keys and values out-of-place
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysIterator1,
-             typename ValsIterator1, typename KeysIterator2,
-             typename ValsIterator2>
-   sycl::event
-   radix_sort_by_key (sycl::queue q, KeysIterator1 keys_first,
-                      KeysIterator1 keys_last, ValsIterator1 vals_first,
-                      KeysIterator2 keys_out_first, ValsIterator2 vals_out_first,
-                      KernelParam param) // (7)
-
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysRng1, typename ValsRng1,
-             typename KeysRng2, typename ValsRng2>
-   sycl::event
-   radix_sort_by_key (sycl::queue q, KeysRng1&& keys, ValsRng1&& values,
-                      KeysRng2&& keys_out, ValsRng2&& vals_out,
-                      KernelParam param) // (8)
+               KernelParam param); // (4)
    }
 
 
@@ -99,22 +66,22 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-| ``q``                                         |  The SYCL* queue where kernels are submitted.                       |
+| ``q``                                         | The SYCL* queue where kernels are submitted.                        |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               |                                                                     |
 |                                               | The sequences to apply the algorithm to.                            |
 | - ``first``, ``last`` (1),                    | Supported sequence types:                                           |
 | - ``r`` (2),                                  |                                                                     |
-| - ``first``, ``last``, ``first_out`` (3),     | - :ref:`USM pointers <use-usm>` (1,3,5,7),                          |
-| - ``r``, ``r_out`` (4),                       | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
-| - ``keys_first``, ``keys_last``,              |   <use-buffer-wrappers>` (1,3,5,7).                                 |
-|   ``values_first`` (5),                       | - ``sycl::buffer`` (2,4,6,8),                                       |
-| - ``keys``, ``values`` (6),                   | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
-| - ``keys_first``, ``keys_last``,              |   <viewable-ranges>` (2,4,6,8),                                     |
-|   ``vals_first``, ``keys_out_first``,         | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
-|   ``values_out_first`` (7)                    |   <viewable-ranges>` (2,4,6,8),                                     |
-| - ``keys``, ``values``,                       |                                                                     |
-|   ``keys_out``, ``values_out`` (8),           |                                                                     |
+| - ``first``, ``last``, ``first_out`` (3),     | - :ref:`USM pointers <use-usm>` (1,3),                              |
+| - ``r``, ``r_out`` (4).                       | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+|                                               |   <use-buffer-wrappers>` (1,3).                                     |
+|                                               | - ``sycl::buffer`` (2,4),                                           |
+|                                               | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+|                                               |   <viewable-ranges>` (2,4),                                         |
+|                                               | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|                                               |   <viewable-ranges>` (2,4).                                         |
+|                                               |                                                                     |
+|                                               |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 | ``param``                                     | A :doc:`kernel_param <../kernel_configuration>` object.             |
@@ -147,8 +114,8 @@ Usage Examples
 --------------
 
 
-radix_sort In-Place Example
----------------------------
+In-Place Example
+----------------
 
 .. code:: cpp
 
@@ -192,67 +159,9 @@ radix_sort In-Place Example
    5 3 3 3 2 1
 
 
-radix_sort_by_key In-Place Example
-----------------------------------
 
-.. code:: cpp
-
-   // possible build and run commands:
-   //    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include && ./radix_sort_by_key
-
-   #include <cstdint>
-   #include <iostream>
-   #include <sycl/sycl.hpp>
-
-   #include <oneapi/dpl/experimental/kernel_templates>
-
-   namespace kt = oneapi::dpl::experimental::kt;
-
-   int main()
-   {
-      std::size_t n = 6;
-      sycl::queue q{sycl::gpu_selector_v};
-      sycl::buffer<std::uint32_t> keys{sycl::range<1>(n)};
-      sycl::buffer<char> values{sycl::range<1>(n)};
-
-      // initialize
-      {
-         sycl::host_accessor k_acc{keys, sycl::write_only};
-         k_acc[0] = 3, k_acc[1] = 2, k_acc[2] = 1, k_acc[3] = 5, k_acc[4] = 3, k_acc[5] = 3;
-
-         sycl::host_accessor v_acc{values, sycl::write_only};
-         v_acc[0] = 'r', v_acc[1] = 'o', v_acc[2] = 's', v_acc[3] = 'd', v_acc[4] = 't', v_acc[5] = 'e';
-      }
-
-      // sort
-      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (6)
-      e.wait();
-
-      // print
-      {
-         sycl::host_accessor k_acc{keys, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << k_acc[i] << ' ';
-         std::cout << '\n';
-
-         sycl::host_accessor v_acc{values, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << v_acc[i] << ' ';
-         std::cout << '\n';
-      }
-
-      return 0;
-   }
-
-**Output:**
-
-.. code:: none
-
-   1 2 3 3 3 5
-   s o r t e d
-
-radix_sort Out-of-Place Example
--------------------------------
+Out-of-Place Example
+--------------------
 
 .. code:: cpp
 
@@ -301,94 +210,19 @@ radix_sort Out-of-Place Example
    3 2 1 5 3 3
    5 3 3 3 2 1
 
-radix_sort_by_key Out-of-Place Example
---------------------------------------
 
-.. code:: cpp
-
-   // possible build and run commands:
-   //    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include && ./radix_sort_by_key
-
-   #include <cstdint>
-   #include <iostream>
-   #include <sycl/sycl.hpp>
-
-   #include <oneapi/dpl/experimental/kernel_templates>
-
-   namespace kt = oneapi::dpl::experimental::kt;
-
-   int main()
-   {
-      std::size_t n = 6;
-      sycl::queue q{sycl::gpu_selector_v};
-      sycl::buffer<std::uint32_t> keys{sycl::range<1>(n)};
-      sycl::buffer<std::uint32_t> keys_out{sycl::range<1>(n)};
-      sycl::buffer<char> values{sycl::range<1>(n)};
-      sycl::buffer<char> values_out{sycl::range<1>(n)};
-
-
-      // initialize
-      {
-         sycl::host_accessor k_acc{keys, sycl::write_only};
-         k_acc[0] = 3, k_acc[1] = 2, k_acc[2] = 1, k_acc[3] = 5, k_acc[4] = 3, k_acc[5] = 3;
-
-         sycl::host_accessor v_acc{values, sycl::write_only};
-         v_acc[0] = 'r', v_acc[1] = 'o', v_acc[2] = 's', v_acc[3] = 'd', v_acc[4] = 't', v_acc[5] = 'e';
-      }
-
-      // sort
-      auto e = kt::gpu::esimd::radix_sort_by_key<true, 8>(q, keys, values, keys_out, values_out,
-                                                          kt::kernel_param<96, 64>{}); // (8)
-      e.wait();
-
-      // print
-      {
-         sycl::host_accessor k_acc{keys, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << k_acc[i] << ' ';
-         std::cout << '\n';
-
-         sycl::host_accessor v_acc{values, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << v_acc[i] << ' ';
-         std::cout << "\n\n";
-         
-         sycl::host_accessor k_out_acc{keys_out, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << k_out_acc[i] << ' ';
-         std::cout << '\n';
-
-         sycl::host_accessor v_out_acc{values_out, sycl::read_only};
-         for(std::size_t i = 0; i < n; ++i)
-               std::cout << v_out_acc[i] << ' ';
-         std::cout << '\n';
-      }
-
-      return 0;
-   }
-
-**Output:**
-
-.. code:: none
-
-   3 2 1 5 3 3
-   r o s d t e
-
-   1 2 3 3 3 5
-   s o r t e d
-
-
-.. _memory-requirements:
+.. _radix-sort-memory-requirements:
 
 -------------------
 Memory Requirements
 -------------------
 
-The algorithms use global and local device memory (see `SYCL 2020 Specification
+The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
-for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
-on the device; otherwise, the behavior is undefined. The amount of memory that is required
-depends on input data and configuration parameters, as described below.
+for intermediate data storage. For the algorithm to operate correctly, there must be enough memory on the device.
+If there is not enough global device memory, a ``std::bad_alloc`` exception is thrown.
+The behavior is undefined if there is not enough local memory.
+The amount of memory that is required depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
 --------------------------
@@ -396,12 +230,9 @@ Global Memory Requirements
 Global memory is used for copying the input sequence(s) and storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-:``radix_sort``: N\ :sub:`keys` + C * N\ :sub:`keys`
+   N\ :sub:`keys` + C * N\ :sub:`keys`
 
-:``radix_sort_by_key``: N\ :sub:`keys` + N\ :sub:`values` + C * N\ :sub:`keys`
-
-where the sequence with keys takes N\ :sub:`keys` space, the sequence with values takes N\ :sub:`values` space,
-and the additional space is C * N\ :sub:`keys`.
+where the sequence with keys takes N\ :sub:`keys` space, and the additional space is C * N\ :sub:`keys`.
 
 The value of `C` depends on ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
 For ``param.data_per_workitem`` set to `32`, ``param.workgroup_size`` to `64`, and ``RadixBits`` to `8`,
@@ -413,35 +244,26 @@ Incrementing ``RadixBits`` increases `C` up to twice, while doubling either
 
    If the number of elements to sort does not exceed ``param.data_per_workitem * param.workgroup_size``,
    ``radix_sort`` is executed by a single work-group and does not use any global memory.
-   For ``radix_sort_by_key`` there is no single work-group implementation yet.
 
 ..
    The estimation above is not very precise and it seems it is not necessary for the global memory.
    The C coefficient base is actually 0.53 instead of 1.
    An increment of RadixBits multiplies C by the factor of ~1.5 on average.
 
-   Additionally, C exceeds 1 for radix_sort_by_key,
-   when N is small and the global histogram takes more space than the sequences.
-   This space is small, single WG implementation will be added, therefore this is neglected.
-
-.. _local-memory:
 
 Local Memory Requirements
 -------------------------
 
-Local memory is used for reordering keys or key-value pairs within a work-group,
+Local memory is used for reordering keys within a work-group,
 and for storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-:``radix_sort``: N\ :sub:`keys_per_workgroup` + C
+   N\ :sub:`keys_per_workgroup` + C
 
-:``radix_sort_by_key``: N\ :sub:`keys_per_workgroup` + N\ :sub:`values_per_workgroup` + C
-
-where N\ :sub:`keys_per_workgroup` and N\ :sub:`values_per_workgroup` are the amounts of memory
-to store keys and values, respectively.  `C` is some additional space for storing internal data.
+where N\ :sub:`keys_per_workgroup` is the amount of memory to store keys.
+`C` is some additional space for storing internal data.
 
 N\ :sub:`keys_per_workgroup` equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``,
-N\ :sub:`values_per_workgroup` equals to ``sizeof(value_type) * param.data_per_workitem * param.workgroup_size``,
 `C` does not exceed `4KB`.
 
 ..
@@ -484,7 +306,7 @@ The initial configuration may be selected according to these high-level guidelin
 .. warning::
 
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
-   Make sure that :ref:`Memory requirements <memory-requirements>` are satisfied.
+   Make sure that :ref:`Memory requirements <radix-sort-memory-requirements>` are satisfied.
 
 .. note::
 

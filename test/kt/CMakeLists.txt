@@ -100,7 +100,7 @@ function(_generate_esimd_sort_tests _key_value_pairs)
     set(_base_file_all "esimd_radix_sort" "esimd_radix_sort_out_of_place")
     set(_base_file_by_key_all "esimd_radix_sort_by_key" "esimd_radix_sort_by_key_out_of_place")
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
-    set(_work_group_size_all "32" "64")
+    set(_work_group_size_all "64")
     set(_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
 
     foreach (_data_per_work_item ${_data_per_work_item_all})
@@ -126,8 +126,8 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_tests(FALSE) # esimd_radix_sort, random
     _generate_esimd_sort_tests(TRUE) # esimd_radix_sort_by_key, random
 
-    # Pin some cases to track them, e.g. because they fail
-    _generate_esimd_sort_test("esimd_radix_sort" "256" "32" "double" "" 1000) # segfault
+    # Pin some cases to track them
+    _generate_esimd_sort_test("esimd_radix_sort_by_key_out_of_place" "96" "64" "uint32_t" "uint32_t" 1000) # common use-case
 endif()
 
 function (_generate_gpu_scan_test _data_per_work_item _work_group_size _type)

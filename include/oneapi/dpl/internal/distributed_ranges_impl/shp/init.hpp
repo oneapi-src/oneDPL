@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -69,7 +80,7 @@ nprocs()
     return __detail::ngpus();
 }
 
-inline device_policy par_unseq;
+inline distributed_device_policy par_unseq;
 
 template <rng::range R>
 inline void
@@ -87,7 +98,7 @@ init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<rng:
         __detail::dpl_policies_.emplace_back(__detail::queues_.back());
     }
 
-    par_unseq = device_policy(__detail::devices_);
+    par_unseq = distributed_device_policy(__detail::devices_);
 }
 
 template <__detail::sycl_device_selector Selector>
@@ -122,7 +133,7 @@ queue(std::size_t rank)
     return queues_[rank];
 }
 
-// Retrieve global queues because of CMPLRLLVM-47008
+// Retrieve global queues because of https://github.com/oneapi-src/distributed-ranges/issues/776
 inline sycl::queue&
 queue(const sycl::device& device)
 {

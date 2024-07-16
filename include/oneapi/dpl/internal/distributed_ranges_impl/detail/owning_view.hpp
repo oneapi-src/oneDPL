@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -22,7 +33,8 @@ class owning_view : public rng::view_interface<owning_view<R>>
   public:
     owning_view(R&& range) : range_(std::move(range)) {}
 
-    owning_view() requires std::default_initializable<R> = default;
+    owning_view() requires std::default_initializable<R>
+    = default;
     owning_view(owning_view&& other) = default;
     owning_view(const owning_view& other) = default;
 

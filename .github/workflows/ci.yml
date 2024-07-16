@@ -8,6 +8,7 @@ on:
       - release_oneDPL
       - main
       - 'release/**'
+      - distributed-ranges
 
 permissions: read-all
 
@@ -15,12 +16,10 @@ env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
-  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/c0b87e5c-1e1f-431f-b26e-dc250032e586/w_tbb_oneapi_p_2021.12.0.500_offline.exe
-  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a1d6c917-05ab-4883-b67b-4bd60abb74e5/w_dpcpp-cpp-compiler_p_2024.1.0.469_offline.exe
+  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/8222de4d-2c5e-41bc-bdd5-f557a9edda28/w_tbb_oneapi_p_2021.13.0.627_offline.exe
+  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7991e201-ca0f-4689-bdb6-1ed73a8246fd/w_dpcpp-cpp-compiler_p_2024.2.0.491_offline.exe
   WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
-  # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
-  MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -172,6 +171,12 @@ jobs:
             build_type: release
             backend: serial
             device_type: HOST
+          - os: ubuntu-24.04
+            cxx_compiler: icpx
+            std: 23
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
     steps:
       - uses: actions/checkout@v3
       - name: Set up Intel APT repository
@@ -195,7 +200,12 @@ jobs:
       - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
-          sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emul -y
+          sudo apt-get install intel-oneapi-compiler-fpga -y
+      - name: Install libfmt and gtest needed by Distributed Ranges tests
+        if: (matrix.std == '23')
+        run: |
+          sudo apt-get install libgtest-dev libfmt-dev -y
+          sudo apt-get remove libgcc-14-dev cpp-14-x86-64-linux-gnu -y  # gcc14 toolkit not supported yet by DR
       - name: Run testing
         shell: bash
         run: |
@@ -210,6 +220,13 @@ jobs:
             make_targets="build-onedpl-sycl_iterator-tests"
             ctest_flags="-R sycl_iterator_.*\.pass"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
+          
+            if [[ "${{ matrix.std }}" == "23" ]]; then
+              make_targets="$make_targets shp-all-tests"
+              ctest_flags="$ctest_flags|shp-tests"
+              echo "::warning::23 standard is set. Compile and run distributed ranges tests"
+            fi
+          
           else
             make_targets="build-onedpl-tests"
           fi
@@ -258,26 +275,8 @@ jobs:
           echo "::warning::CMake: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-          make_targets=""
-          ctest_regex="^("
-
-          test_list="adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
-                     transform_reduce.pass transform_reduce.pass.coal transform_scan.pass algorithm.pass \
-                     execution.pass functional.pass algorithms_redirection.pass usm_memory_replacement.pass"
-
-          for test in $test_list
-          do
-            if [ -n "$make_targets" ]
-            then
-              make_targets+=" "
-              ctest_regex+="|"
-            fi
-
-            make_targets+="$test"
-            ctest_regex+="$test"
-          done
-
-          ctest_regex+=")"
+          make_targets="build-onedpl-pstloffload_smoke_tests-tests"
+          ctest_flags="-L pstloffload_smoke_tests"
 
           mkdir build && cd build
           lscpu
@@ -291,7 +290,65 @@ jobs:
 
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 
-          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+
+  windows-pstl-offload-testing:
+    name: PSTL offload ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            cxx_compiler: icx-cl
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: cpu
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        shell: cmd
+        run: |
+          curl %WINDOWS_TBB_DOWNLOAD_LINK% --output tbb_install.exe
+          tbb_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del tbb_install.exe
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        shell: cmd
+        run: |
+          curl %WINDOWS_ICPX_DOWNLOAD_LINK% --output icpx_install.exe
+          icpx_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del icpx_install.exe
+          :: Avoid accidental use of a released version
+          rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
+      - name: Run testing
+        shell: cmd
+        run: |
+          if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
+            call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
+          )
+          if "${{ matrix.cxx_compiler }}" == "cl" (
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          )
+          powershell $output = cmake --version; Write-Host ::warning::CMake: $output
+          powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
+
+          set ninja_targets=build-onedpl-pstloffload_smoke_tests-tests
+          set ctest_flags= -L pstloffload_smoke_tests
+
+          mkdir build && cd build
+
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -D_ONEDPL_PSTL_OFFLOAD=${{ matrix.device_type }} .. || goto :short_circuit_fail
+          ninja -j 2 -v pstloffload || goto :short_circuit_fail
+          call .\vars.bat
+          ninja -j 2 -v %ninja_targets% || goto :short_circuit_fail
+          ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto :short_circuit_fail
+          exit /b 0
+          :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
+          :short_circuit_fail
+          exit /b %errorlevel%
 
   windows-testing:
     name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
@@ -373,33 +430,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
-            cxx_compiler: icpc
+          - os: macos-13
+            cxx_compiler: clang++
             std: 17
             build_type: release
             backend: omp
     steps:
       - uses: actions/checkout@v3
-      - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
+      - name: Install OpenMP for Clang++
         run: |
-          wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
-          mkdir installer
-          hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
-          sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
-      - name: Exclude tests with known issues
-        if: matrix.backend == 'omp'
-        run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
+          brew install libomp
       - name: Run testing
         shell: bash
         run: |
           set -x
-          source /opt/intel/oneapi/setvars.sh
           echo "::warning::CMake: $(cmake --version)"
-          if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
-            echo "::warning::Compiler: $(icpc --version)"
-          fi
+          sysctl -a | grep machdep.cpu
+          # workaround for CMake not being able to find OpenMP: see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
+          # -DCMAKE_POLICY_DEFAULT_CMP0074=NEW below is forced to make sure CMake uses <PackageName>_ROOT variables.
+          export OpenMP_ROOT=$(brew --prefix)/opt/libomp
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DCMAKE_POLICY_DEFAULT_CMP0074=NEW ..
           make VERBOSE=1 build-onedpl-tests -j${MACOS_BUILD_CONCURRENCY}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"

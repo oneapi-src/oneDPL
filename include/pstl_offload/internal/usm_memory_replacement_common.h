@@ -12,10 +12,11 @@
 
 #include <sycl/sycl.hpp>
 #include <atomic>
+#include <thread> // std::this_thread::yield
 #include <cstddef>
 #include <cstdlib>
 #include <cassert>
-#include <cstring>
+#include <cstring> // for memcpy
 #include <limits>
 
 #if __linux__
@@ -102,6 +103,31 @@ class __sycl_device_shared_ptr
     }
 };
 
+// Stripped down spin mutex. Propose is to implement mutex able to be used from zero-initialized
+// memory without need in constructors. This allows to use the mutex in file-scope constructors
+// and destructors.
+class __spin_mutex
+{
+    std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
+
+  public:
+    void
+    lock()
+    {
+        while (_M_flag.test_and_set(std::memory_order_acquire))
+        {
+            // TODO: exponential backoff or switch to wait() from c++20
+            std::this_thread::yield();
+        }
+    }
+
+    void
+    unlock()
+    {
+        _M_flag.clear(std::memory_order_release);
+    }
+};
+
 inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
 
 struct __block_header
@@ -114,12 +140,58 @@ struct __block_header
 
 static_assert(__is_power_of_two(sizeof(__block_header)));
 
+using __realloc_func_type = void* (*)(void*, std::size_t);
+void*
+__allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_ptr, std::size_t __size,
+                                             std::size_t __alignment);
+
+void*
+__realloc_impl(void* __user_ptr, std::size_t __new_size);
+
 #if __linux__
+
+inline std::size_t
+__get_page_size()
+{
+    int ret = sysconf(_SC_PAGESIZE);
+    if (-1 == ret)
+    {
+        throw std::runtime_error(std::string("sysconf() failed with ") + std::to_string(errno));
+    }
+    return ret;
+}
+
+inline void*
+__original_realloc(void* __user_ptr, std::size_t __new_size)
+{
+    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
+    return __orig_realloc(__user_ptr, __new_size);
+}
+
+#elif _WIN64
+
+// export to not have windows.h in public header
+std::size_t
+__get_page_size();
+
+// have to export them, as original realloc/malloc/etc are locally replaced
+// in case of usm_memory_replacement.h inclusion
+void*
+__original_realloc(void* __user_ptr, std::size_t __new_size);
+void* __original_malloc(std::size_t);
+void*
+__original_aligned_alloc(std::size_t __size, std::size_t __alignment);
+void*
+__original_aligned_realloc(void* __user_ptr, std::size_t __size, std::size_t __alignment);
+void*
+__aligned_realloc_impl(void* __user_ptr, std::size_t __new_size, std::size_t __alignment);
+
+#endif
 
 inline std::size_t
 __get_memory_page_size()
 {
-    static std::size_t __memory_page_size = sysconf(_SC_PAGESIZE);
+    static std::size_t __memory_page_size = __get_page_size();
     assert(__is_power_of_two(__memory_page_size));
     return __memory_page_size;
 }
@@ -135,11 +207,11 @@ inline void*
 __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t __size, std::size_t __alignment)
 {
     assert(__device_ptr.__is_device_created());
-    // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
-    // would be on the same memory page if the alignment for more than a memory page is requested
+    // Impossible to guarantee that the returned pointer and memory header would be on the same memory
+    // page if the alignment for more than a memory page is requested, so process this case specifically
     if (__alignment >= __get_memory_page_size())
     {
-        return nullptr;
+        return __allocate_shared_for_device_large_alignment(std::move(__device_ptr), __size, __alignment);
     }
 
     std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
@@ -172,74 +244,22 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
     return __ptr;
 }
 
-inline void*
-__original_realloc(void* __user_ptr, std::size_t __new_size)
-{
-    using __realloc_func_type = void* (*)(void*, std::size_t);
-
-    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
-    return __orig_realloc(__user_ptr, __new_size);
-}
-
-inline void
-__free_usm_pointer(__block_header* __header)
-{
-    assert(__header != nullptr);
-    __header->_M_uniq_const = 0;
-    sycl::context __context = __header->_M_device.__get_context();
-    __header->~__block_header();
-    sycl::free(__header->_M_original_pointer, __context);
-}
-
-inline void*
-__realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
-{
-    assert(__user_ptr != nullptr);
-    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
-
-    void* __result = nullptr;
-
-    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
-    {
-        if (__header->_M_requested_number_of_bytes >= __new_size)
-        {
-            // No need to reallocate memory, previously allocated number of bytes is enough to store __new_size
-            __result = __user_ptr;
-        }
-        else
-        {
-            // Reallocate __new_size
-            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(std::max_align_t));
-
-            if (__new_ptr != nullptr)
-            {
-                std::memcpy(__new_ptr, __user_ptr, __header->_M_requested_number_of_bytes);
-
-                // Free previously allocated memory
-                __free_usm_pointer(__header);
-                __result = __new_ptr;
-            }
-            else
-            {
-                errno = ENOMEM;
-            }
-        }
-    }
-    else
-    {
-        // __user_ptr is not a USM pointer, use original realloc function
-        __result = __original_realloc(__user_ptr, __new_size);
-    }
-    return __result;
-}
-
 static void*
 __internal_realloc(void* __user_ptr, std::size_t __new_size)
 {
-    return __user_ptr == nullptr ? std::malloc(__new_size) : __realloc_real_pointer(__user_ptr, __new_size);
+    // std::malloc() might be overloaded in per-TU overload, so keep it here
+    return __user_ptr == nullptr ? std::malloc(__new_size) : __realloc_impl(__user_ptr, __new_size);
 }
 
-#endif // __linux__
+#if _WIN64
+
+static void*
+__internal_aligned_realloc(void* __user_ptr, std::size_t __new_size, std::size_t __alignment)
+{
+    return __user_ptr == nullptr ? _aligned_malloc(__new_size, __alignment)
+                                 : __aligned_realloc_impl(__user_ptr, __new_size, __alignment);
+}
+#endif // _WIN64
 
 } // namespace __pstl_offload
 

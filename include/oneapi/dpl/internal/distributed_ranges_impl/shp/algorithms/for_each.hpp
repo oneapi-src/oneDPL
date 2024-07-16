@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -18,10 +29,10 @@ namespace oneapi::dpl::experimental::dr::shp
 
 template <typename ExecutionPolicy, distributed_range R, typename Fn>
 void
-for_each(ExecutionPolicy&& policy, R&& r, Fn&& fn)
+for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 {
     static_assert( // currently only one policy supported
-        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, device_policy>);
+        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
     std::vector<sycl::event> events;
 
@@ -44,23 +55,40 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn&& fn)
 
 template <typename ExecutionPolicy, distributed_iterator Iter, typename Fn>
 void
-for_each(ExecutionPolicy&& policy, Iter begin, Iter end, Fn&& fn)
+for_each(ExecutionPolicy&& policy, Iter begin, Iter end, Fn fn)
 {
-    for_each(std::forward<ExecutionPolicy>(policy), rng::subrange(begin, end), std::forward<Fn>(fn));
+    for_each(std::forward<ExecutionPolicy>(policy), rng::subrange(begin, end), fn);
 }
 
 template <distributed_range R, typename Fn>
 void
-for_each(R&& r, Fn&& fn)
+for_each(R&& r, Fn fn)
 {
-    for_each(par_unseq, std::forward<R>(r), std::forward<Fn>(fn));
+    for_each(par_unseq, std::forward<R>(r), fn);
 }
 
 template <distributed_iterator Iter, typename Fn>
 void
-for_each(Iter begin, Iter end, Fn&& fn)
+for_each(Iter begin, Iter end, Fn fn)
 {
-    for_each(par_unseq, begin, end, std::forward<Fn>(fn));
+    for_each(par_unseq, begin, end, fn);
+}
+
+template <typename ExecutionPolicy, dr::distributed_iterator Iter, std::integral I, typename Fn>
+Iter
+for_each_n(ExecutionPolicy&& policy, Iter begin, I n, Fn fn)
+{
+    auto end = begin;
+    rng::advance(end, n);
+    for_each(std::forward<ExecutionPolicy>(policy), begin, end, std::forward<Fn>(fn));
+    return end;
+}
+
+template <dr::distributed_iterator Iter, std::integral I, typename Fn>
+Iter
+for_each_n(Iter&& r, I n, Fn fn)
+{
+    return for_each_n(dr::shp::par_unseq, std::forward<Iter>(r), n, fn);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

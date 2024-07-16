@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -20,7 +31,7 @@ namespace __detail
 inline constexpr auto local = ranges::__detail::local;
 
 template <typename Src, typename Dest>
-concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest>&& std::is_trivially_copyable_v<Dest>;
+concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest> && std::is_trivially_copyable_v<Dest>;
 
 template <std::contiguous_iterator Iter>
 sycl::usm::alloc

@@ -1,6 +1,17 @@
-// SPDX-FileCopyrightText: Intel Corporation
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
 //
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #pragma once
 
@@ -70,7 +81,7 @@ parallel_for_64bit(sycl::queue& q, sycl::range<1> numWorkItems, Fn&& fn)
 
     auto e = q.submit([&](auto&& h) {
         h.depends_on(events);
-        // Empty host task necessary due to issue in oneAPI.
+        // Empty host task necessary due to https://github.com/oneapi-src/distributed-ranges/issues/778
         h.host_task([] {});
     });
 
@@ -184,7 +195,7 @@ combine_events(sycl::queue& q, const auto& events)
 {
     return q.submit([&](auto&& h) {
         h.depends_on(events);
-        // Empty host task necessary due to issue in oneAPI.
+        // Empty host task necessary due to https://github.com/oneapi-src/distributed-ranges/issues/778
         h.host_task([] {});
     });
 }
