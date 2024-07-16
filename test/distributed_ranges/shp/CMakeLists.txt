@@ -47,6 +47,7 @@ if (NOT GTest_FOUND)
 endif ()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -ggdb")
 
 add_executable(
   shp_tests
