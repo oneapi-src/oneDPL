@@ -45,8 +45,6 @@ namespace dpl
 {
 
 // Engines and engine adaptors with predefined parameters
-
-// philox engine with using-s, !! here instantiate the templates for various cases, with
 using philox4x32 = philox_engine<uint_fast32_t, 32, 4, 10, 0xD2511F53, 0x9E3779B9,
 0xCD9E8D57, 0xBB67AE85>;
 using philox4x64 = philox_engine<uint_fast64_t, 64, 4, 10, 0xD2E7470EE14C6C93,
