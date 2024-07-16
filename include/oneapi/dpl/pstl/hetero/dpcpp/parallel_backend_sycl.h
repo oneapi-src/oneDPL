@@ -1086,8 +1086,7 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    //static constexpr std::size_t __small_data_size = 65'536;                // Source data sizes till this will be processed in __impl_small
-    static constexpr std::size_t __small_data_size = 1;                     // Source data sizes till this will be processed in __impl_small
+    static constexpr std::size_t __small_data_size = 65'536;                // Source data sizes till this will be processed in __impl_small
     static constexpr std::size_t __middle_data_size = 4'194'304;            // Source data sizes till this will be processed in __impl_middle
                                                                             // All other data sizes will be processed in __impl_large
     static constexpr std::size_t __early_exit_check_interval_div = 800;
