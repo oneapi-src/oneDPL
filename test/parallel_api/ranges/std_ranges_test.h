@@ -59,6 +59,10 @@ auto proj = [](auto&& val){ return val * 2; };
 auto pred = [](auto&& val) { return val == 5; };
 auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
 
+auto pred1 = [](auto&& val) -> decltype(auto) { return val > 0; };
+auto pred2 = [](auto&& val) -> decltype(auto) { return val == 4; };
+auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };
+
 struct P2
 {
     P2(auto v): x(v) {}
