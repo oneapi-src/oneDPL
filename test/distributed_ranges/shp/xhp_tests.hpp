@@ -16,7 +16,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include <oneapi/dpl/distributed-ranges>
+#include <oneapi/dpl/distributed_ranges>
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -47,6 +47,6 @@ concept compliant_view = rng::forward_range<V> && requires(V &v) {
   dr::ranges::rank(dr::ranges::segments(v)[0]);
 };
 
-#include "../include/common-tests.hpp"
+#include "../include/common_tests.hpp"
 
 using AllTypes = ::testing::Types<xhp::distributed_vector<int>>;

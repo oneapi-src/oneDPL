@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp-tests.hpp"
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp.hpp>
+#include "xhp_tests.hpp"
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp.hpp>
 
 namespace shp = oneapi::dpl::experimental::dr::shp;
 

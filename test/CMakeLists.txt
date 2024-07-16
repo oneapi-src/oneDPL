@@ -12,7 +12,7 @@
 #
 ##===----------------------------------------------------------------------===##
 add_subdirectory(kt)
-add_subdirectory(distributed-ranges/shp)
+add_subdirectory(distributed_ranges/shp)
 
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min

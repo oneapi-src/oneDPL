@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 // Fixture
 template <typename T> class Fill : public testing::Test {

@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 // TODO: add sort tests with ISHMEM, currently doesn't compile
 using T = int;

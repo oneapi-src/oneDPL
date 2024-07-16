@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 template <typename AllocT> class FillTest : public testing::Test {
 public:

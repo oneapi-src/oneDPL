@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 template <typename... Rs> auto test_zip(Rs &&...rs) {
   return xhp::views::zip(std::forward<Rs>(rs)...);

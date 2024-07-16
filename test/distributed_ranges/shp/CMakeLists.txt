@@ -49,8 +49,8 @@ endif ()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_executable(
-  shp-tests
-  shp-tests.cpp 
+  shp_tests
+  shp_tests.cpp 
   ../common/all.cpp 
   ../common/copy.cpp 
   ../common/counted.cpp
@@ -80,9 +80,9 @@ add_executable(
   transform.cpp
   )
 
-add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
+add_executable(shp_tests_3 shp_tests.cpp containers_3.cpp copy_3.cpp)
 
-foreach(test-exec IN ITEMS shp-tests shp-tests-3)
+foreach(test-exec IN ITEMS shp_tests shp_tests_3)
   target_link_libraries(${test-exec} PRIVATE GTest::gtest_main fmt::fmt oneDPL)
   target_link_options(${test-exec} PRIVATE -qopenmp)
 endforeach()
@@ -100,6 +100,6 @@ endfunction()
 # IotaView.ZipWithDR: https://github.com/oneapi-src/distributed-ranges/issues/792
 set(test-exclusions Sort*:ShpTests.Sort*:ExclusiveScan*empty:IotaView*ZipWithDR)
 
-add_shp_ctest(shp-tests shp-tests --gtest_filter=-${test-exclusions})
-add_shp_ctest(shp-tests-3 shp-tests --devicesCount 3 --gtest_filter=-${test-exclusions})
-add_shp_ctest(shp-tests-3-only shp-tests-3 --devicesCount 3)
+add_shp_ctest(shp_tests shp_tests --gtest_filter=-${test-exclusions})
+add_shp_ctest(shp_tests_3 shp_tests --devicesCount 3 --gtest_filter=-${test-exclusions})
+add_shp_ctest(shp_tests_3_only shp_tests_3 --devicesCount 3)

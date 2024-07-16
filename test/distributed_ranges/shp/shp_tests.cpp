@@ -17,10 +17,10 @@
 #include <string>
 #include <vector>
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 void printhelp() {
-  std::cout << "Usage: shp-tests [options]\n"
+  std::cout << "Usage: shp_tests [options]\n"
             << "Options:\n"
             << "  --drhelp\t\tPrint help\n"
             << "  -d, --devicesCount\tNumber of GPUs to create\n";
