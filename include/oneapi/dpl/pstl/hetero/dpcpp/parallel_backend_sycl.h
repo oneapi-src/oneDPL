@@ -1104,52 +1104,6 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     inline void
-    __impl_small(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-                    const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local,
-                    _BrickTag __brick_tag, _Ranges&&... __rngs) const
-    {
-        // Calculate the number of elements to be processed by each work-item.
-        const auto __iters_per_work_item =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
-
-        // There are 3 possible tag types here:
-        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
-        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
-        //  - __parallel_or_tag : in case when we find any value in the data.
-        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
-
-        // Return the index of this item in the kernel's execution range
-        const auto __global_id = __item_id.get_global_linear_id();
-
-        bool __something_was_found = false;
-        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
-        {
-            const auto __local_src_data_idx = __get_local_src_data_idx(__brick_tag, __iters_per_work_item, __i);
-
-            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
-            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
-            {
-                // Update local found state
-                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
-
-                // This break is mandatory from the performance point of view.
-                // This break is safe for all our cases:
-                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
-                //    This means that after first found entry there is no reason to process data anymore.
-                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // But break statement here shows poor perf in some cases.
-                // So we use bool variable state check in the for-loop header.
-                __something_was_found = true;
-            }
-        }
-    }
-
-    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
-              typename _BrickTag, typename... _Ranges>
-    inline void
     __impl_middle(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                   const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                   _Ranges&&... __rngs) const
