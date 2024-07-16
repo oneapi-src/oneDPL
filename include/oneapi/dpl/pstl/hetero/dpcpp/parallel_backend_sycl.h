@@ -577,7 +577,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
               typename _UnaryOp>
     auto
-    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
+    operator()(_Policy&& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
                _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = ::std::uint16_t;
@@ -589,7 +589,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
         constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
-        sycl::buffer<_Size> __res(sycl::range<1>(1));
+        __result_and_scratch_storage<_Policy, _Size> __result{__policy, 0};
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
@@ -598,10 +598,11 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
             // predicate on each element of the input range. The second half stores the index of the output
             // range to copy elements of the input range.
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg * 2}, __hdl);
-            auto __res_acc = __res.template get_access<access_mode::write>(__hdl);
+            auto __res_acc = __result.__get_result_acc(__hdl);
 
             __hdl.parallel_for<_ScanKernelName...>(
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+                    auto __res_ptr = __result_and_scratch_storage<_Policy, _Size>::__get_usm_or_buffer_accessor_ptr(__res_acc);
                     const auto& __group = __self_item.get_group();
                     const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
@@ -656,11 +657,11 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     if (__item_id == 0)
                     {
                         // Add predicate of last element to account for the scan's exclusivity
-                        __res_acc[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
+                        __res_ptr[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
                     }
                 });
         });
-        return __future(__event, __res);
+        return __future(__event, __result);
     }
 };
 
@@ -992,17 +993,17 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-    // if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
-    //     __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
-    // {
-    //     using _SizeBreakpoints =
-    //         ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
+        __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
+    {
+        using _SizeBreakpoints =
+            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
-    //     return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-    //         _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
-    //         ::std::forward<_OutRng>(__out_rng), __pred);
-    // }
-    // else
+        return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
+            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
+            ::std::forward<_OutRng>(__out_rng), __pred);
+    }
+    else
     {
         using _ReduceOp = ::std::plus<_Size>;
 
