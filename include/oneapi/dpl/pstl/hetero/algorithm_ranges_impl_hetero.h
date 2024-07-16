@@ -389,17 +389,12 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     using _SizeType = decltype(__rng1.size());
     using _ReduceOp = ::std::plus<_SizeType>;
 
-    return __future(__parallel_transform_reduce_then_scan(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          ::std::forward<_Range1>(__rng1),
-                                                          ::std::forward<_Range2>(__rng2),
-                                                          oneapi::dpl::__par_backend_hetero::__gen_count_pred<_SizeType, _ReduceOp>{__pred},
-                                                          _ReduceOp{},
-                                                          oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_SizeType, _ReduceOp>{__pred},
-                                                          oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-                                                          oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
-                                                          oneapi::dpl::unseq_backend::__no_init_value{},
-                                                          /*_Inclusive=*/std::true_type{})
-                    .event());
+    unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
+    unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+
+    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                         __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
