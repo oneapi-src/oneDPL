@@ -689,6 +689,16 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
     // TODO: Add the mask functors here to generalize for scan-based algorithms
 };
 
+// General scan-like algorithm helpers
+// _GenReduceInput - a function which accepts the input range and index to generate the data needed by the main output
+//                   used in the reduction operation (to calculate the global carries)
+// _GenScanInput - a function which accepts the input range and index to generate the data needed by the final scan
+//                 and write operations, for scan patterns
+// _ScanPred - a unary function applied to the ouput of `_GenScanInput` to extract the component used in the scan, but
+//             not the part only required for the final write operation
+// _ReduceOp - a binary function which is used in the reduction and scan operations
+// _FinalOp - a function which accepts output range, index, and output of `_GenScanInput` applied to the input range
+//            and performs the final output operation
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _GenReduceInput, typename _ReduceOp,
           typename _GenScanInput, typename _ScanPred, typename _FinalOp, typename _InitType, typename _Inclusive>
 auto
