@@ -1287,7 +1287,7 @@ struct __early_exit_find_or
             _SrcDataSize __early_exit_check_interval =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
             __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
-            //__early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
+            __early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
 
             if (0 < __early_exit_check_interval)
             {
