@@ -1222,8 +1222,12 @@ struct __early_exit_find_or
         for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item;
              __i += __early_exit_check_interval)
         {
+            const auto __j_end = __iters_per_work_item < __i + __early_exit_check_interval
+                                     ? __iters_per_work_item
+                                     : __i + __early_exit_check_interval;
+
             _ONEDPL_PRAGMA_UNROLL
-            for (_SrcDataSize __j = __i; __j < __i + __early_exit_check_interval; ++__j)
+            for (_SrcDataSize __j = __i; __j < __j_end; ++__j)
             {
                 // Doing success search only once
                 if (!__something_was_found)
