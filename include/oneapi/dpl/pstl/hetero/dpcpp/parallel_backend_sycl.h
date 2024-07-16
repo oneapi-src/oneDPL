@@ -1089,7 +1089,7 @@ struct __early_exit_find_or
     static constexpr std::size_t __iters_per_work_item_small = 100;         // Source data sizes till this will be processed in __impl_small
     static constexpr std::size_t __iters_per_work_item_middle = 10000;      // Source data sizes till this will be processed in __impl_middle
                                                                             // All other data sizes will be processed in __impl_large
-    static constexpr std::size_t __early_exit_check_interval_div = 10;
+    static constexpr std::size_t __early_exit_check_interval_div = 100;
 
     template <typename _BrickTag, typename _ItersPerWorkItem, typename _SrcDataSize>
     inline _SrcDataSize
