@@ -276,7 +276,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     // input buffer
     template <typename _ExecutionPolicy, typename _InRng, typename _TmpStorageAcc>
     auto
-    operator()(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _TmpStorageAcc __scratch_container,
+    operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _TmpStorageAcc __scratch_container,
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
                const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
@@ -298,8 +298,6 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 oneapi::dpl::__internal::__lazy_ctor_storage<_CarryType> __sub_group_carry;
                 std::size_t __group_start_idx =
                     (__block_num * __max_block_size) + (__g * __inputs_per_sub_group * __num_sub_groups_local);
-                if (__n <= __group_start_idx)
-                    return; // exit early for empty groups (TODO: avoid launching these?)
 
                 std::size_t __elements_in_group =
                     std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
@@ -385,8 +383,6 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     }
 
     // Constant parameters throughout all blocks
-    const sycl::nd_range<1> __nd_range;
-
     const std::size_t __max_block_size;
     const std::size_t __num_sub_groups_local;
     const std::size_t __num_sub_groups_global;
@@ -414,7 +410,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
 {
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _TmpStorageAcc>
     auto
-    operator()(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _TmpStorageAcc __scratch_container,
+    operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng, _TmpStorageAcc __scratch_container,
                const sycl::event& __prior_event, const std::size_t __inputs_per_sub_group,
                const std::size_t __inputs_per_item, const std::size_t __block_num) const
     {
@@ -442,8 +438,6 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
 
                 auto __group_start_idx =
                     (__block_num * __max_block_size) + (__g * __inputs_per_sub_group * __num_sub_groups_local);
-                if (__n <= __group_start_idx)
-                    return; // exit early for empty groups (TODO: avoid launching these?)
 
                 std::size_t __elements_in_group =
                     std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
@@ -669,8 +663,6 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
         });
     }
 
-    const sycl::nd_range<1> __nd_range;
-
     const std::size_t __max_block_size;
     const std::size_t __num_sub_groups_local;
     const std::size_t __num_sub_groups_global;
@@ -727,9 +719,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
             : std::max(__sub_group_size,
                        oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
     auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
-    const auto __global_range = sycl::range<1>(__num_work_items);
-    const auto __local_range = sycl::range<1>(__work_group_size);
-    const auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
     const auto __block_size = (__n < __max_inputs_per_block) ? __n : __max_inputs_per_block;
     const auto __num_blocks = __n / __block_size + (__n % __block_size != 0);
 
@@ -747,9 +736,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                                                    _InitType, _ScanKernel>;
     // TODO: remove below before merging. used for convenience now
     // clang-format off
-    _ReduceSubmitter __reduce_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
+    _ReduceSubmitter __reduce_submitter{__max_inputs_per_block, __num_sub_groups_local,
         __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __init};
-    _ScanSubmitter __scan_submitter{__kernel_nd_range, __max_inputs_per_block, __num_sub_groups_local,
+    _ScanSubmitter __scan_submitter{__max_inputs_per_block, __num_sub_groups_local,
         __num_sub_groups_global, __num_work_items, __num_blocks, __n, __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_pred,
         __final_op, __init};
     // clang-format on
@@ -759,11 +748,17 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
+        auto __elements_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item);
+        auto __ele_in_block_round_up_workgroup = oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_block, __work_group_size) * __work_group_size;
+        auto __global_range = sycl::range<1>(__ele_in_block_round_up_workgroup);
+        auto __local_range = sycl::range<1>(__work_group_size);
+        auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
+        //std::cout<<"block "<<__b<<std::endl;
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
-        __event = __reduce_submitter(__exec, __in_rng, __result_and_scratch, __event, __inputs_per_sub_group,
+        __event = __reduce_submitter(__exec, __kernel_nd_range, __in_rng, __result_and_scratch, __event, __inputs_per_sub_group,
                                      __inputs_per_item, __b);
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
-        __event = __scan_submitter(__exec, __in_rng, __out_rng, __result_and_scratch, __event, __inputs_per_sub_group,
+        __event = __scan_submitter(__exec, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event, __inputs_per_sub_group,
                                    __inputs_per_item, __b);
         if (__num_remaining > __block_size)
         {
