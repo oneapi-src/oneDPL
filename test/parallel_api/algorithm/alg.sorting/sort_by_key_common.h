@@ -167,7 +167,8 @@ test_with_usm(sycl::queue& q, StabilityTag stability_tag, DirectionTag direction
     // calling sort
     int* device_keys = dt_helper_keys.get_data();
     int* device_vals = dt_helper_vals.get_data();
-    auto policy = TestUtils::make_device_policy<KernelName<class USM, StabilityTag, DirectionTag>>(q);
+    using Name = KernelName<std::integral_constant<sycl::usm::alloc, alloc_type>, StabilityTag, DirectionTag>;
+    auto policy =  TestUtils::make_device_policy<Name>(q);
     call_sort(policy, device_keys, device_vals, n, stability_tag, direction_tag);
 
     // checking results
@@ -224,12 +225,12 @@ test_device_polcies(StabilityTag stability_tag)
 
 template <typename StabilityTag, typename DirectionTag>
 void
-test_std_polcies(StabilityTag stability_tag, DirectionTag direciton_tag)
+test_std_polcies(StabilityTag stability_tag, DirectionTag direction_tag)
 {
-    test_with_std_policy(oneapi::dpl::execution::seq, stability_tag, direciton_tag);
-    test_with_std_policy(oneapi::dpl::execution::unseq, stability_tag, direciton_tag);
-    test_with_std_policy(oneapi::dpl::execution::par, stability_tag, direciton_tag);
-    test_with_std_policy(oneapi::dpl::execution::par_unseq, stability_tag, direciton_tag);
+    test_with_std_policy(oneapi::dpl::execution::seq, stability_tag, direction_tag);
+    test_with_std_policy(oneapi::dpl::execution::unseq, stability_tag, direction_tag);
+    test_with_std_policy(oneapi::dpl::execution::par, stability_tag, direction_tag);
+    test_with_std_policy(oneapi::dpl::execution::par_unseq, stability_tag, direction_tag);
 }
 
 template <typename StabilityTag>
