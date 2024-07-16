@@ -9,18 +9,19 @@ else ()
     message(STATUS "suitable for distributed ranges cmake version ${CMAKE_VERSION} found")
 endif()
 
+add_library(dr_shp INTERFACE)
+add_library(DR::shp ALIAS dr_shp)
+
 find_package(fmt QUIET)
 if(fmt_FOUND)
     if(fmt_VERSION VERSION_GREATER_EQUAL 8.1 AND fmt_VERSION VERSION_LESS 10)
-        message(STATUS "suitable for distributed ranges libfmt version ${fmt_VERSION} found")
+      message(STATUS "suitable for distributed ranges libfmt version ${fmt_VERSION} found")
+      target_compile_options(dr_shp INTERFACE -DUSE_FMT)
     else()
-        message(WARNING "libfmt version ${fmt_VERSION} is not >= 8.1 and < 10, skipping distributed ranges tests")
-        return()
-
+        message(WARNING "libfmt version ${fmt_VERSION} unsuitable, no detailed messages in dr tests")
     endif()
 else()
-    message(WARNING "libfmt not found, install libfmt-dev 8.x or 9.x to enable distributed ranges tests")
-    return()
+    message(WARNING "libfmt not found, no detailed messages in dr tests")
 endif()
 
 find_package(GTest)
@@ -31,15 +32,14 @@ endif ()
 
 find_package(MKL REQUIRED)
 
-add_library(dr_shp INTERFACE)
-add_library(DR::shp ALIAS dr_shp)
-
 target_include_directories(dr_shp INTERFACE . vendor ../../../include)
 target_compile_definitions(dr_shp INTERFACE USE_MKL
                                             _GLIBCXX_USE_TBB_PAR_BACKEND=0)
 target_compile_options(dr_shp INTERFACE -ftemplate-backtrace-limit=0)
 target_link_libraries(dr_shp INTERFACE MKL::MKL_DPCPP)
-target_link_libraries(dr_shp INTERFACE fmt::fmt)
+if(fmt_FOUND)
+  target_link_libraries(dr_shp INTERFACE fmt::fmt)
+endif()
 
 # For use, see:
 # https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
@@ -86,7 +86,9 @@ add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
   target_link_libraries(${test-exec} GTest::gtest_main DR::shp)
-  target_link_libraries(${test-exec} fmt::fmt)
+  if(fmt_FOUND)
+    target_link_libraries(${test-exec} fmt::fmt)
+  endif()
 endforeach()
 
 add_custom_target(shp-all-tests)
