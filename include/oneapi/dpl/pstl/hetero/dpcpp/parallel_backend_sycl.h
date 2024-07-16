@@ -805,7 +805,7 @@ struct __gen_count_pred
     using __out_value_type = _SizeType;
     template <typename _InRng>
     _SizeType
-    operator()(_InRng&& __in_rng, _SizeType __idx)
+    operator()(_InRng&& __in_rng, _SizeType __idx) const
     {
         return __pred(__in_rng[__idx]) ? _SizeType{1} : _SizeType{0};
     }
@@ -817,7 +817,7 @@ struct __gen_expand_count_pred
 {
     template <typename _InRng>
     auto
-    operator()(_InRng&& __in_rng, _SizeType __idx)
+    operator()(_InRng&& __in_rng, _SizeType __idx) const
     {
         auto ele = __in_rng[__idx];
         bool mask = __pred(ele);

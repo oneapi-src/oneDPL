@@ -394,7 +394,6 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     const _ReduceOp __reduce_op;
     _InitType __init;
 
-    // TODO: Add the mask functors here to generalize for scan-based algorithms
 };
 
 template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
@@ -682,7 +681,6 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
     const _WriteOp __write_op;
     _InitType __init;
 
-    // TODO: Add the mask functors here to generalize for scan-based algorithms
 };
 
 // General scan-like algorithm helpers
@@ -737,7 +735,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     const auto __block_size = (__n < __max_inputs_per_block) ? __n : __max_inputs_per_block;
     const auto __num_blocks = __n / __block_size + (__n % __block_size != 0);
 
-    // TODO: Use the trick in reduce to wrap in a shared_ptr with custom deleter to support asynchronous frees.
 
     __result_and_scratch_storage<_ExecutionPolicy, typename _GenReduceInput::__out_value_type> __result_and_scratch{
         __exec, __num_sub_groups_global + 1};
@@ -771,7 +768,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         auto __global_range = sycl::range<1>(__ele_in_block_round_up_workgroup);
         auto __local_range = sycl::range<1>(__work_group_size);
         auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
-        //std::cout<<"block "<<__b<<std::endl;
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
         __event = __reduce_submitter(__exec, __kernel_nd_range, __in_rng, __result_and_scratch, __event,
                                      __inputs_per_sub_group, __inputs_per_item, __b);
