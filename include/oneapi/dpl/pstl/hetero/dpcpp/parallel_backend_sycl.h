@@ -1086,12 +1086,27 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
+    static constexpr std::size_t __small_data_size = 65'536;                // Source data sizes till this will be processed in __impl_small
+    static constexpr std::size_t __small_middle_size = 4'194'304;           // Source data sizes till this will be processed in __impl_middle
+                                                                            // All other data sizes will be processed in __impl_large
+    static constexpr std::size_t __early_exit_check_interval_div = 800;
+
+    template <typename _BrickTag, typename _ItersPerWorkItem, typename _SrcDataSize>
+    inline _SrcDataSize
+    __get_local_src_data_idx(_BrickTag __brick_tag, _ItersPerWorkItem __iters_per_work_item, _SrcDataSize __i) const
+    {
+        if constexpr (__is_backward_tag(__brick_tag))
+            return __iters_per_work_item - __i - 1;
+        else
+            return __i;
+    }
+
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     void
-    impl_small(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+    __impl_small(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+                    const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local,
+                    _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item =
@@ -1109,9 +1124,53 @@ struct __early_exit_find_or
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
         {
-            auto __local_src_data_idx = __i;
-            if constexpr (__is_backward_tag(__brick_tag))
-                __local_src_data_idx = __iters_per_work_item - 1 - __i;
+            const auto __local_src_data_idx = __get_local_src_data_idx(__brick_tag, __iters_per_work_item, __i);
+
+            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            {
+                // Update local found state
+                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+
+                // This break is mandatory from the performance point of view.
+                // This break is safe for all our cases:
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                //    This means that after first found entry there is no reason to process data anymore.
+                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // But break statement here shows poor perf in some cases.
+                // So we use bool variable state check in the for-loop header.
+                __something_was_found = true;
+            }
+        }
+    }
+
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+              typename _BrickTag, typename... _Ranges>
+    void
+    __impl_middle(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+                  const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+                  _Ranges&&... __rngs) const
+    {
+        // Calculate the number of elements to be processed by each work-item.
+        const auto __iters_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+
+        // There are 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
+        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+
+        // Return the index of this item in the kernel's execution range
+        const auto __global_id = __item_id.get_global_linear_id();
+
+        bool __something_was_found = false;
+        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        {
+            const auto __local_src_data_idx = __get_local_src_data_idx(__brick_tag, __iters_per_work_item, __i);
 
             const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
             if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
@@ -1141,10 +1200,10 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     void
-    impl_large(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               const _SrcDataSize __early_exit_check_interval,
-               _Ranges&&... __rngs) const
+    __impl_large(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+                 const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+                 const _SrcDataSize __early_exit_check_interval,
+                 _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item =
@@ -1164,15 +1223,13 @@ struct __early_exit_find_or
              __i += __early_exit_check_interval)
         {
             #pragma unroll
-            for (_SrcDataSize __j = 0; __j < __early_exit_check_interval; ++__j)
+            for (_SrcDataSize __j = __i; __j < __i + __early_exit_check_interval; ++__j)
             {
-                auto __local_src_data_idx = __i + __j;
-                if constexpr (__is_backward_tag(__brick_tag))
-                    __local_src_data_idx = __iters_per_work_item - 1 - __i - __j;
-
                 // Doing success search only once
                 if (!__something_was_found)
                 {
+                    const auto __local_src_data_idx = __get_local_src_data_idx(__brick_tag, __iters_per_work_item, __j);
+
                     const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
                     if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
                     {
@@ -1211,25 +1268,35 @@ struct __early_exit_find_or
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
                _Ranges&&... __rngs) const
     {
-        constexpr std::size_t __early_exit_check_interval_div = 800;
-
-        // Calculate the number of elements to be processed by each work-item.
-        const auto __iters_per_work_item =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
-
-        _SrcDataSize __early_exit_check_interval =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
-        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
-        __early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
-
-        if (0 == __early_exit_check_interval)
+        if (__source_data_size < __small_data_size)
         {
-            impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
+            __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
+        }
+        else if (__source_data_size < __small_middle_size)
+        {
+            __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag, __rngs...);
         }
         else
         {
-            impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                       __early_exit_check_interval, __rngs...);
+            // Calculate the number of elements to be processed by each work-item.
+            const auto __iters_per_work_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
+
+            _SrcDataSize __early_exit_check_interval =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
+            __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
+            //__early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
+
+            if (0 < __early_exit_check_interval)
+            {
+                __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                             __early_exit_check_interval, __rngs...);
+            }
+            else
+            {
+                __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                              __rngs...);
+            }
         }
     }
 };
