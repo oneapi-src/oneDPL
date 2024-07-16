@@ -1221,34 +1221,20 @@ struct __early_exit_find_or
         const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
-        //if (__iters_per_work_item < __iters_per_work_item_small)
-        //{
-        //    __impl_small(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-        //                 std::forward<_Ranges>(__rngs)...);
-        //}
-        //else if (__iters_per_work_item < __iters_per_work_item_middle)
-        //{
-        //    __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-        //                  std::forward<_Ranges>(__rngs)...);
-        //}
-        //else
-        //{
-            _SrcDataSize __early_exit_check_interval =
-                oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
-            __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
-            //__early_exit_check_interval = std::min(__early_exit_check_interval, (_SrcDataSize)255);
+        _SrcDataSize __early_exit_check_interval =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div);
+        __early_exit_check_interval = __early_exit_check_interval < 2 ? 0 : __early_exit_check_interval;
 
-            if (0 == __early_exit_check_interval)
-            {
-                __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                              std::forward<_Ranges>(__rngs)...);
-            }
-            else
-            {
-                __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
-                             __early_exit_check_interval, std::forward<_Ranges>(__rngs)...);
-            }
-        //}
+        if (0 == __early_exit_check_interval)
+        {
+            __impl_middle(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                            std::forward<_Ranges>(__rngs)...);
+        }
+        else
+        {
+            __impl_large(__item_id, __source_data_size, __iteration_data_size, __found_local, __brick_tag,
+                            __early_exit_check_interval, std::forward<_Ranges>(__rngs)...);
+        }
     }
 };
 
