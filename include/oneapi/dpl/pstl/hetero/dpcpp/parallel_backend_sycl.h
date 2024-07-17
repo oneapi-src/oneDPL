@@ -879,7 +879,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    // Reduce-then-scan is dependent on sycl::sub_group_shift which requires the underlying type to be trivially
+    // Reduce-then-scan is dependent on sycl::shift_group_right which requires the underlying type to be trivially
     // copyable. If this is not met, then we must fallback to the legacy implementation.
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
