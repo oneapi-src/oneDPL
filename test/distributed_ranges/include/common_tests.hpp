@@ -362,39 +362,4 @@ template <rng::range R1, rng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
   return is_equal(std::forward<R1>(r1), std::forward<R2>(r2));
 }
 
-#ifdef USE_FMT
-template <typename... Ts>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::tuple<Ts...> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::pair<T1, T2> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-#endif
-
 } // namespace DR_RANGES_NAMESPACE
-
-namespace std {
-#ifdef USE_FMT
-template <typename... Ts>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::tuple<Ts...> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::pair<T1, T2> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-#endif
-} // namespace std
