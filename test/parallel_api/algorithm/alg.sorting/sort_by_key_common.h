@@ -178,12 +178,12 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
     EXPECT_EQ_N(keys_expected.begin(), keys_begin, n, "wrong result non-stable sort: keys");
 
     // Remove key-value pairs with duplicate keys
-    // The resulting value sequence is determenistic even for non-stable sort
+    // The resulting value sequence is deterministic even for non-stable sort
     auto expected_unique_n = remove_duplicates_by_key(keys_expected.begin(), vals_expected.begin(), n);
     std::vector<KeyT> keys(keys_begin, keys_begin + n);
     std::vector<ValT> vals(vals_begin, vals_begin + n);
     auto unique_n = remove_duplicates_by_key(keys.begin(), vals.begin(), n);
-    assert(expected_unique_n == unique_n);
+    EXPECT_EQ(expected_unique_n, unique_n, "the number of unique keys does not much the expected value");
     EXPECT_EQ_N(vals_expected.begin(), vals.begin(), expected_unique_n, "wrong result non-stable sort: values");
 }
 

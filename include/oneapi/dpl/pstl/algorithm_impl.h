@@ -2465,9 +2465,7 @@ __pattern_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
     ::std::sort(__beg, __end, __cmp_f);
 }
@@ -2485,9 +2483,7 @@ __pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
@@ -2513,9 +2509,7 @@ __pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessItera
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(std::get<0>(__a), std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
     std::stable_sort(__beg, __end, __cmp_f);
 }
@@ -2533,9 +2527,7 @@ __pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exe
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(std::get<0>(__a), std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
