@@ -150,7 +150,7 @@ TYPED_TEST(CopyTest, local2dist_sliced_left) {
 
   dr::shp::copy(stdrng::begin(local_vec), stdrng::end(local_vec),
                 stdrng::begin(dist_vec) + 2);
-  EXPECT_TRUE(equal(
+  EXPECT_TRUE(gtest_equal(
       dist_vec, typename TestFixture::LocalVec{0, 0, 2, 3, 4, 5, 6, 7, 8, 9}));
 }
 
@@ -160,6 +160,6 @@ TYPED_TEST(CopyTest, local2dist_sliced_right) {
 
   dr::shp::copy(stdrng::begin(local_vec), stdrng::end(local_vec),
                 stdrng::begin(dist_vec));
-  EXPECT_TRUE(equal(
+  EXPECT_TRUE(gtest_equal(
       dist_vec, typename TestFixture::LocalVec{2, 3, 4, 5, 6, 7, 8, 9, 0, 0}));
 }
