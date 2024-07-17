@@ -70,7 +70,7 @@ __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec), __f_1,
                                                             oneapi::dpl::views::all(std::forward<_R>(__r)));
 
-    return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r));
+    return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }
 
 //---------------------------------------------------------------------------------------------------------------------
