@@ -2476,11 +2476,6 @@ void
 __pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp)
 {
-    static_assert(
-        ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator1>::value_type> &&
-            ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator2>::value_type>,
-        "The keys and values should be move constructible in case of parallel execution.");
-
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
     auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
@@ -2520,11 +2515,6 @@ void
 __pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                              _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp)
 {
-    static_assert(
-        std::is_move_constructible_v<typename std::iterator_traits<_RandomAccessIterator1>::value_type> &&
-            std::is_move_constructible_v<typename std::iterator_traits<_RandomAccessIterator2>::value_type>,
-        "The keys and values should be move constructible in case of parallel execution.");
-
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
     auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
