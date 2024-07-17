@@ -566,10 +566,10 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                                                         __internal::__optional_kernel_name<_ScanKernelName...>>
 {
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
-              typename _UnaryOp>
+              typename _UnaryOp, typename _Assign>
     auto
     operator()(_Policy&& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
-               _BinaryOperation __bin_op, _UnaryOp __unary_op)
+               _BinaryOperation __bin_op, _UnaryOp __unary_op, _Assign __assign)
     {
         using _ValueType = ::std::uint16_t;
 
@@ -629,12 +629,13 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
                     __scan_work_group<_ValueType, /* _Inclusive */ false>(
                         __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
-                         __init);
+                        __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         if (__lacc[__idx])
-                            __out_rng[__lacc[__idx + __elems_per_wg]] = static_cast<__tuple_type>(__in_rng[__idx]);
+                            __assign(static_cast<__tuple_type>(__in_rng[__idx]),
+                                     __out_rng[__lacc[__idx + __elems_per_wg]]);
                     }
 
                     const ::std::uint16_t __residual = __n % _WGSize;
@@ -643,7 +644,8 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     {
                         auto __idx = __residual_start + __item_id;
                         if (__lacc[__idx])
-                            __out_rng[__lacc[__idx + __elems_per_wg]] = static_cast<__tuple_type>(__in_rng[__idx]);
+                            __assign(static_cast<__tuple_type>(__in_rng[__idx]),
+                                     __out_rng[__lacc[__idx + __elems_per_wg]]);
                     }
 
                     if (__item_id == 0)
@@ -786,7 +788,8 @@ struct __gen_transform_input
     operator()(InRng&& __in_rng, std::size_t __idx) const
     {
         using _ValueType = oneapi::dpl::__internal::__value_t<InRng>;
-        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<typename std::invoke_result<_UnaryOp, _ValueType>::type>;
+        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<
+            typename std::invoke_result<_UnaryOp, _ValueType>::type>;
         return _OutValueType{__unary_op(__in_rng[__idx])};
     }
     _UnaryOp __unary_op;
@@ -808,19 +811,46 @@ struct __simple_write_to_idx
 };
 
 template <typename _Predicate>
-struct __gen_count_pred
+struct __gen_mask
+{
+    template <typename _InRng>
+    bool
+    operator()(_InRng&& __in_rng, std::size_t __idx) const
+    {
+        return __pred(__in_rng[__idx]);
+    }
+    _Predicate __pred;
+};
+
+template <typename _BinaryPredicate>
+struct __gen_unique_mask
+{
+    template <typename _InRng>
+    bool
+    operator()(_InRng&& __in_rng, std::size_t __idx) const
+    {
+        if (__idx == 0)
+            return true;
+        else
+            return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
+    }
+    _BinaryPredicate __pred;
+};
+
+template <typename _GenMask>
+struct __gen_count_mask
 {
     template <typename _InRng, typename _SizeType>
     _SizeType
     operator()(_InRng&& __in_rng, _SizeType __idx) const
     {
-        return __pred(__in_rng[__idx]) ? _SizeType{1} : _SizeType{0};
+        return __gen_mask(std::forward<_InRng>(__in_rng), __idx) ? _SizeType{1} : _SizeType{0};
     }
-    _Predicate __pred;
+    _GenMask __gen_mask;
 };
 
-template <typename _Predicate>
-struct __gen_expand_count_pred
+template <typename _GenMask>
+struct __gen_expand_count_mask
 {
     template <typename _InRng, typename _SizeType>
     auto
@@ -832,10 +862,10 @@ struct __gen_expand_count_pred
         using _ElementType =
             oneapi::dpl::__internal::__decay_with_tuple_specialization_t<oneapi::dpl::__internal::__value_t<_InRng>>;
         _ElementType ele = __in_rng[__idx];
-        bool mask = __pred(ele);
+        bool mask = __gen_mask(__in_rng, __idx);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
-    _Predicate __pred;
+    _GenMask __gen_mask;
 };
 
 struct __get_zeroth_element
@@ -847,7 +877,7 @@ struct __get_zeroth_element
         return std::get<0>(std::forward<_Tp>(__a));
     }
 };
-
+template <typename Assign = oneapi::dpl::__internal::__pstl_assign>
 struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
@@ -860,8 +890,27 @@ struct __write_to_idx_if
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
                                                                std::decay_t<decltype(__out_rng[__idx])>>::__type;
         if (std::get<1>(__v))
-            __out_rng[std::get<0>(__v) - 1] = static_cast<_ConvertedTupleType>(std::get<2>(__v));
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out_rng[std::get<0>(__v) - 1]);
     }
+    Assign __assign;
+};
+
+template <typename Assign = oneapi::dpl::__internal::__pstl_assign>
+struct __write_to_idx_if_else
+{
+    template <typename _OutRng, typename _SizeType, typename ValueType>
+    void
+    operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
+    {
+        using _ConvertedTupleType =
+            typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
+                                                               std::decay_t<decltype(__out[__idx])>>::__type;
+        if (std::get<1>(__v))
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), std::get<0>(__out[std::get<0>(__v) - 1]));
+        else
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), std::get<1>(__out[__idx - std::get<0>(__v)]));
+    }
+    Assign __assign;
 };
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
@@ -944,9 +993,11 @@ struct __invoke_single_group_copy_if
     // Specialization for devices that have a max work-group size of at least 1024
     static constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
-    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
+    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred,
+              typename _Assign = oneapi::dpl::__internal::__pstl_assign>
     auto
-    operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred)
+    operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred,
+               _Assign&& __assign)
     {
         constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
@@ -958,71 +1009,47 @@ struct __invoke_single_group_copy_if
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred));
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred), std::forward<_Assign>(__assign));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred));
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred), std::forward<_Assign>(__assign));
     }
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
-          typename _CopyByMaskOp>
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _GenMask,
+          typename _WriteOp>
 auto
 __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                     _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _CreateMaskOp __create_mask_op,
-                     _CopyByMaskOp __copy_by_mask_op)
+                     _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask, _WriteOp __write_op)
 {
     using _ReduceOp = ::std::plus<_Size>;
-    using _Assigner = unseq_backend::__scan_assigner;
-    using _NoAssign = unseq_backend::__scan_no_assign;
-    using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-    using _InitType = unseq_backend::__no_init_value<_Size>;
 
-    _Assigner __assign_op;
-    _ReduceOp __reduce_op;
-    _DataAcc __get_data_op;
-    _MaskAssigner __add_mask_op;
-
-    // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
-
-    return __parallel_transform_scan_base(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::make_zip_view(
-            ::std::forward<_InRng>(__in_rng),
-            oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                __mask_buf.get_buffer())),
-        ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
-        // local scan
-        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-                              _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-                                                                       __add_mask_op, __create_mask_op},
-        // scan between groups
-        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                              _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                              __get_data_op},
-        // global scan
-        __copy_by_mask_op);
+    return __parallel_transform_reduce_then_scan(
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+        std::forward<_OutRng>(__out_rng),
+        oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
+        oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
+        oneapi::dpl::__par_backend_hetero::__get_zeroth_element{}, __write_op,
+        oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+        /*_Inclusive=*/std::true_type{});
 }
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred>
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
+          typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 auto
 __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
+                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred, _Assign&& __assign = _Assign{})
 {
     using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
 
@@ -1047,20 +1074,23 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using _SizeBreakpoints = ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
-            ::std::forward<_OutRng>(__out_rng), __pred);
+            _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
+            std::forward<_OutRng>(__out_rng), __pred, std::forward<_Assign>(__assign));
     }
     // Reduce-then-scan performs poorly on CPUs due to sub-group operations.
     else if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
     {
         using _ReduceOp = std::plus<_Size>;
+        using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
+        _GenMask __generate_mask{__pred};
 
         return __parallel_transform_reduce_then_scan(
             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-            std::forward<_OutRng>(__out_rng), oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Pred>{__pred},
-            _ReduceOp{}, oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Pred>{__pred},
+            std::forward<_OutRng>(__out_rng),
+            oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
+            oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
             oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
+            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<_Assign>{std::forward<_Assign>(__assign)},
             oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
             /*_Inclusive=*/std::true_type{});
     }

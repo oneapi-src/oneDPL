@@ -334,67 +334,37 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
 // copy_if
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _CreateMaskOp,
-          typename _CopyByMaskOp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _GenMask,
+          typename _WriteOp>
 oneapi::dpl::__internal::__difference_t<_Range1>
 __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                    _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
+                    _GenMask __gen_mask, _WriteOp __write_op)
 {
-    if (__rng1.size() == 0)
-        return __rng1.size();
+    auto __n = __rng1.size();
+    if (__n == 0)
+        return 0;
 
-    using _SizeType = decltype(__rng1.size());
-    using _ReduceOp = ::std::plus<_SizeType>;
-    using _Assigner = unseq_backend::__scan_assigner;
-    using _NoAssign = unseq_backend::__scan_no_assign;
-    using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-    using _InitType = unseq_backend::__no_init_value<_SizeType>;
-    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-
-    _Assigner __assign_op;
-    _ReduceOp __reduce_op;
-    _DataAcc __get_data_op;
-    _MaskAssigner __add_mask_op;
-
-    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __rng1.size());
-
-    auto __res =
-        __par_backend_hetero::__parallel_transform_scan_base(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::__ranges::zip_view(
-                __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                            __mask_buf.get_buffer())),
-            __rng2, __reduce_op, _InitType{},
-            // local scan
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-                                  _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-                                                                           __add_mask_op, __create_mask_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                                  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                                  __get_data_op},
-            // global scan
-            __copy_by_mask_op)
-            .get();
-
-    return __res;
+    auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
+                                                            std::forward<_Range1>(__rng1),
+                                                            std::forward<_Range2>(__rng2), __n, __gen_mask, __write_op);
+    return __res.get();
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                  _Predicate __pred, _Assign)
+                  _Predicate __pred, _Assign&& __assign)
 {
-    using _SizeType = decltype(__rng1.size());
-    using _ReduceOp = ::std::plus<_SizeType>;
+    auto __n = __rng1.size();
+    if (__n == 0)
+        return 0;
 
-    unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
-    unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
+        _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1),
+        std::forward<_Range2>(__rng2), __n, __pred, std::forward<_Assign>(__assign));
 
-    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-                                         __create_mask_op, __copy_by_mask_op);
+    return __res.get(); //is a blocking call
 }
 
 //------------------------------------------------------------------------
@@ -433,17 +403,12 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typ
           typename _BinaryPredicate, typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
-                      _BinaryPredicate __pred, _Assign)
+                      _BinaryPredicate __pred, _Assign&& __assign)
 {
-    using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
-    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, _Assign, /*inclusive*/ ::std::true_type, 1>
-        __copy_by_mask_op;
-    __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
-        __not_pred<_BinaryPredicate>{__pred}};
-
-    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                         ::std::forward<_Range1>(__rng), ::std::forward<_Range2>(__result),
-                                         __create_mask_op, __copy_by_mask_op);
+    return __pattern_scan_copy(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                               std::forward<_Range2>(__result),
+                               oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
+                               oneapi::dpl::__par_backend_hetero::__write_to_idx_if{std::forward<_Assign>(__assign)});
 }
 
 //------------------------------------------------------------------------
