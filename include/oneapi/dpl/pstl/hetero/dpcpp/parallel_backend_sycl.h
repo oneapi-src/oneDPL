@@ -1311,7 +1311,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     // Calculate the number of elements to be processed by each work-item.
     const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
 
-    constexpr std::size_t __early_exit_check_interval_div = 10;
+    constexpr std::size_t __early_exit_check_interval_div = 100;
     std::size_t __early_exit_check_interval = __iters_per_work_item > __early_exit_check_interval_div * 2
         ? oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __early_exit_check_interval_div) : 0;
 
