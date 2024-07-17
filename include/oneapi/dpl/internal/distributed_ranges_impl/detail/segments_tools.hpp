@@ -39,9 +39,9 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
         auto&& [i, segment] = v;
         if (i == last_seg)
         {
-            auto first = rng::begin(segment);
-            auto last = rng::begin(segment);
-            rng::advance(last, remainder);
+            auto first = stdrng::begin(segment);
+            auto last = stdrng::begin(segment);
+            stdrng::advance(last, remainder);
             return remote_subrange(first, last, ranges::rank(segment));
         }
         else
@@ -50,7 +50,7 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
         }
     };
 
-    return enumerate(segments) | rng::views::take(last_seg + 1) | rng::views::transform(std::move(take_partial));
+    return enumerate(segments) | stdrng::views::take(last_seg + 1) | stdrng::views::transform(std::move(take_partial));
 }
 
 // Take the first n elements
@@ -85,9 +85,9 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         auto&& [i, segment] = v;
         if (i == first_seg)
         {
-            auto first = rng::begin(segment);
-            rng::advance(first, remainder);
-            auto last = rng::end(segment);
+            auto first = stdrng::begin(segment);
+            stdrng::advance(first, remainder);
+            auto last = stdrng::end(segment);
             return remote_subrange(first, last, ranges::rank(segment));
         }
         else
@@ -96,7 +96,7 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         }
     };
 
-    return enumerate(segments) | rng::views::drop(first_seg) | rng::views::transform(std::move(drop_partial));
+    return enumerate(segments) | stdrng::views::drop(first_seg) | stdrng::views::transform(std::move(drop_partial));
 }
 
 // Drop the first n elements
@@ -128,20 +128,20 @@ namespace DR_RANGES_NAMESPACE
 
 // A standard library range adaptor does not change the rank of a
 // remote range, so we can simply return the rank of the base view.
-template <rng::range V>
+template <stdrng::range V>
 requires(oneapi::dpl::experimental::dr::remote_range<decltype(std::declval<V>().base())>) auto rank_(V&& v)
 {
     return oneapi::dpl::experimental::dr::ranges::rank(std::forward<V>(v).base());
 }
 
-template <rng::range V>
+template <stdrng::range V>
 requires(oneapi::dpl::experimental::dr::is_ref_view_v<std::remove_cvref_t<V>>&&
              oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
 {
     return oneapi::dpl::experimental::dr::ranges::segments(v.base());
 }
 
-template <rng::range V>
+template <stdrng::range V>
 requires(oneapi::dpl::experimental::dr::is_take_view_v<std::remove_cvref_t<V>>&&
              oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
 {
@@ -149,7 +149,7 @@ requires(oneapi::dpl::experimental::dr::is_take_view_v<std::remove_cvref_t<V>>&&
         oneapi::dpl::experimental::dr::ranges::segments(v.base()), v.size());
 }
 
-template <rng::range V>
+template <stdrng::range V>
 requires(oneapi::dpl::experimental::dr::is_drop_view_v<std::remove_cvref_t<V>>&&
              oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
 {
@@ -157,13 +157,13 @@ requires(oneapi::dpl::experimental::dr::is_drop_view_v<std::remove_cvref_t<V>>&&
         oneapi::dpl::experimental::dr::ranges::segments(v.base()), v.base().size() - v.size());
 }
 
-template <rng::range V>
+template <stdrng::range V>
 requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V>>&&
-             oneapi::dpl::experimental::dr::distributed_iterator<rng::iterator_t<V>>) auto segments_(V&& v)
+             oneapi::dpl::experimental::dr::distributed_iterator<stdrng::iterator_t<V>>) auto segments_(V&& v)
 {
-    auto first = rng::begin(v);
-    auto last = rng::end(v);
-    auto size = rng::distance(first, last);
+    auto first = stdrng::begin(v);
+    auto last = stdrng::end(v);
+    auto size = stdrng::distance(first, last);
 
     return oneapi::dpl::experimental::dr::__detail::take_segments(
         oneapi::dpl::experimental::dr::ranges::segments(first), size);

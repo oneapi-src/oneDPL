@@ -39,7 +39,7 @@ template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_
 void
 exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp binary_op)
 {
-    using T = rng::range_value_t<O>;
+    using T = stdrng::range_value_t<O>;
 
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
@@ -49,7 +49,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
     if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
     {
 
-        U* d_inits = sycl::malloc_device<U>(rng::size(zipped_segments), devices()[0], context());
+        U* d_inits = sycl::malloc_device<U>(stdrng::size(zipped_segments), devices()[0], context());
 
         std::vector<sycl::event> events;
 
@@ -58,7 +58,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
         {
             auto&& [in_segment, out_segment] = segs;
 
-            auto last_element = rng::prev(rng::end(__detail::local(in_segment)));
+            auto last_element = stdrng::prev(stdrng::end(__detail::local(in_segment)));
             auto dest = d_inits + segment_id;
 
             auto&& q = __detail::queue(ranges::rank(in_segment));
@@ -71,7 +71,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
         __detail::wait(events);
         events.clear();
 
-        std::vector<U> inits(rng::size(zipped_segments));
+        std::vector<U> inits(stdrng::size(zipped_segments));
 
         copy(d_inits, d_inits + inits.size(), inits.data() + 1);
 
@@ -92,12 +92,12 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
             auto&& q = __detail::queue(ranges::rank(in_segment));
             auto&& local_policy = __detail::dpl_policy(ranges::rank(in_segment));
 
-            auto dist = rng::distance(in_segment);
+            auto dist = stdrng::distance(in_segment);
             assert(dist > 0);
 
-            auto first = rng::begin(in_segment);
-            auto last = rng::end(in_segment);
-            auto d_first = rng::begin(out_segment);
+            auto first = stdrng::begin(in_segment);
+            auto last = stdrng::end(in_segment);
+            auto d_first = stdrng::begin(out_segment);
 
             auto init = inits[segment_id];
 
@@ -108,12 +108,12 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
             auto dst_iter = ranges::local(partial_sums).data() + segment_id;
 
             auto src_iter = ranges::local(out_segment).data();
-            rng::advance(src_iter, dist - 1);
+            stdrng::advance(src_iter, dist - 1);
 
             auto e = q.submit([&](auto&& h) {
                 h.depends_on(event);
                 h.single_task([=]() {
-                    rng::range_value_t<O> value = *src_iter;
+                    stdrng::range_value_t<O> value = *src_iter;
                     *dst_iter = value;
                 });
             });
@@ -142,14 +142,14 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
             {
                 auto&& q = __detail::queue(ranges::rank(out_segment));
 
-                auto first = rng::begin(out_segment);
+                auto first = stdrng::begin(out_segment);
                 dr::__detail::direct_iterator d_first(first);
 
                 auto d_sum = ranges::__detail::local(partial_sums).begin() + idx - 1;
 
-                sycl::event e = dr::__detail::parallel_for(q, sycl::range<>(rng::distance(out_segment)), [=](auto idx) {
-                    d_first[idx] = binary_op(d_first[idx], *d_sum);
-                });
+                sycl::event e =
+                    dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)),
+                                               [=](auto idx) { d_first[idx] = binary_op(d_first[idx], *d_sum); });
 
                 events.push_back(e);
             }
@@ -204,11 +204,11 @@ template <typename ExecutionPolicy, distributed_iterator Iter, distributed_itera
 void
 exclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first, T init, BinaryOp binary_op)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto d_last = d_first;
-    rng::advance(d_last, dist);
-    exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last),
-                         rng::subrange(d_first, d_last), init, binary_op);
+    stdrng::advance(d_last, dist);
+    exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
+                         stdrng::subrange(d_first, d_last), init, binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_iterator Iter, distributed_iterator OutputIter, typename T>

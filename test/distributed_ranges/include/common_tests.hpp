@@ -57,7 +57,7 @@ inline std::ostream &operator<<(std::ostream &os, const AOS_Struct &st) {
 template <typename T> struct Ops1 {
   Ops1(std::size_t n) : dist_vec(n), vec(n) {
     iota(dist_vec, 100);
-    rng::iota(vec, 100);
+    stdrng::iota(vec, 100);
   }
 
   T dist_vec;
@@ -68,8 +68,8 @@ template <typename T> struct Ops2 {
   Ops2(std::size_t n) : dist_vec0(n), dist_vec1(n), vec0(n), vec1(n) {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
-    rng::iota(vec0, 100);
-    rng::iota(vec1, 200);
+    stdrng::iota(vec0, 100);
+    stdrng::iota(vec1, 200);
   }
 
   T dist_vec0, dist_vec1;
@@ -82,9 +82,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-    rng::iota(vec0, 100);
-    rng::iota(vec1, 200);
-    rng::iota(vec2, 300);
+    stdrng::iota(vec0, 100);
+    stdrng::iota(vec1, 200);
+    stdrng::iota(vec2, 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;
@@ -142,9 +142,9 @@ bool operator==(std::pair<C, D> const & y, std::pair<A, B> const & x)
 }
 
 
-template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
-  if (rng::distance(rng::begin(r1), rng::end(r1)) !=
-      rng::distance(rng::begin(r2), rng::end(r2))) {
+template <stdrng::range R1, stdrng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
+  if (stdrng::distance(stdrng::begin(r1), stdrng::end(r1)) !=
+      stdrng::distance(stdrng::begin(r2), stdrng::end(r2))) {
     return false;
   }
   
@@ -159,7 +159,7 @@ template <rng::range R1, rng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   return true;
 }
 
-bool is_equal(std::forward_iterator auto it, rng::range auto &&r) {
+bool is_equal(std::forward_iterator auto it, stdrng::range auto &&r) {
   for (auto e : r) {
     if (*it++ != e) {
       return false;
@@ -168,7 +168,7 @@ bool is_equal(std::forward_iterator auto it, rng::range auto &&r) {
   return true;
 }
 
-auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
+auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
     return drfmt::format("");
@@ -177,11 +177,11 @@ auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
                      "    ref:    {}\n"
                      "    actual: {}\n  ",
                      title == "" ? "" : "    " + title + "\n",
-                     rng::views::all(ref), rng::views::all(actual));
+                     stdrng::views::all(ref), stdrng::views::all(actual));
 }
 
-std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
-                                rng::range auto &&tst, std::string title = "") {
+std::string unary_check_message(stdrng::range auto &&in, stdrng::range auto &&ref,
+                                stdrng::range auto &&tst, std::string title = "") {
   if (is_equal(ref, tst)) {
     return "";
   } else {
@@ -194,12 +194,12 @@ std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
 }
 
 bool contains_empty(auto &&r) {
-  if (rng::distance(r) == 1) {
+  if (stdrng::distance(r) == 1) {
     return false;
   }
 
   for (auto &&x : r) {
-    if (rng::empty(x)) {
+    if (stdrng::empty(x)) {
       return true;
     }
   }
@@ -209,24 +209,24 @@ bool contains_empty(auto &&r) {
 
 std::string check_segments_message(auto &&r) {
   auto segments = dr::ranges::segments(r);
-  auto flat = rng::views::join(segments);
+  auto flat = stdrng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
     return drfmt::format("\n"
                        "    Segment error\n"
                        "      range:    {}\n"
                        "      segments: {}\n  ",
-                       rng::views::all(r), rng::views::all(segments));
+                       stdrng::views::all(r), stdrng::views::all(segments));
   }
   return "";
 }
 
-auto check_view_message(rng::range auto &&ref, rng::range auto &&actual) {
+auto check_view_message(stdrng::range auto &&ref, stdrng::range auto &&actual) {
   return check_segments_message(actual) +
          equal_message(ref, actual, "view mismatch");
 }
 
-auto check_mutate_view_message(auto &ops, rng::range auto &&ref,
-                               rng::range auto &&actual) {
+auto check_mutate_view_message(auto &ops, stdrng::range auto &&ref,
+                               stdrng::range auto &&actual) {
   // Check view
   auto message = check_view_message(ref, actual);
 
@@ -237,7 +237,7 @@ auto check_mutate_view_message(auto &ops, rng::range auto &&ref,
   auto input_vector = ops.vec;
   std::vector input_view(ref.begin(), ref.end());
   xhp::for_each(actual, negate);
-  rng::for_each(ref, negate);
+  stdrng::for_each(ref, negate);
 
   // Check mutated view
   message +=
@@ -258,25 +258,25 @@ auto gtest_result(const auto &message) {
   }
 }
 
-auto equal(rng::range auto &&ref, rng::range auto &&actual,
+auto equal(stdrng::range auto &&ref, stdrng::range auto &&actual,
            std::string title = " ") {
   return gtest_result(equal_message(ref, actual, title));
 }
 
-template <rng::range Rng>
-auto equal(std::initializer_list<rng::range_value_t<Rng>> ref, Rng &&actual,
+template <stdrng::range Rng>
+auto equal(std::initializer_list<stdrng::range_value_t<Rng>> ref, Rng &&actual,
            std::string title = " ") {
   return gtest_result(
-      equal_message(std::vector<rng::range_value_t<Rng>>(ref), actual, title));
+      equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
 }
 
-auto check_unary_op(rng::range auto &&in, rng::range auto &&ref,
-                    rng::range auto &&tst, std::string title = "") {
+auto check_unary_op(stdrng::range auto &&in, stdrng::range auto &&ref,
+                    stdrng::range auto &&tst, std::string title = "") {
   return gtest_result(unary_check_message(in, ref, tst, title));
 }
 
-auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
-                           rng::range auto &&ref, rng::range auto &&actual) {
+auto check_binary_check_op(stdrng::range auto &&a, stdrng::range auto &&b,
+                           stdrng::range auto &&ref, stdrng::range auto &&actual) {
   if (is_equal(ref, actual)) {
     return testing::AssertionSuccess();
   } else {
@@ -289,7 +289,7 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
 
 auto check_segments(std::forward_iterator auto di) {
   auto segments = dr::ranges::segments(di);
-  auto flat = rng::join_view(segments);
+  auto flat = stdrng::join_view(segments);
   if (contains_empty(segments) || !is_equal(di, flat)) {
     return testing::AssertionFailure()
            << drfmt::format("\n    segments: {}\n  ", segments);
@@ -298,16 +298,16 @@ auto check_segments(std::forward_iterator auto di) {
   }
 }
 
-auto check_segments(rng::forward_range auto &&dr) {
+auto check_segments(stdrng::forward_range auto &&dr) {
   return gtest_result(check_segments_message(dr));
 }
 
-auto check_view(rng::range auto &&ref, rng::range auto &&actual) {
+auto check_view(stdrng::range auto &&ref, stdrng::range auto &&actual) {
   return gtest_result(check_view_message(ref, actual));
 }
 
-auto check_mutate_view(auto &op, rng::range auto &&ref,
-                       rng::range auto &&actual) {
+auto check_mutate_view(auto &op, stdrng::range auto &&ref,
+                       stdrng::range auto &&actual) {
   return gtest_result(check_mutate_view_message(op, ref, actual));
 }
 
@@ -363,7 +363,7 @@ bool operator==(const distributed_vector<T> &dist_vec,
 
 namespace DR_RANGES_NAMESPACE {
 
-template <rng::range R1, rng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
+template <stdrng::range R1, stdrng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
   return is_equal(std::forward<R1>(r1), std::forward<R2>(r2));
 }
 

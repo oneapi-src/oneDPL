@@ -28,7 +28,7 @@ TYPED_TEST(Transform, Range) {
   auto negate = [](auto &&v) { return -v; };
 
   xhp::transform(ops.dist_vec0, ops.dist_vec1.begin(), negate);
-  rng::transform(ops.vec0, ops.vec1.begin(), negate);
+  stdrng::transform(ops.vec0, ops.vec1.begin(), negate);
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
 }
@@ -42,7 +42,7 @@ TYPED_TEST(Transform, RangeMutate) {
   };
 
   xhp::transform(ops.dist_vec0, ops.dist_vec1.begin(), negate);
-  rng::transform(ops.vec0, ops.vec1.begin(), negate);
+  stdrng::transform(ops.vec0, ops.vec1.begin(), negate);
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
 }
@@ -54,7 +54,7 @@ TYPED_TEST(Transform, Iterators) {
 
   xhp::transform(ops.dist_vec0.begin(), ops.dist_vec0.end(),
                  ops.dist_vec1.begin(), negate);
-  rng::transform(ops.vec0.begin(), ops.vec0.end(), ops.vec1.begin(), negate);
+  stdrng::transform(ops.vec0.begin(), ops.vec0.end(), ops.vec1.begin(), negate);
 
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);

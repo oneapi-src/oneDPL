@@ -23,15 +23,15 @@
 namespace oneapi::dpl::experimental::dr::shp::views
 {
 
-inline constexpr auto all = rng::views::all;
+inline constexpr auto all = stdrng::views::all;
 
-inline constexpr auto counted = rng::views::counted;
+inline constexpr auto counted = stdrng::views::counted;
 
-inline constexpr auto drop = rng::views::drop;
+inline constexpr auto drop = stdrng::views::drop;
 
 inline constexpr auto iota = dr::views::iota;
 
-inline constexpr auto take = rng::views::take;
+inline constexpr auto take = stdrng::views::take;
 
 inline constexpr auto transform = dr::views::transform;
 
