@@ -26,9 +26,13 @@
 #   include "support/sycl_alloc_utils.h"
 #endif
 
-#include <vector>
-#include <algorithm>
-#include <type_traits>
+#include <tuple> // std::tie
+#include <random> // std::default_random_engine, uniform_real_distribution
+#include <vector> // std::vector
+#include <iterator> // std::distance
+#include <algorithm> // std::generate, std::remove_if, std::stable_sort, std::is_sorted, std::transform, std::shuffle
+#include <type_traits> // std::is_same
+#include <unordered_map> // std::unordered_map
 
 struct StableSort{};
 struct UnstableSort{};
@@ -36,201 +40,238 @@ struct UnstableSort{};
 struct AscendingSort{};
 struct DiscendingSort{};
 
-template<typename TestType, typename StabilityTag, typename DirectionTag>
-struct KernelName{};
-
-template<typename _KeyIt, typename _ValIt, typename _Size, typename DirectionTag>
-void
-generate_data(_KeyIt keys_begin, _ValIt vals_begin, _Size n, DirectionTag direction_tag)
+struct DefaultComparator{};
+struct GreaterComparator
 {
-    if constexpr (std::is_same_v<DirectionTag, AscendingSort>)
+    template<typename T>
+    bool operator()(const T& lhs, const T& rhs) const {
+        return lhs > rhs;
+    }
+};
+
+struct Particle
+{
+    float mass;
+    float velocity;
+    float coordinates[3];
+    using energy_type = float;
+    energy_type energy() const
     {
-        // Generated example for n = 10:
-        // Keys:    1 2 1 2 1 2 1 2 1 2
-        // Values:  0 1 2 3 4 5 6 7 8 9
-        //
-        // Sorted example for n = 10, stable sort:
-        // Keys:    1 1 1 1 1 2 2 2 2 2
-        // Values:  0 2 4 6 8 1 3 5 7 9
-        auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
-        std::transform(counting_begin, counting_begin + n, keys_begin,
-                    [](int i) { return i % 2 + 1; });
-        std::copy(counting_begin, counting_begin + n, vals_begin);
+        return 0.5 * mass * velocity * velocity;
+    }
+    bool operator==(const Particle& other) const
+    {
+        return std::tie(coordinates[0], coordinates[1], coordinates[2]) ==
+               std::tie(other.coordinates[0], other.coordinates[1], other.coordinates[2]);
+    }
+};
+
+constexpr std::size_t large_size = 81207;
+constexpr std::size_t small_size = 4134;
+
+template<typename KeyIt, typename ValIt, typename Size>
+Size
+remove_duplicates_by_key(const KeyIt& keys_begin, const ValIt& vals_begin, Size n)
+{
+    using KeyT = typename std::iterator_traits<KeyIt>::value_type;
+    std::unordered_map<KeyT, Size> histogram;
+    std::for_each(keys_begin, keys_begin + n, [&histogram](const auto& key) { ++histogram[key]; });
+    auto first = oneapi::dpl::make_zip_iterator(keys_begin, vals_begin);
+    auto has_duplicates = [&histogram](const auto& pair) {return histogram[std::get<0>(pair)] > 1; };
+    auto new_last = std::remove_if(first, first + n, has_duplicates);
+    return std::distance(first, new_last);
+}
+
+template<typename KeyIt, typename ValIt, typename Size>
+void
+generate_data(KeyIt keys_begin, ValIt vals_begin, Size n, std::uint32_t seed)
+{
+    using KeyT = typename std::iterator_traits<KeyIt>::value_type;
+    using ValT = typename std::iterator_traits<ValIt>::value_type;
+    if constexpr (std::is_same_v<ValT, Particle>)
+    {
+        static_assert(std::is_same_v<KeyT, Particle::energy_type>);
+        std::default_random_engine gen{seed};
+        std::uniform_real_distribution<float> mass_dist(0.0, 1000.0);
+        std::uniform_real_distribution<float> velocity_dist(0.0, 1.0);
+        std::uniform_real_distribution<float> coord_dist(0.0, 1.0);
+        std::generate(vals_begin, vals_begin + n, [&gen, &mass_dist, &velocity_dist, &coord_dist]() {
+            return Particle{mass_dist(gen), velocity_dist(gen), {coord_dist(gen), coord_dist(gen), coord_dist(gen)}};
+        });
+        std::transform(vals_begin, vals_begin + n, keys_begin, [](const auto& particle) { return particle.energy(); });
     }
     else
     {
-        // Generated example for n = 10:
-        // Keys:    0 10 20 30 40 50 60 70 80 90
-        // Values:  9  8  7  6  5  4  3  2  1  0
-        //
-        // Sorted example for n = 10, stable sort:
-        // Keys:    90 80 70 60 50 40 30 20 10  0
-        // Values:   0  1  2  3  4  5  6  7  8  9
-        for (int i = 0; i < n; i++)
-        {
-            keys_begin[i] = i * 10;
-            vals_begin[i] = n - i - 1;
-        }
+        TestUtils::generate_arithmetic_data(keys_begin, n, seed);
+        TestUtils::generate_arithmetic_data(vals_begin, n, seed + 1);
+        // avoid having value duplicates at the same locations as key duplicates for a more robust stability check
+        std::shuffle(vals_begin, vals_begin + n, std::default_random_engine(seed));
     }
 }
 
-template<typename _Policy, typename _KeyIt, typename _ValIt, typename _Size, typename StabilityTag, typename DirectionTag>
+template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
 void
-call_sort(_Policy&& policy, _KeyIt keys_begin, _ValIt vals_begin, _Size n, StabilityTag, DirectionTag)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, StableSort)
 {
-    if constexpr (std::is_same_v<DirectionTag, AscendingSort>)
-    {
-        // Do not pass the comparator to check the API with a default comparator; radix sort may be used
-        if constexpr (std::is_same_v<StabilityTag, StableSort>)
-            oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
-        else
-            oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
-    }
+    if constexpr (std::is_same_v<Compare, DefaultComparator>)
+        oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
     else
-    {
-        // Pass a custom comparator to check the corresponding implementation; merge-sort may be used
-        auto greater = [](const auto& lhs, const auto& rhs) { return lhs > rhs; };
-        if constexpr (std::is_same_v<StabilityTag, StableSort>)
-            oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, greater);
-        else
-            oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, greater);
-    }
+        oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare);
 }
 
-template<typename _KeysIt, typename _ValsIt, typename _Size, typename StabilityTag, typename DirectionTag>
+template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
 void
-check_sort(const _KeysIt& keys_begin, const _ValsIt& vals_begin, _Size n, StabilityTag, DirectionTag)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, UnstableSort)
 {
-    if constexpr (std::is_same_v<DirectionTag, AscendingSort>)
-    {
-        const int k = (n - 1) / 2 + 1;
-        for (int i = 0; i < n; ++i)
-        {
-            if(i - k < 0)
-            {
-                //a key should be 1 and value should be even
-                EXPECT_TRUE(keys_begin[i] == 1 && vals_begin[i] % 2 == 0, "wrong result with a standard policy");
-            }
-            else
-            {
-                //a key should be 2 and value should be odd
-                EXPECT_TRUE(keys_begin[i] == 2 && vals_begin[i] % 2 == 1, "wrong result with a standard policy");
-            }
-        }
-
-        if constexpr (std::is_same_v<StabilityTag, StableSort>)
-        {
-            EXPECT_TRUE(std::is_sorted(vals_begin, vals_begin + k),
-                        "wrong result with a standard policy, sort stability issue");
-            EXPECT_TRUE(std::is_sorted(vals_begin + k, vals_begin + n),
-                        "wrong result with a standard policy, sort stability issue");
-        }
-    }
+    if constexpr (std::is_same_v<Compare, DefaultComparator>)
+        oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
     else
+        oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare);
+}
+
+template<typename KeyIt, typename ValIt, typename Size, typename Compare>
+void
+call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare)
+{
+    static_assert(std::is_same_v<Compare, DefaultComparator> || std::is_same_v<Compare, GreaterComparator>);
+    auto first = oneapi::dpl::make_zip_iterator(ref_keys_begin, ref_vals_begin);
+    if constexpr (std::is_same_v<Compare, DefaultComparator>)
     {
-        EXPECT_TRUE(std::is_sorted(keys_begin, keys_begin + n, std::greater<void>()), "wrong result with hetero policy, USM data");
-        if constexpr (std::is_same_v<StabilityTag, StableSort>)
-        {
-            EXPECT_TRUE(std::is_sorted(vals_begin, vals_begin + n),
-                        "wrong result with hetero policy, USM data, sort stability issue");
-        }
+        std::stable_sort(first, first + n, [](const auto& lhs, const auto& rhs) {
+            return std::get<0>(lhs) < std::get<0>(rhs);
+        });
+    }
+    if constexpr (std::is_same_v<Compare, GreaterComparator>)
+    {
+        std::stable_sort(first, first + n, [](const auto& lhs, const auto& rhs) {
+            return std::get<0>(lhs) > std::get<0>(rhs);
+        });
     }
 }
 
-template<typename _Policy, typename StabilityTag, typename DirectionTag>
+template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename Compare>
 void
-test_with_std_policy(_Policy&& policy, StabilityTag stability_tag, DirectionTag direction_tag)
+check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
+           const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
+           Size n, Compare compare, StableSort)
 {
-    constexpr int n = 1000000;
-    std::vector<int> keys_buf(n);
-    std::vector<int> vals_buf(n);
+    using KeyT = typename std::iterator_traits<KeyIt>::value_type;
+    using ValT = typename std::iterator_traits<ValIt>::value_type;
+    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + n);
+    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + n);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), n, compare);
+    EXPECT_EQ_N(keys_expected.begin(), keys_begin, n, "wrong result stable sort: keys");
+    EXPECT_EQ_N(vals_expected.begin(), vals_begin, n, "wrong result stable sort: values");
+}
 
-    generate_data(keys_buf.begin(), vals_buf.begin(), n, direction_tag);
-    call_sort(policy, keys_buf.begin(), vals_buf.begin(), n, stability_tag, direction_tag);
-    check_sort(keys_buf.begin(), vals_buf.begin(), n, stability_tag, direction_tag);
+template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename Compare>
+void
+check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
+           const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
+           Size n, Compare compare, UnstableSort)
+{
+    using KeyT = typename std::iterator_traits<KeyIt>::value_type;
+    using ValT = typename std::iterator_traits<ValIt>::value_type;
+    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + n);
+    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + n);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), n, compare);
+    EXPECT_EQ_N(keys_expected.begin(), keys_begin, n, "wrong result non-stable sort: keys");
+
+    // Remove key-value pairs with duplicate keys
+    // The resulting value sequence is determenistic even for non-stable sort
+    auto expected_unique_n = remove_duplicates_by_key(keys_expected.begin(), vals_expected.begin(), n);
+    std::vector<KeyT> keys(keys_begin, keys_begin + n);
+    std::vector<ValT> vals(vals_begin, vals_begin + n);
+    auto unique_n = remove_duplicates_by_key(keys.begin(), vals.begin(), n);
+    assert(expected_unique_n == unique_n);
+    EXPECT_EQ_N(vals_expected.begin(), vals.begin(), expected_unique_n, "wrong result non-stable sort: values");
+}
+
+template<typename KeyT, typename ValT, typename Size, typename Policy, typename StabilityTag, typename Compare>
+void
+test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stability_tag)
+{
+    std::vector<KeyT> origin_keys(n);
+    std::vector<ValT> origin_vals(n);
+    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    std::vector<KeyT> keys(origin_keys);
+    std::vector<ValT> vals(origin_vals);
+
+    call_sort(policy, keys.begin(), vals.begin(), n, compare, stability_tag);
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, stability_tag);
+
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-template <sycl::usm::alloc alloc_type, typename StabilityTag, typename DirectionTag>
+template <typename KeyT, typename ValT, sycl::usm::alloc alloc_type, std::uint32_t KernelNameID,
+          typename Size, typename Compare, typename StabilityTag>
 void
-test_with_usm(sycl::queue& q, StabilityTag stability_tag, DirectionTag direction_tag)
+test_with_usm(sycl::queue& q, Size n, Compare compare, StabilityTag stability_tag)
 {
-    constexpr int n = (1 << 12) + 42;
-    int host_keys[n] = {};
-    int host_vals[n] = {};
-
-    generate_data(host_keys, host_vals, n, direction_tag);
-
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_keys(q, host_keys, host_keys + n);
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_vals(q, host_vals, host_vals + n);
+    std::vector<KeyT> origin_keys(n);
+    std::vector<ValT> origin_vals(n);
+    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    std::vector<KeyT> keys(origin_keys);
+    std::vector<ValT> vals(origin_vals);
+    TestUtils::usm_data_transfer<alloc_type, KeyT> keys_device(q, keys.begin(), keys.end());
+    TestUtils::usm_data_transfer<alloc_type, ValT> vals_device(q, vals.begin(), vals.end());
 
     // calling sort
-    int* device_keys = dt_helper_keys.get_data();
-    int* device_vals = dt_helper_vals.get_data();
-    using Name = KernelName<std::integral_constant<sycl::usm::alloc, alloc_type>, StabilityTag, DirectionTag>;
-    auto policy =  TestUtils::make_device_policy<Name>(q);
-    call_sort(policy, device_keys, device_vals, n, stability_tag, direction_tag);
+    auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class USM, KernelNameID>>(q);
+    call_sort(policy, keys_device.get_data(), vals_device.get_data(), n, compare, stability_tag);
 
     // checking results
-    int host_out_keys[n] = {};
-    int host_out_vals[n] = {};
-    dt_helper_keys.retrieve_data(host_out_keys);
-    dt_helper_vals.retrieve_data(host_out_vals);
+    keys_device.retrieve_data(keys.begin());
+    vals_device.retrieve_data(vals.begin());
    // sort_by_key with device policy guarantees stability, hence StableSort{} is passed
-    check_sort(host_out_keys, host_out_vals, n, StableSort{}, direction_tag);
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, StableSort{});
 }
 
-template <typename StabilityTag, typename DirectionTag>
+template <typename KeyT, typename ValT, std::uint32_t KernelNameID,
+          typename Size, typename Compare, typename StabilityTag>
 void
-test_with_buffers(sycl::queue& q, StabilityTag stability_tag, DirectionTag direction_tag)
+test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stability_tag)
 {
-    constexpr int n = 1000000;
-    sycl::buffer<int> keys_buf{n};
-    sycl::buffer<int> vals_buf{n};
+    std::vector<KeyT> origin_keys(n);
+    std::vector<ValT> origin_vals(n);
+    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    std::vector<KeyT> keys(origin_keys);
+    std::vector<ValT> vals(origin_vals);
 
-    // generating data
+    // calling sort
     {
-        sycl::host_accessor host_keys(keys_buf, sycl::write_only);
-        sycl::host_accessor host_vals(vals_buf, sycl::write_only);
-        generate_data(host_keys.begin(), host_vals.begin(), n, direction_tag);
+        sycl::buffer<KeyT> keys_device(keys.data(), n);
+        sycl::buffer<ValT> vals_device(vals.data(), n);
+        auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class Buffer, KernelNameID>>(q);
+        call_sort(policy, oneapi::dpl::begin(keys_device), oneapi::dpl::begin(vals_device), n, compare, stability_tag);
     }
-
-    // calling the algorithm
-    auto keys_begin = oneapi::dpl::begin(keys_buf);
-    auto vals_begin = oneapi::dpl::begin(vals_buf);
-    auto policy = TestUtils::make_device_policy<KernelName<class Buffer, StabilityTag, DirectionTag>>(q);
-    call_sort(policy, keys_begin, vals_begin, n, stability_tag, direction_tag);
-
-   // checking results
    // sort_by_key with device policy guarantees stability, hence StableSort{} is passed
-   {
-        sycl::host_accessor host_keys(keys_buf, sycl::read_only);
-        sycl::host_accessor host_vals(vals_buf, sycl::read_only);
-        check_sort(host_keys.begin(), host_vals.begin(), n, StableSort{}, direction_tag);
-   }
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, StableSort{});
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename StabilityTag>
 void
-test_device_polcies(StabilityTag stability_tag)
+test_device_policy(StabilityTag stability_tag)
 {
     sycl::queue q = TestUtils::get_test_queue();
-    test_with_usm<sycl::usm::alloc::shared>(q, stability_tag, AscendingSort{});
-    test_with_usm<sycl::usm::alloc::device>(q, stability_tag, AscendingSort{});
-    test_with_buffers(q, stability_tag, DiscendingSort{});
+    test_with_usm<std::int16_t, float, sycl::usm::alloc::shared, 1>(q, large_size, DefaultComparator{}, stability_tag);
+    test_with_usm<std::uint32_t, std::uint32_t, sycl::usm::alloc::device, 2>(q, large_size, DefaultComparator{}, stability_tag);
+    test_with_buffers<float, float, 3>(q, small_size, GreaterComparator{}, stability_tag);
+    test_with_buffers<Particle::energy_type, Particle, 4>(q, large_size, GreaterComparator{}, stability_tag);
+    test_with_buffers<Particle::energy_type, Particle, 5>(q, small_size, DefaultComparator{}, stability_tag);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-template <typename StabilityTag, typename DirectionTag>
+template <typename KeyT, typename ValT, typename Size, typename Compare, typename StabilityTag>
 void
-test_std_polcies(StabilityTag stability_tag, DirectionTag direction_tag)
+test_std_polcies(Size n, Compare compare, StabilityTag stability_tag)
 {
-    test_with_std_policy(oneapi::dpl::execution::seq, stability_tag, direction_tag);
-    test_with_std_policy(oneapi::dpl::execution::unseq, stability_tag, direction_tag);
-    test_with_std_policy(oneapi::dpl::execution::par, stability_tag, direction_tag);
-    test_with_std_policy(oneapi::dpl::execution::par_unseq, stability_tag, direction_tag);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::seq, n, compare, stability_tag);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::unseq, n, compare, stability_tag);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par, n, compare, stability_tag);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par_unseq, n, compare, stability_tag);
 }
 
 template <typename StabilityTag>
@@ -238,13 +279,11 @@ void
 test_all_policies(StabilityTag stability_tag)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_device_polcies(stability_tag);
+    test_device_policy(stability_tag);
 #endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if !TEST_DPCPP_BACKEND_PRESENT
-    test_std_polcies(stability_tag, AscendingSort{});
-    test_std_polcies(stability_tag, DiscendingSort{});
-#endif // !TEST_DPCPP_BACKEND_PRESENT
+    test_std_polcies<int, int>(large_size, DefaultComparator{}, stability_tag);
+    test_std_polcies<std::size_t, float>(large_size, GreaterComparator{}, stability_tag);
+    test_std_polcies<Particle::energy_type, Particle>(small_size, DefaultComparator{}, stability_tag);
 }
 
 #endif // _SORT_BY_KEY_COMMON_H
