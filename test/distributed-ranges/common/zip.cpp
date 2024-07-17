@@ -29,7 +29,7 @@ TYPED_TEST_SUITE(Zip, AllTypes);
 TYPED_TEST(Zip, Dist1) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::zip(ops.vec);
+  auto local = xhp::views::zip(ops.vec);
   auto dist = test_zip(ops.dist_vec);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
@@ -38,7 +38,7 @@ TYPED_TEST(Zip, Dist1) {
 TYPED_TEST(Zip, Dist2) {
   Ops2<TypeParam> ops(10);
 
-  auto local = rng::views::zip(ops.vec0, ops.vec1);
+  auto local = xhp::views::zip(ops.vec0, ops.vec1);
   auto dist = test_zip(ops.dist_vec0, ops.dist_vec1);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
@@ -47,7 +47,7 @@ TYPED_TEST(Zip, Dist2) {
 TYPED_TEST(Zip, Dist3) {
   Ops3<TypeParam> ops(10);
 
-  auto local = rng::views::zip(ops.vec0, ops.vec1, ops.vec2);
+  auto local = xhp::views::zip(ops.vec0, ops.vec1, ops.vec2);
   auto dist = test_zip(ops.dist_vec0, ops.dist_vec1, ops.dist_vec2);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
@@ -57,14 +57,14 @@ TYPED_TEST(Zip, Dist3Distance) {
   Ops3<TypeParam> ops(10);
 
   EXPECT_EQ(
-      rng::distance(rng::views::zip(ops.vec0, ops.vec1, ops.vec2)),
+      rng::distance(xhp::views::zip(ops.vec0, ops.vec1, ops.vec2)),
       rng::distance(test_zip(ops.dist_vec0, ops.dist_vec1, ops.dist_vec2)));
 }
 
 TYPED_TEST(Zip, RangeSegments) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::zip(ops.vec);
+  auto local = xhp::views::zip(ops.vec);
   auto dist = test_zip(ops.dist_vec);
   auto flat = rng::views::join(dr::ranges::segments(dist));
   EXPECT_TRUE(is_equal(local, flat));
@@ -75,7 +75,7 @@ TYPED_TEST(Zip, RangeSegments) {
 TYPED_TEST(Zip, IterSegments) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::zip(ops.vec);
+  auto local = xhp::views::zip(ops.vec);
   auto dist = test_zip(ops.dist_vec);
   auto flat = rng::views::join(dr::ranges::segments(dist.begin()));
   EXPECT_TRUE(is_equal(local, flat));
@@ -85,7 +85,7 @@ TYPED_TEST(Zip, IterSegments) {
 TYPED_TEST(Zip, Drop) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::drop(rng::views::zip(ops.vec), 2);
+  auto local = rng::views::drop(xhp::views::zip(ops.vec), 2);
   auto dist = xhp::views::drop(test_zip(ops.dist_vec), 2);
 
   auto flat = rng::views::join(dr::ranges::segments(dist));
@@ -96,7 +96,7 @@ TYPED_TEST(Zip, Drop) {
 TYPED_TEST(Zip, ConsumingAll) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::zip(rng::views::all(ops.vec));
+  auto local = xhp::views::zip(rng::views::all(ops.vec));
   auto dist = test_zip(xhp::views::all(ops.dist_vec));
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_EQ(local, dist);
@@ -105,7 +105,7 @@ TYPED_TEST(Zip, ConsumingAll) {
 TYPED_TEST(Zip, FeedingAll) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::all(rng::views::zip(ops.vec));
+  auto local = rng::views::all(xhp::views::zip(ops.vec));
   auto dist = xhp::views::all(test_zip(ops.dist_vec));
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_EQ(local, dist);
@@ -116,7 +116,7 @@ TYPED_TEST(Zip, ForEach) {
 
   auto copy = [](auto &&v) { std::get<1>(v) = std::get<0>(v); };
   xhp::for_each(test_zip(ops.dist_vec0, ops.dist_vec1), copy);
-  rng::for_each(rng::views::zip(ops.vec0, ops.vec1), copy);
+  rng::for_each(xhp::views::zip(ops.vec0, ops.vec1), copy);
 
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
@@ -128,7 +128,7 @@ TYPED_TEST(Zip, ForEachDrop) {
   auto copy = [](auto &&v) { std::get<1>(v) = std::get<0>(v); };
   xhp::for_each(xhp::views::drop(test_zip(ops.dist_vec0, ops.dist_vec1), 1),
                 copy);
-  rng::for_each(xhp::views::drop(rng::views::zip(ops.vec0, ops.vec1), 1), copy);
+  rng::for_each(xhp::views::drop(xhp::views::zip(ops.vec0, ops.vec1), 1), copy);
 
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
@@ -138,7 +138,7 @@ TYPED_TEST(Zip, ConsumingSubrange) {
   Ops2<TypeParam> ops(10);
 
   auto local =
-      rng::views::zip(rng::subrange(ops.vec0.begin() + 1, ops.vec0.end() - 1),
+      xhp::views::zip(rng::subrange(ops.vec0.begin() + 1, ops.vec0.end() - 1),
                       rng::subrange(ops.vec1.begin() + 1, ops.vec1.end() - 1));
   auto dist = test_zip(
       rng::subrange(ops.dist_vec0.begin() + 1, ops.dist_vec0.end() - 1),
@@ -150,7 +150,7 @@ TEST(Zip, FeedingTransform) {
   Ops2<xhp::distributed_vector<int>> ops(10);
 
   auto mul = [](auto v) { return std::get<0>(v) * std::get<1>(v); };
-  auto local = rng::views::transform(rng::views::zip(ops.vec0, ops.vec1), mul);
+  auto local = rng::views::transform(xhp::views::zip(ops.vec0, ops.vec1), mul);
   auto dist_zip = test_zip(ops.dist_vec0, ops.dist_vec1);
   auto dist = xhp::views::transform(dist_zip, mul);
   static_assert(compliant_view<decltype(dist)>);
@@ -170,7 +170,7 @@ TYPED_TEST(Zip, TransformReduce) {
 
   auto mul = [](auto v) { return std::get<0>(v) * std::get<1>(v); };
 
-  auto local = rng::views::transform(rng::views::zip(ops.vec0, ops.vec1), mul);
+  auto local = rng::views::transform(xhp::views::zip(ops.vec0, ops.vec1), mul);
   auto local_reduce = std::reduce(local.begin(), local.end());
 
   auto dist =
@@ -196,7 +196,7 @@ TYPED_TEST(Zip, IotaStaticAssert) {
 TYPED_TEST(Zip, Iota) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::views::zip(rng::views::iota(100), ops.vec);
+  auto local = xhp::views::zip(rng::views::iota(100), ops.vec);
   auto dist = test_zip(xhp::views::iota(100), ops.dist_vec);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_EQ(local, dist);
@@ -205,7 +205,7 @@ TYPED_TEST(Zip, Iota) {
 TYPED_TEST(Zip, Iota2nd) {
   Ops1<TypeParam> ops(10);
 
-  EXPECT_TRUE(check_view(rng::views::zip(ops.vec, rng::views::iota(100)),
+  EXPECT_TRUE(check_view(xhp::views::zip(ops.vec, rng::views::iota(100)),
                          test_zip(ops.dist_vec, xhp::views::iota(100))));
 }
 
@@ -214,7 +214,7 @@ TYPED_TEST(Zip, ForEachIota) {
 
   auto copy = [](auto &&v) { std::get<1>(v) = std::get<0>(v); };
   xhp::for_each(test_zip(xhp::views::iota(100), ops.dist_vec), copy);
-  rng::for_each(rng::views::zip(rng::views::iota(100), ops.vec), copy);
+  rng::for_each(xhp::views::zip(rng::views::iota(100), ops.vec), copy);
 
   EXPECT_EQ(ops.vec, ops.dist_vec);
   EXPECT_EQ(ops.vec, ops.dist_vec);

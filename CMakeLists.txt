@@ -312,12 +312,12 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             ${ONEDPL_AOT_OPTIONS}
             )
         
-        # if C++23 or newer, include Distributed Ranges (experimental)
-        if (CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+        # if C++20 or newer, include Distributed Ranges (experimental)
+        if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
             set(ONEDPL_USE_DR TRUE)
             message(STATUS "Adding Distributed Ranges to the project")
         else()
-            message(STATUS "C++23 required to use Distributed Ranges in oneDPL")
+            message(STATUS "C++20 required to use Distributed Ranges in oneDPL")
         endif()
     endif()
 
