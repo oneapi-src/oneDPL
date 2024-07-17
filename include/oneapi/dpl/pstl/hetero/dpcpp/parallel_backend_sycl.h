@@ -879,13 +879,45 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>
-        __gen_transform{__unary_op};
-    return __future(__parallel_transform_reduce_then_scan(
-                        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-                        ::std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                        oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{})
-                        .event());
+    // Reduce-then-scan is dependent on sycl::sub_group_shift which requires the underlying type to be trivially
+    // copyable. If this is not met, then we must fallback to the legacy implementation.
+    if constexpr (std::is_trivially_copyable_v<_Type>)
+    {
+        oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
+        return __future(__parallel_transform_reduce_then_scan(
+                            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                            std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{})
+                            .event());
+    }
+    else
+    {
+        // Either we can't use group scan or this input is too big for one workgroup
+        using _Assigner = unseq_backend::__scan_assigner;
+        using _NoAssign = unseq_backend::__scan_no_assign;
+        using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
+        using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+
+        _Assigner __assign_op;
+        _NoAssign __no_assign_op;
+        _NoOpFunctor __get_data_op;
+
+        return __future(
+            __parallel_transform_scan_base(
+                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                std::forward<_Range2>(__out_rng), __binary_op, __init,
+                // local scan
+                unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner,
+                                      _Assigner, _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op},
+                                                                          __assign_op, __assign_op, __get_data_op},
+                // scan between groups
+                unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                                      _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+                    __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+                // global scan
+                unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
+                .event());
+    }
 }
 
 template <typename _SizeType>
