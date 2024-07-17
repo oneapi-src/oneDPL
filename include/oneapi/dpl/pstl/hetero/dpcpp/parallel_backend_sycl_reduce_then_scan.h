@@ -646,7 +646,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                         __in_rng, __out_rng, __start_idx, __n, __inputs_per_item, __subgroup_start_idx, __sub_group_id,
                         __active_subgroups);
                 }
-                //if at the last element in the sequence, then we need to write out the last carry out
+                //If within the last active group and subgroup of the block, use the 0th work item of the subgroup 
+                // to write out the last carry out for either the return value or the next block
                 if (__sub_group_local_id == 0 && (__active_groups == __g + 1) &&
                     (__active_subgroups == __sub_group_id + 1))
                 {
