@@ -6,9 +6,9 @@ A range factory does not have underlying data. An element is generated on succes
 A range adaptor, from the |onedpl_long| (|onedpl_short|) perspective, is a utility that transforms the base range,
 or another adapted range, into a view with custom behavior.
 
-|onedpl_short| supports just random access ranges, because they allow efficient and constant-time access to elements at any position in the range. This enables effective workload distribution among multiple threads or processing units, which is crucial for achieving high performance in parallel execution.
+|onedpl_short| only supports random access ranges, because they allow efficient and constant-time access to elements at any position in the range. This enables effective workload distribution among multiple threads or processing units, which is crucial for achieving high performance in parallel execution.
 
-|onedpl_short| introduces two set of range based algorithms:
+|onedpl_short| introduces two sets of range based algorithms:
 
 * The oneapi::dpl::ext::ranges namespace supports integration with the Ranges Library coming with C++20 standard and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm. The functionality is implemented for the host and the device execution policies and requires C++20.
 * The oneapi::dpl::experimental::ranges namespace supports integration with oneDPL ranges introducing by oneapi::dpl::experimental::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the range functionality like the Ranges Library from C++20 standard. The functionality is implemented for the device execution policies only and requires C++17.
@@ -58,7 +58,7 @@ The following algorithms are available in the oneapi::dpl::ext::ranges namespace
 * ``copy_if``
 * ``merge``
 
-Example of Range-Based API Usage (The standard C++ Ranges Library)
+Example of Range-Based API Usage (The Standard C++ Ranges Library)
 ------------------------------------------------------------------
 
 .. code:: cpp
@@ -82,7 +82,7 @@ Example of Range-Based API Usage (The standard C++ Ranges Library)
         copy(oneapi::dpl::execution::dpcpp_default, view_in, std::span(vec_out));
     }
 
-Experimental Range-Based API (The oneDPL ranges)
+Experimental Range-Based API (oneDPL Ranges)
 ------------------------------------------------
 
 The following viewable ranges are declared in the ``oneapi::dpl::experimental::ranges`` namespace.
@@ -181,7 +181,7 @@ These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` names
 To make these algorithms available, the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).
 
-Example of Range-Based API Usage (The oneDPL ranges)
+Example of Range-Based API Usage (oneDPL Ranges)
 ----------------------------------------------------
 
 .. code:: cpp
