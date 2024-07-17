@@ -860,29 +860,28 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
                           _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename _InitType::__value_type;
-
-    // Next power of 2 greater than or equal to __n
-    auto __n_uniform = __n;
-    if ((__n_uniform & (__n_uniform - 1)) != 0)
-        __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
-
-    // TODO: can we reimplement this with support fort non-identities as well? We can then use in reduce-then-scan
-    // for the last block if it is sufficiently small
-    constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
-    if constexpr (__can_use_group_scan)
-    {
-        if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
-        {
-            return __parallel_transform_scan_single_group(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-                ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
-        }
-    }
-
     // Reduce-then-scan is dependent on sycl::shift_group_right which requires the underlying type to be trivially
-    // copyable. If this is not met, then we must fallback to the legacy implementation.
+    // copyable. If this is not met, then we must fallback to the legacy implementation. The single work-group implementation
+    // requires a fundamental type which must also be trivially copyable.
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
+        // Next power of 2 greater than or equal to __n
+        auto __n_uniform = __n;
+        if ((__n_uniform & (__n_uniform - 1)) != 0)
+            __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+
+        // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
+        // for the last block if it is sufficiently small
+        constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
+        if constexpr (__can_use_group_scan)
+        {
+            if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
+            {
+                return __parallel_transform_scan_single_group(
+                    __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+                    ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+            }
+        }
         oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
         return __future(__parallel_transform_reduce_then_scan(
                             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
