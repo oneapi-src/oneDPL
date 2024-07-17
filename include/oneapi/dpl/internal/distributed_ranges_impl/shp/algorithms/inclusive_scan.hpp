@@ -60,9 +60,9 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
         // DPL futures must be kept alive, since in the future their destruction
         // may trigger a synchronization.
         using dpl_future_type = decltype(inclusive_scan_async(
-            __detail::dpl_policy(0), dr::__detail::direct_iterator(rng::begin(std::get<0>(*zipped_segments.begin()))),
-            dr::__detail::direct_iterator(rng::begin(std::get<0>(*zipped_segments.begin()))),
-            dr::__detail::direct_iterator(rng::begin(std::get<1>(*zipped_segments.begin()))), binary_op, init.value()));
+            __detail::dpl_policy(0), dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(stdrng::begin(std::get<1>(*zipped_segments.begin()))), binary_op, init.value()));
 
         std::vector<dpl_future_type> futures;
 
