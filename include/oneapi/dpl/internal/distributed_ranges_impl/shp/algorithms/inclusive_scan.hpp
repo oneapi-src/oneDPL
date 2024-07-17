@@ -57,6 +57,15 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
         device_allocator<T> allocator(context(), root);
         vector<T, device_allocator<T>> partial_sums(std::size_t(zipped_segments.size()), allocator);
 
+        // DPL futures must be kept alive, since in the future their destruction
+        // may trigger a synchronization.
+        using dpl_future_type = decltype(inclusive_scan_async(
+            __detail::dpl_policy(0), dr::__detail::direct_iterator(rng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(rng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(rng::begin(std::get<1>(*zipped_segments.begin()))), binary_op, init.value()));
+
+        std::vector<dpl_future_type> futures;
+
         std::size_t segment_id = 0;
         for (auto&& segs : zipped_segments)
         {
@@ -72,25 +81,25 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
             auto last = stdrng::end(in_segment);
             auto d_first = stdrng::begin(out_segment);
 
-            sycl::event event;
-
             if (segment_id == 0 && init.has_value())
             {
-                event = inclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
-                                             dr::__detail::direct_iterator(last),
-                                             dr::__detail::direct_iterator(d_first), binary_op, init.value());
+                futures.push_back(inclusive_scan_async(
+                    local_policy, dr::__detail::direct_iterator(first), dr::__detail::direct_iterator(last),
+                    dr::__detail::direct_iterator(d_first), binary_op, init.value()));
             }
             else
             {
-                event = inclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
-                                             dr::__detail::direct_iterator(last),
-                                             dr::__detail::direct_iterator(d_first), binary_op);
+                futures.push_back(inclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
+                                                       dr::__detail::direct_iterator(last),
+                                                       dr::__detail::direct_iterator(d_first), binary_op));
             }
 
             auto dst_iter = ranges::local(partial_sums).data() + segment_id;
 
             auto src_iter = ranges::local(out_segment).data();
             stdrng::advance(src_iter, dist - 1);
+
+            sycl::event event = futures.back();
 
             auto e = q.submit([&](auto&& h) {
                 h.depends_on(event);
@@ -107,6 +116,7 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 
         __detail::wait(events);
         events.clear();
+        futures.clear();
 
         auto&& local_policy = __detail::dpl_policy(0);
 
