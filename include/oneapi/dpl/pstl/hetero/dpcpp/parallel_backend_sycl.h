@@ -776,15 +776,16 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::s
     return (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size);
 }
 
-template <typename _ValueType, typename _UnaryOp>
+template <typename _UnaryOp>
 struct __gen_transform_input
 {
-    using __out_value_type = std::decay_t<typename std::invoke_result<_UnaryOp, _ValueType>::type>;
     template <typename InRng>
     auto
     operator()(InRng&& __in_rng, std::size_t __idx) const
     {
-        return __unary_op(__in_rng[__idx]);
+        using _ValueType = oneapi::dpl::__internal::__value_t<InRng>;
+        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<typename std::invoke_result<_UnaryOp, _ValueType>::type>;
+        return _OutValueType{__unary_op(__in_rng[__idx])};
     }
     _UnaryOp __unary_op;
 };
@@ -799,11 +800,10 @@ struct __simple_write_to_idx
     }
 };
 
-template <typename _SizeType, typename _Predicate>
+template <typename _Predicate>
 struct __gen_count_pred
 {
-    using __out_value_type = _SizeType;
-    template <typename _InRng>
+    template <typename _InRng, typename _SizeType>
     _SizeType
     operator()(_InRng&& __in_rng, _SizeType __idx) const
     {
@@ -812,10 +812,10 @@ struct __gen_count_pred
     _Predicate __pred;
 };
 
-template <typename _SizeType, typename _Predicate>
+template <typename _Predicate>
 struct __gen_expand_count_pred
 {
-    template <typename _InRng>
+    template <typename _InRng, typename _SizeType>
     auto
     operator()(_InRng&& __in_rng, _SizeType __idx) const
     {
@@ -879,8 +879,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    oneapi::dpl::__par_backend_hetero::__gen_transform_input<oneapi::dpl::__internal::__value_t<_Range1>,
-                                                             _UnaryOperation>
+    oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>
         __gen_transform{__unary_op};
     return __future(__parallel_transform_reduce_then_scan(
                         __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
@@ -1006,8 +1005,8 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_transform_reduce_then_scan(
             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-            std::forward<_OutRng>(__out_rng), oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Size, _Pred>{__pred},
-            _ReduceOp{}, oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Size, _Pred>{__pred},
+            std::forward<_OutRng>(__out_rng), oneapi::dpl::__par_backend_hetero::__gen_count_pred<_Pred>{__pred},
+            _ReduceOp{}, oneapi::dpl::__par_backend_hetero::__gen_expand_count_pred<_Pred>{__pred},
             oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
             oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
             oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
