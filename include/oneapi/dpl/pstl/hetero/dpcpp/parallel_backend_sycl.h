@@ -1321,7 +1321,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
             auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
 
-            if (__iters_per_work_item == 1)
+            if (false && __iters_per_work_item == 1)
             {
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel_small_size.get_kernel_bundle());
@@ -1366,7 +1366,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         }
                     });
             }
-            else if (__early_exit_check_interval == 0)
+            else if (true && __early_exit_check_interval == 0)
             {
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel_middle_size.get_kernel_bundle());
