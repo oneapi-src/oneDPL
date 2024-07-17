@@ -892,7 +892,6 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     }
     else
     {
-        // Either we can't use group scan or this input is too big for one workgroup
         using _Assigner = unseq_backend::__scan_assigner;
         using _NoAssign = unseq_backend::__scan_no_assign;
         using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
