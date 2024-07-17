@@ -16,6 +16,7 @@
 #pragma once
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -57,11 +58,11 @@ class enumerate_adapter_closure
         using W = std::conditional_t<std::weakly_incrementable<S>, S, std::size_t>;
         if constexpr (rng::sized_range<R>)
         {
-            return rng::views::zip(rng::views::iota(W{0}, W{rng::size(r)}), std::forward<R>(r));
+            return oneapi::dpl::experimental::dr::shp::views::zip(rng::views::iota(W{0}, W{rng::size(r)}), std::forward<R>(r));
         }
         else
         {
-            return rng::views::zip(rng::views::iota(W{0}), std::forward<R>(r));
+            return oneapi::dpl::experimental::dr::shp::views::zip(rng::views::iota(W{0}), std::forward<R>(r));
         }
     }
 

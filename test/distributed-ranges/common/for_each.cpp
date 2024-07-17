@@ -65,7 +65,7 @@ TYPED_TEST(ForEach, RangeAlignedZip) {
 
   auto copy = [](auto v) { std::get<0>(v) = std::get<1>(v); };
   auto dist = xhp::views::zip(ops.dist_vec0, ops.dist_vec1);
-  auto local = rng::views::zip(ops.vec0, ops.vec1);
+  auto local = xhp::views::zip(ops.vec0, ops.vec1);
 
   xhp::for_each(dist, copy);
   rng::for_each(local, copy);
@@ -109,7 +109,7 @@ TYPED_TEST(ForEach, DISABLED_RangeUnalignedZip) {
   auto copy = [](auto v) { std::get<0>(v) = std::get<1>(v); };
   auto dist =
       xhp::views::zip(xhp::views::drop(ops.dist_vec0, 1), ops.dist_vec1);
-  auto local = rng::views::zip(rng::views::drop(ops.vec0, 1), ops.vec1);
+  auto local = xhp::views::zip(rng::views::drop(ops.vec0, 1), ops.vec1);
 
   xhp::for_each(dist, copy);
   rng::for_each(local, copy);

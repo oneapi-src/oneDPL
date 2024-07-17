@@ -96,7 +96,12 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         }
     };
 
-    return enumerate(segments) | rng::views::drop(first_seg) | rng::views::transform(std::move(drop_partial));
+    auto segments_dropped = enumerate(segments) | rng::views::drop(first_seg);
+    auto segments_transformed = segments_dropped | rng::views::transform(std::move(drop_partial));
+    return segments_transformed;
+
+
+    // return enumerate(segments) | rng::views::drop(first_seg) | rng::views::transform(std::move(drop_partial));
 }
 
 // Drop the first n elements

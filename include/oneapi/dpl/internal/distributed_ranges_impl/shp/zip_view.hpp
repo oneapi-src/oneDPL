@@ -19,9 +19,10 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/owning_view.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/remote_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -298,7 +299,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     auto
     local_impl_(std::index_sequence<Ints...>) const noexcept
     {
-        return rng::views::zip(__detail::local(std::get<Ints>(views_))...);
+        return zip_view<decltype(oneapi::dpl::experimental::dr::ranges::__detail::local(std::get<Ints>(views_)))...>(oneapi::dpl::experimental::dr::ranges::__detail::local(std::get<Ints>(views_))...);
     }
 
     template <std::size_t I, typename R>
@@ -377,7 +378,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     auto
     begin_impl_(std::index_sequence<Is...>) const
     {
-        return zip_iterator<rng::iterator_t<Rs>...>(rng::begin(std::get<Is>(views_))...);
+        return zip_iterator<rng::iterator_t<decltype(std::get<Is>(views_))>...>(rng::begin(std::get<Is>(views_))...);
     }
 
     template <distributed_range T>
