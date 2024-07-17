@@ -37,9 +37,6 @@
 struct StableSort{};
 struct UnstableSort{};
 
-struct AscendingSort{};
-struct DiscendingSort{};
-
 struct DefaultComparator{};
 struct GreaterComparator
 {
@@ -187,7 +184,7 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
     EXPECT_EQ_N(vals_expected.begin(), vals.begin(), expected_unique_n, "wrong result non-stable sort: values");
 }
 
-template<typename KeyT, typename ValT, typename Size, typename Policy, typename StabilityTag, typename Compare>
+template<typename KeyT, typename ValT, typename Size, typename Policy, typename Compare, typename StabilityTag>
 void
 test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stability_tag)
 {
