@@ -27,7 +27,9 @@ using fmt::format;
 }
 #else
 namespace drfmt {
-inline std::string format(...) { return "check failed"; }
+template <typename... Args> inline auto format(Args &&...) {
+  return "check failed";
+}
 } // namespace drfmt
 #endif
 

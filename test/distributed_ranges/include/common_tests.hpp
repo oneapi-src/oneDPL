@@ -168,15 +168,11 @@ auto equal_message(rng::range auto &&ref, rng::range auto &&actual,
   if (is_equal(ref, actual)) {
     return "";
   }
-#ifdef USE_FMT
   return drfmt::format("\n{}"
                        "    ref:    {}\n"
                        "    actual: {}\n  ",
                        title == "" ? "" : "    " + title + "\n",
                        rng::views::all(ref), rng::views::all(actual));
-#else
-  return "Actual value different than reference\n";
-#endif
 }
 
 std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
@@ -184,16 +180,12 @@ std::string unary_check_message(rng::range auto &&in, rng::range auto &&ref,
   if (is_equal(ref, tst)) {
     return "";
   } else {
-#ifdef USE_FMT
     return drfmt::format("\n{}"
                          "    in:     {}\n"
                          "    ref:    {}\n"
                          "    actual: {}\n  ",
                          title == "" ? "" : "    " + title + "\n", in, ref,
                          tst);
-#else
-    return "unary check failed\n";
-#endif
   }
 }
 
@@ -215,15 +207,11 @@ std::string check_segments_message(auto &&r) {
   auto segments = dr::ranges::segments(r);
   auto flat = rng::views::join(segments);
   if (contains_empty(segments) || !is_equal(r, flat)) {
-#ifdef USE_FMT
     return drfmt::format("\n"
                          "    Segment error\n"
                          "      range:    {}\n"
                          "      segments: {}\n  ",
                          rng::views::all(r), rng::views::all(segments));
-#else
-    return "Segment error\n";
-#endif
   }
   return "";
 }
@@ -288,14 +276,10 @@ auto check_binary_check_op(rng::range auto &&a, rng::range auto &&b,
   if (is_equal(ref, actual)) {
     return testing::AssertionSuccess();
   } else {
-#ifdef USE_FMT
     return testing::AssertionFailure() << drfmt::format(
                "\n        a: {}\n        b: {}\n      ref: {}\n    "
                "actual: {}\n  ",
                a, b, ref, actual);
-#else
-    return testing::AssertionFailure() << "Binary check failed\n";
-#endif
   }
 }
 
@@ -303,12 +287,8 @@ auto check_segments(std::forward_iterator auto di) {
   auto segments = dr::ranges::segments(di);
   auto flat = rng::join_view(segments);
   if (contains_empty(segments) || !is_equal(di, flat)) {
-#ifdef USE_FMT
     return testing::AssertionFailure()
            << drfmt::format("\n    segments: {}\n  ", segments);
-#else
-    return testing::AssertionFailure() << "Check segments failed\n";
-#endif
   } else {
     return testing::AssertionSuccess();
   }
