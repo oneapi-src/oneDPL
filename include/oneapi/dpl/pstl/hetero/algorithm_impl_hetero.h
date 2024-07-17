@@ -886,10 +886,10 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple,
-          typename _CreateMaskOp, typename _CopyByMaskOp>
+          typename _GenMask, typename _WriteOp>
 ::std::pair<_IteratorOrTuple, typename ::std::iterator_traits<_Iterator1>::difference_type>
 __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
-                    _IteratorOrTuple __output_first, _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
+                    _IteratorOrTuple __output_first, _GenMask __gen_mask, _WriteOp __write_op)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
@@ -904,9 +904,9 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
     auto __buf2 = __keep2(__output_first, __output_first + __n);
 
-    auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                            __buf1.all_view(), __buf2.all_view(), __n, __create_mask_op,
-                                                            __copy_by_mask_op);
+    auto __res =
+        __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                   __buf1.all_view(), __buf2.all_view(), __n, __gen_mask, __write_op);
 
     ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
@@ -951,17 +951,14 @@ __pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
         return ::std::make_pair(__result1, __result2);
 
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-    using _ReduceOp = ::std::plus<_It1DifferenceType>;
-
-    unseq_backend::__create_mask<_UnaryPredicate, _It1DifferenceType> __create_mask_op{__pred};
-    unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type> __copy_by_mask_op{_ReduceOp{}};
 
     auto __result = __pattern_scan_copy(
         __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
-        __create_mask_op, __copy_by_mask_op);
+        oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>{__pred},
+        oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else{});
 
     return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
 }
@@ -977,14 +974,10 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
                       _Iterator2 __result_first, _BinaryPredicate __pred)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, oneapi::dpl::__internal::__pstl_assign,
-                                  /*inclusive*/ ::std::true_type, 1>
-        __copy_by_mask_op;
-    __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
-        __not_pred<_BinaryPredicate>{__pred}};
 
     auto __result = __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                        __result_first, __create_mask_op, __copy_by_mask_op);
+                                        __result_first, oneapi::dpl::__par_backend_hetero::__gen_unique_mask{},
+                                        oneapi::dpl::__par_backend_hetero::__write_to_idx_if{});
 
     return __result_first + __result.second;
 }
