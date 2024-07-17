@@ -223,7 +223,7 @@ jobs:
           
             if [[ "${{ matrix.std }}" == "23" ]]; then
               make_targets="$make_targets shp-all-tests"
-              ctest_flags="$ctest_flags|shp-tests"
+              ctest_flags="$ctest_flags|shp_tests"
               echo "::warning::23 standard is set. Compile and run distributed ranges tests"
             fi
           

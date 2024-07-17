@@ -77,6 +77,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 
         sycl::free(d_inits, context());
 
+        // when empty range fails due to: https://github.com/oneapi-src/distributed-ranges/issues/791
         inits[0] = init;
 
         auto root = devices()[0];

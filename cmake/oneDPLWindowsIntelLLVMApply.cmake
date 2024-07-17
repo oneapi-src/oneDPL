@@ -39,5 +39,5 @@ endif()
 if (INTELLLVM_WIN_STD_IGNORE_FIX)
     include(Compiler/CMakeCommonCompilerMacros)
     # Setting c++ standard default to 14, and enabling usage of CMAKE_CXX_STANDARD
-    __compiler_check_default_language_standard(CXX 2023 14)
+    __compiler_check_default_language_standard(CXX 2020 14)
 endif()

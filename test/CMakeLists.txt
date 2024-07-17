@@ -12,10 +12,8 @@
 #
 ##===----------------------------------------------------------------------===##
 add_subdirectory(kt)
+add_subdirectory(distributed_ranges/shp)
 
-if (ONEDPL_USE_DR)
-    add_subdirectory(distributed-ranges/shp)
-endif()
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
