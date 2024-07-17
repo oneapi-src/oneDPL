@@ -208,7 +208,7 @@ print_range(Range&& r, std::string label = "")
     std::size_t count = 1;
     for (auto iter = r.begin(); iter != r.end(); ++iter)
     {
-        std::cout << static_cast<rng::range_value_t<Range>>(*iter);
+        std::cout << static_cast<stdrng::range_value_t<Range>>(*iter);
 
         auto next = iter;
         ++next;
@@ -234,7 +234,7 @@ print_range_details(R&& r, std::string label = "")
         std::cout << "\"" << label << "\" ";
     }
 
-    std::cout << "distributed range with " << rng::size(ranges::segments(r)) << " segments." << std::endl;
+    std::cout << "distributed range with " << stdrng::size(ranges::segments(r)) << " segments." << std::endl;
 
     std::size_t idx = 0;
     for (auto&& segment : ranges::segments(r))
@@ -246,11 +246,11 @@ print_range_details(R&& r, std::string label = "")
 
 /* template <distributed_range R>
 void range_details(R &&r, std::size_t width = 80) {
-  std::size_t size = rng::size(r);
+  std::size_t size = stdrng::size(r);
 
   for (auto &&[idx, segment] : __detail::enumerate(
            ranges::segments(r))) {
-    std::size_t local_size = rng::size(segment);
+    std::size_t local_size = stdrng::size(segment);
 
     double percent = double(local_size) / size;
 

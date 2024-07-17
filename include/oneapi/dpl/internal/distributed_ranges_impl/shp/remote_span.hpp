@@ -63,11 +63,14 @@ class remote_span : public span<T, Iter>
     using difference_type = std::size_t;
     using reference = std::iter_reference_t<Iter>;
 
-    template <rng::random_access_range R>
-    requires(remote_range<R>) remote_span(R&& r) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(ranges::rank(r)) {}
+    template <stdrng::random_access_range R>
+    requires(remote_range<R>) remote_span(R&& r)
+        : span<T, Iter>(stdrng::begin(r), stdrng::size(r)), rank_(ranges::rank(r))
+    {
+    }
 
-    template <rng::random_access_range R>
-    remote_span(R&& r, std::size_t rank) : span<T, Iter>(rng::begin(r), rng::size(r)), rank_(rank)
+    template <stdrng::random_access_range R>
+    remote_span(R&& r, std::size_t rank) : span<T, Iter>(stdrng::begin(r), stdrng::size(r)), rank_(rank)
     {
     }
 
@@ -109,10 +112,10 @@ class remote_span : public span<T, Iter>
     std::size_t rank_;
 };
 
-template <rng::random_access_range R>
-remote_span(R&&) -> remote_span<rng::range_value_t<R>, rng::iterator_t<R>>;
+template <stdrng::random_access_range R>
+remote_span(R&&) -> remote_span<stdrng::range_value_t<R>, stdrng::iterator_t<R>>;
 
-template <rng::random_access_range R>
-remote_span(R&&, std::size_t) -> remote_span<rng::range_value_t<R>, rng::iterator_t<R>>;
+template <stdrng::random_access_range R>
+remote_span(R&&, std::size_t) -> remote_span<stdrng::range_value_t<R>, stdrng::iterator_t<R>>;
 
 } // namespace oneapi::dpl::experimental::dr::shp

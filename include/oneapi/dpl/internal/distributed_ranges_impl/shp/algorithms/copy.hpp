@@ -113,39 +113,39 @@ requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_valu
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
     auto&& segments = ranges::segments(d_first);
-    auto segment_iter = rng::begin(segments);
+    auto segment_iter = stdrng::begin(segments);
 
     std::vector<sycl::event> events;
 
     while (first != last)
     {
         auto&& segment = *segment_iter;
-        auto size = rng::distance(segment);
+        auto size = stdrng::distance(segment);
 
-        std::size_t n_to_copy = std::min<size_t>(size, rng::distance(first, last));
+        std::size_t n_to_copy = std::min<size_t>(size, stdrng::distance(first, last));
 
         auto local_last = first;
-        rng::advance(local_last, n_to_copy);
+        stdrng::advance(local_last, n_to_copy);
 
-        events.emplace_back(copy_async(first, local_last, rng::begin(segment)));
+        events.emplace_back(copy_async(first, local_last, stdrng::begin(segment)));
 
         ++segment_iter;
-        rng::advance(first, n_to_copy);
+        stdrng::advance(first, n_to_copy);
     }
 
     return __detail::combine_events(events);
 }
 
 auto
-copy(rng::contiguous_range auto r, distributed_iterator auto d_first)
+copy(stdrng::contiguous_range auto r, distributed_iterator auto d_first)
 {
-    return copy(rng::begin(r), rng::end(r), d_first);
+    return copy(stdrng::begin(r), stdrng::end(r), d_first);
 }
 
 auto
 copy(distributed_range auto r, std::contiguous_iterator auto d_first)
 {
-    return copy(rng::begin(r), rng::end(r), d_first);
+    return copy(stdrng::begin(r), stdrng::end(r), d_first);
 }
 
 template <std::forward_iterator InputIt, distributed_iterator OutputIt>
@@ -161,18 +161,18 @@ template <distributed_iterator InputIt, std::forward_iterator OutputIt>
 requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto segments = dr::__detail::take_segments(ranges::segments(first), dist);
 
     std::vector<sycl::event> events;
 
     for (auto&& segment : segments)
     {
-        auto size = rng::distance(segment);
+        auto size = stdrng::distance(segment);
 
-        events.emplace_back(copy_async(rng::begin(segment), rng::end(segment), d_first));
+        events.emplace_back(copy_async(stdrng::begin(segment), stdrng::end(segment), d_first));
 
-        rng::advance(d_first, size);
+        stdrng::advance(d_first, size);
     }
 
     return __detail::combine_events(events);
@@ -191,18 +191,18 @@ template <distributed_iterator InputIt, distributed_iterator OutputIt>
 requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto segments = dr::__detail::take_segments(ranges::segments(first), dist);
 
     std::vector<sycl::event> events;
 
     for (auto&& segment : segments)
     {
-        auto size = rng::distance(segment);
+        auto size = stdrng::distance(segment);
 
-        events.emplace_back(copy_async(rng::begin(segment), rng::end(segment), d_first));
+        events.emplace_back(copy_async(stdrng::begin(segment), stdrng::end(segment), d_first));
 
-        rng::advance(d_first, size);
+        stdrng::advance(d_first, size);
     }
 
     return __detail::combine_events(events);
@@ -220,17 +220,17 @@ copy(InputIt first, InputIt last, OutputIt d_first)
 
 // Distributed to distributed
 template <distributed_range R, distributed_iterator O>
-requires __detail::is_syclmemcopyable<rng::range_value_t<R>, std::iter_value_t<O>> sycl::event
+requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>> sycl::event
 copy_async(R&& r, O result)
 {
-    return copy_async(rng::begin(r), rng::end(r), result);
+    return copy_async(stdrng::begin(r), stdrng::end(r), result);
 }
 
 template <distributed_range R, distributed_iterator O>
-requires __detail::is_syclmemcopyable<rng::range_value_t<R>, std::iter_value_t<O>> O
+requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>> O
 copy(R&& r, O result)
 {
-    return copy(rng::begin(r), rng::end(r), result);
+    return copy(stdrng::begin(r), stdrng::end(r), result);
 }
 
 } // namespace oneapi::dpl::experimental::dr::shp

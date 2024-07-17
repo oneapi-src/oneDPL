@@ -82,13 +82,13 @@ nprocs()
 
 inline distributed_device_policy par_unseq;
 
-template <rng::range R>
+template <stdrng::range R>
 inline void
-init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<rng::range_value_t<R>>>)
+init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<stdrng::range_value_t<R>>>)
 {
-    __detail::devices_.assign(rng::begin(devices), rng::end(devices));
+    __detail::devices_.assign(stdrng::begin(devices), stdrng::end(devices));
     __detail::global_context_ = new sycl::context(__detail::devices_);
-    __detail::ngpus_ = rng::size(__detail::devices_);
+    __detail::ngpus_ = stdrng::size(__detail::devices_);
 
     for (auto&& device : __detail::devices_)
     {

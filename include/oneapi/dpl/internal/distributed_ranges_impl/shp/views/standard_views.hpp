@@ -41,14 +41,14 @@ class slice_adaptor_closure
   public:
     slice_adaptor_closure(index<> slice_indices) : idx_(slice_indices) {}
 
-    template <rng::random_access_range R>
+    template <stdrng::random_access_range R>
     auto
     operator()(R&& r) const
     {
         return slice(std::forward<R>(r), idx_);
     }
 
-    template <rng::random_access_range R>
+    template <stdrng::random_access_range R>
     friend auto
     operator|(R&& r, const slice_adaptor_closure& closure)
     {

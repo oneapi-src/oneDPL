@@ -40,13 +40,13 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
     {
         auto&& q = __detail::queue(ranges::rank(segment));
 
-        assert(rng::distance(segment) > 0);
+        assert(stdrng::distance(segment) > 0);
 
         auto local_segment = __detail::local(segment);
 
-        auto first = rng::begin(local_segment);
+        auto first = stdrng::begin(local_segment);
 
-        auto event = dr::__detail::parallel_for(q, sycl::range<>(rng::distance(local_segment)),
+        auto event = dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(local_segment)),
                                                 [=](auto idx) { fn(*(first + idx)); });
         events.emplace_back(event);
     }
@@ -57,7 +57,7 @@ template <typename ExecutionPolicy, distributed_iterator Iter, typename Fn>
 void
 for_each(ExecutionPolicy&& policy, Iter begin, Iter end, Fn fn)
 {
-    for_each(std::forward<ExecutionPolicy>(policy), rng::subrange(begin, end), fn);
+    for_each(std::forward<ExecutionPolicy>(policy), stdrng::subrange(begin, end), fn);
 }
 
 template <distributed_range R, typename Fn>
@@ -79,7 +79,7 @@ Iter
 for_each_n(ExecutionPolicy&& policy, Iter begin, I n, Fn fn)
 {
     auto end = begin;
-    rng::advance(end, n);
+    stdrng::advance(end, n);
     for_each(std::forward<ExecutionPolicy>(policy), begin, end, std::forward<Fn>(fn));
     return end;
 }

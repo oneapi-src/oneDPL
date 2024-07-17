@@ -46,14 +46,14 @@ transform(ExecutionPolicy&& policy, distributed_range auto&& in, distributed_ite
     std::vector<sycl::event> events;
     using OutT = typename decltype(out)::value_type;
     std::vector<void*> buffers;
-    const auto out_end = out + rng::size(in);
+    const auto out_end = out + stdrng::size(in);
 
-    for (auto&& [in_seg, out_seg] : views::zip(in, rng::subrange(out, out_end)).zipped_segments())
+    for (auto&& [in_seg, out_seg] : views::zip(in, stdrng::subrange(out, out_end)).zipped_segments())
     {
         auto in_device = policy.get_devices()[in_seg.rank()];
         auto&& q = __detail::queue(ranges::rank(in_seg));
-        const std::size_t seg_size = rng::size(in_seg);
-        assert(seg_size == rng::size(out_seg));
+        const std::size_t seg_size = stdrng::size(in_seg);
+        assert(seg_size == stdrng::size(out_seg));
         auto local_in_seg = __detail::local(in_seg);
 
         if (in_seg.rank() == out_seg.rank())
@@ -77,7 +77,7 @@ transform(ExecutionPolicy&& policy, distributed_range auto&& in, distributed_ite
     for (auto* b : buffers)
         sycl::free(b, context());
 
-    return rng::unary_transform_result<decltype(rng::end(in)), decltype(out_end)>{rng::end(in), out_end};
+    return stdrng::unary_transform_result<decltype(stdrng::end(in)), decltype(out_end)>{stdrng::end(in), out_end};
 }
 
 template <distributed_range R, distributed_iterator Iter, typename Fn>
@@ -92,7 +92,7 @@ auto
 transform(ExecutionPolicy&& policy, Iter1 in_begin, Iter1 in_end, Iter2 out_end, Fn&& fn)
 {
     return transform(std::forward<ExecutionPolicy>(policy),
-                     rng::subrange(std::forward<Iter1>(in_begin), std::forward<Iter1>(in_end)),
+                     stdrng::subrange(std::forward<Iter1>(in_begin), std::forward<Iter1>(in_end)),
                      std::forward<Iter2>(out_end), std::forward<Fn>(fn));
 }
 

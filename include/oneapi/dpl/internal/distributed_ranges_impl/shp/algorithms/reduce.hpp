@@ -29,7 +29,7 @@
 namespace
 {
 
-// Precondition: rng::distance(first, last) >= 2
+// Precondition: stdrng::distance(first, last) >= 2
 // Postcondition: return future to [first, last) reduced with fn
 template <typename T, typename ExecutionPolicy, std::bidirectional_iterator Iter, typename Fn>
 auto
@@ -81,18 +81,19 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
         {
             auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-            auto dist = rng::distance(segment);
+            auto dist = stdrng::distance(segment);
             if (dist <= 0)
             {
                 continue;
             }
             else if (dist == 1)
             {
-                init = binary_op(init, *rng::begin(segment));
+                init = binary_op(init, *stdrng::begin(segment));
                 continue;
             }
 
-            auto future = reduce_no_init_async<T>(local_policy, rng::begin(segment), rng::end(segment), binary_op);
+            auto future =
+                reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
 
             futures.push_back(std::move(future));
         }
@@ -118,10 +119,10 @@ reduce(ExecutionPolicy&& policy, R&& r, T init)
 }
 
 template <typename ExecutionPolicy, distributed_range R>
-rng::range_value_t<R>
+stdrng::range_value_t<R>
 reduce(ExecutionPolicy&& policy, R&& r)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), rng::range_value_t<R>{}, std::plus<>());
+    return reduce(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), stdrng::range_value_t<R>{}, std::plus<>());
 }
 
 // Iterator versions
@@ -130,7 +131,7 @@ template <typename ExecutionPolicy, distributed_iterator Iter>
 std::iter_value_t<Iter>
 reduce(ExecutionPolicy&& policy, Iter first, Iter last)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), std::iter_value_t<Iter>{},
+    return reduce(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last), std::iter_value_t<Iter>{},
                   std::plus<>());
 }
 
@@ -138,20 +139,20 @@ template <typename ExecutionPolicy, distributed_iterator Iter, typename T>
 T
 reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init, std::plus<>());
+    return reduce(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last), init, std::plus<>());
 }
 
 template <typename ExecutionPolicy, distributed_iterator Iter, typename T, typename BinaryOp>
 T
 reduce(ExecutionPolicy&& policy, Iter first, Iter last, T init, BinaryOp binary_op)
 {
-    return reduce(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), init, binary_op);
+    return reduce(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last), init, binary_op);
 }
 
 // Execution policy-less algorithms
 
 template <distributed_range R>
-rng::range_value_t<R>
+stdrng::range_value_t<R>
 reduce(R&& r)
 {
     return reduce(par_unseq, std::forward<R>(r));

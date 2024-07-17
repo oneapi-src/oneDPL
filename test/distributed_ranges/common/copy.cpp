@@ -26,7 +26,7 @@ TYPED_TEST(Copy, Range) {
   Ops2<TypeParam> ops(10);
 
   xhp::copy(ops.dist_vec0, ops.dist_vec1.begin());
-  rng::copy(ops.vec0, ops.vec1.begin());
+  stdrng::copy(ops.vec0, ops.vec1.begin());
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
 }
@@ -54,7 +54,7 @@ TYPED_TEST(Copy, RangeToDist) {
   Ops2<TypeParam> ops(10);
 
   xhp::copy(ops.vec0, ops.dist_vec0.begin());
-  rng::copy(ops.vec1, ops.dist_vec1.begin());
+  stdrng::copy(ops.vec1, ops.dist_vec1.begin());
   EXPECT_EQ(ops.vec0, ops.dist_vec0);
   EXPECT_EQ(ops.vec1, ops.dist_vec1);
 }
@@ -63,7 +63,7 @@ TYPED_TEST(Copy, DistToLocal) {
   Ops2<TypeParam> ops(10);
 
   xhp::copy(ops.dist_vec0, ops.vec0.begin());
-  rng::copy(ops.dist_vec1, ops.vec1.begin());
+  stdrng::copy(ops.dist_vec1, ops.vec1.begin());
   EXPECT_EQ(ops.dist_vec0, ops.vec0);
   EXPECT_EQ(ops.dist_vec1, ops.vec1);
 }

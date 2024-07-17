@@ -23,7 +23,7 @@
 //#include <ranges>
 #    include "fixranges"
 
-namespace rng = ::std::ranges;
+namespace stdrng = ::std::ranges;
 
 #    define DR_RANGES_NAMESPACE std::ranges
 
@@ -31,7 +31,7 @@ namespace rng = ::std::ranges;
 
 #    include <range/v3/all.hpp>
 
-namespace rng = ::ranges;
+namespace stdrng = ::ranges;
 
 #    define DR_RANGES_NAMESPACE ranges
 

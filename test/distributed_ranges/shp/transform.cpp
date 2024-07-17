@@ -28,7 +28,7 @@ TYPED_TEST_SUITE(TransformTest, AllocatorTypes);
 TYPED_TEST(TransformTest, whole_aligned) {
   const typename TestFixture::DistVec a = {0, 1, 2, 3, 4};
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9};
-  auto r = dr::shp::transform(dr::shp::par_unseq, a, rng::begin(b),
+  auto r = dr::shp::transform(dr::shp::par_unseq, a, stdrng::begin(b),
                               TestFixture::add_10_func);
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(r.out, b.end());
@@ -41,7 +41,7 @@ TYPED_TEST(TransformTest, whole_non_aligned) {
   typename TestFixture::DistVec b = {50, 51, 52, 53, 54, 55,
                                      56, 57, 58, 59, 60};
 
-  auto r = dr::shp::transform(dr::shp::par_unseq, a, rng::begin(b),
+  auto r = dr::shp::transform(dr::shp::par_unseq, a, stdrng::begin(b),
                               TestFixture::add_10_func);
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(*r.out, 55);
@@ -55,8 +55,8 @@ TYPED_TEST(TransformTest, part_aligned) {
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9};
 
   auto [r_in, r_out] = dr::shp::transform(
-      dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
-      ++rng::begin(b), TestFixture::add_10_func);
+      dr::shp::par_unseq, stdrng::subrange(++stdrng::begin(a), --stdrng::end(a)),
+      ++stdrng::begin(b), TestFixture::add_10_func);
   EXPECT_EQ(*r_in, 4);
   EXPECT_EQ(*r_out, 9);
 
@@ -68,10 +68,10 @@ TYPED_TEST(TransformTest, part_not_aligned) {
   typename TestFixture::DistVec b = {9, 9, 9, 9, 9, 9, 9, 9, 9};
 
   auto [r_in, r_out] = dr::shp::transform(
-      dr::shp::par_unseq, rng::subrange(++rng::begin(a), rng::end(a)),
-      rng::begin(b) + 5, TestFixture::add_10_func);
+      dr::shp::par_unseq, stdrng::subrange(++stdrng::begin(a), stdrng::end(a)),
+      stdrng::begin(b) + 5, TestFixture::add_10_func);
   EXPECT_EQ(r_in, a.end());
-  EXPECT_EQ(r_out, rng::begin(b) + 8); // initial shift in b + subrange size
+  EXPECT_EQ(r_out, stdrng::begin(b) + 8); // initial shift in b + subrange size
 
   EXPECT_TRUE(
       equal(b, typename TestFixture::LocalVec{9, 9, 9, 9, 9, 11, 12, 13, 9}));
@@ -79,10 +79,10 @@ TYPED_TEST(TransformTest, part_not_aligned) {
 
 TYPED_TEST(TransformTest, inplace_whole) {
   typename TestFixture::DistVec a = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-  auto [r_in, r_out] = dr::shp::transform(dr::shp::par_unseq, a, rng::begin(a),
+  auto [r_in, r_out] = dr::shp::transform(dr::shp::par_unseq, a, stdrng::begin(a),
                                           TestFixture::add_10_func);
-  EXPECT_EQ(r_in, rng::end(a));
-  EXPECT_EQ(r_out, rng::end(a));
+  EXPECT_EQ(r_in, stdrng::end(a));
+  EXPECT_EQ(r_out, stdrng::end(a));
   EXPECT_TRUE(equal(
       a, typename TestFixture::LocalVec{10, 11, 12, 13, 14, 15, 16, 17, 18}));
 }
@@ -90,10 +90,10 @@ TYPED_TEST(TransformTest, inplace_whole) {
 TYPED_TEST(TransformTest, inplace_part) {
   typename TestFixture::DistVec a = {0, 1, 2, 3, 4, 5, 6, 7, 8};
   auto [r_in, r_out] = dr::shp::transform(
-      dr::shp::par_unseq, rng::subrange(++rng::begin(a), --rng::end(a)),
-      ++rng::begin(a), TestFixture::add_10_func);
+      dr::shp::par_unseq, stdrng::subrange(++stdrng::begin(a), --stdrng::end(a)),
+      ++stdrng::begin(a), TestFixture::add_10_func);
   EXPECT_EQ(*r_in, 8);
-  EXPECT_EQ(r_out, --rng::end(a));
+  EXPECT_EQ(r_out, --stdrng::end(a));
   EXPECT_TRUE(equal(
       a, typename TestFixture::LocalVec{0, 11, 12, 13, 14, 15, 16, 17, 8}));
 }
@@ -101,7 +101,7 @@ TYPED_TEST(TransformTest, inplace_part) {
 TYPED_TEST(TransformTest, large_aligned_whole) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
-  dr::shp::transform(dr::shp::par_unseq, a, rng::begin(b),
+  dr::shp::transform(dr::shp::par_unseq, a, stdrng::begin(b),
                      TestFixture::add_10_func);
 
   EXPECT_EQ(b[0], 17);
@@ -123,8 +123,8 @@ TYPED_TEST(TransformTest, large_aligned_part) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
   dr::shp::transform(dr::shp::par_unseq,
-                     rng::subrange(rng::begin(a) + 1000, rng::begin(a) + 1005),
-                     rng::begin(b) + 1000, TestFixture::add_10_func);
+                     stdrng::subrange(stdrng::begin(a) + 1000, stdrng::begin(a) + 1005),
+                     stdrng::begin(b) + 1000, TestFixture::add_10_func);
 
   EXPECT_EQ(b[998], 3);
   EXPECT_EQ(b[999], 3);
@@ -140,8 +140,8 @@ TYPED_TEST(TransformTest, large_aligned_part_shifted) {
   const typename TestFixture::DistVec a(12345, 7);
   typename TestFixture::DistVec b(12345, 3);
   dr::shp::transform(dr::shp::par_unseq,
-                     rng::subrange(rng::begin(a) + 1000, rng::begin(a) + 1005),
-                     rng::begin(b) + 999, TestFixture::add_10_func);
+                     stdrng::subrange(stdrng::begin(a) + 1000, stdrng::begin(a) + 1005),
+                     stdrng::begin(b) + 999, TestFixture::add_10_func);
 
   EXPECT_EQ(b[998], 3);
   EXPECT_EQ(b[999], 17);
@@ -157,8 +157,8 @@ TYPED_TEST(TransformTest, large_not_aligned) {
   const typename TestFixture::DistVec a(10000, 7);
   typename TestFixture::DistVec b(17000, 3);
   dr::shp::transform(dr::shp::par_unseq,
-                     rng::subrange(rng::begin(a) + 2000, rng::begin(a) + 9000),
-                     rng::begin(b) + 9000, TestFixture::add_10_func);
+                     stdrng::subrange(stdrng::begin(a) + 2000, stdrng::begin(a) + 9000),
+                     stdrng::begin(b) + 9000, TestFixture::add_10_func);
 
   EXPECT_EQ(b[8999], 3);
   EXPECT_EQ(b[9000], 17);
@@ -178,11 +178,11 @@ TYPED_TEST(TransformTest, large_inplace) {
   typename TestFixture::DistVec a(77000, 7);
   auto r = dr::shp::transform(
       dr::shp::par_unseq,
-      rng::subrange(rng::begin(a) + 22222, rng::begin(a) + 55555),
-      rng::begin(a) + 22222, TestFixture::add_10_func);
+      stdrng::subrange(stdrng::begin(a) + 22222, stdrng::begin(a) + 55555),
+      stdrng::begin(a) + 22222, TestFixture::add_10_func);
 
-  EXPECT_EQ(r.in, rng::begin(a) + 55555);
-  EXPECT_EQ(r.out, rng::begin(a) + 55555);
+  EXPECT_EQ(r.in, stdrng::begin(a) + 55555);
+  EXPECT_EQ(r.out, stdrng::begin(a) + 55555);
 
   EXPECT_EQ(a[11111], 7);
   EXPECT_EQ(a[22221], 7);

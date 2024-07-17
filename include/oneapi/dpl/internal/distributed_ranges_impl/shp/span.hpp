@@ -23,7 +23,7 @@ namespace oneapi::dpl::experimental::dr::shp
 {
 
 template <typename T, std::random_access_iterator Iter = T*>
-class span : public rng::view_interface<span<T, Iter>>
+class span : public stdrng::view_interface<span<T, Iter>>
 {
   public:
     static_assert(std::is_same_v<std::iter_value_t<Iter>, T>);
@@ -34,8 +34,8 @@ class span : public rng::view_interface<span<T, Iter>>
     using reference = std::iter_reference_t<Iter>;
     using iterator = Iter;
 
-    template <rng::random_access_range R>
-    span(R&& r) : begin_(rng::begin(r)), end_(rng::end(r))
+    template <stdrng::random_access_range R>
+    span(R&& r) : begin_(stdrng::begin(r)), end_(stdrng::end(r))
     {
     }
     span(Iter first, Iter last) : begin_(first), end_(last) {}
@@ -110,8 +110,8 @@ class span : public rng::view_interface<span<T, Iter>>
     Iter begin_, end_;
 };
 
-template <rng::random_access_range R>
-span(R&&) -> span<rng::range_value_t<R>, rng::iterator_t<R>>;
+template <stdrng::random_access_range R>
+span(R&&) -> span<stdrng::range_value_t<R>, stdrng::iterator_t<R>>;
 
 template <std::random_access_iterator Iter>
 span(Iter first, std::size_t count) -> span<std::iter_value_t<Iter>, Iter>;
