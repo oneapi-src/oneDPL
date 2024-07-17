@@ -30,7 +30,7 @@ TYPED_TEST(Take, isCompliant) {
 TYPED_TEST(Take, mutate) {
   Ops1<TypeParam> ops(10);
 
-  EXPECT_TRUE(check_mutate_view(ops, rng::views::take(ops.vec, 6),
+  EXPECT_TRUE(check_mutate_view(ops, stdrng::views::take(ops.vec, 6),
                                 xhp::views::take(ops.dist_vec, 6)));
 }
 
@@ -38,7 +38,7 @@ template <class TypeParam>
 void localAndDrTakeResultsAreSameTest(std::size_t takeSize) {
   Ops1<TypeParam> ops(10);
   auto dist = xhp::views::take(ops.dist_vec, takeSize);
-  auto local = rng::views::take(ops.vec, takeSize);
+  auto local = stdrng::views::take(ops.vec, takeSize);
   EXPECT_TRUE(check_view(local, dist));
 }
 
@@ -57,13 +57,13 @@ TYPED_TEST(Take, one) { localAndDrTakeResultsAreSameTest<TypeParam>(1); }
 TYPED_TEST(Take, emptyInput_zeroSize) {
   TypeParam dv(0);
   auto dist = xhp::views::take(dv, 0);
-  EXPECT_TRUE(rng::empty(dist));
+  EXPECT_TRUE(stdrng::empty(dist));
 }
 
 TYPED_TEST(Take, emptyInput_nonZeroSize) {
   TypeParam dv(0);
   auto dist = xhp::views::take(dv, 1);
-  EXPECT_TRUE(rng::empty(dist));
+  EXPECT_TRUE(stdrng::empty(dist));
 }
 
 TYPED_TEST(Take, large) {
@@ -77,7 +77,7 @@ TYPED_TEST(Take, large) {
   fence();
   EXPECT_EQ(dv[54320], 5);
   EXPECT_EQ(dv[54321], 77);
-  EXPECT_EQ(rng::size(take_result), 54321);
+  EXPECT_EQ(stdrng::size(take_result), 54321);
 }
 
 TYPED_TEST(Take, takeOfOneElementHasOneSegmentAndSameRank) {
@@ -88,7 +88,7 @@ TYPED_TEST(Take, takeOfOneElementHasOneSegmentAndSameRank) {
   auto dv_segments = dr::ranges::segments(dv);
 
   EXPECT_TRUE(check_segments(take_view_result));
-  EXPECT_EQ(rng::size(take_view_segments), 1);
+  EXPECT_EQ(stdrng::size(take_view_segments), 1);
   EXPECT_EQ(dr::ranges::rank(take_view_segments[0]),
             dr::ranges::rank(dv_segments[0]));
 }
@@ -99,7 +99,7 @@ TYPED_TEST(Take, takeOfFirstSegementHasOneSegmentAndSameRank) {
   const auto first_seg_size = dr::ranges::segments(dv)[0].size();
   auto take_view_result = xhp::views::take(dv, first_seg_size);
   auto take_view_segments = dr::ranges::segments(take_view_result);
-  EXPECT_EQ(rng::size(take_view_segments), 1);
+  EXPECT_EQ(stdrng::size(take_view_segments), 1);
   EXPECT_EQ(dr::ranges::rank(take_view_segments[0]),
             dr::ranges::rank(dr::ranges::segments(dv)[0]));
 }
@@ -112,8 +112,8 @@ void takeHasSameSegments(std::size_t dv_size, std::size_t take_size) {
   auto take_view_result = xhp::views::take(dv, take_size);
   auto take_view_segments = dr::ranges::segments(take_view_result);
 
-  EXPECT_EQ(rng::size(dv_segments), rng::size(take_view_segments));
-  for (std::size_t i = 0; i < rng::size(dv_segments); ++i)
+  EXPECT_EQ(stdrng::size(dv_segments), stdrng::size(take_view_segments));
+  for (std::size_t i = 0; i < stdrng::size(dv_segments); ++i)
     EXPECT_EQ(dr::ranges::rank(dv_segments[i]),
               dr::ranges::rank(take_view_segments[i]));
 }

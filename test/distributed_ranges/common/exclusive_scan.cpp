@@ -61,7 +61,7 @@ TYPED_TEST(ExclusiveScan, whole_range_small) {
 TYPED_TEST(ExclusiveScan, empty) {
   TypeParam dv_in(11, 1);
   TypeParam dv_out(11, 0);
-  xhp::exclusive_scan(rng::begin(dv_in), rng::begin(dv_in), rng::begin(dv_out),
+  xhp::exclusive_scan(stdrng::begin(dv_in), stdrng::begin(dv_in), stdrng::begin(dv_out),
                       0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(0, dv_out[1]);
@@ -79,8 +79,8 @@ TYPED_TEST(ExclusiveScan, empty) {
 TYPED_TEST(ExclusiveScan, one_element) {
   TypeParam dv_in(11, 1);
   TypeParam dv_out(11, 0);
-  xhp::exclusive_scan(rng::begin(dv_in), ++rng::begin(dv_in),
-                      rng::begin(dv_out), 0);
+  xhp::exclusive_scan(stdrng::begin(dv_in), ++stdrng::begin(dv_in),
+                      stdrng::begin(dv_out), 0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(0, dv_out[1]);
   EXPECT_EQ(0, dv_out[2]);
@@ -133,8 +133,8 @@ TYPED_TEST(ExclusiveScan, touching_first_segment) {
   xhp::iota(dv_in, 1);
   TypeParam dv_out(11, 0);
 
-  xhp::exclusive_scan(rng::begin(dv_in), ++(++rng::begin(dv_in)),
-                      rng::begin(dv_out), 0);
+  xhp::exclusive_scan(stdrng::begin(dv_in), ++(++stdrng::begin(dv_in)),
+                      stdrng::begin(dv_out), 0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(1, dv_out[1]);
   EXPECT_EQ(0, dv_out[2]);
@@ -153,8 +153,8 @@ TYPED_TEST(ExclusiveScan, touching_last_segment) {
   xhp::iota(dv_in, 1);
   TypeParam dv_out(11, 0);
 
-  xhp::exclusive_scan(--(--rng::end(dv_in)), rng::end(dv_in),
-                      --(--rng::end(dv_out)), 0);
+  xhp::exclusive_scan(--(--stdrng::end(dv_in)), stdrng::end(dv_in),
+                      --(--stdrng::end(dv_out)), 0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(0, dv_out[1]);
   EXPECT_EQ(0, dv_out[2]);
@@ -173,7 +173,7 @@ TYPED_TEST(ExclusiveScan, without_last_element) {
   xhp::iota(dv_in, 1);
   TypeParam dv_out(11, 0);
 
-  xhp::exclusive_scan(rng::begin(dv_in), --rng::end(dv_in), rng::begin(dv_out),
+  xhp::exclusive_scan(stdrng::begin(dv_in), --stdrng::end(dv_in), stdrng::begin(dv_out),
                       0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(1, dv_out[1]);
@@ -193,8 +193,8 @@ TYPED_TEST(ExclusiveScan, without_first_element) {
   xhp::iota(dv_in, 1);
   TypeParam dv_out(11, 0);
 
-  xhp::exclusive_scan(++rng::begin(dv_in), rng::end(dv_in),
-                      ++rng::begin(dv_out), 0);
+  xhp::exclusive_scan(++stdrng::begin(dv_in), stdrng::end(dv_in),
+                      ++stdrng::begin(dv_out), 0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(0, dv_out[1]);
   EXPECT_EQ(2, dv_out[2]);
@@ -213,8 +213,8 @@ TYPED_TEST(ExclusiveScan, without_first_and_last_elements) {
   xhp::iota(dv_in, 1);
   TypeParam dv_out(11, 0);
 
-  xhp::exclusive_scan(++rng::begin(dv_in), --rng::end(dv_in),
-                      ++rng::begin(dv_out), 0);
+  xhp::exclusive_scan(++stdrng::begin(dv_in), --stdrng::end(dv_in),
+                      ++stdrng::begin(dv_out), 0);
   EXPECT_EQ(0, dv_out[0]);
   EXPECT_EQ(0, dv_out[1]);
   EXPECT_EQ(2, dv_out[2]);

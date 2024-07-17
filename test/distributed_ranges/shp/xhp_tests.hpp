@@ -49,7 +49,7 @@ inline void fence_on(auto &&) {}
 using AllocatorTypes = ::testing::Types<xhp::device_allocator<int>>;
 
 template <typename V>
-concept compliant_view = rng::forward_range<V> && requires(V &v) {
+concept compliant_view = stdrng::forward_range<V> && requires(V &v) {
   dr::ranges::segments(v);
   dr::ranges::rank(dr::ranges::segments(v)[0]);
 };

@@ -27,8 +27,8 @@ namespace __detail
 //       `owning_view`.  Ideally we would submit a PR to range-v3 /or
 //       switch to solely using libstdc++13.
 
-template <rng::range R>
-class owning_view : public rng::view_interface<owning_view<R>>
+template <stdrng::range R>
+class owning_view : public stdrng::view_interface<owning_view<R>>
 {
   public:
     owning_view(R&& range) : range_(std::move(range)) {}
@@ -44,13 +44,13 @@ class owning_view : public rng::view_interface<owning_view<R>>
     operator=(const owning_view& other) = default;
 
     auto
-    size() const requires(rng::sized_range<R>)
+    size() const requires(stdrng::sized_range<R>)
     {
-        return rng::size(range_);
+        return stdrng::size(range_);
     }
 
     auto
-    empty() const requires(rng::sized_range<R>)
+    empty() const requires(stdrng::sized_range<R>)
     {
         return size() == 0;
     }
@@ -58,25 +58,25 @@ class owning_view : public rng::view_interface<owning_view<R>>
     auto
     begin()
     {
-        return rng::begin(range_);
+        return stdrng::begin(range_);
     }
 
     auto
-    begin() const requires(rng::range<const R>)
+    begin() const requires(stdrng::range<const R>)
     {
-        return rng::begin(range_);
+        return stdrng::begin(range_);
     }
 
     auto
     end()
     {
-        return rng::end(range_);
+        return stdrng::end(range_);
     }
 
     auto
-    end() const requires(rng::range<const R>)
+    end() const requires(stdrng::range<const R>)
     {
-        return rng::end(range_);
+        return stdrng::end(range_);
     }
 
     decltype(auto)

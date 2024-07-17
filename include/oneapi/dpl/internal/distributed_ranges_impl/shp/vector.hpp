@@ -58,7 +58,7 @@ class vector
     template <std::forward_iterator Iter>
     constexpr vector(Iter first, Iter last, const Allocator& alloc = Allocator()) : allocator_(alloc)
     {
-        change_capacity_impl_(rng::distance(first, last));
+        change_capacity_impl_(stdrng::distance(first, last));
         using namespace std;
         copy(first, last, begin());
     }
@@ -117,7 +117,7 @@ class vector
     void
     assign(Iter first, Iter last)
     {
-        auto new_size = rng::distance(first, last);
+        auto new_size = stdrng::distance(first, last);
         reserve(new_size);
         using namespace std;
         copy(first, last, begin());

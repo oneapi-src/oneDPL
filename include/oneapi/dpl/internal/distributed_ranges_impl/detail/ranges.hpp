@@ -66,22 +66,22 @@ struct rank_fn_
     // 1) r.rank(), if the remote range has a `rank()` method
     // OR, if not available,
     // 2) r.begin().rank(), if iterator is `remote_iterator`
-    template <rng::forward_range R>
+    template <stdrng::forward_range R>
     requires((has_rank_method<R> && !disable_rank<std::remove_cv_t<R>>) ||
              (has_rank_adl<R> && !disable_rank<std::remove_cv_t<R>>) ||
-             is_remote_iterator_shadow_impl_<rng::iterator_t<R>>) constexpr auto
+             is_remote_iterator_shadow_impl_<stdrng::iterator_t<R>>) constexpr auto
     operator()(R&& r) const
     {
         if constexpr (has_rank_method<R> && !disable_rank<std::remove_cv_t<R>>)
         {
             return std::forward<R>(r).rank();
         }
-        else if constexpr (is_remote_iterator_shadow_impl_<rng::iterator_t<R>>)
+        else if constexpr (is_remote_iterator_shadow_impl_<stdrng::iterator_t<R>>)
         {
-            // rng::begin needs an lvalue or borrowed_range. We only need
-            // the rank from the rng::begin so creating a local lvalue is ok.
+            // stdrng::begin needs an lvalue or borrowed_range. We only need
+            // the rank from the stdrng::begin so creating a local lvalue is ok.
             auto t = r;
-            return operator()(rng::begin(t));
+            return operator()(stdrng::begin(t));
         }
         else if constexpr (has_rank_adl<R> && !disable_rank<std::remove_cv_t<R>>)
         {
@@ -108,13 +108,13 @@ namespace
 {
 
 template <typename R>
-concept remote_range_shadow_impl_ = rng::forward_range<R> && requires(R& r)
+concept remote_range_shadow_impl_ = stdrng::forward_range<R> && requires(R& r)
 {
     ranges::rank(r);
 };
 
 template <typename R>
-concept segments_range = rng::forward_range<R> && remote_range_shadow_impl_<rng::range_value_t<R>>;
+concept segments_range = stdrng::forward_range<R> && remote_range_shadow_impl_<stdrng::range_value_t<R>>;
 
 template <typename R>
 concept has_segments_method = requires(R r)
@@ -134,7 +134,7 @@ concept has_segments_adl = requires(R& r)
 
 struct segments_fn_
 {
-    template <rng::forward_range R>
+    template <stdrng::forward_range R>
     requires(has_segments_method<R> || has_segments_adl<R>) constexpr decltype(auto)
     operator()(R&& r) const
     {
@@ -207,8 +207,8 @@ struct is_localizable_helper<Iter> : is_localizable_helper<std::iter_value_t<Ite
 {
 };
 
-template <rng::forward_range R>
-struct is_localizable_helper<R> : is_localizable_helper<rng::iterator_t<R>>
+template <stdrng::forward_range R>
+struct is_localizable_helper<R> : is_localizable_helper<stdrng::iterator_t<R>>
 {
 };
 
@@ -216,11 +216,11 @@ template <typename T>
 concept is_localizable = is_localizable_helper<T>::value;
 
 template <typename Segment>
-concept segment_has_local_method = rng::forward_range<Segment> && requires(Segment segment)
+concept segment_has_local_method = stdrng::forward_range<Segment> && requires(Segment segment)
 {
     {
         segment.local()
-        } -> rng::forward_range;
+        } -> stdrng::forward_range;
 };
 
 struct local_fn_
@@ -231,24 +231,24 @@ struct local_fn_
     // TODO: rewrite using iterator_interface from
     //  https://github.com/boostorg/stl_interfaces
     template <typename Iter>
-    requires rng::forward_range<typename Iter::value_type>
+    requires stdrng::forward_range<typename Iter::value_type>
     struct cursor_over_local_ranges
     {
         Iter iter;
         auto
         make_begin_for_counted() const
         {
-            if constexpr (iter_has_local_method<rng::iterator_t<typename Iter::value_type>>)
-                return rng::begin(*iter).local();
+            if constexpr (iter_has_local_method<stdrng::iterator_t<typename Iter::value_type>>)
+                return stdrng::begin(*iter).local();
             else
                 return std::iterator<std::bidirectional_iterator_tag,
-                                     cursor_over_local_ranges<rng::iterator_t<typename Iter::value_type>>>(
-                    rng::begin(*iter));
+                                     cursor_over_local_ranges<stdrng::iterator_t<typename Iter::value_type>>>(
+                    stdrng::begin(*iter));
         }
         auto
         read() const
         {
-            return rng::views::counted(make_begin_for_counted(), rng::size(*iter));
+            return stdrng::views::counted(make_begin_for_counted(), stdrng::size(*iter));
         }
         bool
         equal(const cursor_over_local_ranges& other) const
@@ -302,18 +302,18 @@ struct local_fn_
         }
     }
 
-    template <rng::forward_range R>
-    requires(has_local_adl<R> || iter_has_local_method<rng::iterator_t<R>> || segment_has_local_method<R> ||
-             std::contiguous_iterator<rng::iterator_t<R>> || is_localizable<R> || rng::contiguous_range<R>) auto
+    template <stdrng::forward_range R>
+    requires(has_local_adl<R> || iter_has_local_method<stdrng::iterator_t<R>> || segment_has_local_method<R> ||
+             std::contiguous_iterator<stdrng::iterator_t<R>> || is_localizable<R> || stdrng::contiguous_range<R>) auto
     operator()(R&& r) const
     {
         if constexpr (segment_has_local_method<R>)
         {
             return r.local();
         }
-        else if constexpr (iter_has_local_method<rng::iterator_t<R>>)
+        else if constexpr (iter_has_local_method<stdrng::iterator_t<R>>)
         {
-            return rng::views::counted(rng::begin(r).local(), rng::size(r));
+            return stdrng::views::counted(stdrng::begin(r).local(), stdrng::size(r));
         }
         else if constexpr (has_local_adl<R>)
         {
@@ -321,13 +321,14 @@ struct local_fn_
         }
         else if constexpr (is_localizable<R>)
         {
-            return rng::views::counted(
-                std::iterator<std::input_iterator_tag, cursor_over_local_ranges<rng::iterator_t<R>>>(rng::begin(r)),
-                rng::size(r));
+            return stdrng::views::counted(
+                std::iterator<std::input_iterator_tag, cursor_over_local_ranges<stdrng::iterator_t<R>>>(
+                    stdrng::begin(r)),
+                stdrng::size(r));
         }
-        else if constexpr (std::contiguous_iterator<rng::iterator_t<R>>)
+        else if constexpr (std::contiguous_iterator<stdrng::iterator_t<R>>)
         {
-            return std::span(rng::begin(r), rng::size(r));
+            return std::span(stdrng::begin(r), stdrng::size(r));
         }
     }
 };
