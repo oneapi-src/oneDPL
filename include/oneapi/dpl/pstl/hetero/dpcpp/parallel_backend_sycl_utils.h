@@ -507,6 +507,7 @@ struct __usm_or_buffer_accessor
 template <typename _ExecutionPolicy, typename _T>
 struct __result_and_scratch_storage
 {
+    using __value_type = _T;
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
 
