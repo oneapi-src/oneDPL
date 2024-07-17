@@ -57,6 +57,7 @@ add_executable(
   ../common/counted.cpp
   ../common/distributed_vector.cpp 
   ../common/drop.cpp
+  ../common/equal.cpp
   ../common/enumerate.cpp
   ../common/exclusive_scan.cpp
   ../common/fill.cpp 

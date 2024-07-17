@@ -16,6 +16,7 @@
 #pragma once
 
 #include "copy.hpp"
+#include "equal.hpp"
 #include "exclusive_scan.hpp"
 #include "execution_policy.hpp"
 #include "fill.hpp"
