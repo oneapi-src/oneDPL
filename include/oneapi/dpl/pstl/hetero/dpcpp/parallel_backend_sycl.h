@@ -1191,9 +1191,11 @@ struct __early_exit_find_or
               typename _BrickTag, typename... _Ranges>
     void
     operator()(__early_exit_large_size_tag, const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _IterationDataSize __iteration_data_size, const _IterationDataSize __early_exit_check_interval,
+               const _IterationDataSize __iteration_data_size, /*const*/ _IterationDataSize __early_exit_check_interval,
                _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
+        __early_exit_check_interval = __early_exit_check_interval < 1 ? 1 : __early_exit_check_interval;
+
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
@@ -1366,7 +1368,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         }
                     });
             }
-            else if (true && __early_exit_check_interval == 0)
+            else if (false && __early_exit_check_interval == 0)
             {
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel_middle_size.get_kernel_bundle());
