@@ -32,7 +32,7 @@ TYPED_TEST(IotaView, ZipWithDR) {
     dve = ve;
   });
 
-  EXPECT_TRUE(equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
+  EXPECT_TRUE(gtest_equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
 }
 
 // https://github.com/oneapi-src/distributed-ranges/issues/787
@@ -43,7 +43,7 @@ TYPED_TEST(IotaView, ZipWithDR) {
 //  xhp::copy(v, dv.begin());
 //
 //  barrier();
-//  EXPECT_TRUE(equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
+//  EXPECT_TRUE(gtest_equal(std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, dv));
 //}
 
 // https://github.com/oneapi-src/distributed-ranges/issues/788
@@ -55,7 +55,7 @@ TYPED_TEST(IotaView, ZipWithDR) {
 //  xhp::transform(v, dv.begin(), negate);
 //
 //  EXPECT_TRUE(
-//      equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
+//      gtest_equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
 //}
 
 TYPED_TEST(IotaView, ForEach) {
@@ -72,5 +72,5 @@ TYPED_TEST(IotaView, ForEach) {
   xhp::for_each(z, negate);
 
   EXPECT_TRUE(
-      equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
+      gtest_equal(dv, std::vector<int>{-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}));
 }

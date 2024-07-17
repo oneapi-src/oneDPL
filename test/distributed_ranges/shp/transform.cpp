@@ -33,7 +33,7 @@ TYPED_TEST(TransformTest, whole_aligned) {
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(r.out, b.end());
 
-  EXPECT_TRUE(equal(b, typename TestFixture::LocalVec{10, 11, 12, 13, 14}));
+  EXPECT_TRUE(gtest_equal(b, typename TestFixture::LocalVec{10, 11, 12, 13, 14}));
 }
 
 TYPED_TEST(TransformTest, whole_non_aligned) {
@@ -46,7 +46,7 @@ TYPED_TEST(TransformTest, whole_non_aligned) {
   EXPECT_EQ(r.in, a.end());
   EXPECT_EQ(*r.out, 55);
 
-  EXPECT_TRUE(equal(b, typename TestFixture::LocalVec{10, 11, 12, 13, 14, 55,
+  EXPECT_TRUE(gtest_equal(b, typename TestFixture::LocalVec{10, 11, 12, 13, 14, 55,
                                                       56, 57, 58, 59, 60}));
 }
 
@@ -60,7 +60,7 @@ TYPED_TEST(TransformTest, part_aligned) {
   EXPECT_EQ(*r_in, 4);
   EXPECT_EQ(*r_out, 9);
 
-  EXPECT_TRUE(equal(b, typename TestFixture::LocalVec{9, 11, 12, 13, 9}));
+  EXPECT_TRUE(gtest_equal(b, typename TestFixture::LocalVec{9, 11, 12, 13, 9}));
 }
 
 TYPED_TEST(TransformTest, part_not_aligned) {
@@ -74,7 +74,7 @@ TYPED_TEST(TransformTest, part_not_aligned) {
   EXPECT_EQ(r_out, stdrng::begin(b) + 8); // initial shift in b + subrange size
 
   EXPECT_TRUE(
-      equal(b, typename TestFixture::LocalVec{9, 9, 9, 9, 9, 11, 12, 13, 9}));
+      gtest_equal(b, typename TestFixture::LocalVec{9, 9, 9, 9, 9, 11, 12, 13, 9}));
 }
 
 TYPED_TEST(TransformTest, inplace_whole) {
@@ -83,7 +83,7 @@ TYPED_TEST(TransformTest, inplace_whole) {
                                           TestFixture::add_10_func);
   EXPECT_EQ(r_in, stdrng::end(a));
   EXPECT_EQ(r_out, stdrng::end(a));
-  EXPECT_TRUE(equal(
+  EXPECT_TRUE(gtest_equal(
       a, typename TestFixture::LocalVec{10, 11, 12, 13, 14, 15, 16, 17, 18}));
 }
 
@@ -94,7 +94,7 @@ TYPED_TEST(TransformTest, inplace_part) {
       ++stdrng::begin(a), TestFixture::add_10_func);
   EXPECT_EQ(*r_in, 8);
   EXPECT_EQ(r_out, --stdrng::end(a));
-  EXPECT_TRUE(equal(
+  EXPECT_TRUE(gtest_equal(
       a, typename TestFixture::LocalVec{0, 11, 12, 13, 14, 15, 16, 17, 8}));
 }
 
