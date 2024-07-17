@@ -37,11 +37,11 @@ namespace oneapi::dpl::experimental::dr::shp
 {
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename BinaryOp,
-          typename U = rng::range_value_t<R>>
+          typename U = stdrng::range_value_t<R>>
 void
 inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op, std::optional<U> init = {})
 {
-    using T = rng::range_value_t<O>;
+    using T = stdrng::range_value_t<O>;
 
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
@@ -65,12 +65,12 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
             auto&& q = __detail::queue(ranges::rank(in_segment));
             auto&& local_policy = __detail::dpl_policy(ranges::rank(in_segment));
 
-            auto dist = rng::distance(in_segment);
+            auto dist = stdrng::distance(in_segment);
             assert(dist > 0);
 
-            auto first = rng::begin(in_segment);
-            auto last = rng::end(in_segment);
-            auto d_first = rng::begin(out_segment);
+            auto first = stdrng::begin(in_segment);
+            auto last = stdrng::end(in_segment);
+            auto d_first = stdrng::begin(out_segment);
 
             sycl::event event;
 
@@ -90,12 +90,12 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
             auto dst_iter = ranges::local(partial_sums).data() + segment_id;
 
             auto src_iter = ranges::local(out_segment).data();
-            rng::advance(src_iter, dist - 1);
+            stdrng::advance(src_iter, dist - 1);
 
             auto e = q.submit([&](auto&& h) {
                 h.depends_on(event);
                 h.single_task([=]() {
-                    rng::range_value_t<O> value = *src_iter;
+                    stdrng::range_value_t<O> value = *src_iter;
                     *dst_iter = value;
                 });
             });
@@ -124,14 +124,14 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
             {
                 auto&& q = __detail::queue(ranges::rank(out_segment));
 
-                auto first = rng::begin(out_segment);
+                auto first = stdrng::begin(out_segment);
                 dr::__detail::direct_iterator d_first(first);
 
                 auto d_sum = ranges::__detail::local(partial_sums).begin() + idx - 1;
 
-                sycl::event e = dr::__detail::parallel_for(q, sycl::range<>(rng::distance(out_segment)), [=](auto idx) {
-                    d_first[idx] = binary_op(d_first[idx], *d_sum);
-                });
+                sycl::event e =
+                    dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)),
+                                               [=](auto idx) { d_first[idx] = binary_op(d_first[idx], *d_sum); });
 
                 events.push_back(e);
             }
@@ -167,7 +167,7 @@ void
 inclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o)
 {
     inclusive_scan(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o),
-                   std::plus<rng::range_value_t<R>>());
+                   std::plus<stdrng::range_value_t<R>>());
 }
 
 // Distributed iterator versions
@@ -177,11 +177,11 @@ template <typename ExecutionPolicy, distributed_iterator Iter, distributed_itera
 OutputIter
 inclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first, BinaryOp binary_op, T init)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto d_last = d_first;
-    rng::advance(d_last, dist);
-    inclusive_scan(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), rng::subrange(d_first, d_last),
-                   binary_op, init);
+    stdrng::advance(d_last, dist);
+    inclusive_scan(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
+                   stdrng::subrange(d_first, d_last), binary_op, init);
 
     return d_last;
 }
@@ -190,11 +190,11 @@ template <typename ExecutionPolicy, distributed_iterator Iter, distributed_itera
 OutputIter
 inclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first, BinaryOp binary_op)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto d_last = d_first;
-    rng::advance(d_last, dist);
-    inclusive_scan(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), rng::subrange(d_first, d_last),
-                   binary_op);
+    stdrng::advance(d_last, dist);
+    inclusive_scan(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
+                   stdrng::subrange(d_first, d_last), binary_op);
 
     return d_last;
 }
@@ -203,10 +203,11 @@ template <typename ExecutionPolicy, distributed_iterator Iter, distributed_itera
 OutputIter
 inclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_first)
 {
-    auto dist = rng::distance(first, last);
+    auto dist = stdrng::distance(first, last);
     auto d_last = d_first;
-    rng::advance(d_last, dist);
-    inclusive_scan(std::forward<ExecutionPolicy>(policy), rng::subrange(first, last), rng::subrange(d_first, d_last));
+    stdrng::advance(d_last, dist);
+    inclusive_scan(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
+                   stdrng::subrange(d_first, d_last));
 
     return d_last;
 }

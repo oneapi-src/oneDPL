@@ -27,7 +27,7 @@ auto
 ranked_view(const distributed_range auto& r)
 {
     auto rank = [](auto&& v) { return ranges::rank(&v); };
-    return rng::views::zip(rng::views::transform(r, rank), r);
+    return stdrng::views::zip(stdrng::views::transform(r, rank), r);
 }
 #endif
 

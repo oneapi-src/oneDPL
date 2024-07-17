@@ -173,39 +173,39 @@ class transform_iterator
     F fn_;
 };
 
-template <rng::random_access_range V, std::copy_constructible F>
-class transform_view : public rng::view_interface<transform_view<V, F>>
+template <stdrng::random_access_range V, std::copy_constructible F>
+class transform_view : public stdrng::view_interface<transform_view<V, F>>
 {
   public:
-    template <rng::viewable_range R>
-    transform_view(R&& r, F fn) : base_(rng::views::all(std::forward<R>(r))), fn_(fn)
+    template <stdrng::viewable_range R>
+    transform_view(R&& r, F fn) : base_(stdrng::views::all(std::forward<R>(r))), fn_(fn)
     {
     }
 
     auto
     begin() const
     {
-        return transform_iterator(rng::begin(base_), fn_);
+        return transform_iterator(stdrng::begin(base_), fn_);
     }
 
     auto
     end() const
     {
-        return transform_iterator(rng::end(base_), fn_);
+        return transform_iterator(stdrng::end(base_), fn_);
     }
 
     auto
-    size() const requires(rng::sized_range<V>)
+    size() const requires(stdrng::sized_range<V>)
     {
-        return rng::size(base_);
+        return stdrng::size(base_);
     }
 
     auto
     segments() const requires(distributed_range<V>)
     {
         auto fn = fn_;
-        return ranges::segments(base_) | rng::views::transform([fn]<typename T>(T&& segment) {
-                   return transform_view<rng::views::all_t<decltype(segment)>, F>(std::forward<T>(segment), fn);
+        return ranges::segments(base_) | stdrng::views::transform([fn]<typename T>(T&& segment) {
+                   return transform_view<stdrng::views::all_t<decltype(segment)>, F>(std::forward<T>(segment), fn);
                });
     }
 
@@ -226,8 +226,8 @@ class transform_view : public rng::view_interface<transform_view<V, F>>
     F fn_;
 };
 
-template <rng::viewable_range R, std::copy_constructible F>
-transform_view(R&& r, F fn) -> transform_view<rng::views::all_t<R>, F>;
+template <stdrng::viewable_range R, std::copy_constructible F>
+transform_view(R&& r, F fn) -> transform_view<stdrng::views::all_t<R>, F>;
 
 namespace views
 {
@@ -238,14 +238,14 @@ class transform_adapter_closure
   public:
     transform_adapter_closure(F fn) : fn_(fn) {}
 
-    template <rng::viewable_range R>
+    template <stdrng::viewable_range R>
     auto
     operator()(R&& r) const
     {
         return transform_view(std::forward<R>(r), fn_);
     }
 
-    template <rng::viewable_range R>
+    template <stdrng::viewable_range R>
     friend auto
     operator|(R&& r, const transform_adapter_closure& closure)
     {
@@ -259,7 +259,7 @@ class transform_adapter_closure
 class transform_fn_
 {
   public:
-    template <rng::viewable_range R, std::copy_constructible F>
+    template <stdrng::viewable_range R, std::copy_constructible F>
     auto
     operator()(R&& r, F&& f) const
     {
@@ -281,8 +281,8 @@ inline constexpr auto transform = transform_fn_{};
 
 #if !defined(DR_SPEC)
 
-// Needed to satisfy rng::viewable_range
-template <rng::random_access_range V, std::copy_constructible F>
-inline constexpr bool rng::enable_borrowed_range<oneapi::dpl::experimental::dr::transform_view<V, F>> = true;
+// Needed to satisfy stdrng::viewable_range
+template <stdrng::random_access_range V, std::copy_constructible F>
+inline constexpr bool stdrng::enable_borrowed_range<oneapi::dpl::experimental::dr::transform_view<V, F>> = true;
 
 #endif

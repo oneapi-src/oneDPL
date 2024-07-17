@@ -18,14 +18,14 @@
 TYPED_TEST_SUITE(DistributedVectorTest, AllocatorTypes);
 
 TYPED_TEST(DistributedVectorTest, is_random_access_range) {
-  static_assert(rng::random_access_range<typename TestFixture::LocalVec>);
-  static_assert(rng::random_access_range<const typename TestFixture::LocalVec>);
+  static_assert(stdrng::random_access_range<typename TestFixture::LocalVec>);
+  static_assert(stdrng::random_access_range<const typename TestFixture::LocalVec>);
   static_assert(
-      rng::random_access_range<const typename TestFixture::LocalVec &>);
-  static_assert(rng::random_access_range<typename TestFixture::DistVec>);
-  static_assert(rng::random_access_range<const typename TestFixture::DistVec>);
+      stdrng::random_access_range<const typename TestFixture::LocalVec &>);
+  static_assert(stdrng::random_access_range<typename TestFixture::DistVec>);
+  static_assert(stdrng::random_access_range<const typename TestFixture::DistVec>);
   static_assert(
-      rng::random_access_range<const typename TestFixture::DistVec &>);
+      stdrng::random_access_range<const typename TestFixture::DistVec &>);
 }
 
 TYPED_TEST(DistributedVectorTest,

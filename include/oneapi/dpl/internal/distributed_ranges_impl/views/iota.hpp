@@ -29,14 +29,14 @@ struct iota_fn_
     auto
     operator()(W value) const
     {
-        return rng::views::iota(value, std::numeric_limits<W>::max());
+        return stdrng::views::iota(value, std::numeric_limits<W>::max());
     }
 
     template <std::integral W, std::integral Bound>
     auto
     operator()(W value, Bound bound) const
     {
-        return rng::views::iota(value, W(bound));
+        return stdrng::views::iota(value, W(bound));
     }
 };
 

@@ -43,7 +43,7 @@ class distributed_vector_accessor
     using difference_type = std::ptrdiff_t;
 
     // using pointer = typename segment_type::pointer;
-    using reference = rng::range_reference_t<segment_type>;
+    using reference = stdrng::range_reference_t<segment_type>;
 
     using iterator_category = std::random_access_iterator_tag;
 
@@ -184,7 +184,7 @@ struct distributed_vector
 
     distributed_vector(std::initializer_list<T> init) : distributed_vector(init.size())
     {
-        copy(rng::begin(init), rng::end(init), begin());
+        copy(stdrng::begin(init), stdrng::end(init), begin());
     }
 
     reference

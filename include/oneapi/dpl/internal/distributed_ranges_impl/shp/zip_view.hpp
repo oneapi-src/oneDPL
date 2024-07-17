@@ -30,8 +30,8 @@ template <typename T>
 struct is_owning_view : std::false_type
 {
 };
-// template <rng::range R>
-// struct is_owning_view<rng::owning_view<R>> : std::true_type {};
+// template <stdrng::range R>
+// struct is_owning_view<stdrng::owning_view<R>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_owning_view_v = is_owning_view<T>{};
@@ -142,16 +142,16 @@ template <std::random_access_iterator... Iters>
 using zip_iterator = iterator_adaptor<zip_accessor<Iters...>>;
 
 /// zip
-template <rng::random_access_range... Rs>
-class zip_view : public rng::view_interface<zip_view<Rs...>>
+template <stdrng::random_access_range... Rs>
+class zip_view : public stdrng::view_interface<zip_view<Rs...>>
 {
   public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
 
-    zip_view(Rs... rs) : views_(rng::views::all(std::forward<Rs>(rs))...)
+    zip_view(Rs... rs) : views_(stdrng::views::all(std::forward<Rs>(rs))...)
     {
-        std::array<std::size_t, sizeof...(Rs)> sizes = {std::size_t(rng::distance(rs))...};
+        std::array<std::size_t, sizeof...(Rs)> sizes = {std::size_t(stdrng::distance(rs))...};
 
         // TODO: support zipped views with some ranges shorter than others
         size_ = sizes[0];
@@ -298,7 +298,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     auto
     local_impl_(std::index_sequence<Ints...>) const noexcept
     {
-        return rng::views::zip(__detail::local(std::get<Ints>(views_))...);
+        return stdrng::views::zip(__detail::local(std::get<Ints>(views_))...);
     }
 
     template <std::size_t I, typename R>
@@ -361,7 +361,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     {
         local_idx[I] += size;
 
-        if (local_idx[I] >= rng::distance(segment_or_orig_(get_view<I>(), segment_ids[I])))
+        if (local_idx[I] >= stdrng::distance(segment_or_orig_(get_view<I>(), segment_ids[I])))
         {
             local_idx[I] = 0;
             segment_ids[I]++;
@@ -377,7 +377,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     auto
     begin_impl_(std::index_sequence<Is...>) const
     {
-        return zip_iterator<rng::iterator_t<Rs>...>(rng::begin(std::get<Is>(views_))...);
+        return zip_iterator<stdrng::iterator_t<Rs>...>(stdrng::begin(std::get<Is>(views_))...);
     }
 
     template <distributed_range T>
@@ -399,7 +399,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
     get_next_segment_size_impl_(auto&& segment_ids, auto&& local_idx, std::index_sequence<Is...>) const
     {
         return std::min(
-            {std::size_t(rng::distance(segment_or_orig_(get_view<Is>(), segment_ids[Is]))) - local_idx[Is]...});
+            {std::size_t(stdrng::distance(segment_or_orig_(get_view<Is>(), segment_ids[Is]))) - local_idx[Is]...});
     }
 
     std::size_t
@@ -408,7 +408,7 @@ class zip_view : public rng::view_interface<zip_view<Rs...>>
         return get_next_segment_size_impl_(segment_ids, local_idx, std::make_index_sequence<sizeof...(Rs)>{});
     }
 
-    std::tuple<rng::views::all_t<Rs>...> views_;
+    std::tuple<stdrng::views::all_t<Rs>...> views_;
     std::size_t size_;
 };
 
@@ -419,7 +419,7 @@ namespace views
 {
 
 /// Zip
-template <rng::random_access_range... Rs>
+template <stdrng::random_access_range... Rs>
 auto
 zip(Rs&&... rs)
 {

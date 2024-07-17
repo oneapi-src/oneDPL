@@ -25,8 +25,8 @@ TYPED_TEST_SUITE(Subrange, AllTypes);
 TYPED_TEST(Subrange, Basic) {
   Ops1<TypeParam> ops(10);
 
-  auto local = rng::subrange(ops.vec.begin() + 1, ops.vec.end() - 1);
-  auto dist = rng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 1);
+  auto local = stdrng::subrange(ops.vec.begin() + 1, ops.vec.end() - 1);
+  auto dist = stdrng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 1);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
 }
@@ -35,18 +35,18 @@ TYPED_TEST(Subrange, Mutate) {
   Ops1<TypeParam> ops(10);
 
   EXPECT_TRUE(check_mutate_view(
-      ops, rng::subrange(ops.vec.begin() + 1, ops.vec.end() - 1),
-      rng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 1)));
+      ops, stdrng::subrange(ops.vec.begin() + 1, ops.vec.end() - 1),
+      stdrng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 1)));
 }
 
 TYPED_TEST(Subrange, ForEach) {
   Ops1<TypeParam> ops(23);
 
-  auto local = rng::subrange(ops.vec.begin() + 1, ops.vec.end() - 2);
-  auto dist = rng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 2);
+  auto local = stdrng::subrange(ops.vec.begin() + 1, ops.vec.end() - 2);
+  auto dist = stdrng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 2);
 
   auto negate = [](auto v) { return -v; };
-  rng::for_each(local, negate);
+  stdrng::for_each(local, negate);
   xhp::for_each(dist, negate);
   EXPECT_EQ(ops.vec, ops.dist_vec);
 }
@@ -56,8 +56,8 @@ TYPED_TEST(Subrange, Transform) {
   xhp::iota(v1, 10);
   xhp::fill(v2, -1);
 
-  auto s1 = rng::subrange(v1.begin() + 1, v1.end() - 2);
-  auto s2 = rng::subrange(v2.begin() + 1, v2.end() - 2);
+  auto s1 = stdrng::subrange(v1.begin() + 1, v1.end() - 2);
+  auto s2 = stdrng::subrange(v2.begin() + 1, v2.end() - 2);
 
   auto null_op = [](auto v) { return v; };
   xhp::transform(s1, s2.begin(), null_op);
@@ -69,8 +69,8 @@ TYPED_TEST(Subrange, Transform) {
 TYPED_TEST(Subrange, Reduce) {
   Ops1<TypeParam> ops(23);
 
-  auto local = rng::subrange(ops.vec.begin() + 1, ops.vec.end() - 2);
-  auto dist = rng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 2);
+  auto local = stdrng::subrange(ops.vec.begin() + 1, ops.vec.end() - 2);
+  auto dist = stdrng::subrange(ops.dist_vec.begin() + 1, ops.dist_vec.end() - 2);
 
   EXPECT_EQ(std::reduce(local.begin(), local.end(), 3, std::plus{}),
             xhp::reduce(dist, 3, std::plus{}));

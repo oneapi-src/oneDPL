@@ -26,19 +26,19 @@ namespace __detail
 namespace
 {
 
-template <rng::range R>
+template <stdrng::range R>
 struct range_size
 {
     using type = std::size_t;
 };
 
-template <rng::sized_range R>
+template <stdrng::sized_range R>
 struct range_size<R>
 {
-    using type = rng::range_size_t<R>;
+    using type = stdrng::range_size_t<R>;
 };
 
-template <rng::range R>
+template <stdrng::range R>
 using range_size_t = typename range_size<R>::type;
 
 } // namespace
@@ -46,7 +46,7 @@ using range_size_t = typename range_size<R>::type;
 class enumerate_adapter_closure
 {
   public:
-    template <rng::viewable_range R>
+    template <stdrng::viewable_range R>
     auto
     operator()(R&& r) const
     {
@@ -55,17 +55,17 @@ class enumerate_adapter_closure
         //       have non-weakly-incrementable size types. (Standard mandates
         //       size type must be weakly incrementable.)
         using W = std::conditional_t<std::weakly_incrementable<S>, S, std::size_t>;
-        if constexpr (rng::sized_range<R>)
+        if constexpr (stdrng::sized_range<R>)
         {
-            return rng::views::zip(rng::views::iota(W{0}, W{rng::size(r)}), std::forward<R>(r));
+            return stdrng::views::zip(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
         }
         else
         {
-            return rng::views::zip(rng::views::iota(W{0}), std::forward<R>(r));
+            return stdrng::views::zip(stdrng::views::iota(W{0}), std::forward<R>(r));
         }
     }
 
-    template <rng::viewable_range R>
+    template <stdrng::viewable_range R>
     friend auto
     operator|(R&& r, const enumerate_adapter_closure& closure)
     {
@@ -76,7 +76,7 @@ class enumerate_adapter_closure
 class enumerate_fn_
 {
   public:
-    template <rng::viewable_range R>
+    template <stdrng::viewable_range R>
     constexpr auto
     operator()(R&& r) const
     {

@@ -67,9 +67,9 @@ sycl::event
 fill_async(R&& r, const T& value)
 {
     auto&& q = __detail::queue(ranges::rank(r));
-    auto* arr = std::to_address(rng::begin(ranges::local(r)));
+    auto* arr = std::to_address(stdrng::begin(ranges::local(r)));
     // not using q.fill because of https://github.com/oneapi-src/distributed-ranges/issues/775
-    return dr::__detail::parallel_for(q, sycl::range<>(rng::distance(r)), [=](auto idx) { arr[idx] = value; });
+    return dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(r)), [=](auto idx) { arr[idx] = value; });
 }
 
 template <typename T, remote_contiguous_range R>
@@ -77,7 +77,7 @@ auto
 fill(R&& r, const T& value)
 {
     fill_async(r, value).wait();
-    return rng::end(r);
+    return stdrng::end(r);
 }
 
 template <typename T, distributed_contiguous_range DR>
@@ -100,14 +100,14 @@ auto
 fill(DR&& r, const T& value)
 {
     fill_async(r, value).wait();
-    return rng::end(r);
+    return stdrng::end(r);
 }
 
 template <typename T, distributed_iterator Iter>
 auto
 fill(Iter first, Iter last, const T& value)
 {
-    fill_async(rng::subrange(first, last), value).wait();
+    fill_async(stdrng::subrange(first, last), value).wait();
     return last;
 }
 
