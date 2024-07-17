@@ -34,18 +34,22 @@ namespace __detail
 {
 
 template <typename LocalPolicy, typename InputIt, typename Compare>
-sycl::event
+auto
 sort_async(LocalPolicy&& policy, InputIt first, InputIt last, Compare comp)
 {
+    using dpl_future_type =
+        decltype(experimental::sort_async(std::forward<LocalPolicy>(policy), dr::__detail::direct_iterator(first),
+                                          dr::__detail::direct_iterator(last), comp));
+
     if (stdrng::distance(first, last) >= 2)
     {
         dr::__detail::direct_iterator d_first(first);
         dr::__detail::direct_iterator d_last(last);
-        return oneapi::dpl::experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last, comp);
+        return experimental::sort_async(std::forward<LocalPolicy>(policy), d_first, d_last, comp);
     }
     else
     {
-        return sycl::event{};
+        return dpl_future_type(sycl::event{});
     }
 }
 
@@ -93,6 +97,13 @@ sort(R&& r, Compare comp = Compare())
     using T = stdrng::range_value_t<R>;
     std::vector<sycl::event> events;
 
+    // DPL futures must be kept alive, since in the future their destruction
+    // may trigger a synchronization.
+    using dpl_future_type =
+        decltype(__detail::sort_async(__detail::dpl_policy(0), stdrng::begin(__detail::local(*stdrng::begin(segments))),
+                                      stdrng::end(__detail::local(*stdrng::begin(segments))), comp));
+    std::vector<dpl_future_type> futures;
+
     const std::size_t n_segments = std::size_t(stdrng::size(segments));
     const std::size_t n_splitters = n_segments - 1;
 
@@ -110,14 +121,15 @@ sort(R&& r, Compare comp = Compare())
 
         auto&& local_segment = __detail::local(segment);
 
-        auto s = __detail::sort_async(local_policy, stdrng::begin(local_segment), stdrng::end(local_segment), comp);
+        futures.push_back(
+            __detail::sort_async(local_policy, stdrng::begin(local_segment), stdrng::end(local_segment), comp));
 
         double step_size = static_cast<double>(stdrng::size(segment)) / n_segments;
 
         auto local_begin = stdrng::begin(local_segment);
 
         auto e = q.submit([&](auto&& h) {
-            h.depends_on(s);
+            h.depends_on(futures.back().event());
 
             h.parallel_for(n_splitters, [=](auto i) {
                 medians[n_splitters * segment_id + i] = local_begin[std::size_t(step_size * (i + 1) + 0.5)];
@@ -129,6 +141,7 @@ sort(R&& r, Compare comp = Compare())
 
     __detail::wait(events);
     events.clear();
+    futures.clear();
 
     // Compute global medians by sorting medians and
     // computing `n_splitters` medians from the medians.
