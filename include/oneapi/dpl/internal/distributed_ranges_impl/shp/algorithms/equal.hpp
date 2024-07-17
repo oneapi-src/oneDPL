@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/fill.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/reduce.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
@@ -11,15 +12,15 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/views.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
-namespace dr::shp {
+namespace oneapi::dpl::experimental::dr::shp {
 
 template <typename ExecutionPolicy, dr::distributed_range R1,
           dr::distributed_range R2>
-  requires std::equality_comparable_with<rng::range_value_t<R1>,
-                                         rng::range_value_t<R2>>
+  requires std::equality_comparable_with<stdrng::range_value_t<R1>,
+                                         stdrng::range_value_t<R2>>
 bool equal(ExecutionPolicy &&policy, R1 &&r1, R2 &&r2) {
 
-  if (rng::distance(r1) != rng::distance(r2)) {
+  if (stdrng::distance(r1) != stdrng::distance(r2)) {
     return false;
   }
 
