@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "xhp-tests.hpp"
+#include "xhp_tests.hpp"
 
 // Fixture
 template <typename T> class Equals : public testing::Test {
