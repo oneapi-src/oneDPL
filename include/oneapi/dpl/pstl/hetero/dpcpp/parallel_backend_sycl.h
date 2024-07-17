@@ -883,11 +883,11 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             }
         }
         oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
-        return __parallel_transform_reduce_then_scan(
-                   __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                   std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                   oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{})
-            .event();
+        return __future(__parallel_transform_reduce_then_scan(
+                            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                            std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{})
+                            .event());
     }
     else
     {
