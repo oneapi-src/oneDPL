@@ -84,6 +84,16 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
         device_allocator<T> allocator(context(), root);
         vector<T, device_allocator<T>> partial_sums(std::size_t(zipped_segments.size()), allocator);
 
+        // DPL futures must be kept alive, since in the future their destruction
+        // may trigger a synchronization.
+        using dpl_future_type = decltype(exclusive_scan_async(
+            __detail::dpl_policy(0),
+            dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
+            dr::__detail::direct_iterator(stdrng::begin(std::get<1>(*zipped_segments.begin()))), init, binary_op));
+
+        std::vector<dpl_future_type> futures;
+
         segment_id = 0;
         for (auto&& segs : zipped_segments)
         {
@@ -101,9 +111,9 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 
             auto init = inits[segment_id];
 
-            auto event = exclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
-                                              dr::__detail::direct_iterator(last),
-                                              dr::__detail::direct_iterator(d_first), init, binary_op);
+            futures.push_back(exclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
+                                                   dr::__detail::direct_iterator(last),
+                                                   dr::__detail::direct_iterator(d_first), init, binary_op));
 
             auto dst_iter = ranges::local(partial_sums).data() + segment_id;
 
@@ -111,7 +121,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
             stdrng::advance(src_iter, dist - 1);
 
             auto e = q.submit([&](auto&& h) {
-                h.depends_on(event);
+                h.depends_on(futures.back().event());
                 h.single_task([=]() {
                     stdrng::range_value_t<O> value = *src_iter;
                     *dst_iter = value;
@@ -125,6 +135,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 
         __detail::wait(events);
         events.clear();
+        futures.clear();
 
         auto&& local_policy = __detail::dpl_policy(0);
 
