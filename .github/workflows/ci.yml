@@ -29,7 +29,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref:  ${{ github.event.pull_request.head.sha }}
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install prerequisites
         run: |
           sudo apt update && sudo apt install -y codespell
@@ -72,7 +72,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -171,7 +171,7 @@ jobs:
             backend: serial
             device_type: HOST
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Intel APT repository
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
         run: |
@@ -232,7 +232,7 @@ jobs:
             build_type: release
             device_type: cpu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Intel APT repository
         run: |
           # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
@@ -288,7 +288,7 @@ jobs:
             backend: dpcpp
             device_type: cpu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         shell: cmd
@@ -358,7 +358,7 @@ jobs:
             backend: dpcpp
             device_type: CPU
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         shell: cmd
@@ -417,7 +417,7 @@ jobs:
             build_type: release
             backend: omp
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install OpenMP for Clang++
         run: |
           brew install libomp
