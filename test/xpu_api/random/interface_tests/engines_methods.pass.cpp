@@ -360,22 +360,21 @@ public:
         // Random number generation
         {
             {
-                {
-                    oneapi::dpl::ranlux24 e1;
-                    e1.discard(100);
+                oneapi::dpl::ranlux24 e1;
+                e1.discard(100);
 
-                    std::ostringstream os;
-                    os << e1;
+                std::ostringstream os;
+                os << e1;
 
-                    oneapi::dpl::ranlux24 e2;
+                oneapi::dpl::ranlux24 e2;
 
-                    std::istringstream in(os.str());
-                    in >> e2;
+                std::istringstream in(os.str());
+                in >> e2;
 
-                    if (e1 != e2)
-                        sum += 1;
-                }
+                if (e1 != e2)
+                    sum += 1;
             }
+
             sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
 
             try
