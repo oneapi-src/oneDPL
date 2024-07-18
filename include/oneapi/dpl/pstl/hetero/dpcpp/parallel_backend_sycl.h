@@ -1099,7 +1099,7 @@ struct __early_exit_find_or
 
         constexpr _SrcDataSize __check_in_groups_interval_div = 200;
         _SrcDataSize __check_in_groups_interval =
-            __iters_per_work_item > __check_in_groups_interval_div
+            __iters_per_work_item > (2 * __check_in_groups_interval_div)
                 ? oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __check_in_groups_interval_div)
                 : 0;
 
