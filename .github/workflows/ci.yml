@@ -51,7 +51,7 @@ jobs:
         run: if [ -s clang-format.diff ]; then cat clang-format.diff; exit 1; fi
       - if: failure()
         name: Save artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: clang-format-diff
           path: clang-format.diff
@@ -85,7 +85,7 @@ jobs:
           mkdir html
           sphinx-build -b html documentation/library_guide/ html/
       - name: Archive build directory
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
