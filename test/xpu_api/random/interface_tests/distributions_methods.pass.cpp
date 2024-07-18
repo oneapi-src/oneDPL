@@ -223,6 +223,7 @@ std::int32_t
 check_input_output(Distr& distr)
 {
     using params_type = typename Distr::scalar_type;
+    using result_type = typename Distr::result_type;
 
     std::int32_t status = 0;
 

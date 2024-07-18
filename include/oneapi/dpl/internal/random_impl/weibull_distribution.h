@@ -153,40 +153,40 @@ class weibull_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-            const weibull_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+            const weibull_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(os);
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        os.setf(std::ios_base::dec|std::ios_base::left);
-        CharT __sp = os.widen(' ');
-        os.fill(__sp);
+        __os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = __os.widen(' ');
+        __os.fill(__sp);
 
-        return os << d.a() << __sp << d.b();
+        return __os << __d.a() << __sp << __d.b();
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const weibull_distribution& d)
+    operator<<(const sycl::stream& __os, const weibull_distribution& __d)
     {
-        return os << d.a() << ' ' << d.b();
+        return __os << __d.a() << ' ' << __d.b();
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               weibull_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               weibull_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(is);
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
 
-        is.setf(std::ios_base::dec);
+        __is.setf(std::ios_base::dec);
 
         weibull_distribution::scalar_type __a;
         weibull_distribution::scalar_type __b;
 
-        if (is >> __a >> __b)
-            d.param(weibull_distribution::param_type(__a, __b));
+        if (__is >> __a >> __b)
+            __d.param(weibull_distribution::param_type(__a, __b));
 
-        return is;
+        return __is;
     }
 
   private:

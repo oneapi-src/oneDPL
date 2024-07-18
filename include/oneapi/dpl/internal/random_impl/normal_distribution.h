@@ -172,43 +172,43 @@ class normal_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-               const normal_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+               const normal_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(os);
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        os.setf(std::ios_base::dec|std::ios_base::left);
-        CharT __sp = os.widen(' ');
-        os.fill(__sp);
+        __os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = __os.widen(' ');
+        __os.fill(__sp);
 
-        os << d.mean() << __sp << d.stddev() << __sp << d.flag_;
-        if (d.flag_)
-            os << __sp << d.saved_ln_ << __sp << d.saved_u2_;
+        __os << __d.mean() << __sp << __d.stddev() << __sp << __d.flag_;
+        if (__d.flag_)
+            __os << __sp << __d.saved_ln_ << __sp << __d.saved_u2_;
 
-        return os;
+        return __os;
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const normal_distribution& d)
+    operator<<(const sycl::stream& __os, const normal_distribution& __d)
     {
-        os << d.mean() << ' ' << d.stddev() << ' ' << d.flag_;
+        __os << __d.mean() << ' ' << __d.stddev() << ' ' << __d.flag_;
 
-        if (d.flag_)
-            os << ' ' << d.saved_ln_ << ' ' << d.saved_u2_;
+        if (__d.flag_)
+            __os << ' ' << __d.saved_ln_ << ' ' << __d.saved_u2_;
 
-        return os;
+        return __os;
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               normal_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               normal_distribution& __d)
     {
         using __scalar_type = normal_distribution::scalar_type;
 
-        internal::save_stream_flags<CharT, Traits> __flags(is);
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
 
-        is.setf(std::ios_base::dec);
+        __is.setf(std::ios_base::dec);
 
         __scalar_type __mean;
         __scalar_type __stddev;
@@ -216,17 +216,17 @@ class normal_distribution
         __scalar_type __saved_ln_;
         __scalar_type __saved_u2_;
 
-        if (is >> __mean >> __stddev)
-            d.param(param_type(__mean, __stddev));
-        if (is >> __flag_) {
-            d.flag_ = __flag_;
-            if (__flag_ && (is >> __saved_ln_ >> __saved_u2_)) {
-                d.saved_ln_ = __saved_ln_;
-                d.saved_u2_ = __saved_u2_;
+        if (__is >> __mean >> __stddev)
+            __d.param(param_type(__mean, __stddev));
+        if (__is >> __flag_) {
+            __d.flag_ = __flag_;
+            if (__flag_ && (__is >> __saved_ln_ >> __saved_u2_)) {
+                __d.saved_ln_ = __saved_ln_;
+                __d.saved_u2_ = __saved_u2_;
             }
         }
 
-        return is;
+        return __is;
     }
 
   private:

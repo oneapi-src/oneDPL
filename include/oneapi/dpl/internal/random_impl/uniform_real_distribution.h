@@ -156,40 +156,40 @@ class uniform_real_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-            const uniform_real_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+            const uniform_real_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(os);
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        os.setf(std::ios_base::dec|std::ios_base::left);
-        CharT __sp = os.widen(' ');
-        os.fill(__sp);
+        __os.setf(std::ios_base::dec|std::ios_base::left);
+        CharT __sp = __os.widen(' ');
+        __os.fill(__sp);
 
-        return os << d.a() << __sp << d.b();
+        return __os << __d.a() << __sp << __d.b();
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const uniform_real_distribution& d)
+    operator<<(const sycl::stream& __os, const uniform_real_distribution& __d)
     {
-        return os << d.a() << ' ' << d.b();
+        return __os << __d.a() << ' ' << __d.b();
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               uniform_real_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               uniform_real_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(is);
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
 
-        is.setf(std::ios_base::dec);
+        __is.setf(std::ios_base::dec);
 
         uniform_real_distribution::scalar_type __a;
         uniform_real_distribution::scalar_type __b;
 
-        if (is >> __a >> __b)
-            d.param(uniform_real_distribution::param_type(__a, __b));
+        if (__is >> __a >> __b)
+            __d.param(uniform_real_distribution::param_type(__a, __b));
 
-        return is;
+        return __is;
     }
 
   private:

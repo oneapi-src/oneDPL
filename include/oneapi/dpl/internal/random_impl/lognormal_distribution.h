@@ -155,24 +155,24 @@ class lognormal_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-            const lognormal_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+            const lognormal_distribution& __d)
     {
-        return os << d.nd_;
+        return __os << __d.nd_;
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const lognormal_distribution& d)
+    operator<<(const sycl::stream& __os, const lognormal_distribution& __d)
     {
-        return os << d.nd_;
+        return __os << __d.nd_;
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               lognormal_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               lognormal_distribution& __d)
     {
-        return is >> d.nd_;
+        return __is >> __d.nd_;
     }
 
   private:

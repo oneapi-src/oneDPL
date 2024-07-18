@@ -140,37 +140,37 @@ class exponential_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-            const exponential_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+            const exponential_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(os);
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        os.setf(std::ios_base::dec|std::ios_base::left);
-        os.fill(os.widen(' '));
+        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.fill(__os.widen(' '));
 
-        return os << d.lambda();
+        return __os << __d.lambda();
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const exponential_distribution& d)
+    operator<<(const sycl::stream& __os, const exponential_distribution& __d)
     {
-        return os << d.lambda();
+        return __os << __d.lambda();
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               exponential_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               exponential_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(is);
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
 
-        is.setf(std::ios_base::dec);
+        __is.setf(std::ios_base::dec);
 
         double __p;
-        if (is >> __p)
-            d.param(exponential_distribution::param_type(__p));
+        if (__is >> __p)
+            __d.param(exponential_distribution::param_type(__p));
 
-        return is;
+        return __is;
     }
 
   private:

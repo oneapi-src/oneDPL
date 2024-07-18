@@ -140,37 +140,37 @@ class bernoulli_distribution
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& os,
-            const bernoulli_distribution& d)
+    operator<<(::std::basic_ostream<CharT,Traits>& __os,
+            const bernoulli_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(os);
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        os.setf(std::ios_base::dec|std::ios_base::left);
-        os.fill(os.widen(' '));
+        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.fill(__os.widen(' '));
 
-        return os << d.p();
+        return __os << __d.p();
     }
 
     friend const sycl::stream&
-    operator<<(const sycl::stream& os, const bernoulli_distribution& d)
+    operator<<(const sycl::stream& __os, const bernoulli_distribution& __d)
     {
-        return os << d.p();
+        return __os << __d.p();
     }
 
     template< class CharT, class Traits >
     friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& is,
-               bernoulli_distribution& d)
+    operator>>(::std::basic_istream<CharT,Traits>& __is,
+               bernoulli_distribution& __d)
     {
-        internal::save_stream_flags<CharT, Traits> __flags(is);
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
 
-        is.setf(std::ios_base::dec);
+        __is.setf(std::ios_base::dec);
 
         double __p;
-        if (is >> __p)
-            d.param(bernoulli_distribution::param_type(__p));
+        if (__is >> __p)
+            __d.param(bernoulli_distribution::param_type(__p));
 
-        return is;
+        return __is;
     }
 
   private:
