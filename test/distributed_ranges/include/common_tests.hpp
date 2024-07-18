@@ -166,7 +166,7 @@ bool is_equal(std::forward_iterator auto it, stdrng::range auto &&r) {
 auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
-    return "";
+    return drfmt::format("");
   }
   return drfmt::format("\n{}"
                      "    ref:    {}\n"
@@ -178,7 +178,7 @@ auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
 std::string unary_check_message(stdrng::range auto &&in, stdrng::range auto &&ref,
                                 stdrng::range auto &&tst, std::string title = "") {
   if (is_equal(ref, tst)) {
-    return "";
+    return drfmt::format("");
   } else {
     return drfmt::format("\n{}"
                          "    in:     {}\n"
@@ -213,7 +213,7 @@ std::string check_segments_message(auto &&r) {
                        "      segments: {}\n  ",
                        stdrng::views::all(r), stdrng::views::all(segments));
   }
-  return "";
+  return drfmt::format("");
 }
 
 auto check_view_message(stdrng::range auto &&ref, stdrng::range auto &&actual) {
@@ -263,7 +263,7 @@ template <stdrng::range Rng>
 auto equal(std::initializer_list<stdrng::range_value_t<Rng>> ref, Rng &&actual,
            std::string title = " ") {
   return gtest_result(
-      equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
+    equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
 }
 
 auto check_unary_op(stdrng::range auto &&in, stdrng::range auto &&ref,
