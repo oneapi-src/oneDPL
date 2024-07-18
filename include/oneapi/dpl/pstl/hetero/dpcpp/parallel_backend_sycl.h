@@ -1112,6 +1112,8 @@ struct __early_exit_find_or
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
 
+        bool __need_call_any_of_for_sub_group = true;
+
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0;
              !(__something_was_found && __i % __check_in_groups_interval == 0) &&
@@ -1143,7 +1145,11 @@ struct __early_exit_find_or
 
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+            if (__need_call_any_of_for_sub_group)
+            {
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+                __need_call_any_of_for_sub_group = !__something_was_found;
+            }
 
             if ((__i + 1) % __check_in_groups_interval == 0)
             {
