@@ -1114,7 +1114,7 @@ struct __early_exit_find_or
 
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0;
-             !(__something_was_found && (__check_in_groups_interval == 0 || __i % __check_in_groups_interval == 0)) &&
+             !(__something_was_found && __i % __check_in_groups_interval == 0) &&
              __i < __iters_per_work_item;
              ++__i)
         {
