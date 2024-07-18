@@ -426,17 +426,17 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                                                                 __internal::__optional_kernel_name<_ScanKernelName...>>
 {
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
-              typename _UnaryOp, typename _TempStorage>
+              typename _UnaryOp>
     auto
     operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
-               _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size, _TempStorage __temp_storage)
+               _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size)
     {
         using _ValueType = typename _InitType::__value_type;
 
         const ::std::uint16_t __elems_per_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
         const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
-        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+        return __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
@@ -468,7 +468,6 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                     }
                 });
         });
-        return __future(__event, __temp_storage);
     }
 };
 
@@ -482,16 +481,16 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                                                                __internal::__optional_kernel_name<_ScanKernelName...>>
 {
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
-              typename _UnaryOp, typename _TempStorage>
+              typename _UnaryOp>
     auto
     operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
-               _BinaryOperation __bin_op, _UnaryOp __unary_op, _TempStorage __temp_storage)
+               _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
 
         constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
-        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+        return __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
@@ -561,7 +560,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     }
                 });
         });
-        return __future(__event, __temp_storage);
     }
 };
 
@@ -682,8 +680,11 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
     using _ValueType = typename _InitType::__value_type;
+
+    // Although we do not actually need result storage in this case, we need to construct
+    // a placeholder here to match the return type of the non-single-work-group implementation
     using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType>;
-    _TempStorage __result_and_scratch{__exec, 0};
+    _TempStorage __dummy_result_and_scratch{__exec, 0};
 
     if (__max_wg_size >= __targeted_wg_size)
     {
@@ -694,8 +695,9 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                 oneapi::dpl::__internal::__dpl_ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
+            sycl::event __event;
             if (__is_full_group)
-                return __parallel_transform_scan_static_single_group_submitter<
+                __event = __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ true,
                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
@@ -703,9 +705,9 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                         ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
                         /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __result_and_scratch);
+                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
             else
-                return __parallel_transform_scan_static_single_group_submitter<
+                 __event = __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ false,
                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
@@ -713,7 +715,9 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                         ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
                         /* _IsFullGroup= */ ::std::false_type, _Inclusive, _TempStorage, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __result_and_scratch);
+                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
+
+            return __future(__event, __dummy_result_and_scratch);
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -743,9 +747,10 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
         using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __par_backend_hetero::__scan_single_wg_dynamic_kernel<_BinaryOperation, _CustomName>>;
 
-        return __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
+        auto __event = __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
             ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
-            __n, __init, __binary_op, __unary_op, __max_wg_size, __result_and_scratch);
+            __n, __init, __binary_op, __unary_op, __max_wg_size);
+        return __future(__event, __dummy_result_and_scratch);
     }
 }
 
