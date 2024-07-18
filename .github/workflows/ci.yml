@@ -411,7 +411,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-latest
             cxx_compiler: clang++
             std: 17
             build_type: release
