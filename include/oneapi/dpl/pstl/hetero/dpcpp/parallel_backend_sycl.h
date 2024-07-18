@@ -1102,6 +1102,7 @@ struct __early_exit_find_or
             __iters_per_work_item > (2 * __check_in_groups_interval_div)
                 ? oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __check_in_groups_interval_div)
                 : 0;
+        __check_in_groups_interval = 0;
 
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1114,7 +1115,7 @@ struct __early_exit_find_or
 
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0;
-             !(__something_was_found && __i % __check_in_groups_interval == 0) &&
+             !(__something_was_found && (__check_in_groups_interval == 0 || __i % __check_in_groups_interval == 0)) &&
              __i < __iters_per_work_item;
              ++__i)
         {
@@ -1145,7 +1146,7 @@ struct __early_exit_find_or
             //  - the update of __found_local state isn't required here because it updates later on the caller side
             __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
 
-            if ((__i + 1) % __check_in_groups_interval == 0)
+            if (0 < __check_in_groups_interval && (__i + 1) % __check_in_groups_interval == 0)
             {
                 // Share found into state between items in our group to early exit if something was found
                 //  - the update of __found_local state isn't required here because it updates later on the caller side
