@@ -1123,7 +1123,7 @@ struct __early_exit_find_or
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
             const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
-            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            if (!__something_was_found && __src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
             {
                 // Update local found state
                 _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
