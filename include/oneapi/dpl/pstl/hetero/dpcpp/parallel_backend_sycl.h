@@ -589,7 +589,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
         constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
-        __result_and_scratch_storage<_Policy, _Size> __result{__policy, 0};
+        __result_and_scratch_storage<std::decay_t<_Policy>, _Size> __result{__policy, 0};
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
@@ -682,7 +682,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
     using _ValueType = typename _InitType::__value_type;
-    using _TempStorage = __result_and_scratch_storage<_ExecutionPolicy, _ValueType>;
+    using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType>;
     _TempStorage __result_and_scratch{__exec, 0};
 
     if (__max_wg_size >= __targeted_wg_size)
