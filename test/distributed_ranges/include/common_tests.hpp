@@ -123,31 +123,26 @@ bool fp_equal(std::vector<T> a, std::vector<T> b,
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::pair<A, B> const & x, std::tuple<C, D> const & y)
-{
-    return x.first == std::get<0>(y)
-        && x.second == std::get<1>(y);
+bool operator==(std::pair<A, B> const &x, std::tuple<C, D> const &y) {
+  return x.first == std::get<0>(y) && x.second == std::get<1>(y);
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::tuple<C, D> const & y, std::pair<A, B> const & x)
-{
-    return x == y;
+bool operator==(std::tuple<C, D> const &y, std::pair<A, B> const &x) {
+  return x == y;
 }
 
 template <class A, class B, class C, class D>
-bool operator==(std::pair<C, D> const & y, std::pair<A, B> const & x)
-{
-    return x.first == y.first && x.second == y.second;
+bool operator==(std::pair<C, D> const &y, std::pair<A, B> const &x) {
+  return x.first == y.first && x.second == y.second;
 }
-
 
 template <stdrng::range R1, stdrng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   if (stdrng::distance(stdrng::begin(r1), stdrng::end(r1)) !=
       stdrng::distance(stdrng::begin(r2), stdrng::end(r2))) {
     return false;
   }
-  
+
   // TODO: why r2.begin() is not working here?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
@@ -168,10 +163,10 @@ bool is_equal(std::forward_iterator auto it, stdrng::range auto &&r) {
   return true;
 }
 
-auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
+std::string equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
-    return drfmt::format("");
+    return "";
   }
   return drfmt::format("\n{}"
                      "    ref:    {}\n"
@@ -186,10 +181,11 @@ std::string unary_check_message(stdrng::range auto &&in, stdrng::range auto &&re
     return "";
   } else {
     return drfmt::format("\n{}"
-                       "    in:     {}\n"
-                       "    ref:    {}\n"
-                       "    actual: {}\n  ",
-                       title == "" ? "" : "    " + title + "\n", in, ref, tst);
+                         "    in:     {}\n"
+                         "    ref:    {}\n"
+                         "    actual: {}\n  ",
+                         title == "" ? "" : "    " + title + "\n", in, ref,
+                         tst);
   }
 }
 
@@ -267,7 +263,7 @@ template <stdrng::range Rng>
 auto equal(std::initializer_list<stdrng::range_value_t<Rng>> ref, Rng &&actual,
            std::string title = " ") {
   return gtest_result(
-      equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
+    equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
 }
 
 auto check_unary_op(stdrng::range auto &&in, stdrng::range auto &&ref,
@@ -280,10 +276,10 @@ auto check_binary_check_op(stdrng::range auto &&a, stdrng::range auto &&b,
   if (is_equal(ref, actual)) {
     return testing::AssertionSuccess();
   } else {
-    return testing::AssertionFailure()
-           << drfmt::format("\n        a: {}\n        b: {}\n      ref: {}\n    "
-                          "actual: {}\n  ",
-                          a, b, ref, actual);
+    return testing::AssertionFailure() << drfmt::format(
+               "\n        a: {}\n        b: {}\n      ref: {}\n    "
+               "actual: {}\n  ",
+               a, b, ref, actual);
   }
 }
 
@@ -333,8 +329,7 @@ namespace oneapi::dpl::experimental::dr::shp {
 
 // gtest relies on ADL to find the printer
 template <typename T>
-std::ostream &operator<<(std::ostream &os,
-                         const distributed_vector<T> &dist) {
+std::ostream &operator<<(std::ostream &os, const distributed_vector<T> &dist) {
   os << "{ ";
   bool first = true;
   for (const auto &val : dist) {
@@ -367,36 +362,4 @@ template <stdrng::range R1, stdrng::range R2> bool operator==(R1 &&r1, R2 &&r2) 
   return is_equal(std::forward<R1>(r1), std::forward<R2>(r2));
 }
 
-template <typename... Ts>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::tuple<Ts...> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::pair<T1, T2> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
 } // namespace DR_RANGES_NAMESPACE
-
-namespace std {
-
-template <typename... Ts>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::tuple<Ts...> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::pair<T1, T2> &obj) {
-  os << drfmt::format("{}", obj);
-  return os;
-}
-
-} // namespace std

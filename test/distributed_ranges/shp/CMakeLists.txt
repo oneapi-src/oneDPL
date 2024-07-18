@@ -31,13 +31,10 @@ if(fmt_FOUND)
     if(fmt_VERSION VERSION_GREATER_EQUAL 8.1 AND fmt_VERSION VERSION_LESS 10)
         message(STATUS "suitable for distributed ranges libfmt version ${fmt_VERSION} found")
     else()
-        message(WARNING "libfmt version ${fmt_VERSION} is not >= 8.1 and < 10, skipping distributed ranges tests")
-        return()
-
+        message(WARNING "libfmt version ${fmt_VERSION} unsuitable, no detailed messages in dr tests")
     endif()
 else()
-    message(WARNING "libfmt not found, install libfmt-dev 8.x or 9.x to enable distributed ranges tests")
-    return()
+    message(WARNING "libfmt not found, no detailed messages in dr tests")
 endif()
 
 find_package(GTest)
@@ -84,7 +81,11 @@ add_executable(
 add_executable(shp_tests_3 shp_tests.cpp containers_3.cpp copy_3.cpp)
 
 foreach(test-exec IN ITEMS shp_tests shp_tests_3)
-  target_link_libraries(${test-exec} PRIVATE GTest::gtest_main fmt::fmt oneDPL)
+  target_link_libraries(${test-exec} PRIVATE GTest::gtest_main oneDPL)
+  if(fmt_FOUND)
+    target_compile_options(${test-exec} PRIVATE -DUSE_FMT)
+    target_link_libraries(${test-exec} PRIVATE fmt::fmt)
+  endif()
   target_link_options(${test-exec} PRIVATE -qopenmp)
 endforeach()
 

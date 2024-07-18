@@ -18,12 +18,20 @@
 #include <gtest/gtest.h>
 #include <oneapi/dpl/distributed_ranges>
 
+#ifdef USE_FMT
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 namespace drfmt {
-  using fmt::format;
+using fmt::format;
 }
+#else
+namespace drfmt {
+template <typename... Args> inline std::string format(Args &&...) {
+  return "check failed";
+}
+} // namespace drfmt
+#endif
 
 #define TEST_SHP
 // To share tests with MHP
@@ -38,8 +46,7 @@ inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
-using AllocatorTypes =
-    ::testing::Types<xhp::device_allocator<int>>;
+using AllocatorTypes = ::testing::Types<xhp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = stdrng::forward_range<V> && requires(V &v) {
