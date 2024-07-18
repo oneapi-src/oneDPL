@@ -166,7 +166,7 @@ bool is_equal(std::forward_iterator auto it, stdrng::range auto &&r) {
 auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
-    return drfmt::format("");
+    return "";
   }
   return drfmt::format("\n{}"
                      "    ref:    {}\n"
@@ -178,7 +178,7 @@ auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
 std::string unary_check_message(stdrng::range auto &&in, stdrng::range auto &&ref,
                                 stdrng::range auto &&tst, std::string title = "") {
   if (is_equal(ref, tst)) {
-    return drfmt::format("");
+    return "";
   } else {
     return drfmt::format("\n{}"
                          "    in:     {}\n"
@@ -213,7 +213,7 @@ std::string check_segments_message(auto &&r) {
                        "      segments: {}\n  ",
                        stdrng::views::all(r), stdrng::views::all(segments));
   }
-  return drfmt::format("");
+  return "";
 }
 
 auto check_view_message(stdrng::range auto &&ref, stdrng::range auto &&actual) {
