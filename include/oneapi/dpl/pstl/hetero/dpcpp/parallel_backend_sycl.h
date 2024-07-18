@@ -1097,7 +1097,7 @@ struct __early_exit_find_or
         const auto __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
 
-        constexpr _SrcDataSize __check_in_groups_interval_div = 6400;
+        constexpr _SrcDataSize __check_in_groups_interval_div = 200;
         _SrcDataSize __check_in_groups_interval =
             __iters_per_work_item > __check_in_groups_interval_div
                 ? oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __check_in_groups_interval_div)
