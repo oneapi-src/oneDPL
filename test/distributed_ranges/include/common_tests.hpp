@@ -163,7 +163,7 @@ bool is_equal(std::forward_iterator auto it, stdrng::range auto &&r) {
   return true;
 }
 
-auto equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
+std::string equal_message(stdrng::range auto &&ref, stdrng::range auto &&actual,
                    std::string title = " ") {
   if (is_equal(ref, actual)) {
     return "";
