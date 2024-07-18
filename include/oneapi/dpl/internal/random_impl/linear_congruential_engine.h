@@ -111,14 +111,13 @@ class linear_congruential_engine
         return !(__x == __y);
     }
 
-    template<class CharT, class Traits>
-    friend ::std::basic_ostream<CharT,Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& __os,
-               const linear_congruential_engine& __e)
+    template <class CharT, class Traits>
+    friend ::std::basic_ostream<CharT, Traits>&
+    operator<<(::std::basic_ostream<CharT, Traits>& __os, const linear_congruential_engine& __e)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.setf(std::ios_base::dec | std::ios_base::left);
         __os.fill(__os.widen(' '));
 
         return __os << __e.state_;
@@ -130,10 +129,9 @@ class linear_congruential_engine
         return __os << __e.state_;
     }
 
-    template<class CharT, class Traits>
-    friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& __is,
-               linear_congruential_engine& __e)
+    template <class CharT, class Traits>
+    friend ::std::basic_istream<CharT, Traits>&
+    operator>>(::std::basic_istream<CharT, Traits>& __is, linear_congruential_engine& __e)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__is);
 

@@ -128,24 +128,25 @@ class exponential_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
-    friend bool operator==(const exponential_distribution& __x, const exponential_distribution& __y)
+    friend bool
+    operator==(const exponential_distribution& __x, const exponential_distribution& __y)
     {
         return __x.lambda_ == __y.lambda_;
     }
 
-    friend bool operator!=(const exponential_distribution& __x, const exponential_distribution& __y)
+    friend bool
+    operator!=(const exponential_distribution& __x, const exponential_distribution& __y)
     {
         return !(__x == __y);
     }
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& __os,
-            const exponential_distribution& __d)
+    operator<<(::std::basic_ostream<CharT, Traits>& __os, const exponential_distribution& __d)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.setf(std::ios_base::dec | std::ios_base::left);
         __os.fill(__os.widen(' '));
 
         return __os << __d.lambda();
@@ -157,10 +158,9 @@ class exponential_distribution
         return __os << __d.lambda();
     }
 
-    template< class CharT, class Traits >
-    friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& __is,
-               exponential_distribution& __d)
+    template <class CharT, class Traits>
+    friend ::std::basic_istream<CharT, Traits>&
+    operator>>(::std::basic_istream<CharT, Traits>& __is, exponential_distribution& __d)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__is);
 

@@ -160,24 +160,25 @@ class normal_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
-    friend bool operator==(const normal_distribution& __x, const normal_distribution& __y)
+    friend bool
+    operator==(const normal_distribution& __x, const normal_distribution& __y)
     {
         return __x.param() == __y.param();
     }
 
-    friend bool operator!=(const normal_distribution& __x, const normal_distribution& __y)
+    friend bool
+    operator!=(const normal_distribution& __x, const normal_distribution& __y)
     {
         return !(__x == __y);
     }
 
     template <class CharT, class Traits>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& __os,
-               const normal_distribution& __d)
+    operator<<(::std::basic_ostream<CharT, Traits>& __os, const normal_distribution& __d)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.setf(std::ios_base::dec | std::ios_base::left);
         CharT __sp = __os.widen(' ');
         __os.fill(__sp);
 
@@ -199,10 +200,9 @@ class normal_distribution
         return __os;
     }
 
-    template< class CharT, class Traits >
-    friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& __is,
-               normal_distribution& __d)
+    template <class CharT, class Traits>
+    friend ::std::basic_istream<CharT, Traits>&
+    operator>>(::std::basic_istream<CharT, Traits>& __is, normal_distribution& __d)
     {
         using __scalar_type = normal_distribution::scalar_type;
 
@@ -218,9 +218,11 @@ class normal_distribution
 
         if (__is >> __mean >> __stddev)
             __d.param(param_type(__mean, __stddev));
-        if (__is >> __flag_) {
+        if (__is >> __flag_)
+        {
             __d.flag_ = __flag_;
-            if (__flag_ && (__is >> __saved_ln_ >> __saved_u2_)) {
+            if (__flag_ && (__is >> __saved_ln_ >> __saved_u2_))
+            {
                 __d.saved_ln_ = __saved_ln_;
                 __d.saved_u2_ = __saved_u2_;
             }

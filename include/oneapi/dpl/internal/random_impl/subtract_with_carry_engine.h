@@ -101,7 +101,8 @@ class subtract_with_carry_engine
             return false;
         if (__x.i_ == __y.i_)
             return std::equal(__x.x_, __x.x_ + _R, __y.x_);
-        if (__x.i_ == 0 || __y.i_ == 0) {
+        if (__x.i_ == 0 || __y.i_ == 0)
+        {
             size_t __j = std::min(_R - __x.i_, _R - __y.i_);
             if (!std::equal(__x.x_ + __x.i_, __x.x_ + __x.i_ + __j, __y.x_ + __y.i_))
                 return false;
@@ -109,7 +110,8 @@ class subtract_with_carry_engine
                 return std::equal(__x.x_ + __j, __x.x_ + _R, __y.x_);
             return std::equal(__x.x_, __x.x_ + (_R - __j), __y.x_ + __j);
         }
-        if (__x.i_ < __y.i_) {
+        if (__x.i_ < __y.i_)
+        {
             size_t __j = _R - __y.i_;
             if (!std::equal(__x.x_ + __x.i_, __x.x_ + (__x.i_ + __j), __y.x_ + __y.i_))
                 return false;
@@ -131,14 +133,13 @@ class subtract_with_carry_engine
         return !(__x == __y);
     }
 
-    template<class CharT, class Traits>
-    friend ::std::basic_ostream<CharT,Traits>&
-    operator<<(::std::basic_ostream<CharT,Traits>& __os,
-               const subtract_with_carry_engine& __e)
+    template <class CharT, class Traits>
+    friend ::std::basic_ostream<CharT, Traits>&
+    operator<<(::std::basic_ostream<CharT, Traits>& __os, const subtract_with_carry_engine& __e)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__os);
 
-        __os.setf(std::ios_base::dec|std::ios_base::left);
+        __os.setf(std::ios_base::dec | std::ios_base::left);
         CharT __sp = __os.widen(' ');
         __os.fill(__sp);
 
@@ -167,10 +168,9 @@ class subtract_with_carry_engine
         return __os;
     }
 
-    template<class CharT, class Traits, class __UIntType, std::size_t __W, std::size_t __S, std::size_t __R>
-    friend ::std::basic_istream<CharT,Traits>&
-    operator>>(::std::basic_istream<CharT,Traits>& __is,
-               subtract_with_carry_engine<__UIntType,__W,__S,__R>& __e)
+    template <class CharT, class Traits, class __UIntType, std::size_t __W, std::size_t __S, std::size_t __R>
+    friend ::std::basic_istream<CharT, Traits>&
+    operator>>(::std::basic_istream<CharT, Traits>& __is, subtract_with_carry_engine<__UIntType, __W, __S, __R>& __e)
     {
         internal::save_stream_flags<CharT, Traits> __flags(__is);
 
@@ -179,12 +179,13 @@ class subtract_with_carry_engine
         __UIntType __t[__R + 1];
         for (size_t i = 0; i < __R + 1; ++i)
             __is >> __t[i];
-        if (!__is.fail()) {
+        if (!__is.fail())
+        {
             for (size_t i = 0; i < __R; ++i)
-            __e.x_[i] = __t[i];
+                __e.x_[i] = __t[i];
             __e.c_ = __t[__R];
             __e.i_ = 0;
-        }         
+        }
 
         return __is;
     }
