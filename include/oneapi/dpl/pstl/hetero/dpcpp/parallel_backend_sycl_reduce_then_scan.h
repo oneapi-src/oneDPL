@@ -345,7 +345,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         auto __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                             __sub_group, __v, __reduce_op, __sub_group_carry,
-                            __active_subgroups - __subgroup_start_idx);
+                            __active_subgroups);
                         if (__sub_group_local_id < __active_subgroups)
                             __temp_ptr[__start_idx + __sub_group_local_id] = __v;
                     }
@@ -374,7 +374,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
 
                         __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
-                            __sub_group, __v, __reduce_op, __sub_group_carry, __num_sub_groups_local);
+                            __sub_group, __v, __reduce_op, __sub_group_carry,
+                            __active_subgroups - ((__iters - 1) * __sub_group_size));
                         if (__proposed_idx < __num_sub_groups_local)
                             __temp_ptr[__start_idx + __proposed_idx] = __v;
                     }
