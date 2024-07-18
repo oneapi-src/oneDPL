@@ -281,7 +281,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx-cl
             std: 17
             build_type: release
@@ -311,7 +311,7 @@ jobs:
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
-            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
           powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
@@ -339,19 +339,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx-cl
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: cl
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx
             std: 17
             build_type: release
@@ -381,7 +381,7 @@ jobs:
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
-            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
           powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
