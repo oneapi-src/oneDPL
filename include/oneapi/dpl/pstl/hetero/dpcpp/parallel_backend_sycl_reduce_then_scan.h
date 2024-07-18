@@ -409,6 +409,19 @@ struct __parallel_reduce_then_scan_scan_submitter<
     __sub_group_size, __max_inputs_per_item, __is_inclusive, _GenReduceInput, _ReduceOp, _GenScanInput,
     _ScanInputTransform, _WriteOp, _InitType, __internal::__optional_kernel_name<_KernelName...>>
 {
+
+    template <typename _TmpPtr>
+    auto __get_block_carry_in(const std::size_t __block_num, _TmpPtr __tmp_ptr) const
+    {
+        return __tmp_ptr[__num_sub_groups_global + (__block_num % 2)];
+    }
+
+    template <typename _TmpPtr, typename _ValueType>
+    void __set_block_carry_out(const std::size_t __block_num, _TmpPtr __tmp_ptr, const _ValueType __block_carry_out) const
+    {
+        __tmp_ptr[__num_sub_groups_global + 1 - (__block_num % 2)] = __block_carry_out;
+    }
+
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _TmpStorageAcc>
     auto
     operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng,
@@ -432,7 +445,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                                                __sub_group_size)]] {
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr =
-                    _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 1);
+                    _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
                 auto __lid = __ndi.get_local_id(0);
                 auto __g = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
@@ -612,16 +625,16 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     if (__sub_group_id > 0)
                     {
                         __sub_group_carry.__setup(
-                            __reduce_op(__tmp_ptr[__num_sub_groups_global], __sub_group_partials[__sub_group_id - 1]));
+                            __reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __sub_group_partials[__sub_group_id - 1]));
                     }
                     else if (__g > 0)
                     {
                         __sub_group_carry.__setup(
-                            __reduce_op(__tmp_ptr[__num_sub_groups_global], __sub_group_partials[__active_subgroups]));
+                            __reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __sub_group_partials[__active_subgroups]));
                     }
                     else
                     {
-                        __sub_group_carry.__setup(__tmp_ptr[__num_sub_groups_global]);
+                        __sub_group_carry.__setup(__get_block_carry_in(__block_num, __tmp_ptr));
                     }
                 }
 
@@ -659,7 +672,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     else
                     {
                         //capture the last carry out for the next block
-                        __tmp_ptr[__num_sub_groups_global] = __sub_group_carry.__v;
+                        __set_block_carry_out(__block_num, __tmp_ptr, __sub_group_carry.__v);
                     }
                 }
 
@@ -736,8 +749,11 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     const auto __block_size = (__n < __max_inputs_per_block) ? __n : __max_inputs_per_block;
     const auto __num_blocks = __n / __block_size + (__n % __block_size != 0);
 
+    //We need temporary storage for reductions of each sub-group (__num_sub_groups_global), and also 2 for the
+    // block carry-out.  We need two for the block carry-out to prevent a race condition between reading and writing
+    // the block carry-out within a single kernel.
     __result_and_scratch_storage<_ExecutionPolicy, _ValueType> __result_and_scratch{__exec,
-                                                                                    __num_sub_groups_global + 1};
+                                                                                    __num_sub_groups_global + 2};
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
