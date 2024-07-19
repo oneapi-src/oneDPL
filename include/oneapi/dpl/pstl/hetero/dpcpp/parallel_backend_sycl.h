@@ -1189,7 +1189,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     // The minimum number of iterations per work-item is 16
-    constexpr std::size_t __required_iters_per_work_item = 16;
+    constexpr std::size_t __required_iters_per_work_item = 32;
     auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
     while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
     {
