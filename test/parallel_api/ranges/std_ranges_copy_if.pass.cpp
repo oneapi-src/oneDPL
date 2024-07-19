@@ -24,7 +24,7 @@ main()
     // Alias for the oneapi::dpl::ext::ranges namespace
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
-    test_range_algo<data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, proj);
+    test_range_algo<int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, proj);
     test_range_algo<P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::x);
     test_range_algo<P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
