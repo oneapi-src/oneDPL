@@ -1189,7 +1189,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     // The minimum number of iterations per work-item is 16
-    if (65535 < __rng_n)
+    if (1'048'576 <= __rng_n)
     {
         constexpr std::size_t __required_iters_per_work_item = 32;
         auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
@@ -1205,7 +1205,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     ///////////////////////////////////////////////////////////////////////////
     // Eval initial value and create predicate
     constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
-    const auto _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
     auto __result = __init_value;
 
