@@ -731,7 +731,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     // TODO: Do we need to adjust for slm usage or is the amount we use reasonably small enough
     // that no check is needed?
-    const std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // TODO: This min call is temporary until PR #1683 is merged.
+    const std::size_t __work_group_size = std::min(std::size_t(8192), oneapi::dpl::__internal::__max_work_group_size(__exec));
 
     // TODO: base on max compute units. Recall disconnect in vendor definitions (# SMs vs. # XVEs)
     const std::size_t __num_work_groups = 128;
