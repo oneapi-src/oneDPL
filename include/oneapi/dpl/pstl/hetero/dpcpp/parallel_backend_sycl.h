@@ -805,7 +805,12 @@ struct __simple_write_to_idx
     void
     operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
     {
-        __out[__idx] = __v;
+        // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
+        // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
+        using _ConvertedTupleType =
+            typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(__v)>,
+                                                               std::decay_t<decltype(__out[__idx])>>::__type;
+        __out[__idx] = static_cast<_ConvertedTupleType>(__v);
     }
 };
 
