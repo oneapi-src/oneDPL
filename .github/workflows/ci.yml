@@ -194,6 +194,10 @@ jobs:
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
+      - name: Install OpenMP dependencies
+        if: (matrix.os == 'ubuntu-latest' && matrix.cxx_compiler == 'clang++' && matrix.backend == 'omp')
+        run: |
+          sudo apt-get install libomp5 libomp-dev -y
       - name: Run testing
         shell: bash
         run: |
@@ -214,7 +218,7 @@ jobs:
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} --debug-find --trace-expand ..
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
