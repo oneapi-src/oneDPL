@@ -18,10 +18,7 @@
 #include <limits>
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/utils.hpp>
-
-#ifdef SYCL_LANGUAGE_VERSION
-
-#    include <sycl/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace oneapi::dpl::experimental::dr::__detail
 {
@@ -238,21 +235,3 @@ parallel_for(sycl::queue& q, sycl::range<3> global, Fn&& fn)
 using event = sycl::event;
 
 } // namespace oneapi::dpl::experimental::dr::__detail
-
-#else
-
-namespace oneapi::dpl::experimental::dr::__detail
-{
-
-class event
-{
-  public:
-    void
-    wait()
-    {
-    }
-};
-
-} // namespace oneapi::dpl::experimental::dr::__detail
-
-#endif // SYCL_LANGUAGE_VERSION
