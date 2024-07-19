@@ -1184,12 +1184,12 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     ///////////////////////////////////////////////////////////////////////////
     // Calculates the amount of work-groups taking into account the required number of elements per work-item
-    constexpr std::size_t __required_iters_per_work_item = 16;
-
-    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     const auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
+    // The minimum number of iterations per work-item is 16
+    constexpr std::size_t __required_iters_per_work_item = 16;
     auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
     while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
     {
@@ -1201,10 +1201,10 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     ///////////////////////////////////////////////////////////////////////////
     // Eval initial value and create predicate
-    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    auto __result = __init_value;
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
     constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
+    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    auto __result = __init_value;
 
     ///////////////////////////////////////////////////////////////////////////
     // Starts main work...
