@@ -1188,9 +1188,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
-    const auto __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
-    if (32 != __max_sg_size)
-        assert(false);
+    // Calculate the number of elements to be processed by each work-item.
+    auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+    while (__iters_per_work_item < 8 && __n_groups > 16)
+    {
+        __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+        __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+    }
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1210,7 +1214,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __item_id) [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(32)]] {
+                [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
                     // 1. Set initial value to local found state
