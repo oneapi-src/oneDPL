@@ -12,7 +12,7 @@ on:
 permissions: read-all
 
 env:
-  BUILD_CONCURRENCY: 2
+  BUILD_CONCURRENCY: 4
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
   WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/8222de4d-2c5e-41bc-bdd5-f557a9edda28/w_tbb_oneapi_p_2021.13.0.627_offline.exe
