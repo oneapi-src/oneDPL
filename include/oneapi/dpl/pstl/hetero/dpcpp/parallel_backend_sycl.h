@@ -1188,9 +1188,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
+#if _USE_SUB_GROUPS
     const auto __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     if (32 != __max_sg_size)
         assert(false);
+#endif
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1210,7 +1212,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __item_id) [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(32)]] {
+                [=](sycl::nd_item</*dim=*/1> __item_id)
+#if _USE_SUB_GROUPS
+                                                        [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(32)]]
+#endif
+                {
                     auto __local_idx = __item_id.get_local_id(0);
 
                     // 1. Set initial value to local found state
