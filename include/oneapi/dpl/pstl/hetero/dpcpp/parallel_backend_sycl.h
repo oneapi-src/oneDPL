@@ -1188,10 +1188,34 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
-    // The minimum number of iterations per work-item is 16
+    // The minimum number of iterations per work-item is 32
     if (1'048'576 <= __rng_n)
     {
         constexpr std::size_t __required_iters_per_work_item = 32;
+        auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
+        {
+            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        }
+    }
+
+    // The minimum number of iterations per work-item is 16
+    else if (262'144 <= __rng_n)
+    {
+        constexpr std::size_t __required_iters_per_work_item = 16;
+        auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
+        {
+            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        }
+    }
+
+    // The minimum number of iterations per work-item is 8
+    else if (65'536 <= __rng_n)
+    {
+        constexpr std::size_t __required_iters_per_work_item = 8;
         auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
         while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
         {
