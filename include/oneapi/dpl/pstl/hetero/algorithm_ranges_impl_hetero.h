@@ -515,7 +515,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename
 std::ranges::range_difference_t<_R>
 __pattern_count_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj, __val));};
     return oneapi::dpl::__internal::__ranges::__pattern_count(__tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
 }
@@ -594,8 +594,8 @@ auto
 __pattern_copy_if_2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
     _Pred __pred, _Proj __proj)
 {
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-    
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj, __val));};
+
     auto __res_idx = oneapi::dpl::__internal::__ranges::__pattern_copy_if(
         __tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_InRange>(__in_r)),
         views::all_write(::std::forward<_OutRange>(__out_r)), __pred_1, oneapi::dpl::__internal::__pstl_assign());
