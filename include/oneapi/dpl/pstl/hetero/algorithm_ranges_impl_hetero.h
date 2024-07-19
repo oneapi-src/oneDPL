@@ -324,10 +324,9 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search(__tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::views::all_read(std::forward<_R1>(__r1)), oneapi::dpl::views::all_read(std::forward<_R2>(__r2)),
         __pred_2);
+    auto __res = std::ranges::begin(__r1) + __idx;
 
-    auto __it = std::ranges::begin(__r1) + __idx;
-    auto __end = (__idx == __r1.size() ? __it : __it + __r2.size());
-    return std::ranges::borrowed_subrange_t<_R1>(__it, __end);
+    return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1) ? __res : __res + __r2.size());
 }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
 
