@@ -35,15 +35,4 @@ round_up(std::size_t n, std::size_t multiple)
     return n + multiple - remainder;
 }
 
-inline std::size_t
-partition_up(std::size_t n, std::size_t multiple)
-{
-    if (multiple == 0)
-    {
-        return n;
-    }
-
-    return round_up(n, multiple) / multiple;
-}
-
 } // namespace oneapi::dpl::experimental::dr::__detail
