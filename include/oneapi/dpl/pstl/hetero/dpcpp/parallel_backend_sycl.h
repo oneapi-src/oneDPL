@@ -1189,8 +1189,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
     // Calculate the number of elements to be processed by each work-item.
+    constexpr std::size_t __required_iters_per_work_item = 8;
     auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-    while (__iters_per_work_item < 8 && __n_groups > 16)
+    while (__iters_per_work_item < __required_iters_per_work_item && 4 < __n_groups)
     {
         __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
         __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
