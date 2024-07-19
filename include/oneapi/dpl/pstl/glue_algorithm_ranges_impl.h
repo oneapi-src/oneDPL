@@ -316,8 +316,10 @@ inline constexpr __internal::__search_n_fn search_n;
 
 struct count_if_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred> _Pred>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    std::ranges::range_difference_t<_R>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, std::ranges::begin(__r));
@@ -330,12 +332,17 @@ inline constexpr count_if_fn count_if;
 
 struct count_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj = std::identity>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::range_difference_t<_R>>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             typename _T>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+        && std::indirect_binary_predicate<std::ranges::equal_to, std::projected<std::ranges::iterator_t<_R>, _Proj>,
+        const _T*>
+    std::ranges::range_difference_t<_R>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
         auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(__val, __value);};
-        return oneapi::dpl::ext::ranges::count_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+        return oneapi::dpl::ext::ranges::count_if(std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_R>(__r), __pred, __proj);
     }
 }; //count_fn
 
@@ -343,9 +350,13 @@ inline constexpr count_fn count;
 
 struct equal_fn
 {
-    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred = std::ranges::equal_to,
-             typename _Proj1 = std::identity, typename _Proj2 = std::identity>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
+             typename _Pred = std::ranges::equal_to, typename _Proj1 = std::identity, typename _Proj2 = std::identity>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+           && std::ranges::sized_range<_R1> && std::ranges::sized_range<_R2>
+           && std::indirectly_comparable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>, _Pred, _Proj1,
+           _Proj2>
+    bool
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred = {}, _Proj1 __proj1 = {},
                _Proj2 __proj2 = {}) const
     {
@@ -361,8 +372,11 @@ inline constexpr equal_fn equal;
 
 struct is_sorted_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Comp = std::ranges::less>
-    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>>
+             _Comp = std::ranges::less>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    bool
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, std::ranges::begin(__r));
@@ -375,8 +389,10 @@ inline constexpr is_sorted_fn is_sorted;
 
 struct stable_sort_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Comp = std::ranges::less,
+             typename _Proj = std::identity>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+           && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -390,13 +406,15 @@ inline constexpr stable_sort_fn stable_sort;
 
 struct sort_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Comp = std::ranges::less,
+             typename _Proj = std::identity>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+           && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
-        return oneapi::dpl::ext::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
-            __proj);
+        return oneapi::dpl::ext::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            __comp, __proj);
     }
 }; //sort_fn
 
@@ -404,8 +422,10 @@ inline constexpr sort_fn sort;
 
 struct min_element_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>>
+             _Comp = std::ranges::less>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -419,8 +439,9 @@ inline constexpr min_element_fn min_element;
 
 struct max_element_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Comp = std::ranges::less, typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
+             std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Comp = std::ranges::less>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -433,8 +454,10 @@ inline constexpr max_element_fn max_element;
 
 struct copy_fn
 {
-    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
+             std::ranges::random_access_range _OutRange>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+        && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r) const
     {
@@ -449,9 +472,11 @@ inline constexpr copy_fn copy;
 
 struct copy_if_fn
 {
-    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred,
-             typename _Proj = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
+             std::ranges::random_access_range _OutRange, typename _Proj = std::identity,
+             std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred> _Pred>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+     && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj = {}) const
     {
@@ -466,9 +491,12 @@ inline constexpr copy_if_fn copy_if;
 
 struct merge_fn
 {
-    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp = std::ranges::less,
-             typename _Proj1 = std::identity, typename _Proj2 = std::identity,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
+             std::ranges::random_access_range _OutRange, typename _Comp = std::ranges::less,
+             typename _Proj1 = std::identity, typename _Proj2 = std::identity>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+        && std::mergeable<ranges::iterator_t<R1>, ranges::iterator_t<R2>, ranges::iterator_t<_OutRange>, _Comp, _Proj1,
+        _Proj2>
     constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp = {}, _Proj1 __proj1 = {},
                _Proj2 __proj2 = {}) const
