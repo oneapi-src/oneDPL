@@ -474,7 +474,7 @@ __pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
 
     using _InputType  = std::ranges::range_value_t<_R>;
     oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
-        std::ranges::begin(__r) + __r.size(), __comp_2, typename std::is_move_constructible<_InputType>::type{});
+        std::ranges::begin(__r) + __r.size(), __comp_2);
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + __r.size());
 }
