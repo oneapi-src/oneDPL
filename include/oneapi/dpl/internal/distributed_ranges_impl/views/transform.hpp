@@ -174,7 +174,7 @@ class transform_iterator
 };
 
 template <stdrng::random_access_range V, std::copy_constructible F>
-class transform_view : public stdrng::view_interface<transform_view<V, F>>
+requires(std::is_default_constructible_v<F>) class transform_view : public stdrng::view_interface<transform_view<V, F>>
 {
   public:
     template <stdrng::viewable_range R>

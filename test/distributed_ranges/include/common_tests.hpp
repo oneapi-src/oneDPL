@@ -254,14 +254,14 @@ auto gtest_result(const auto &message) {
   }
 }
 
-auto equal(stdrng::range auto &&ref, stdrng::range auto &&actual,
-           std::string title = " ") {
+auto gtest_equal(stdrng::range auto &&ref, stdrng::range auto &&actual,
+                 std::string title = " ") {
   return gtest_result(equal_message(ref, actual, title));
 }
 
 template <stdrng::range Rng>
-auto equal(std::initializer_list<stdrng::range_value_t<Rng>> ref, Rng &&actual,
-           std::string title = " ") {
+auto gtest_equal(std::initializer_list<stdrng::range_value_t<Rng>> ref, Rng &&actual,
+                 std::string title = " ") {
   return gtest_result(
     equal_message(std::vector<stdrng::range_value_t<Rng>>(ref), actual, title));
 }

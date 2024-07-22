@@ -44,14 +44,14 @@ TYPED_TEST(IotaTest, SlicedLeft) {
   TypeParam dist_vec(10, 0);
   xp::iota(dist_vec.begin() + 2, dist_vec.end(), 2);
   EXPECT_TRUE(
-      equal(dist_vec, LocalVec<TypeParam>{0, 0, 2, 3, 4, 5, 6, 7, 8, 9}));
+      gtest_equal(dist_vec, LocalVec<TypeParam>{0, 0, 2, 3, 4, 5, 6, 7, 8, 9}));
 }
 
 TYPED_TEST(IotaTest, SlicedRight) {
   TypeParam dist_vec(10, 0);
   xp::iota(dist_vec.begin(), dist_vec.end() - 2, 2);
   EXPECT_TRUE(
-      equal(dist_vec, LocalVec<TypeParam>{2, 3, 4, 5, 6, 7, 8, 9, 0, 0}));
+      gtest_equal(dist_vec, LocalVec<TypeParam>{2, 3, 4, 5, 6, 7, 8, 9, 0, 0}));
 }
 
 TYPED_TEST(IotaTest, Large) {
