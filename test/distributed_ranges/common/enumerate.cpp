@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 // Fixture
 template <typename T> class Enumerate : public testing::Test {
@@ -26,16 +26,16 @@ TYPED_TEST(Enumerate, Basic) {
   Ops1<TypeParam> ops(10);
 
   EXPECT_TRUE(check_view(stdrng::views::enumerate(ops.vec),
-                         xhp::views::enumerate(ops.dist_vec)));
+                         xp::views::enumerate(ops.dist_vec)));
 }
 
 TYPED_TEST(Enumerate, Mutate) {
   Ops1<TypeParam> ops(10);
   auto local = stdrng::views::enumerate(ops.vec);
-  auto dist = xhp::views::enumerate(ops.dist_vec);
+  auto dist = xp::views::enumerate(ops.dist_vec);
 
   auto copy = [](auto &&v) { std::get<1>(v) = std::get<0>(v); };
-  xhp::for_each(dist, copy);
+  xp::for_each(dist, copy);
   stdrng::for_each(local, copy);
 
   EXPECT_EQ(local, dist);

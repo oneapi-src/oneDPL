@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 // Fixture
 template <typename T> class DistributedVectorAllTypes : public testing::Test {
@@ -79,7 +79,7 @@ TYPED_TEST(DistributedVectorAllTypes, Segments) {
 }
 
 TEST(DistributedVector, ConstructorBasic) {
-  xhp::distributed_vector<int> dist_vec(10);
+  xp::distributed_vector<int> dist_vec(10);
   iota(dist_vec, 100);
 
   std::vector<int> local_vec(10);
@@ -89,7 +89,7 @@ TEST(DistributedVector, ConstructorBasic) {
 }
 
 TEST(DistributedVector, ConstructorFill) {
-  xhp::distributed_vector<int> dist_vec(10, 1);
+  xp::distributed_vector<int> dist_vec(10, 1);
 
   std::vector<int> local_vec(10, 1);
 
