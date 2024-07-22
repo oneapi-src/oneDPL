@@ -1135,9 +1135,9 @@ struct __early_exit_find_or
             }
 
             // Periodically check global atomic to early exit if something was found
-            __something_was_found = __something_was_found || (__check_global_state_interval > 0 &&
-                                                              (__i + 1) % __check_global_state_interval == 0 &&
-                                                              __found_global.load() != __init_value);
+            //__something_was_found = __something_was_found || (__check_global_state_interval > 0 &&
+            //                                                  (__i + 1) % __check_global_state_interval == 0 &&
+            //                                                  __found_global.load() != __init_value);
 
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
@@ -1162,8 +1162,8 @@ struct __parallel_find_or_tuner
     eval_n_groups(std::size_t __n_groups, const std::size_t __wgroup_size, const std::size_t __rng_n)
     {
         // If all source data fits into one work-group, then we need only one work-group
-        if (__rng_n <= __wgroup_size)
-            return 1;
+        //if (__rng_n <= __wgroup_size)
+        //    return 1;
 
         // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 512
         // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 256
