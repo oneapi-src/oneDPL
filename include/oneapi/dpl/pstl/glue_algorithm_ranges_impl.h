@@ -76,7 +76,7 @@ struct transform_fn
             std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r),
                 __op, __proj);
     }
-};//transform_fn
+}; //transform_fn
 
 inline constexpr transform_fn transform;
 
