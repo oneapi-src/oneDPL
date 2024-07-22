@@ -1135,9 +1135,9 @@ struct __early_exit_find_or
             }
 
             // Periodically check global atomic to early exit if something was found
-            __something_was_found = __something_was_found ||
-                                    (__check_global_state_interval > 0 && __i > 0 &&
-                                     __i % __check_global_state_interval == 0 && __found_global.load() != __init_value);
+            __something_was_found = __something_was_found || (__check_global_state_interval > 0 &&
+                                                              (__i + 1) % __check_global_state_interval == 0 &&
+                                                              __found_global.load() != __init_value);
 
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
@@ -1206,6 +1206,8 @@ struct __parallel_find_or_tuner
     eval_check_global_state_interval(const std::size_t __n_groups, const std::size_t __wgroup_size,
                                      const std::size_t __rng_n)
     {
+        return 0;
+
         constexpr std::size_t __check_global_state_interval_min = 100;
 
         const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
