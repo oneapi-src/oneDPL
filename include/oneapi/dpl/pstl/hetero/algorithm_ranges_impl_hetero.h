@@ -174,7 +174,7 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range>(__rng));
 }
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL_CPP20_RANGES_PRESENT
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 auto
 __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
@@ -186,7 +186,7 @@ __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + __idx);
 }
-#endif //_ONEDPL___cplusplus
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
 // find_end
