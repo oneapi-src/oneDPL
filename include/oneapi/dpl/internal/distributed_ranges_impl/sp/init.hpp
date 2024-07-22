@@ -101,18 +101,13 @@ init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<stdr
     par_unseq = distributed_device_policy(__detail::devices_);
 }
 
+// example call: init(sycl::default_selector_v)
 template <__detail::sycl_device_selector Selector>
 inline void
 init(Selector&& selector)
 {
     auto devices = get_numa_devices(selector);
     init(devices);
-}
-
-inline void
-init()
-{
-    init(sycl::default_selector_v);
 }
 
 inline void

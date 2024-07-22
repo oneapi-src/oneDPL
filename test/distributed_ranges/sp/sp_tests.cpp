@@ -71,5 +71,7 @@ int main(int argc, char *argv[]) {
               << "\n";
   }
 
-  return RUN_ALL_TESTS();
+  int retVal = RUN_ALL_TESTS();
+  dr::sp::finalize();
+  return retVal;
 }
