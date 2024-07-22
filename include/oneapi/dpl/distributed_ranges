@@ -20,7 +20,7 @@
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
 #if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/shp.hpp"
+#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
 #else
 #error "C++23 required to use Distributed Ranges"
 #endif

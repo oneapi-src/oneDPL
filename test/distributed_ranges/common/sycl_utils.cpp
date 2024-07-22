@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 #ifdef SYCL_LANGUAGE_VERSION
 

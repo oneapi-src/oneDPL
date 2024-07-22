@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 // Fixture
 template <typename T> class TransformView : public testing::Test {
@@ -27,7 +27,7 @@ TYPED_TEST(TransformView, Basic) {
 
   auto negate = [](auto v) { return -v; };
   auto local = stdrng::views::transform(ops.vec, negate);
-  auto dist = xhp::views::transform(ops.dist_vec, negate);
+  auto dist = xp::views::transform(ops.dist_vec, negate);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
 }
@@ -38,7 +38,7 @@ TYPED_TEST(TransformView, All) {
   auto negate = [](auto v) { return -v; };
   EXPECT_TRUE(
       check_view(stdrng::views::transform(stdrng::views::all(ops.vec), negate),
-                 xhp::views::transform(stdrng::views::all(ops.dist_vec), negate)));
+                 xp::views::transform(stdrng::views::all(ops.dist_vec), negate)));
 }
 
 TYPED_TEST(TransformView, Move) {
@@ -49,7 +49,7 @@ TYPED_TEST(TransformView, Move) {
   auto dist_l_value = stdrng::views::all(ops.dist_vec);
   EXPECT_TRUE(
       check_view(stdrng::views::transform(std::move(l_value), negate),
-                 xhp::views::transform(std::move(dist_l_value), negate)));
+                 xp::views::transform(std::move(dist_l_value), negate)));
 }
 
 TYPED_TEST(TransformView, L_Value) {
@@ -59,7 +59,7 @@ TYPED_TEST(TransformView, L_Value) {
   auto l_value = stdrng::views::all(ops.vec);
   auto dist_l_value = stdrng::views::all(ops.dist_vec);
   EXPECT_TRUE(check_view(stdrng::views::transform(l_value, negate),
-                         xhp::views::transform(dist_l_value, negate)));
+                         xp::views::transform(dist_l_value, negate)));
 }
 
 TYPED_TEST(TransformView, ForEach) {
@@ -67,11 +67,11 @@ TYPED_TEST(TransformView, ForEach) {
 
   auto null_transform = [](auto &&v) { return v; };
   auto local = stdrng::views::transform(ops.vec, null_transform);
-  auto dist = xhp::views::transform(ops.dist_vec, null_transform);
+  auto dist = xp::views::transform(ops.dist_vec, null_transform);
 
   auto null_for_each = [](auto v) {};
   stdrng::for_each(local, null_for_each);
-  xhp::for_each(dist, null_for_each);
+  xp::for_each(dist, null_for_each);
   EXPECT_EQ(ops.vec, ops.dist_vec);
 }
 
@@ -80,7 +80,7 @@ TYPED_TEST(TransformView, Reduce) {
 
   auto negate = [](auto &&v) { return -v; };
   auto local = stdrng::views::transform(ops.vec, negate);
-  auto dist = xhp::views::transform(ops.dist_vec, negate);
+  auto dist = xp::views::transform(ops.dist_vec, negate);
   EXPECT_EQ(std::reduce(local.begin(), local.end(), 3, std::plus{}),
-            xhp::reduce(dist, 3, std::plus{}));
+            xp::reduce(dist, 3, std::plus{}));
 }

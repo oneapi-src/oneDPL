@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 // Fixture
 template <typename T> class Drop : public testing::Test {
@@ -26,7 +26,7 @@ TYPED_TEST(Drop, Basic) {
   Ops1<TypeParam> ops(10);
 
   auto local = stdrng::views::drop(ops.vec, 2);
-  auto dist = xhp::views::drop(ops.dist_vec, 2);
+  auto dist = xp::views::drop(ops.dist_vec, 2);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
 }
@@ -35,13 +35,13 @@ TYPED_TEST(Drop, Mutate) {
   Ops1<TypeParam> ops(10);
 
   EXPECT_TRUE(check_mutate_view(ops, stdrng::views::drop(ops.vec, 2),
-                                xhp::views::drop(ops.dist_vec, 2)));
+                                xp::views::drop(ops.dist_vec, 2)));
 }
 
 template <class TypeParam>
 void localAndDrDropResultsAreSameTest(std::size_t dropSize) {
   Ops1<TypeParam> ops(10);
-  auto dist = xhp::views::drop(ops.dist_vec, dropSize);
+  auto dist = xp::views::drop(ops.dist_vec, dropSize);
   auto local = stdrng::views::drop(ops.vec, dropSize);
   EXPECT_TRUE(check_view(local, dist));
 }
@@ -60,20 +60,20 @@ TYPED_TEST(Drop, one) { localAndDrDropResultsAreSameTest<TypeParam>(1); }
 
 TYPED_TEST(Drop, emptyInput_zeroSize) {
   TypeParam dv(0);
-  auto dist = xhp::views::drop(dv, 0);
+  auto dist = xp::views::drop(dv, 0);
   EXPECT_TRUE(stdrng::empty(dist));
 }
 
 TYPED_TEST(Drop, emptyInput_nonZeroSize) {
   TypeParam dv(0);
-  auto dist = xhp::views::drop(dv, 1);
+  auto dist = xp::views::drop(dv, 1);
   EXPECT_TRUE(stdrng::empty(dist));
 }
 
 TYPED_TEST(Drop, large) {
   TypeParam dv(123456, 77);
 
-  auto drop_result = xhp::views::drop(dv, 54321);
+  auto drop_result = xp::views::drop(dv, 54321);
 
   EXPECT_EQ(*(--drop_result.end()), 77);
   fence();
@@ -87,7 +87,7 @@ TYPED_TEST(Drop, large) {
 TYPED_TEST(Drop, largeDropOfAllButOneHasSameSegmentAndRank) {
   TypeParam dv(123456, 77);
 
-  auto drop_view_result = xhp::views::drop(dv, 123456 - 1);
+  auto drop_view_result = xp::views::drop(dv, 123456 - 1);
 
   auto drop_view_segments = dr::ranges::segments(drop_view_result);
   auto dv_segments = dr::ranges::segments(dv);
@@ -101,7 +101,7 @@ TYPED_TEST(Drop, largeDropOfAllButOneHasSameSegmentAndRank) {
 
 TYPED_TEST(Drop, dropOfAllElementsButOneHasOneSegmentAndSameRank) {
   TypeParam dv(10, 77);
-  auto drop_view_result = xhp::views::drop(dv, 9);
+  auto drop_view_result = xp::views::drop(dv, 9);
 
   auto drop_view_segments = dr::ranges::segments(drop_view_result);
   auto dv_segments = dr::ranges::segments(dv);
@@ -117,7 +117,7 @@ TYPED_TEST(Drop, dropOfFirstSegementHasSameSegmentsSize) {
   TypeParam dv(10, 77);
 
   const auto first_seg_size = dr::ranges::segments(dv)[0].size();
-  auto drop_view_result = xhp::views::drop(dv, first_seg_size);
+  auto drop_view_result = xp::views::drop(dv, first_seg_size);
   auto drop_view_segments = dr::ranges::segments(drop_view_result);
   EXPECT_EQ(stdrng::size(drop_view_segments), dr::ranges::segments(dv).size() - 1);
 }
@@ -126,7 +126,7 @@ TYPED_TEST(Drop, dropOfOneElementHasAllSegmentsWithSameRanks) {
   TypeParam dv(EVENLY_DIVIDABLE_SIZE, 77);
 
   auto dv_segments = dr::ranges::segments(dv);
-  auto drop_view_result = xhp::views::drop(dv, 1);
+  auto drop_view_result = xp::views::drop(dv, 1);
   auto drop_view_segments = dr::ranges::segments(drop_view_result);
 
   EXPECT_EQ(stdrng::size(dv_segments), stdrng::size(drop_view_segments));

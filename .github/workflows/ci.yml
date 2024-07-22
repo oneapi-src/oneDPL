@@ -222,8 +222,8 @@ jobs:
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
           
             if [[ "${{ matrix.std }}" == "23" ]]; then
-              make_targets="$make_targets shp-all-tests"
-              ctest_flags="$ctest_flags|shp_tests"
+              make_targets="$make_targets sp-all-tests"
+              ctest_flags="$ctest_flags|sp_tests"
               echo "::warning::23 standard is set. Compile and run distributed ranges tests"
             fi
           

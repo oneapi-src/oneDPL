@@ -32,7 +32,7 @@ struct AOS_Struct {
 #ifndef DRISHMEM
 struct OpsAOS {
 
-  using dist_vec_type = xhp::distributed_vector<AOS_Struct>;
+  using dist_vec_type = xp::distributed_vector<AOS_Struct>;
   using vec_type = std::vector<AOS_Struct>;
 
   OpsAOS(std::size_t n) : dist_vec(n), vec(n) {
@@ -232,7 +232,7 @@ auto check_mutate_view_message(auto &ops, stdrng::range auto &&ref,
   auto negate = [](auto &&val) { val = -val; };
   auto input_vector = ops.vec;
   std::vector input_view(ref.begin(), ref.end());
-  xhp::for_each(actual, negate);
+  xp::for_each(actual, negate);
   stdrng::for_each(ref, negate);
 
   // Check mutated view
@@ -325,7 +325,7 @@ concept streamable = requires(std::ostream &os, T value) {
   { os << value } -> std::convertible_to<std::ostream &>;
 };
 
-namespace oneapi::dpl::experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::sp {
 
 // gtest relies on ADL to find the printer
 template <typename T>
@@ -354,7 +354,7 @@ bool operator==(const distributed_vector<T> &dist_vec,
   return is_equal(dist_vec, local_vec);
 }
 
-} // namespace oneapi::dpl::experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::sp
 
 namespace DR_RANGES_NAMESPACE {
 
