@@ -1167,7 +1167,7 @@ struct __parallel_find_or_tuner
         // Size: [     65'536, ...,    262'144 ) -> minimum number of iterations per work-item is   8
         // Size: [     16'384, ...,     65'536 ) -> minimum number of iterations per work-item is   4
         constexpr std::array<std::size_t, 3> __lower_bounds_of_sizes         = { 1'048'576, 4'194'304, 16'777'216 };
-        constexpr std::array<std::size_t, 3> __required_iters_per_work_items = {        64,       128,          0 };
+        constexpr std::array<std::size_t, 3> __required_iters_per_work_items = {        16,        32,          0 };
         
         const auto __it_bound = std::find_if(__lower_bounds_of_sizes.cbegin(), __lower_bounds_of_sizes.cend(),
                                              [__rng_n](std::size_t __i) { return __i <= __rng_n; });
