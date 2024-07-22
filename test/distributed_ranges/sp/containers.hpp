@@ -13,16 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DISTRIBUTED_RANGES
-#define _ONEDPL_DISTRIBUTED_RANGES
+#pragma once
 
-#include "oneapi/dpl/internal/common_config.h"
-#include "oneapi/dpl/pstl/onedpl_config.h"
+#include "xhp_tests.hpp"
 
-#if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
-#else
-#error "C++23 required to use Distributed Ranges"
-#endif
-
-#endif // _ONEDPL_DISTRIBUTED_RANGES
+template <typename AllocT> class DistributedVectorTest : public testing::Test {
+public:
+  using DistVec =
+      dr::sp::distributed_vector<typename AllocT::value_type, AllocT>;
+  using LocalVec = std::vector<typename AllocT::value_type>;
+};

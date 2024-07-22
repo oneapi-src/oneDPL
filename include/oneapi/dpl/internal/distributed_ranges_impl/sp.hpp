@@ -13,16 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DISTRIBUTED_RANGES
-#define _ONEDPL_DISTRIBUTED_RANGES
+#pragma once
 
-#include "oneapi/dpl/internal/common_config.h"
-#include "oneapi/dpl/pstl/onedpl_config.h"
-
-#if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
-#else
-#error "C++23 required to use Distributed Ranges"
-#endif
-
-#endif // _ONEDPL_DISTRIBUTED_RANGES
+#include "sp/algorithms/algorithms.hpp"
+#include "sp/detail.hpp"
+#include "sp/distributed_span.hpp"
+#include "sp/distributed_vector.hpp"
+#include "sp/init.hpp"
+#include "sp/range.hpp"
+#include "sp/range_adaptors.hpp"
+#include "sp/util.hpp"
+#include "sp/views/views.hpp"
+#include "views/views.hpp"

@@ -13,16 +13,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DISTRIBUTED_RANGES
-#define _ONEDPL_DISTRIBUTED_RANGES
+#pragma once
 
-#include "oneapi/dpl/internal/common_config.h"
-#include "oneapi/dpl/pstl/onedpl_config.h"
+#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/standard_views.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
 
-#if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
-#else
-#error "C++23 required to use Distributed Ranges"
-#endif
+namespace oneapi::dpl::experimental::dr::sp
+{
 
-#endif // _ONEDPL_DISTRIBUTED_RANGES
+template <stdrng::range R>
+auto
+enumerate(R&& r)
+{
+    auto i = stdrng::views::iota(uint32_t(0), uint32_t(stdrng::size(r)));
+    return zip_view(i, r);
+}
+
+} // namespace oneapi::dpl::experimental::dr::sp

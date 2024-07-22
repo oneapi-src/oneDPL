@@ -13,16 +13,32 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DISTRIBUTED_RANGES
-#define _ONEDPL_DISTRIBUTED_RANGES
+#pragma once
 
-#include "oneapi/dpl/internal/common_config.h"
-#include "oneapi/dpl/pstl/onedpl_config.h"
+#include <cmath>
 
-#if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
-#else
-#error "C++23 required to use Distributed Ranges"
-#endif
+namespace oneapi::dpl::experimental::dr::sp
+{
 
-#endif // _ONEDPL_DISTRIBUTED_RANGES
+namespace detail
+{
+
+// Factor n into 2 roughly equal factors
+// n = pq, p >= q
+inline std::tuple<std::size_t, std::size_t>
+factor(std::size_t n)
+{
+    std::size_t q = std::sqrt(n);
+
+    while (q > 1 && n / q != static_cast<double>(n) / q)
+    {
+        q--;
+    }
+    std::size_t p = n / q;
+
+    return {p, q};
+}
+
+} // namespace detail
+
+} // namespace oneapi::dpl::experimental::dr::sp

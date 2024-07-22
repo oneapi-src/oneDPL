@@ -70,8 +70,8 @@ TYPED_TEST(Zip, RangeSegments) {
   EXPECT_TRUE(is_equal(local, flat));
 }
 
-#ifndef TEST_SHP
-// Will not compile with SHP
+#ifndef TEST_SP
+// Will not compile with SP
 TYPED_TEST(Zip, IterSegments) {
   Ops1<TypeParam> ops(10);
 

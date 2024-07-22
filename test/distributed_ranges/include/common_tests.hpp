@@ -325,7 +325,7 @@ concept streamable = requires(std::ostream &os, T value) {
   { os << value } -> std::convertible_to<std::ostream &>;
 };
 
-namespace oneapi::dpl::experimental::dr::shp {
+namespace oneapi::dpl::experimental::dr::sp {
 
 // gtest relies on ADL to find the printer
 template <typename T>
@@ -354,7 +354,7 @@ bool operator==(const distributed_vector<T> &dist_vec,
   return is_equal(dist_vec, local_vec);
 }
 
-} // namespace oneapi::dpl::experimental::dr::shp
+} // namespace oneapi::dpl::experimental::dr::sp
 
 namespace DR_RANGES_NAMESPACE {
 
