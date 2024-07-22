@@ -1166,8 +1166,6 @@ struct __parallel_find_or_tuner
     std::size_t
     eval_n_groups(std::size_t __n_groups, const std::size_t __wgroup_size, const std::size_t __rng_n)
     {
-        //return __n_groups;
-
         // If all source data fits into one work-group, then we need only one work-group
         //if (__rng_n <= __wgroup_size)
         //    return 1;
@@ -1180,32 +1178,27 @@ struct __parallel_find_or_tuner
         // Size: [    262'144, ...,  1'048'576 ) -> minimum number of iterations per work-item is  16
         // Size: [     65'536, ...,    262'144 ) -> minimum number of iterations per work-item is   8
         // Size: [     16'384, ...,     65'536 ) -> minimum number of iterations per work-item is   4
-        //constexpr std::array<std::size_t, 8> __lower_bounds_of_sizes         = { 16'384, 65'536, 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
-        //constexpr std::array<std::size_t, 8> __required_iters_per_work_items = {      4,      8,      16,        32,        64,        128,        256,         512 };
-        //
-        //const auto __it_bound = std::find_if(__lower_bounds_of_sizes.cbegin(), __lower_bounds_of_sizes.cend(),
-        //                                     [__rng_n](std::size_t __i) { return __i <= __rng_n; });
-        //if (__it_bound == __lower_bounds_of_sizes.cend())
-        //    return __n_groups;
-        //
-        //const auto __offset = std::distance(__lower_bounds_of_sizes.cbegin(), __it_bound);
-        //const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
-        //
-        //const std::size_t __required_iters_per_work_item = *__it_size;
-        //
-        //auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-        //while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
-        //{
-        //    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-        //    __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-        //}
+        constexpr std::array<std::size_t, 8> __lower_bounds_of_sizes         = { 1'048'576, 4'194'304, 16'777'216 };
+        constexpr std::array<std::size_t, 8> __required_iters_per_work_items = {        32,        64,          0 };
+        
+        const auto __it_bound = std::find_if(__lower_bounds_of_sizes.cbegin(), __lower_bounds_of_sizes.cend(),
+                                             [__rng_n](std::size_t __i) { return __i <= __rng_n; });
+        if (__it_bound == __lower_bounds_of_sizes.cend())
+            return __n_groups;
 
+        const auto __offset = std::distance(__lower_bounds_of_sizes.cbegin(), __it_bound);
+        const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
 
-        if (262'144 <= __rng_n && __rng_n < 1'048'576)
-            return 16;
+        const std::size_t __required_iters_per_work_item = *__it_size;
+        if (0 == __required_iters_per_work_item)
+            return __n_groups;
 
-        if (1'048'576 <= __rng_n && __rng_n < 4'194'304)
-            return 32;
+        auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+        {
+            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        }
 
         return __n_groups;
     }
