@@ -1183,21 +1183,21 @@ struct __parallel_find_or_tuner
         
         const auto __it_bound = std::find_if(__lower_bounds_of_sizes.cbegin(), __lower_bounds_of_sizes.cend(),
                                              [__rng_n](std::size_t __i) { return __i <= __rng_n; });
-        if (__it_bound == __lower_bounds_of_sizes.cend())
-            return __n_groups;
-
-        const auto __offset = std::distance(__lower_bounds_of_sizes.cbegin(), __it_bound);
-        const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
-
-        const std::size_t __required_iters_per_work_item = *__it_size;
-        if (0 == __required_iters_per_work_item)
-            return __n_groups;
-
-        auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-        while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+        if (__it_bound != __lower_bounds_of_sizes.cend())
         {
-            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+            const auto __offset = std::distance(__lower_bounds_of_sizes.cbegin(), __it_bound);
+            const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
+
+            const std::size_t __required_iters_per_work_item = *__it_size;
+            if (__required_iters_per_work_item > 0)
+            {
+                auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+                {
+                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                    __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                }
+            }
         }
 
         return __n_groups;
