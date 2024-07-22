@@ -644,8 +644,8 @@ struct __radix_sort_onesweep_kernel
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
                         __p_prev_group_hist + __local_tid * __bin_width);
-                    // Software barrier is used in order to trick the compiler
-                    // to generate memory operations in an order, which results in better performance
+                    // Software barrier is used in order to motivate the compiler
+                    // to generate memory operations in an order which results in better performance
                     // TODO: check if it is still necessary.
                     __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
                 } while (((__prev_group_hist & __hist_updated) == 0).any());
