@@ -894,7 +894,7 @@ struct __write_to_idx_if
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
                                                                std::decay_t<decltype(__out_rng[__idx])>>::__type;
         if (std::get<1>(__v))
-            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v), __out[std::get<0>(__v) - 1]);
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out[std::get<0>(__v) - 1]);
     }
     Assign __assign;
 };
@@ -906,10 +906,13 @@ struct __write_to_idx_if_else
     void
     operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
     {
+        using _ConvertedTupleType =
+            typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
+                                                               std::decay_t<decltype(__out[__idx])>>::__type;
         if (std::get<1>(__v))
-            __assign(std::get<2>(__v), std::get<0>(__out[std::get<0>(__v) - 1]));
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), std::get<0>(__out[std::get<0>(__v) - 1]));
         else
-            __assign(std::get<2>(__v), std::get<1>(__out[__idx - std::get<0>(__v)]));
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), std::get<1>(__out[__idx - std::get<0>(__v)]));
     }
     Assign __assign;
 };
