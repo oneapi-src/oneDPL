@@ -128,6 +128,51 @@ class exponential_distribution
         return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
+    friend bool
+    operator==(const exponential_distribution& __x, const exponential_distribution& __y)
+    {
+        return __x.lambda_ == __y.lambda_;
+    }
+
+    friend bool
+    operator!=(const exponential_distribution& __x, const exponential_distribution& __y)
+    {
+        return !(__x == __y);
+    }
+
+    template <class CharT, class Traits>
+    friend ::std::basic_ostream<CharT, Traits>&
+    operator<<(::std::basic_ostream<CharT, Traits>& __os, const exponential_distribution& __d)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(__os);
+
+        __os.setf(std::ios_base::dec | std::ios_base::left);
+        __os.fill(__os.widen(' '));
+
+        return __os << __d.lambda();
+    }
+
+    friend const sycl::stream&
+    operator<<(const sycl::stream& __os, const exponential_distribution& __d)
+    {
+        return __os << __d.lambda();
+    }
+
+    template <class CharT, class Traits>
+    friend ::std::basic_istream<CharT, Traits>&
+    operator>>(::std::basic_istream<CharT, Traits>& __is, exponential_distribution& __d)
+    {
+        internal::save_stream_flags<CharT, Traits> __flags(__is);
+
+        __is.setf(std::ios_base::dec);
+
+        double __p;
+        if (__is >> __p)
+            __d.param(exponential_distribution::param_type(__p));
+
+        return __is;
+    }
+
   private:
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
