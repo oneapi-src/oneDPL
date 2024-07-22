@@ -210,7 +210,8 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
 
             if (__iters == 1)
             {
-                auto __v = __gen_input(__in_rng, __start_idx);
+                auto __local_idx = (__start_idx < __n) ? __start_idx : __n - 1;
+                auto __v = __gen_input(__in_rng, __local_idx);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, __init_present>(
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry,
                     __n - __subgroup_start_idx);
