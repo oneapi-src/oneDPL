@@ -26,6 +26,7 @@ main()
 
     test_range_algo{}(dpl_ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, proj);
     test_range_algo<P2>{}(dpl_ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, &P2::x);
+test_range_algo<P2>{}(dpl_ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
