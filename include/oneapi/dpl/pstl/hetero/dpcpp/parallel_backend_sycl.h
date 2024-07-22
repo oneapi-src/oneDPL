@@ -1161,6 +1161,8 @@ struct __parallel_find_or_tuner
     std::size_t
     eval_n_groups(std::size_t __n_groups, const std::size_t __wgroup_size, const std::size_t __rng_n)
     {
+        return __n_groups;
+
         // If all source data fits into one work-group, then we need only one work-group
         //if (__rng_n <= __wgroup_size)
         //    return 1;
