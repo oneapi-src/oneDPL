@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 template <typename AllocT> class DistributedVectorTest : public testing::Test {
 public:

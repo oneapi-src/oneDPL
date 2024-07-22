@@ -32,7 +32,7 @@ struct AOS_Struct {
 #ifndef DRISHMEM
 struct OpsAOS {
 
-  using dist_vec_type = xhp::distributed_vector<AOS_Struct>;
+  using dist_vec_type = xp::distributed_vector<AOS_Struct>;
   using vec_type = std::vector<AOS_Struct>;
 
   OpsAOS(std::size_t n) : dist_vec(n), vec(n) {
@@ -232,7 +232,7 @@ auto check_mutate_view_message(auto &ops, stdrng::range auto &&ref,
   auto negate = [](auto &&val) { val = -val; };
   auto input_vector = ops.vec;
   std::vector input_view(ref.begin(), ref.end());
-  xhp::for_each(actual, negate);
+  xp::for_each(actual, negate);
   stdrng::for_each(ref, negate);
 
   // Check mutated view

@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 template <typename AllocT> class CopyTest : public testing::Test {
 public:

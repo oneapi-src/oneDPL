@@ -40,13 +40,13 @@ const std::size_t comm_size = 1;
 
 // Namespace aliases and wrapper functions to make the tests uniform
 namespace dr = oneapi::dpl::experimental::dr;
-namespace xhp = dr::sp;
+namespace xp = dr::sp;
 
 inline void barrier() {}
 inline void fence() {}
 inline void fence_on(auto &&) {}
 
-using AllocatorTypes = ::testing::Types<xhp::device_allocator<int>>;
+using AllocatorTypes = ::testing::Types<xp::device_allocator<int>>;
 
 template <typename V>
 concept compliant_view = stdrng::forward_range<V> && requires(V &v) {
@@ -56,4 +56,4 @@ concept compliant_view = stdrng::forward_range<V> && requires(V &v) {
 
 #include "../include/common_tests.hpp"
 
-using AllTypes = ::testing::Types<xhp::distributed_vector<int>>;
+using AllTypes = ::testing::Types<xp::distributed_vector<int>>;

@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 using T = int;
 using DV = dr::sp::distributed_vector<T, dr::sp::device_allocator<T>>;

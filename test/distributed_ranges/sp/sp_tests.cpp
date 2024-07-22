@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 void printhelp() {
   std::cout << "Usage: sp_tests [options]\n"
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  auto devices = xhp::get_numa_devices(sycl::default_selector_v);
+  auto devices = xp::get_numa_devices(sycl::default_selector_v);
 
   if (devicesCount > 0) {
     unsigned int i = 0;

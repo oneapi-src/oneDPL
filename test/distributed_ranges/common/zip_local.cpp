@@ -13,10 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 template <typename... Rs> auto test_zip(Rs &&...rs) {
-  return xhp::views::zip(std::forward<Rs>(rs)...);
+  return xp::views::zip(std::forward<Rs>(rs)...);
 }
 
 // Fixture
@@ -91,7 +91,7 @@ TEST_F(ZipLocal, All) {
 }
 
 TEST_F(ZipLocal, Iota) {
-  auto z = test_zip(ops[0], xhp::views::iota(10));
+  auto z = test_zip(ops[0], xp::views::iota(10));
   auto r = stdrng::views::zip(ops[0], stdrng::views::iota(10));
   EXPECT_EQ(r, z);
 }

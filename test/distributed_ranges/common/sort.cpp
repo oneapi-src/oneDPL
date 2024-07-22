@@ -13,11 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 
 // TODO: add sort tests with ISHMEM, currently doesn't compile
 using T = int;
-using DV = xhp::distributed_vector<T>;
+using DV = xp::distributed_vector<T>;
 using LV = std::vector<T>;
 
 void test_sort(LV v, auto func) {
@@ -30,7 +30,7 @@ void test_sort(LV v, auto func) {
   barrier();
 
   std::sort(v.begin(), v.end(), func);
-  xhp::sort(d_v, func);
+  xp::sort(d_v, func);
 
   EXPECT_TRUE(equal(v, d_v));
 }

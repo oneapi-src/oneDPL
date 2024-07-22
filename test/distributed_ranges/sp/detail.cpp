@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "xhp_tests.hpp"
+#include "xp_tests.hpp"
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp.hpp>
 
 namespace sp = oneapi::dpl::experimental::dr::sp;
