@@ -285,7 +285,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     {
         using _InitValueType = typename _InitType::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
-            sycl::local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local, __cgh);
+            __dpl_sycl::__local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng);
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
@@ -435,7 +435,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
             __elements_in_block, __inputs_per_sub_group * __num_sub_groups_local);
         using _InitValueType = typename _InitType::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
-            sycl::local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
+            __dpl_sycl::__local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng, __out_rng);
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
