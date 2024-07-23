@@ -32,16 +32,27 @@
 
 namespace detail {
 
-// Implement w-bit mulhilo with an 2w-wide integer.  If we don't
-// have a 2w-wide integer, we're out of luck.
-template <unsigned W, typename U> 
-static std::pair<U, U> mulhilo(U a, U b) {
-    static_assert(::std::is_unsigned_v<U>);
-    using uwide = __uint128_t;//uint_fast<2 * W>;
-    const size_t xwidth = std::numeric_limits<uwide>::digits;
-    uwide ab = uwide(a) * uwide(b);
-    return { U(ab >> W), U((ab << (xwidth - W)) >> (xwidth - W)) };
-}
+
+
+// template <unsigned W, typename U> 
+// static std::pair<U, U> mulhilo(U a, U b) {
+//     static_assert(::std::is_unsigned_v<U>);
+
+//     if constexpr (std::is_same_v<U, uint_fast32_t>) {
+//         using uwide = __uint64_t;
+//         const size_t xwidth = std::numeric_limits<uwide>::digits;
+//         uwide ab = uwide(a) * uwide(b);
+//         return { U(ab >> W), U((ab << (xwidth - W)) >> (xwidth - W)) };
+//     }
+//     else {
+//         U lo = a*b;
+
+//         __uint32_t tmp = ((__uint32_t)a * (__uint32_t)(b>>32) +(__uint32_t)b * (__uint32_t)(a>>32)) >> 32;
+//         U hi = (__uint32_t)(b>>32)*(__uint32_t)(a>>32)+tmp;
+
+//         return { lo, hi };
+//     }
+// }
 
 template <typename U, unsigned W,
           typename = ::std::enable_if_t<std::is_unsigned_v<U> && (W <= std::numeric_limits<U>::digits)>>

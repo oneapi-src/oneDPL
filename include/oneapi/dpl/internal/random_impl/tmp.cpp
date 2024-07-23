@@ -45,12 +45,7 @@ private:
         ridxref() = 0;
     }
 
-    const auto& ridxref() const {
-        return results_[0];
-    }
-    auto& ridxref() {
-        return results_[0];
-    }
+
 
     void generate() {
         if constexpr (n == 2) {
