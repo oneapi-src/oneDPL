@@ -63,6 +63,9 @@ struct Particle
     }
 };
 
+// Arbitrary non-power-of-2 element counts for better coverage:
+// small size often uses single-work-group specialization for device policy
+// large size often uses multi-work-group specialization
 constexpr std::size_t large_size = 81207;
 constexpr std::size_t small_size = 4134;
 
