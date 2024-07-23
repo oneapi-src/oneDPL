@@ -28,6 +28,7 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#include <array>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -1142,6 +1143,84 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 // parallel_find_or - sync pattern
 //------------------------------------------------------------------------
+
+template <typename Tag>
+struct __parallel_find_or_n_groups_tuner
+{
+    // Calculate the number of work groups.
+    //
+    // @param _ExecutionPolicy&& __exec - policy
+    // @param std::size_t __n_groups - the source amount of work-groups
+    // @param std::size_t __wgroup_size - the source work-group size
+    // @param std::size_t __rng_n - the source data size
+    // @return std::size_t - evaluated number of work-groups
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t /*__wgroup_size*/,
+               const std::size_t /*__rng_n*/) const
+    {
+        return __n_groups;
+    }
+};
+
+template <>
+struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backend_tag>
+{
+    // Calculate the number of work groups.
+    // 
+    // @param _ExecutionPolicy&& __exec - policy
+    // @param std::size_t __n_groups - the source amount of work-groups
+    // @param std::size_t __wgroup_size - the source work-group size
+    // @param std::size_t __rng_n - the source data size
+    // @return std::size_t - evaluated number of work-groups
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
+                  const std::size_t __rng_n) const
+    {
+        // No tuning for FPGA_EMU
+#if _ONEDPL_FPGA_EMU
+        return __n_groups;
+#endif
+
+        // If all source data fits into one work-group, then we need only one work-group
+        if (__rng_n <= __wgroup_size)
+            return 1;
+
+        // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 256
+        // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 128
+        // Size: [ 16'777'216, ..,  67'108'864 ) -> minimum number of iterations per work-item is 164
+        // Size: [  4'194'304, ..,  16'777'216 ) -> minimum number of iterations per work-item is  32
+        // Size: [  1'048'576, ...,  4'194'304 ) -> minimum number of iterations per work-item is  16
+        // Size: [    262'144, ...,  1'048'576 ) -> minimum number of iterations per work-item is   8
+        if (__n_groups > 1)
+        {
+            constexpr std::array<std::size_t, 6> __lower_bounds_of_sizes         = { 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
+            constexpr std::array<std::size_t, 6> __required_iters_per_work_items = {       8,        16,        32,         64,        128,         256 };
+        
+            const auto __it_bound = std::find_if(__lower_bounds_of_sizes.crbegin(), __lower_bounds_of_sizes.crend(),
+                                                 [__rng_n](std::size_t __i) { return __i <= __rng_n; });
+            if (__it_bound != __lower_bounds_of_sizes.crend())
+            {
+                const auto __offset = std::distance(__lower_bounds_of_sizes.cbegin(), __it_bound.base()) - 1;
+                const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
+
+                const std::size_t __required_iters_per_work_item = *__it_size;
+                if (__required_iters_per_work_item > 0)
+                {
+                    auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                    while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+                    {
+                        __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                        __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                    }
+                }
+            }
+        }
+
+        return __n_groups;
+    }
+};
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
