@@ -112,7 +112,7 @@ __brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, 
 template <class _RandomAccessIterator, class _Function>
 void
 __brick_walk1(_RandomAccessIterator __first, _RandomAccessIterator __last, _Function __f,
-              /*vector=*/::std::true_type) noexcept
+              /*vector=*/::std::true_type)
 {
     __unseq_backend::__simd_walk_1(__first, __last - __first, __f);
 }
@@ -137,7 +137,7 @@ __brick_walk1(_DifferenceType __n, _Function __f, ::std::true_type) noexcept
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
-__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f) noexcept
+__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     static_assert(__is_serial_tag_v<_Tag>);
 
@@ -212,7 +212,7 @@ __brick_walk1_n(_ForwardIterator __first, _Size __n, _Function __f, /*_IsVectorT
 template <class _RandomAccessIterator, class _DifferenceType, class _Function>
 _RandomAccessIterator
 __brick_walk1_n(_RandomAccessIterator __first, _DifferenceType __n, _Function __f,
-                /*vectorTag=*/::std::true_type) noexcept
+                /*vectorTag=*/::std::true_type)
 {
     return __unseq_backend::__simd_walk_1(__first, __n, __f);
 }
