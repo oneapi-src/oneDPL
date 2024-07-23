@@ -1235,13 +1235,18 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     using _FindOrKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
-    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
 
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Calculate source data size
+
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Calculate work-group size
 
     // TODO: find a way to generalize getting of reliable work-group size
     std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -1255,17 +1260,24 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
     __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
 #endif
-    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Calculates the amount of work-groups taking into account the required number of elements per work-item
+    const auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Eval initial value and create predicate
+    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
     auto __result = __init_value;
 
-    auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    ///////////////////////////////////////////////////////////////////////////
+    // Starts main work...
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1307,7 +1319,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                         __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
                                                                         typename _BrickTag::_LocalResultsReduceOp{});
 
-                    // Set local found state value value to global atomic
+                    // Set local found state value value to global atomic to have correct result
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
                         __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
@@ -1320,6 +1332,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         });
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Return result
 
     if constexpr (__or_tag_check)
         return __result != __init_value;
