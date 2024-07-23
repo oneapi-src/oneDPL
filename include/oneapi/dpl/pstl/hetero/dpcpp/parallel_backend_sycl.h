@@ -28,6 +28,7 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#include <array>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
