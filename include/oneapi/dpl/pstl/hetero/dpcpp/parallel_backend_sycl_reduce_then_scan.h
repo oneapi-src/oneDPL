@@ -597,7 +597,9 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 {
                     if (__sub_group_id > 0)
                     {
-                        auto __value = __sub_group_partials[__sub_group_id - 1];
+                        auto __value = __sub_group_id - 1 < __active_subgroups
+                                           ? __sub_group_partials[__sub_group_id - 1]
+                                           : __sub_group_partials[__active_subgroups - 1];
                         oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
                         __sub_group_carry.__setup(__value);
                     }
@@ -626,8 +628,10 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 {
                     if (__sub_group_id > 0)
                     {
-                        __sub_group_carry.__setup(
-                            __reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __sub_group_partials[__sub_group_id - 1]));
+                        auto __value = __sub_group_id - 1 < __active_subgroups
+                                           ? __sub_group_partials[__sub_group_id - 1]
+                                           : __sub_group_partials[__active_subgroups - 1];
+                        __sub_group_carry.__setup(__reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __value));
                     }
                     else if (__g > 0)
                     {
