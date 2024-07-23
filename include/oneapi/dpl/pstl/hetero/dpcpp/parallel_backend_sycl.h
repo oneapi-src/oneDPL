@@ -20,6 +20,8 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_H
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_H
 
+#define TRACE_EVAL_N_GROUPS 1
+
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
@@ -28,6 +30,9 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#if TRACE_EVAL_N_GROUPS
+#include <iostream>
+#endif
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -1154,6 +1159,15 @@ struct __parallel_find_or_tuner
     std::size_t
     eval_n_groups(std::size_t __n_groups, const std::size_t __wgroup_size, const std::size_t __rng_n)
     {
+#if TRACE_EVAL_N_GROUPS
+        std::cout << "\t\teval_n_groups (__n_groups = " << __n_groups << ", __wgroup_size = " << __wgroup_size << ", __rng_n = " << __rng_n << ") : ";
+
+        {
+            auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+            std::cout << "src __iters_per_work_item = " << __iters_per_work_item;
+        }
+#endif
+
         // If all source data fits into one work-group, then we need only one work-group
         //if (__rng_n <= __wgroup_size)
         //    return 1;
@@ -1177,6 +1191,9 @@ struct __parallel_find_or_tuner
             const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
 
             const std::size_t __required_iters_per_work_item = *__it_size;
+#if TRACE_EVAL_N_GROUPS
+            std::cout << ", __required_iters_per_work_item = " << __required_iters_per_work_item;
+#endif
             if (__required_iters_per_work_item > 0)
             {
                 auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
@@ -1187,6 +1204,10 @@ struct __parallel_find_or_tuner
                 }
             }
         }
+
+#if TRACE_EVAL_N_GROUPS
+        std::cout << " -> " << __n_groups << std::endl;
+#endif
 
         return __n_groups;
     }
