@@ -367,7 +367,7 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_f
 
     template <typename _OffsetHistogramAcc>
     _OffsetT
-    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __offset_histogram)
+    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
         _ONEDPL_PRAGMA_UNROLL
@@ -386,8 +386,8 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_f
 
             // get the local offset index from the bits set in the peer mask with index less than the work item ID
             __peer_mask_bits &= __item_mask;
-            __offset |= __is_current_bucket * (__offset_histogram[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
-            __offset_histogram[__radix_state_idx] += __sg_total_offset;
+            __offset |= __is_current_bucket * (__histogram[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
+            __histogram[__radix_state_idx] += __sg_total_offset;
         }
         return __offset;
     }
@@ -412,7 +412,7 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::scan_the
 
     template <typename _OffsetHistogramAcc>
     _OffsetT
-    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __offset_histogram)
+    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
         _ONEDPL_PRAGMA_UNROLL
@@ -422,11 +422,11 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::scan_the
             ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
                 __sgroup, static_cast<::std::uint32_t>(__is_current_bucket), __dpl_sycl::__plus<::std::uint32_t>());
 
-            __offset |= __is_current_bucket * (__offset_histogram[__radix_state_idx] + __sg_item_offset);
+            __offset |= __is_current_bucket * (__histogram[__radix_state_idx] + __sg_item_offset);
             // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
             ::std::uint32_t __sg_total_offset =
                 __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
-            __offset_histogram[__radix_state_idx] += __sg_total_offset;
+            __histogram[__radix_state_idx] += __sg_total_offset;
         }
         return __offset;
     }
@@ -452,7 +452,7 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::subgroup
 
     template <typename _OffsetHistogramAcc>
     _OffsetT
-    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __offset_histogram)
+    __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
         _ONEDPL_PRAGMA_UNROLL
@@ -468,8 +468,8 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::subgroup
             // get the local offset index from the bits set in the peer mask with index less than the work item ID
             __peer_mask &= __item_sg_mask;
             __peer_mask.extract_bits(__peer_mask_bits);
-            __offset |= __is_current_bucket * (__offset_histogram[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
-            __offset_histogram[__radix_state_idx] += __sg_total_offset;
+            __offset |= __is_current_bucket * (__histogram[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
+            __histogram[__radix_state_idx] += __sg_total_offset;
         }
         return __offset;
     }
