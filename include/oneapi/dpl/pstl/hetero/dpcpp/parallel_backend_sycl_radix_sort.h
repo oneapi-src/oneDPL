@@ -581,6 +581,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 const ::std::size_t __scan_size = __segments + 1;
                 _OffsetT __scanned_bin = 0;
                 __offset_arr[0] = __offset_rng[__segment_idx];
+                _ONEDPL_PRAGMA_UNROLL
                 for (::std::uint32_t __radix_state_idx = 1; __radix_state_idx < __radix_states; ++__radix_state_idx)
                 {
                     const ::std::uint32_t __local_offset_idx = __segment_idx + (__segments + 1) * __radix_state_idx;
