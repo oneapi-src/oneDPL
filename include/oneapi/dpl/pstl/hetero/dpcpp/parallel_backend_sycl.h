@@ -1158,18 +1158,16 @@ struct __parallel_find_or_tuner
         if (__rng_n <= __wgroup_size)
             return 1;
 
-        // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 512
-        // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 256
-        // Size: [ 16'777'216, ..,  67'108'864 ) -> minimum number of iterations per work-item is 128
-        // Size: [  4'194'304, ..,  16'777'216 ) -> minimum number of iterations per work-item is  64
-        // Size: [  1'048'576, ...,  4'194'304 ) -> minimum number of iterations per work-item is  32
-        // Size: [    262'144, ...,  1'048'576 ) -> minimum number of iterations per work-item is  16
-        // Size: [     65'536, ...,    262'144 ) -> minimum number of iterations per work-item is   8
-        // Size: [     16'384, ...,     65'536 ) -> minimum number of iterations per work-item is   4
+        // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 256
+        // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 128
+        // Size: [ 16'777'216, ..,  67'108'864 ) -> minimum number of iterations per work-item is 164
+        // Size: [  4'194'304, ..,  16'777'216 ) -> minimum number of iterations per work-item is  32
+        // Size: [  1'048'576, ...,  4'194'304 ) -> minimum number of iterations per work-item is  16
+        // Size: [    262'144, ...,  1'048'576 ) -> minimum number of iterations per work-item is   8
         if (__n_groups > 1)
         {
-            constexpr std::array<std::size_t, 7> __lower_bounds_of_sizes         = { 16'384, 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
-            constexpr std::array<std::size_t, 7> __required_iters_per_work_items = {      4,       8,        16,        32,         64,        128,         256 };
+            constexpr std::array<std::size_t, 6> __lower_bounds_of_sizes         = { 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
+            constexpr std::array<std::size_t, 6> __required_iters_per_work_items = {       8,        16,        32,         64,        128,         256 };
         
             const auto __it_bound = std::find_if(__lower_bounds_of_sizes.crbegin(), __lower_bounds_of_sizes.crend(),
                                                  [__rng_n](std::size_t __i) { return __i <= __rng_n; });
