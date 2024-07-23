@@ -1088,11 +1088,13 @@ struct __early_exit_find_or
     _Pred __pred;
 
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
-              typename _BrickTag, typename... _Ranges>
+              typename _BrickTag, typename _GlobalFoundState, typename _InitValue, typename _CheckGlobalStateInterval,
+              typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+               const _GlobalFoundState& __found_global, const _InitValue __init_value,
+               const _CheckGlobalStateInterval __check_global_state_interval, _Ranges&&... __rngs) const
     {
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item =
@@ -1133,6 +1135,16 @@ struct __early_exit_find_or
                 __something_was_found = true;
             }
 
+            // Periodically check global atomic to early exit if something was found
+            if (!__something_was_found && __check_global_state_interval > 0 &&
+                (__i + 1) % __check_global_state_interval == 0)
+            {
+                if (__found_global.load() != __init_value)
+                {
+                    __something_was_found = true;
+                }
+            }
+
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
             __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
@@ -1160,6 +1172,25 @@ struct __parallel_find_or_n_groups_tuner
                const std::size_t /*__rng_n*/) const
     {
         return __n_groups;
+    }
+};
+
+template <typename Tag>
+struct __parallel_find_or_global_check_interval_tuner
+{
+    // Calculate the number of work groups.
+    //
+    // @param _ExecutionPolicy&& __exec - policy
+    // @param std::size_t __n_groups - the source amount of work-groups
+    // @param std::size_t __wgroup_size - the source work-group size
+    // @param std::size_t __rng_n - the source data size
+    // @return std::size_t - how often to check global state: 0 means never check required
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t /*__wgroup_size*/,
+               const std::size_t /*__rng_n*/) const
+    {
+        return 0;
     }
 };
 
@@ -1222,6 +1253,36 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
     }
 };
 
+template <>
+struct __parallel_find_or_global_check_interval_tuner<oneapi::dpl::__internal::__device_backend_tag>
+{
+    // Calculate the number of work groups.
+    //
+    // @param _ExecutionPolicy&& __exec - policy
+    // @param std::size_t __n_groups - the source amount of work-groups
+    // @param std::size_t __wgroup_size - the source work-group size
+    // @param std::size_t __rng_n - the source data size
+    // @return std::size_t - how often to check global state: 0 means never check required
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
+               const std::size_t __rng_n) const
+    {
+        // No tuning for FPGA_EMU
+#if _ONEDPL_FPGA_EMU
+        return 0;
+#endif
+
+        constexpr std::size_t __check_global_state_interval_min = 16;
+
+        const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        if (__iters_per_work_item <= __check_global_state_interval_min)
+            return 0;
+
+        return __check_global_state_interval_min;
+    }
+};
+
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename _GroupsTuner, typename... _Ranges>
 ::std::conditional_t<
@@ -1270,6 +1331,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     // Tune __n_groups count
     __n_groups = __n_groups_tuner(__exec, __n_groups, __wgroup_size, __rng_n);
 
+    // Tune global check state interval
+    const std::size_t __check_global_state_interval =
+        __parallel_find_or_global_check_interval_tuner<oneapi::dpl::__internal::__device_backend_tag>{}(
+            __exec, __n_groups, __wgroup_size, __rng_n);
+
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1303,6 +1369,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(*__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
+
                     // 1. Set initial value to local found state
                     _AtomicType __found_local = __init_value;
 
@@ -1310,7 +1378,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __found,
+                           __init_value, __check_global_state_interval, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1325,9 +1394,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     // Set local found state value value to global atomic to have correct result
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
-                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                            *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
-
                         // Update global (for all groups) atomic state with the found index
                         _BrickTag::__save_state_to_atomic(__found, __found_local);
                     }
