@@ -1169,7 +1169,7 @@ struct __parallel_find_or_tuner
         if (__n_groups > 1)
         {
             constexpr std::array<std::size_t, 7> __lower_bounds_of_sizes         = { 16'384, 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
-            constexpr std::array<std::size_t, 7> __required_iters_per_work_items = {      8,      16,        32,        64,        128,        256,         512 };
+            constexpr std::array<std::size_t, 7> __required_iters_per_work_items = {      4,       8,        16,        32,         64,        128,         256 };
         
             const auto __it_bound = std::find_if(__lower_bounds_of_sizes.crbegin(), __lower_bounds_of_sizes.crend(),
                                                  [__rng_n](std::size_t __i) { return __i <= __rng_n; });
