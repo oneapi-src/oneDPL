@@ -1167,7 +1167,7 @@ template <>
 struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backend_tag>
 {
     // Calculate the number of work groups.
-    // 
+    //
     // @param _ExecutionPolicy&& __exec - policy
     // @param std::size_t __n_groups - the source amount of work-groups
     // @param std::size_t __wgroup_size - the source work-group size
@@ -1176,7 +1176,7 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
     template <typename _ExecutionPolicy>
     std::size_t
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
-                  const std::size_t __rng_n) const
+               const std::size_t __rng_n) const
     {
         // No tuning for FPGA_EMU
 #if _ONEDPL_FPGA_EMU
@@ -1197,7 +1197,7 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
         {
             constexpr std::array<std::size_t, 6> __lower_bounds_of_sizes         = { 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
             constexpr std::array<std::size_t, 6> __required_iters_per_work_items = {       8,        16,        32,         64,        128,         256 };
-        
+
             const auto __it_bound = std::find_if(__lower_bounds_of_sizes.crbegin(), __lower_bounds_of_sizes.crend(),
                                                  [__rng_n](std::size_t __i) { return __i <= __rng_n; });
             if (__it_bound != __lower_bounds_of_sizes.crend())
@@ -1208,11 +1208,13 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
                 const std::size_t __required_iters_per_work_item = *__it_size;
                 if (__required_iters_per_work_item > 0)
                 {
-                    auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                    auto __iters_per_work_item =
+                        oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
                     while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
                     {
                         __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                        __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                        __iters_per_work_item =
+                            oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
                     }
                 }
             }
