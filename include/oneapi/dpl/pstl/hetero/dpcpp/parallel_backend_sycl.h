@@ -1169,8 +1169,8 @@ struct __parallel_find_or_tuner
 #endif
 
         // If all source data fits into one work-group, then we need only one work-group
-        //if (__rng_n <= __wgroup_size)
-        //    return 1;
+        if (__rng_n <= __wgroup_size)
+            return 1;
 
         // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 512
         // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 256
