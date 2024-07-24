@@ -1157,6 +1157,8 @@ struct __parallel_find_or_n_groups_tuner
     }
 };
 
+// No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
+#if !_ONEDPL_FPGA_EMU
 template <>
 struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backend_tag>
 {
@@ -1166,11 +1168,6 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
                const std::size_t __rng_n) const
     {
-        // No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
-#if _ONEDPL_FPGA_EMU
-        return __n_groups;
-#endif
-
         // If all source data fits into one work-group, then we need only one work-group
         if (__rng_n <= __wgroup_size)
             return 1;
@@ -1212,6 +1209,7 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
         return __n_groups;
     }
 };
+#endif // !_ONEDPL_FPGA_EMU
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename _GroupsTuner, typename... _Ranges>
