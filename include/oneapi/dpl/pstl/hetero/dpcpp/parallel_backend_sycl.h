@@ -1249,16 +1249,18 @@ struct __parallel_find_or_global_check_interval_tuner<oneapi::dpl::__internal::_
     // Calculate the number of work groups.
     template <typename _ExecutionPolicy>
     std::size_t
-    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
-               const std::size_t __rng_n) const
+    operator()(_ExecutionPolicy&& /*__exec*/, std::size_t /*__n_groups*/, const std::size_t /*__wgroup_size*/,
+               const std::size_t /*__rng_n*/) const
     {
-        constexpr std::size_t __check_global_state_interval_min = 128;
+        return 0;
 
-        const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-        if (__iters_per_work_item <= __check_global_state_interval_min)
-            return 0;
-
-        return __check_global_state_interval_min;
+        //constexpr std::size_t __check_global_state_interval_min = 128;
+        //
+        //const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+        //if (__iters_per_work_item <= __check_global_state_interval_min)
+        //    return 0;
+        //
+        //return __check_global_state_interval_min;
     }
 };
 #endif // !_ONEDPL_FPGA_EMU
