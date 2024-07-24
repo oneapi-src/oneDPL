@@ -106,25 +106,25 @@ __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorT
 namespace __ranges
 {
 
-__internal::__serial_tag<std::false_type>
+::oneapi::dpl::__internal::__serial_tag<std::false_type>
 __select_backend(oneapi::dpl::execution::sequenced_policy)
 {
     return {};
 }
 
-__internal::__serial_tag<std::true_type> //vectorization allowed
+::oneapi::dpl::__internal::__serial_tag<std::true_type> //vectorization allowed
 __select_backend(oneapi::dpl::execution::unsequenced_policy)
 {
     return {};
 }
 
-__internal::__parallel_tag<std::false_type>
+::oneapi::dpl::__internal::__parallel_tag<std::false_type>
 __select_backend(oneapi::dpl::execution::parallel_policy)
 {
     return {};
 }
 
-__internal::__parallel_tag<std::true_type> //vectorization allowed
+::oneapi::dpl::__internal::__parallel_tag<std::true_type> //vectorization allowed
 __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy)
 {
     return {};
