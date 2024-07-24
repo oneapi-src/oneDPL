@@ -60,11 +60,11 @@ void __brick_walk1(_ForwardIterator, _ForwardIterator, _Function,
 
 template <class _RandomAccessIterator, class _Function>
 void __brick_walk1(_RandomAccessIterator, _RandomAccessIterator, _Function,
-                   /*vector=*/::std::true_type) noexcept;
+                   /*vector=*/::std::true_type);
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
 void
-__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function) noexcept;
+__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
@@ -93,7 +93,7 @@ _ForwardIterator __brick_walk1_n(_ForwardIterator, _Size, _Function,
 
 template <class _RandomAccessIterator, class _DifferenceType, class _Function>
 _RandomAccessIterator __brick_walk1_n(_RandomAccessIterator, _DifferenceType, _Function,
-                                      /*vectorTag=*/::std::true_type) noexcept;
+                                      /*vectorTag=*/::std::true_type);
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
 _ForwardIterator
