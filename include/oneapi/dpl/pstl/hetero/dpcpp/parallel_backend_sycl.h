@@ -992,6 +992,13 @@ struct __parallel_find_forward_tag
     {
         __found = std::min(__found, __new_state);
     }
+
+    template <typename _TFoundState>
+    static bool
+    __finish_search(_TFoundState& __found, _AtomicType __new_state)
+    {
+        __found = std::min(__found, __new_state);
+    }
 };
 
 // Tag for __parallel_find_or to find the last element that satisfies predicate
@@ -1108,6 +1115,8 @@ struct __early_exit_find_or
 
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
+        const auto __local_id = __item_id.get_local_linear_id();
+        const auto __items_in_wg = __item_id.get_local_range(0);
 
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
@@ -1243,7 +1252,7 @@ struct __parallel_find_or_global_check_interval_tuner<oneapi::dpl::__internal::_
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
                const std::size_t __rng_n) const
     {
-        constexpr std::size_t __check_global_state_interval_min = 16;
+        constexpr std::size_t __check_global_state_interval_min = 64;
 
         const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
         if (__iters_per_work_item <= __check_global_state_interval_min)
