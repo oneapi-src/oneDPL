@@ -799,14 +799,14 @@ struct __simple_write_to_idx
 {
     template <typename _OutRng, typename ValueType>
     void
-    operator()(_OutRng&& __out, std::size_t __idx, const ValueType& __v) const
+    operator()(_OutRng&& __out_rng, std::size_t __idx, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(__v)>,
-                                                               std::decay_t<decltype(__out[__idx])>>::__type;
-        __out[__idx] = static_cast<_ConvertedTupleType>(__v);
+                                                               std::decay_t<decltype(__out_rng[__idx])>>::__type;
+        __out_rng[__idx] = static_cast<_ConvertedTupleType>(__v);
     }
 };
 
@@ -855,15 +855,15 @@ struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
     void
-    operator()(_OutRng&& __out, _SizeType __idx, const ValueType& __v) const
+    operator()(_OutRng&& __out_rng, _SizeType __idx, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
-                                                               std::decay_t<decltype(__out[__idx])>>::__type;
+                                                               std::decay_t<decltype(__out_rng[__idx])>>::__type;
         if (std::get<1>(__v))
-            __out[std::get<0>(__v) - 1] = static_cast<_ConvertedTupleType>(std::get<2>(__v));
+            __out_rng[std::get<0>(__v) - 1] = static_cast<_ConvertedTupleType>(std::get<2>(__v));
     }
 };
 
