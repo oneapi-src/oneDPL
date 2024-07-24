@@ -15,11 +15,10 @@
 
 #pragma once
 
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
-#include <sycl/sycl.hpp>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>
+#include "device_ptr.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -28,7 +27,8 @@ template <typename T>
 using shared_allocator = sycl::usm_allocator<T, sycl::usm::alloc::shared>;
 
 template <typename T, std::size_t Alignment = 0>
-requires(std::is_trivially_copyable_v<T>) class device_allocator
+    requires(std::is_trivially_copyable_v<T>)
+class device_allocator
 {
   public:
     using value_type = T;

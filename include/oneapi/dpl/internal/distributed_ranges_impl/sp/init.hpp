@@ -23,8 +23,9 @@
 #include <vector>
 
 #include <oneapi/dpl/execution>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+
+#include "algorithms/execution_policy.hpp"
+#include "util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -84,7 +85,8 @@ inline distributed_device_policy par_unseq;
 
 template <stdrng::range R>
 inline void
-init(R&& devices) requires(std::is_same_v<sycl::device, std::remove_cvref_t<stdrng::range_value_t<R>>>)
+init(R&& devices)
+    requires(std::is_same_v<sycl::device, std::remove_cvref_t<stdrng::range_value_t<R>>>)
 {
     __detail::devices_.assign(stdrng::begin(devices), stdrng::end(devices));
     __detail::global_context_ = new sycl::context(__detail::devices_);

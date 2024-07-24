@@ -15,15 +15,14 @@
 
 #pragma once
 
+#include <sycl/sycl.hpp>
 #include <vector>
 
-#include <sycl/sycl.hpp>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/remote_vector.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/vector.hpp>
+#include "../detail/segments_tools.hpp"
+#include "allocators.hpp"
+#include "device_ptr.hpp"
+#include "remote_vector.hpp"
+#include "vector.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

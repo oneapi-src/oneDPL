@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/remote_vector.hpp>
+#include "allocators.hpp"
+#include "remote_vector.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

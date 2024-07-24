@@ -273,11 +273,8 @@ namespace __detail
 {
 
 template <typename T>
-concept sycl_device_selector = requires(T& t, const sycl::device& device)
-{
-    {
-        t(device)
-        } -> std::convertible_to<int>;
+concept sycl_device_selector = requires(T& t, const sycl::device& device) {
+    { t(device) } -> std::convertible_to<int>;
 };
 
 } // namespace __detail

@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include "ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

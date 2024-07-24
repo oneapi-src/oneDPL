@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_DISTRIBUTED_RANGES
 #define _ONEDPL_DISTRIBUTED_RANGES
 
-#include "oneapi/dpl/internal/common_config.h"
-#include "oneapi/dpl/pstl/onedpl_config.h"
+#include "internal/common_config.h"
+#include "pstl/onedpl_config.h"
 
 #if __cplusplus > 202002L
-#include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
+#include "internal/distributed_ranges_impl/sp.hpp"
 #else
 #error "C++23 required to use Distributed Ranges"
 #endif

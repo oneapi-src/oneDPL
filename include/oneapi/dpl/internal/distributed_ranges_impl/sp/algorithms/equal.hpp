@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/fill.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/reduce.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/views.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
+#include "../detail.hpp"
+#include "../init.hpp"
+#include "../util.hpp"
+#include "../views/views.hpp"
+#include "../zip_view.hpp"
+#include "fill.hpp"
+#include "reduce.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
