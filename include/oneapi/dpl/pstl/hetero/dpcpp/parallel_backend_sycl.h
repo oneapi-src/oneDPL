@@ -1168,10 +1168,6 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
                const std::size_t __rng_n) const
     {
-        // If all source data fits into one work-group, then we need only one work-group
-        if (__rng_n <= __wgroup_size)
-            return 1;
-
         // Size: [ 16'777'216, ..,  67'108'864 ) -> minimum number of iterations per work-item is 64
         // Size: [  4'194'304, ..,  16'777'216 ) -> minimum number of iterations per work-item is 32
         // Size: [  1'048'576, ...,  4'194'304 ) -> minimum number of iterations per work-item is 16
