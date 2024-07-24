@@ -55,6 +55,7 @@ auto f_mutuable = [](auto&& val) { return val *= val; };
 auto proj_mutuable = [](auto&& val) { return val *= 2; };
 
 auto f = [](auto&& val) { return val * val; };
+auto f_2 = [](auto&& val1, auto&& val2) { return val1 * val2; };
 auto proj = [](auto&& val){ return val * 2; };
 auto pred = [](auto&& val) { return val == 5; };
 auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
@@ -201,10 +202,10 @@ struct test
             typename Container::type& B = cont_in2();
             typename Container::type& С = cont_out();
 
-            auto res = algo(exec, tr(A), tr(B), С, args...);
+            auto res = algo(exec, tr(A), tr(B), C, args...);
 
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), tr(B), С.begin(), args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), tr(B), C.begin(), args...))>, "Wrong return type");
 
             auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
