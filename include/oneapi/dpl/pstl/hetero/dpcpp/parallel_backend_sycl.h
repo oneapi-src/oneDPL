@@ -1206,16 +1206,14 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
                 const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
 
                 const std::size_t __required_iters_per_work_item = *__it_size;
-                if (__required_iters_per_work_item > 0)
+
+                auto __iters_per_work_item =
+                    oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
                 {
-                    auto __iters_per_work_item =
+                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                    __iters_per_work_item =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-                    while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
-                    {
-                        __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                        __iters_per_work_item =
-                            oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-                    }
                 }
             }
         }
