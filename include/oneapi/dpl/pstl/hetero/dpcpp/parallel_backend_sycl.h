@@ -1187,7 +1187,6 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
         if (__rng_n <= __wgroup_size)
             return 1;
 
-        // Size: [268'435'456, ............... ) -> minimum number of iterations per work-item is 256
         // Size: [ 67'108'864, .., 268'435'456 ) -> minimum number of iterations per work-item is 128
         // Size: [ 16'777'216, ..,  67'108'864 ) -> minimum number of iterations per work-item is 164
         // Size: [  4'194'304, ..,  16'777'216 ) -> minimum number of iterations per work-item is  32
@@ -1196,7 +1195,7 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
         if (__n_groups > 1)
         {
             constexpr std::array<std::size_t, 6> __lower_bounds_of_sizes         = { 262'144, 1'048'576, 4'194'304, 16'777'216, 67'108'864, 268'435'456 };
-            constexpr std::array<std::size_t, 6> __required_iters_per_work_items = {       8,        16,        32,         64,        128,         256 };
+            constexpr std::array<std::size_t, 6> __required_iters_per_work_items = {       8,        16,        32,         64,        128,           0 };
 
             const auto __it_bound = std::find_if(__lower_bounds_of_sizes.crbegin(), __lower_bounds_of_sizes.crend(),
                                                  [__rng_n](std::size_t __i) { return __i <= __rng_n; });
@@ -1206,17 +1205,19 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
                 const auto __it_size = __required_iters_per_work_items.cbegin() + __offset;
 
                 const std::size_t __required_iters_per_work_item = *__it_size;
-
-                auto __iters_per_work_item =
-                    oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-
-                // We halve the number of work-groups until the number of iterations per work-item
-                // is greater than or equal to the desired number of iterations per work-item.
-                while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+                if (__required_iters_per_work_item > 0)
                 {
-                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                    __iters_per_work_item =
+                    auto __iters_per_work_item =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
+                    // We halve the number of work-groups until the number of iterations per work-item
+                    // is greater than or equal to the desired number of iterations per work-item.
+                    while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
+                    {
+                        __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                        __iters_per_work_item =
+                            oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                    }
                 }
             }
         }
