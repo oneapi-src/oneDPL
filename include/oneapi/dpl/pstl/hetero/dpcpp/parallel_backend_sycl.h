@@ -828,6 +828,7 @@ struct __gen_mask
     _Predicate __pred;
 };
 
+template <typename _BinaryPredicate>
 struct __gen_unique_mask
 {
     template <typename _InRng>
@@ -837,8 +838,9 @@ struct __gen_unique_mask
         if (__idx == 0)
             return true;
         else
-            return (__in_rng[__idx] != __in_rng[__idx - 1]);
+            return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
     }
+    _BinaryPredicate __pred;
 };
 
 template <typename _GenMask>

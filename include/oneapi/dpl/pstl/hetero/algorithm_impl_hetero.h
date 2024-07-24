@@ -976,7 +976,8 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
     auto __result = __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                        __result_first, oneapi::dpl::__par_backend_hetero::__gen_unique_mask{},
+                                        __result_first,
+                                        oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
                                         oneapi::dpl::__par_backend_hetero::__write_to_idx_if{});
 
     return __result_first + __result.second;

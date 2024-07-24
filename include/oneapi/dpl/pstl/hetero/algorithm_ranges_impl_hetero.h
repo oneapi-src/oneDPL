@@ -406,7 +406,8 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
                       _BinaryPredicate __pred, _Assign)
 {
     return __pattern_scan_copy(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                               std::forward<_Range2>(__result), oneapi::dpl::__par_backend_hetero::__gen_unique_mask{},
+                               std::forward<_Range2>(__result), 
+                               oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
                                oneapi::dpl::__par_backend_hetero::__write_to_idx_if{});
 }
 
