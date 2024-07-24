@@ -12,7 +12,7 @@ on:
 permissions: read-all
 
 env:
-  BUILD_CONCURRENCY: 2
+  BUILD_CONCURRENCY: 4
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
   WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/8222de4d-2c5e-41bc-bdd5-f557a9edda28/w_tbb_oneapi_p_2021.13.0.627_offline.exe
@@ -29,11 +29,11 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref:  ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Get clang-format
@@ -51,7 +51,7 @@ jobs:
         run: if [ -s clang-format.diff ]; then cat clang-format.diff; exit 1; fi
       - if: failure()
         name: Save artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: clang-format-diff
           path: clang-format.diff
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install prerequisites
         run: |
           sudo apt update && sudo apt install -y codespell
@@ -72,8 +72,8 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install prerequisites
@@ -85,7 +85,7 @@ jobs:
           mkdir html
           sphinx-build -b html documentation/library_guide/ html/
       - name: Archive build directory
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
@@ -98,25 +98,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
             backend: dpcpp
             device_type: CPU
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
             backend: dpcpp
             device_type: FPGA_EMU
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
@@ -134,19 +134,19 @@ jobs:
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: g++
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: clang++
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: clang++
             std: 17
             build_type: release
@@ -158,20 +158,20 @@ jobs:
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cxx_compiler: g++
             std: 17
             build_type: release
             backend: serial
             device_type: HOST
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Intel APT repository
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
         run: |
@@ -194,6 +194,10 @@ jobs:
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
+      - name: Install OpenMP dependencies
+        if: (matrix.os == 'ubuntu-latest' && matrix.cxx_compiler == 'clang++' && matrix.backend == 'omp')
+        run: |
+          sudo apt-get install libomp5 libomp-dev -y
       - name: Run testing
         shell: bash
         run: |
@@ -226,13 +230,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
             device_type: cpu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Intel APT repository
         run: |
           # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
@@ -281,14 +285,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx-cl
             std: 17
             build_type: release
             backend: dpcpp
             device_type: cpu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         shell: cmd
@@ -311,7 +315,7 @@ jobs:
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
-            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
           powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
@@ -339,26 +343,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx-cl
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: cl
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: windows-2019
+          - os: windows-latest
             cxx_compiler: icx
             std: 17
             build_type: release
             backend: dpcpp
             device_type: CPU
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         shell: cmd
@@ -381,7 +385,7 @@ jobs:
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
-            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
           powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
@@ -411,13 +415,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-latest
             cxx_compiler: clang++
             std: 17
             build_type: release
             backend: omp
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install OpenMP for Clang++
         run: |
           brew install libomp
