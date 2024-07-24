@@ -69,17 +69,32 @@ namespace __internal
 {
 struct __transform_fn
 {
-    template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R,
              std::ranges::random_access_range _OutRange, std::copy_constructible _F, typename _Proj = std::identity>
     requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_InRange>
         && std::ranges::sized_range<_OutRange>
     constexpr auto
-    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const
+    operator()(_ExecutionPolicy&& __exec, _R&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag,
-            std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r),
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__in_r), std::forward<_OutRange>(__out_r),
                 __op, __proj);
+    }
+
+    template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
+             std::ranges::random_access_range _OutRange, std::copy_constructible _F, typename _Proj1 = std::identity,
+             typename _Proj2 = std::identity>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R1>
+        && std::ranges::sized_range<_R2> && std::ranges::sized_range<_OutRange>
+    constexpr auto
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _F __binary_op,
+               _Proj1 __proj1 = {}, _Proj2 __proj2 = {}) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
+        return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1), std::forward<_R2>(__r2),
+            std::forward<_OutRange>(__out_r), __binary_op, __proj1, __proj2);
     }
 }; //__transform_fn
 }  //__internal
