@@ -1252,7 +1252,7 @@ struct __parallel_find_or_global_check_interval_tuner<oneapi::dpl::__internal::_
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
                const std::size_t __rng_n) const
     {
-        constexpr std::size_t __check_global_state_interval_min = 64;
+        constexpr std::size_t __check_global_state_interval_min = 128;
 
         const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
         if (__iters_per_work_item <= __check_global_state_interval_min)
