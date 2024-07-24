@@ -1145,7 +1145,7 @@ struct __early_exit_find_or
             }
 
             // Periodically check global atomic to early exit if something was found
-            if (!__something_was_found && __check_global_state_interval > 0 && (__i + 1) % __check_global_state_interval == 0)
+            if (!__something_was_found && __check_global_state_interval > 0 && (__i + 1) % __check_global_state_interval == 0 && __local_id == 0)
             {
                 const auto __found_global_pos = __found_global.load();
 
