@@ -1166,7 +1166,7 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
                const std::size_t __rng_n) const
     {
-        // No tuning for FPGA_EMU
+        // No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
 #if _ONEDPL_FPGA_EMU
         return __n_groups;
 #endif
