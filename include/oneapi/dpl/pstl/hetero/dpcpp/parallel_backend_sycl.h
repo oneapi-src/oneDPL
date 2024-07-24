@@ -1118,48 +1118,84 @@ struct __early_exit_find_or
         const auto __local_id = __item_id.get_local_linear_id();
         const auto __items_in_wg = __item_id.get_local_range(0);
 
-        bool __something_was_found = false;
-        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        if (__check_global_state_interval > 0 && __local_id == 0)
         {
-            auto __local_src_data_idx = __i;
-            if constexpr (__is_backward_tag(__brick_tag))
-                __local_src_data_idx = __iters_per_work_item - 1 - __i;
-
-            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
-            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            bool __something_was_found = false;
+            for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
             {
-                // Update local found state
-                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+                auto __local_src_data_idx = __i;
+                if constexpr (__is_backward_tag(__brick_tag))
+                    __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
-                // This break is mandatory from the performance point of view.
-                // This break is safe for all our cases:
-                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
-                //    This means that after first found entry there is no reason to process data anymore.
-                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // But break statement here shows poor perf in some cases.
-                // So we use bool variable state check in the for-loop header.
-                __something_was_found = true;
+                const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+                if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+                {
+                    // Update local found state
+                    _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+
+                    // This break is mandatory from the performance point of view.
+                    // This break is safe for all our cases:
+                    // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                    //    This means that after first found entry there is no reason to process data anymore.
+                    // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // But break statement here shows poor perf in some cases.
+                    // So we use bool variable state check in the for-loop header.
+                    __something_was_found = true;
+                }
+
+                // Periodically check global atomic to early exit if something was found
+                if (!__something_was_found && (__i + 1) % __check_global_state_interval == 0)
+                {
+                    const auto __found_global_pos = __found_global.load();
+
+                    if constexpr (_OrTagType{})
+                        __something_was_found = __found_global_pos != __init_value;
+                    else if constexpr (__is_backward_tag(__brick_tag))
+                        __something_was_found = __src_data_idx_current < __found_global_pos;
+                    else
+                        __something_was_found = __found_global_pos < __src_data_idx_current;
+                }
+
+                // Share found into state between items in our sub-group to early exit if something was found
+                //  - the update of __found_local state isn't required here because it updates later on the caller side
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
             }
-
-            // Periodically check global atomic to early exit if something was found
-            if (!__something_was_found && __check_global_state_interval > 0 && (__i + 1) % __check_global_state_interval == 0 && __local_id == 0)
+        }
+        else
+        {
+            bool __something_was_found = false;
+            for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
             {
-                const auto __found_global_pos = __found_global.load();
+                auto __local_src_data_idx = __i;
+                if constexpr (__is_backward_tag(__brick_tag))
+                    __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
-                if constexpr (_OrTagType{})
-                    __something_was_found = __found_global_pos != __init_value;
-                else if constexpr (__is_backward_tag(__brick_tag))
-                    __something_was_found = __src_data_idx_current < __found_global_pos;
-                else
-                    __something_was_found = __found_global_pos < __src_data_idx_current;
+                const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+                if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+                {
+                    // Update local found state
+                    _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+
+                    // This break is mandatory from the performance point of view.
+                    // This break is safe for all our cases:
+                    // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                    //    This means that after first found entry there is no reason to process data anymore.
+                    // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                    //    This means that after the first found entry there is no reason to process data anymore too.
+                    // But break statement here shows poor perf in some cases.
+                    // So we use bool variable state check in the for-loop header.
+                    __something_was_found = true;
+                }
+
+                // Share found into state between items in our sub-group to early exit if something was found
+                //  - the update of __found_local state isn't required here because it updates later on the caller side
+                __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
             }
-
-            // Share found into state between items in our sub-group to early exit if something was found
-            //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
         }
     }
 };
