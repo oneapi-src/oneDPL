@@ -29,15 +29,6 @@ namespace oneapi
 namespace dpl
 {
 
-#if _ONEDPL_BACKEND_SYCL
-namespace views
-{
-using oneapi::dpl::__ranges::views::all;
-using oneapi::dpl::__ranges::views::all_read;
-using oneapi::dpl::__ranges::views::all_write;
-}
-#endif // _ONEDPL_BACKEND_SYCL
-
 namespace experimental
 {
 namespace ranges
