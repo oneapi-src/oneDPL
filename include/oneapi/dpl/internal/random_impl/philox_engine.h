@@ -56,6 +56,18 @@ private:
     using state = ::std::array<result_type, state_size>;
     state state_;
 
+    /*
+    template <std::int32_t VecSize>
+    struct engine_state<oneapi::mkl::rng::device::philox4x32x10<VecSize>> {
+    std::uint32_t K[2];
+    std::uint32_t X[4];
+    std::uint32_t Y[4];
+    std::uint32_t idx;
+
+};
+    
+    */
+
     /* Processing mask */
     static constexpr auto in_mask = detail::fffmask<result_type, word_size>;
     static constexpr ::std::size_t array_size = n / 2;
@@ -81,6 +93,16 @@ private:
             state_[i] = 0; // results are set to zero
         }
         ridxref() = word_count;
+    }
+    
+    void increase_counter_internal() {
+        state_[0] = (state_[0] + 1) & in_mask;
+        for (size_t i = 1; i < n; ++i) {
+            if (state_[i - 1]) {
+                [[likely]] return;
+            }
+            state_[i] = (state_[i] + 1) & in_mask;
+        }
     }
 
 public:
@@ -116,44 +138,29 @@ public:
         (*this)(&ret);
         return ret;
     }
-    /* shifts the counter only forward relative to its current position*/
+
+    /* shift the counter only forward relative to its current position*/
     void discard(unsigned long long z) {
-    ;        // auto oldridx = ridxref();
-        // unsigned newridx = (z + oldridx) % word_count;
+        result_type curr_idx = ridxref() % word_count;
+        result_type newridx;
 
-        // increase_counter_internal();
+        newridx = (z + curr_idx) % (word_count+1);
+        int counters_increment = ((z - newridx)/word_count);
 
-        // unsigned long long zll = z + oldridx - (!oldridx && newridx);
-        // zll /= word_count;
-        // zll += !oldridx;
-        // result_type zctr = zll & in_mask;
-        // result_type oldctr = get_counter_internal();
-        // result_type newctr = (zctr - 1 + oldctr) & in_mask;
-        // //set_counter_internal(state_, newctr);
-        // if (newridx) {
-        //     if (zctr)
-        //         ;//(*this)(::std::begin(state_), ::std::begin(results_));
-            
-        // }
-        // else if (newctr == 0) {
-        //     newridx = word_count;
-        // }
+        for(int i = 0; i < counters_increment; i++)
+            increase_counter_internal(); // rewrite with z
 
-        // ridxref() = newridx;
+        if(newridx < word_count) {
+            generate();
+            increase_counter_internal();
+        }
+
+        ridxref() = newridx;
     }
     
     // [ToDO] inserters and extractors
 
 private:
-    void increase_counter_internal() {
-        state_[0] = (state_[0] + 1) & in_mask;
-        for (size_t i = 1; i < n; ++i) {
-            if (state_[i - 1]) {
-                [[likely]] return;
-            }
-            state_[i] = (state_[i] + 1) & in_mask;
-        }
-    }
 
     result_type* operator()(result_type* out) {
         result_type curr_idx = ridxref();
