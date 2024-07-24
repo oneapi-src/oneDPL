@@ -1209,6 +1209,9 @@ struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backe
 
                 auto __iters_per_work_item =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
+                // We halve the number of work-groups until the number of iterations per work-item
+                // is greater than or equal to the desired number of iterations per work-item.
                 while (__iters_per_work_item < __required_iters_per_work_item && 2 <= __n_groups)
                 {
                     __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
