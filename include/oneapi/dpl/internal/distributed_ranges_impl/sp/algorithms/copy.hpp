@@ -30,7 +30,8 @@ namespace oneapi::dpl::experimental::dr::sp
 
 // Copy between contiguous ranges
 template <std::contiguous_iterator InputIt, std::contiguous_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
@@ -40,7 +41,8 @@ copy_async(InputIt first, InputIt last, OutputIt d_first)
 
 /// Copy
 template <std::contiguous_iterator InputIt, std::contiguous_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> OutputIt
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+OutputIt
 copy(InputIt first, InputIt last, OutputIt d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -49,7 +51,8 @@ copy(InputIt first, InputIt last, OutputIt d_first)
 
 // Copy from contiguous range to device
 template <std::contiguous_iterator Iter, typename T>
-requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T> sycl::event
+    requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T>
+sycl::event
 copy_async(Iter first, Iter last, device_ptr<T> d_first)
 {
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
@@ -57,7 +60,8 @@ copy_async(Iter first, Iter last, device_ptr<T> d_first)
 }
 
 template <std::contiguous_iterator Iter, typename T>
-requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T> device_ptr<T>
+    requires __detail::is_syclmemcopyable<std::iter_value_t<Iter>, T>
+device_ptr<T>
 copy(Iter first, Iter last, device_ptr<T> d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -66,7 +70,8 @@ copy(Iter first, Iter last, device_ptr<T> d_first)
 
 // Copy from device to contiguous range
 template <typename T, std::contiguous_iterator Iter>
-requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>> sycl::event
+    requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>>
+sycl::event
 copy_async(device_ptr<T> first, device_ptr<T> last, Iter d_first)
 {
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
@@ -74,7 +79,8 @@ copy_async(device_ptr<T> first, device_ptr<T> last, Iter d_first)
 }
 
 template <typename T, std::contiguous_iterator Iter>
-requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>> Iter
+    requires __detail::is_syclmemcopyable<T, std::iter_value_t<Iter>>
+Iter
 copy(device_ptr<T> first, device_ptr<T> last, Iter d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -83,24 +89,27 @@ copy(device_ptr<T> first, device_ptr<T> last, Iter d_first)
 
 // Copy from device to device
 template <typename T>
-requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>) sycl::event
-    copy_async(device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last, device_ptr<T> d_first)
+    requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>)
+sycl::event
+copy_async(device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last, device_ptr<T> d_first)
 {
     auto&& q = __detail::get_queue_for_pointers(first, d_first);
     return q.memcpy(d_first.get_raw_pointer(), first.get_raw_pointer(), sizeof(T) * (last - first));
 }
 
 template <typename T>
-requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>) sycl::event
-    copy_async(sycl::queue& q, device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last,
-               device_ptr<T> d_first)
+    requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>)
+sycl::event
+copy_async(sycl::queue& q, device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last,
+           device_ptr<T> d_first)
 {
     return q.memcpy(d_first.get_raw_pointer(), first.get_raw_pointer(), sizeof(T) * (last - first));
 }
 
 template <typename T>
-requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>) device_ptr<T> copy(
-    device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last, device_ptr<T> d_first)
+    requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>)
+device_ptr<T>
+copy(device_ptr<std::add_const_t<T>> first, device_ptr<std::add_const_t<T>> last, device_ptr<T> d_first)
 {
     copy_async(first, last, d_first).wait();
     return d_first + (last - first);
@@ -108,7 +117,8 @@ requires(!std::is_const_v<T> && std::is_trivially_copyable_v<T>) device_ptr<T> c
 
 // Copy from local range to distributed range
 template <std::forward_iterator InputIt, distributed_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
     auto&& segments = ranges::segments(d_first);
@@ -148,7 +158,8 @@ copy(distributed_range auto r, std::contiguous_iterator auto d_first)
 }
 
 template <std::forward_iterator InputIt, distributed_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> OutputIt
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+OutputIt
 copy(InputIt first, InputIt last, OutputIt d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -157,7 +168,8 @@ copy(InputIt first, InputIt last, OutputIt d_first)
 
 // Copy from distributed range to local range
 template <distributed_iterator InputIt, std::forward_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
     auto dist = stdrng::distance(first, last);
@@ -178,7 +190,8 @@ copy_async(InputIt first, InputIt last, OutputIt d_first)
 }
 
 template <distributed_iterator InputIt, std::forward_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> OutputIt
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+OutputIt
 copy(InputIt first, InputIt last, OutputIt d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -187,7 +200,8 @@ copy(InputIt first, InputIt last, OutputIt d_first)
 
 // Copy from distributed range to distributed range
 template <distributed_iterator InputIt, distributed_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> sycl::event
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+sycl::event
 copy_async(InputIt first, InputIt last, OutputIt d_first)
 {
     auto dist = stdrng::distance(first, last);
@@ -208,7 +222,8 @@ copy_async(InputIt first, InputIt last, OutputIt d_first)
 }
 
 template <distributed_iterator InputIt, distributed_iterator OutputIt>
-requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>> OutputIt
+    requires __detail::is_syclmemcopyable<std::iter_value_t<InputIt>, std::iter_value_t<OutputIt>>
+OutputIt
 copy(InputIt first, InputIt last, OutputIt d_first)
 {
     copy_async(first, last, d_first).wait();
@@ -219,14 +234,16 @@ copy(InputIt first, InputIt last, OutputIt d_first)
 
 // Distributed to distributed
 template <distributed_range R, distributed_iterator O>
-requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>> sycl::event
+    requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>>
+sycl::event
 copy_async(R&& r, O result)
 {
     return copy_async(stdrng::begin(r), stdrng::end(r), result);
 }
 
 template <distributed_range R, distributed_iterator O>
-requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>> O
+    requires __detail::is_syclmemcopyable<stdrng::range_value_t<R>, std::iter_value_t<O>>
+O
 copy(R&& r, O result)
 {
     return copy(stdrng::begin(r), stdrng::end(r), result);

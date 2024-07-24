@@ -29,7 +29,8 @@ class remote_subrange : public stdrng::subrange<I, I>
     using base = stdrng::subrange<I, I>;
 
   public:
-    remote_subrange() requires std::default_initializable<I>
+    remote_subrange()
+        requires std::default_initializable<I>
     = default;
 
     constexpr remote_subrange(I first, I last, std::size_t rank) : base(first, last), rank_(rank) {}

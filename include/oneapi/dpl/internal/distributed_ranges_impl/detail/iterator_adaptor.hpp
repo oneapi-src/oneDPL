@@ -27,9 +27,8 @@ namespace
 {
 
 template <typename R>
-concept has_segments_method = requires(R r)
-{
-    {r.segments()};
+concept has_segments_method = requires(R r) {
+    { r.segments() };
 };
 
 } // namespace
@@ -60,23 +59,25 @@ class iterator_adaptor
     operator=(const iterator_adaptor&) = default;
 
     template <typename... Args>
-    requires(sizeof...(Args) >= 1 &&
-             !((sizeof...(Args) == 1 && (std::is_same_v<nonconst_iterator, std::decay_t<Args>> || ...)) ||
-               (std::is_same_v<const_iterator, std::decay_t<Args>> || ...) ||
-               (std::is_same_v<nonconst_accessor_type, std::decay_t<Args>> || ...) ||
-               (std::is_same_v<const_accessor_type, std::decay_t<Args>> || ...)) &&
-             std::is_constructible_v<accessor_type, Args...>) iterator_adaptor(Args&&... args)
-        : accessor_(std::forward<Args>(args)...)
+        requires(sizeof...(Args) >= 1 &&
+                 !((sizeof...(Args) == 1 && (std::is_same_v<nonconst_iterator, std::decay_t<Args>> || ...)) ||
+                   (std::is_same_v<const_iterator, std::decay_t<Args>> || ...) ||
+                   (std::is_same_v<nonconst_accessor_type, std::decay_t<Args>> || ...) ||
+                   (std::is_same_v<const_accessor_type, std::decay_t<Args>> || ...)) &&
+                 std::is_constructible_v<accessor_type, Args...>)
+    iterator_adaptor(Args&&... args) : accessor_(std::forward<Args>(args)...)
     {
     }
 
     iterator_adaptor(const accessor_type& accessor) : accessor_(accessor) {}
-    iterator_adaptor(const const_accessor_type& accessor) requires(!std::is_same_v<accessor_type, const_accessor_type>)
+    iterator_adaptor(const const_accessor_type& accessor)
+        requires(!std::is_same_v<accessor_type, const_accessor_type>)
         : accessor_(accessor)
     {
     }
 
-    operator const_iterator() const requires(!std::is_same_v<iterator, const_iterator>)
+    operator const_iterator() const
+        requires(!std::is_same_v<iterator, const_iterator>)
     {
         return const_iterator(accessor_);
     }
@@ -94,25 +95,29 @@ class iterator_adaptor
     }
 
     bool
-    operator<(const_iterator other) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator<(const_iterator other) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return accessor_ < other.accessor_;
     }
 
     bool
-    operator<=(const_iterator other) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator<=(const_iterator other) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return *this < other || *this == other;
     }
 
     bool
-    operator>(const_iterator other) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator>(const_iterator other) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return !(*this <= other);
     }
 
     bool
-    operator>=(const_iterator other) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator>=(const_iterator other) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return !(*this < other);
     }
@@ -147,7 +152,8 @@ class iterator_adaptor
     }
 
     iterator
-    operator+(difference_type offset) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator+(difference_type offset) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         iterator other = *this;
         other += offset;
@@ -155,7 +161,8 @@ class iterator_adaptor
     }
 
     iterator
-    operator-(difference_type offset) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator-(difference_type offset) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         iterator other = *this;
         other += -offset;
@@ -163,20 +170,23 @@ class iterator_adaptor
     }
 
     difference_type
-    operator-(const_iterator other) const requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator-(const_iterator other) const
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return accessor_ - other.accessor_;
     }
 
     iterator&
-    operator++() noexcept requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator++() noexcept
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         *this += 1;
         return *this;
     }
 
     iterator&
-    operator++() noexcept requires(!std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator++() noexcept
+        requires(!std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         ++accessor_;
         return *this;
@@ -191,16 +201,18 @@ class iterator_adaptor
     }
 
     iterator&
-    operator--() noexcept requires(std::is_same_v<iterator_category, std::random_access_iterator_tag> ||
-                                   std::is_same_v<iterator_category, std::bidirectional_iterator_tag>)
+    operator--() noexcept
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag> ||
+                 std::is_same_v<iterator_category, std::bidirectional_iterator_tag>)
     {
         *this += -1;
         return *this;
     }
 
     iterator
-    operator--(int) noexcept requires(std::is_same_v<iterator_category, std::random_access_iterator_tag> ||
-                                      std::is_same_v<iterator_category, std::bidirectional_iterator_tag>)
+    operator--(int) noexcept
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag> ||
+                 std::is_same_v<iterator_category, std::bidirectional_iterator_tag>)
     {
         iterator other = *this;
         --(*this);
@@ -208,14 +220,15 @@ class iterator_adaptor
     }
 
     auto
-    segments() const noexcept requires(has_segments_method<accessor_type>)
+    segments() const noexcept
+        requires(has_segments_method<accessor_type>)
     {
         return accessor_.segments();
     }
 
     friend iterator
-    operator+(difference_type n,
-              iterator iter) requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
+    operator+(difference_type n, iterator iter)
+        requires(std::is_same_v<iterator_category, std::random_access_iterator_tag>)
     {
         return iter + n;
     }

@@ -187,7 +187,8 @@ class distributed_span : public stdrng::view_interface<distributed_span<T, L>>
     operator=(const distributed_span&) noexcept = default;
 
     template <stdrng::input_range R>
-    requires(remote_range<stdrng::range_reference_t<R>>) constexpr distributed_span(R&& segments)
+        requires(remote_range<stdrng::range_reference_t<R>>)
+    constexpr distributed_span(R&& segments)
     {
         for (auto&& segment : segments)
         {

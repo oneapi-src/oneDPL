@@ -208,7 +208,8 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     // If there is at least one distributed range, expose segments
     // of overlapping remote ranges.
     auto
-    segments() const requires(distributed_range<Rs> || ...)
+    segments() const
+        requires(distributed_range<Rs> || ...)
     {
         std::array<std::size_t, sizeof...(Rs)> segment_ids;
         std::array<std::size_t, sizeof...(Rs)> local_idx;
@@ -245,7 +246,8 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     // but with a tuple of the constituent ranges instead of a
     // `zip_view` of the ranges.
     auto
-    zipped_segments() const requires(distributed_range<Rs> || ...)
+    zipped_segments() const
+        requires(distributed_range<Rs> || ...)
     {
         std::array<std::size_t, sizeof...(Rs)> segment_ids;
         std::array<std::size_t, sizeof...(Rs)> local_idx;
@@ -278,7 +280,8 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     }
 
     auto
-    local() const noexcept requires(!(distributed_range<Rs> || ...))
+    local() const noexcept
+        requires(!(distributed_range<Rs> || ...))
     {
         return local_impl_(std::make_index_sequence<sizeof...(Rs)>());
     }
@@ -288,7 +291,8 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     //   - There are no distributed ranges in the zip
     // Expose a rank.
     std::size_t
-    rank() const requires((remote_range<Rs> || ...) && !(distributed_range<Rs> || ...))
+    rank() const
+        requires((remote_range<Rs> || ...) && !(distributed_range<Rs> || ...))
     {
         return get_rank_impl_<0, Rs...>();
     }
@@ -310,8 +314,9 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     }
 
     template <std::size_t I, typename R, typename... Rs_>
-    requires(sizeof...(Rs_) > 0) std::size_t get_rank_impl_()
-    const
+        requires(sizeof...(Rs_) > 0)
+    std::size_t
+    get_rank_impl_() const
     {
         static_assert(I < sizeof...(Rs));
         if constexpr (remote_range<R>)

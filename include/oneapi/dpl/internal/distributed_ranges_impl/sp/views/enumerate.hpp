@@ -47,7 +47,8 @@ class enumerate_adapter_closure
 {
   public:
     template <stdrng::viewable_range R>
-    requires(stdrng::sized_range<R>) auto
+        requires(stdrng::sized_range<R>)
+    auto
     operator()(R&& r) const
     {
         using W = std::uint32_t;

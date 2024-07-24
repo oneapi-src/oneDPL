@@ -29,8 +29,9 @@ namespace oneapi::dpl::experimental::dr::sp
 {
 
 template <std::contiguous_iterator Iter>
-requires(!std::is_const_v<std::iter_value_t<Iter>> && std::is_trivially_copyable_v<std::iter_value_t<Iter>>) sycl::event
-    fill_async(Iter first, Iter last, const std::iter_value_t<Iter>& value)
+    requires(!std::is_const_v<std::iter_value_t<Iter>> && std::is_trivially_copyable_v<std::iter_value_t<Iter>>)
+sycl::event
+fill_async(Iter first, Iter last, const std::iter_value_t<Iter>& value)
 {
     auto&& q = __detail::get_queue_for_pointer(first);
     std::iter_value_t<Iter>* arr = std::to_address(first);
@@ -39,15 +40,17 @@ requires(!std::is_const_v<std::iter_value_t<Iter>> && std::is_trivially_copyable
 }
 
 template <std::contiguous_iterator Iter>
-requires(!std::is_const_v<std::iter_value_t<Iter>>) void fill(Iter first, Iter last,
-                                                              const std::iter_value_t<Iter>& value)
+    requires(!std::is_const_v<std::iter_value_t<Iter>>)
+void
+fill(Iter first, Iter last, const std::iter_value_t<Iter>& value)
 {
     fill_async(first, last, value).wait();
 }
 
 template <typename T, typename U>
-requires(std::indirectly_writable<device_ptr<T>, U>) sycl::event
-    fill_async(device_ptr<T> first, device_ptr<T> last, const U& value)
+    requires(std::indirectly_writable<device_ptr<T>, U>)
+sycl::event
+fill_async(device_ptr<T> first, device_ptr<T> last, const U& value)
 {
     auto&& q = __detail::get_queue_for_pointer(first);
     auto* arr = first.get_raw_pointer();
@@ -56,7 +59,9 @@ requires(std::indirectly_writable<device_ptr<T>, U>) sycl::event
 }
 
 template <typename T, typename U>
-requires(std::indirectly_writable<device_ptr<T>, U>) void fill(device_ptr<T> first, device_ptr<T> last, const U& value)
+    requires(std::indirectly_writable<device_ptr<T>, U>)
+void
+fill(device_ptr<T> first, device_ptr<T> last, const U& value)
 {
     fill_async(first, last, value).wait();
 }

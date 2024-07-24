@@ -64,8 +64,8 @@ class remote_span : public span<T, Iter>
     using reference = std::iter_reference_t<Iter>;
 
     template <stdrng::random_access_range R>
-    requires(remote_range<R>) remote_span(R&& r)
-        : span<T, Iter>(stdrng::begin(r), stdrng::size(r)), rank_(ranges::rank(r))
+        requires(remote_range<R>)
+    remote_span(R&& r) : span<T, Iter>(stdrng::begin(r), stdrng::size(r)), rank_(ranges::rank(r))
     {
     }
 

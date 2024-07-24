@@ -34,19 +34,13 @@ namespace
 {
 
 template <typename T>
-concept has_rank_method = requires(T t)
-{
-    {
-        t.rank()
-        } -> std::weakly_incrementable;
+concept has_rank_method = requires(T t) {
+    { t.rank() } -> std::weakly_incrementable;
 };
 
 template <typename R>
-concept has_rank_adl = requires(R& r)
-{
-    {
-        rank_(r)
-        } -> std::weakly_incrementable;
+concept has_rank_adl = requires(R& r) {
+    { rank_(r) } -> std::weakly_incrementable;
 };
 
 template <typename Iter>
@@ -67,9 +61,10 @@ struct rank_fn_
     // OR, if not available,
     // 2) r.begin().rank(), if iterator is `remote_iterator`
     template <stdrng::forward_range R>
-    requires((has_rank_method<R> && !disable_rank<std::remove_cv_t<R>>) ||
-             (has_rank_adl<R> && !disable_rank<std::remove_cv_t<R>>) ||
-             is_remote_iterator_shadow_impl_<stdrng::iterator_t<R>>) constexpr auto
+        requires((has_rank_method<R> && !disable_rank<std::remove_cv_t<R>>) ||
+                 (has_rank_adl<R> && !disable_rank<std::remove_cv_t<R>>) ||
+                 is_remote_iterator_shadow_impl_<stdrng::iterator_t<R>>)
+    constexpr auto
     operator()(R&& r) const
     {
         if constexpr (has_rank_method<R> && !disable_rank<std::remove_cv_t<R>>)
@@ -90,7 +85,8 @@ struct rank_fn_
     }
 
     template <std::forward_iterator Iter>
-    requires(has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>) auto
+        requires(has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>)
+    auto
     operator()(Iter iter) const
     {
         if constexpr (has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>)
@@ -108,34 +104,26 @@ namespace
 {
 
 template <typename R>
-concept remote_range_shadow_impl_ = stdrng::forward_range<R> && requires(R& r)
-{
-    ranges::rank(r);
-};
+concept remote_range_shadow_impl_ = stdrng::forward_range<R> && requires(R& r) { ranges::rank(r); };
 
 template <typename R>
 concept segments_range = stdrng::forward_range<R> && remote_range_shadow_impl_<stdrng::range_value_t<R>>;
 
 template <typename R>
-concept has_segments_method = requires(R r)
-{
-    {
-        r.segments()
-        } -> segments_range;
+concept has_segments_method = requires(R r) {
+    { r.segments() } -> segments_range;
 };
 
 template <typename R>
-concept has_segments_adl = requires(R& r)
-{
-    {
-        segments_(r)
-        } -> segments_range;
+concept has_segments_adl = requires(R& r) {
+    { segments_(r) } -> segments_range;
 };
 
 struct segments_fn_
 {
     template <stdrng::forward_range R>
-    requires(has_segments_method<R> || has_segments_adl<R>) constexpr decltype(auto)
+        requires(has_segments_method<R> || has_segments_adl<R>)
+    constexpr decltype(auto)
     operator()(R&& r) const
     {
         if constexpr (has_segments_method<R>)
@@ -149,7 +137,8 @@ struct segments_fn_
     }
 
     template <std::forward_iterator I>
-    requires(has_segments_method<I> || has_segments_adl<I>) constexpr decltype(auto)
+        requires(has_segments_method<I> || has_segments_adl<I>)
+    constexpr decltype(auto)
     operator()(I iter) const
     {
         if constexpr (has_segments_method<I>)
@@ -171,19 +160,13 @@ namespace
 {
 
 template <typename Iter>
-concept has_local_adl = requires(Iter& iter)
-{
-    {
-        local_(iter)
-        } -> std::forward_iterator;
+concept has_local_adl = requires(Iter& iter) {
+    { local_(iter) } -> std::forward_iterator;
 };
 
 template <typename Iter>
-concept iter_has_local_method = std::forward_iterator<Iter> && requires(Iter iter)
-{
-    {
-        iter.local()
-        } -> std::forward_iterator;
+concept iter_has_local_method = std::forward_iterator<Iter> && requires(Iter iter) {
+    { iter.local() } -> std::forward_iterator;
 };
 
 template <typename T>
@@ -202,7 +185,7 @@ struct is_localizable_helper<T> : std::true_type
 };
 
 template <std::forward_iterator Iter>
-requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) && requires() { std::iter_value_t<Iter>(); }
+    requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) && requires() { std::iter_value_t<Iter>(); }
 struct is_localizable_helper<Iter> : is_localizable_helper<std::iter_value_t<Iter>>
 {
 };
@@ -216,11 +199,8 @@ template <typename T>
 concept is_localizable = is_localizable_helper<T>::value;
 
 template <typename Segment>
-concept segment_has_local_method = stdrng::forward_range<Segment> && requires(Segment segment)
-{
-    {
-        segment.local()
-        } -> stdrng::forward_range;
+concept segment_has_local_method = stdrng::forward_range<Segment> && requires(Segment segment) {
+    { segment.local() } -> stdrng::forward_range;
 };
 
 struct local_fn_
@@ -231,7 +211,7 @@ struct local_fn_
     // TODO: rewrite using iterator_interface from
     //  https://github.com/boostorg/stl_interfaces
     template <typename Iter>
-    requires stdrng::forward_range<typename Iter::value_type>
+        requires stdrng::forward_range<typename Iter::value_type>
     struct cursor_over_local_ranges
     {
         Iter iter;
@@ -280,8 +260,9 @@ struct local_fn_
     };
 
     template <std::forward_iterator Iter>
-    requires(has_local_adl<Iter> || iter_has_local_method<Iter> || std::contiguous_iterator<Iter> ||
-             is_localizable<Iter>) auto
+        requires(has_local_adl<Iter> || iter_has_local_method<Iter> || std::contiguous_iterator<Iter> ||
+                 is_localizable<Iter>)
+    auto
     operator()(Iter iter) const
     {
         if constexpr (iter_has_local_method<Iter>)
@@ -303,8 +284,9 @@ struct local_fn_
     }
 
     template <stdrng::forward_range R>
-    requires(has_local_adl<R> || iter_has_local_method<stdrng::iterator_t<R>> || segment_has_local_method<R> ||
-             std::contiguous_iterator<stdrng::iterator_t<R>> || is_localizable<R> || stdrng::contiguous_range<R>) auto
+        requires(has_local_adl<R> || iter_has_local_method<stdrng::iterator_t<R>> || segment_has_local_method<R> ||
+                 std::contiguous_iterator<stdrng::iterator_t<R>> || is_localizable<R> || stdrng::contiguous_range<R>)
+    auto
     operator()(R&& r) const
     {
         if constexpr (segment_has_local_method<R>)
@@ -341,17 +323,15 @@ namespace __detail
 {
 
 template <typename T>
-concept has_local = requires(T& t)
-{
-    {
-        ranges::local(t)
-        } -> std::convertible_to<std::any>;
+concept has_local = requires(T& t) {
+    { ranges::local(t) } -> std::convertible_to<std::any>;
 };
 
 struct local_fn_
 {
     template <typename T>
-    requires(has_local<T>) auto
+        requires(has_local<T>)
+    auto
     operator()(T&& t) const
     {
         return ranges::local(t);

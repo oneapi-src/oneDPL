@@ -33,7 +33,8 @@ class owning_view : public stdrng::view_interface<owning_view<R>>
   public:
     owning_view(R&& range) : range_(std::move(range)) {}
 
-    owning_view() requires std::default_initializable<R>
+    owning_view()
+        requires std::default_initializable<R>
     = default;
     owning_view(owning_view&& other) = default;
     owning_view(const owning_view& other) = default;
@@ -44,13 +45,15 @@ class owning_view : public stdrng::view_interface<owning_view<R>>
     operator=(const owning_view& other) = default;
 
     auto
-    size() const requires(stdrng::sized_range<R>)
+    size() const
+        requires(stdrng::sized_range<R>)
     {
         return stdrng::size(range_);
     }
 
     auto
-    empty() const requires(stdrng::sized_range<R>)
+    empty() const
+        requires(stdrng::sized_range<R>)
     {
         return size() == 0;
     }
@@ -62,7 +65,8 @@ class owning_view : public stdrng::view_interface<owning_view<R>>
     }
 
     auto
-    begin() const requires(stdrng::range<const R>)
+    begin() const
+        requires(stdrng::range<const R>)
     {
         return stdrng::begin(range_);
     }
@@ -74,7 +78,8 @@ class owning_view : public stdrng::view_interface<owning_view<R>>
     }
 
     auto
-    end() const requires(stdrng::range<const R>)
+    end() const
+        requires(stdrng::range<const R>)
     {
         return stdrng::end(range_);
     }

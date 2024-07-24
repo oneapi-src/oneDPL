@@ -48,8 +48,9 @@ reduce_no_init_async(ExecutionPolicy&& policy, Iter first, Iter last, Fn&& fn)
 }
 
 template <typename T, typename ExecutionPolicy, std::bidirectional_iterator Iter, typename Fn>
-requires(sycl::has_known_identity_v<Fn, T>) auto reduce_no_init_async(ExecutionPolicy&& policy, Iter first, Iter last,
-                                                                      Fn&& fn)
+    requires(sycl::has_known_identity_v<Fn, T>)
+auto
+reduce_no_init_async(ExecutionPolicy&& policy, Iter first, Iter last, Fn&& fn)
 {
     oneapi::dpl::experimental::dr::__detail::direct_iterator d_first(first);
     oneapi::dpl::experimental::dr::__detail::direct_iterator d_last(last);

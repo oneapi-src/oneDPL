@@ -162,7 +162,8 @@ class transform_iterator
     }
 
     auto
-    local() const requires(ranges::__detail::has_local<Iter>)
+    local() const
+        requires(ranges::__detail::has_local<Iter>)
     {
         auto iter = ranges::__detail::local(iter_);
         return transform_iterator<decltype(iter), F>(iter, fn_);
@@ -174,7 +175,8 @@ class transform_iterator
 };
 
 template <stdrng::random_access_range V, std::copy_constructible F>
-requires(std::is_default_constructible_v<F>) class transform_view : public stdrng::view_interface<transform_view<V, F>>
+    requires(std::is_default_constructible_v<F>)
+class transform_view : public stdrng::view_interface<transform_view<V, F>>
 {
   public:
     template <stdrng::viewable_range R>
@@ -195,13 +197,15 @@ requires(std::is_default_constructible_v<F>) class transform_view : public stdrn
     }
 
     auto
-    size() const requires(stdrng::sized_range<V>)
+    size() const
+        requires(stdrng::sized_range<V>)
     {
         return stdrng::size(base_);
     }
 
     auto
-    segments() const requires(distributed_range<V>)
+    segments() const
+        requires(distributed_range<V>)
     {
         auto fn = fn_;
         return ranges::segments(base_) | stdrng::views::transform([fn]<typename T>(T&& segment) {
@@ -210,7 +214,8 @@ requires(std::is_default_constructible_v<F>) class transform_view : public stdrn
     }
 
     auto
-    rank() const requires(remote_range<V>)
+    rank() const
+        requires(remote_range<V>)
     {
         return ranges::rank(base_);
     }

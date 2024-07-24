@@ -129,37 +129,47 @@ namespace DR_RANGES_NAMESPACE
 // A standard library range adaptor does not change the rank of a
 // remote range, so we can simply return the rank of the base view.
 template <stdrng::range V>
-requires(oneapi::dpl::experimental::dr::remote_range<decltype(std::declval<V>().base())>) auto rank_(V&& v)
+    requires(oneapi::dpl::experimental::dr::remote_range<decltype(std::declval<V>().base())>)
+auto
+rank_(V&& v)
 {
     return oneapi::dpl::experimental::dr::ranges::rank(std::forward<V>(v).base());
 }
 
 template <stdrng::range V>
-requires(oneapi::dpl::experimental::dr::is_ref_view_v<std::remove_cvref_t<V>>&&
-             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
+    requires(oneapi::dpl::experimental::dr::is_ref_view_v<std::remove_cvref_t<V>> &&
+             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>)
+auto
+segments_(V&& v)
 {
     return oneapi::dpl::experimental::dr::ranges::segments(v.base());
 }
 
 template <stdrng::range V>
-requires(oneapi::dpl::experimental::dr::is_take_view_v<std::remove_cvref_t<V>>&&
-             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
+    requires(oneapi::dpl::experimental::dr::is_take_view_v<std::remove_cvref_t<V>> &&
+             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>)
+auto
+segments_(V&& v)
 {
     return oneapi::dpl::experimental::dr::__detail::take_segments(
         oneapi::dpl::experimental::dr::ranges::segments(v.base()), v.size());
 }
 
 template <stdrng::range V>
-requires(oneapi::dpl::experimental::dr::is_drop_view_v<std::remove_cvref_t<V>>&&
-             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>) auto segments_(V&& v)
+    requires(oneapi::dpl::experimental::dr::is_drop_view_v<std::remove_cvref_t<V>> &&
+             oneapi::dpl::experimental::dr::distributed_range<decltype(std::declval<V>().base())>)
+auto
+segments_(V&& v)
 {
     return oneapi::dpl::experimental::dr::__detail::drop_segments(
         oneapi::dpl::experimental::dr::ranges::segments(v.base()), v.base().size() - v.size());
 }
 
 template <stdrng::range V>
-requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V>>&&
-             oneapi::dpl::experimental::dr::distributed_iterator<stdrng::iterator_t<V>>) auto segments_(V&& v)
+    requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V>> &&
+             oneapi::dpl::experimental::dr::distributed_iterator<stdrng::iterator_t<V>>)
+auto
+segments_(V&& v)
 {
     auto first = stdrng::begin(v);
     auto last = stdrng::end(v);

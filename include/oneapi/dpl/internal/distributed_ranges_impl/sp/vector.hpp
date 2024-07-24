@@ -77,7 +77,8 @@ class vector
         copy(other.begin(), other.end(), begin());
     }
 
-    vector(vector&& other) noexcept requires(std::is_trivially_move_constructible_v<T>)
+    vector(vector&& other) noexcept
+        requires(std::is_trivially_move_constructible_v<T>)
         : allocator_(other.get_allocator())
     {
         data_ = other.data_;
@@ -88,7 +89,8 @@ class vector
         other.capacity_ = 0;
     }
 
-    vector(vector&& other, const Allocator& alloc) noexcept requires(std::is_trivially_move_constructible_v<T>)
+    vector(vector&& other, const Allocator& alloc) noexcept
+        requires(std::is_trivially_move_constructible_v<T>)
         : allocator_(alloc)
     {
         data_ = other.data_;

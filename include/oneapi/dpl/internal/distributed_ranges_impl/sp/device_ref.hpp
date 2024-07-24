@@ -24,7 +24,8 @@ namespace oneapi::dpl::experimental::dr::sp
 {
 
 template <typename T>
-requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ref
+    requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>)
+class device_ref
 {
   public:
     device_ref() = delete;
@@ -47,7 +48,8 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ref
     }
 
     device_ref
-    operator=(const T& value) const requires(!std::is_const_v<T>)
+    operator=(const T& value) const
+        requires(!std::is_const_v<T>)
     {
 #ifdef __SYCL_DEVICE_ONLY__
         *pointer_ = value;

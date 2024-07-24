@@ -30,8 +30,8 @@ struct distributed_device_policy
     distributed_device_policy() : devices_({sycl::queue{}.get_device()}) {}
 
     template <stdrng::range R>
-    requires(std::is_same_v<stdrng::range_value_t<R>, sycl::device>) distributed_device_policy(R&& devices)
-        : devices_(stdrng::begin(devices), stdrng::end(devices))
+        requires(std::is_same_v<stdrng::range_value_t<R>, sycl::device>)
+    distributed_device_policy(R&& devices) : devices_(stdrng::begin(devices), stdrng::end(devices))
     {
     }
 
