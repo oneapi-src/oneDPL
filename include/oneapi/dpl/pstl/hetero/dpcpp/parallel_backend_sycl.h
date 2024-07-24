@@ -1090,13 +1090,9 @@ struct __early_exit_find_or
               typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+               const _IterationDataSize __iteration_data_size, std::size_t __iters_per_work_item,
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
-        // Calculate the number of elements to be processed by each work-item.
-        const auto __iters_per_work_item =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
-
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
@@ -1176,10 +1172,30 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
     __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
 #endif
-    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
-    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
+    // Tune the launch configuration based on empirical data
+    std::size_t __iters_per_work_item = 1;
+    if (__rng_n >= 16'777'216)
+        __iters_per_work_item = 64;
+    else if (__rng_n >= 4'194'304)
+        __iters_per_work_item = 32;
+    else if (__rng_n >= 1'048'576)
+        __iters_per_work_item = 16;
+    else if (__rng_n >= 262'144)
+        __iters_per_work_item = 8;
+    else if (__rng_n >= 65'536)
+        __iters_per_work_item = 4;
+    else if (__rng_n >= 16'384)
+        __iters_per_work_item = 2;
+
+    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size * __iters_per_work_item);
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    // Limit the number of groups to the compute units to reduce atomic updates
+    if (__n_groups > __max_cu)
+    {
+        __n_groups = __max_cu;
+        __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+    }
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
@@ -1216,7 +1232,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __iters_per_work_item, __found_local,
+                           __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
