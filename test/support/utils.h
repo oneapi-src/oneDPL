@@ -822,14 +822,14 @@ template <typename _Tp>
 struct MaxFunctor<MatrixPoint<_Tp>>
 {
     auto
-    euclidean_distance(const MatrixPoint<_Tp>& __x) const
+    sum(const MatrixPoint<_Tp>& __x) const
     {
-        return std::sqrt(__x.m * __x.m + __x.n * __x.n);
+        return __x.m + __x.n;
     }
     MatrixPoint<_Tp>
     operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (euclidean_distance(__x) < euclidean_distance(__y)) ? __y : __x;
+        return (sum(__x) < sum(__y)) ? __y : __x;
     }
 };
 
@@ -841,14 +841,14 @@ template <typename _Tp>
 struct MaxAbsFunctor<MatrixPoint<_Tp>>
 {
     auto
-    euclidean_distance(const MatrixPoint<_Tp>& __x) const
+    abs_sum(const MatrixPoint<_Tp>& __x) const
     {
         return std::sqrt(__x.m * __x.m + __x.n * __x.n);
     }
     MatrixPoint<_Tp>
     operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (euclidean_distance(__x) < euclidean_distance(__y)) ? euclidean_distance(__y) : euclidean_distance(__x);
+        return (abs_sum(__x) < abs_sum(__y)) ? abs_sum(__y) : abs_sum(__x);
     }
 };
 
