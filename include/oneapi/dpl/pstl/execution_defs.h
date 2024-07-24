@@ -76,16 +76,13 @@ struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::
 {
 };
 
-} // namespace v1
-} // namespace execution
-
 template <class T>
 inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
 
-namespace execution
-{
-using oneapi::dpl::is_execution_policy_v; //is_execution_policy_v trait alias
-} //namespace execution
+} // namespace v1
+} // namespace execution
+
+using oneapi::dpl::execution::is_execution_policy_v;
 
 namespace __internal
 {
