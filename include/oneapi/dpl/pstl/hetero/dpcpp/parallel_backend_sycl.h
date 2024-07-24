@@ -1148,12 +1148,6 @@ template <typename Tag>
 struct __parallel_find_or_n_groups_tuner
 {
     // Calculate the number of work groups.
-    //
-    // @param _ExecutionPolicy&& __exec - policy
-    // @param std::size_t __n_groups - the source amount of work-groups
-    // @param std::size_t __wgroup_size - the source work-group size
-    // @param std::size_t __rng_n - the source data size
-    // @return std::size_t - evaluated number of work-groups
     template <typename _ExecutionPolicy>
     std::size_t
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t /*__wgroup_size*/,
@@ -1167,12 +1161,6 @@ template <>
 struct __parallel_find_or_n_groups_tuner<oneapi::dpl::__internal::__device_backend_tag>
 {
     // Calculate the number of work groups.
-    //
-    // @param _ExecutionPolicy&& __exec - policy
-    // @param std::size_t __n_groups - the source amount of work-groups
-    // @param std::size_t __wgroup_size - the source work-group size
-    // @param std::size_t __rng_n - the source data size
-    // @return std::size_t - evaluated number of work-groups
     template <typename _ExecutionPolicy>
     std::size_t
     operator()(_ExecutionPolicy&& /*__exec*/, std::size_t __n_groups, const std::size_t __wgroup_size,
