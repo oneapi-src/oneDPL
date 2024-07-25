@@ -57,11 +57,9 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
     // DPL futures must be kept alive, since in the future their destruction
     // may trigger a synchronization.
     using dpl_future_type = decltype(inclusive_scan_async(
-        __detail::dpl_policy(0),
+        __detail::dpl_policy(0), dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
         dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
-        dr::__detail::direct_iterator(stdrng::begin(std::get<0>(*zipped_segments.begin()))),
-        dr::__detail::direct_iterator(stdrng::begin(std::get<1>(*zipped_segments.begin()))), binary_op,
-        init.value()));
+        dr::__detail::direct_iterator(stdrng::begin(std::get<1>(*zipped_segments.begin()))), binary_op, init.value()));
 
     std::vector<dpl_future_type> futures;
 
@@ -82,15 +80,15 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 
         if (segment_id == 0 && init.has_value())
         {
-            futures.push_back(inclusive_scan_async(
-                local_policy, dr::__detail::direct_iterator(first), dr::__detail::direct_iterator(last),
-                dr::__detail::direct_iterator(d_first), binary_op, init.value()));
+            futures.push_back(inclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
+                                                   dr::__detail::direct_iterator(last),
+                                                   dr::__detail::direct_iterator(d_first), binary_op, init.value()));
         }
         else
         {
             futures.push_back(inclusive_scan_async(local_policy, dr::__detail::direct_iterator(first),
-                                                    dr::__detail::direct_iterator(last),
-                                                    dr::__detail::direct_iterator(d_first), binary_op));
+                                                   dr::__detail::direct_iterator(last),
+                                                   dr::__detail::direct_iterator(d_first), binary_op));
         }
 
         auto dst_iter = ranges::local(partial_sums).data() + segment_id;
@@ -138,16 +136,16 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 
             auto d_sum = ranges::__detail::local(partial_sums).begin() + idx - 1;
 
-            sycl::event e =
-                dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)),
-                                            [=](auto idx) { d_first[idx] = binary_op(d_first[idx], *d_sum); });
+            sycl::event e = dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)), [=](auto idx) {
+                d_first[idx] = binary_op(d_first[idx], *d_sum);
+            });
 
             events.push_back(e);
         }
         idx++;
     }
 
-        __detail::wait(events);
+    __detail::wait(events);
 }
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename BinaryOp,

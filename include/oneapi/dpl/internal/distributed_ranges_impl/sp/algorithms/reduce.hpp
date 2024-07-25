@@ -71,7 +71,7 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
     using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
-                                            ranges::segments(r)[0].end(), init, binary_op));
+                                           ranges::segments(r)[0].end(), init, binary_op));
 
     std::vector<future_t> futures;
 
@@ -90,8 +90,7 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
             continue;
         }
 
-        auto future =
-            reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
+        auto future = reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
 
         futures.push_back(std::move(future));
     }
