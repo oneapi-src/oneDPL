@@ -370,7 +370,6 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_f
     __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
         {
             ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
@@ -415,7 +414,6 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::scan_the
     __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
         {
             ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
@@ -455,7 +453,6 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::subgroup
     __peer_contribution(std::uint32_t __bucket, _OffsetHistogramAcc& __histogram)
     {
         _OffsetT __offset = 0;
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
         {
             ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
@@ -581,7 +578,6 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 const ::std::size_t __scan_size = __segments + 1;
                 _OffsetT __scanned_bin = 0;
                 __offset_arr[0] = __offset_rng[__segment_idx];
-                _ONEDPL_PRAGMA_UNROLL
                 for (::std::uint32_t __radix_state_idx = 1; __radix_state_idx < __radix_states; ++__radix_state_idx)
                 {
                     const ::std::uint32_t __local_offset_idx = __segment_idx + (__segments + 1) * __radix_state_idx;
