@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/standard_views.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
+#include "views/standard_views.hpp"
+#include "zip_view.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
