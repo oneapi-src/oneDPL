@@ -23,9 +23,6 @@ namespace oneapi::dpl::experimental::dr
 namespace __detail
 {
 
-namespace
-{
-
 template <stdrng::range R>
 struct range_size
 {
@@ -40,8 +37,6 @@ struct range_size<R>
 
 template <stdrng::range R>
 using range_size_t = typename range_size<R>::type;
-
-} // namespace
 
 class enumerate_adapter_closure
 {

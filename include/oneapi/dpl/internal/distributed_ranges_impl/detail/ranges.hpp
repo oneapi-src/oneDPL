@@ -30,7 +30,7 @@ namespace ranges
 template <typename>
 inline constexpr bool disable_rank = false;
 
-namespace
+namespace __detail
 {
 
 template <typename T>
@@ -53,9 +53,9 @@ template <typename Iter>
 concept is_remote_iterator_shadow_impl_ =
     std::forward_iterator<Iter> && has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>;
 
-} // namespace
+} // namespace __detail
 
-namespace
+namespace __detail
 {
 
 struct rank_fn_
@@ -100,11 +100,11 @@ struct rank_fn_
     }
 };
 
-} // namespace
+} // namespace __detail
 
-inline constexpr auto rank = rank_fn_{};
+inline constexpr auto rank = __detail::rank_fn_{};
 
-namespace
+namespace __detail
 {
 
 template <typename R>
@@ -163,11 +163,11 @@ struct segments_fn_
     }
 };
 
-} // namespace
+} // namespace __detail
 
-inline constexpr auto segments = segments_fn_{};
+inline constexpr auto segments = __detail::segments_fn_{};
 
-namespace
+namespace __local
 {
 
 template <typename Iter>
@@ -333,9 +333,9 @@ struct local_fn_
     }
 };
 
-} // namespace
+} // namespace __local
 
-inline constexpr auto local = local_fn_{};
+inline constexpr auto local = __local::local_fn_{};
 
 namespace __detail
 {

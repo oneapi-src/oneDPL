@@ -23,16 +23,11 @@
 namespace oneapi::dpl::experimental::dr
 {
 
-namespace
-{
-
 template <typename R>
 concept has_segments_method = requires(R r)
 {
     {r.segments()};
 };
-
-} // namespace
 
 template <typename Accessor>
 class iterator_adaptor
