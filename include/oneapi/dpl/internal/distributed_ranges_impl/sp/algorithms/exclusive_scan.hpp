@@ -33,6 +33,8 @@
 namespace oneapi::dpl::experimental::dr::sp
 {
 
+namespace __detail
+{
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename U,
           typename BinaryOp>
 void
@@ -174,6 +176,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
     }
 }
 
+} // namespace __detail
 // Ranges versions
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename T,
@@ -181,30 +184,30 @@ template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_
 void
 exclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, T init, BinaryOp binary_op)
 {
-    exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), init,
-                         binary_op);
+    __detail::exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), init,
+                                   binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename T>
 void
 exclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, T init)
 {
-    exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), init,
-                         std::plus<>{});
+    __detail::exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), init,
+                                   std::plus<>{});
 }
 
 template <distributed_contiguous_range R, distributed_contiguous_range O, typename T, typename BinaryOp>
 void
 exclusive_scan(R&& r, O&& o, T init, BinaryOp binary_op)
 {
-    exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, binary_op);
+    __detail::exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, binary_op);
 }
 
 template <distributed_contiguous_range R, distributed_contiguous_range O, typename T>
 void
 exclusive_scan(R&& r, O&& o, T init)
 {
-    exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, std::plus<>{});
+    __detail::exclusive_scan_impl_(par_unseq, std::forward<R>(r), std::forward<O>(o), init, std::plus<>{});
 }
 
 // Iterator versions
@@ -217,8 +220,8 @@ exclusive_scan(ExecutionPolicy&& policy, Iter first, Iter last, OutputIter d_fir
     auto dist = stdrng::distance(first, last);
     auto d_last = d_first;
     stdrng::advance(d_last, dist);
-    exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
-                         stdrng::subrange(d_first, d_last), init, binary_op);
+    __detail::exclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), stdrng::subrange(first, last),
+                                   stdrng::subrange(d_first, d_last), init, binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_iterator Iter, distributed_iterator OutputIter, typename T>
