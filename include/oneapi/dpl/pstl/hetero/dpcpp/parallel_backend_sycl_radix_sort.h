@@ -343,12 +343,12 @@ enum class __peer_prefix_algo
     scan_then_broadcast
 };
 
-template <std::uint32_t __radix_bits, typename _OffsetT, __peer_prefix_algo _Algo>
+template <std::uint32_t __radix_states, typename _OffsetT, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
 #if (_ONEDPL_LIBSYCL_VERSION >= 50700)
-template <std::uint32_t __radix_bits, typename _OffsetT>
-struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_fetch_or>
+template <std::uint32_t __radix_states, typename _OffsetT>
+struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::atomic_fetch_or>
 {
     using _AtomicT = __dpl_sycl::__atomic_ref<::std::uint32_t, sycl::access::address_space::local_space>;
     using _TempStorageT = __dpl_sycl::__local_accessor<::std::uint32_t>;
@@ -357,7 +357,6 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_f
     ::std::uint32_t __self_lidx;
     ::std::uint32_t __item_mask;
     _AtomicT __atomic_peer_mask;
-    static constexpr std::uint32_t __radix_states = 1 << __radix_bits;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
@@ -393,13 +392,12 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::atomic_f
 };
 #endif // (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
-template <std::uint32_t __radix_bits, typename _OffsetT>
-struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::scan_then_broadcast>
+template <std::uint32_t __radix_states, typename _OffsetT>
+struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::scan_then_broadcast>
 {
     using _TempStorageT = __empty_peer_temp_storage;
     using _ItemType = sycl::nd_item<1>;
     using _SubGroupType = decltype(::std::declval<_ItemType>().get_sub_group());
-    static constexpr std::uint32_t __radix_states = 1 << __radix_bits;
 
     _SubGroupType __sgroup;
     ::std::uint32_t __sg_size;
@@ -431,15 +429,14 @@ struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::scan_the
 };
 
 #if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
-template <std::uint32_t __radix_bits, typename _OffsetT>
-struct __peer_prefix_helper<__radix_bits, _OffsetT, __peer_prefix_algo::subgroup_ballot>
+template <std::uint32_t __radix_states, typename _OffsetT>
+struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::subgroup_ballot>
 {
     using _TempStorageT = __empty_peer_temp_storage;
 
     sycl::sub_group __sgroup;
     ::std::uint32_t __self_lidx;
     sycl::ext::oneapi::sub_group_mask __item_sg_mask;
-    static constexpr std::uint32_t __radix_states = 1 << __radix_bits;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
@@ -519,15 +516,16 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 #endif
 )
 {
+    constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
+
     // typedefs
     using _OffsetT = typename _OffsetBuf::value_type;
     using _ValueT = oneapi::dpl::__internal::__value_t<_InRange>;
-    using _PeerHelper = __peer_prefix_helper<__radix_bits, _OffsetT, _PeerAlgo>;
+    using _PeerHelper = __peer_prefix_helper<__radix_states, _OffsetT, _PeerAlgo>;
 
     assert(__input_rng.size() == __output_rng.size());
 
     // iteration space info
-    constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
     const ::std::size_t __n = __output_rng.size();
     const ::std::size_t __elem_per_segment = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __segments);
 
