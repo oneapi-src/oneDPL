@@ -539,7 +539,7 @@ __pattern_min_element(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __c
 //---------------------------------------------------------------------------------------------------------------------
 
 template <typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
-auto
+void
 __pattern_copy_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
@@ -549,30 +549,25 @@ __pattern_copy_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
     oneapi::dpl::__internal::__pattern_walk2_brick(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__in_r), std::ranges::begin(__in_r) + __in_r.size(), __out_r.begin(),
         oneapi::dpl::__internal::__brick_copy<decltype(__tag), _ExecutionPolicy>{});
-
-    using __return_t = std::ranges::copy_result<std::ranges::borrowed_iterator_t<_InRange>,
-        std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
-auto
+void
 __pattern_copy(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
-    return __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
+    __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
         std::forward<_OutRange>(__out_r));
 }
 
 template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
-auto
+void
 __pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
     if constexpr(typename _Tag::__is_vector{})
-        return __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
+        __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
             std::forward<_OutRange>(__out_r));
     else
-        return std::ranges::copy(std::forward<_InRange>(__in_r), __out_r.begin());
+        std::ranges::copy(std::forward<_InRange>(__in_r), __out_r.begin());
 }
 //---------------------------------------------------------------------------------------------------------------------
 // pattern_copy_if
