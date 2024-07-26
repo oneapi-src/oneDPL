@@ -35,7 +35,7 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     // Memory allocation
     std::vector<result_type> dpstd_samples(NGenSamples);
 
-#if 0
+#if 1
 
     // Random number generation
     {
@@ -69,17 +69,22 @@ typename Engine::scalar_type test(sycl::queue& queue) {
 
 #else
     result_type res;
-    Engine engine;
-
-    engine.discard(8);
-    for(int i = 0; i <= NGenSamples-8;i++){
-        res = engine();
-        std::cout << " " << res << std::endl;
+    // iterate through the different value of the offset
+    for(int itr = 0; itr < 999; ++itr) {
+        Engine engine;
+        int disgard_value = itr;
+        std::cout << "\n\t\tdisgard_value: " << disgard_value;
+        engine.discard(disgard_value);
+        for(int i = 0; i < NGenSamples-disgard_value;i++){
+            res = engine();
+            //std::cout << " " << res << std::endl;
+        }
+        if(res!=1955073260)
+            std::cout << "\t\tError";
     }
-    std::cout << "\n\t\tres host: " << res << std::endl;
+    
     return res;
 #endif
-
 }
 
 #endif // _DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON_HPP

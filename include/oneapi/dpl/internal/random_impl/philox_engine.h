@@ -52,22 +52,16 @@ private:
     * Internal state details
     * [counter_0,..., counter_n, key_0, ..., key_(n/2-1), result_0, .. result_n, idx];
     */
+    // struct state {
+    //     result_type X[n];
+    //     result_type K[n/2];
+    //     result_type Y[n];
+    //     result_type idx;
+    // } state_; 
     static constexpr size_t state_size = (n + n/2 + n + 1); // X +  K  + Y + idx
     using state = ::std::array<result_type, state_size>;
     state state_;
-
-    /*
-    template <std::int32_t VecSize>
-    struct engine_state<oneapi::mkl::rng::device::philox4x32x10<VecSize>> {
-    std::uint32_t K[2];
-    std::uint32_t X[4];
-    std::uint32_t Y[4];
-    std::uint32_t idx;
-
-};
-    
-    */
-
+  
     /* Processing mask */
     static constexpr auto in_mask = detail::fffmask<result_type, word_size>;
     static constexpr ::std::size_t array_size = n / 2;
@@ -144,8 +138,8 @@ public:
         result_type curr_idx = ridxref() % word_count;
         result_type newridx;
 
-        newridx = (z + curr_idx) % (word_count+1);
-        int counters_increment = ((z - newridx)/word_count);
+        newridx = (curr_idx + z) % (word_count);
+        int counters_increment = z / word_count;
 
         for(int i = 0; i < counters_increment; i++)
             increase_counter_internal(); // rewrite with z
@@ -164,7 +158,7 @@ private:
 
     result_type* operator()(result_type* out) {
         result_type curr_idx = ridxref();
-        if(curr_idx % word_count == 0) { // empty buffer
+        if(curr_idx  == word_count) { // empty buffer
             generate();
             increase_counter_internal();
             curr_idx = 0;
