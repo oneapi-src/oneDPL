@@ -207,4 +207,4 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
 } // namespace dpl
 } // namespace oneapi
 
-#endif // _ONEDPL_PARALLEL_BACKEND_SYCL_RADIX_SORT_H
+#endif // _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_SORT_H

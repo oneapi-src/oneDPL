@@ -213,4 +213,4 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 } // namespace dpl
 } // namespace oneapi
 
-#endif // _ONEDPL_PARALLEL_BACKEND_SYCL_RADIX_SORT_H
+#endif // _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_H
