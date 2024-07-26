@@ -29,7 +29,7 @@
 #include <string>
 
 namespace test_std_ranges
-{;
+{
 
 #if _ONEDPL_HETERO_BACKEND
 template<int call_id = 0>
@@ -200,7 +200,7 @@ struct test
 
             typename Container::type& A = cont_in1();
             typename Container::type& B = cont_in2();
-            typename Container::type& С = cont_out();
+            typename Container::type& C = cont_out();
 
             auto res = algo(exec, tr(A), tr(B), C, args...);
 
