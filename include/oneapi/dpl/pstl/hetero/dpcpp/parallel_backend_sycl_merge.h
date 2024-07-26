@@ -16,10 +16,10 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_H
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_H
 
-#include <limits> // std::numeric_limits
-#include <cassert> // assert
-#include <cstdint> // std::uint8_t, ...
-#include <utility> // std::make_pair, std::forward
+#include <limits>    // std::numeric_limits
+#include <cassert>   // assert
+#include <cstdint>   // std::uint8_t, ...
+#include <utility>   // std::make_pair, std::forward
 #include <algorithm> // std::min, std::lower_bound
 
 #include "sycl_defs.h"
@@ -53,33 +53,33 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     _Index2 __start2 = 0;
     if (__i_elem < __n2) //a condition to specify upper or lower part of the merge matrix to be processed
     {
-        auto __q = __i_elem;                            //diagonal index
+        auto __q = __i_elem;                          //diagonal index
         auto __n_diag = std::min<_Index2>(__q, __n1); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
-                auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                return __zero_or_one < __value;
-            });
+        auto __res =
+            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                                 auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                                 return __zero_or_one < __value;
+                             });
         __start1 = *__res;
         __start2 = __q - *__res;
     }
     else
     {
-        auto __q = __i_elem - __n2;                            //diagonal index
+        auto __q = __i_elem - __n2;                          //diagonal index
         auto __n_diag = std::min<_Index1>(__n1 - __q, __n2); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
-                auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                return __zero_or_one < __value;
-            });
+        auto __res =
+            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                                 auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                                 return __zero_or_one < __value;
+                             });
 
         __start1 = __q + *__res;
         __start2 = __n2 - *__res;
@@ -119,12 +119,12 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
-                  if (++__start2 == __n2)
-                  {
-                      //copying a residual of the first seq
-                      for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
-                          __rng3[__start3 + __i] = __rng1[__start1];
-                  }
+                if (++__start2 == __n2)
+                {
+                    //copying a residual of the first seq
+                    for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
+                        __rng3[__start3 + __i] = __rng1[__start1];
+                }
             }
             else
             {
@@ -167,7 +167,6 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-
                 const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,

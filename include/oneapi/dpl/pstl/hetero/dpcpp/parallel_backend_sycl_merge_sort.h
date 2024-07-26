@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_SORT_H
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_SORT_H
 
-#include <cmath> // std::log2
-#include <limits> // std::numeric_limits
-#include <cassert> // assert
-#include <utility> // std::swap
-#include <cstdint> // std::uint32_t, ...
+#include <cmath>     // std::log2
+#include <limits>    // std::numeric_limits
+#include <cassert>   // assert
+#include <utility>   // std::swap
+#include <cstdint>   // std::uint32_t, ...
 #include <algorithm> // std::min
 
 #include "sycl_defs.h"
@@ -83,8 +83,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-            {
+            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
                 __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
             });
@@ -108,8 +107,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
 
-                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-                    {
+                __cgh.parallel_for<_GlobalSortName...>(
+                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
@@ -123,7 +122,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                             const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
@@ -131,10 +131,11 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                             const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                     });
-                });
+            });
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
@@ -178,12 +179,12 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     if (__n <= std::numeric_limits<std::uint32_t>::max())
     {
         using _wi_index_type = std::uint32_t;
-        using _LeafSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
-        using _GlobalSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
-        using _CopyBackKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_copy_back_kernel<_CustomName, _wi_index_type>>;
         return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
             std::forward<_Range>(__rng), __comp);
@@ -191,12 +192,12 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     else
     {
         using _wi_index_type = std::uint64_t;
-        using _LeafSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
-        using _GlobalSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
-        using _CopyBackKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_copy_back_kernel<_CustomName, _wi_index_type>>;
         return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
             std::forward<_Range>(__rng), __comp);
