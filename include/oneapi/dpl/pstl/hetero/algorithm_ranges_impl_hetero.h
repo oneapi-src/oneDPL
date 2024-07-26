@@ -62,15 +62,14 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
 // pattern_for_each
 //---------------------------------------------------------------------------------------------------------------------
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-auto
+void
 __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
     auto __f_1 = 
         [__f, __proj](auto&& __val) { std::invoke(__f, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec), __f_1,
                                                             oneapi::dpl::__ranges::views::all(std::forward<_R>(__r)));
-
-    return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -78,7 +77,7 @@ __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 //---------------------------------------------------------------------------------------------------------------------
 template<typename _BackendTag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F,
          typename _Proj>
-auto
+void
 __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
                     _F __op, _Proj __proj)
 {
@@ -89,48 +88,25 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
             oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{std::move(__unary_op)},
             oneapi::dpl::__ranges::views::all_read(std::forward<_InRange>(__in_r)),
             oneapi::dpl::__ranges::views::all_write(std::forward<_OutRange>(__out_r)));
-
-    using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
-        std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    return __return_t{std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r) +
-        std::ranges::size(__out_r)};
 }
 
 template<typename _BackendTag, typename _ExecutionPolicy, typename _InRange1, typename _InRange2, typename _OutRange, typename _F,
          typename _Proj1, typename _Proj2>
-auto
-__pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange1&& __in_r1, _InRange2&& __in_r2, _OutRange&& __out_r,
-                    _F __binary_op, _Proj1 __proj1, _Proj2 __proj2)
+void
+__pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange1&& __in_r1,
+                    _InRange2&& __in_r2, _OutRange&& __out_r, _F __binary_op, _Proj1 __proj1, _Proj2 __proj2)
 {
     auto __f = [=](auto&& __val1, auto&& __val2) -> decltype(auto) { 
         return std::invoke(__binary_op, std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
             std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
-    auto _size = std::ranges::size(__in_r1);
-
-    assert(_size == std::ranges::size(__in_r1));
-    assert(_size == std::ranges::size(__out_r));
-
-    oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec), 
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__internal::__transform_functor<decltype(__f)>{std::move(__f)},
             oneapi::dpl::__ranges::views::all_read(std::forward<_InRange1>(__in_r1)),
-            oneapi::dpl::__ranges::views::all_read(std::forward<_InRange2>(__in_r2))
+            oneapi::dpl::__ranges::views::all_read(std::forward<_InRange2>(__in_r2)),
             oneapi::dpl::__ranges::views::all_write(std::forward<_OutRange>(__out_r)));
-
-    using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange1>,
-        std::ranges::borrowed_iterator_t<_InRange2>, std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    return __return_t{std::ranges::begin(__in_r1) + _size, std::ranges::begin(__in_r2) + _size,
-        std::ranges::begin(__out_r) + _size};
 }
 
-template<typename _IsVector, typename _ExecutionPolicy, typename _InRange1, typename _InRange2, typename _OutRange, typename _F,
-         typename _Proj1, typename _Proj2>
-auto
-__pattern_transform(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange1&& __in_r1,
-    _InRange2&& __in_r2, _OutRange&& __out_r, _F __binary_op, _Proj1 __proj1, _Proj2 __proj2)
-    
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
