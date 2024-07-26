@@ -489,13 +489,18 @@ struct __copy_fn
              std::ranges::random_access_range _OutRange>
     requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_InRange>
         && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
-    auto
+
+    std::ranges::copy_result<std::ranges::borrowed_iterator_t<_InRange>, std::ranges::borrowed_iterator_t<_OutRange>>
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, std::ranges::begin(__in_r),
             std::ranges::begin(__out_r));
-        return oneapi::dpl::__internal::__ranges::__pattern_copy(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
-            std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r));
+
+        const auto _size = std::ranges::min(std::ranges::size(__in_r), std::ranges::size(__out_r));
+        oneapi::dpl::__internal::__ranges::__pattern_copy(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::ranges::take_view(__in_r, _size), std::ranges::take_view(__out_r, _size));
+
+        return {std::ranges::begin(__in_r) + _size, std::ranges::begin(__out_r) +  _size};
     }
 }; //__copy_fn
 }  //__internal

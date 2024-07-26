@@ -110,19 +110,13 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
-auto
+void
 __pattern_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__internal::__brick_copy<decltype(__tag), _ExecutionPolicy>{},
         views::all_read(std::forward<_InRange>(__in_r)), views::all_write(std::forward<_OutRange>(__out_r)));
-
-    using __return_t = std::ranges::copy_result<std::ranges::borrowed_iterator_t<_InRange>,
-    std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    return __return_t{std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r) +
-        std::ranges::size(__out_r)};
 }
 
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
