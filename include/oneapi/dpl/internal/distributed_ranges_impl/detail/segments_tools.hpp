@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
+#define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/enumerate.hpp>
@@ -170,3 +171,5 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
 }
 
 } // namespace DR_RANGES_NAMESPACE
+
+#endif /* _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP */

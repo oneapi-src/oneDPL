@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_DEVICE_PTR_HPP
+#define _ONEDPL_DR_SP_DEVICE_PTR_HPP
 
 #include <type_traits>
 
@@ -205,3 +206,5 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ptr
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DEVICE_PTR_HPP */

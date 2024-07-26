@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_RANGE_HPP
+#define _ONEDPL_DR_SP_RANGE_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/distributed_span.hpp>
@@ -191,3 +192,5 @@ class segment_range
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_RANGE_HPP */

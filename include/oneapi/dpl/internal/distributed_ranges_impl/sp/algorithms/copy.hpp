@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_COPY_HPP
+#define _ONEDPL_DR_SP_COPY_HPP
 
 #include <memory>
 #include <type_traits>
@@ -234,3 +235,5 @@ copy(R&& r, O result)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_COPY_HPP */

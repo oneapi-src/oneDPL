@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_CONCEPTS_CONCEPTS_HPP
+#define _ONEDPL_DR_CONCEPTS_CONCEPTS_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 
@@ -79,3 +80,5 @@ concept distributed_contiguous_iterator = distributed_iterator<Iter> && std::ran
 } && remote_contiguous_range<stdrng::range_value_t<decltype(ranges::segments(std::declval<Iter>()))>>;
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_CONCEPTS_CONCEPTS_HPP */

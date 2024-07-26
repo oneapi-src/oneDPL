@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_REMOTE_SPAN_HPP
+#define _ONEDPL_DR_SP_REMOTE_SPAN_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/span.hpp>
@@ -119,3 +120,5 @@ template <stdrng::random_access_range R>
 remote_span(R&&, std::size_t) -> remote_span<stdrng::range_value_t<R>, stdrng::iterator_t<R>>;
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_REMOTE_SPAN_HPP */

@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_RANGES_HPP
+#define _ONEDPL_DR_DETAIL_RANGES_HPP
 
 #include <any>
 #include <iterator>
@@ -372,3 +373,5 @@ inline constexpr auto local = local_fn_{};
 } // namespace ranges
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif // _ONEDPL_DR_DETAIL_RANGES_HPP

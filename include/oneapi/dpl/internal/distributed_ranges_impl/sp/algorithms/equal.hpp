@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_EQUAL_HPP
+#define _ONEDPL_DR_SP_EQUAL_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/fill.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/reduce.hpp>
@@ -44,3 +45,5 @@ equal(R1&& r1, R2&& r2)
     return equal(dr::sp::par_unseq, r1, r2);
 }
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_EQUAL_HPP */

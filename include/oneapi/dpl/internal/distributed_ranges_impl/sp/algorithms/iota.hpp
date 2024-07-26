@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_IOTA_HPP
+#define _ONEDPL_DR_SP_IOTA_HPP
 
 #include <limits>
 
@@ -46,3 +47,5 @@ iota(Iter begin, Iter end, T value)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_IOTA_HPP */

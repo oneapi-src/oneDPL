@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_INCLUSIVE_SCAN_HPP
+#define _ONEDPL_DR_SP_INCLUSIVE_SCAN_HPP
 
 #include <optional>
 
@@ -271,3 +272,5 @@ inclusive_scan(Iter first, Iter last, OutputIter d_first, BinaryOp binary_op, T 
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_INCLUSIVE_SCAN_HPP */

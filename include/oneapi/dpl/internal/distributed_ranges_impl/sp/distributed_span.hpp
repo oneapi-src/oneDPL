@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_DISTRIBUTED_SPAN_HPP
+#define _ONEDPL_DR_SP_DISTRIBUTED_SPAN_HPP
 
 #include <vector>
 
@@ -329,3 +330,5 @@ distributed_span(R&& r) -> distributed_span<stdrng::range_value_t<R>,
                                             stdrng::iterator_t<stdrng::range_value_t<decltype(ranges::segments(r))>>>;
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DISTRIBUTED_SPAN_HPP */

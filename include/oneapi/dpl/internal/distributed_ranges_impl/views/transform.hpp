@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP
+#define _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP
 
 #include <concepts>
 #include <iterator>
@@ -286,3 +287,5 @@ template <stdrng::random_access_range V, std::copy_constructible F>
 inline constexpr bool stdrng::enable_borrowed_range<oneapi::dpl::experimental::dr::transform_view<V, F>> = true;
 
 #endif
+
+#endif /* _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP */

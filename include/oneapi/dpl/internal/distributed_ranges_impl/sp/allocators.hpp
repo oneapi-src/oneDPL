@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_ALLOCATORS_HPP
+#define _ONEDPL_DR_SP_ALLOCATORS_HPP
 
 #include <type_traits>
 
@@ -170,3 +171,5 @@ class buffered_allocator
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_ALLOCATORS_HPP */

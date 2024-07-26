@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_ZIP_VIEW_HPP
+#define _ONEDPL_DR_SP_ZIP_VIEW_HPP
 
 #include <oneapi/dpl/iterator>
 
@@ -429,3 +430,5 @@ zip(Rs&&... rs)
 } // namespace views
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_ZIP_VIEW_HPP */

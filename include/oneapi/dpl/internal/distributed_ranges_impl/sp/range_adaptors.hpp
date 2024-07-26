@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_RANGE_ADAPTORS_HPP
+#define _ONEDPL_DR_SP_RANGE_ADAPTORS_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/standard_views.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
@@ -30,3 +31,5 @@ enumerate(R&& r)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_RANGE_ADAPTORS_HPP */

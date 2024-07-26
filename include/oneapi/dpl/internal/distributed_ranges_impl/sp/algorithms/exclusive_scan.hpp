@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_EXCLUSIVE_SCAN_HPP
+#define _ONEDPL_DR_SP_EXCLUSIVE_SCAN_HPP
 
 #include <sycl/sycl.hpp>
 
@@ -244,3 +245,5 @@ exclusive_scan(Iter first, Iter last, OutputIter d_first, T init)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_EXCLUSIVE_SCAN_HPP */

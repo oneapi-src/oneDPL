@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_VIEWS_VIEWS_HPP
+#define _ONEDPL_DR_VIEWS_VIEWS_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
@@ -32,3 +33,5 @@ ranked_view(const distributed_range auto& r)
 #endif
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_VIEWS_VIEWS_HPP */

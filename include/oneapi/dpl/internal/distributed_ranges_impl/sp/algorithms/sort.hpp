@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_SORT_HPP
+#define _ONEDPL_DR_SP_SORT_HPP
 
 #include <oneapi/dpl/execution>
 
@@ -322,3 +323,5 @@ sort(RandomIt first, RandomIt last, Compare comp = Compare())
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_SORT_HPP */

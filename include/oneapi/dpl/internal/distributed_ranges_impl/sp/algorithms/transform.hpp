@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_TRANSFORM_HPP
+#define _ONEDPL_DR_SP_TRANSFORM_HPP
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
@@ -105,3 +106,5 @@ transform(Iter1 in_begin, Iter1 in_end, Iter2 out_end, Fn&& fn)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_TRANSFORM_HPP */
