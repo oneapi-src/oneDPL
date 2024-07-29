@@ -24,8 +24,10 @@ main()
     // Alias for the oneapi::dpl::ext::ranges namespace
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
-    //TODO: to add the calls for algorithms below with &P2::x and &P2::proj
+    test_range_algo<int, data_in_in>{}(dpl_ranges::search,  std::ranges::search, pred_2);
     test_range_algo<int, data_in_in>{}(dpl_ranges::search,  std::ranges::search, pred_2, proj, proj);
+    test_range_algo<P2, data_in_in>{}(dpl_ranges::search,  std::ranges::search, pred_2, &P2::x, &P2::x);
+    test_range_algo<P2, data_in_in>{}(dpl_ranges::search,  std::ranges::search, pred_2, &P2::proj, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);

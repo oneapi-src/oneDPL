@@ -24,6 +24,7 @@ main()
     // Alias for the oneapi::dpl::ext::ranges namespace
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
+    test_range_algo{}(dpl_ranges::find_if_not, std::ranges::find_if_not, pred);
     test_range_algo{}(dpl_ranges::find_if_not, std::ranges::find_if_not, pred, proj);
     test_range_algo<P2>{}(dpl_ranges::find_if_not, std::ranges::find_if_not, pred, &P2::x);
     test_range_algo<P2>{}(dpl_ranges::find_if_not, std::ranges::find_if_not, pred, &P2::proj);

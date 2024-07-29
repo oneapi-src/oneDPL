@@ -24,7 +24,8 @@ main()
     // Alias for the oneapi::dpl::ext::ranges namespace
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
-    test_range_algo{}(dpl_ranges::none_of,  std::ranges::none_of, pred3, std::identity{});
+    test_range_algo{}(dpl_ranges::none_of,  std::ranges::none_of, pred3);
+    test_range_algo{}(dpl_ranges::none_of,  std::ranges::none_of, pred3, proj);
     test_range_algo<P2>{}(dpl_ranges::none_of,  std::ranges::none_of, pred3, &P2::x);
     test_range_algo<P2>{}(dpl_ranges::none_of,  std::ranges::none_of, pred3, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING

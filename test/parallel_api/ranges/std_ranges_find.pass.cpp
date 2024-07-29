@@ -24,6 +24,8 @@ main()
     // Alias for the oneapi::dpl::ext::ranges namespace
     namespace dpl_ranges = oneapi::dpl::ext::ranges;
 
+    test_range_algo{}(dpl_ranges::find, std::ranges::find, 4);  //found case
+    test_range_algo{}(dpl_ranges::find, std::ranges::find, -1); //not found case
     test_range_algo{}(dpl_ranges::find, std::ranges::find, 4, proj);
     test_range_algo<P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::x);
     test_range_algo<P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::proj);
