@@ -34,19 +34,21 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-struct __leaf_sort_kernel
+template <std::uint16_t __data_per_workitem>
+struct __subgroup_bubble_sorter
 {
-    template <typename _Acc, typename _Size1, typename _Compare>
+    template <typename _Storage, typename _Compare, typename _Size>
     void
-    operator()(const _Acc& __acc, const _Size1 __start, const _Size1 __end, _Compare __comp) const
+    sort(_Storage& __storage, _Compare __comp, _Size __start, _Size __end) const
     {
-        for (_Size1 i = __start; i < __end; ++i)
+        for (std::int64_t i = __start; i < __end; ++i)
         {
-            for (_Size1 j = __start + 1; j < __start + __end - i; ++j)
+            for (std::int64_t j = __start + 1; j < __start + __end - i; ++j)
             {
                 // forwarding references allow binding of internal tuple of references with rvalue
-                auto&& __first_item = __acc[j - 1];
-                auto&& __second_item = __acc[j];
+                // TODO: avoid bank conflicts, or reconsider the algorithm
+                auto&& __first_item = __storage[j - 1];
+                auto&& __second_item = __storage[j];
                 if (__comp(__second_item, __first_item))
                 {
                     using std::swap;
@@ -55,6 +57,132 @@ struct __leaf_sort_kernel
             }
         }
     }
+};
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size>
+struct __group_merge_path_sorter
+{
+    template <typename _Storage, typename _Compare, typename _Size1, typename _Size2>
+    bool
+    sort(const sycl::nd_item<1>& __item, _Storage& __storage, _Compare __comp, _Size1 __start, _Size1 __end, _Size2 __sorted) const
+    {
+        constexpr std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
+        static_assert((__sorted_final & (__sorted_final - 1)) == 0);
+
+        const std::uint32_t __id = __item.get_local_linear_id() * __data_per_workitem;
+
+        std::int16_t __iters = std::log2(__sorted_final) - std::log2(__sorted);
+
+        bool __data_in_temp = false;
+        std::uint32_t __next_sorted = __sorted * 2;
+        for (std::int16_t __i = 0; __i < __iters; ++__i)
+        {
+            const std::uint32_t __id_local = __id % __next_sorted;
+            // Borders of the ranges to be merged
+            const std::uint32_t __start1 = std::min<std::uint32_t>((__id / __next_sorted) * __next_sorted, __end);
+            const std::uint32_t __end1 = std::min<std::uint32_t>(__start1 + __sorted, __end);
+            const std::uint32_t __start2 = __end1;
+            const std::uint32_t __end2 = std::min<std::uint32_t>(__start2 + __sorted, __end);
+            const std::uint32_t __n1 = __end1 - __start1;
+            const std::uint32_t __n2 = __end2 - __start2;
+
+            const auto& __in = __storage.begin() + __data_in_temp * __sorted_final;
+            const auto& __out = __storage.begin() + (!__data_in_temp) * __sorted_final;
+            const auto& __in1 = __in + __start1;
+            const auto& __in2 = __in + __start2;
+
+            const auto __start = __find_start_point(__in1, __in2, __id_local, __n1, __n2, __comp);
+            __serial_merge(__in1, __in2, __out, __start.first, __start.second, __id, __data_per_workitem, __n1, __n2, __comp);
+            __dpl_sycl::__group_barrier(__item);
+
+            __sorted = __next_sorted;
+            __next_sorted *= 2;
+            __data_in_temp = !__data_in_temp;
+        }
+        return __data_in_temp;
+    }
+};
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Range, typename _Compare>
+struct __leaf_sorter
+{
+    using _T = oneapi::dpl::__internal::__value_t<_Range>;
+    using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
+    using _Storage =  __dpl_sycl::__local_accessor<_T>;
+    // TODO: select a better sub-group sorter depending on a type, sort stability, etc.
+    using _SubGroupSorter = __subgroup_bubble_sorter<__data_per_workitem>;
+    using _GroupSorter = __group_merge_path_sorter<__data_per_workitem, __workgroup_size>;
+
+    static constexpr std::uint32_t __wg_process_size = __data_per_workitem * __workgroup_size;
+
+    static auto storage(sycl::handler& __cgh)
+    {
+        return _Storage(2 * __wg_process_size, __cgh);
+    }
+
+    __leaf_sorter(_Range& __rng, _Compare __comp, _Storage __storage, std::int64_t __n):
+        __rng(__rng), __comp(__comp), __storage(__storage), __n(__n), __sub_group_sorter(), __group_sorter() {}
+
+    void sort(const sycl::nd_item<1>& __item) const
+    {
+        sycl::sub_group __sg = __item.get_sub_group();
+        sycl::group __wg = __item.get_group();
+        std::uint32_t __wg_id = __wg.get_group_linear_id();
+        std::uint32_t __sg_id = __sg.get_group_linear_id();
+        std::uint32_t __sg_size = __sg.get_local_linear_range();
+        std::uint32_t __sg_inner_id = __sg.get_local_linear_id();
+        std::uint32_t __sg_process_size = __sg_size * __data_per_workitem;
+        std::size_t __wg_start = __wg_id * __wg_process_size;
+        std::size_t __sg_start = __sg_id * __sg_process_size;
+        std::size_t __wg_end = __wg_start + std::min<std::size_t>(__wg_process_size, __n - __wg_start);
+        std::uint32_t __adjusted_wg_size = __wg_end - __wg_start;
+        // 1. Load
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::int32_t __i = 0; __i < __data_per_workitem; ++__i)
+        {
+            std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
+            std::size_t __local_value_id = __sg_offset + __sg_inner_id;
+            std::size_t __global_value_id = __wg_start + __local_value_id;
+            if (__global_value_id < __n)
+            {
+                __storage[__local_value_id] = __rng[__global_value_id];
+            }
+        }
+        sycl::group_barrier(__sg);
+        // b parallel_backend_sycl_merge_sort.h:159
+        // 2. Sort on sub-group level
+        std::uint32_t __item_start = __sg_start + __sg_inner_id * __data_per_workitem;
+        std::uint32_t __item_end = __item_start + __data_per_workitem;
+        __item_start = std::min<std::uint32_t>(__item_start, __adjusted_wg_size);
+        __item_end = std::min<std::uint32_t>(__item_end, __adjusted_wg_size);
+        __sub_group_sorter.sort(__storage, __comp, __item_start, __item_end);
+        __dpl_sycl::__group_barrier(__item);
+
+        // b parallel_backend_sycl_merge_sort.h:164
+        // 3. Sort on work-group level
+        bool __data_in_temp = __group_sorter.sort(__item, __storage, __comp, static_cast<std::uint32_t>(0), __adjusted_wg_size, __data_per_workitem);
+        // barrier is not needed here because of the barrier inside the sort method
+
+        // 4. Store
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::int32_t __i = 0; __i < __data_per_workitem; ++__i)
+        {
+            std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
+            std::size_t __local_value_id = __sg_offset + __sg_inner_id;
+            std::size_t __global_value_id = __wg_start + __local_value_id;
+            if (__global_value_id < __n)
+            {
+                __rng[__global_value_id] = __storage[__local_value_id + __data_in_temp * __wg_process_size];
+            }
+        }
+    }
+
+    _Range __rng;
+    _Compare __comp;
+    _Storage __storage;
+    _Size __n;
+    _SubGroupSorter __sub_group_sorter;
+    _GroupSorter __group_sorter;
 };
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -76,16 +204,20 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __n = __rng.size();
         assert(__n > 1);
 
-        const bool __is_cpu = __exec.queue().get_device().is_cpu();
-        const std::uint32_t __leaf = __is_cpu ? 16 : 4;
-        _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
+        constexpr ::std::uint32_t __workgroup_size = 1024;
+        constexpr ::std::uint32_t __data_per_workitem = 4;
+        constexpr ::std::uint32_t __leaf_size = __workgroup_size * __data_per_workitem;
+        std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf_size);
 
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
-                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
+            using _LeafSorter = __leaf_sorter<__data_per_workitem, __workgroup_size, std::decay_t<_Range>, std::decay_t<_Compare>>;
+            auto __storage = _LeafSorter::storage(__cgh);
+            _LeafSorter __sorter(__rng, __comp, __storage, __n);
+            const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __workgroup_size), sycl::range<1>(__workgroup_size));
+            __cgh.parallel_for<_LeafSortName...>(__nd_range, [=](sycl::nd_item<1> __item) {
+                __sorter.sort(__item);
             });
         });
 
@@ -93,12 +225,13 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         bool __data_in_temp = false;
-        _IdType __n_sorted = __leaf;
+        _IdType __n_sorted = __leaf_size;
+        const bool __is_cpu = __exec.queue().get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
-        __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+        const std::uint32_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        const std::int64_t __n_iter = std::log2(__n_power2) - std::log2(__leaf);
+        const std::int64_t __n_iter = std::log2(__n_power2) - std::log2(__leaf_size);
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
