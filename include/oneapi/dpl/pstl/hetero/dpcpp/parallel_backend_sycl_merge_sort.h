@@ -108,7 +108,8 @@ struct __leaf_sorter
     using _T = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
     using _Storage =  __dpl_sycl::__local_accessor<_T>;
-    // TODO: select a better sub-group sorter depending on a type, sort stability, etc.
+    // TODO: select a better sub-group sorter depending on sort stability,
+    //       a type (e.g. it can be trivially copied for shuffling within a sub-group)
     using _SubGroupSorter = __subgroup_bubble_sorter<__data_per_workitem>;
     using _GroupSorter = __group_merge_path_sorter<__data_per_workitem, __workgroup_size>;
 
