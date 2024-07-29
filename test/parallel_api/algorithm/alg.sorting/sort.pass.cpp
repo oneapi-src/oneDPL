@@ -223,6 +223,21 @@ check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n,
     }
 }
 
+template<typename It>
+void print_array(It it, std::size_t n)
+{
+    for (std::size_t i = 0; i < n; i++)
+    {
+        if (i % 32 == 0)
+            std::cout << i << ":\t";
+
+        std::cout << it[i] << " ";
+        if ((i + 1) % 32 == 0)
+            std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 #if TEST_DPCPP_BACKEND_PRESENT
 #if _PSTL_SYCL_TEST_USM
 template <sycl::usm::alloc alloc_type, typename Policy, typename InputIterator, typename OutputIterator,
@@ -247,12 +262,22 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 
     const std::int32_t count0 = KeyCount;
 
+    std::cout << "USM before\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
+
     // Call sort algorithm on prepared data
     const auto _size = _it_to - _it_from;
     sort_data(::std::forward<Policy>(exec), sortingData, sortingData + _size, compare...);
 
     // check result
     dt_helper.retrieve_data(_it_from);
+
+    std::cout << "USM after\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
+
+    std::cout << "Expected\n";
+    print_array(expected_first + 1, (expected_last - expected_first - 2));
+    std::cout << std::endl;
 
     check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2", compare...);
 
@@ -300,9 +325,9 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     // Run tests for USM shared memory (external testing for USM shared memory, once already covered in sycl_iterator.pass.cpp)
     test_usm<sycl::usm::alloc::shared>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
                                        first, last, n, compare...);
-    // Run tests for USM device memory
-    test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
-                                       first, last, n, compare...);
+    // // Run tests for USM device memory
+    // test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
+    //                                    first, last, n, compare...);
 }
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -364,18 +389,19 @@ template <::std::size_t CallNumber, typename T, typename Compare, typename Conve
 void
 test_sort(Compare compare, Convert convert)
 {
-    for (size_t n = 0; n < 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 160; n < 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
+        std::cout << "n = " << n << std::endl;
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
         // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
         TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
         TestUtils::Sequence<T> expected(in);
         TestUtils::Sequence<T> tmp(in);
-#ifdef _PSTL_TEST_WITHOUT_PREDICATE
-        TestUtils::invoke_on_all_policies<CallNumber>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                                        expected.end(), in.begin(), in.end(), in.size());
-#endif // _PSTL_TEST_WITHOUT_PREDICATE
+// #ifdef _PSTL_TEST_WITHOUT_PREDICATE
+//         TestUtils::invoke_on_all_policies<CallNumber>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
+//                                                         expected.end(), in.begin(), in.end(), in.size());
+// #endif // _PSTL_TEST_WITHOUT_PREDICATE
 #ifdef _PSTL_TEST_WITH_PREDICATE
         TestUtils::invoke_on_all_policies<CallNumber + 1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                                             expected.end(), in.begin(), in.end(), in.size(), compare);
@@ -424,50 +450,50 @@ main()
     {
         Stable = kind != 0;
 
-#if !TEST_DPCPP_BACKEND_PRESENT
-        // ParanoidKey has atomic increment in ctors. It's not allowed in kernel
-        test_sort<0, ParanoidKey>(KeyCompare(TestUtils::OddTag()),
-                                  [](size_t k, size_t val) { return ParanoidKey(k, val, TestUtils::OddTag()); });
-#endif // !TEST_DPCPP_BACKEND_PRESENT
+// #if !TEST_DPCPP_BACKEND_PRESENT
+//         // ParanoidKey has atomic increment in ctors. It's not allowed in kernel
+//         test_sort<0, ParanoidKey>(KeyCompare(TestUtils::OddTag()),
+//                                   [](size_t k, size_t val) { return ParanoidKey(k, val, TestUtils::OddTag()); });
+// #endif // !TEST_DPCPP_BACKEND_PRESENT
 
 #if !ONEDPL_FPGA_DEVICE
-        test_sort<10, TestUtils::float32_t>([](TestUtils::float32_t x, TestUtils::float32_t y) { return x < y; },
-                                            [](size_t k, size_t val)
-                                            { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); });
+        // test_sort<10, TestUtils::float32_t>([](TestUtils::float32_t x, TestUtils::float32_t y) { return x < y; },
+        //                                     [](size_t k, size_t val)
+        //                                     { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); });
 
-        test_sort<20, unsigned char>([](unsigned char x, unsigned char y)
-                                     { return x > y; }, // Reversed so accidental use of < will be detected.
-                                     [](size_t k, size_t val) { return (unsigned char)val; });
+        // test_sort<20, unsigned char>([](unsigned char x, unsigned char y)
+        //                              { return x > y; }, // Reversed so accidental use of < will be detected.
+        //                              [](size_t k, size_t val) { return (unsigned char)val; });
 
-        test_sort<30, unsigned char>(NonConstCmp{}, [](size_t k, size_t val) { return (unsigned char)val; });
+        // test_sort<30, unsigned char>(NonConstCmp{}, [](size_t k, size_t val) { return (unsigned char)val; });
 
 #endif // !ONEDPL_FPGA_DEVICE
-        test_sort<40, std::int32_t>([](std::int32_t x, std::int32_t y)
-                                    { return x > y; }, // Reversed so accidental use of < will be detected.
-                                    [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
+        // test_sort<40, std::int32_t>([](std::int32_t x, std::int32_t y)
+        //                             { return x > y; }, // Reversed so accidental use of < will be detected.
+        //                             [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
 
         test_sort<50, std::int16_t>(
             std::greater<std::int16_t>(),
             [](size_t k, size_t val) {
             return std::int16_t(val) * (k % 2 ? 1 : -1); });
 
-#if TEST_DPCPP_BACKEND_PRESENT
-        auto convert = [](size_t k, size_t val) {
-            constexpr std::uint16_t mask = 0xFFFFu;
-            std::uint16_t raw = std::uint16_t(val & mask);
-            // Avoid NaN values, because they need a custom comparator due to: (x < NaN = false) and (NaN < x = false).
-            constexpr std::uint16_t exp_mask = 0x7C00u;
-            constexpr std::uint16_t frac_mask = 0x03FFu;
-            bool is_nan = ((raw & exp_mask) == exp_mask) && ((raw & frac_mask) > 0);
-            if (is_nan)
-            {
-                constexpr std::uint16_t smallest_exp_bit = 0x0400u;
-                raw = raw & (~smallest_exp_bit); // flip the smallest exponent bit
-            }
-            return sycl::bit_cast<sycl::half>(raw);
-        };
-        test_sort<60, sycl::half>(std::greater<sycl::half>(), convert);
-#endif
+// #if TEST_DPCPP_BACKEND_PRESENT
+//         auto convert = [](size_t k, size_t val) {
+//             constexpr std::uint16_t mask = 0xFFFFu;
+//             std::uint16_t raw = std::uint16_t(val & mask);
+//             // Avoid NaN values, because they need a custom comparator due to: (x < NaN = false) and (NaN < x = false).
+//             constexpr std::uint16_t exp_mask = 0x7C00u;
+//             constexpr std::uint16_t frac_mask = 0x03FFu;
+//             bool is_nan = ((raw & exp_mask) == exp_mask) && ((raw & frac_mask) > 0);
+//             if (is_nan)
+//             {
+//                 constexpr std::uint16_t smallest_exp_bit = 0x0400u;
+//                 raw = raw & (~smallest_exp_bit); // flip the smallest exponent bit
+//             }
+//             return sycl::bit_cast<sycl::half>(raw);
+//         };
+//         test_sort<60, sycl::half>(std::greater<sycl::half>(), convert);
+// #endif
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT

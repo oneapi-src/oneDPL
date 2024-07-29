@@ -282,7 +282,7 @@
 #        define _USE_GROUP_ALGOS 1
 #    endif
 
-#    define _USE_RADIX_SORT (_USE_SUB_GROUPS && _USE_GROUP_ALGOS)
+#    define _USE_RADIX_SORT 0
 
 // Compilation of a kernel is requiried to obtain valid work_group_size
 // when target devices are CPU or FPGA emulator. Since CPU and GPU devices
