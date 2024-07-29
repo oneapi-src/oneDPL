@@ -756,7 +756,8 @@ __find_subrange(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _
     while (__first != __last && (__global_last - __first >= __n2))
     {
         // find position of *s_first in [first, last) (it can be start of subsequence)
-        auto __u_pred = [__pred, __s_first](auto&& __val) { return __pred(__val, *__s_first); };
+        auto __u_pred =
+            [__pred, __s_first](auto&& __val) mutable { return __pred(std::forward<decltype(__val)>(__val), *__s_first); };
         __first = __internal::__brick_find_if(__first, __last, __u_pred, __is_vector);
 
         // if position that was found previously is the start of subsequence
@@ -804,7 +805,8 @@ __find_subrange(_RandomAccessIterator __first, _RandomAccessIterator __last, _Ra
         return __last;
     }
 
-    auto __unary_pred = [__pred, &__value](auto&& __val) { return __pred(__val, __value); };
+    auto __unary_pred =
+        [__pred, &__value](auto&& __val) mutable { return __pred(std::forward<decltype(__val)>(__val), __value); };
     while (__first != __last && (static_cast<_Size>(__global_last - __first) >= __count))
     {
         __first = __internal::__brick_find_if(__first, __last, __unary_pred, __is_vector);
@@ -1021,9 +1023,9 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 {
     if (static_cast<_Size>(__last - __first) == __count)
     {
-        const bool __result =
-            !__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                          [&__value, &__pred](const _Tp& __val) { return !__pred(__val, __value); });
+        const bool __result = !__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+            __last, [&__value, __pred](auto&& __val) mutable { return !__pred(std::forward<decltype(__val)>(__val),
+            __value); });
         return __result ? __first : __last;
     }
     else
