@@ -795,7 +795,8 @@ struct __gen_transform_input
     operator()(InRng&& __in_rng, std::size_t __idx) const
     {
         using _ValueType = oneapi::dpl::__internal::__value_t<InRng>;
-        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<typename std::invoke_result<_UnaryOp, _ValueType>::type>;
+        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<
+            typename std::invoke_result<_UnaryOp, _ValueType>::type>;
         return _OutValueType{__unary_op(__in_rng[__idx])};
     }
     _UnaryOp __unary_op;
@@ -951,9 +952,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
         oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
         return __parallel_transform_reduce_then_scan(
-                            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                            std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
+            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+            std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
     }
     else
     {
@@ -966,20 +967,19 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         _NoAssign __no_assign_op;
         _NoOpFunctor __get_data_op;
 
-        return
-            __parallel_transform_scan_base(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                std::forward<_Range2>(__out_rng), __binary_op, __init,
-                // local scan
-                unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner,
-                                      _Assigner, _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op},
-                                                                          __assign_op, __assign_op, __get_data_op},
-                // scan between groups
-                unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                                      _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-                    __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-                // global scan
-                unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
+        return __parallel_transform_scan_base(
+            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+            std::forward<_Range2>(__out_rng), __binary_op, __init,
+            // local scan
+            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
+                                                           __assign_op, __get_data_op},
+            // scan between groups
+            unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+            // global scan
+            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
     }
 }
 
@@ -993,7 +993,7 @@ struct __invoke_single_group_copy_if
               typename _Assign = oneapi::dpl::__internal::__pstl_assign>
     auto
     operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred,
-               _Assign __assign)
+               _Assign&& __assign)
     {
         constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
@@ -1005,23 +1005,21 @@ struct __invoke_single_group_copy_if
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred), __assign);
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred), std::forward<_Assign>(__assign));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
-                >()(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
-                _ReduceOp{}, ::std::forward<_Pred>(__pred), __assign);
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                std::forward<_Pred>(__pred), std::forward<_Assign>(__assign));
     }
 };
 
@@ -1035,10 +1033,10 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
 
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-        std::forward<_OutRng>(__out_rng), oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask},
-        _ReduceOp{}, oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
-        oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-        __write_op,
+        std::forward<_OutRng>(__out_rng),
+        oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
+        oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
+        oneapi::dpl::__par_backend_hetero::__get_zeroth_element{}, __write_op,
         oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
         /*_Inclusive=*/std::true_type{});
 }
@@ -1047,7 +1045,7 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 auto
 __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred, _Assign __assign = _Assign{})
+                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred, _Assign&& __assign = _Assign{})
 {
     using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
 
@@ -1071,8 +1069,8 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using _SizeBreakpoints = ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
-            ::std::forward<_OutRng>(__out_rng), __pred, __assign);
+            _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
+            std::forward<_OutRng>(__out_rng), __pred, std::forward<_Assign>(__assign));
     }
     else
     {
@@ -1086,7 +1084,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
             oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
             oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<_Assign>{__assign},
+            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<_Assign>{std::forward<_Assign>(__assign)},
             oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
             /*_Inclusive=*/std::true_type{});
     }

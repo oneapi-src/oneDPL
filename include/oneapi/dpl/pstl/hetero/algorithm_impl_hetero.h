@@ -905,7 +905,7 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
     auto __buf2 = __keep2(__output_first, __output_first + __n);
 
     auto __res =
-        __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
                                                    __buf1.all_view(), __buf2.all_view(), __n, __gen_mask, __write_op);
 
     ::std::size_t __num_copied = __res.get();
@@ -975,10 +975,10 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
-    auto __result = __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                        __result_first,
-                                        oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
-                                        oneapi::dpl::__par_backend_hetero::__write_to_idx_if{});
+    auto __result =
+        __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
+                            oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
+                            oneapi::dpl::__par_backend_hetero::__write_to_idx_if{});
 
     return __result_first + __result.second;
 }
