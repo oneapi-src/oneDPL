@@ -20,9 +20,7 @@ main()
 {
 #if _ENABLE_STD_RANGES_TESTING
     using namespace test_std_ranges;
-
-    // Alias for the oneapi::dpl::ext::ranges namespace
-    namespace dpl_ranges = oneapi::dpl::ext::ranges;
+    namespace dpl_ranges = oneapi::dpl::ranges;
 
     test_range_algo{}(dpl_ranges::find, std::ranges::find, 4);  //found case
     test_range_algo{}(dpl_ranges::find, std::ranges::find, -1); //not found case

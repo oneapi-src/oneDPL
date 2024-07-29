@@ -20,9 +20,7 @@ main()
 {
 #if _ENABLE_STD_RANGES_TESTING
     using namespace test_std_ranges;
-
-    // Alias for the oneapi::dpl::ext::ranges namespace
-    namespace dpl_ranges = oneapi::dpl::ext::ranges;
+    namespace dpl_ranges = oneapi::dpl::ranges;
 
     test_range_algo<int, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable);
     test_range_algo<int, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, proj_mutuable);
