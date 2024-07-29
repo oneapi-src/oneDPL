@@ -1203,7 +1203,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                     __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
                                                                     typename _BrickTag::_LocalResultsReduceOp{});
 
-                // Set local found state value value to global atomic to have correct result
+                // Set local found state value value to global state to have correct result
                 // - do not check __found_local != __init_value due __result_storage isn't initialized with __init_value on host side.
                 if (__local_idx == 0)
                 {
