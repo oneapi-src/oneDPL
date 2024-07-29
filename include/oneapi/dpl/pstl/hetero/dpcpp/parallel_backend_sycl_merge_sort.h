@@ -71,10 +71,9 @@ struct __group_merge_path_sorter
 
         const std::uint32_t __id = __item.get_local_linear_id() * __data_per_workitem;
 
-        std::int16_t __iters = std::log2(__sorted_final) - std::log2(__sorted);
-
         bool __data_in_temp = false;
         std::uint32_t __next_sorted = __sorted * 2;
+        std::int16_t __iters = std::log2(__sorted_final) - std::log2(__sorted);
         for (std::int16_t __i = 0; __i < __iters; ++__i)
         {
             const std::uint32_t __id_local = __id % __next_sorted;
@@ -137,6 +136,7 @@ struct __leaf_sorter
         std::size_t __wg_end = __wg_start + std::min<std::size_t>(__wg_process_size, __n - __wg_start);
         std::uint32_t __adjusted_wg_size = __wg_end - __wg_start;
         // 1. Load
+        // TODO: add a specialization for a case __global_value_id < __n condition is true for the whole work-group
         _ONEDPL_PRAGMA_UNROLL
         for (std::int32_t __i = 0; __i < __data_per_workitem; ++__i)
         {
@@ -149,8 +149,8 @@ struct __leaf_sorter
             }
         }
         sycl::group_barrier(__sg);
-        // b parallel_backend_sycl_merge_sort.h:159
         // 2. Sort on sub-group level
+        // TOOD: move border selection inside the sub-group algorithm since it depends on a particular implementation
         std::uint32_t __item_start = __sg_start + __sg_inner_id * __data_per_workitem;
         std::uint32_t __item_end = __item_start + __data_per_workitem;
         __item_start = std::min<std::uint32_t>(__item_start, __adjusted_wg_size);
@@ -158,7 +158,6 @@ struct __leaf_sorter
         __sub_group_sorter.sort(__storage, __comp, __item_start, __item_end);
         __dpl_sycl::__group_barrier(__item);
 
-        // b parallel_backend_sycl_merge_sort.h:164
         // 3. Sort on work-group level
         bool __data_in_temp = __group_sorter.sort(__item, __storage, __comp, static_cast<std::uint32_t>(0), __adjusted_wg_size, __data_per_workitem);
         // barrier is not needed here because of the barrier inside the sort method
@@ -204,7 +203,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __n = __rng.size();
         assert(__n > 1);
 
-        constexpr ::std::uint32_t __workgroup_size = 1024;
+        // TODO: select __workgroup_size and __data_per_workitem according to the available SLM
+        constexpr ::std::uint32_t __workgroup_size = 256;
         constexpr ::std::uint32_t __data_per_workitem = 4;
         constexpr ::std::uint32_t __leaf_size = __workgroup_size * __data_per_workitem;
         std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf_size);
