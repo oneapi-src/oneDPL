@@ -74,7 +74,7 @@ struct P2
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
-template<typename DataType, typename Container, TestDataMode Ranges = data_in, bool RetTypeCheck = true>
+template<typename DataType, typename Container, TestDataMode mode = data_in, bool RetTypeCheck = true>
 struct test
 {
     template<typename Policy, typename Algo, typename... Args>
@@ -88,7 +88,7 @@ struct test
     }
 
     template<typename Policy, typename Algo, typename Checker, typename Transform>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
     operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
     {
         constexpr int max_n = 10;
@@ -117,7 +117,7 @@ struct test
             + typeid(Algo).name() + typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
     }
     template<typename Policy, typename Algo, typename Checker, typename Transform>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in_out>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
     operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
     {
         constexpr int max_n = 10;
@@ -152,7 +152,7 @@ struct test
     }
 
     template<typename Policy, typename Algo, typename Checker, typename Transform>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in_in>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
     operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
     {
         constexpr int max_n = 10;
@@ -180,7 +180,7 @@ struct test
         }
     }
     template<typename Policy, typename Algo, typename Checker, typename Transform>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in_in_out>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
     operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
     {
         constexpr int max_n = 10;
@@ -407,7 +407,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<typename T = int, TestDataMode TestDataMode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
+template<typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto... args)
@@ -422,23 +422,23 @@ struct test_range_algo
                 using forward_it = TestUtils::ForwardIterator<decltype(v.begin()), ::std::forward_iterator_tag>;
                 return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
             };
-            test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, forward_view, args...);
+            test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, forward_view, args...);
         }
 
-        test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, args...);
-        test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, args...);
-        test<T, host_vector<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
-        test<T, host_subrange<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
-        test<T, host_span<T>, TestDataMode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
+        test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
+        test<T, host_span<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
 
 #if _ONEDPL_HETERO_BACKEND
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, args...);
-            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, args...);
-            test<T, usm_subrange<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);
-            test<T, usm_span<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);    
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, args...);
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, args...);
+            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);
+            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);    
         }
 #endif //_ONEDPL_HETERO_BACKEND
     }
