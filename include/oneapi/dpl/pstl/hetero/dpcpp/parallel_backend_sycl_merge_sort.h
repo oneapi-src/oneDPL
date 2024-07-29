@@ -64,7 +64,8 @@ struct __group_merge_path_sorter
 {
     template <typename _Storage, typename _Compare, typename _Size1, typename _Size2>
     bool
-    sort(const sycl::nd_item<1>& __item, _Storage& __storage, _Compare __comp, _Size1 __start, _Size1 __end, _Size2 __sorted) const
+    sort(const sycl::nd_item<1>& __item, _Storage& __storage, _Compare __comp, _Size1 __start, _Size1 __end,
+         _Size2 __sorted) const
     {
         constexpr std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
         static_assert((__sorted_final & (__sorted_final - 1)) == 0);
@@ -91,7 +92,8 @@ struct __group_merge_path_sorter
             const auto& __in2 = __in + __start2;
 
             const auto __start = __find_start_point(__in1, __in2, __id_local, __n1, __n2, __comp);
-            __serial_merge(__in1, __in2, __out, __start.first, __start.second, __id, __data_per_workitem, __n1, __n2, __comp);
+            __serial_merge(__in1, __in2, __out, __start.first, __start.second, __id, __data_per_workitem, __n1, __n2,
+                           __comp);
             __dpl_sycl::__group_barrier(__item);
 
             __sorted = __next_sorted;
@@ -107,7 +109,7 @@ struct __leaf_sorter
 {
     using _T = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
-    using _Storage =  __dpl_sycl::__local_accessor<_T>;
+    using _Storage = __dpl_sycl::__local_accessor<_T>;
     // TODO: select a better sub-group sorter depending on sort stability,
     //       a type (e.g. it can be trivially copied for shuffling within a sub-group)
     using _SubGroupSorter = __subgroup_bubble_sorter<__data_per_workitem>;
@@ -115,15 +117,19 @@ struct __leaf_sorter
 
     static constexpr std::uint32_t __wg_process_size = __data_per_workitem * __workgroup_size;
 
-    static auto storage(sycl::handler& __cgh)
+    static auto
+    storage(sycl::handler& __cgh)
     {
         return _Storage(2 * __wg_process_size, __cgh);
     }
 
-    __leaf_sorter(_Range& __rng, _Compare __comp, _Storage __storage, std::int64_t __n):
-        __rng(__rng), __comp(__comp), __storage(__storage), __n(__n), __sub_group_sorter(), __group_sorter() {}
+    __leaf_sorter(_Range& __rng, _Compare __comp, _Storage __storage, std::int64_t __n)
+        : __rng(__rng), __comp(__comp), __storage(__storage), __n(__n), __sub_group_sorter(), __group_sorter()
+    {
+    }
 
-    void sort(const sycl::nd_item<1>& __item) const
+    void
+    sort(const sycl::nd_item<1>& __item) const
     {
         sycl::sub_group __sg = __item.get_sub_group();
         sycl::group __wg = __item.get_group();
@@ -151,7 +157,7 @@ struct __leaf_sorter
         }
         sycl::group_barrier(__sg);
         // 2. Sort on sub-group level
-        // TOOD: move border selection inside the sub-group algorithm since it depends on a particular implementation
+        // TODO: move border selection inside the sub-group algorithm since it depends on a particular implementation
         std::uint32_t __item_start = __sg_start + __sg_inner_id * __data_per_workitem;
         std::uint32_t __item_end = __item_start + __data_per_workitem;
         __item_start = std::min<std::uint32_t>(__item_start, __adjusted_wg_size);
@@ -160,7 +166,8 @@ struct __leaf_sorter
         __dpl_sycl::__group_barrier(__item);
 
         // 3. Sort on work-group level
-        bool __data_in_temp = __group_sorter.sort(__item, __storage, __comp, static_cast<std::uint32_t>(0), __adjusted_wg_size, __data_per_workitem);
+        bool __data_in_temp = __group_sorter.sort(__item, __storage, __comp, static_cast<std::uint32_t>(0),
+                                                  __adjusted_wg_size, __data_per_workitem);
         // barrier is not needed here because of the barrier inside the sort method
 
         // 4. Store
@@ -213,13 +220,13 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            using _LeafSorter = __leaf_sorter<__data_per_workitem, __workgroup_size, std::decay_t<_Range>, std::decay_t<_Compare>>;
+            using _LeafSorter =
+                __leaf_sorter<__data_per_workitem, __workgroup_size, std::decay_t<_Range>, std::decay_t<_Compare>>;
             auto __storage = _LeafSorter::storage(__cgh);
             _LeafSorter __sorter(__rng, __comp, __storage, __n);
-            const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __workgroup_size), sycl::range<1>(__workgroup_size));
-            __cgh.parallel_for<_LeafSortName...>(__nd_range, [=](sycl::nd_item<1> __item) {
-                __sorter.sort(__item);
-            });
+            const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __workgroup_size),
+                                               sycl::range<1>(__workgroup_size));
+            __cgh.parallel_for<_LeafSortName...>(__nd_range, [=](sycl::nd_item<1> __item) { __sorter.sort(__item); });
         });
 
         // 2. Merge sorting
