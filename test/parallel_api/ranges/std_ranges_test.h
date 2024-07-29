@@ -435,15 +435,15 @@ struct test_range_algo
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{},  args...);
-            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, oneapi::dpl::views::all, args...);
+            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view,  args...);
+            test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, args...);
             test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, args...);
             test<T, usm_vector<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, args...);
             test<T, usm_subrange<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);
             test<T, usm_span<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);
     
 #if 0 //sycl buffer
-            test<T, sycl_buffer<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, oneapi::dpl::views::all, f, args...);
+            test<T, sycl_buffer<T>, TestDataMode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, f, args...);
 #endif  
         }
 #endif //_ONEDPL_HETERO_BACKEND
