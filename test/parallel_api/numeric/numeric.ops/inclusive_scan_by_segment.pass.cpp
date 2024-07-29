@@ -18,7 +18,6 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
@@ -224,7 +223,7 @@ main()
     }
 
     {
-        using ValueType = ::std::complex<float>;
+        using ValueType = MatrixPoint<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 

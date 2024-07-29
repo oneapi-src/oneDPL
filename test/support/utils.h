@@ -777,6 +777,37 @@ struct UserBinaryPredicate
     }
 };
 
+template <typename T>
+struct MatrixPoint
+{
+    T m;
+    T n;
+    MatrixPoint() = default;
+    MatrixPoint(T m, T n = {}) : m(m), n(n) {}
+    bool
+    operator==(const MatrixPoint& other) const
+    {
+        return m == other.m && n == other.n;
+    }
+    bool
+    operator!=(const MatrixPoint& other) const
+    {
+        return !(*this == other);
+    }
+    MatrixPoint
+    operator+(const MatrixPoint& other) const
+    {
+        return MatrixPoint(m + other.m, n + other.n);
+    }
+};
+
+template <typename T>
+std::ostream&
+operator<<(std::ostream& os, MatrixPoint<T> matrix_point)
+{
+    return os << "(" << matrix_point.m << ", " << matrix_point.n << ")";
+}
+
 template <typename _Tp>
 struct MaxFunctor
 {
@@ -787,20 +818,18 @@ struct MaxFunctor
     }
 };
 
-// TODO: Investigate why we cannot call ::std::abs on complex
-// types with the CUDA backend.
 template <typename _Tp>
-struct MaxFunctor<::std::complex<_Tp>>
+struct MaxFunctor<MatrixPoint<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    sum(const MatrixPoint<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return __x.m + __x.n;
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    MatrixPoint<_Tp>
+    operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (complex_abs(__x) < complex_abs(__y)) ? __y : __x;
+        return (sum(__x) < sum(__y)) ? __y : __x;
     }
 };
 
@@ -809,17 +838,17 @@ struct MaxAbsFunctor;
 
 // A modification of the functor we use in reduce_by_segment
 template <typename _Tp>
-struct MaxAbsFunctor<::std::complex<_Tp>>
+struct MaxAbsFunctor<MatrixPoint<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    abs_sum(const MatrixPoint<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return std::sqrt(__x.m * __x.m + __x.n * __x.n);
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    MatrixPoint<_Tp>
+    operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+        return (abs_sum(__x) < abs_sum(__y)) ? abs_sum(__y) : abs_sum(__x);
     }
 };
 
