@@ -756,8 +756,8 @@ __find_subrange(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _
     while (__first != __last && (__global_last - __first >= __n2))
     {
         // find position of *s_first in [first, last) (it can be start of subsequence)
-        __first = __internal::__brick_find_if(
-            __first, __last, __equal_value_by_pred<_ValueType, _BinaryPredicate&>(*__s_first, __pred), __is_vector);
+        auto __u_pred = [__pred, __s_first](auto&& __val) { return __pred(__val, *__s_first); };
+        __first = __internal::__brick_find_if(__first, __last, __u_pred, __is_vector);
 
         // if position that was found previously is the start of subsequence
         // then we can exit the loop (b_first == true) or keep the position
@@ -804,7 +804,7 @@ __find_subrange(_RandomAccessIterator __first, _RandomAccessIterator __last, _Ra
         return __last;
     }
 
-    auto __unary_pred = __equal_value_by_pred<_Tp, _BinaryPredicate&>(__value, __pred);
+    auto __unary_pred = [__pred, &__value](auto&& __val) { return __pred(__val, __value); };
     while (__first != __last && (static_cast<_Size>(__global_last - __first) >= __count))
     {
         __first = __internal::__brick_find_if(__first, __last, __unary_pred, __is_vector);
