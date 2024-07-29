@@ -34,16 +34,15 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-template <std::uint16_t __data_per_workitem>
 struct __subgroup_bubble_sorter
 {
     template <typename _Storage, typename _Compare, typename _Size>
     void
     sort(_Storage& __storage, _Compare __comp, _Size __start, _Size __end) const
     {
-        for (std::int64_t i = __start; i < __end; ++i)
+        for (_Size i = __start; i < __end; ++i)
         {
-            for (std::int64_t j = __start + 1; j < __start + __end - i; ++j)
+            for (_Size j = __start + 1; j < __start + __end - i; ++j)
             {
                 // forwarding references allow binding of internal tuple of references with rvalue
                 // TODO: avoid bank conflicts, or reconsider the algorithm
@@ -112,7 +111,7 @@ struct __leaf_sorter
     using _Storage = __dpl_sycl::__local_accessor<_T>;
     // TODO: select a better sub-group sorter depending on sort stability,
     //       a type (e.g. it can be trivially copied for shuffling within a sub-group)
-    using _SubGroupSorter = __subgroup_bubble_sorter<__data_per_workitem>;
+    using _SubGroupSorter = __subgroup_bubble_sorter;
     using _GroupSorter = __group_merge_path_sorter<__data_per_workitem, __workgroup_size>;
 
     static constexpr std::uint32_t __wg_process_size = __data_per_workitem * __workgroup_size;
@@ -133,29 +132,30 @@ struct __leaf_sorter
     {
         sycl::sub_group __sg = __item.get_sub_group();
         sycl::group __wg = __item.get_group();
-        std::uint32_t __wg_id = __wg.get_group_linear_id();
-        std::uint32_t __sg_id = __sg.get_group_linear_id();
-        std::uint32_t __sg_size = __sg.get_local_linear_range();
-        std::uint32_t __sg_inner_id = __sg.get_local_linear_id();
-        std::uint32_t __sg_process_size = __sg_size * __data_per_workitem;
-        std::size_t __wg_start = __wg_id * __wg_process_size;
-        std::size_t __sg_start = __sg_id * __sg_process_size;
-        std::size_t __wg_end = __wg_start + std::min<std::size_t>(__wg_process_size, __n - __wg_start);
-        std::uint32_t __adjusted_wg_size = __wg_end - __wg_start;
+        const std::uint32_t __wg_id = __wg.get_group_linear_id();
+        const std::uint32_t __sg_id = __sg.get_group_linear_id();
+        const std::uint32_t __sg_size = __sg.get_local_linear_range();
+        const std::uint32_t __sg_inner_id = __sg.get_local_linear_id();
+        const std::uint32_t __sg_process_size = __sg_size * __data_per_workitem;
+        const std::size_t __wg_start = __wg_id * __wg_process_size;
+        const std::uint32_t __sg_start = __sg_id * __sg_process_size;
+        const std::size_t __wg_end = __wg_start + std::min<std::size_t>(__wg_process_size, __n - __wg_start);
+        const std::uint32_t __adjusted_wg_size = __wg_end - __wg_start;
         // 1. Load
         // TODO: add a specialization for a case __global_value_id < __n condition is true for the whole work-group
         _ONEDPL_PRAGMA_UNROLL
-        for (std::int32_t __i = 0; __i < __data_per_workitem; ++__i)
+        for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
         {
-            std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
-            std::size_t __local_value_id = __sg_offset + __sg_inner_id;
-            std::size_t __global_value_id = __wg_start + __local_value_id;
+            const std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
+            const std::uint32_t __local_value_id = __sg_offset + __sg_inner_id;
+            const std::size_t __global_value_id = __wg_start + __local_value_id;
             if (__global_value_id < __n)
             {
-                __storage[__local_value_id] = __rng[__global_value_id];
+                __storage[__local_value_id] = std::move(__rng[__global_value_id]);
             }
         }
         sycl::group_barrier(__sg);
+
         // 2. Sort on sub-group level
         // TODO: move border selection inside the sub-group algorithm since it depends on a particular implementation
         std::uint32_t __item_start = __sg_start + __sg_inner_id * __data_per_workitem;
@@ -172,14 +172,14 @@ struct __leaf_sorter
 
         // 4. Store
         _ONEDPL_PRAGMA_UNROLL
-        for (std::int32_t __i = 0; __i < __data_per_workitem; ++__i)
+        for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
         {
-            std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
-            std::size_t __local_value_id = __sg_offset + __sg_inner_id;
-            std::size_t __global_value_id = __wg_start + __local_value_id;
+            const std::uint32_t __sg_offset = __sg_start + __i * __sg_size;
+            const std::uint32_t __local_value_id = __sg_offset + __sg_inner_id;
+            const std::size_t __global_value_id = __wg_start + __local_value_id;
             if (__global_value_id < __n)
             {
-                __rng[__global_value_id] = __storage[__local_value_id + __data_in_temp * __wg_process_size];
+                __rng[__global_value_id] = std::move(__storage[__local_value_id + __data_in_temp * __wg_process_size]);
             }
         }
     }
