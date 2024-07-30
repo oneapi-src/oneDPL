@@ -1150,8 +1150,6 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                                const std::size_t __rng_n, const std::size_t __wgroup_size,
                                const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
-    const std::size_t __n_groups = 1;
-
     // We shouldn't have any restrictions for _AtomicType type here
     // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
 
@@ -1162,7 +1160,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
     __result_and_scratch_storage_t __result_storage(__exec, 0);
 
     // Calculate the number of elements to be processed by each work-item.
-    const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+    const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
 
     // main parallel_for
     auto __event_id = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -1176,7 +1174,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel,
 #endif
-            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__wgroup_size),
                                       sycl::range</*dim=*/1>(__wgroup_size)),
             [=](sycl::nd_item</*dim=*/1> __item_id) {
                 auto __local_idx = __item_id.get_local_id(0);
@@ -1188,7 +1186,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 //  - after this call __found_local may still have initial value:
                 //    1) if no element satisfies pred;
                 //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local,
+                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __found_local,
                        __brick_tag, __rngs...);
 
                 // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
