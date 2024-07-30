@@ -1309,14 +1309,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _BrickTag, _Ranges...>;
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Calculate source data size
-
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Calculate work-group size
 
     // TODO: find a way to generalize getting of reliable work-group size
     std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -1334,8 +1328,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
 #endif
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Calculates the amount of work-groups taking into account the required number of elements per work-item
     const auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
@@ -1349,8 +1341,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Eval initial value and create predicate
     using _AtomicType = typename _BrickTag::_AtomicType;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
@@ -1379,9 +1369,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #endif
             __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Return result
 
     if constexpr (__or_tag_check)
         return __result != __init_value;
