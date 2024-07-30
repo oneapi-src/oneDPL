@@ -1136,18 +1136,11 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-          typename _Kernel,
-#endif
-          typename _AtomicType, typename _Predicate, typename... _Ranges>
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
+          typename _Predicate, typename... _Ranges>
 _AtomicType
 __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                               _BrickTag __brick_tag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                               _Kernel& __kernel,
-#endif
-                               const std::size_t __rng_n, const std::size_t __wgroup_size,
+                               _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __wgroup_size,
                                const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
     using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
@@ -1161,13 +1154,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
         auto __result_acc = __result_storage.__get_result_acc(__cgh);
 
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
         __cgh.parallel_for<KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel,
-#endif
             sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__wgroup_size),
                                       sycl::range</*dim=*/1>(__wgroup_size)),
             [=](sycl::nd_item</*dim=*/1> __item_id) {
@@ -1209,18 +1196,11 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-          typename _Kernel,
-#endif
-          typename _AtomicType, typename _Predicate, typename... _Ranges>
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
+          typename _Predicate, typename... _Ranges>
 _AtomicType
 __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                     _BrickTag __brick_tag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                                     _Kernel& __kernel,
-#endif
-                                     const std::size_t __rng_n, const std::size_t __n_groups,
+                                     _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __n_groups,
                                      const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
                                      _Ranges&&... __rngs)
 {
@@ -1238,13 +1218,7 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
             auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
 
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
             __cgh.parallel_for<KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
@@ -1308,13 +1282,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     // TODO: find a way to generalize getting of reliable work-group size
     std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernels = __internal::__kernel_compiler<_FindOrKernelOneWG, _FindOrKernel>::__compile(__exec);
-    auto __kernel_one_wg = __kernels[0];
-    auto __kernel_many_wg = __kernels[1];
-    __wgroup_size = std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_one_wg),
-                              oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_many_wg)});
-#endif
 
 #if _ONEDPL_FPGA_EMU
     // Limit the maximum work-group size to minimize the cost of work-group reduction.
@@ -1350,9 +1317,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel_one_wg,
-#endif
             __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
     else
@@ -1363,9 +1327,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         // Multiple WG implementation
         __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel_many_wg,
-#endif
             __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
 
