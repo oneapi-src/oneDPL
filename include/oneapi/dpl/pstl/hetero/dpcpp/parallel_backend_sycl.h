@@ -836,10 +836,8 @@ struct __gen_unique_mask
     bool
     operator()(_InRng&& __in_rng, std::size_t __idx) const
     {
-        if (__idx == 0)
-            return true;
-        else
-            return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
+        //starting index is offset to 1 for "unique" patterns and 0th element copy is handled separately
+        return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
     }
     _BinaryPredicate __pred;
 };
@@ -884,7 +882,7 @@ struct __get_zeroth_element
         return std::get<0>(std::forward<_Tp>(__a));
     }
 };
-template <typename Assign = oneapi::dpl::__internal::__pstl_assign>
+template <int32_t __offset = 0, typename Assign = oneapi::dpl::__internal::__pstl_assign>
 struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
@@ -897,7 +895,7 @@ struct __write_to_idx_if
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
                                                                std::decay_t<decltype(__out_rng[__idx])>>::__type;
         if (std::get<1>(__v))
-            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out_rng[std::get<0>(__v) - 1]);
+            __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out_rng[std::get<0>(__v) - 1 + __offset]);
     }
     Assign __assign;
 };
@@ -954,7 +952,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         return __parallel_transform_reduce_then_scan(
             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
             std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
+            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{}, /*_Unique=*/std::false_type{});
     }
     else
     {
@@ -1024,10 +1022,11 @@ struct __invoke_single_group_copy_if
 };
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _GenMask,
-          typename _WriteOp>
+          typename _WriteOp, typename _Unique>
 auto
 __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                     _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask, _WriteOp __write_op)
+                     _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask, _WriteOp __write_op,
+                     _Unique __unique)
 {
     using _ReduceOp = ::std::plus<_Size>;
 
@@ -1038,7 +1037,7 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
         oneapi::dpl::__par_backend_hetero::__get_zeroth_element{}, __write_op,
         oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-        /*_Inclusive=*/std::true_type{});
+        /*_Inclusive=*/std::true_type{}, __unique);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
@@ -1084,9 +1083,9 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
             oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
             oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<_Assign>{std::forward<_Assign>(__assign)},
+            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, _Assign>{std::forward<_Assign>(__assign)},
             oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-            /*_Inclusive=*/std::true_type{});
+            /*_Inclusive=*/std::true_type{}, /*Unique=*/std::false_type{});
     }
 }
 
