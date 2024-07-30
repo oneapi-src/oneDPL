@@ -20,11 +20,12 @@ main()
 {
 #if _ENABLE_STD_RANGES_TESTING
     using namespace test_std_ranges;
-
-    // Alias for the oneapi::dpl::ext::ranges namespace
-    namespace dpl_ranges = oneapi::dpl::ext::ranges;
+    namespace dpl_ranges = oneapi::dpl::ranges;
 
     test_range_algo<int, data_in, /*RetTypeCheck*/true, /*ForwardRangeCheck*/false> sort_algo_test{};
+
+    sort_algo_test(dpl_ranges::sort, std::ranges::sort, std::ranges::less{});
+    sort_algo_test(dpl_ranges::stable_sort, std::ranges::stable_sort, std::ranges::less{});
 
     sort_algo_test(dpl_ranges::sort, std::ranges::sort, std::ranges::less{}, proj);
     sort_algo_test(dpl_ranges::sort, std::ranges::sort, std::ranges::greater{}, proj);

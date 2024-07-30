@@ -351,7 +351,7 @@ struct __count_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
         auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(__val, __value);};
-        return oneapi::dpl::ext::ranges::count_if(std::forward<_ExecutionPolicy>(__exec),
+        return oneapi::dpl::ranges::count_if(std::forward<_ExecutionPolicy>(__exec),
             std::forward<_R>(__r), __pred, __proj);
     }
 }; //__count_fn
@@ -435,7 +435,7 @@ struct __sort_fn
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
-        return oneapi::dpl::ext::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return oneapi::dpl::ranges::stable_sort(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             __comp, __proj);
     }
 }; //__sort_fn
@@ -473,7 +473,7 @@ struct __max_element_fn
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
-        return oneapi::dpl::ext::ranges::min_element(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        return oneapi::dpl::ranges::min_element(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
             oneapi::dpl::__internal::__reorder_pred(__comp), __proj);
     }
 }; //__max_element_fn
