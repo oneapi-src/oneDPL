@@ -21,7 +21,7 @@
 #include <cassert>   // assert
 #include <utility>   // std::swap
 #include <cstdint>   // std::uint32_t, ...
-#include <variant>   // std::variant
+#include <variant>   // std::variant, std::visit
 #include <algorithm> // std::min
 
 #include "sycl_defs.h"
@@ -215,7 +215,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
 {
     template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
     auto
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp,
+               _LeafSorter& __leaf_sorter) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -230,10 +231,9 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             __leaf_sorter.initialize_storage(__cgh);
             const std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
             const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __leaf_sorter.__workgroup_size),
-                                                sycl::range<1>(__leaf_sorter.__workgroup_size));
-            __cgh.parallel_for<_LeafSortName...>(__nd_range, [=](sycl::nd_item<1> __item) {
-                __leaf_sorter.sort(__item);
-            });
+                                               sycl::range<1>(__leaf_sorter.__workgroup_size));
+            __cgh.parallel_for<_LeafSortName...>(__nd_range,
+                                                 [=](sycl::nd_item<1> __item) { __leaf_sorter.sort(__item); });
         });
         // 2. Merge sorting
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
@@ -309,18 +309,18 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
 template <typename _Range, typename _Compare>
 struct __leaf_sorter_selector
 {
-    // 1024 is the maximum work-group size for the majority of devices
+    // 1024 is greater than or equal the maximum work-group size for the majority of devices
     // 8 is the maximum reasonable value for bubble sub-group sorter
     using _LeafXL = __leaf_sorter<8, 1024, std::decay_t<_Range>, std::decay_t<_Compare>>;
     using _LeafL = __leaf_sorter<4, 512, std::decay_t<_Range>, std::decay_t<_Compare>>;
     using _LeafM = __leaf_sorter<2, 256, std::decay_t<_Range>, std::decay_t<_Compare>>;
-    // 2 is the smalles reasonable value for merge path group sorter
-    // SYCL spec requires that local memory size should be at least 32 KB
-    // what is enough to sort 256 byte elements (32KB / (2 * 64)). Larer elements are highly unlikely.
+    // 2 is the smallest reasonable value for merge-path group sorter
+    // SYCL spec requires that local memory size should be at least 32 KB,
+    // what is enough to sort 256 byte elements (32KB / (2 * 64)).
+    // It is unlikely that the element to sort is larger than 256 bytes.
     using _LeafS = __leaf_sorter<2, 64, std::decay_t<_Range>, std::decay_t<_Compare>>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
-    static_assert(sizeof(_Tp) <= 256, "The element size is too large for the merge sort");
 
     std::variant<_LeafXL, _LeafL, _LeafM, _LeafS>
     select(const sycl::queue& __q, _Range& __rng, _Compare __comp) const
@@ -378,23 +378,29 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     std::variant<std::uint32_t, std::uint64_t> __index_alternatives = __index_selector();
     auto __leaf_sorter_alternatives = __leaf_sorter_selector<_Range, _Compare>().select(__exec.queue(), __rng, __comp);
 
-    return std::visit([&](auto&& __leaf_sorter, auto&& __index) {
-        using _LeafSorterT = std::decay_t<decltype(__leaf_sorter)>;
-        using _IndexT = std::decay_t<decltype(__index)>;
-        using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
-        using _LeafWGS = std::integral_constant<std::uint16_t, _LeafSorterT::__workgroup_size>;
+    return std::visit(
+        [&](auto&& __leaf_sorter, auto&& __index) {
+            using _LeafSorterT = std::decay_t<decltype(__leaf_sorter)>;
+            using _IndexT = std::decay_t<decltype(__index)>;
+            using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
+            using _LeafWGS = std::integral_constant<std::uint16_t, _LeafSorterT::__workgroup_size>;
 
-        using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __sort_leaf_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
-        using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __sort_global_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
-        using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+            // TODO: split the submitter into multiple ones to avoid extra compilation of kernels
+            // - _LeafSortKernel does not need _IndexT
+            // - _GlobalSortKernel does not need _LeafDPWI and _LeafWGS
+            // - _CopyBackKernel does not need either of them
+            using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                __sort_leaf_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+            using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                __sort_global_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+            using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
 
-        return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
-            std::forward<_Range>(__rng), __comp, __leaf_sorter);
-    }, __leaf_sorter_alternatives, __index_alternatives);
+            return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
+                std::forward<_Range>(__rng), __comp, __leaf_sorter);
+        },
+        __leaf_sorter_alternatives, __index_alternatives);
 }
 
 } // namespace __par_backend_hetero
