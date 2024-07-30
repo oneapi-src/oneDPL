@@ -22,12 +22,11 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    //TODO: dpl_ranges::transform has output range as return type, std::ranges::transform - output iterator.
     test_range_algo<int, data_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, f, proj);
     test_range_algo<P2, data_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, f, &P2::x);
     test_range_algo<P2, data_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, f, &P2::proj);
 
-    test_range_algo<int, data_in_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, f_2, proj, proj);
+    test_range_algo<int, data_in_in_out, false/*return type check*/>{}(dpl_ranges::transform, std::ranges::transform, binary_f, proj, proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
