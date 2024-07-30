@@ -1153,9 +1153,6 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
     // We shouldn't have any restrictions for _AtomicType type here
     // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Starts main work...
-
     using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
     __result_and_scratch_storage_t __result_storage(__exec, 0);
 
@@ -1234,9 +1231,6 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 {
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Starts main work...
 
     auto __result = __init_value;
 
