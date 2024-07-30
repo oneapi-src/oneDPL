@@ -13,6 +13,7 @@ env:
 
 permissions:
   pull-requests: read
+  discussions: read
 
 jobs:
   rfc:
