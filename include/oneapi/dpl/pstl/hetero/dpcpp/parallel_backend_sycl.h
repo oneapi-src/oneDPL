@@ -1150,9 +1150,6 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                                const std::size_t __rng_n, const std::size_t __wgroup_size,
                                const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
-    // We shouldn't have any restrictions for _AtomicType type here
-    // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
-
     using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
     __result_and_scratch_storage_t __result_storage(__exec, 0);
 
@@ -1227,9 +1224,6 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
                                      const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
                                      _Ranges&&... __rngs)
 {
-    assert("This device does not support 64-bit atomics" &&
-           (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
-
     auto __result = __init_value;
 
     // Calculate the number of elements to be processed by each work-item.
@@ -1350,6 +1344,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     _AtomicType __result;
     if (__n_groups == 1)
     {
+        // We shouldn't have any restrictions for _AtomicType type here
+        // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
+
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
@@ -1360,6 +1357,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     }
     else
     {
+        assert("This device does not support 64-bit atomics" &&
+               (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
+
         // Multiple WG implementation
         __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
