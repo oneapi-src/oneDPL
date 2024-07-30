@@ -32,6 +32,13 @@ namespace dpl
 {
 
 template <class _Engine, ::std::size_t _P, ::std::size_t _R>
+class discard_block_engine;
+
+template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
+::std::basic_istream<CharT, Traits>&
+operator>>(::std::basic_istream<CharT, Traits>&, discard_block_engine<__Engine, __P, __R>&);
+
+template <class _Engine, ::std::size_t _P, ::std::size_t _R>
 class discard_block_engine
 {
   public:
@@ -166,22 +173,7 @@ class discard_block_engine
 
     template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
     friend ::std::basic_istream<CharT, Traits>&
-    operator>>(::std::basic_istream<CharT, Traits>& __is, discard_block_engine<__Engine, __P, __R>& __e)
-    {
-        internal::save_stream_flags<CharT, Traits> __flags(__is);
-
-        __is.setf(std::ios_base::dec);
-
-        __Engine __engine_;
-        std::size_t __n_;
-        if (__is >> __engine_ >> __n_)
-        {
-            __e.engine_ = __engine_;
-            __e.n_ = __n_;
-        }
-
-        return __is;
-    }
+    operator>>(::std::basic_istream<CharT, Traits>&, discard_block_engine<__Engine, __P, __R>&);
 
   private:
     // Static asserts
@@ -262,6 +254,25 @@ class discard_block_engine
     _Engine engine_;
     ::std::size_t n_ = 0;
 };
+
+template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
+::std::basic_istream<CharT, Traits>&
+operator>>(::std::basic_istream<CharT, Traits>& __is, discard_block_engine<__Engine, __P, __R>& __e)
+{
+    internal::save_stream_flags<CharT, Traits> __flags(__is);
+
+    __is.setf(std::ios_base::dec);
+
+    __Engine __engine_;
+    std::size_t __n_;
+    if (__is >> __engine_ >> __n_)
+    {
+        __e.engine_ = __engine_;
+        __e.n_ = __n_;
+    }
+
+    return __is;
+}
 
 } // namespace dpl
 } // namespace oneapi
