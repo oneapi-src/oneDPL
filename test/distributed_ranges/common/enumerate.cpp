@@ -25,13 +25,13 @@ TYPED_TEST_SUITE(Enumerate, AllTypes);
 TYPED_TEST(Enumerate, Basic) {
   Ops1<TypeParam> ops(10);
 
-  EXPECT_TRUE(check_view(oneapi::dpl::experimental::dr::__detail::enumerate(ops.vec),
+  EXPECT_TRUE(check_view(oneapi::dpl::experimental::dr::sp::views::enumerate(ops.vec),
                          xp::views::enumerate(ops.dist_vec)));
 }
 
 TYPED_TEST(Enumerate, Mutate) {
   Ops1<TypeParam> ops(10);
-  auto local = oneapi::dpl::experimental::dr::__detail::enumerate(ops.vec);
+  auto local = oneapi::dpl::experimental::dr::sp::views::enumerate(ops.vec);
   auto dist = xp::views::enumerate(ops.dist_vec);
 
   auto copy = [](auto &&v) { std::get<1>(v) = std::get<0>(v); };

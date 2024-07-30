@@ -47,11 +47,30 @@ class enumerate_adapter_closure
 {
   public:
     template <stdrng::viewable_range R>
-    requires(stdrng::sized_range<R>) auto
+    auto
     operator()(R&& r) const
     {
-        using W = std::uint32_t;
-        return zip_view(stdrng::views::iota(W(0), W(stdrng::size(r))), std::forward<R>(r));
+        using S = range_size_t<R>;
+        // NOTE: This line only necessary due to bug in range-v3 where views
+        //       have non-weakly-incrementable size types. (Standard mandates
+        //       size type must be weakly incrementable.)
+        using W = std::conditional_t<std::weakly_incrementable<S>, S, std::size_t>;
+        if constexpr (stdrng::sized_range<R>)
+        {
+            return stdrng::views::zip(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+        }
+        else
+        {
+            return stdrng::views::zip(stdrng::views::iota(W{0}), std::forward<R>(r));
+        }
+    }
+
+    template <stdrng::viewable_range R>
+    requires(stdrng::sized_range<R> && has_segments_method<R>) auto
+    operator()(R&& r) const
+    {
+        using V = std::uint32_t;
+        return zip_view(stdrng::views::iota(V(0), V(stdrng::size(r))), std::forward<R>(r));
     }
 
     template <stdrng::viewable_range R>
