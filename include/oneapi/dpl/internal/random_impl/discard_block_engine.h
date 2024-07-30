@@ -35,6 +35,14 @@ template <class _Engine, ::std::size_t _P, ::std::size_t _R>
 class discard_block_engine;
 
 template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
+::std::basic_ostream<CharT, Traits>&
+operator<<(::std::basic_ostream<CharT, Traits>&, const discard_block_engine<__Engine, __P, __R>&);
+
+template <class __Engine, std::size_t __P, std::size_t __R>
+const sycl::stream&
+operator<<(const sycl::stream&, const discard_block_engine<__Engine, __P, __R>&);
+
+template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
 ::std::basic_istream<CharT, Traits>&
 operator>>(::std::basic_istream<CharT, Traits>&, discard_block_engine<__Engine, __P, __R>&);
 
@@ -152,24 +160,13 @@ class discard_block_engine
         return !(__x == __y);
     }
 
-    template <class CharT, class Traits>
+    template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
     friend ::std::basic_ostream<CharT, Traits>&
-    operator<<(::std::basic_ostream<CharT, Traits>& __os, const discard_block_engine& __e)
-    {
-        internal::save_stream_flags<CharT, Traits> __flags(__os);
+    operator<<(::std::basic_ostream<CharT, Traits>&, const discard_block_engine<__Engine, __P, __R>&);
 
-        __os.setf(std::ios_base::dec | std::ios_base::left);
-        CharT __sp = __os.widen(' ');
-        __os.fill(__sp);
-
-        return __os << __e.engine_ << __sp << __e.n_;
-    }
-
+    template <class __Engine, std::size_t __P, std::size_t __R>
     friend const sycl::stream&
-    operator<<(const sycl::stream& __os, const discard_block_engine& __e)
-    {
-        return __os << __e.engine_ << ' ' << __e.n_;
-    }
+    operator<<(const sycl::stream&, const discard_block_engine<__Engine, __P, __R>&);
 
     template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
     friend ::std::basic_istream<CharT, Traits>&
@@ -254,6 +251,26 @@ class discard_block_engine
     _Engine engine_;
     ::std::size_t n_ = 0;
 };
+
+template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
+::std::basic_ostream<CharT, Traits>&
+operator<<(::std::basic_ostream<CharT, Traits>& __os, const discard_block_engine<__Engine, __P, __R>& __e)
+{
+    internal::save_stream_flags<CharT, Traits> __flags(__os);
+
+    __os.setf(std::ios_base::dec | std::ios_base::left);
+    CharT __sp = __os.widen(' ');
+    __os.fill(__sp);
+
+    return __os << __e.engine_ << __sp << __e.n_;
+}
+
+template <class __Engine, std::size_t __P, std::size_t __R>
+const sycl::stream&
+operator<<(const sycl::stream& __os, const discard_block_engine<__Engine, __P, __R>& __e)
+{
+    return __os << __e.engine_ << ' ' << __e.n_;
+}
 
 template <class CharT, class Traits, class __Engine, std::size_t __P, std::size_t __R>
 ::std::basic_istream<CharT, Traits>&
