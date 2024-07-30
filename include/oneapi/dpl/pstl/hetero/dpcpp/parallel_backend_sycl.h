@@ -1202,7 +1202,6 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                     _AtomicType& __found =
                         *__result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
 
-                    // Update global (for all groups) non-atomic state with the found index
                     __found = __found_local;
                 }
             });
