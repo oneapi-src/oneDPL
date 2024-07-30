@@ -23,7 +23,6 @@
 
 #include <oneapi/dpl/ranges>
 #include <span>
-#include <iostream>
 #include <vector>
 #include <typeinfo>
 #include <string>
@@ -55,10 +54,10 @@ auto f_mutuable = [](auto&& val) { return val *= val; };
 auto proj_mutuable = [](auto&& val) { return val *= 2; };
 
 auto f = [](auto&& val) { return val * val; };
-auto f_2 = [](auto&& val1, auto&& val2) { return val1 * val2; };
+auto binary_f = [](auto&& val1, auto&& val2) { return val1 * val2; };
 auto proj = [](auto&& val){ return val * 2; };
 auto pred = [](auto&& val) { return val == 5; };
-auto pred_2 = [](auto&& val1, auto&& val2) { return val1 == val2; };
+auto binary_pred = [](auto&& val1, auto&& val2) { return val1 == val2; };
 
 auto pred1 = [](auto&& val) -> decltype(auto) { return val > 0; };
 auto pred2 = [](auto&& val) -> decltype(auto) { return val == 4; };
@@ -87,45 +86,45 @@ struct test
         operator()(oneapi::dpl::execution::par_unseq, algo, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename Transform>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
-    operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut, auto... args)
     {
         constexpr int max_n = 10;
         DataType data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType expected[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-        auto expected_view = tr(std::ranges::subrange(expected, expected + max_n));
+        auto expected_view = tr_in(std::ranges::subrange(expected, expected + max_n));
         auto expected_res = checker(expected_view, args...);
         {
             Container cont(exec, std::ranges::begin(data), max_n);
             typename Container::type& A = cont();
 
-            auto res = algo(exec, tr(A), args...);
+            auto res = algo(exec, tr_in(A), args...);
 
             //check result
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), args...))>, "Wrong return type");
 
-            auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
+            auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
-                typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
+                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
         }
 
         //check result
         EXPECT_EQ_N(expected, data, max_n, (std::string("wrong effect algo with ranges: ")
-            + typeid(Algo).name() + typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
+            + typeid(Algo).name() + typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
     }
-    template<typename Policy, typename Algo, typename Checker, typename Transform>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
-    operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType data_out[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         DataType expected[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        auto src_view = tr(std::ranges::subrange(data_in, data_in + max_n));
+        auto src_view = tr_in(std::ranges::subrange(data_in, data_in + max_n));
         auto expected_res = checker(src_view, expected, args...);
         {
             Container cont_in(exec, data_in, max_n);
@@ -134,13 +133,13 @@ struct test
             typename Container::type& A = cont_in();
             typename Container::type& B = cont_out();
 
-            auto res = algo(exec, tr(A), B, args...);
+            auto res = algo(exec, tr_in(A), tr_out(B), args...);
 
             //check result
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), B, args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), B, args...))>, "Wrong return type");
 
-            auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr(A).begin());
+            auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
 
             auto bres_out = ret_out_val(expected_res, expected) == ret_out_val(res, B.begin());
@@ -151,16 +150,16 @@ struct test
         EXPECT_EQ_N(expected, data_out, max_n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename Transform>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
-    operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType data_in2[max_n] = {0, 0, 2, 3, 4, 5, 0, 0, 0, 0};
 
-        auto src_view1 = tr(std::ranges::subrange(data_in1, data_in1 + max_n));
-        auto src_view2 = tr(std::ranges::subrange(data_in2, data_in2 + max_n));
+        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + max_n));
+        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + max_n));
         auto expected_res = checker(src_view1, src_view2, args...);
         {
             Container cont_in1(exec, data_in1, max_n);
@@ -169,19 +168,19 @@ struct test
             typename Container::type& A = cont_in1();
             typename Container::type& B = cont_in2();
 
-            auto res = algo(exec, tr(A), tr(B), args...);
+            auto res = algo(exec, tr_in(A), tr_in(B), args...);
 
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), tr(B), args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), args...))>, "Wrong return type");
 
-            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr(A).begin());
+            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
-                typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
+                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
         }
     }
-    template<typename Policy, typename Algo, typename Checker, typename Transform>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
-    operator()(Policy&& exec, Algo algo, Checker checker, Transform tr, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -190,8 +189,8 @@ struct test
         DataType data_out[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //TODO: size
         DataType expected[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        auto src_view1 = tr(std::ranges::subrange(data_in1, data_in1 + max_n));
-        auto src_view2 = tr(std::ranges::subrange(data_in2, data_in2 + max_n));
+        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + max_n));
+        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + max_n));
         auto expected_res = checker(src_view1, src_view2, expected, args...);
         {
             Container cont_in1(exec, data_in1, max_n);
@@ -202,14 +201,14 @@ struct test
             typename Container::type& B = cont_in2();
             typename Container::type& C = cont_out();
 
-            auto res = algo(exec, tr(A), tr(B), C, args...);
+            auto res = algo(exec, tr_in(A), tr_in(B), tr_out(C), args...);
 
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), tr(B), C.begin(), args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C.begin(), args...))>, "Wrong return type");
 
-            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr(A).begin());
+            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
-                typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
+                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
         }
         //check result
         EXPECT_EQ_N(expected, data_out, max_n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
@@ -425,20 +424,20 @@ struct test_range_algo
             test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, forward_view, args...);
         }
 
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, args...);
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, args...);
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
-        test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
-        test<T, host_span<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_span<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 
 #if _ONEDPL_HETERO_BACKEND
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, args...);
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, args...);
-            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);
-            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, args...);    
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, subrange_view, args...);
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, subrange_view, args...);
+            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, std::identity{}, args...);
+            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, std::identity{}, args...);
         }
 #endif //_ONEDPL_HETERO_BACKEND
     }
