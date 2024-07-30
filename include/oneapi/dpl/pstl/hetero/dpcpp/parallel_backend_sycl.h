@@ -1160,7 +1160,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
     const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
 
     // main parallel_for
-    auto __event_id = __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
         auto __result_acc = __result_storage.__get_result_acc(__cgh);
 
@@ -1210,7 +1210,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
     });
 
     // Wait and return result
-    return __future(__event_id, __result_storage).get();
+    return __future(__event, __result_storage).get();
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
