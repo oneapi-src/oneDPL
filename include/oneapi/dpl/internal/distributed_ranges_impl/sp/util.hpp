@@ -244,31 +244,6 @@ print_range_details(R&& r, std::string label = "")
     }
 }
 
-/* template <distributed_range R>
-void range_details(R &&r, std::size_t width = 80) {
-  std::size_t size = stdrng::size(r);
-
-  for (auto &&[idx, segment] : __detail::enumerate(
-           ranges::segments(r))) {
-    std::size_t local_size = stdrng::size(segment);
-
-    double percent = double(local_size) / size;
-
-    std::size_t num_chars = percent * width;
-    num_chars = std::max(num_chars, std::size_t(3));
-
-    std::size_t whitespace = num_chars - 3;
-
-    std::size_t initial_whitespace = whitespace / 2;
-    std::size_t after_whitespace = whitespace - initial_whitespace;
-
-    std::cout << "[" << std::string(initial_whitespace, ' ')
-              << ranges::rank(segment)
-              << std::string(after_whitespace, ' ') << "]";
-  }
-  std::cout << std::endl;
-}
- */
 namespace __detail
 {
 
