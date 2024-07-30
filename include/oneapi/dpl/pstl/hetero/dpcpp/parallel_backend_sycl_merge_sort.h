@@ -203,19 +203,15 @@ struct __leaf_sorter
     _GroupSorter __group_sorter;
 };
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
-struct __parallel_sort_submitter;
+template <typename _LeafDPWI, typename _LeafWGS, typename _LeafSortName>
+struct __sort_leaf_submitter;
 
-template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
-                                 __internal::__optional_kernel_name<_GlobalSortName...>,
-                                 __internal::__optional_kernel_name<_CopyBackName...>>
+template <typename _LeafDPWI, typename _LeafWGS, typename... _Name>
+struct __sort_leaf_submitter<_LeafDPWI, _LeafWGS, __internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
-    auto
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp,
-               _LeafSorter& __leaf_sorter) const
+    template <typename _Range, typename _Compare, typename _LeafSorter>
+    sycl::event
+    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -223,24 +219,34 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __n = __rng.size();
         assert(__n > 1);
 
-        const std::uint32_t __leaf = __leaf_sorter.__process_size;
         // 1. Perform sorting of the leaves of the merge sort tree
-        sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             __leaf_sorter.initialize_storage(__cgh);
-            const std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
+            const std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf_sorter.__process_size);
             const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __leaf_sorter.__workgroup_size),
                                                sycl::range<1>(__leaf_sorter.__workgroup_size));
-            __cgh.parallel_for<_LeafSortName...>(__nd_range,
-                                                 [=](sycl::nd_item<1> __item) { __leaf_sorter.sort(__item); });
+            __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __item) {
+                __leaf_sorter.sort(__item);
+            });
         });
+    }
+};
 
-        // 2. Merge sorting
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
-        auto __temp = __temp_buf.get_buffer();
-        bool __data_in_temp = false;
+template <typename _IdType, typename _GlobalSortName>
+struct __sort_global_submitter;
+
+template <typename _IdType, typename... _Name>
+struct __sort_global_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _Range, typename _Compare, typename _TempRange>
+    sycl::event
+    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, std::uint32_t __leaf,
+               _TempRange& __temp, bool& __data_in_temp,  sycl::event& __e) const
+    {
         _IdType __n_sorted = __leaf;
-        const bool __is_cpu = __exec.queue().get_device().is_cpu();
+        _IdType __n = __rng.size();
+        const bool __is_cpu = __q.get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::uint32_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
@@ -248,13 +254,13 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::int64_t __n_iter = std::log2(__n_power2) - std::log2(__leaf);
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-            __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
-                __cgh.depends_on(__event1);
+            __e = __q.submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
+                __cgh.depends_on(__e);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
 
-                __cgh.parallel_for<_GlobalSortName...>(
+                __cgh.parallel_for<_Name...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __i_elem_local = __i_elem % (__n_sorted * 2);
@@ -286,23 +292,37 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
+        return __e;
+    }
+};
 
-        // 3. If the data remained in the temporary buffer then copy it back
+template <typename _CopyBackName>
+struct __sort_copy_back_submitter;
+
+template <typename... _Name>
+struct __sort_copy_back_submitter<__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _Range, typename _TempRange>
+    sycl::event
+    operator()(sycl::queue& __q, _Range& __rng, _TempRange& __temp, bool __data_in_temp, sycl::event& __e) const
+    {
         if (__data_in_temp)
         {
-            __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-                __cgh.depends_on(__event1);
+            return __q.submit([&](sycl::handler& __cgh) {
+                __cgh.depends_on(__e);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
                 // We cannot use __cgh.copy here because of zip_iterator usage
-                __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                    const _IdType __idx = __item_id.get_linear_id();
+                __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__rng.size()), [=](sycl::item</*dim=*/1> __item_id) {
+                    const auto __idx = __item_id.get_linear_id();
                     __rng[__idx] = __temp_acc[__idx];
                 });
             });
         }
-
-        return __future(__event1);
+        else
+        {
+            return __e;
+        }
     }
 };
 
@@ -365,6 +385,7 @@ auto
 __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                      _Compare __comp)
 {
+    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     const auto __n = __rng.size();
@@ -376,7 +397,8 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
             return std::uint64_t{};
     };
     auto __index_alternatives = __index_selector();
-    auto __leaf_sorter_alternatives = __leaf_sorter_selector<_Range, _Compare>().select(__exec.queue(), __rng, __comp);
+    auto __leaf_sorter_alternatives = __leaf_sorter_selector<std::decay_t<_Range>, _Compare>().select(
+        __exec.queue(), __rng, __comp);
 
     return std::visit(
         [&](auto& __leaf_sorter, auto __index) {
@@ -385,20 +407,29 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
             using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
             using _LeafWGS = std::integral_constant<std::uint16_t, _LeafSorterT::__workgroup_size>;
 
-            // TODO: split the submitter into multiple ones to avoid extra compilation of kernels
-            // - _LeafSortKernel does not need _IndexT
-            // - _GlobalSortKernel does not need _LeafDPWI and _LeafWGS
-            // - _CopyBackKernel does not need either of them
             using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_leaf_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+                __sort_leaf_kernel<_CustomName, _LeafDPWI, _LeafWGS>>;
             using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_global_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+                __sort_global_kernel<_CustomName, _IndexT>>;
             using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI, _LeafWGS>>;
+                __sort_copy_back_kernel<_CustomName>>;
 
-            return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
-                std::forward<_Range>(__rng), __comp, __leaf_sorter);
+            auto&& __q = __exec.queue();
+            // 1. Sort the leaves of the merge sort tree within a work-group
+            sycl::event __e = __sort_leaf_submitter<_LeafDPWI, _LeafWGS, _LeafSortKernel>()(
+                __q, __rng, __comp, __leaf_sorter);
+
+            // 2. Sort the whole range
+            bool __data_in_temp = false;
+            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+            auto __temp = __temp_buf.get_buffer();
+            constexpr std::uint32_t __leaf = _LeafSorterT::__process_size;
+            __e = __sort_global_submitter<_IndexT, _GlobalSortKernel>()(
+                __q, __rng, __comp, __leaf, __temp, __data_in_temp, __e);
+
+            // 3. Copy back the result, if it is in the temporary buffer
+            __e = __sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp, __data_in_temp, __e);
+            return __future(__e);
         },
         __leaf_sorter_alternatives, __index_alternatives);
 }
