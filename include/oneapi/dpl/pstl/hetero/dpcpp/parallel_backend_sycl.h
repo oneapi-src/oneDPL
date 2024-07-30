@@ -1356,8 +1356,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel_one_wg,
 #endif
-            __rng_n, __wgroup_size, // We shouldn't pass __n_groups to this call due it's single WG implementation
-            __init_value, __pred, std::forward<_Ranges>(__rngs)...);
+            __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
     else
     {
