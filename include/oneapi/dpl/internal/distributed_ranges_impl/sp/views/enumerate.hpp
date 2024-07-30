@@ -66,7 +66,7 @@ class enumerate_adapter_closure
     }
 
     template <stdrng::viewable_range R>
-    requires(stdrng::sized_range<R> && has_segments_method<R>) auto
+    requires(stdrng::sized_range<R>&& has_segments_method<R>) auto
     operator()(R&& r) const
     {
         using V = std::uint32_t;
