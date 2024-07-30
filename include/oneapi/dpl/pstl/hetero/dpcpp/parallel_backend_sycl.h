@@ -1225,17 +1225,16 @@ template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, t
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
           typename _Kernel,
 #endif
-          typename _AtomicType, typename _Predicate,
-          typename... _Ranges>
+          typename _AtomicType, typename _Predicate, typename... _Ranges>
 _AtomicType
-__parallel_find_or_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                        _BrickTag __brick_tag,
+__parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                     _BrickTag __brick_tag,
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                        _Kernel& __kernel,
+                                     _Kernel& __kernel,
 #endif
-                        const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
-                        const _AtomicType __init_value, _Predicate __pred,
-                        _Ranges&&... __rngs)
+                                     const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
+                                     const _AtomicType __init_value, _Predicate __pred,
+                                     _Ranges&&... __rngs)
 {
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
@@ -1332,10 +1331,10 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernels = __internal::__kernel_compiler<_FindOrKernelOneWG, _FindOrKernel>::__compile(__exec);
     auto __kernel_one_wg = __kernels[0];
-    auto __kernel = __kernels[1];
+    auto __kernel_many_wg = __kernels[1];
     __wgroup_size = std::min({__wgroup_size,
                               oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_one_wg),
-                              oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel)});
+                              oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_many_wg)});
 #endif
 
 #if _ONEDPL_FPGA_EMU
@@ -1384,11 +1383,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     else
     {
         // Multiple WG implementation
-        __result = __parallel_find_or_impl<_FindOrKernel, __or_tag_check>(
+        __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
             __brick_tag,
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel,
+            __kernel_many_wg,
 #endif
             __rng_n, __n_groups, __wgroup_size,
             __init_value, __pred,
