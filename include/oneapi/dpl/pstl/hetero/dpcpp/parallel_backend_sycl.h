@@ -1155,8 +1155,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
         auto __result_acc = __result_storage.__get_result_acc(__cgh);
 
         __cgh.parallel_for<KernelName>(
-            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__wgroup_size),
-                                      sycl::range</*dim=*/1>(__wgroup_size)),
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__wgroup_size), sycl::range</*dim=*/1>(__wgroup_size)),
             [=](sycl::nd_item</*dim=*/1> __item_id) {
                 auto __local_idx = __item_id.get_local_id(0);
 
@@ -1167,8 +1166,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 //  - after this call __found_local may still have initial value:
                 //    1) if no element satisfies pred;
                 //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __found_local,
-                       __brick_tag, __rngs...);
+                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __found_local, __brick_tag, __rngs...);
 
                 // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                 // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
