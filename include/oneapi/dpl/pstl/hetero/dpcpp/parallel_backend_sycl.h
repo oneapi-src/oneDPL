@@ -1350,6 +1350,13 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
     __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
+    // Pass all small data into single WG implementation
+    constexpr std::size_t __max_iters_per_work_item = 32;
+    if (__rng_n <= __wgroup_size * __max_iters_per_work_item)
+    {
+        __n_groups = 1;
+    }
+
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     ///////////////////////////////////////////////////////////////////////////
