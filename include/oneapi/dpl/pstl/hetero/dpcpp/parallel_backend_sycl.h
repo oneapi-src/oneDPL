@@ -1085,9 +1085,9 @@ struct __early_exit_find_or
     template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     inline void
-    operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size, const std::size_t __iters_per_work_item,
-               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+    operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+               const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1140,8 +1140,7 @@ template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, t
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
           typename _Kernel,
 #endif
-          typename _AtomicType, typename _Predicate,
-          typename... _Ranges>
+          typename _AtomicType, typename _Predicate, typename... _Ranges>
 _AtomicType
 __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                _BrickTag __brick_tag,
@@ -1149,8 +1148,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                                _Kernel& __kernel,
 #endif
                                const std::size_t __rng_n, const std::size_t __wgroup_size,
-                               const _AtomicType __init_value, _Predicate __pred,
-                               _Ranges&&... __rngs)
+                               const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
     const std::size_t __n_groups = 1;
 
@@ -1179,7 +1177,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
             __kernel,
 #endif
             sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                        sycl::range</*dim=*/1>(__wgroup_size)),
+                                      sycl::range</*dim=*/1>(__wgroup_size)),
             [=](sycl::nd_item</*dim=*/1> __item_id) {
                 auto __local_idx = __item_id.get_local_id(0);
 
@@ -1190,7 +1188,8 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 //  - after this call __found_local may still have initial value:
                 //    1) if no element satisfies pred;
                 //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local,
+                       __brick_tag, __rngs...);
 
                 // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                 // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1231,8 +1230,8 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                                      _Kernel& __kernel,
 #endif
-                                     const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
-                                     const _AtomicType __init_value, _Predicate __pred,
+                                     const std::size_t __rng_n, const std::size_t __n_groups,
+                                     const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
                                      _Ranges&&... __rngs)
 {
     assert("This device does not support 64-bit atomics" &&
@@ -1274,7 +1273,8 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local,
+                           __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1334,8 +1334,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     auto __kernels = __internal::__kernel_compiler<_FindOrKernelOneWG, _FindOrKernel>::__compile(__exec);
     auto __kernel_one_wg = __kernels[0];
     auto __kernel_many_wg = __kernels[1];
-    __wgroup_size = std::min({__wgroup_size,
-                              oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_one_wg),
+    __wgroup_size = std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_one_wg),
                               oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_many_wg)});
 #endif
 
@@ -1373,27 +1372,22 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     {
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
-            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
-            __brick_tag,
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel_one_wg,
 #endif
-            __rng_n, __wgroup_size,         // We shouldn't pass __n_groups to this call due it's single WG implementation
-            __init_value, __pred,
-            std::forward<_Ranges>(__rngs)...);
+            __rng_n, __wgroup_size, // We shouldn't pass __n_groups to this call due it's single WG implementation
+            __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
     else
     {
         // Multiple WG implementation
         __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
-            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
-            __brick_tag,
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel_many_wg,
 #endif
-            __rng_n, __n_groups, __wgroup_size,
-            __init_value, __pred,
-            std::forward<_Ranges>(__rngs)...);
+            __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
 
     ///////////////////////////////////////////////////////////////////////////
