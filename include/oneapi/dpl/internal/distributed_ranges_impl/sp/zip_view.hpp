@@ -19,7 +19,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/owning_view.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/std_ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/remote_span.hpp>
 

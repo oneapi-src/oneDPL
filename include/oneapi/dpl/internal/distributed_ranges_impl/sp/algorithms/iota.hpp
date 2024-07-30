@@ -18,7 +18,7 @@
 #include <limits>
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/std_ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/for_each.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/iota.hpp>
 

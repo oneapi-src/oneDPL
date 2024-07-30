@@ -17,7 +17,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/enumerate.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/std_ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/remote_subrange.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
 
@@ -123,7 +123,7 @@ drop_segments(R&& segments, std::size_t n)
 
 } // namespace oneapi::dpl::experimental::dr
 
-namespace DR_RANGES_NAMESPACE
+namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
 {
 
 // A standard library range adaptor does not change the rank of a
@@ -169,4 +169,4 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
         oneapi::dpl::experimental::dr::ranges::segments(first), size);
 }
 
-} // namespace DR_RANGES_NAMESPACE
+} // namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
