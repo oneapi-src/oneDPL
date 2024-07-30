@@ -120,7 +120,7 @@ struct __leaf_sorter
     using _SubGroupSorter = __subgroup_bubble_sorter;
     using _GroupSorter = __group_merge_path_sorter<__data_per_workitem, __workgroup_size>;
 
-    constexpr static auto
+    constexpr static std::uint32_t
     storage_size()
     {
         return 2 * __data_per_workitem * __workgroup_size;
@@ -132,9 +132,8 @@ struct __leaf_sorter
         __storage = _Storage(storage_size(), __cgh);
     }
 
-    template <typename _Size>
-    __leaf_sorter(_Range& __rng, _Compare __comp, _Size __n)
-        : __rng(__rng), __comp(__comp), __n(__n), __sub_group_sorter(), __group_sorter()
+    __leaf_sorter(_Range& __rng, _Compare __comp)
+        : __rng(__rng), __comp(__comp), __n(__rng.size()), __sub_group_sorter(), __group_sorter()
     {
     }
 
@@ -335,19 +334,19 @@ struct __leaf_sorter_selector
 
         if (__max_slm_items > _LeafXL::storage_size() && __max_wg_size >= 1024 && __rng.size() >= (1 << 20))
         {
-            return _LeafXL{__rng, __comp, __rng.size()};
+            return _LeafXL{__rng, __comp};
         }
         else if (__max_slm_items > _LeafL::storage_size() && __max_wg_size >= 512)
         {
-            return _LeafL{__rng, __comp, __rng.size()};
+            return _LeafL{__rng, __comp};
         }
         else if (__max_slm_items > _LeafM::storage_size() && __max_wg_size >= 256)
         {
-            return _LeafM{__rng, __comp, __rng.size()};
+            return _LeafM{__rng, __comp};
         }
         else
         {
-            return _LeafS{__rng, __comp, __rng.size()};
+            return _LeafS{__rng, __comp};
         }
     }
 };
