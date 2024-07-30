@@ -112,9 +112,9 @@ struct __leaf_sorter
     static constexpr std::uint16_t __workgroup_size = _WorkGroupSize;
     static constexpr std::uint32_t __process_size = __data_per_workitem * __workgroup_size;
 
-    using _T = oneapi::dpl::__internal::__value_t<_Range>;
+    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
-    using _Storage = __dpl_sycl::__local_accessor<_T>;
+    using _Storage = __dpl_sycl::__local_accessor<_Tp>;
     // TODO: select a better sub-group sorter depending on sort stability,
     //       a type (e.g. it can be trivially copied for shuffling within a sub-group)
     using _SubGroupSorter = __subgroup_bubble_sorter;
@@ -224,7 +224,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __n = __rng.size();
         assert(__n > 1);
 
-        std::uint32_t __leaf = __leaf_sorter.__process_size;
+        const std::uint32_t __leaf = __leaf_sorter.__process_size;
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
@@ -235,6 +235,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             __cgh.parallel_for<_LeafSortName...>(__nd_range,
                                                  [=](sycl::nd_item<1> __item) { __leaf_sorter.sort(__item); });
         });
+
         // 2. Merge sorting
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
@@ -311,14 +312,14 @@ struct __leaf_sorter_selector
 {
     // 1024 is greater than or equal the maximum work-group size for the majority of devices
     // 8 is the maximum reasonable value for bubble sub-group sorter
-    using _LeafXL = __leaf_sorter<8, 1024, std::decay_t<_Range>, std::decay_t<_Compare>>;
-    using _LeafL = __leaf_sorter<4, 512, std::decay_t<_Range>, std::decay_t<_Compare>>;
-    using _LeafM = __leaf_sorter<2, 256, std::decay_t<_Range>, std::decay_t<_Compare>>;
+    using _LeafXL = __leaf_sorter<8, 1024, _Range, _Compare>;
+    using _LeafL = __leaf_sorter<4, 512, _Range, _Compare>;
+    using _LeafM = __leaf_sorter<2, 256, _Range, _Compare>;
     // 2 is the smallest reasonable value for merge-path group sorter
-    // SYCL spec requires that local memory size should be at least 32 KB,
+    // SYCL specification requires that local memory size should be at least 32 KB,
     // what is enough to sort 256 byte elements (32KB / (2 * 64)).
     // It is unlikely that the element to sort is larger than 256 bytes.
-    using _LeafS = __leaf_sorter<2, 64, std::decay_t<_Range>, std::decay_t<_Compare>>;
+    using _LeafS = __leaf_sorter<2, 64, _Range, _Compare>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
 
@@ -375,13 +376,13 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
         else
             return std::uint64_t{};
     };
-    std::variant<std::uint32_t, std::uint64_t> __index_alternatives = __index_selector();
+    auto __index_alternatives = __index_selector();
     auto __leaf_sorter_alternatives = __leaf_sorter_selector<_Range, _Compare>().select(__exec.queue(), __rng, __comp);
 
     return std::visit(
-        [&](auto&& __leaf_sorter, auto&& __index) {
+        [&](auto& __leaf_sorter, auto __index) {
             using _LeafSorterT = std::decay_t<decltype(__leaf_sorter)>;
-            using _IndexT = std::decay_t<decltype(__index)>;
+            using _IndexT = decltype(__index);
             using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
             using _LeafWGS = std::integral_constant<std::uint16_t, _LeafSorterT::__workgroup_size>;
 
