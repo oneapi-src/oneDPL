@@ -782,7 +782,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
             ? __max_inputs_per_block / __num_sub_groups_global
             : std::max(__sub_group_size,
                        oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
-    auto __inputs_per_item =  __inputs_per_sub_group / __sub_group_size;
+    auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
     const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
 
@@ -790,7 +790,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // block carry-out.  We need two for the block carry-out to prevent a race condition between reading and writing
     // the block carry-out within a single kernel.
     __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType> __result_and_scratch{__exec,
-                                                                                                  __num_sub_groups_global + 2};
+                                                                                    __num_sub_groups_global + 2};
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
