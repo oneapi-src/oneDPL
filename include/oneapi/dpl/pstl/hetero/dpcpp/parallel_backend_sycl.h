@@ -884,30 +884,35 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     // requires a fundamental type which must also be trivially copyable.
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
-        // Next power of 2 greater than or equal to __n
-        auto __n_uniform = __n;
-        if ((__n_uniform & (__n_uniform - 1)) != 0)
-            __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
-
-        // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
-        // for the last block if it is sufficiently small
-        constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
-        if constexpr (__can_use_group_scan)
+        const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
+        // As of the time of writing, the reduce-then-scan implementation greatly underpferforms on CPU devices.
+        // TODO: Reenable this code-path for CPUs once compiler performance improves.
+        if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
         {
-            if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
+            // Next power of 2 greater than or equal to __n
+            auto __n_uniform = __n;
+            if ((__n_uniform & (__n_uniform - 1)) != 0)
+                __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+
+            // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
+            // for the last block if it is sufficiently small
+            constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
+            if constexpr (__can_use_group_scan)
             {
-                return __parallel_transform_scan_single_group(
-                    __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-                    ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+                if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
+                {
+                    return __parallel_transform_scan_single_group(
+                        __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+                        ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+                }
             }
+            oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
+            return __parallel_transform_reduce_then_scan(
+                                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                                oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
         }
-        oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
-        return __parallel_transform_reduce_then_scan(
-                            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                            std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
     }
-    else
     {
         using _Assigner = unseq_backend::__scan_assigner;
         using _NoAssign = unseq_backend::__scan_no_assign;
@@ -918,8 +923,13 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         _NoAssign __no_assign_op;
         _NoOpFunctor __get_data_op;
 
+        // Although we do not actually need result storage in this case, we need to construct
+        // a placeholder here to match the return type of reduce-tthen-scan
+        using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _Type>;
+        _TempStorage __dummy_result_and_scratch{__exec, 0};
+
         return
-            __parallel_transform_scan_base(
+            __future(__parallel_transform_scan_base(
                 __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
                 std::forward<_Range2>(__out_rng), __binary_op, __init,
                 // local scan
@@ -931,7 +941,8 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
                                       _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
                     __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
                 // global scan
-                unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
+                unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init}).event(),
+                    __dummy_result_and_scratch);
     }
 }
 
@@ -1035,7 +1046,8 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
     constexpr ::std::uint16_t __single_group_upper_limit = 2048;
 
-    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
 
     if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
         __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
@@ -1046,7 +1058,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
             ::std::forward<_OutRng>(__out_rng), __pred);
     }
-    else
+    else if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
     {
         using _ReduceOp = ::std::plus<_Size>;
 
@@ -1058,6 +1070,22 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             oneapi::dpl::__par_backend_hetero::__write_to_idx_if{},
             oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
             /*_Inclusive=*/std::true_type{});
+    }
+    else
+    {
+        using _ReduceOp = ::std::plus<_Size>;
+        using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
+        using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
+                                                     /*inclusive*/ ::std::true_type, 1>;
+        // Although we do not actually need result storage in this case, we need to construct
+        // a placeholder here to match the return type of reduce-tthen-scan
+        using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _Size>;
+        _TempStorage __dummy_result_and_scratch{__exec, 0};
+
+        return __future(__parallel_scan_copy(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                    ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
+                                    CreateOp{__pred}, CopyOp{}).event(),
+                        __dummy_result_and_scratch);
     }
 }
 
