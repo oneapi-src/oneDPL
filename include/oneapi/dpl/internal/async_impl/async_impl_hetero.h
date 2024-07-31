@@ -71,7 +71,7 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     if constexpr (_IsSync::value)
-        __future.wait();
+        __future.deferrable_wait();
 
     return __future.__make_future(__first2 + __n);
 }
