@@ -784,15 +784,13 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                        oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
     auto __inputs_per_item =  __inputs_per_sub_group / __sub_group_size;
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
-    std::size_t __num_blocks = 1;
-    if (__block_size > 0)
-        __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
+    const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
 
     //We need temporary storage for reductions of each sub-group (__num_sub_groups_global), and also 2 for the
     // block carry-out.  We need two for the block carry-out to prevent a race condition between reading and writing
     // the block carry-out within a single kernel.
-    __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType> __result_and_scratch{
-        __exec, __num_sub_groups_global + 2};
+    __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType> __result_and_scratch{__exec,
+                                                                                                  __num_sub_groups_global + 2};
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
@@ -817,7 +815,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
         auto __elements_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
-                                         std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item);
+            std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item);
         auto __ele_in_block_round_up_workgroup =
             oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_block, __work_group_size) * __work_group_size;
         auto __global_range = sycl::range<1>(__ele_in_block_round_up_workgroup);
