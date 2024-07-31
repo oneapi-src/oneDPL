@@ -50,7 +50,9 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
         }
     };
 
-    return dr::sp::views::enumerate(segments) | stdrng::views::take(last_seg + 1) |
+    // return dr::sp::views::enumerate(segments) | stdrng::views::take(last_seg + 1) |
+    //        stdrng::views::transform(std::move(take_partial));
+       return stdrng::views::enumerate(segments) | stdrng::views::take(last_seg + 1) |
            stdrng::views::transform(std::move(take_partial));
 }
 
@@ -97,7 +99,9 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         }
     };
 
-    return dr::sp::views::enumerate(segments) | stdrng::views::drop(first_seg) |
+    // return dr::sp::views::enumerate(segments) | stdrng::views::drop(first_seg) |
+    //        stdrng::views::transform(std::move(drop_partial));
+    return stdrng::views::enumerate(segments) | stdrng::views::drop(first_seg) |
            stdrng::views::transform(std::move(drop_partial));
 }
 
