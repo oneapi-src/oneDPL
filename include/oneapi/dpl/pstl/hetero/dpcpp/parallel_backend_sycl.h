@@ -1136,8 +1136,8 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType,
-          typename _Predicate, typename... _Ranges>
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag,
+          typename __FoundStateType, typename _Predicate, typename... _Ranges>
 __FoundStateType
 __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __wgroup_size,
