@@ -739,7 +739,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
                                                 __intermediate_result_end),
         ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
-        .__deferrable_wait();
+        .wait();
 
     // Round 2: final reduction to get result for each segment of equal adjacent keys
     // create views over adjacent keys
