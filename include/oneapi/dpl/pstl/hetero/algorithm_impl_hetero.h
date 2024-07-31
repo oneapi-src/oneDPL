@@ -898,15 +898,26 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
 
     _It1DifferenceType __n = __last - __first;
 
+    if constexpr (_Unique::value)
+    {
+        if (__n == 1)
+        {
+            oneapi::dpl::__internal::__pattern_walk2_brick(
+                __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec), __first, __last, __output_first,
+                oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+            return std::make_pair(__output_first + 1, 1);
+        }
+    }
+
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
     auto __buf2 = __keep2(__output_first, __output_first + __n);
 
-    auto __res =
-        __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-                                                   __buf1.all_view(), __buf2.all_view(), __n, __gen_mask, __write_op, __unique);
+    auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
+                                                            __buf1.all_view(), __buf2.all_view(), __n, __gen_mask,
+                                                            __write_op, __unique);
 
     ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
