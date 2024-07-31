@@ -23,7 +23,6 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../allocators.hpp"
 #include "../detail.hpp"

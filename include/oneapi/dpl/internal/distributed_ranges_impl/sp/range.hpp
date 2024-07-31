@@ -16,7 +16,6 @@
 #ifndef _ONEDPL_DR_SP_RANGE_HPP
 #define _ONEDPL_DR_SP_RANGE_HPP
 
-#include "../concepts/concepts.hpp"
 #include "distributed_span.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp

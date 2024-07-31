@@ -23,7 +23,6 @@
 #include <oneapi/dpl/async>
 #include <oneapi/dpl/execution>
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../init.hpp"
 
