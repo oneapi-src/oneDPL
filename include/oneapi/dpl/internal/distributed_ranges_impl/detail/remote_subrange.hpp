@@ -17,7 +17,6 @@
 
 #include <iterator>
 
-
 #include "../concepts/concepts.hpp"
 #include "std_ranges_shim.hpp"
 
