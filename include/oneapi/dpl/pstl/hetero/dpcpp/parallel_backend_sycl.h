@@ -1066,7 +1066,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     }
     else
     {
-        using _ReduceOp = ::std::plus<_Size>;
+        using _ReduceOp = std::plus<_Size>;
         using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ std::true_type, 1>;
