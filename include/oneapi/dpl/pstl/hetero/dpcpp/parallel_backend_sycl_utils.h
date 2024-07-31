@@ -770,12 +770,12 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     }
 };
 
-template <typename _ExecutionPolicy, typename _SizeType>
+template <typename _ExecutionPolicy>
 bool
-__supports_sub_group_size(const _ExecutionPolicy& __exec, _SizeType __target_size)
+__supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_size)
 {
     const auto __subgroup_sizes = __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-    return std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), static_cast<std::size_t>(__target_size)) !=
+    return std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), __target_size) !=
            __subgroup_sizes.end();
 }
 
