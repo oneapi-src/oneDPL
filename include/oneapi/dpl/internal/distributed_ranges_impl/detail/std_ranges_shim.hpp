@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
+#define _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 
 #ifndef DR_USE_RANGES_V3
 
@@ -35,4 +36,6 @@ namespace stdrng = ::ranges;
 
 #    define __ONEDPL_DR_STD_RANGES_NAMESPACE ranges
 
-#endif
+#endif /* DR_USE_RANGES_V3 */
+
+#endif /* _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP */

@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_DETAIL_HPP
+#define _ONEDPL_DR_SP_DETAIL_HPP
 
 #include <iterator>
 #include <sycl/sycl.hpp>
@@ -136,3 +137,5 @@ wait(const std::vector<sycl::event>& events)
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DETAIL_HPP */

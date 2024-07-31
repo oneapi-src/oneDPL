@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VIEWS_VIEWS_HPP
+#define _ONEDPL_DR_SP_VIEWS_VIEWS_HPP
 
 #include "../../views/transform.hpp"
 #include "../../views/views.hpp"
@@ -36,3 +37,5 @@ inline constexpr auto take = stdrng::views::take;
 inline constexpr auto transform = dr::views::transform;
 
 } // namespace oneapi::dpl::experimental::dr::sp::views
+
+#endif /* _ONEDPL_DR_SP_VIEWS_VIEWS_HPP */

@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VIEWS_IOTA_HPP
+#define _ONEDPL_DR_SP_VIEWS_IOTA_HPP
 
 namespace oneapi::dpl::experimental::dr::views
 {
@@ -43,3 +44,5 @@ struct iota_fn_
 inline constexpr auto iota = iota_fn_{};
 
 } // namespace oneapi::dpl::experimental::dr::views
+
+#endif /* _ONEDPL_DR_SP_VIEWS_IOTA_HPP */

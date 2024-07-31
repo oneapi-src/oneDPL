@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
+#define _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
 
 #include "../zip_view.hpp"
 
@@ -84,3 +85,5 @@ inline constexpr auto enumerate = enumerate_fn_{};
 } // namespace views
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP */

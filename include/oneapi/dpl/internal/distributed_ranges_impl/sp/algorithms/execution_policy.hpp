@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_EXECUTION_POLICY_HPP
+#define _ONEDPL_DR_SP_EXECUTION_POLICY_HPP
 
 #include <span>
 #include <sycl/sycl.hpp>
@@ -52,3 +53,5 @@ struct distributed_device_policy
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_EXECUTION_POLICY_HPP */

@@ -12,8 +12,8 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-
-#pragma once
+#ifndef _ONEDPL_DR_SP_HPP
+#define _ONEDPL_DR_SP_HPP
 
 #include "sp/algorithms/algorithms.hpp"
 #include "sp/detail.hpp"
@@ -25,3 +25,5 @@
 #include "sp/util.hpp"
 #include "sp/views/views.hpp"
 #include "views/views.hpp"
+
+#endif /* _ONEDPL_DR_SP_HPP */

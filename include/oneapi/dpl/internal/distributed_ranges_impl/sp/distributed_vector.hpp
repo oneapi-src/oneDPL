@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP
+#define _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP
 
 #include <sycl/sycl.hpp>
 #include <vector>
@@ -268,3 +269,5 @@ struct distributed_vector
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP */

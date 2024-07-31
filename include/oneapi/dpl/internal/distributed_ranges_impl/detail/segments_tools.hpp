@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
+#define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
 #include "../concepts/concepts.hpp"
 #include "enumerate.hpp"
@@ -169,4 +170,6 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
         oneapi::dpl::experimental::dr::ranges::segments(first), size);
 }
 
-} // namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
+} // namespace DR_RANGES_NAMESPACE
+
+#endif /* _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP */

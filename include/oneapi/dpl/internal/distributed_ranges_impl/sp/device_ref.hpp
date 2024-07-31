@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP
+#define _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP
 
 #include <sycl/sycl.hpp>
 #include <type_traits>
@@ -75,3 +76,5 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ref
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP */
