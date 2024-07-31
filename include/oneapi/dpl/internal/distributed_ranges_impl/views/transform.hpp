@@ -13,14 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP
+#define _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP
 
 #include <concepts>
 #include <iterator>
 #include <type_traits>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include "../concepts/concepts.hpp"
+#include "../detail/ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -286,3 +287,5 @@ template <stdrng::random_access_range V, std::copy_constructible F>
 inline constexpr bool stdrng::enable_borrowed_range<oneapi::dpl::experimental::dr::transform_view<V, F>> = true;
 
 #endif
+
+#endif /* _ONEDPL_DR_SP_VIEWS_TRANSFORM_HPP */

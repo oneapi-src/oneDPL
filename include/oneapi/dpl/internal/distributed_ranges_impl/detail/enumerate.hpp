@@ -13,15 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
-#define _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
+#ifndef _ONEDPL_DR_DETAIL_ENUMERATE_HPP
+#define _ONEDPL_DR_DETAIL_ENUMERATE_HPP
 
-#include "../zip_view.hpp"
+#include "ranges_shim.hpp"
 
-namespace oneapi::dpl::experimental::dr::sp
+namespace oneapi::dpl::experimental::dr
 {
 
-namespace views
+namespace __detail
 {
 
 namespace
@@ -48,11 +48,22 @@ class enumerate_adapter_closure
 {
   public:
     template <stdrng::viewable_range R>
-    requires(stdrng::sized_range<R>&& has_segments_method<R>) auto
+    auto
     operator()(R&& r) const
     {
-        using V = std::uint32_t;
-        return zip_view(stdrng::views::iota(V(0), V(stdrng::size(r))), std::forward<R>(r));
+        using S = range_size_t<R>;
+        // NOTE: This line only necessary due to bug in range-v3 where views
+        //       have non-weakly-incrementable size types. (Standard mandates
+        //       size type must be weakly incrementable.)
+        using W = std::conditional_t<std::weakly_incrementable<S>, S, std::size_t>;
+        if constexpr (stdrng::sized_range<R>)
+        {
+            return stdrng::views::zip(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+        }
+        else
+        {
+            return stdrng::views::zip(stdrng::views::iota(W{0}), std::forward<R>(r));
+        }
     }
 
     template <stdrng::viewable_range R>
@@ -66,7 +77,7 @@ class enumerate_adapter_closure
 class enumerate_fn_
 {
   public:
-    template <dr::distributed_range R>
+    template <stdrng::viewable_range R>
     constexpr auto
     operator()(R&& r) const
     {
@@ -82,8 +93,9 @@ class enumerate_fn_
 
 inline constexpr auto enumerate = enumerate_fn_{};
 
-} // namespace views
+} // namespace __detail
 
-} // namespace oneapi::dpl::experimental::dr::sp
+} // namespace oneapi::dpl::experimental::dr
 
-#endif /* _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP */
+#endif /* _ONEDPL_DR_DETAIL_ENUMERATE_HPP */
+

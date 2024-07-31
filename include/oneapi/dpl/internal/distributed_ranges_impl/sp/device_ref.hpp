@@ -13,11 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP
+#define _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
 #include <sycl/sycl.hpp>
 #include <type_traits>
+
+#include "init.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -74,3 +76,5 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ref
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_DETAIL_SP_DEVICE_REF_HPP */

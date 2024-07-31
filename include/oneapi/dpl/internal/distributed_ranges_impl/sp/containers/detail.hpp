@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_CONTAINERS_DETAIL_HPP
+#define _ONEDPL_DR_SP_CONTAINERS_DETAIL_HPP
 
 #include <cmath>
 
@@ -42,3 +43,5 @@ factor(std::size_t n)
 } // namespace detail
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_CONTAINERS_DETAIL_HPP */
