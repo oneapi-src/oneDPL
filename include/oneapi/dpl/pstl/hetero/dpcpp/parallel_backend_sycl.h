@@ -1181,10 +1181,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 // Set local found state value value to global state to have correct result
                 if (__local_idx == 0)
                 {
-                    __FoundStateType& __found =
-                        *__result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
-
-                    __found = __found_local;
+                    __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc)[0] = __found_local;
                 }
             });
     });
