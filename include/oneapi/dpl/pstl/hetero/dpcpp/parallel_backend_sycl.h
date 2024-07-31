@@ -908,9 +908,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             }
             oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
             return __parallel_transform_reduce_then_scan(
-                                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                                oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
+                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{});
         }
     }
     {
@@ -924,7 +924,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         _NoOpFunctor __get_data_op;
 
         // Although we do not actually need result storage in this case, we need to construct
-        // a placeholder here to match the return type of reduce-tthen-scan
+        // a placeholder here to match the return type of reduce-then-scan
         using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _Type>;
         _TempStorage __dummy_result_and_scratch{__exec, 0};
 
@@ -1078,13 +1078,14 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ ::std::true_type, 1>;
         // Although we do not actually need result storage in this case, we need to construct
-        // a placeholder here to match the return type of reduce-tthen-scan
+        // a placeholder here to match the return type of reduce-then-scan
         using _TempStorage = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _Size>;
         _TempStorage __dummy_result_and_scratch{__exec, 0};
 
         return __future(__parallel_scan_copy(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                    ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
-                                    CreateOp{__pred}, CopyOp{}).event(),
+                                             ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
+                                             CreateOp{__pred}, CopyOp{})
+                            .event(),
                         __dummy_result_and_scratch);
     }
 }
