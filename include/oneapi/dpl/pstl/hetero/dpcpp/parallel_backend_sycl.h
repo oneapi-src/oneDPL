@@ -1190,7 +1190,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
     });
 
     // Wait and return result
-    return __future(__event, __result_storage).get();
+    return __result_storage.__wait_and_get_value(__event);
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
