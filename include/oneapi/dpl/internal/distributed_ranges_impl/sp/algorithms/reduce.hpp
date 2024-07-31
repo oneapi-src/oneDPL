@@ -13,17 +13,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_REDUCE_HPP
+#define _ONEDPL_DR_SP_REDUCE_HPP
 
+#include <sycl/sycl.hpp>
+
+#include <oneapi/dpl/async>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
 
-#include <oneapi/dpl/async>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <sycl/sycl.hpp>
+#include "../../concepts/concepts.hpp"
+#include "../../detail/onedpl_direct_iterator.hpp"
+#include "../init.hpp"
+#include "execution_policy.hpp"
 
 namespace
 {
@@ -69,45 +71,37 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
 
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
+    using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
+                                           ranges::segments(r)[0].end(), init, binary_op));
+
+    std::vector<future_t> futures;
+
+    for (auto&& segment : ranges::segments(r))
     {
-        using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
-                                               ranges::segments(r)[0].end(), init, binary_op));
+        auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-        std::vector<future_t> futures;
-
-        for (auto&& segment : ranges::segments(r))
+        auto dist = stdrng::distance(segment);
+        if (dist <= 0)
         {
-            auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
-
-            auto dist = stdrng::distance(segment);
-            if (dist <= 0)
-            {
-                continue;
-            }
-            else if (dist == 1)
-            {
-                init = binary_op(init, *stdrng::begin(segment));
-                continue;
-            }
-
-            auto future =
-                reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
-
-            futures.push_back(std::move(future));
+            continue;
+        }
+        else if (dist == 1)
+        {
+            init = binary_op(init, *stdrng::begin(segment));
+            continue;
         }
 
-        for (auto&& f : futures)
-        {
-            init = binary_op(init, f.get());
-        }
+        auto future = reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
 
-        return init;
+        futures.push_back(std::move(future));
     }
-    else
+
+    for (auto&& f : futures)
     {
-        assert(false);
+        init = binary_op(init, f.get());
     }
+
+    return init;
 }
 
 template <typename ExecutionPolicy, distributed_range R, typename T>
@@ -193,3 +187,5 @@ reduce(Iter first, Iter last, T init, BinaryOp binary_op)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif

@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_ALGORITHMS_HPP
+#define _ONEDPL_DR_SP_ALGORITHMS_HPP
 
 #include "copy.hpp"
 #include "equal.hpp"
@@ -26,3 +27,5 @@
 #include "reduce.hpp"
 #include "sort.hpp"
 #include "transform.hpp"
+
+#endif

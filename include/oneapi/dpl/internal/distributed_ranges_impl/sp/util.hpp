@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_UTIL_HPP
+#define _ONEDPL_DR_SP_UTIL_HPP
 
 #include <iostream>
 #include <sycl/sycl.hpp>
@@ -283,3 +284,5 @@ concept sycl_device_selector = requires(T& t, const sycl::device& device)
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_UTIL_HPP */

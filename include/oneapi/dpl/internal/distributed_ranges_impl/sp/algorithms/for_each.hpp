@@ -17,12 +17,12 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/sycl_utils.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
+#include "../../detail/sycl_utils.hpp"
+#include "../detail.hpp"
+#include "../init.hpp"
+#include "../util.hpp"
+#include "../zip_view.hpp"
+#include "execution_policy.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
