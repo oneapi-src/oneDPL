@@ -351,7 +351,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                                               : (__active_subgroups - 1); // else is unused dummy value
                         auto __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
-                            __sub_group, __v, __reduce_op, __sub_group_carry, __active_subgroups);
+                            __sub_group, __v, __reduce_op, __sub_group_carry,
+                            __active_subgroups);
                         if (__sub_group_local_id < __active_subgroups)
                             __temp_ptr[__start_idx + __sub_group_local_id] = __v;
                     }
@@ -418,15 +419,13 @@ struct __parallel_reduce_then_scan_scan_submitter<
 {
 
     template <typename _TmpPtr>
-    auto
-    __get_block_carry_in(const std::size_t __block_num, _TmpPtr __tmp_ptr) const
+    auto __get_block_carry_in(const std::size_t __block_num, _TmpPtr __tmp_ptr) const
     {
         return __tmp_ptr[__num_sub_groups_global + (__block_num % 2)];
     }
 
     template <typename _TmpPtr, typename _ValueType>
-    void
-    __set_block_carry_out(const std::size_t __block_num, _TmpPtr __tmp_ptr, const _ValueType __block_carry_out) const
+    void __set_block_carry_out(const std::size_t __block_num, _TmpPtr __tmp_ptr, const _ValueType __block_carry_out) const
     {
         __tmp_ptr[__num_sub_groups_global + 1 - (__block_num % 2)] = __block_carry_out;
     }
@@ -656,8 +655,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     }
                     else if (__g > 0)
                     {
-                        __sub_group_carry.__setup(__reduce_op(__get_block_carry_in(__block_num, __tmp_ptr),
-                                                              __sub_group_partials[__active_subgroups]));
+                        __sub_group_carry.__setup(
+                            __reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __sub_group_partials[__active_subgroups]));
                     }
                     else
                     {
@@ -763,8 +762,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // TODO: Do we need to adjust for slm usage or is the amount we use reasonably small enough
     // that no check is needed?
     // TODO: This min call is temporary until PR #1683 is merged.
-    const std::size_t __work_group_size =
-        std::min(std::size_t(8192), oneapi::dpl::__internal::__max_work_group_size(__exec));
+    const std::size_t __work_group_size = std::min(std::size_t(8192), oneapi::dpl::__internal::__max_work_group_size(__exec));
 
     // TODO: base on max compute units. Recall disconnect in vendor definitions (# SMs vs. # XVEs)
     const std::size_t __num_work_groups = 128;
@@ -784,7 +782,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
             ? __max_inputs_per_block / __num_sub_groups_global
             : std::max(__sub_group_size,
                        oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
-    auto __inputs_per_item = std::max(std::size_t{1}, __inputs_per_sub_group / __sub_group_size);
+    auto __inputs_per_item =  __inputs_per_sub_group / __sub_group_size;
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
     std::size_t __num_blocks = 1;
     if (__block_size > 0)
@@ -818,24 +816,19 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
-        auto __elements_in_block =
-            std::max(std::size_t{1}, oneapi::dpl::__internal::__dpl_ceiling_div(
-                                         std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item));
+        auto __elements_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
+                                         std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item);
         auto __ele_in_block_round_up_workgroup =
             oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_block, __work_group_size) * __work_group_size;
         auto __global_range = sycl::range<1>(__ele_in_block_round_up_workgroup);
         auto __local_range = sycl::range<1>(__work_group_size);
         auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
-        //        std::cout<<"kernel1:\n";
         __event = __reduce_submitter(__exec, __kernel_nd_range, __in_rng, __result_and_scratch, __event,
                                      __inputs_per_sub_group, __inputs_per_item, __b);
-        //        __event.wait();
-        //        std::cout<<"kernel2:\n";
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
         __event = __scan_submitter(__exec, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event,
                                    __inputs_per_sub_group, __inputs_per_item, __b);
-        //        __event.wait();
         if (__num_remaining > __block_size)
         {
             // Resize for the next block.
