@@ -693,11 +693,13 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 {
                     if (__block_num + 1 == __num_blocks)
                     {
-                        __res_ptr[0] = __sub_group_carry.__v;
-
                         if constexpr (__is_unique_pattern)
                         {
-                            __res_ptr[0] += 1;
+                            __res_ptr[0] = __sub_group_carry.__v + 1;
+                        }
+                        else
+                        {
+                            __res_ptr[0] = __sub_group_carry.__v;
                         }
                     }
                     else
