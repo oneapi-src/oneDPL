@@ -18,7 +18,6 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
@@ -257,9 +256,8 @@ main()
 
     // TODO: Investigate why -fno-fast-math flag causes failures in icpx 2024.2.0 + CPU + Release build with these tests. Additionally, verify
     // if we should stop testing with std::complex as it is not officially supported in SYCL kernels.
-#if 0
     {
-        using ValueType = ::std::complex<float>;
+        using ValueType = MatrixPoint<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 

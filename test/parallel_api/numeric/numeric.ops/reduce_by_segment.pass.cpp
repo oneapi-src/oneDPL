@@ -27,7 +27,6 @@
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
 #include "support/utils.h"
 #include "support/utils_invoke.h"
@@ -350,10 +349,10 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     // test with flag pred
     test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();
-    test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();
+    test_flag_pred<sycl::usm::alloc::device, class KernelName2, MatrixPoint<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
+    run_test<MatrixPoint<float>, UserBinaryPredicate<MatrixPoint<float>>, MaxFunctor<MatrixPoint<float>>>();
 
     run_test<int, ::std::equal_to<int>, ::std::plus<int>>();
     run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
