@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_OWNING_VIEW_HPP
+#define _ONEDPL_DR_DETAIL_OWNING_VIEW_HPP
 
 #include "ranges_shim.hpp"
 
@@ -98,3 +99,5 @@ class owning_view : public stdrng::view_interface<owning_view<R>>
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_OWNING_VIEW_HPP */

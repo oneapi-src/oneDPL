@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_ITERATOR_ADAPTOR_HPP
+#define _ONEDPL_DR_DETAIL_ITERATOR_ADAPTOR_HPP
 
 #include <iterator>
 #include <type_traits>
@@ -228,3 +229,5 @@ class iterator_adaptor
 };
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_ITERATOR_ADAPTOR_HPP */

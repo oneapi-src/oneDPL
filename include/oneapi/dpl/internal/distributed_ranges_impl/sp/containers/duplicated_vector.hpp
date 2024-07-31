@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_COINTAINTERS_DUPLICATED_VECTOR_HPP
+#define _ONEDPL_DR_SP_COINTAINTERS_DUPLICATED_VECTOR_HPP
 
 #include "allocators.hpp"
 #include "remote_vector.hpp"
@@ -70,3 +71,5 @@ class duplicated_vector
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DUPLICATED_VECTOR_HPP */

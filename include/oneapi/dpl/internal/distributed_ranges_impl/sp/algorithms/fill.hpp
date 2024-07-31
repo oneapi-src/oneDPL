@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_FILL_HPP
+#define _ONEDPL_DR_SP_FILL_HPP
 
 #include <memory>
 #include <sycl/sycl.hpp>
@@ -111,3 +112,5 @@ fill(Iter first, Iter last, const T& value)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_FILL_HPP */

@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_VECTOR_HPP
+#define _ONEDPL_DR_SP_VECTOR_HPP
 
 #include <memory>
 
@@ -342,3 +343,5 @@ class vector
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_VECTOR_HPP */

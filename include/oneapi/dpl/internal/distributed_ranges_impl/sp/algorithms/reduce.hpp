@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_REDUCE_HPP
+#define _ONEDPL_DR_SP_REDUCE_HPP
 
 #include <sycl/sycl.hpp>
 
@@ -194,3 +195,5 @@ reduce(Iter first, Iter last, T init, BinaryOp binary_op)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif

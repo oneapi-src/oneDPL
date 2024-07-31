@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP
+#define _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP
 
 #include <iterator>
 
@@ -169,3 +170,5 @@ class direct_iterator
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP */
