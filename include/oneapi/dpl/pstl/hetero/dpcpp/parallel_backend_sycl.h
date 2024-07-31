@@ -1136,14 +1136,14 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType,
           typename _Predicate, typename... _Ranges>
-_AtomicType
+__FoundStateType
 __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __wgroup_size,
-                               const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
+                               const __FoundStateType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
-    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _AtomicType>;
+    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __FoundStateType>;
     __result_and_scratch_storage_t __result_storage(__exec, 0);
 
     // Calculate the number of elements to be processed by each work-item.
@@ -1160,7 +1160,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 auto __local_idx = __item_id.get_local_id(0);
 
                 // 1. Set initial value to local found state
-                _AtomicType __found_local = __init_value;
+                __FoundStateType __found_local = __init_value;
 
                 // 2. Find any element that satisfies pred
                 //  - after this call __found_local may still have initial value:
@@ -1181,7 +1181,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 // Set local found state value value to global state to have correct result
                 if (__local_idx == 0)
                 {
-                    _AtomicType& __found =
+                    __FoundStateType& __found =
                         *__result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
 
                     __found = __found_local;
