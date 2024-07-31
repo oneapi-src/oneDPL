@@ -703,7 +703,7 @@ class __future : private std::tuple<_Args...>
     }
 
     void
-    deferrable_wait()
+    __deferrable_wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
         wait();
