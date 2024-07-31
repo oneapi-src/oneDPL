@@ -28,7 +28,6 @@
 
 namespace oneapi::dpl::experimental::dr::sp
 {
-
 namespace __detail
 {
 
