@@ -697,10 +697,16 @@ class __future : private std::tuple<_Args...>
     operator _Event() const { return event(); }
 
     void
+    wait()
+    {
+        __my_event.wait_and_throw();
+    }
+
+    void
     deferrable_wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait_and_throw();
+        wait();
 #endif
     }
 
