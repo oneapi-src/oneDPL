@@ -51,7 +51,6 @@ requires(std::is_trivially_copyable_v<T>) class device_allocator
     device_allocator(const device_allocator&) = default;
     device_allocator&
     operator=(const device_allocator&) = default;
-    ~device_allocator() = default;
 
     using is_always_equal = std::false_type;
 

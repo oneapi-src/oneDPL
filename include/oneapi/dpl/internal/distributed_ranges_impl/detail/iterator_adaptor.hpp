@@ -54,7 +54,6 @@ class iterator_adaptor
     static_assert(std::is_same_v<iterator, iterator_adaptor<Accessor>>);
 
     iterator_adaptor() = default;
-    ~iterator_adaptor() = default;
     iterator_adaptor(const iterator_adaptor&) = default;
     iterator_adaptor&
     operator=(const iterator_adaptor&) = default;

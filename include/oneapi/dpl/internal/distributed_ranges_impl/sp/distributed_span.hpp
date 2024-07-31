@@ -48,7 +48,6 @@ class distributed_span_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr distributed_span_accessor() noexcept = default;
-    constexpr ~distributed_span_accessor() noexcept = default;
     constexpr distributed_span_accessor(const distributed_span_accessor&) noexcept = default;
     constexpr distributed_span_accessor&
     operator=(const distributed_span_accessor&) noexcept = default;

@@ -42,7 +42,6 @@ class direct_iterator
 
     direct_iterator(Iter iter) noexcept : iter_(iter) {}
     direct_iterator() noexcept = default;
-    ~direct_iterator() noexcept = default;
     direct_iterator(const direct_iterator&) noexcept = default;
     direct_iterator&
     operator=(const direct_iterator&) noexcept = default;

@@ -40,7 +40,6 @@ class transform_iterator
 
     transform_iterator(Iter iter, F fn) noexcept : iter_(iter) {}
     transform_iterator() noexcept = default;
-    ~transform_iterator() noexcept = default;
     transform_iterator(const transform_iterator&) noexcept = default;
     transform_iterator&
     operator=(const transform_iterator&) noexcept = default;

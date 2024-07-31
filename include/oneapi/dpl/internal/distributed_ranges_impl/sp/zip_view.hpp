@@ -77,7 +77,6 @@ class zip_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr zip_accessor() noexcept = default;
-    constexpr ~zip_accessor() noexcept = default;
     constexpr zip_accessor(const zip_accessor&) noexcept = default;
     constexpr zip_accessor&
     operator=(const zip_accessor&) noexcept = default;
