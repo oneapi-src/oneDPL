@@ -241,7 +241,6 @@ main()
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
-#endif
 
     return TestUtils::done();
 }
