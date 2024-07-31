@@ -886,10 +886,10 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple,
-          typename _GenMask, typename _WriteOp, typename _Unique>
+          typename _GenMask, typename _WriteOp, typename _IsUniquePattern>
 ::std::pair<_IteratorOrTuple, typename ::std::iterator_traits<_Iterator1>::difference_type>
 __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
-                    _IteratorOrTuple __output_first, _GenMask __gen_mask, _WriteOp __write_op, _Unique __unique)
+                    _IteratorOrTuple __output_first, _GenMask __gen_mask, _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
@@ -898,7 +898,7 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
 
     _It1DifferenceType __n = __last - __first;
 
-    if constexpr (_Unique::value)
+    if constexpr (_IsUniquePattern::value)
     {
         if (__n == 1)
         {
@@ -917,7 +917,7 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
 
     auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
                                                             __buf1.all_view(), __buf2.all_view(), __n, __gen_mask,
-                                                            __write_op, __unique);
+                                                            __write_op, __is_unique_pattern);
 
     ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
@@ -969,7 +969,7 @@ __pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
         oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>{__pred},
-        oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else{}, /*_Unique=*/std::false_type{});
+        oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else{}, /*_IsUniquePattern=*/std::false_type{});
 
     return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
 }
@@ -989,7 +989,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     auto __result =
         __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
                             oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
-                            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1>{}, /*_Unique=*/std::true_type{});
+                            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1>{}, /*_IsUniquePattern=*/std::true_type{});
 
     return __result_first + __result.second;
 }

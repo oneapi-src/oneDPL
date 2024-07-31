@@ -952,7 +952,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         return __parallel_transform_reduce_then_scan(
             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
             std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{}, /*_Unique=*/std::false_type{});
+            oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{});
     }
     else
     {
@@ -1022,11 +1022,11 @@ struct __invoke_single_group_copy_if
 };
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _GenMask,
-          typename _WriteOp, typename _Unique>
+          typename _WriteOp, typename _IsUniquePattern>
 auto
 __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                      _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask, _WriteOp __write_op,
-                     _Unique __unique)
+                     _IsUniquePattern __is_unique_pattern)
 {
     using _ReduceOp = ::std::plus<_Size>;
 
@@ -1037,7 +1037,7 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
         oneapi::dpl::__par_backend_hetero::__get_zeroth_element{}, __write_op,
         oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-        /*_Inclusive=*/std::true_type{}, __unique);
+        /*_Inclusive=*/std::true_type{}, __is_unique_pattern);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
