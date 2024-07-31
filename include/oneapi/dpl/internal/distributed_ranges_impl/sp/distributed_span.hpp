@@ -17,11 +17,11 @@
 
 #include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/remote_span.hpp>
+#include "../concepts/concepts.hpp"
+#include "../detail/iterator_adaptor.hpp"
+#include "../detail/ranges.hpp"
+#include "../detail/segments_tools.hpp"
+#include "remote_span.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

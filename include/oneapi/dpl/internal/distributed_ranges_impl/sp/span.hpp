@@ -17,7 +17,7 @@
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/std_ranges_shim.hpp>
+#include "../detail/std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

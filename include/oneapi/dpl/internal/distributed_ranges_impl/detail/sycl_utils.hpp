@@ -16,9 +16,9 @@
 #pragma once
 
 #include <limits>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/utils.hpp>
 #include <sycl/sycl.hpp>
+
+#include "utils.hpp"
 
 namespace oneapi::dpl::experimental::dr::__detail
 {
