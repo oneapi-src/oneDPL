@@ -821,7 +821,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename
 auto
 __pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp, std::invoke(__proj, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_min_element(__tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)), __comp_2);
