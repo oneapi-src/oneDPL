@@ -43,12 +43,12 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 {
     using T = stdrng::range_value_t<O>;
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     auto zipped_view = views::zip(r, o);
     auto zipped_segments = zipped_view.zipped_segments();
 
-    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>)
+    if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>)
     {
 
         std::vector<sycl::event> events;
