@@ -15,9 +15,10 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
 #include <sycl/sycl.hpp>
 #include <type_traits>
+
+#include "init.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

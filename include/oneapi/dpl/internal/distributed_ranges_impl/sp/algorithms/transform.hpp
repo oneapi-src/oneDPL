@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+#include "../detail.hpp"
+#include "../init.hpp"
+#include "../util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
