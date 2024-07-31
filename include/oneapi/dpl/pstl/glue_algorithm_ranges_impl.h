@@ -73,7 +73,8 @@ struct __transform_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R,
              std::ranges::random_access_range _OutRange, std::copy_constructible _F, typename _Proj = std::identity>
     requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
-        && std::ranges::sized_range<_OutRange>
+        && std::ranges::sized_range<_OutRange> && std::indirectly_writable<std::ranges::iterator_t<_OutRange>,
+                 std::indirect_result_t<_F&, std::projected<std::ranges::iterator_t<_R>, _Proj>>>
 
     std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_R>, std::ranges::borrowed_iterator_t<_OutRange>>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const
@@ -93,6 +94,9 @@ struct __transform_fn
              typename _Proj2 = std::identity>
     requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R1>
         && std::ranges::sized_range<_R2> && std::ranges::sized_range<_OutRange>
+        && std::indirectly_writable<std::ranges::iterator_t<_OutRange>,
+            std::indirect_result_t<_F&, std::projected<std::ranges::iterator_t<_R1>, _Proj1>,
+            std::projected<std::ranges::iterator_t<_R2>, _Proj2>>>
 
     std::ranges::binary_transform_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>
