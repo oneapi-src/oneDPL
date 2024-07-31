@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/enumerate.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/remote_subrange.hpp>

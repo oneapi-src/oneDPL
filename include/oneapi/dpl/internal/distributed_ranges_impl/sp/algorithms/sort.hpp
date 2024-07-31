@@ -20,7 +20,6 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/async>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
 

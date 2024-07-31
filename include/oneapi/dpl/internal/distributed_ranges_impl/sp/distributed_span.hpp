@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
+
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>

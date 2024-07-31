@@ -17,7 +17,6 @@
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
 namespace oneapi::dpl::experimental::dr

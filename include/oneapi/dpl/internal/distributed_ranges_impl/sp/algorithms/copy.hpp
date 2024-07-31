@@ -20,7 +20,6 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>

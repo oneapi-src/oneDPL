@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/sp/span.hpp>
 #include <span>
 
