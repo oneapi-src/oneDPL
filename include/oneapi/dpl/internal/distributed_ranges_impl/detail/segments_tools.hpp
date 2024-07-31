@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 #define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/enumerate.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/remote_subrange.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
+#include "../concepts/concepts.hpp"
+#include "enumerate.hpp"
+#include "ranges_shim.hpp"
+#include "remote_subrange.hpp"
+#include "view_detectors.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

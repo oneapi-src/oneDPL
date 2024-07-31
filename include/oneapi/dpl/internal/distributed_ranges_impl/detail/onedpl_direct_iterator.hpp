@@ -18,7 +18,7 @@
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
+#include "iterator_adaptor.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

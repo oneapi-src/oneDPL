@@ -17,22 +17,20 @@
 #define _ONEDPL_DR_SP_INCLUSIVE_SCAN_HPP
 
 #include <optional>
-
 #include <sycl/sycl.hpp>
 
+#include <oneapi/dpl/async>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
 
-#include <oneapi/dpl/async>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/vector.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/views.hpp>
+#include "../../concepts/concepts.hpp"
+#include "../../detail/onedpl_direct_iterator.hpp"
+#include "../allocators.hpp"
+#include "../detail.hpp"
+#include "../init.hpp"
+#include "../vector.hpp"
+#include "../views/views.hpp"
+#include "execution_policy.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

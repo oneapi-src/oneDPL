@@ -16,11 +16,10 @@
 #ifndef _ONEDPL_DR_SP_DEVICE_PTR_HPP
 #define _ONEDPL_DR_SP_DEVICE_PTR_HPP
 
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
-#include <sycl/sycl.hpp>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ref.hpp>
+#include "device_ref.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

@@ -24,8 +24,9 @@
 #include <vector>
 
 #include <oneapi/dpl/execution>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+
+#include "algorithms/execution_policy.hpp"
+#include "util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

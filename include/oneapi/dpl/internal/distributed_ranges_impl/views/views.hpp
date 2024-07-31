@@ -16,8 +16,8 @@
 #ifndef _ONEDPL_DR_VIEWS_VIEWS_HPP
 #define _ONEDPL_DR_VIEWS_VIEWS_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
+#include "../concepts/concepts.hpp"
+#include "transform.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

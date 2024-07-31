@@ -16,10 +16,10 @@
 #ifndef _ONEDPL_DR_SP_VIEWS_STANDARD_VIEWS_HPP
 #define _ONEDPL_DR_SP_VIEWS_STANDARD_VIEWS_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/distributed_span.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/enumerate.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/zip_view.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
+#include "../../detail/segments_tools.hpp"
+#include "../../views/transform.hpp"
+#include "../distributed_span.hpp"
+#include "../zip_view.hpp"
+#include "enumerate.hpp"
 
 #endif /* _ONEDPL_DR_SP_VIEWS_STANDARD_VIEWS_HPP */

@@ -17,15 +17,14 @@
 #define _ONEDPL_DR_SP_FILL_HPP
 
 #include <memory>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
-#include <sycl/sycl.hpp>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+#include "../../detail/segments_tools.hpp"
+#include "../../concepts/concepts.hpp"
+#include "../detail.hpp"
+#include "../device_ptr.hpp"
+#include "../util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

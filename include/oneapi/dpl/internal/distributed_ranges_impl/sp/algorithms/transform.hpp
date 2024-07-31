@@ -16,9 +16,9 @@
 #ifndef _ONEDPL_DR_SP_TRANSFORM_HPP
 #define _ONEDPL_DR_SP_TRANSFORM_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+#include "../detail.hpp"
+#include "../init.hpp"
+#include "../util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

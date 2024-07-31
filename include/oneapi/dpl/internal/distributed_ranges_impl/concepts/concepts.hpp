@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_CONCEPTS_CONCEPTS_HPP
 #define _ONEDPL_DR_CONCEPTS_CONCEPTS_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
+#include "../detail/ranges.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

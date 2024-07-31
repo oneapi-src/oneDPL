@@ -16,10 +16,10 @@
 #ifndef _ONEDPL_DR_SP_VIEWS_VIEWS_HPP
 #define _ONEDPL_DR_SP_VIEWS_VIEWS_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/views/standard_views.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/views/iota.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/views/views.hpp>
+#include "../../views/transform.hpp"
+#include "../../views/views.hpp"
+#include "../algorithms/iota.hpp"
+#include "standard_views.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp::views
 {

@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_DETAIL_OWNING_VIEW_HPP
 #define _ONEDPL_DR_DETAIL_OWNING_VIEW_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include "ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

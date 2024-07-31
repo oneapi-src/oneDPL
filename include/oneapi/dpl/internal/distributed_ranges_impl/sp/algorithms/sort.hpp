@@ -16,17 +16,16 @@
 #ifndef _ONEDPL_DR_SP_SORT_HPP
 #define _ONEDPL_DR_SP_SORT_HPP
 
-#include <oneapi/dpl/execution>
+#include <omp.h>
+#include <sycl/sycl.hpp>
 
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/async>
+#include <oneapi/dpl/execution>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
-
-#include <omp.h>
-#include <sycl/sycl.hpp>
+#include "../../concepts/concepts.hpp"
+#include "../../detail/onedpl_direct_iterator.hpp"
+#include "../init.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

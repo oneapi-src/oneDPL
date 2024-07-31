@@ -17,11 +17,12 @@
 #define _ONEDPL_DR_SP_DETAIL_HPP
 
 #include <iterator>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/sycl_utils.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/init.hpp>
 #include <sycl/sycl.hpp>
+
+#include "../detail/ranges.hpp"
+#include "../detail/sycl_utils.hpp"
+#include "device_ptr.hpp"
+#include "init.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
