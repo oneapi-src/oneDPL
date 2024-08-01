@@ -54,14 +54,8 @@ template <typename Iter>
 concept is_remote_iterator_shadow_impl_ =
     std::forward_iterator<Iter> && has_rank_method<Iter> && !disable_rank<std::remove_cv_t<Iter>>;
 
-} // namespace __detail
-
-namespace __detail
-{
-
 struct rank_fn_
 {
-
     // Return the rank associated with a remote range.
     // This is either:
     // 1) r.rank(), if the remote range has a `rank()` method

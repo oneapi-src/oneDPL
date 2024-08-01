@@ -19,16 +19,11 @@
 #include <iterator>
 #include <type_traits>
 
+#include "ranges.hpp"
 #include "std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
-
-template <typename R>
-concept has_segments_method = requires(R r)
-{
-    {r.segments()};
-};
 
 template <typename Accessor>
 class iterator_adaptor
@@ -204,7 +199,7 @@ class iterator_adaptor
     }
 
     auto
-    segments() const noexcept requires(has_segments_method<accessor_type>)
+    segments() const noexcept requires(ranges::__detail::has_segments_method<accessor_type>)
     {
         return accessor_.segments();
     }
