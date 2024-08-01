@@ -16,8 +16,8 @@
 #ifndef _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H
 #define _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H
 
+#    include <utility>
 #include "execution_defs.h"
-#include "glue_algorithm_defs.h"
 
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_ranges_impl_hetero.h"
@@ -27,6 +27,8 @@
 #if _ONEDPL_CPP20_RANGES_PRESENT
 #    include <ranges>
 #    include <functional>
+#    include <type_traits>
+#    include <iterator>
 #    include "algorithm_ranges_impl.h"
 #endif
 
