@@ -500,7 +500,7 @@ struct __usm_or_buffer_accessor
     {
     }
 
-    _T*
+    auto
     __get_pointer() const // should be cached within a kernel
     {
         return __usm ? __ptr + __offset : &__acc[__offset];
