@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
+#define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
 #include "../concepts/concepts.hpp"
 #include "enumerate.hpp"
-#include "ranges_shim.hpp"
+#include "std_ranges_shim.hpp"
 #include "remote_subrange.hpp"
 #include "view_detectors.hpp"
 
@@ -123,7 +124,7 @@ drop_segments(R&& segments, std::size_t n)
 
 } // namespace oneapi::dpl::experimental::dr
 
-namespace DR_RANGES_NAMESPACE
+namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
 {
 
 // A standard library range adaptor does not change the rank of a
@@ -170,3 +171,5 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
 }
 
 } // namespace DR_RANGES_NAMESPACE
+
+#endif /* _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP */

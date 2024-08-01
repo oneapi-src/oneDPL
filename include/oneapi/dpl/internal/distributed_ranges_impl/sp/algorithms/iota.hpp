@@ -13,14 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_IOTA_HPP
+#define _ONEDPL_DR_SP_IOTA_HPP
 
 #include <limits>
 
 #include "../../concepts/concepts.hpp"
-#include "../../detail/ranges_shim.hpp"
-#include "for_each.hpp"
+#include "../../detail/std_ranges_shim.hpp"
 #include "../../views/iota.hpp"
+#include "for_each.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -46,3 +47,5 @@ iota(Iter begin, Iter end, T value)
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_IOTA_HPP */

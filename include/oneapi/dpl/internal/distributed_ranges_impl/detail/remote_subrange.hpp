@@ -13,12 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_REMOTE_SUBRANGE_HPP
+#define _ONEDPL_DR_DETAIL_REMOTE_SUBRANGE_HPP
 
 #include <iterator>
 
 #include "../concepts/concepts.hpp"
-#include "ranges_shim.hpp"
+#include "std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -69,3 +70,5 @@ template <typename R>
 inline constexpr bool stdrng::enable_borrowed_range<oneapi::dpl::experimental::dr::remote_subrange<R>> = true;
 
 #endif
+
+#endif /* _ONEDPL_DR_DETAIL_REMOTE_SUBRANGE_HPP */

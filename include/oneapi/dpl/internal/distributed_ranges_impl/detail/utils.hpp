@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_UTILS_HPP
+#define _ONEDPL_DR_DETAIL_UTILS_HPP
 
 namespace oneapi::dpl::experimental::dr::__detail
 {
@@ -36,3 +37,5 @@ round_up(std::size_t n, std::size_t multiple)
 }
 
 } // namespace oneapi::dpl::experimental::dr::__detail
+
+#endif /* _ONEDPL_DR_DETAIL_UTILS_HPP */

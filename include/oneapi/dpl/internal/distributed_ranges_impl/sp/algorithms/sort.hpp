@@ -13,14 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_SORT_HPP
+#define _ONEDPL_DR_SP_SORT_HPP
 
 #include <omp.h>
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/async>
-#include <oneapi/dpl/execution>
+#include "oneapi/dpl/algorithm"
+#include "oneapi/dpl/async"
+#include "oneapi/dpl/execution"
 
 #include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
@@ -321,3 +322,5 @@ sort(RandomIt first, RandomIt last, Compare comp = Compare())
 }
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_SORT_HPP */

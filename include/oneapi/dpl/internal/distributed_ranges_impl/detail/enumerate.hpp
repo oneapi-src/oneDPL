@@ -13,9 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_ENUMERATE_HPP
+#define _ONEDPL_DR_DETAIL_ENUMERATE_HPP
 
-#include "ranges_shim.hpp"
+#include "std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -90,3 +91,5 @@ inline constexpr auto enumerate = enumerate_fn_{};
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_ENUMERATE_HPP */
