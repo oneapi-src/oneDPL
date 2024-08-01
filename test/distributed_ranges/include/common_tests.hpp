@@ -124,22 +124,22 @@ bool fp_equal(std::vector<T> a, std::vector<T> b,
 
 // gcc13 can not compare tuples with pairs, gcc14 can and will complain if we overload operator== for them, hence is_equal functions for pairs and tuples
 template <class A, class B, class C, class D>
-bool is_equal(std::pair<A, B> const &x, std::tuple<C, D> const &y) {
+bool is_equal_impl(std::pair<A, B> const &x, std::tuple<C, D> const &y) {
     return x.first == std::get<0>(y) && x.second == std::get<1>(y);
 }
 
 template <class A, class B, class C, class D>
-bool is_equal(std::tuple<C, D> const &y, std::pair<A, B> const &x) {
+bool is_equal_impl(std::tuple<C, D> const &y, std::pair<A, B> const &x) {
     return x == y;
 }
 
 template <class A, class B, class C, class D>
-bool is_equal(std::pair<C, D> const &y, std::pair<A, B> const &x) {
+bool is_equal_impl(std::pair<C, D> const &y, std::pair<A, B> const &x) {
     return x.first == y.first && x.second == y.second;
 }
 
 template <class A, class B>
-bool is_equal(A const &y, B const &x) {
+bool is_equal_impl(A const &y, B const &x) {
     return x == y;
 }
 
@@ -152,7 +152,7 @@ template <stdrng::range R1, stdrng::range R2> bool is_equal(R1 &&r1, R2 &&r2) {
   // TODO: why r2.begin() is not working here?
   auto r1i = r1.begin();
   for (const auto &v2 : r2) {
-    if (!is_equal(*r1i++,v2)) {
+    if (!is_equal_impl(*r1i++,v2)) {
       return false;
     }
   }
