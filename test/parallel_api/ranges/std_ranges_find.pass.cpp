@@ -22,11 +22,11 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo{}(dpl_ranges::find, std::ranges::find, 4);  //found case
-    test_range_algo{}(dpl_ranges::find, std::ranges::find, -1); //not found case
-    test_range_algo{}(dpl_ranges::find, std::ranges::find, 4, proj);
-    test_range_algo<P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::x);
-    test_range_algo<P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::proj);
+    test_range_algo<0>{}(dpl_ranges::find, std::ranges::find, 4);  //found case
+    test_range_algo<1>{}(dpl_ranges::find, std::ranges::find, -1); //not found case
+    test_range_algo<2>{}(dpl_ranges::find, std::ranges::find, 4, proj);
+    test_range_algo<3, P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::x);
+    test_range_algo<4, P2>{}(dpl_ranges::find, std::ranges::find, 4, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
