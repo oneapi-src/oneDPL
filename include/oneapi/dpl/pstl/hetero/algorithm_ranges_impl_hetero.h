@@ -469,7 +469,9 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename
 bool
 __pattern_is_sorted(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return __comp(__proj(__val1), __proj(__val2));};
+    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
+        std::invoke(__proj, std::forward<decltype(__val1)>(__val1)),
+        std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
         std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)),
@@ -731,8 +733,9 @@ auto
 __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r,
     _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
 {
-    auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __comp(__proj1(__val1),
-        __proj2(__val2));};
+    auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
+        std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
+        std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     auto __res = oneapi::dpl::__internal::__ranges::__pattern_merge(__tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::views::all_read(std::forward<_R1>(__r1)), oneapi::dpl::__ranges::views::all_read(std::forward<_R2>(__r2)),
@@ -818,7 +821,9 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename
 auto
 __pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp, std::invoke(__proj, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
+        std::invoke(__proj, std::forward<decltype(__val1)>(__val1)),
+        std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_min_element(__tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)), __comp_2);
