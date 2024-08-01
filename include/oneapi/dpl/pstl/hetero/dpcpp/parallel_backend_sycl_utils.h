@@ -483,6 +483,8 @@ struct __usm_or_buffer_accessor
     size_t __offset = 0;
 
   public:
+    using value_type = _T;
+
     // Buffer accessor
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
         : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
