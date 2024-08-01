@@ -21,7 +21,6 @@
 #include <type_traits>
 
 #include "../../detail/segments_tools.hpp"
-#include "../../concepts/concepts.hpp"
 #include "../detail.hpp"
 #include "../device_ptr.hpp"
 #include "../util.hpp"

@@ -18,7 +18,6 @@
 
 #include <vector>
 
-#include "../concepts/concepts.hpp"
 #include "../detail/iterator_adaptor.hpp"
 #include "../detail/ranges.hpp"
 #include "../detail/segments_tools.hpp"

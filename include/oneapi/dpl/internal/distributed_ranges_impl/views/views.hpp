@@ -16,7 +16,6 @@
 #ifndef _ONEDPL_DR_VIEWS_VIEWS_HPP
 #define _ONEDPL_DR_VIEWS_VIEWS_HPP
 
-#include "../concepts/concepts.hpp"
 #include "transform.hpp"
 
 namespace oneapi::dpl::experimental::dr
