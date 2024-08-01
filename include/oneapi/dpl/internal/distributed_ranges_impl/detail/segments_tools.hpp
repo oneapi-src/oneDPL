@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 #define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
-#include "enumerate.hpp"
+#include "../sp/views/enumerate.hpp"
 #include "ranges_shim.hpp"
 #include "remote_subrange.hpp"
 #include "view_detectors.hpp"
