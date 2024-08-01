@@ -23,7 +23,7 @@
 #include <utility>     // std::swap
 #include <cstdint>     // std::uint32_t, ...
 #include <variant>     // std::variant, std::visit
-#include <algorithm>   // std::min
+#include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
 
 #include "sycl_defs.h"
@@ -329,23 +329,22 @@ struct __leaf_sorter_selector
     {
         const std::size_t __n = __rng.size();
         auto&& __d = __q.get_device();
+
         std::size_t __max_wg_size = __d.template get_info<sycl::info::device::max_work_group_size>();
-        std::size_t __max_slm_items = __d.template get_info<sycl::info::device::local_mem_size>() / sizeof(_Tp);
-        // Get the work group size adjusted to the local memory limit.
-        // Pessimistically reduce it by 0.8 to take into account memory used by compiled kernel.
-        // TODO: find a way to generalize getting of reliable work-group size.
-        constexpr float __slm_reduction_factor = 0.8;
-        __max_slm_items *= __slm_reduction_factor;
         __max_wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__max_wg_size);
 
         const auto __sg_sizes = __d.template get_info<sycl::info::device::sub_group_sizes>();
-        const auto __max_sg_size = __sg_sizes.empty() ? 1 : __sg_sizes.back();
-        // TODO: reconsider the occupancy if the corresponding query appears in the SYCL specification
-        const std::uint8_t __ops_per_cu = __d.is_gpu() ? 8 : 1;
+        const auto __max_sg_size = __sg_sizes.empty() ? 1 : *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
+        // TODO: reconsider the constant if the corresponding query appears in the SYCL specification
+        // it is similar to "theoretical occupancy" in GPU
+        const std::uint8_t __oversubscription = __d.is_gpu() ? 8 : 1;
         const auto __max_cu = __d.template get_info<sycl::info::device::max_compute_units>();
-        const auto __saturation_point = __max_cu * __max_sg_size * __ops_per_cu;
+        const auto __saturation_point = __max_cu * __max_sg_size * __oversubscription;
         const auto __desired_data_per_workitem = __n / __saturation_point;
 
+        // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
+        // TODO: find a way to generalize getting of reliable work-group size.
+        const std::size_t __max_slm_items = __d.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
         if (__max_slm_items >= _Leaf8::storage_size(__max_wg_size) && __desired_data_per_workitem >= 8)
         {
             return _Leaf8(__rng, __comp, __max_wg_size);
