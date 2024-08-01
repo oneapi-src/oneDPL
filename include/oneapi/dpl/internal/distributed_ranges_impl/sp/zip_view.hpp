@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_DR_SP_ZIP_VIEW_HPP
 #define _ONEDPL_DR_SP_ZIP_VIEW_HPP
 
-#include <oneapi/dpl/iterator>
+#include "oneapi/dpl/iterator"
 
 #include "../detail/iterator_adaptor.hpp"
 #include "../detail/owning_view.hpp"
-#include "../detail/ranges_shim.hpp"
+#include "../detail/std_ranges_shim.hpp"
 #include "../detail/view_detectors.hpp"
 #include "remote_span.hpp"
 
@@ -78,7 +78,6 @@ class zip_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr zip_accessor() noexcept = default;
-    constexpr ~zip_accessor() noexcept = default;
     constexpr zip_accessor(const zip_accessor&) noexcept = default;
     constexpr zip_accessor&
     operator=(const zip_accessor&) noexcept = default;

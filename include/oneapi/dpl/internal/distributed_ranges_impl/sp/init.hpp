@@ -23,7 +23,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <oneapi/dpl/execution>
+#include "oneapi/dpl/execution"
 
 #include "algorithms/execution_policy.hpp"
 #include "util.hpp"

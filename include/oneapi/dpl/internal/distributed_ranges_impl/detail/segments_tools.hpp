@@ -17,7 +17,7 @@
 #define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
 #include "enumerate.hpp"
-#include "ranges_shim.hpp"
+#include "std_ranges_shim.hpp"
 #include "remote_subrange.hpp"
 #include "view_detectors.hpp"
 
@@ -123,7 +123,7 @@ drop_segments(R&& segments, std::size_t n)
 
 } // namespace oneapi::dpl::experimental::dr
 
-namespace DR_RANGES_NAMESPACE
+namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
 {
 
 // A standard library range adaptor does not change the rank of a

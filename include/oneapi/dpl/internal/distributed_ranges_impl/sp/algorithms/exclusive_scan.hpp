@@ -18,9 +18,9 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/async>
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/numeric>
+#include "oneapi/dpl/async"
+#include "oneapi/dpl/execution"
+#include "oneapi/dpl/numeric"
 
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../allocators.hpp"
