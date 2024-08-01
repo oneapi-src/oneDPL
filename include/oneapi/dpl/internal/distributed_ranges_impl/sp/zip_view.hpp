@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_SP_ZIP_VIEW_HPP
 #define _ONEDPL_DR_SP_ZIP_VIEW_HPP
 
-#include <oneapi/dpl/iterator>
+#include "oneapi/dpl/iterator"
 
 #include "../detail/iterator_adaptor.hpp"
 #include "../detail/owning_view.hpp"
