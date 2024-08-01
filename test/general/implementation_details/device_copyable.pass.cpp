@@ -153,7 +153,7 @@ test_device_copyable()
     //__gen_mask
     static_assert(
         sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__gen_mask<noop_device_copyable>>,
-        // "__gen_mask is not device copyable with device copyable types");
+         "__gen_mask is not device copyable with device copyable types");
 
     //__gen_unique_mask
     static_assert(sycl::is_device_copyable_v<
@@ -172,7 +172,7 @@ test_device_copyable()
 
     //__write_to_idx_if
     static_assert(sycl::is_device_copyable_v<
-                      oneapi::dpl::__par_backend_hetero::__write_to_idx_if<assign_device_copyable>>,
+                      oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, assign_device_copyable>>,
                   "__write_to_idx_if is not device copyable with device copyable types");
 
     //__write_to_idx_if_else
@@ -404,7 +404,7 @@ test_non_device_copyable()
 
     //__write_to_idx_if
     static_assert(
-        !sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__write_to_idx_if<assign_non_device_copyable>>,
+        !sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, assign_non_device_copyable>>,
         "__write_to_idx_if is device copyable with non device copyable types");
 
     //__write_to_idx_if_else
