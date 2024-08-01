@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_DR_SP_ZIP_VIEW_HPP
 #define _ONEDPL_DR_SP_ZIP_VIEW_HPP
 
-#include <oneapi/dpl/iterator>
+#include "oneapi/dpl/iterator"
 
 #include "../detail/iterator_adaptor.hpp"
 #include "../detail/owning_view.hpp"
-#include "../detail/ranges_shim.hpp"
+#include "../detail/std_ranges_shim.hpp"
 #include "../detail/view_detectors.hpp"
 #include "remote_span.hpp"
 

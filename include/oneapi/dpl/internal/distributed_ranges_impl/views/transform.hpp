@@ -21,7 +21,7 @@
 #include <type_traits>
 
 #include "../concepts/concepts.hpp"
-#include "../detail/ranges_shim.hpp"
+#include "../detail/std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {

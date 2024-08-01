@@ -19,7 +19,7 @@
 #include <iterator>
 
 #include "../concepts/concepts.hpp"
-#include "ranges_shim.hpp"
+#include "std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
