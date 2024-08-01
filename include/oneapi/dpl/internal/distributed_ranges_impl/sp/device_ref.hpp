@@ -29,7 +29,6 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ref
 {
   public:
     device_ref() = delete;
-    ~device_ref() = default;
     device_ref(const device_ref&) = default;
 
     device_ref(T* pointer) : pointer_(pointer) {}

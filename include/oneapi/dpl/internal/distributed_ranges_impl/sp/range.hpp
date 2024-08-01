@@ -80,7 +80,6 @@ class segment_range_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr segment_range_accessor() noexcept = default;
-    constexpr ~segment_range_accessor() noexcept = default;
     constexpr segment_range_accessor(const segment_range_accessor&) noexcept = default;
     constexpr segment_range_accessor&
     operator=(const segment_range_accessor&) noexcept = default;
