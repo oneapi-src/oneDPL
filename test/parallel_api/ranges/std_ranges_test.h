@@ -65,11 +65,12 @@ auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };
 
 struct P2
 {
+    P2() {}
     P2(auto v): x(v) {}
     int x = {};
     int y = {};
 
-    int proj() { return x; }
+    int proj() const { return x; }
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
@@ -406,7 +407,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
+template<int call_id = 0, typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto... args)
@@ -434,10 +435,10 @@ struct test_range_algo
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, subrange_view, subrange_view, args...);
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, span_view, subrange_view, args...);
-            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, std::identity{}, args...);
-            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy(), algo, checker, std::identity{}, std::identity{}, args...);
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
+            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
+            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
         }
 #endif //_ONEDPL_HETERO_BACKEND
     }
