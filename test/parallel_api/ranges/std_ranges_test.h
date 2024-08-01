@@ -223,8 +223,8 @@ public:
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType data_in2[max_n] = {0, 0, 2, 3, 4, 5, 0, 0, 0, 0};
 
-        auto src_view1 = tr(std::ranges::subrange(data_in1, data_in1 + max_n));
-        auto src_view2 = tr(std::ranges::subrange(data_in2, data_in2 + max_n));
+        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + max_n));
+        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + max_n));
         auto expected_res = checker(src_view1, src_view2, args...);
         {
             Container cont_in1(exec, data_in1, max_n);
