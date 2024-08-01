@@ -19,9 +19,9 @@
 #include <limits>
 
 #include "../../concepts/concepts.hpp"
-#include "../../detail/ranges_shim.hpp"
-#include "for_each.hpp"
+#include "../../detail/std_ranges_shim.hpp"
 #include "../../views/iota.hpp"
+#include "for_each.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

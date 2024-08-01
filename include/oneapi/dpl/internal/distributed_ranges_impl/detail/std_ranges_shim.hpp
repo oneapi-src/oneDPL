@@ -26,7 +26,7 @@
 
 namespace stdrng = ::std::ranges;
 
-#    define DR_RANGES_NAMESPACE std::ranges
+#    define __ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
 
 #else
 
@@ -34,7 +34,7 @@ namespace stdrng = ::std::ranges;
 
 namespace stdrng = ::ranges;
 
-#    define DR_RANGES_NAMESPACE ranges
+#    define __ONEDPL_DR_STD_RANGES_NAMESPACE ranges
 
 #endif /* DR_USE_RANGES_V3 */
 

@@ -20,7 +20,7 @@
 
 #include "../detail/iterator_adaptor.hpp"
 #include "../detail/owning_view.hpp"
-#include "../detail/ranges_shim.hpp"
+#include "../detail/std_ranges_shim.hpp"
 #include "../detail/view_detectors.hpp"
 #include "remote_span.hpp"
 
