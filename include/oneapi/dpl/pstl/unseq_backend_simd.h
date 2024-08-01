@@ -820,7 +820,7 @@ __simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _Forwa
 
     // Common case
     // If first sequence larger than second then we'll run simd_first with parameters of first sequence.
-    // Otherwise, vice versa.    
+    // Otherwise, vice versa.
     if (__n1 < __n2)
     {
         auto __u_pred =
