@@ -32,7 +32,7 @@ void
 for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 {
     static_assert( // currently only one policy supported
-        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     std::vector<sycl::event> events;
 
