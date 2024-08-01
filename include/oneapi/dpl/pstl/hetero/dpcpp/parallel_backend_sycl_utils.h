@@ -585,19 +585,14 @@ struct __result_and_scratch_storage
     }
 
     template <typename _Acc>
-    static
-    std::enable_if_t<!std::is_pointer_v<_Acc>, typename _Acc::value_type*>
+    static auto
     __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, ::std::size_t __scratch_n = 0)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __acc.__get_pointer();
-    }
-
-    template <typename _Acc>
-    static
-    std::enable_if_t<std::is_pointer_v<_Acc>, typename std::iterator_traits<_Acc>::pointer>
-    __get_usm_or_buffer_accessor_ptr(_Acc __acc, ::std::size_t __scratch_n = 0)
-    {
+#else
         return &__acc[__scratch_n];
+#endif
     }
 
     auto
