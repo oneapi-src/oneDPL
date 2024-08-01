@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_INIT_HPP
+#define _ONEDPL_DR_SP_INIT_HPP
 
 #include <cassert>
 #include <memory>
@@ -22,9 +23,10 @@
 #include <type_traits>
 #include <vector>
 
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/util.hpp>
+#include "oneapi/dpl/execution"
+
+#include "algorithms/execution_policy.hpp"
+#include "util.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -159,3 +161,5 @@ dpl_policy(std::size_t rank)
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_INIT_HPP */

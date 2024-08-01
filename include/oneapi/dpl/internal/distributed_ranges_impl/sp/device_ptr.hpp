@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
-
-#include <type_traits>
+#ifndef _ONEDPL_DR_SP_DEVICE_PTR_HPP
+#define _ONEDPL_DR_SP_DEVICE_PTR_HPP
 
 #include <sycl/sycl.hpp>
+#include <type_traits>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ref.hpp>
+#include "device_ref.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -205,3 +205,5 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ptr
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DEVICE_PTR_HPP */

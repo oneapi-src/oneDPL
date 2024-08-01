@@ -13,12 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_SYCL_UTILS_HPP
+#define _ONEDPL_DR_DETAIL_SYCL_UTILS_HPP
 
 #include <limits>
-
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/utils.hpp>
 #include <sycl/sycl.hpp>
+
+#include "utils.hpp"
 
 namespace oneapi::dpl::experimental::dr::__detail
 {
@@ -235,3 +236,5 @@ parallel_for(sycl::queue& q, sycl::range<3> global, Fn&& fn)
 using event = sycl::event;
 
 } // namespace oneapi::dpl::experimental::dr::__detail
+
+#endif /* _ONEDPL_DR_DETAIL_SYCL_UTILS_HPP */

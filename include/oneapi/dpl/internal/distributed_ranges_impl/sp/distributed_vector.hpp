@@ -13,17 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
-
-#include <vector>
+#ifndef _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP
+#define _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP
 
 #include <sycl/sycl.hpp>
+#include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/remote_vector.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/vector.hpp>
+#include "../detail/segments_tools.hpp"
+#include "allocators.hpp"
+#include "device_ptr.hpp"
+#include "remote_vector.hpp"
+#include "vector.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -269,3 +269,5 @@ struct distributed_vector
 };
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_DISTRIBUTED_VECTOR_HPP */

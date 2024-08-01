@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_VIEW_DETECTORS_HPP
+#define _ONEDPL_DR_DETAIL_VIEW_DETECTORS_HPP
 
 #include <type_traits>
 
@@ -111,3 +112,5 @@ template <typename T>
 inline constexpr bool is_zip_view_v = is_zip_view<T>::value;
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_VIEW_DETECTORS_HPP */

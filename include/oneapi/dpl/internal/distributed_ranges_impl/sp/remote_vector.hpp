@@ -13,10 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_REMOTE_VECTOR_HPP
+#define _ONEDPL_DR_SP_REMOTE_VECTOR_HPP
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/allocators.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl/sp/vector.hpp>
+#include "allocators.hpp"
+#include "vector.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -56,3 +57,5 @@ template <class Alloc>
 remote_vector(std::size_t, const Alloc, std::size_t) -> remote_vector<typename Alloc::value_type, Alloc>;
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_REMOTE_VECTOR_HPP */

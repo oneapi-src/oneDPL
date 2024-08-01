@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP
+#define _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
+#include "iterator_adaptor.hpp"
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -169,3 +170,5 @@ class direct_iterator
 } // namespace __detail
 
 } // namespace oneapi::dpl::experimental::dr
+
+#endif /* _ONEDPL_DR_DETAIL_DIRECT_ITERATOR_HPP */

@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_DR_SP_SPAN_HPP
+#define _ONEDPL_DR_SP_SPAN_HPP
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include "../detail/ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
@@ -117,3 +118,5 @@ template <std::random_access_iterator Iter>
 span(Iter first, std::size_t count) -> span<std::iter_value_t<Iter>, Iter>;
 
 } // namespace oneapi::dpl::experimental::dr::sp
+
+#endif /* _ONEDPL_DR_SP_SPAN_HPP */
