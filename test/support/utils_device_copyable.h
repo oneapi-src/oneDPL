@@ -58,7 +58,7 @@ struct assign_non_device_copyable
     void
     operator()(const _Xp& __x, _Yp&& __y) const
     {
-        ::std::forward<_Yp>(__y) = __x;
+        std::forward<_Yp>(__y) = __x;
     }
 };
 
@@ -69,7 +69,7 @@ struct assign_device_copyable
     void
     operator()(const _Xp& __x, _Yp&& __y) const
     {
-        ::std::forward<_Yp>(__y) = __x;
+        std::forward<_Yp>(__y) = __x;
     }
 };
 
