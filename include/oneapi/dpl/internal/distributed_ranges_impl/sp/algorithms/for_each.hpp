@@ -17,7 +17,6 @@
 
 #include <sycl/sycl.hpp>
 
-// #include "../../detail/ranges.hpp"
 #include "../../detail/sycl_utils.hpp"
 #include "../detail.hpp"
 #include "../init.hpp"

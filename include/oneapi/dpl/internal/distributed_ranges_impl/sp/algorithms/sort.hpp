@@ -99,9 +99,9 @@ sort(R&& r, Compare comp = Compare())
 
     // DPL futures must be kept alive, since in the future their destruction
     // may trigger a synchronization.
-    using dpl_future_type =
-        decltype(__detail::sort_async(__detail::dpl_policy(0), stdrng::begin(ranges::local_or_identity(*stdrng::begin(segments))),
-                                      stdrng::end(ranges::local_or_identity(*stdrng::begin(segments))), comp));
+    using dpl_future_type = decltype(__detail::sort_async(
+        __detail::dpl_policy(0), stdrng::begin(ranges::local_or_identity(*stdrng::begin(segments))),
+        stdrng::end(ranges::local_or_identity(*stdrng::begin(segments))), comp));
     std::vector<dpl_future_type> futures;
 
     const std::size_t n_segments = std::size_t(stdrng::size(segments));
