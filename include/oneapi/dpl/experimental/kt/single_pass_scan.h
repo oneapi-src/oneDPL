@@ -37,6 +37,9 @@ namespace __impl
 {
 
 template <typename... _Name>
+class __copy_if_kernel;
+
+template <typename... _Name>
 class __lookback_init_kernel;
 
 template <typename... _Name>
@@ -44,10 +47,102 @@ class __lookback_kernel;
 
 static constexpr int SUBGROUP_SIZE = 32;
 
+template <typename _ScanStatusFlag>
+struct __scan_lookback_mem_mgr
+{
+    using _FlagStorageType = typename _ScanStatusFlag::_FlagStorageType;
+    using _ValueType = typename _ScanStatusFlag::_ValueType;
+
+    __scan_lookback_mem_mgr(sycl::queue __q, std::size_t __num_wgs) : __queue{__q}, __num_workgroups(__num_wgs){};
+
+    void
+    allocate()
+    {
+        __scan_memory_begin = sycl::malloc_device<std::uint8_t>(get_memory_size(), __queue);
+        if (!__scan_memory_begin)
+            throw std::bad_alloc();
+    }
+
+    sycl::event
+    async_free(sycl::event __dependency)
+    {
+        return __queue.submit([__e = __dependency, __ptr = __scan_memory_begin, __q = __queue](sycl::handler& __hdl) {
+            __hdl.depends_on(__e);
+            __hdl.host_task([=]() { sycl::free(__ptr, __q); });
+        });
+    }
+
+    void
+    free()
+    {
+        sycl::free(__scan_memory_begin, __queue);
+    }
+
+    _FlagStorageType*
+    get_flags_begin()
+    {
+        // Aligned flags
+        void* __base_flags = reinterpret_cast<void*>(__scan_memory_begin + get_tile_values_bytes());
+        auto __remainder = get_padded_flag_bytes();
+        return reinterpret_cast<_FlagStorageType*>(
+            ::std::align(::std::alignment_of_v<_FlagStorageType>, get_flag_bytes(), __base_flags, __remainder));
+    }
+
+    _ValueType*
+    get_partial_values_begin()
+    {
+        return reinterpret_cast<_ValueType*>(__scan_memory_begin);
+    }
+
+    _ValueType*
+    get_full_values_begin()
+    {
+        return reinterpret_cast<_ValueType*>(__scan_memory_begin + get_num_elements() * sizeof(_ValueType));
+    }
+
+    std::size_t
+    get_num_elements()
+    {
+        return _ScanStatusFlag::__padding + __num_workgroups;
+    }
+
+  private:
+    std::size_t
+    get_tile_values_bytes()
+    {
+        return (2 * get_num_elements()) * sizeof(_ValueType);
+    }
+
+    std::size_t
+    get_flag_bytes()
+    {
+        return get_num_elements() * sizeof(_FlagStorageType);
+    }
+
+    std::size_t
+    get_padded_flag_bytes()
+    {
+        // sizeof(_FlagStorageType) extra bytes for possible intenal alignment
+        return get_flag_bytes() + sizeof(_FlagStorageType);
+    }
+
+    std::size_t
+    get_memory_size()
+    {
+        return get_tile_values_bytes() + get_padded_flag_bytes();
+    }
+
+    std::uint8_t* __scan_memory_begin = nullptr;
+    std::size_t __num_workgroups;
+
+    sycl::queue __queue;
+};
+
 template <typename _T>
 struct __scan_status_flag
 {
     using _FlagStorageType = uint32_t;
+    using _ValueType = _T;
     using _AtomicFlagT = sycl::atomic_ref<_FlagStorageType, sycl::memory_order::acq_rel, sycl::memory_scope::device,
                                           sycl::access::address_space::global_space>;
     using _AtomicValueT = sycl::atomic_ref<_T, sycl::memory_order::acq_rel, sycl::memory_scope::device,
@@ -159,9 +254,33 @@ struct __lookback_init_submitter<_FlagType, _Type, _BinaryOp,
     }
 };
 
-template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
-          typename _KernelName>
-struct __lookback_submitter;
+template <typename _FlagType, typename _Group, typename _SubGroup, typename _StatusFlags, typename _StatusValues,
+          typename _Type, typename _BinaryOp>
+void
+__lookback_phase(const _Group& __group, const _SubGroup& __subgroup, _StatusFlags __status_flags,
+                 _StatusValues __status_vals_full, _StatusValues __status_vals_partial, std::uint32_t __tile_id,
+                 const _Type& __local_reduction, _Type& __prev_tile_reduction, bool __is_active_sg, bool __is_active_wi,
+                 std::uint16_t __active_wg_wi_id, _BinaryOp __binary_op)
+{
+    // The last sub-group will query the previous tiles to find a prefix
+    if (__is_active_sg)
+    {
+        _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
+
+        if (__is_active_wi)
+        {
+            __flag.set_partial(__local_reduction);
+        }
+
+        __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
+
+        if (__is_active_wi)
+        {
+            __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
+        }
+    }
+    __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, __active_wg_wi_id);
+}
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
           typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues,
@@ -179,7 +298,6 @@ struct __lookback_kernel_func
     std::size_t __status_flags_size;
     _StatusValues __status_vals_full;
     _StatusValues __status_vals_partial;
-    std::size_t __current_num_items;
     _TileVals __tile_vals;
 
     [[sycl::reqd_sub_group_size(SUBGROUP_SIZE)]] void
@@ -188,6 +306,9 @@ struct __lookback_kernel_func
         auto __group = __item.get_group();
         auto __subgroup = __item.get_sub_group();
         auto __local_id = __item.get_local_id(0);
+        bool __is_active_sg = (__subgroup.get_group_id() == 0);
+        bool __is_active_wi = (__subgroup.get_local_id() == 0);
+        constexpr std::uint16_t __active_wg_wi_id = 0;
 
         std::uint32_t __tile_id = 0;
 
@@ -243,25 +364,9 @@ struct __lookback_kernel_func
             sycl::joint_reduce(__group, __tile_vals_ptr, __tile_vals_ptr + __wg_local_memory_size, __binary_op);
         _Type __prev_tile_reduction{};
 
-        // The first sub-group will query the previous tiles to find a prefix
-        if (__subgroup.get_group_id() == 0)
-        {
-            _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
-
-            if (__subgroup.get_local_id() == 0)
-            {
-                __flag.set_partial(__local_reduction);
-            }
-
-            __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
-
-            if (__subgroup.get_local_id() == 0)
-            {
-                __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
-            }
-        }
-
-        __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, 0);
+        __lookback_phase<_FlagType>(__group, __subgroup, __status_flags, __status_vals_full, __status_vals_partial,
+                                    __tile_id, __local_reduction, __prev_tile_reduction, __is_active_sg, __is_active_wi,
+                                    __active_wg_wi_id, __binary_op);
 
         sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr + __wg_local_memory_size, __out_begin,
                                    __binary_op, __prev_tile_reduction);
@@ -269,9 +374,13 @@ struct __lookback_kernel_func
 };
 
 template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
+          typename _KernelName>
+struct __lookback_scan_submitter;
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
           typename... _Name>
-struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
-                            oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+struct __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
+                                 oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
 
     template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues>
@@ -297,7 +406,7 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
             __hdl.parallel_for<_Name...>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
                                          _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
                                                      __status_flags_size, __status_vals_full, __status_vals_partial,
-                                                     __current_num_items, __tile_vals});
+                                                     __tile_vals});
         });
     }
 };
@@ -348,37 +457,24 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     std::size_t __elems_in_tile = __workgroup_size * __data_per_workitem;
     std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
 
-    constexpr int __status_flag_padding = SUBGROUP_SIZE;
-    std::size_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
+    __scan_lookback_mem_mgr<_FlagType> __device_mem_mgr(__queue, __num_wgs);
 
-    std::size_t __mem_align_pad = sizeof(_Type);
-    std::size_t __status_flags_bytes = __status_flags_size * sizeof(_FlagStorageType);
-    std::size_t __status_vals_full_offset_bytes = __status_flags_size * sizeof(_Type);
-    std::size_t __status_vals_partial_offset_bytes = __status_flags_size * sizeof(_Type);
-    std::size_t __mem_bytes =
-        __status_flags_bytes + __status_vals_full_offset_bytes + __status_vals_partial_offset_bytes + __mem_align_pad;
+    __device_mem_mgr.allocate();
 
-    std::byte* __device_mem = reinterpret_cast<std::byte*>(sycl::malloc_device(__mem_bytes, __queue));
-    if (!__device_mem)
-        throw std::bad_alloc();
-
-    _FlagStorageType* __status_flags = reinterpret_cast<_FlagStorageType*>(__device_mem);
-    std::size_t __remainder = __mem_bytes - __status_flags_bytes;
-    void* __vals_base_ptr = reinterpret_cast<void*>(__device_mem + __status_flags_bytes);
-    void* __vals_aligned_ptr =
-        std::align(std::alignment_of_v<_Type>, __status_vals_full_offset_bytes, __vals_base_ptr, __remainder);
-    _Type* __status_vals_full = reinterpret_cast<_Type*>(__vals_aligned_ptr);
-    _Type* __status_vals_partial =
-        reinterpret_cast<_Type*>(__status_vals_full + __status_vals_full_offset_bytes / sizeof(_Type));
+    _Type* __status_vals_full = __device_mem_mgr.get_full_values_begin();
+    _Type* __status_vals_partial = __device_mem_mgr.get_partial_values_begin();
+    _FlagStorageType* __status_flags = __device_mem_mgr.get_flags_begin();
+    //adding 1 to the number elements to account for the tile id
+    std::size_t __status_flags_size = __device_mem_mgr.get_num_elements() + 1;
 
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
-        __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
+        __queue, __status_flags, __status_vals_partial, __status_flags_size, _FlagType::__padding);
 
     std::size_t __current_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
     std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
 
     auto __prev_event =
-        __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
+        __lookback_scan_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
             __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
             __status_vals_full, __status_vals_partial, __current_num_items);
 
@@ -388,20 +484,272 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     // we should replace this code with the asynchronous version below.
     if (0)
     {
-        return __queue.submit([=](sycl::handler& __hdl) {
-            __hdl.depends_on(__prev_event);
-            __hdl.host_task([=]() { sycl::free(__device_mem, __queue); });
-        });
+        return __device_mem_mgr.async_free(__prev_event);
     }
     else
     {
         __prev_event.wait();
-        sycl::free(__device_mem, __queue);
+        __device_mem_mgr.free();
+        return __prev_event;
+    }
+}
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _InRng,
+          typename _OutRng, typename _NumRng, typename _UnaryPredicate, typename _StatusFlags, typename _StatusValues,
+          typename _TileValues>
+struct __copy_if_kernel_func
+{
+    static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    using _SizeT = std::size_t;
+    using _BinaryOp = std::plus<_SizeT>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+    using _FlagStorageType = typename _FlagType::_FlagStorageType;
+
+    _InRng __in_rng;
+    _OutRng __out_rng;
+    _NumRng __num_rng;
+    _SizeT __n;
+    _UnaryPredicate __pred;
+    _StatusFlags __status_flags;
+    std::size_t __status_flags_size;
+    _StatusValues __status_vals_full;
+    _StatusValues __status_vals_partial;
+    _TileValues __wg_copy_if_values;
+    std::size_t __current_num_wgs;
+
+    [[sycl::reqd_sub_group_size(SUBGROUP_SIZE)]] void
+    operator()(const sycl::nd_item<1>& __item) const
+    {
+        auto __group = __item.get_group();
+        auto __wg_local_id = __item.get_local_id(0);
+        auto __sg = __item.get_sub_group();
+
+        constexpr std::uint16_t __active_sg_id = __workgroup_size / SUBGROUP_SIZE - 1;
+        constexpr std::uint16_t __active_sg_wi_id = SUBGROUP_SIZE - 1;
+        bool __is_active_sg = (__sg.get_group_id() == __active_sg_id);
+        bool __is_active_wi = (__sg.get_local_id() == __active_sg_wi_id);
+        constexpr std::uint16_t __active_wg_wi_id = __workgroup_size - 1;
+
+        std::uint32_t __tile_id = 0;
+
+        // Obtain unique ID for this work-group that will be used in decoupled lookback
+        if (__group.leader())
+        {
+            sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
+                             sycl::access::address_space::global_space>
+                __idx_atomic(__status_flags[__status_flags_size - 1]);
+            __tile_id = __idx_atomic.fetch_add(1);
+        }
+
+        __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
+
+        std::size_t __current_offset = static_cast<std::size_t>(__tile_id) * __elems_in_tile;
+
+        std::uint16_t __wi_count = 0;
+        // Phase 1: Create __wg_count and construct in-order __wg_copy_if_values
+
+        if ((__tile_id + 1) * __elems_in_tile <= __n)
+        {
+#pragma unroll
+            for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
+            {
+                _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                if (__pred(__val))
+                {
+                    __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                    ++__wi_count;
+                }
+            }
+        }
+        else
+        {
+            // Edge of input, have to handle memory bounds
+#pragma unroll
+            for (std::uint16_t __i = 0; __i < __data_per_workitem; ++__i)
+            {
+                if (__i + (__wg_local_id)*__data_per_workitem + __elems_in_tile * __tile_id < __n)
+                {
+                    _Type __val = __in_rng[__i + __wg_local_id * __data_per_workitem + __elems_in_tile * __tile_id];
+
+                    if (__pred(__val))
+                    {
+                        __wg_copy_if_values[__wi_count + __wg_local_id * __data_per_workitem] = __val;
+                        ++__wi_count;
+                    }
+                }
+            }
+        }
+        _SizeT __wg_count = __wi_count;
+        __wg_count = sycl::exclusive_scan_over_group(__group, __wg_count, _BinaryOp{});
+
+        // Phase 2: Global scan across __wg_count
+        _SizeT __copied_elements = 0;
+
+        __lookback_phase<_FlagType>(__group, __sg, __status_flags, __status_vals_full, __status_vals_partial, __tile_id,
+                                    __wg_count + __wi_count, __copied_elements, __is_active_sg, __is_active_wi,
+                                    __active_wg_wi_id, _BinaryOp{});
+
+        // Phase 3: copy values to global memory
+        for (std::uint16_t __i = 0; __i < __wi_count; ++__i)
+        {
+            __out_rng[__copied_elements + __wg_count + __i] =
+                __wg_copy_if_values[__i + __wg_local_id * __data_per_workitem];
+        }
+        if (__tile_id == (__current_num_wgs - 1) && __wg_local_id == (__workgroup_size - 1))
+            __num_rng[0] = __copied_elements + __wg_count + __wi_count;
+    }
+};
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename _KernelName>
+struct __copy_if_submitter;
+
+template <std::uint16_t __data_per_workitem, std::uint16_t __workgroup_size, typename _FlagType, typename... _Name>
+struct __copy_if_submitter<__data_per_workitem, __workgroup_size, _FlagType,
+                           oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+
+    template <typename _Event, typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate,
+              typename _StatusFlags, typename _StatusValues>
+    sycl::event
+    operator()(sycl::queue __q, _Event __fill_event, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
+               std::size_t __n, _UnaryPredicate __pred, _StatusFlags&& __status_flags, std::size_t __status_flags_size,
+               _StatusValues&& __status_vals_full, _StatusValues&& __status_vals_partial,
+               std::size_t __current_num_items, std::size_t __current_num_wgs) const
+    {
+        using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+        using _LocalAccessorType = sycl::local_accessor<_Type, 1>;
+        using _KernelFunc =
+            __copy_if_kernel_func<__data_per_workitem, __workgroup_size, _FlagType, std::decay_t<_InRng>,
+                                  std::decay_t<_OutRng>, std::decay_t<_NumCopiedRng>, _UnaryPredicate,
+                                  std::decay_t<_StatusFlags>, std::decay_t<_StatusValues>,
+                                  std::decay_t<_LocalAccessorType>>;
+
+        static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+
+        return __q.submit([&](sycl::handler& __hdl) {
+            auto __wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, __hdl);
+            __hdl.depends_on(__fill_event);
+
+            auto __tile_vals = _LocalAccessorType(sycl::range<1>{__elems_in_tile}, __hdl);
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng, __num_rng);
+            __hdl.parallel_for<_Name...>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
+                                         _KernelFunc{__in_rng, __out_rng, __num_rng, __n, __pred, __status_flags,
+                                                     __status_flags_size, __status_vals_full, __status_vals_partial,
+                                                     __tile_vals, __current_num_wgs});
+        });
+    }
+};
+
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate, typename _KernelParam>
+sycl::event
+single_pass_copy_if_impl(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng,
+                         _UnaryPredicate __pred, _KernelParam)
+{
+    using _SizeT = uint64_t;
+    using _KernelName = __copy_if_kernel<typename _KernelParam::kernel_name>;
+    using _Type = oneapi::dpl::__internal::__value_t<_InRng>;
+    using _FlagType = __scan_status_flag<_SizeT>;
+
+    using _BinaryOp = std::plus<_SizeT>;
+
+    using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __lookback_init_kernel<_KernelName, _SizeT, _BinaryOp>>;
+
+    using _CopyIfKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__copy_if_kernel<_KernelName, _Type>>;
+
+    const std::size_t __n = __in_rng.size();
+
+    // Next power of 2 greater than or equal to __n
+    auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(__n);
+
+    //If we fit in a single WG SLM, use the single wg version from oneDPL main
+    if (oneapi::dpl::__par_backend_hetero::__group_copy_if_fits_in_slm(__queue, __n, __n_uniform))
+    {
+        return oneapi::dpl::__par_backend_hetero::__dispatch_small_copy_if(
+            oneapi::dpl::execution::__dpl::make_device_policy<_KernelName>(__queue), __n,
+            std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), std::forward<_NumCopiedRng>(__num_rng),
+            __pred);
+    }
+    constexpr std::size_t __workgroup_size = _KernelParam::workgroup_size;
+    constexpr std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of __workgroup_size
+    constexpr std::uint32_t __elems_in_tile = __workgroup_size * __elems_per_workitem;
+    std::size_t __current_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
+    std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
+
+    __scan_lookback_mem_mgr<_FlagType> __device_mem_mgr(__queue, __current_num_wgs);
+    __device_mem_mgr.allocate();
+
+    // Memory Structure:
+    // [Lookback Scan Memory, Tile Id Counter]
+    auto __status_vals_full = __device_mem_mgr.get_full_values_begin();
+    auto __status_vals_partial = __device_mem_mgr.get_partial_values_begin();
+    auto __status_flags = __device_mem_mgr.get_flags_begin();
+    //adding 1 to the number elements to account for the tile id
+    std::size_t __status_flags_size = __device_mem_mgr.get_num_elements() + 1;
+
+    auto __fill_event = __lookback_init_submitter<_FlagType, _SizeT, _BinaryOp, _LookbackInitKernel>{}(
+        __queue, __status_flags, __status_vals_partial, __status_flags_size, _FlagType::__padding);
+
+    sycl::event __prev_event = __copy_if_submitter<__elems_per_workitem, __workgroup_size, _FlagType, _CopyIfKernel>{}(
+        __queue, __fill_event, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+        std::forward<_NumCopiedRng>(__num_rng), __n, __pred, __status_flags, __status_flags_size, __status_vals_full,
+        __status_vals_partial, __current_num_items, __current_num_wgs);
+
+    // TODO: Currently, the following portion of code makes this entire function synchronous.
+    // Ideally, we should be able to use the asynchronous free below, but we have found that doing
+    // so introduces a large unexplainable slowdown. Once this slowdown has been identified and corrected,
+    // we should replace this code with the asynchronous version below.
+    if (0)
+    {
+        return __device_mem_mgr.async_free(__prev_event);
+    }
+    else
+    {
+        __prev_event.wait();
+        __device_mem_mgr.free();
         return __prev_event;
     }
 }
 
 } // namespace __impl
+
+template <typename _InRng, typename _OutRng, typename _NumCopiedRng, typename _UnaryPredicate, typename _KernelParam>
+sycl::event
+copy_if(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _NumCopiedRng&& __num_rng, _UnaryPredicate __pred,
+        _KernelParam __param = {})
+{
+    auto __in_view = oneapi::dpl::__ranges::views::all_read(std::forward<_InRng>(__in_rng));
+    auto __out_view = oneapi::dpl::__ranges::views::all_write(std::forward<_OutRng>(__out_rng));
+    auto __num_view = oneapi::dpl::__ranges::views::all_write(std::forward<_NumCopiedRng>(__num_rng));
+
+    return __impl::single_pass_copy_if_impl(__queue, std::move(__in_view), std::move(__out_view), std::move(__num_view),
+                                            __pred, __param);
+}
+
+template <typename _InIterator, typename _OutIterator, typename _NumCopiedIterator, typename _UnaryPredicate,
+          typename _KernelParam>
+sycl::event
+copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+        _NumCopiedIterator __num_begin, _UnaryPredicate __pred, _KernelParam __param = {})
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf_in = __keep1(__in_begin, __in_end);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf_out = __keep2(__out_begin, __out_begin + __n);
+
+    auto __keep_num =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumCopiedIterator>();
+    auto __buf_num = __keep2(__num_begin, __num_begin + 1);
+
+    return __impl::single_pass_copy_if_impl(__queue, __buf_in.all_view(), __buf_out.all_view(), __buf_num.all_view(),
+                                            __pred, __param);
+}
 
 template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event

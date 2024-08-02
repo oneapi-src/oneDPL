@@ -55,11 +55,17 @@ __device_info(const _ExecutionPolicy& __policy)
 }
 #endif
 
+::std::size_t
+__max_work_group_size(const sycl::queue& __queue)
+{
+    return __queue.get_device().template get_info<sycl::info::device::max_work_group_size>();
+}
+
 template <typename _ExecutionPolicy>
 ::std::size_t
 __max_work_group_size(const _ExecutionPolicy& __policy)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    return oneapi::dpl::__internal::__max_work_group_size(__policy.queue());
 }
 
 template <typename _ExecutionPolicy, typename _Size>
