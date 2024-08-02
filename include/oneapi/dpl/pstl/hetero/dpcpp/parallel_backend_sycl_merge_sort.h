@@ -133,8 +133,7 @@ struct __leaf_sorter
 
     __leaf_sorter(_Range& __rng, _Compare __comp, std::uint32_t __workgroup_size)
         : __rng(__rng), __comp(__comp), __n(__rng.size()), __workgroup_size(__workgroup_size),
-          __process_size(__data_per_workitem * __workgroup_size),
-          __sub_group_sorter(), __group_sorter()
+          __process_size(__data_per_workitem * __workgroup_size), __sub_group_sorter(), __group_sorter()
     {
         assert((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
     }
@@ -351,7 +350,8 @@ struct __leaf_sorter_selector
 
         // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
         // TODO: find a way to generalize getting of reliable work-group size.
-        const std::size_t __max_slm_items = __d.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
+        const std::size_t __max_slm_items =
+            __d.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
         if (__max_slm_items >= _Leaf8::storage_size(__max_wg_size) && __desired_data_per_workitem >= 8)
         {
             return _Leaf8(__rng, __comp, __max_wg_size);
@@ -368,7 +368,7 @@ struct __leaf_sorter_selector
         {
             std::size_t __slm_max_wg_size = __max_slm_items / _Leaf2::storage_size(1);
             // __n is taken as is because of the bit floor and processing 2 items per work-item
-            // hence the proccessed size always fits a single work-group if __n is chosen
+            // hence the processed size always fits a single work-group if __n is chosen
             __max_wg_size = std::min<std::size_t>({__max_wg_size, __slm_max_wg_size, __n});
             __max_wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__max_wg_size);
             return _Leaf2(__rng, __comp, __max_wg_size);
