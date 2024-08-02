@@ -158,13 +158,6 @@ struct segments_fn_
     }
 };
 
-} // namespace __detail
-
-inline constexpr auto segments = __detail::segments_fn_{};
-
-namespace __local
-{
-
 template <typename Iter>
 concept has_local_adl = requires(Iter& iter)
 {
@@ -328,9 +321,9 @@ struct local_fn_
     }
 };
 
-} // namespace __local
+} // namespace __detail
 
-inline constexpr auto local = __local::local_fn_{};
+inline constexpr auto local = __detail::local_fn_{};
 
 namespace __detail
 {
@@ -352,8 +345,7 @@ struct local_or_identity_fn_
         return ranges::local(t);
     }
 
-    template <typename T>
-    decltype(auto)
+    template <typename T> auto
     operator()(T&& t) const
     {
         return std::forward<T>(t);
@@ -361,6 +353,8 @@ struct local_or_identity_fn_
 };
 
 } // namespace __detail
+
+inline constexpr auto segments = __detail::segments_fn_{};
 
 inline constexpr auto local_or_identity = __detail::local_or_identity_fn_{};
 
