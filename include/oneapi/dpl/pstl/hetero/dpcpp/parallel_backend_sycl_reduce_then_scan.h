@@ -789,6 +789,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         // skip scan of zeroth element in unique patterns
         __num_remaining -= 1;
     }
+    // reduce_then_scan kernel is not built to handle "empty" scans which includes `__n == 1` for unique patterns.
+    // These trivial end cases should be handled at a higher level.
+    assert(__num_remaining > 0);
     auto __inputs_per_sub_group =
         __num_remaining >= __max_inputs_per_block
             ? __max_inputs_per_block / __num_sub_groups_global
