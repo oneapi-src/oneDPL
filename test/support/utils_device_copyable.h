@@ -78,8 +78,11 @@ struct assign_device_copyable
 // relying on trivial copyability
 struct binary_op_non_device_copyable
 {
-    binary_op_non_device_copyable(const binary_op_non_device_copyable& other) { std::cout << " non trivial copy ctor\n"; }
-    int 
+    binary_op_non_device_copyable(const binary_op_non_device_copyable& other)
+    {
+        std::cout << " non trivial copy ctor\n";
+    }
+    int
     operator()(int a, int b) const
     {
         return a;
@@ -89,7 +92,7 @@ struct binary_op_non_device_copyable
 struct binary_op_device_copyable
 {
     binary_op_device_copyable(const binary_op_device_copyable& other) { std::cout << " non trivial copy ctor\n"; }
-    int 
+    int
     operator()(int a, int b) const
     {
         return a;

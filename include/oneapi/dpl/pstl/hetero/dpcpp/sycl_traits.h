@@ -273,7 +273,8 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 };
 
 template <typename _BinaryPredicate>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_unique_mask, _BinaryPredicate)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_unique_mask,
+                                                       _BinaryPredicate)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryPredicate>
 {
 };
@@ -284,19 +285,22 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 };
 
 template <typename _GenMask>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask, _GenMask)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask,
+                                                       _GenMask)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_GenMask>
 {
 };
 
 template <int32_t __offset, typename Assign>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_idx_if, __offset, Assign)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_idx_if, __offset,
+                                                       Assign)>
     : oneapi::dpl::__internal::__are_all_device_copyable<Assign>
 {
 };
 
 template <typename Assign>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else, Assign)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else,
+                                                       Assign)>
     : oneapi::dpl::__internal::__are_all_device_copyable<Assign>
 {
 };

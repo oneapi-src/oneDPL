@@ -934,11 +934,12 @@ __pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2));
 
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, decltype(__zipped_res)>();
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, decltype(__zipped_res)>();
     auto __buf2 = __keep2(__zipped_res, __zipped_res + __n);
 
-    auto __result =
-        oneapi::dpl::__par_backend_hetero::__parallel_partition_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
+    auto __result = oneapi::dpl::__par_backend_hetero::__parallel_partition_copy(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
 
     return ::std::make_pair(__result1 + __result.get(), __result2 + (__last - __first - __result.get()));
 }
@@ -972,8 +973,8 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result_first, __result_first + __n);
 
-    auto __result =
-        oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
+    auto __result = oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
 
     return __result_first + __result.get();
 }
