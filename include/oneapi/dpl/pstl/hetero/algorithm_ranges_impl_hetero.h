@@ -334,22 +334,6 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
 // copy_if
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _GenMask,
-          typename _WriteOp, typename _IsUniquePattern>
-oneapi::dpl::__internal::__difference_t<_Range1>
-__pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                    _GenMask __gen_mask, _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
-{
-    auto __n = __rng1.size();
-    if (__n == 0)
-        return 0;
-
-    auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-                                                            std::forward<_Range1>(__rng1),
-                                                            std::forward<_Range2>(__rng2), __n, __gen_mask, __write_op, __is_unique_pattern);
-    return __res.get();
-}
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
@@ -405,10 +389,22 @@ oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
                       _BinaryPredicate __pred, _Assign&& __assign)
 {
-    return __pattern_scan_copy(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                               std::forward<_Range2>(__result),
-                               oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
-                               oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1>{std::forward<_Assign>(__assign)}, /*_IsUniquePattern=*/std::true_type{});
+    auto __n = __rng.size();
+    if (__n == 0)
+        return 0;
+    if (__n == 1)
+    {
+        using CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::walk_n<_ExecutionPolicy, CopyBrick>{CopyBrick{}}, __n, std::forward<_Range1>(__rng),
+                                  std::forward<_Range2>(__result)).get();
+
+        return 1;
+    }
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                  std::forward<_Range2>(__result), __pred, std::forward<_Assign>(__assign)).get();
 }
 
 //------------------------------------------------------------------------

@@ -578,10 +578,10 @@ struct __copy_by_mask
     _BinaryOp __binary_op;
     _Assigner __assigner;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _RetAcc, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, const _RetAcc& __ret_acc, _Size __n,
                _SizePerWg __size_per_wg) const
     {
         using ::std::get;
@@ -617,6 +617,11 @@ struct __copy_by_mask
                 // is performed(i.e. __typle_type is the same type as its operand).
                 __assigner(static_cast<__tuple_type>(get<0>(__in_acc[__item_idx])), __out_acc[__out_idx]);
         }
+        if (__item_idx == 0)
+        {
+            //copy final result to output
+            __ret_acc[0] = __wg_sums_acc[(__n-1) / __size_per_wg];
+        }
     }
 };
 
@@ -625,10 +630,10 @@ struct __partition_by_mask
 {
     _BinaryOp __binary_op;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _RetAcc, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, const _RetAcc& __ret_acc, _Size __n,
                _SizePerWg __size_per_wg) const
     {
         auto __item_idx = __item.get_linear_id();
@@ -660,6 +665,11 @@ struct __partition_by_mask
                 get<1>(__out_acc[__out_idx]) = static_cast<__tuple_type>(get<0>(__in_acc[__item_idx]));
             }
         }
+        if (__item_idx == 0)
+        {
+            //copy final result to output
+            __ret_acc[0] = __wg_sums_acc[(__n-1) / __size_per_wg];
+        }
     }
 };
 
@@ -669,10 +679,10 @@ struct __global_scan_functor
     _BinaryOp __binary_op;
     _InitType __init;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _RetAcc, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc&, const _WgSumsAcc& __wg_sums_acc, _Size __n,
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc&, const _WgSumsAcc& __wg_sums_acc, const _RetAcc&, _Size __n,
                _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;

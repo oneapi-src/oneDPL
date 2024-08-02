@@ -885,44 +885,6 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
 // copy_if
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple,
-          typename _GenMask, typename _WriteOp, typename _IsUniquePattern>
-::std::pair<_IteratorOrTuple, typename ::std::iterator_traits<_Iterator1>::difference_type>
-__pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
-                    _IteratorOrTuple __output_first, _GenMask __gen_mask, _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
-{
-    using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-
-    if (__first == __last)
-        return ::std::make_pair(__output_first, _It1DifferenceType{0});
-
-    _It1DifferenceType __n = __last - __first;
-
-    if constexpr (_IsUniquePattern::value)
-    {
-        if (__n == 1)
-        {
-            oneapi::dpl::__internal::__pattern_walk2_brick(
-                __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec), __first, __last, __output_first,
-                oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
-            return std::make_pair(__output_first + 1, 1);
-        }
-    }
-
-    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
-    auto __buf1 = __keep1(__first, __last);
-    auto __keep2 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
-    auto __buf2 = __keep2(__output_first, __output_first + __n);
-
-    auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
-                                                            __buf1.all_view(), __buf2.all_view(), __n, __gen_mask,
-                                                            __write_op, __is_unique_pattern);
-
-    ::std::size_t __num_copied = __res.get();
-    return ::std::make_pair(__output_first + __n, __num_copied);
-}
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
           typename _Predicate>
 _Iterator2
@@ -963,15 +925,22 @@ __pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
-    auto __result = __pattern_scan_copy(
-        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        __par_backend_hetero::zip(
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
-        oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>{__pred},
-        oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else{}, /*_IsUniquePattern=*/std::false_type{});
+    _It1DifferenceType __n = __last - __first;
 
-    return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first, __last);
+
+    auto __zipped_res = __par_backend_hetero::zip(
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2));
+
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, decltype(__zipped_res)>();
+    auto __buf2 = __keep2(__zipped_res, __zipped_res + __n);
+
+    auto __result =
+        oneapi::dpl::__par_backend_hetero::__parallel_partition_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
+
+    return ::std::make_pair(__result1 + __result.get(), __result2 + (__last - __first - __result.get()));
 }
 
 //------------------------------------------------------------------------
@@ -986,12 +955,27 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
-    auto __result =
-        __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
-                            oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
-                            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1>{}, /*_IsUniquePattern=*/std::true_type{});
+    _It1DifferenceType __n = __last - __first;
 
-    return __result_first + __result.second;
+    if (__n == 0)
+        return __result_first;
+    if (__n == 1)
+    {
+        oneapi::dpl::__internal::__pattern_walk2_brick(
+            __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
+            oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+        return __result_first + 1;
+    }
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first, __last);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+    auto __buf2 = __keep2(__result_first, __result_first + __n);
+
+    auto __result =
+        oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
+
+    return __result_first + __result.get();
 }
 
 template <typename _Name>
