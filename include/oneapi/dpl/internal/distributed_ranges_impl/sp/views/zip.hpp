@@ -19,7 +19,6 @@
 #include "oneapi/dpl/iterator"
 
 #include "../../detail/iterator_adaptor.hpp"
-#include "../../detail/owning_view.hpp"
 #include "../../detail/std_ranges_shim.hpp"
 #include "../../detail/view_detectors.hpp"
 #include "../remote_span.hpp"
@@ -222,7 +221,7 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
             increment_local_idx(segment_ids, local_idx, size);
         }
 
-        return dr::__detail::owning_view(std::move(segment_views));
+        return stdrng::owning_view(std::move(segment_views));
     }
 
     // Return a range corresponding to each segment in `segments()`,
@@ -258,7 +257,7 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
             increment_local_idx(segment_ids, local_idx, size);
         }
 
-        return dr::__detail::owning_view(std::move(segment_views));
+        return stdrng::owning_view(std::move(segment_views));
     }
 
     auto
