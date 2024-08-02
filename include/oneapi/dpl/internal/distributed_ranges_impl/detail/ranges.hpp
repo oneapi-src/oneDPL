@@ -343,7 +343,7 @@ concept has_local = requires(T& t)
         } -> std::convertible_to<std::any>;
 };
 
-struct local_fn_
+struct local_or_identity_fn_
 {
     template <typename T>
     requires(has_local<T>) auto
@@ -356,13 +356,14 @@ struct local_fn_
     decltype(auto)
     operator()(T&& t) const
     {
-        return t;
+        return std::forward<T>(t);
     }
 };
 
-inline constexpr auto local = local_fn_{};
 
 } // namespace __detail
+
+inline constexpr auto local_or_identity = __detail::local_or_identity_fn_{};
 
 } // namespace ranges
 

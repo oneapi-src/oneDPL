@@ -17,6 +17,7 @@
 
 #include <sycl/sycl.hpp>
 
+// #include "../../detail/ranges.hpp"
 #include "../../detail/sycl_utils.hpp"
 #include "../detail.hpp"
 #include "../init.hpp"
@@ -42,7 +43,7 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 
         assert(stdrng::distance(segment) > 0);
 
-        auto local_segment = __detail::local(segment);
+        auto local_segment = ranges::local_or_identity(segment);
 
         auto first = stdrng::begin(local_segment);
 

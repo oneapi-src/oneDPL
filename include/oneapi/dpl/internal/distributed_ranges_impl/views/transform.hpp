@@ -165,7 +165,7 @@ class transform_iterator
     auto
     local() const requires(ranges::__detail::has_local<Iter>)
     {
-        auto iter = ranges::__detail::local(iter_);
+        auto iter = ranges::local_or_identity(iter_);
         return transform_iterator<decltype(iter), F>(iter, fn_);
     }
 

@@ -90,8 +90,8 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
             continue;
         }
 
-            auto future = __detail::reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment),
-                                                            binary_op);
+        auto future =
+            __detail::reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
 
         futures.push_back(std::move(future));
     }

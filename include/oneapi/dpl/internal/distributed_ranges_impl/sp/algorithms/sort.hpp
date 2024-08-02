@@ -88,7 +88,7 @@ sort(R&& r, Compare comp = Compare())
     {
         auto&& segment = *stdrng::begin(segments);
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
-        auto&& local_segment = __detail::local(segment);
+        auto&& local_segment = ranges::local_or_identity(segment);
 
         __detail::sort_async(local_policy, stdrng::begin(local_segment), stdrng::end(local_segment), comp).wait();
         return;
@@ -100,8 +100,8 @@ sort(R&& r, Compare comp = Compare())
     // DPL futures must be kept alive, since in the future their destruction
     // may trigger a synchronization.
     using dpl_future_type =
-        decltype(__detail::sort_async(__detail::dpl_policy(0), stdrng::begin(__detail::local(*stdrng::begin(segments))),
-                                      stdrng::end(__detail::local(*stdrng::begin(segments))), comp));
+        decltype(__detail::sort_async(__detail::dpl_policy(0), stdrng::begin(ranges::local_or_identity(*stdrng::begin(segments))),
+                                      stdrng::end(ranges::local_or_identity(*stdrng::begin(segments))), comp));
     std::vector<dpl_future_type> futures;
 
     const std::size_t n_segments = std::size_t(stdrng::size(segments));
@@ -119,7 +119,7 @@ sort(R&& r, Compare comp = Compare())
         auto&& q = __detail::queue(ranges::rank(segment));
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-        auto&& local_segment = __detail::local(segment);
+        auto&& local_segment = ranges::local_or_identity(segment);
 
         futures.push_back(
             __detail::sort_async(local_policy, stdrng::begin(local_segment), stdrng::end(local_segment), comp));
@@ -178,7 +178,7 @@ sort(R&& r, Compare comp = Compare())
         auto&& q = __detail::queue(ranges::rank(segment));
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
 
-        auto&& local_segment = __detail::local(segment);
+        auto&& local_segment = ranges::local_or_identity(segment);
 
         // splitter_i = [ index in local_segment of first element greater or equal
         // 1st global median, index ... 2nd global median, ..., size of
@@ -220,7 +220,7 @@ sort(R&& r, Compare comp = Compare())
     // Copy corresponding elements to each "sorted segment"
     for (auto&& [segment_id_, segment] : stdrng::views::enumerate(segments))
     {
-        auto&& local_segment = __detail::local(segment);
+        auto&& local_segment = ranges::local_or_identity(segment);
         const auto segment_id = static_cast<std::size_t>(segment_id_);
 
         std::size_t* splitter_i = splitter_indices[segment_id];

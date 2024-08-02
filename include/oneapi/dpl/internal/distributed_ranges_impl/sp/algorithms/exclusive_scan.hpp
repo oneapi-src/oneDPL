@@ -57,7 +57,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
     {
         auto&& [in_segment, out_segment] = segs;
 
-        auto last_element = stdrng::prev(stdrng::end(__detail::local(in_segment)));
+        auto last_element = stdrng::prev(stdrng::end(ranges::local_or_identity(in_segment)));
         auto dest = d_inits + segment_id;
 
         auto&& q = __detail::queue(ranges::rank(in_segment));
@@ -154,7 +154,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
             auto first = stdrng::begin(out_segment);
             dr::__detail::direct_iterator d_first(first);
 
-            auto d_sum = ranges::__detail::local(partial_sums).begin() + idx - 1;
+            auto d_sum = ranges::local_or_identity(partial_sums).begin() + idx - 1;
 
             sycl::event e = dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)), [=](auto idx) {
                 d_first[idx] = binary_op(d_first[idx], *d_sum);
