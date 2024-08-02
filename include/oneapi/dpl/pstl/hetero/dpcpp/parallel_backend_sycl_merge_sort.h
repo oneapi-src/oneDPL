@@ -335,8 +335,15 @@ struct __leaf_sorter_selector
 
         const auto __sg_sizes = __d.template get_info<sycl::info::device::sub_group_sizes>();
         const auto __max_sg_size = __sg_sizes.empty() ? 1 : *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
+        // __oversubscription is similar to "theoretical occupancy" in GPU, or "multithreading" in CPU
         // TODO: reconsider the constant if the corresponding query appears in the SYCL specification
-        // it is similar to "theoretical occupancy" in GPU
+        // 8 (or 6, which is slightly less) appears to be common for modern Intel/AMD/Nvidia GPUs see:
+        // Intel: https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-2/intel-xe-gpu-architecture.html:
+        //        see: "Threads / XVE" (8)
+        // Nvidia: https://xmartlabs.github.io/cuda-calculator (they deprecated their official calculator with no alternative):
+        //         see: "Active Thread Blocks per Multiprocessor" (6)
+        // https://rocm.docs.amd.com/en/latest/how-to/tuning-guides/mi300x/workload.html#mi300x-occupancy-vgpr-table
+        //         see: "Occupancy per EU" (8)
         const std::uint8_t __oversubscription = __d.is_gpu() ? 8 : 1;
         const auto __max_cu = __d.template get_info<sycl::info::device::max_compute_units>();
         const auto __saturation_point = __max_cu * __max_sg_size * __oversubscription;
