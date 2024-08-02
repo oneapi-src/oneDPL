@@ -728,6 +728,16 @@ struct __parallel_reduce_then_scan_scan_submitter<
     _InitType __init;
 };
 
+// reduce_then_scan requires subgroup size of 32, and performs well only on devices with fast coordinated subgroup
+// operations.  We do not want to run this can on CPU targets, as they are not performant with this algorithm.
+template <typename _ExecutionPolicy>
+bool
+__is_best_alg_reduce_then_scan(_ExecutionPolicy&& __exec)
+{
+    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
+    return (!__exec.queue().get_device().is_cpu() && __dev_has_sg32);
+}
+
 // General scan-like algorithm helpers
 // _GenReduceInput - a function which accepts the input range and index to generate the data needed by the main output
 //                   used in the reduction operation (to calculate the global carries)

@@ -924,9 +924,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
                     ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
             }
         }
-        const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
-        // Reduce-then-scan performs poorly on CPUs due to sub-group operations.
-        if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
+        if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
         {
             oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
             return __parallel_transform_reduce_then_scan(
@@ -1071,8 +1069,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 
     auto __n = __rng.size();
     // choice between legacy and reduce_then_scan
-    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
-    if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
+    if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
         return __parallel_reduce_then_scan_copy(
             __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
@@ -1103,8 +1100,7 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
 {
     auto __n = __rng.size();
     // choice between legacy and reduce_then_scan
-    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
-    if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
+    if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
@@ -1146,7 +1142,6 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     constexpr ::std::uint16_t __single_group_upper_limit = 2048;
 
     std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
 
     if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
         __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
@@ -1157,8 +1152,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
             std::forward<_OutRng>(__out_rng), __pred, std::forward<_Assign>(__assign));
     }
-    // Reduce-then-scan performs poorly on CPUs due to sub-group operations.
-    else if (!__exec.queue().get_device().is_cpu() && __dev_has_sg32)
+    else if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
         using _ReduceOp = std::plus<_Size>;
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
