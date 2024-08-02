@@ -349,7 +349,7 @@ struct __leaf_sorter_selector
         const auto __desired_data_per_workitem = __n / __saturation_point;
 
         // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
-        // TODO: find a way to generalize getting of reliable work-group size.
+        // TODO: investigate if the adjustment can be less conservative
         const std::size_t __max_slm_items =
             __d.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
         if (__max_slm_items >= _Leaf8::storage_size(__max_wg_size) && __desired_data_per_workitem >= 8)
