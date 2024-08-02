@@ -48,54 +48,44 @@ public:
     static constexpr size_t period_counter_count = n;
 
 private:
-    /* 
-    * Internal state details
-    * [counter_0,..., counter_n, key_0, ..., key_(n/2-1), result_0, .. result_n, idx];
-    */
-    // struct state {
-    //     result_type X[n];
-    //     result_type K[n/2];
-    //     result_type Y[n];
-    //     result_type idx;
-    // } state_; 
-    static constexpr size_t state_size = (n + n/2 + n + 1); // X +  K  + Y + idx
-    using state = ::std::array<result_type, state_size>;
-    state state_;
+    /* Internal generator state */
+    struct state {
+        result_type X[word_count];   //counters
+        result_type K[word_count/2]; //keys
+        result_type Y[word_count];   //results
+        result_type idx;             //index
+    } state_; 
   
     /* Processing mask */
     static constexpr auto in_mask = detail::fffmask<result_type, word_size>;
     static constexpr ::std::size_t array_size = n / 2;
-
-    const auto& ridxref() const {
-        return state_[state_size-1];
-    }
-    auto& ridxref() {
-        return state_[state_size-1];
-    }
     
     void seed_internal(::std::initializer_list<result_type> seed) {
         auto start = seed.begin();
         auto end = seed.end();
-        size_t i = 0;
-        for (i = 0; i < word_count; i++) {
-            state_[i] = 0; // all counters are set to zero
+        // all counters are set to zero
+        for(size_t i = 0; i < word_count; i++) {
+            state_.X[i] = 0;
         }
-        for (; i < word_count+(word_count/2); i++) {
-            state_[i] = (start == end) ? 0 : (*start++) & in_mask; // keys are set as seed
+        // keys are set as seed
+        for (size_t i = 0; i < (word_count/2); i++) {
+            state_.K[i] = (start == end) ? 0 : (*start++) & in_mask;
         }
-        for (; i < word_count+(word_count/2)+(word_count); i++) {
-            state_[i] = 0; // results are set to zero
+        // results are set to zero
+        for (size_t i = 0; i < (word_count); i++) {
+            state_.Y[i] = 0;
         }
-        ridxref() = word_count;
+
+        state_.idx = word_count;
     }
     
     void increase_counter_internal() {
-        state_[0] = (state_[0] + 1) & in_mask;
+        state_.X[0] = (state_.X[0] + 1) & in_mask;
         for (size_t i = 1; i < n; ++i) {
-            if (state_[i - 1]) {
+            if (state_.X[i - 1]) {
                 [[likely]] return;
             }
-            state_[i] = (state_[i] + 1) & in_mask;
+            state_.X[i] = (state_.X[i] + 1) & in_mask;
         }
     }
 
@@ -122,7 +112,7 @@ public:
         auto start = counter.begin();
         auto end = counter.end();
         for (size_t i = 0; i < word_count; i++) {
-            state_[i] = (start == end) ? 0 : (*start++) & in_mask; // all counters are set
+            state_.X[i] = (start == end) ? 0 : (*start++) & in_mask; // all counters are set
         }
     }
 
@@ -135,7 +125,7 @@ public:
 
     /* shift the counter only forward relative to its current position*/
     void discard(unsigned long long z) {
-        result_type curr_idx = ridxref() % word_count;
+        result_type curr_idx = state_.idx % word_count;
         result_type newridx;
 
         newridx = (curr_idx + z) % (word_count);
@@ -149,7 +139,7 @@ public:
             increase_counter_internal();
         }
 
-        ridxref() = newridx;
+        state_.idx = newridx;
     }
     
     // [ToDO] inserters and extractors
@@ -157,7 +147,7 @@ public:
 private:
 
     result_type* operator()(result_type* out) {
-        result_type curr_idx = ridxref();
+        result_type curr_idx = state_.idx;
         if(curr_idx  == word_count) { // empty buffer
             generate();
             increase_counter_internal();
@@ -165,8 +155,8 @@ private:
         }
         
         // There are already generated numebrs in the buffer
-        *out = state_[n + n/2 + curr_idx];
-        ridxref()=++curr_idx;
+        *out = state_.Y[curr_idx];
+        state_.idx=++curr_idx;
 
         return out;
     }
@@ -214,12 +204,12 @@ private:
             ;
         }
         else if constexpr (n == 4) {
-                result_type R0 = (state_[0]) & in_mask;
-                result_type L0 = (state_[1]) & in_mask;
-                result_type R1 = (state_[2]) & in_mask;
-                result_type L1 = (state_[3]) & in_mask;
-                result_type K0 = (state_[4]) & in_mask;
-                result_type K1 = (state_[5]) & in_mask;
+                result_type R0 = (state_.X[0]) & in_mask;
+                result_type L0 = (state_.X[1]) & in_mask;
+                result_type R1 = (state_.X[2]) & in_mask;
+                result_type L1 = (state_.X[3]) & in_mask;
+                result_type K0 = (state_.K[0]) & in_mask;
+                result_type K1 = (state_.K[1]) & in_mask;
                 for (size_t i = 0; i < round_count; ++i) {
                     auto [hi0, lo0] = mulhilo(R0, multipliers[0]);
                     auto [hi1, lo1] = mulhilo(R1, multipliers[1]);
@@ -230,10 +220,10 @@ private:
                     K0 = (K0 + round_consts[0]) & in_mask;
                     K1 = (K1 + round_consts[1]) & in_mask;
                 }
-                state_[6] = R0;
-                state_[7] = L0;
-                state_[8] = R1;
-                state_[9] = L1;
+                state_.Y[0] = R0;
+                state_.Y[1] = L0;
+                state_.Y[2] = R1;
+                state_.Y[3] = L1;
         }
     }
 

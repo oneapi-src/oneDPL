@@ -35,7 +35,7 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     // Memory allocation
     std::vector<result_type> dpstd_samples(NGenSamples);
 
-#if 0
+#if 1
 
     // Random number generation
     {
