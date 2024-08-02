@@ -726,7 +726,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 
         auto __event =
             __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
-                ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+                std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                 std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __max_wg_size);
         return __future(__event, __dummy_result_and_scratch);
     }
@@ -858,7 +858,7 @@ struct __get_zeroth_element
         return std::get<0>(std::forward<_Tp>(__a));
     }
 };
-template <int32_t __offset = 0, typename Assign = oneapi::dpl::__internal::__pstl_assign>
+template <std::int32_t __offset = 0, typename Assign = oneapi::dpl::__internal::__pstl_assign>
 struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>

@@ -732,7 +732,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
 // operations.  We do not want to run this can on CPU targets, as they are not performant with this algorithm.
 template <typename _ExecutionPolicy>
 bool
-__is_best_alg_reduce_then_scan(_ExecutionPolicy&& __exec)
+__is_best_alg_reduce_then_scan(const _ExecutionPolicy& __exec)
 {
     const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
     return (!__exec.queue().get_device().is_cpu() && __dev_has_sg32);
