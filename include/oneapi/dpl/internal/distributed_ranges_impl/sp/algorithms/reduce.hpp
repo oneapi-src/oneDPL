@@ -22,7 +22,6 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/numeric"
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../init.hpp"
 #include "execution_policy.hpp"
@@ -69,11 +68,10 @@ T
 reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
 {
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     using future_t = decltype(reduce_async(__detail::dpl_policy(0), ranges::segments(r)[0].begin(),
                                            ranges::segments(r)[0].end(), init, binary_op));
-
     std::vector<future_t> futures;
 
     for (auto&& segment : ranges::segments(r))

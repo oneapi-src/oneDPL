@@ -20,7 +20,6 @@
 #include <iterator>
 #include <type_traits>
 
-#include "../concepts/concepts.hpp"
 #include "../detail/std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr
@@ -41,7 +40,6 @@ class transform_iterator
 
     transform_iterator(Iter iter, F fn) noexcept : iter_(iter) {}
     transform_iterator() noexcept = default;
-    ~transform_iterator() noexcept = default;
     transform_iterator(const transform_iterator&) noexcept = default;
     transform_iterator&
     operator=(const transform_iterator&) noexcept = default;

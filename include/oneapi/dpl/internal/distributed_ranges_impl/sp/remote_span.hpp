@@ -18,7 +18,6 @@
 
 #include <span>
 
-#include "../concepts/concepts.hpp"
 #include "span.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp

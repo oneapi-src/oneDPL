@@ -17,8 +17,6 @@
 #define _ONEDPL_DR_DETAIL_REMOTE_SUBRANGE_HPP
 
 #include <iterator>
-
-#include "../concepts/concepts.hpp"
 #include "std_ranges_shim.hpp"
 
 namespace oneapi::dpl::experimental::dr

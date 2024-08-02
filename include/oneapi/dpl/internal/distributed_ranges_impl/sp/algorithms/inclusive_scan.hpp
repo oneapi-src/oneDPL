@@ -23,7 +23,6 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/numeric"
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../allocators.hpp"
 #include "../detail.hpp"
@@ -42,13 +41,12 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 {
     using T = stdrng::range_value_t<O>;
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     auto zipped_view = views::zip(r, o);
     auto zipped_segments = zipped_view.zipped_segments();
 
     std::vector<sycl::event> events;
-
     auto root = devices()[0];
     device_allocator<T> allocator(context(), root);
     vector<T, device_allocator<T>> partial_sums(std::size_t(zipped_segments.size()), allocator);
