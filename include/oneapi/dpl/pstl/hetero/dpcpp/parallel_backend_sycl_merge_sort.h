@@ -341,7 +341,7 @@ struct __leaf_sorter_selector
         //        see: "Threads / XVE" (8)
         // Nvidia: https://xmartlabs.github.io/cuda-calculator (they deprecated their official calculator with no alternative):
         //         see: "Active Thread Blocks per Multiprocessor" (6)
-        // https://rocm.docs.amd.com/en/latest/how-to/tuning-guides/mi300x/workload.html#mi300x-occupancy-vgpr-table
+        // AMD: https://rocm.docs.amd.com/en/latest/how-to/tuning-guides/mi300x/workload.html#mi300x-occupancy-vgpr-table
         //         see: "Occupancy per EU" (8)
         const std::uint8_t __oversubscription = __d.is_gpu() ? 8 : 1;
         const auto __max_cu = __d.template get_info<sycl::info::device::max_compute_units>();
