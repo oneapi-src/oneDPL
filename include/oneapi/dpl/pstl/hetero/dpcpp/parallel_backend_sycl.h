@@ -1068,7 +1068,6 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 {
 
     auto __n = __rng.size();
-    // choice between legacy and reduce_then_scan
     if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
         return __parallel_reduce_then_scan_copy(
@@ -1099,7 +1098,6 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
                           _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred)
 {
     auto __n = __rng.size();
-    // choice between legacy and reduce_then_scan
     if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
