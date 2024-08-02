@@ -101,6 +101,12 @@ struct is_zip_view : std::false_type
 {
 };
 
+template <typename... T>
+struct is_zip_view<__ranges::zip_view<T...>> : std::true_type
+{
+};
+
+
 #if (defined _cpp_lib_ranges_zip)
 template <typename... Views>
 struct is_zip_view<stdrng::zip_view<Views...>> : std::true_type

@@ -17,6 +17,7 @@
 #define _ONEDPL_DR_DETAIL_ENUMERATE_HPP
 
 #include "std_ranges_shim.hpp"
+#include "oneapi/dpl/pstl/utils_ranges.h"
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -58,11 +59,11 @@ class enumerate_adapter_closure
         using W = std::conditional_t<std::weakly_incrementable<S>, S, std::size_t>;
         if constexpr (stdrng::sized_range<R>)
         {
-            return stdrng::views::zip(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+            return __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
         }
         else
         {
-            return stdrng::views::zip(stdrng::views::iota(W{0}), std::forward<R>(r));
+            return __ranges::make_zip_view(stdrng::views::iota(W{0}), std::forward<R>(r));
         }
     }
 

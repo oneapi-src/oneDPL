@@ -19,7 +19,7 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-#if __cplusplus > 202002L
+#if __cplusplus > 202001L
 #include "oneapi/dpl/internal/distributed_ranges_impl/concepts.hpp"
 #include "oneapi/dpl/internal/distributed_ranges_impl/sp.hpp"
 #else
