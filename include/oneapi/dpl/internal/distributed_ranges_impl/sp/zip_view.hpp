@@ -24,21 +24,6 @@
 #include "../detail/view_detectors.hpp"
 #include "remote_span.hpp"
 
-namespace oneapi::dpl::experimental::dr
-{
-
-template <typename T>
-struct is_owning_view : std::false_type
-{
-};
-// template <stdrng::range R>
-// struct is_owning_view<stdrng::owning_view<R>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_owning_view_v = is_owning_view<T>{};
-
-}; // namespace oneapi::dpl::experimental::dr
-
 namespace oneapi::dpl::experimental::dr::sp
 {
 
@@ -78,7 +63,6 @@ class zip_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr zip_accessor() noexcept = default;
-    constexpr ~zip_accessor() noexcept = default;
     constexpr zip_accessor(const zip_accessor&) noexcept = default;
     constexpr zip_accessor&
     operator=(const zip_accessor&) noexcept = default;
@@ -195,8 +179,7 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     {
         auto&& view = std::get<I>(views_);
 
-        if constexpr (is_ref_view_v<std::remove_cvref_t<decltype(view)>> ||
-                      is_owning_view_v<std::remove_cvref_t<decltype(view)>>)
+        if constexpr (is_ref_view_v<std::remove_cvref_t<decltype(view)>>)
         {
             return view.base();
         }

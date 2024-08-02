@@ -16,8 +16,6 @@
 #ifndef _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 #define _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP
 
-#include "../concepts/concepts.hpp"
-#include "enumerate.hpp"
 #include "std_ranges_shim.hpp"
 #include "remote_subrange.hpp"
 #include "view_detectors.hpp"
@@ -51,7 +49,8 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
         }
     };
 
-    return enumerate(segments) | stdrng::views::take(last_seg + 1) | stdrng::views::transform(std::move(take_partial));
+    return stdrng::views::enumerate(segments) | stdrng::views::take(last_seg + 1) |
+           stdrng::views::transform(std::move(take_partial));
 }
 
 // Take the first n elements
@@ -97,7 +96,8 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         }
     };
 
-    return enumerate(segments) | stdrng::views::drop(first_seg) | stdrng::views::transform(std::move(drop_partial));
+    return stdrng::views::enumerate(segments) | stdrng::views::drop(first_seg) |
+           stdrng::views::transform(std::move(drop_partial));
 }
 
 // Drop the first n elements
@@ -170,6 +170,6 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
         oneapi::dpl::experimental::dr::ranges::segments(first), size);
 }
 
-} // namespace DR_RANGES_NAMESPACE
+} // namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
 
 #endif /* _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP */

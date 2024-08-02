@@ -42,7 +42,7 @@ transform(ExecutionPolicy&& policy, distributed_range auto&& in, distributed_ite
 {
 
     static_assert( // currently only one policy supported
-        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+        std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     std::vector<sycl::event> events;
     using OutT = typename decltype(out)::value_type;
