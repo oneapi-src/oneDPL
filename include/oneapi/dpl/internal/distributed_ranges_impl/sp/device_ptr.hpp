@@ -38,7 +38,6 @@ requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>) class device_ptr
 
     device_ptr(T* pointer) noexcept : pointer_(pointer) {}
     device_ptr() noexcept = default;
-    ~device_ptr() noexcept = default;
     device_ptr(const device_ptr&) noexcept = default;
     device_ptr&
     operator=(const device_ptr&) noexcept = default;

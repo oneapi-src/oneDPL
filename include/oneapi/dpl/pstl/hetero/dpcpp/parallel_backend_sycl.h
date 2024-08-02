@@ -36,6 +36,8 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "parallel_backend_sycl_reduce.h"
+#include "parallel_backend_sycl_merge.h"
+#include "parallel_backend_sycl_merge_sort.h"
 #include "execution_sycl_defs.h"
 #include "sycl_iterator.h"
 #include "unseq_backend_sycl.h"
@@ -194,19 +196,13 @@ template <typename... _Name>
 class __scan_group_kernel;
 
 template <typename... _Name>
+class __find_or_kernel_one_wg;
+
+template <typename... _Name>
 class __find_or_kernel;
 
 template <typename... _Name>
 class __scan_propagate_kernel;
-
-template <typename... _Name>
-class __sort_leaf_kernel;
-
-template <typename... _Name>
-class __sort_global_kernel;
-
-template <typename... _Name>
-class __sort_copy_back_kernel;
 
 template <typename... _Name>
 class __scan_single_wg_kernel;
@@ -1090,13 +1086,9 @@ struct __early_exit_find_or
               typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
-               const _IterationDataSize __iteration_data_size, _LocalFoundState& __found_local, _BrickTag __brick_tag,
-               _Ranges&&... __rngs) const
+               const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
-        // Calculate the number of elements to be processed by each work-item.
-        const auto __iters_per_work_item =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__source_data_size, __iteration_data_size);
-
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
@@ -1144,49 +1136,73 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
-::std::conditional_t<
-    ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
-    oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
-__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag,
+          typename __FoundStateType, typename _Predicate, typename... _Ranges>
+__FoundStateType
+__parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                               _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __wgroup_size,
+                               const __FoundStateType __init_value, _Predicate __pred, _Ranges&&... __rngs)
 {
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _AtomicType = typename _BrickTag::_AtomicType;
-    using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _BrickTag, _Ranges...>;
-    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
+    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __FoundStateType>;
+    __result_and_scratch_storage_t __result_storage(__exec, 0);
 
-    assert("This device does not support 64-bit atomics" &&
-           (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
+    // Calculate the number of elements to be processed by each work-item.
+    const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
 
-    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-    assert(__rng_n > 0);
+    // main parallel_for
+    auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+        auto __result_acc = __result_storage.__get_result_acc(__cgh);
 
-    // TODO: find a way to generalize getting of reliable work-group size
-    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
-    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
-#endif
+        __cgh.parallel_for<KernelName>(
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__wgroup_size), sycl::range</*dim=*/1>(__wgroup_size)),
+            [=](sycl::nd_item</*dim=*/1> __item_id) {
+                auto __local_idx = __item_id.get_local_id(0);
 
-#if _ONEDPL_FPGA_EMU
-    // Limit the maximum work-group size to minimize the cost of work-group reduction.
-    // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
-    __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
-#endif
-    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+                // 1. Set initial value to local found state
+                __FoundStateType __found_local = __init_value;
 
-    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
+                // 2. Find any element that satisfies pred
+                //  - after this call __found_local may still have initial value:
+                //    1) if no element satisfies pred;
+                //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
+                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __found_local, __brick_tag, __rngs...);
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
+                // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
+                // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
+                // or update state with __dpl_sycl::__any_of_group (for the __parallel_or_tag)
+                // inside all our group items
+                if constexpr (__or_tag_check)
+                    __found_local = __dpl_sycl::__any_of_group(__item_id.get_group(), __found_local);
+                else
+                    __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
+                                                                    typename _BrickTag::_LocalResultsReduceOp{});
 
-    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+                // Set local found state value value to global state to have correct result
+                if (__local_idx == 0)
+                {
+                    __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc)[0] = __found_local;
+                }
+            });
+    });
+
+    // Wait and return result
+    return __result_storage.__wait_and_get_value(__event);
+}
+
+// Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
+          typename _Predicate, typename... _Ranges>
+_AtomicType
+__parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                     _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __n_groups,
+                                     const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
+                                     _Ranges&&... __rngs)
+{
     auto __result = __init_value;
 
-    auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+    // Calculate the number of elements to be processed by each work-item.
+    const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
 
     // scope is to copy data back to __result after destruction of temporary sycl:buffer
     {
@@ -1197,13 +1213,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
             auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
 
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
-            __cgh.parallel_for<_FindOrKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
+            __cgh.parallel_for<KernelName>(
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
                                           sycl::range</*dim=*/1>(__wgroup_size)),
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
@@ -1216,7 +1226,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __n_groups * __wgroup_size, __found_local, __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local,
+                           __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1242,13 +1253,84 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
+    return __result;
+}
+
+// Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+::std::conditional_t<
+    ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
+    oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
+__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
+                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+{
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    using _FindOrKernelOneWG =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel_one_wg, _CustomName,
+                                                                               _Brick, _BrickTag, _Ranges...>;
+    using _FindOrKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
+                                                                               _BrickTag, _Ranges...>;
+
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    assert(__rng_n > 0);
+
+    // TODO: find a way to generalize getting of reliable work-group size
+    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+#if _ONEDPL_FPGA_EMU
+    // Limit the maximum work-group size to minimize the cost of work-group reduction.
+    // Limiting this also helps to avoid huge work-group sizes on some devices (e.g., FPGU emulation).
+    __wgroup_size = std::min(__wgroup_size, (std::size_t)2048);
+#endif
+
+    const auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
+
+    // Pass all small data into single WG implementation
+    constexpr std::size_t __max_iters_per_work_item = 32;
+    if (__rng_n <= __wgroup_size * __max_iters_per_work_item)
+    {
+        __n_groups = 1;
+    }
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
+
+    using _AtomicType = typename _BrickTag::_AtomicType;
+    const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+
+    constexpr bool __or_tag_check = std::is_same_v<_BrickTag, __parallel_or_tag>;
+
+    _AtomicType __result;
+    if (__n_groups == 1)
+    {
+        // We shouldn't have any restrictions for _AtomicType type here
+        // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
+
+        // Single WG implementation
+        __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+            __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
+    }
+    else
+    {
+        assert("This device does not support 64-bit atomics" &&
+               (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
+
+        // Multiple WG implementation
+        __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+            __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
+    }
+
     if constexpr (__or_tag_check)
         return __result != __init_value;
     else
         return __result != __init_value ? __result : __rng_n;
 }
 
-//------------------------------------------------------------------------
 // parallel_or - sync pattern
 //------------------------------------------------------------------------
 
@@ -1414,346 +1496,6 @@ struct __partial_merge_kernel
         }
     }
 };
-
-//Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
-//to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
-//     0   1  1  2   3
-//    ------------------
-//   |--->
-// 0 | 0 | 1  1  1   1
-//   |   |
-// 0 | 0 | 1  1  1   1
-//   |   ---------->
-// 2 | 0   0  0  0 | 1
-//   |             ---->
-// 3 | 0   0  0  0   0 |
-template <typename _Rng1, typename _Rng2, typename _Index, typename _Index1, typename _Index2, typename _Compare>
-auto
-__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _Index1 __n1, _Index2 __n2,
-                   _Compare __comp)
-{
-    _Index1 __start1 = 0;
-    _Index2 __start2 = 0;
-    if (__i_elem < __n2) //a condition to specify upper or lower part of the merge matrix to be processed
-    {
-        auto __q = __i_elem;                            //diagonal index
-        auto __n_diag = ::std::min<_Index2>(__q, __n1); //diagonal size
-
-        //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
-        oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
-                auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                return __zero_or_one < __value;
-            });
-        __start1 = *__res;
-        __start2 = __q - *__res;
-    }
-    else
-    {
-        auto __q = __i_elem - __n2;                            //diagonal index
-        auto __n_diag = ::std::min<_Index1>(__n1 - __q, __n2); //diagonal size
-
-        //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
-        oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable
-            {
-                auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                return __zero_or_one < __value;
-            });
-
-        __start1 = __q + *__res;
-        __start2 = __n2 - *__res;
-    }
-    return std::make_pair(__start1, __start2);
-}
-
-// Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
-// to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
-template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index1, typename _Index2, typename _Index3,
-          typename _Size1, typename _Size2, typename _Compare>
-void
-__serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 __start1, _Index2 __start2,
-               _Index3 __start3, ::std::uint8_t __chunk, _Size1 __n1, _Size2 __n2, _Compare __comp)
-{
-    if (__start1 >= __n1)
-    {
-        //copying a residual of the second seq
-        const auto __n = ::std::min<_Index2>(__n2 - __start2, __chunk);
-        for (::std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng2[__start2 + __i];
-    }
-    else if (__start2 >= __n2)
-    {
-        //copying a residual of the first seq
-        const auto __n = ::std::min<_Index1>(__n1 - __start1, __chunk);
-        for (::std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng1[__start1 + __i];
-    }
-    else
-    {
-        ::std::uint8_t __n = __chunk;
-        for (::std::uint8_t __i = 0; __i < __n && __start1 < __n1 && __start2 < __n2; ++__i)
-        {
-            const auto& __val1 = __rng1[__start1];
-            const auto& __val2 = __rng2[__start2];
-            if (__comp(__val2, __val1))
-            {
-                __rng3[__start3 + __i] = __val2;
-                  if (++__start2 == __n2)
-                  {
-                      //copying a residual of the first seq
-                      for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
-                          __rng3[__start3 + __i] = __rng1[__start1];
-                  }
-            }
-            else
-            {
-                __rng3[__start3 + __i] = __val1;
-                if (++__start1 == __n1)
-                {
-                    //copying a residual of the second seq
-                    for (++__i; __i < __n && __start2 < __n2; ++__i, ++__start2)
-                        __rng3[__start3 + __i] = __rng2[__start2];
-                }
-            }
-        }
-    }
-}
-
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _Name>
-struct __parallel_merge_submitter;
-
-template <typename _IdType, typename... _Name>
-struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
-{
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
-    {
-        using _Size = oneapi::dpl::__internal::__difference_t<_Range3>;
-
-        auto __n1 = __rng1.size();
-        auto __n2 = __rng2.size();
-
-        assert(__n1 > 0 || __n2 > 0);
-
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-        const ::std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
-        const _Size __n = __n1 + __n2;
-        const _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
-
-        auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-
-                const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
-                               __comp);
-            });
-        });
-        return __future(__event);
-    }
-};
-
-template <typename... _Name>
-class __merge_kernel_name;
-
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-auto
-__parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
-                 _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
-{
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-
-    const auto __n = __rng1.size() + __rng2.size();
-    if (__n <= std::numeric_limits<::std::uint32_t>::max())
-    {
-        using _wi_index_type = ::std::uint32_t;
-        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __merge_kernel_name<_CustomName, _wi_index_type>>;
-        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3), __comp);
-    }
-    else
-    {
-        using _wi_index_type = ::std::uint64_t;
-        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __merge_kernel_name<_CustomName, _wi_index_type>>;
-        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3), __comp);
-    }
-}
-
-//-----------------------------------------------------------------------
-// parallel_sort: general implementation
-//-----------------------------------------------------------------------
-struct __leaf_sort_kernel
-{
-    template <typename _Acc, typename _Size1, typename _Compare>
-    void
-    operator()(const _Acc& __acc, const _Size1 __start, const _Size1 __end, _Compare __comp) const
-    {
-        for (_Size1 i = __start; i < __end; ++i)
-        {
-            for (_Size1 j = __start + 1; j < __start + __end - i; ++j)
-            {
-                // forwarding references allow binding of internal tuple of references with rvalue
-                auto&& __first_item = __acc[j - 1];
-                auto&& __second_item = __acc[j];
-                if (__comp(__second_item, __first_item))
-                {
-                    using ::std::swap;
-                    swap(__first_item, __second_item);
-                }
-            }
-        }
-    }
-};
-
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
-struct __parallel_sort_submitter;
-
-template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
-                                 __internal::__optional_kernel_name<_GlobalSortName...>,
-                                 __internal::__optional_kernel_name<_CopyBackName...>>
-{
-    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare>
-    auto
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
-    {
-        using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
-        using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
-
-        const ::std::size_t __n = __rng.size();
-        assert(__n > 1);
-
-        const bool __is_cpu = __exec.queue().get_device().is_cpu();
-        const ::std::uint32_t __leaf = __is_cpu ? 16 : 4;
-        _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
-
-        // 1. Perform sorting of the leaves of the merge sort tree
-        sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-            {
-                const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
-                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
-            });
-        });
-
-        // 2. Merge sorting
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
-        auto __temp = __temp_buf.get_buffer();
-        bool __data_in_temp = false;
-        _IdType __n_sorted = __leaf;
-        const ::std::uint32_t __chunk = __is_cpu ? 32 : 4;
-        __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
-
-        const ::std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        const ::std::int64_t __n_iter = ::std::log2(__n_power2) - ::std::log2(__leaf);
-        for (::std::int64_t __i = 0; __i < __n_iter; ++__i)
-        {
-            __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
-                __cgh.depends_on(__event1);
-
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
-
-                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
-                    {
-                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto __i_elem_local = __i_elem % (__n_sorted * 2);
-
-                        const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
-                        const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
-                        const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
-
-                        if (__data_in_temp)
-                        {
-                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset);
-                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
-
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
-                        }
-                        else
-                        {
-                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset);
-                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
-
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
-                        }
-                    });
-                });
-            __n_sorted *= 2;
-            __data_in_temp = !__data_in_temp;
-        }
-
-        // 3. If the data remained in the temporary buffer then copy it back
-        if (__data_in_temp)
-        {
-            __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-                __cgh.depends_on(__event1);
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
-                // We cannot use __cgh.copy here because of zip_iterator usage
-                __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                    const _IdType __idx = __item_id.get_linear_id();
-                    __rng[__idx] = __temp_acc[__idx];
-                });
-            });
-        }
-
-        return __future(__event1);
-    }
-};
-
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
-auto
-__parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
-                     _Compare __comp)
-{
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-
-    const auto __n = __rng.size();
-    if (__n <= std::numeric_limits<::std::uint32_t>::max())
-    {
-        using _wi_index_type = ::std::uint32_t;
-        using _LeafSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
-        using _GlobalSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
-        using _CopyBackKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
-        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            ::std::forward<_Range>(__rng), __comp);
-    }
-    else
-    {
-        using _wi_index_type = ::std::uint64_t;
-        using _LeafSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
-        using _GlobalSortKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
-        using _CopyBackKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
-        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            ::std::forward<_Range>(__rng), __comp);
-    }
-}
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _GlobalSortName, typename _CopyBackName>

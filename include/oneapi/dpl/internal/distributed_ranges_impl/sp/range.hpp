@@ -16,7 +16,6 @@
 #ifndef _ONEDPL_DR_SP_RANGE_HPP
 #define _ONEDPL_DR_SP_RANGE_HPP
 
-#include "../concepts/concepts.hpp"
 #include "distributed_span.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
@@ -80,7 +79,6 @@ class segment_range_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr segment_range_accessor() noexcept = default;
-    constexpr ~segment_range_accessor() noexcept = default;
     constexpr segment_range_accessor(const segment_range_accessor&) noexcept = default;
     constexpr segment_range_accessor&
     operator=(const segment_range_accessor&) noexcept = default;

@@ -22,7 +22,6 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/numeric"
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/onedpl_direct_iterator.hpp"
 #include "../allocators.hpp"
 #include "../detail.hpp"
@@ -41,7 +40,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 {
     using T = stdrng::range_value_t<O>;
 
-    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, distributed_device_policy>);
+    static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     auto zipped_view = views::zip(r, o);
     auto zipped_segments = zipped_view.zipped_segments();

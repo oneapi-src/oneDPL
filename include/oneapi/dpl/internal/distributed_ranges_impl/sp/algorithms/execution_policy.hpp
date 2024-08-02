@@ -23,15 +23,15 @@
 namespace oneapi::dpl::experimental::dr::sp
 {
 
-struct distributed_device_policy
+struct sycl_device_collection
 {
-    distributed_device_policy(sycl::device device) : devices_({device}) {}
-    distributed_device_policy(sycl::queue queue) : devices_({queue.get_device()}) {}
+    sycl_device_collection(sycl::device device) : devices_({device}) {}
+    sycl_device_collection(sycl::queue queue) : devices_({queue.get_device()}) {}
 
-    distributed_device_policy() : devices_({sycl::queue{}.get_device()}) {}
+    sycl_device_collection() : devices_({sycl::queue{}.get_device()}) {}
 
     template <stdrng::range R>
-    requires(std::is_same_v<stdrng::range_value_t<R>, sycl::device>) distributed_device_policy(R&& devices)
+    requires(std::is_same_v<stdrng::range_value_t<R>, sycl::device>) sycl_device_collection(R&& devices)
         : devices_(stdrng::begin(devices), stdrng::end(devices))
     {
     }

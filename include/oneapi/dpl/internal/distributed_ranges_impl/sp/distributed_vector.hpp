@@ -52,7 +52,6 @@ class distributed_vector_accessor
     using nonconst_iterator_accessor = iterator_accessor;
 
     constexpr distributed_vector_accessor() noexcept = default;
-    constexpr ~distributed_vector_accessor() noexcept = default;
     constexpr distributed_vector_accessor(const distributed_vector_accessor&) noexcept = default;
     constexpr distributed_vector_accessor&
     operator=(const distributed_vector_accessor&) noexcept = default;

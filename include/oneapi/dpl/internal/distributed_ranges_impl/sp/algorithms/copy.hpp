@@ -20,7 +20,6 @@
 #include <sycl/sycl.hpp>
 #include <type_traits>
 
-#include "../../concepts/concepts.hpp"
 #include "../../detail/segments_tools.hpp"
 #include "../detail.hpp"
 #include "../device_ptr.hpp"
