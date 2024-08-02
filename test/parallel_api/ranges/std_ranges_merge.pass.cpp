@@ -22,15 +22,15 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{});
+    test_range_algo<0, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{});
 
-    test_range_algo<int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, proj, proj);
-    test_range_algo<P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::x, &P2::x);
-    test_range_algo<P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::proj, &P2::proj);
+    test_range_algo<1, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, proj, proj);
+    test_range_algo<2, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::x, &P2::x);
+    test_range_algo<3, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::proj, &P2::proj);
 
-    test_range_algo<int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, proj, proj);
-    test_range_algo<P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::x, &P2::x);
-    test_range_algo<P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::proj, &P2::proj);
+    test_range_algo<4, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, proj, proj);
+    test_range_algo<5, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::x, &P2::x);
+    test_range_algo<6, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::proj, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);

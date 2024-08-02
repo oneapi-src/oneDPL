@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy,  std::ranges::copy);
+    test_range_algo<0, int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy,  std::ranges::copy);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
