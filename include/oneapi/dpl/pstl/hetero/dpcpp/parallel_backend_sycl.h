@@ -924,7 +924,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
                     ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
             }
         }
-        if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
+        if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
         {
             using _GenInput = oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>;
             using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
@@ -1074,7 +1074,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 {
 
     auto __n = __rng.size();
-    if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
+    if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1, _Assign>;
@@ -1104,7 +1104,7 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
                           _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred)
 {
     auto __n = __rng.size();
-    if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
+    if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
         using _WriteOp =
@@ -1157,7 +1157,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
             _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
             std::forward<_OutRng>(__out_rng), __pred, std::forward<_Assign>(__assign));
     }
-    else if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
+    else if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, _Assign>;
