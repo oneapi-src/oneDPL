@@ -148,8 +148,8 @@ struct iter_mode
     // for zip_iterator
     template <typename... Iters>
     auto
-    operator()(const oneapi::dpl::zip_iterator<Iters...>& it) -> decltype(oneapi::dpl::__internal::map_zip(*this,
-                                                                                                           it.base()))
+    operator()(const oneapi::dpl::zip_iterator<Iters...>& it)
+        -> decltype(oneapi::dpl::__internal::map_zip(*this, it.base()))
     {
         return oneapi::dpl::__internal::map_zip(*this, it.base());
     }
@@ -1743,8 +1743,8 @@ struct __is_radix_sort_usable_for_type
     static constexpr bool value =
 #if _USE_RADIX_SORT
         (::std::is_arithmetic_v<_T> || ::std::is_same_v<sycl::half, _T>) &&
-        (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
-         __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
+            (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
+            __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
 #else
         false;
 #endif
