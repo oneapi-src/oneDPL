@@ -86,14 +86,14 @@ struct __group_merge_path_sorter
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
-            const auto& __in = __storage.begin() + __data_in_temp * __sorted_final;
-            const auto& __out = __storage.begin() + (!__data_in_temp) * __sorted_final;
-            const auto& __in1 = __in + __start1;
-            const auto& __in2 = __in + __start2;
+            const auto& __it_in = __storage.begin() + __data_in_temp * __sorted_final;
+            const auto& __it_out = __storage.begin() + (!__data_in_temp) * __sorted_final;
+            const auto& __in1 = __it_in + __start1;
+            const auto& __in2 = __it_in + __start2;
 
             const auto __start = __find_start_point(__in1, __in2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
-            __serial_merge(__in1, __in2, __out, __start.first, __start.second, __id, __data_per_workitem, __n1, __n2,
+            __serial_merge(__in1, __in2, __it_out, __start.first, __start.second, __id, __data_per_workitem, __n1, __n2,
                            __comp);
             __dpl_sycl::__group_barrier(__item);
 
