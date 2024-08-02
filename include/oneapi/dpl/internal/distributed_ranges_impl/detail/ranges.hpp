@@ -345,7 +345,8 @@ struct local_or_identity_fn_
         return ranges::local(t);
     }
 
-    template <typename T> auto
+    template <typename T>
+    auto
     operator()(T&& t) const
     {
         return std::forward<T>(t);
