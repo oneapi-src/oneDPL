@@ -45,6 +45,47 @@ constexpr auto get_odd_array_from_tuple(Tuple t, std::index_sequence<Is...>) {
     return std::array<UIntType, std::index_sequence<Is...>::size()>{ std::get<Is * 2 + 1>(t)... };
 }
 
+// Implement w-bit mulhilo with an 2w-wide integer - returns
+// the w hi and w low bits of the 2w-bit product of a and b.
+template <typename UIntType, unsigned W>
+static std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
+{
+    using result_type = UIntType;
+
+    result_type res_hi, res_lo;
+    /* multiplication fits standard types */
+    if(W <= 32) {
+        uint_fast64_t mult_result = (uint_fast64_t)a * (uint_fast64_t)b;
+        res_hi = mult_result >> W;
+        res_lo =  mult_result & detail::fffmask<result_type, W>;
+    }
+    /* pen-pencil multiplication by 32-bit chunks */
+    else if(W == 64) {
+        res_lo = a * b;
+
+        result_type x0 = a & detail::fffmask<result_type, 32>;
+        result_type x1 = a >> 32;
+        result_type y0 = b & detail::fffmask<result_type, 32>;
+        result_type y1 = b >> 32;
+
+        result_type p11 = x1 * y1;
+        result_type p01 = x0 * y1;
+        result_type p10 = x1 * y0;
+        result_type p00 = x0 * y0;
+
+        // 64-bit product + two 32-bit values
+        result_type middle = p10 + (p00 >> 32) + (p01 & detail::fffmask<result_type, 32>);
+
+        // 64-bit product + two 32-bit values
+        res_hi = p11 + (middle >> 32) + (p01 >> 32);
+    }
+    /* Other types are proceeds school multiplication - not supported yet */
+    else {
+        ; 
+    }
+    
+    return { res_hi, res_lo };
+}
 } // namespace detail
 
 #endif // _ONEDPL_CTR_ENGINES_STUFF_H
