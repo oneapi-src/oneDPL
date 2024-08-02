@@ -22,10 +22,10 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred);
-    test_range_algo<int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, proj);
-    test_range_algo<P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::x);
-    test_range_algo<P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::proj);
+    test_range_algo<0, int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred);
+    test_range_algo<1, int, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, proj);
+    test_range_algo<2, P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::x);
+    test_range_algo<3, P2, data_in_out, /*RetTypeCheck*/false>{}(dpl_ranges::copy_if,  std::ranges::copy_if, pred, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
