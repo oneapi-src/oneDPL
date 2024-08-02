@@ -48,11 +48,12 @@ class enumerate_adapter_closure
 {
   public:
     template <stdrng::viewable_range R>
-    requires(stdrng::sized_range<R>&& has_segments_method<R>) auto
+    requires(stdrng::sized_range<R>) auto
     operator()(R&& r) const
     {
-        using V = std::uint32_t;
-        return zip_view(stdrng::views::iota(V(0), V(stdrng::size(r))), std::forward<R>(r));
+        using IntT = std::uint32_t;
+        return zip_view(stdrng::views::iota(static_cast<IntT>(0), static_cast<IntT>(stdrng::size(r))),
+                        std::forward<R>(r));
     }
 
     template <stdrng::viewable_range R>
@@ -66,7 +67,7 @@ class enumerate_adapter_closure
 class enumerate_fn_
 {
   public:
-    template <dr::distributed_range R>
+    template <stdrng::viewable_range R>
     constexpr auto
     operator()(R&& r) const
     {
