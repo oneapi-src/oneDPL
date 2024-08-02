@@ -148,8 +148,8 @@ struct iter_mode
     // for zip_iterator
     template <typename... Iters>
     auto
-    operator()(const oneapi::dpl::zip_iterator<Iters...>& it)
-        -> decltype(oneapi::dpl::__internal::map_zip(*this, it.base()))
+    operator()(const oneapi::dpl::zip_iterator<Iters...>& it) -> decltype(oneapi::dpl::__internal::map_zip(*this,
+                                                                                                           it.base()))
     {
         return oneapi::dpl::__internal::map_zip(*this, it.base());
     }
@@ -926,11 +926,16 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
         if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
         {
-            oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation> __gen_transform{__unary_op};
+            using _GenInput = oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>;
+            using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
+            using _WriteOp = oneapi::dpl::__par_backend_hetero::__simple_write_to_idx;
+
+            _GenInput __gen_transform{__unary_op};
+
             return __parallel_transform_reduce_then_scan(
                 __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
-                oneapi::dpl::__internal::__no_op{}, __simple_write_to_idx{}, __init, _Inclusive{},
+                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
+                _WriteOp{}, __init, _Inclusive{},
                 /*_IsUniquePattern=*/std::false_type{});
         }
     }
@@ -1007,14 +1012,15 @@ __parallel_reduce_then_scan_copy(oneapi::dpl::__internal::__device_backend_tag _
                                  _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask,
                                  _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
 {
+    using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
     using _ReduceOp = std::plus<_Size>;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>;
+    using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_zeroth_element;
+
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-        std::forward<_OutRng>(__out_rng),
-        oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
-        oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
-        oneapi::dpl::__par_backend_hetero::__get_zeroth_element{}, __write_op,
-        oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+        std::forward<_OutRng>(__out_rng), _GenReduceInput{__generate_mask}, _ReduceOp{}, _GenScanInput{__generate_mask},
+        _ScanInputTransform{}, __write_op, oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
         /*_Inclusive=*/std::true_type{}, __is_unique_pattern);
 }
 
@@ -1070,12 +1076,13 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
     auto __n = __rng.size();
     if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
-        return __parallel_reduce_then_scan_copy(
-            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-            std::forward<_Range2>(__result), __n,
-            oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>{__pred},
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1>{std::forward<_Assign>(__assign)},
-            /*_IsUniquePattern=*/std::true_type{});
+        using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
+        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1, _Assign>;
+
+        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
+                                                _GenMask{__pred}, _WriteOp{std::forward<_Assign>(__assign)},
+                                                /*_IsUniquePattern=*/std::true_type{});
     }
     else
     {
@@ -1086,9 +1093,8 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
                                                            decltype(__n)>
             __create_mask_op{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}};
 
-        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                    std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                    __create_mask_op, __copy_by_mask_op);
+        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                    std::forward<_Range2>(__result), __n, __create_mask_op, __copy_by_mask_op);
     }
 }
 
@@ -1100,11 +1106,13 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
     auto __n = __rng.size();
     if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
+        using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
+        using _WriteOp =
+            oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else<oneapi::dpl::__internal::__pstl_assign>;
+
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>{__pred},
-                                                oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else{},
-                                                /*_IsUniquePattern=*/std::false_type{});
+                                                _GenMask{__pred}, _WriteOp{}, /*_IsUniquePattern=*/std::false_type{});
     }
     else
     {
@@ -1113,9 +1121,8 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
         unseq_backend::__create_mask<_UnaryPredicate, decltype(__n)> __create_mask_op{__pred};
         unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ std::true_type> __partition_by_mask{_ReduceOp{}};
 
-        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                    std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                    __create_mask_op, __partition_by_mask);
+        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                    std::forward<_Range2>(__result), __n, __create_mask_op, __partition_by_mask);
     }
 }
 
@@ -1152,19 +1159,12 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     }
     else if (oneapi::dpl::__par_backend_hetero::__is_best_alg_reduce_then_scan(__exec))
     {
-        using _ReduceOp = std::plus<_Size>;
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
-        _GenMask __generate_mask{__pred};
+        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, _Assign>;
 
-        return __parallel_transform_reduce_then_scan(
-            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-            std::forward<_OutRng>(__out_rng),
-            oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>{__generate_mask}, _ReduceOp{},
-            oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>{__generate_mask},
-            oneapi::dpl::__par_backend_hetero::__get_zeroth_element{},
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, _Assign>{std::forward<_Assign>(__assign)},
-            oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-            /*_Inclusive=*/std::true_type{}, /*Unique=*/std::false_type{});
+        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
+                                                _GenMask{__pred}, _WriteOp{}, /*Unique=*/std::false_type{});
     }
     else
     {
@@ -1743,8 +1743,8 @@ struct __is_radix_sort_usable_for_type
     static constexpr bool value =
 #if _USE_RADIX_SORT
         (::std::is_arithmetic_v<_T> || ::std::is_same_v<sycl::half, _T>) &&
-            (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
-            __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
+        (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
+         __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
 #else
         false;
 #endif
