@@ -75,7 +75,9 @@ struct __group_merge_path_sorter
 
         bool __data_in_temp = false;
         std::uint32_t __next_sorted = __sorted * 2;
-        std::int16_t __iters = std::log2(__sorted_final) - std::log2(__sorted);
+        // ctz precisely calculates log2 of an integral value which is a power of 2, while
+        // std::log2 may be prone to rounding errors on some architectures
+        std::int16_t __iters = sycl::ctz(__sorted_final) - sycl::ctz(__sorted);
         for (std::int16_t __i = 0; __i < __iters; ++__i)
         {
             const std::uint32_t __id_local = __id % __next_sorted;
@@ -228,6 +230,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         assert(__n > 1);
 
         const std::uint32_t __leaf = __leaf_sorter.__process_size;
+        assert((__leaf & (__leaf - 1)) == 0 && "Leaf size must be a power of 2");
+
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
@@ -249,7 +253,9 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        const std::int64_t __n_iter = std::log2(__n_power2) - std::log2(__leaf);
+        // ctz precisely calculates log2 of an integral value which is a power of 2, while
+        // std::log2 may be prone to rounding errors on some architectures
+        const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf);
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
