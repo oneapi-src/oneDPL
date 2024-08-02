@@ -9,7 +9,7 @@
 #include "../init.hpp"
 #include "../util.hpp"
 #include "../views/views.hpp"
-#include "../zip_view.hpp"
+#include "../views/zip.hpp"
 #include "fill.hpp"
 #include "reduce.hpp"
 

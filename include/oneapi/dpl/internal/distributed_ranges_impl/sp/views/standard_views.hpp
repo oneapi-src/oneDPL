@@ -19,7 +19,7 @@
 #include "../../detail/segments_tools.hpp"
 #include "../../views/transform.hpp"
 #include "../distributed_span.hpp"
-#include "../zip_view.hpp"
+#include "../views/zip.hpp"
 #include "enumerate.hpp"
 
 #endif /* _ONEDPL_DR_SP_VIEWS_STANDARD_VIEWS_HPP */

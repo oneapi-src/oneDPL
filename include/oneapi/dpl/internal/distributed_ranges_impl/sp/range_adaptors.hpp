@@ -17,7 +17,7 @@
 #define _ONEDPL_DR_SP_RANGE_ADAPTORS_HPP
 
 #include "views/standard_views.hpp"
-#include "zip_view.hpp"
+#include "views/zip.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {

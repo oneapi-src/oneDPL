@@ -21,7 +21,7 @@
 #include "../detail.hpp"
 #include "../init.hpp"
 #include "../util.hpp"
-#include "../zip_view.hpp"
+#include "../views/zip.hpp"
 #include "execution_policy.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp

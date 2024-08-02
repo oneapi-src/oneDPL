@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
 #define _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
 
-#include "../zip_view.hpp"
+#include "../views/zip.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
