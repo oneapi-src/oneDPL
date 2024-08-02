@@ -18,8 +18,7 @@
 // Header file provides stuff functionality for counter-based RNG engines.
 //
 //   fffmask<Uint, w> - the Uint with the low w bits set
-//   mulhilo<w, Uint> -> pair<U, U> - returns the w hi
-//       and w low bits of the 2w-bit product of a and b.
+
 
 #ifndef _ONEDPL_CTR_ENGINES_STUFF_H
 #define _ONEDPL_CTR_ENGINES_STUFF_H
@@ -31,29 +30,6 @@
 #include <limits>
 
 namespace detail {
-
-
-
-// template <unsigned W, typename U> 
-// static std::pair<U, U> mulhilo(U a, U b) {
-//     static_assert(::std::is_unsigned_v<U>);
-
-//     if constexpr (std::is_same_v<U, uint_fast32_t>) {
-//         using uwide = __uint64_t;
-//         const size_t xwidth = std::numeric_limits<uwide>::digits;
-//         uwide ab = uwide(a) * uwide(b);
-//         return { U(ab >> W), U((ab << (xwidth - W)) >> (xwidth - W)) };
-//     }
-//     else {
-//         U lo = a*b;
-
-//         __uint32_t tmp = ((__uint32_t)a * (__uint32_t)(b>>32) +(__uint32_t)b * (__uint32_t)(a>>32)) >> 32;
-//         U hi = (__uint32_t)(b>>32)*(__uint32_t)(a>>32)+tmp;
-
-//         return { lo, hi };
-//     }
-// }
-
 template <typename U, unsigned W,
           typename = ::std::enable_if_t<std::is_unsigned_v<U> && (W <= std::numeric_limits<U>::digits)>>
 constexpr U fffmask = W ? (U(~(U(0))) >> (std::numeric_limits<U>::digits - W)) : 0;

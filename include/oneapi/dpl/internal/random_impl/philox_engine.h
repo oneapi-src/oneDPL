@@ -170,61 +170,70 @@ private:
 
         return out;
     }
-    using uint_types = std::tuple<std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t>;
-    using promotion_types = std::tuple<std::uint16_t, std::uint32_t, std::uint64_t, __uint128_t>;
-
-    static constexpr std::size_t log2(std::size_t val)
+    // Implement w-bit mulhilo with an 2w-wide integer - returns
+    // the w hi and w low bits of the 2w-bit product of a and b.
+    static std::pair<result_type, result_type> mulhilo(result_type a, result_type b)
     {
-        return ((val <= 2) ? 1 : 1 + log2(val / 2));
-    }
+        result_type res_hi, res_lo;
+        /* multiplication fits standard types */
+        if(word_size <= 32) {
+            uint_fast64_t mult_result = (uint_fast64_t)a * (uint_fast64_t)b;
+            res_hi = mult_result >> word_size;
+            res_lo =  mult_result & in_mask;
+        }
+        /* pen-pencil multiplication by 32-bit chunks */
+        else if(word_size == 64) {
+            res_lo = a * b;
 
-    static constexpr std::size_t ceil_log2(std::size_t val)
-    {
-        std::size_t additive = static_cast<std::size_t>(!std::__has_single_bit(val));
+            result_type x0 = a & detail::fffmask<result_type, 32>;
+            result_type x1 = a >> 32;
+            result_type y0 = b & detail::fffmask<result_type, 32>;
+            result_type y1 = b >> 32;
 
-        return log2(val) + additive;
-    }
-    using counter_type = std::tuple_element_t<ceil_log2(w / CHAR_BIT), uint_types>;
-    using promotion_type = std::tuple_element_t<ceil_log2(w / CHAR_BIT), promotion_types>;
+            result_type p11 = x1 * y1;
+            result_type p01 = x0 * y1;
+            result_type p10 = x1 * y0;
+            result_type p00 = x0 * y0;
 
-    static constexpr counter_type counter_mask = ~counter_type(0) >> (sizeof(counter_type) * CHAR_BIT - w);
-    static constexpr result_type result_mask = ~result_type(0) >> (sizeof(result_type) * CHAR_BIT - w);
+            // 64-bit product + two 32-bit values
+            result_type middle = p10 + (p00 >> 32) + (p01 & detail::fffmask<result_type, 32>);
+
+            // 64-bit product + two 32-bit values
+            res_hi = p11 + (middle >> 32) + (p01 >> 32);
+        }
+        /* Other types are proceeds school multiplication - not supported yet */
+        else {
+            ; 
+        }
         
-    // Implement w-bit mulhilo with an 2w-wide integer.
-    static std::pair<counter_type, counter_type> mulhilo(result_type a, result_type b)
-    {
-        constexpr std::size_t shift = std::numeric_limits<promotion_type>::digits - w;
-        promotion_type promoted_a = a;
-        promotion_type promoted_b = b;
-        promotion_type result = promoted_a * promoted_b;
-        counter_type mulhi = result >> shift;
-        counter_type mullo = (result << shift) >> shift;
-        return {mulhi, mullo};
+        return { res_hi, res_lo };
     }
-
 
     void generate() {
-        if constexpr (n == 4) {
-                result_type R0 = (state_[0]) & in_mask; // X
-                result_type L0 = (state_[1]) & in_mask; // X
-                result_type R1 = (state_[2]) & in_mask; // X
-                result_type L1 = (state_[3]) & in_mask; // X
-                result_type K0 = (state_[4]) & in_mask; // K
-                result_type K1 = (state_[5]) & in_mask; // K
+        if constexpr (n == 2) {
+            ;
+        }
+        else if constexpr (n == 4) {
+                result_type R0 = (state_[0]) & in_mask;
+                result_type L0 = (state_[1]) & in_mask;
+                result_type R1 = (state_[2]) & in_mask;
+                result_type L1 = (state_[3]) & in_mask;
+                result_type K0 = (state_[4]) & in_mask;
+                result_type K1 = (state_[5]) & in_mask;
                 for (size_t i = 0; i < round_count; ++i) {
-                    auto [hi0, lo0] = mulhilo(R0, multipliers[0]); // M0
-                    auto [hi1, lo1] = mulhilo(R1, multipliers[1]); // M1
-                    R0 = hi1 ^ L0 ^ K0; //X1, 
-                    L0 = lo1;           //X2
-                    R1 = hi0 ^ L1 ^ K1; //X3 
-                    L1 = lo0;           //X0 
-                    K0 = (K0 + round_consts[0]) & in_mask; // C0
-                    K1 = (K1 + round_consts[1]) & in_mask; // C1
+                    auto [hi0, lo0] = mulhilo(R0, multipliers[0]);
+                    auto [hi1, lo1] = mulhilo(R1, multipliers[1]);
+                    R0 = hi1 ^ L0 ^ K0;
+                    L0 = lo1;
+                    R1 = hi0 ^ L1 ^ K1; 
+                    L1 = lo0; 
+                    K0 = (K0 + round_consts[0]) & in_mask;
+                    K1 = (K1 + round_consts[1]) & in_mask;
                 }
-                state_[6] = R0;  // Y0
-                state_[7] = L0;  // Y1
-                state_[8] = R1;  // Y2
-                state_[9] = L1;  // Y3
+                state_[6] = R0;
+                state_[7] = L0;
+                state_[8] = R1;
+                state_[9] = L1;
         }
     }
 

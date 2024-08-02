@@ -34,8 +34,8 @@ int main() {
     err += test<oneapi::dpl::philox4x32, 10000, 1>(queue) != philox4_32_ref;
     std::cout << "\t\texpected: " << philox4_32_ref << std::endl;
     // Generate 10 000th element for philox4_64
-    // err += test<oneapi::dpl::philox4x64, 10000, 1>(queue) != philox4_64_ref;
-    // std::cout << "\t\texpected: " << philox4_64_ref << std::endl;
+    err += test<oneapi::dpl::philox4x64, 10000, 1>(queue) != philox4_64_ref;
+    std::cout << "\t\texpected: " << philox4_64_ref << std::endl;
 
     EXPECT_TRUE(!err, "Test FAILED");
 

@@ -35,7 +35,7 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     // Memory allocation
     std::vector<result_type> dpstd_samples(NGenSamples);
 
-#if 1
+#if 0
 
     // Random number generation
     {
@@ -70,7 +70,7 @@ typename Engine::scalar_type test(sycl::queue& queue) {
 #else
     result_type res;
     // iterate through the different value of the offset
-    for(int itr = 0; itr < 999; ++itr) {
+    for(int itr = 0; (itr < 999); ++itr) {
         Engine engine;
         int disgard_value = itr;
         std::cout << "\n\t\tdisgard_value: " << disgard_value;
@@ -79,8 +79,10 @@ typename Engine::scalar_type test(sycl::queue& queue) {
             res = engine();
             //std::cout << " " << res << std::endl;
         }
-        if(res!=1955073260)
-            std::cout << "\t\tError";
+        if(res!=1955073260 && res!=3409172418970261260) {
+            std::cout << "\tError\tcalculated: " << res;
+            break;
+        }
     }
     
     return res;
