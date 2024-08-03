@@ -94,8 +94,8 @@ struct __group_merge_path_sorter
 
             const auto __start = __find_start_point(__in_it1, __in_it2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
-            __serial_merge(__in_it1, __in_it2, __out_it, __start.first, __start.second, __id, __data_per_workitem,
-                           __n1, __n2, __comp);
+            __serial_merge(__in_it1, __in_it2, __out_it, __start.first, __start.second, __id, __data_per_workitem, __n1,
+                           __n2, __comp);
             __dpl_sycl::__group_barrier(__item);
 
             __sorted = __next_sorted;
@@ -218,8 +218,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp,
-               _LeafSorter& __leaf_sorter) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -323,11 +322,12 @@ class __sort_global_kernel;
 template <typename... _Name>
 class __sort_copy_back_kernel;
 
-template<typename _IndexT>
+template <typename _IndexT>
 struct __parallel_sort_submitter_caller
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorterT>
-    auto operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorterT& __leaf_sorter)
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorterT& __leaf_sorter)
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
@@ -343,13 +343,13 @@ struct __parallel_sort_submitter_caller
             __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI>>;
 
         return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            std::forward<_ExecutionPolicy>(__exec),
-            std::forward<_Range>(__rng), __comp, __leaf_sorter);
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __comp, __leaf_sorter);
     }
 };
 
 template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
-auto __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+auto
+__submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     // 8 is the maximum reasonable value for bubble sub-group sorter due to algorithm complexity
     // TODO: reconsider the value if another algorithm is used,
@@ -426,8 +426,8 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     }
     else
     {
-        return __submit_selecting_leaf<std::size_t>(std::forward<_ExecutionPolicy>(__exec),
-                                                    std::forward<_Range>(__rng), __comp);
+        return __submit_selecting_leaf<std::size_t>(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng),
+                                                    __comp);
     }
 }
 
