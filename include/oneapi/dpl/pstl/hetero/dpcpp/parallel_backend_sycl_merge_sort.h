@@ -131,7 +131,7 @@ struct __leaf_sorter
         __storage = _Storage(storage_size(__workgroup_size), __cgh);
     }
 
-    __leaf_sorter(_Range& __rng, _Compare __comp, std::uint32_t __workgroup_size)
+    __leaf_sorter(const _Range& __rng, _Compare __comp, std::uint32_t __workgroup_size)
         : __rng(__rng), __comp(__comp), __n(__rng.size()), __workgroup_size(__workgroup_size),
           __process_size(__data_per_workitem * __workgroup_size), __sub_group_sorter(), __group_sorter()
     {
@@ -376,7 +376,7 @@ auto __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare
     }
     // Assume CPUs handle one sub-group (SIMD) per CU;
     // Assume GPUs handle multiple sub-groups per CU,
-    // while the maximum work-group size also includes hardware multithreading (occupancy)
+    // while the maximum work-group size takes hardware multithreading (occupancy) into account
     const std::size_t __max_hw_wg_size = __is_cpu ? __max_sg_size : __max_wg_size;
     const auto __max_cu = __device.template get_info<sycl::info::device::max_compute_units>();
     const auto __saturation_point = __max_cu * __max_hw_wg_size;
