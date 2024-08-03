@@ -21,7 +21,6 @@
 #include <cassert>     // assert
 #include <utility>     // std::swap
 #include <cstdint>     // std::uint32_t, ...
-#include <variant>     // std::variant, std::visit
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
 
@@ -217,9 +216,9 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
     auto
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp,
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp,
                _LeafSorter& __leaf_sorter) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -315,71 +314,6 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
     }
 };
 
-template <typename _Range, typename _Compare>
-struct __leaf_sorter_selector
-{
-    // 8 is the maximum reasonable value for bubble sub-group sorter due to algorithm complexity
-    // TODO: reconsider the value if another algorithm is used,
-    //       or an internal cap is set (e.g. sorting 2 sequences of 4/8 items each)
-    using _Leaf8 = __leaf_sorter<8, _Range, _Compare>;
-    using _Leaf4 = __leaf_sorter<4, _Range, _Compare>;
-    // 2 is the smallest reasonable value for merge-path group sorter since it loads 2 values at least
-    using _Leaf2 = __leaf_sorter<2, _Range, _Compare>;
-
-    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
-
-    std::variant<_Leaf8, _Leaf4, _Leaf2>
-    select(const sycl::queue& __q, _Range& __rng, _Compare __comp) const
-    {
-        const std::size_t __n = __rng.size();
-        auto&& __d = __q.get_device();
-
-        const std::size_t __max_wg_size = __d.template get_info<sycl::info::device::max_work_group_size>();
-        std::size_t __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__max_wg_size);
-
-        const bool __is_cpu = __d.is_cpu();
-        std::uint32_t __max_sg_size{};
-        if (__is_cpu)
-        {
-            const auto __sg_sizes = __d.template get_info<sycl::info::device::sub_group_sizes>();
-            __max_sg_size = __sg_sizes.empty() ? 1 : *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
-        }
-        // Assume CPUs handle one sub-group (SIMD) per CU;
-        // Assume GPUs handle multiple sub-groups per CU,
-        // while the maximum work-group size also includes hardware multithreading (occupancy)
-        const std::size_t __max_hw_wg_size = __is_cpu ? __max_sg_size : __max_wg_size;
-        const auto __max_cu = __d.template get_info<sycl::info::device::max_compute_units>();
-        const auto __saturation_point = __max_cu * __max_hw_wg_size;
-        const auto __desired_data_per_workitem = __n / __saturation_point;
-
-        // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
-        // TODO: investigate if the adjustment can be less conservative
-        const std::size_t __max_slm_items =
-            __d.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
-        if (__max_slm_items >= _Leaf8::storage_size(__wg_size) && __desired_data_per_workitem >= 8)
-        {
-            return _Leaf8(__rng, __comp, __wg_size);
-        }
-        else if (__max_slm_items >= _Leaf4::storage_size(__wg_size) && __desired_data_per_workitem >= 4)
-        {
-            return _Leaf4(__rng, __comp, __wg_size);
-        }
-        else if (__max_slm_items >= _Leaf2::storage_size(__wg_size) && __desired_data_per_workitem >= 2)
-        {
-            return _Leaf2(__rng, __comp, __wg_size);
-        }
-        else
-        {
-            std::size_t __slm_max_wg_size = __max_slm_items / _Leaf2::storage_size(1);
-            // __n is taken as is because of the bit floor and processing 2 items per work-item
-            // hence the processed size always fits a single work-group if __n is chosen
-            __wg_size = std::min<std::size_t>({__wg_size, __slm_max_wg_size, __n});
-            __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__wg_size);
-            return _Leaf2(__rng, __comp, __wg_size);
-        }
-    }
-};
-
 template <typename... _Name>
 class __sort_leaf_kernel;
 
@@ -389,46 +323,112 @@ class __sort_global_kernel;
 template <typename... _Name>
 class __sort_copy_back_kernel;
 
+template<typename _IndexT>
+struct __parallel_sort_submitter_caller
+{
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorterT>
+    auto operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorterT& __leaf_sorter)
+    {
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+        using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
+        // TODO: split the submitter into multiple ones to avoid extra compilation of kernels
+        // - _LeafSortKernel does not need _IndexT
+        // - _GlobalSortKernel does not need _LeafDPWI
+        // - _CopyBackKernel does not need either of them
+        using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_leaf_kernel<_CustomName, _IndexT, _LeafDPWI>>;
+        using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_global_kernel<_CustomName, _IndexT, _LeafDPWI>>;
+        using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI>>;
+
+        return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+            std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_Range>(__rng), __comp, __leaf_sorter);
+    }
+};
+
+template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
+auto __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+{
+    // 8 is the maximum reasonable value for bubble sub-group sorter due to algorithm complexity
+    // TODO: reconsider the value if another algorithm is used,
+    //       or an internal cap is set (e.g. sorting 2 sequences of 4/8 items each)
+    using _Leaf8 = __leaf_sorter<8, std::decay_t<_Range>, _Compare>;
+    using _Leaf4 = __leaf_sorter<4, std::decay_t<_Range>, _Compare>;
+    // 2 is the smallest reasonable value for merge-path group sorter since it loads 2 values at least
+    using _Leaf2 = __leaf_sorter<2, std::decay_t<_Range>, _Compare>;
+
+    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
+
+    const std::size_t __n = __rng.size();
+    auto&& __device = __exec.queue().get_device();
+
+    const std::size_t __max_wg_size = __device.template get_info<sycl::info::device::max_work_group_size>();
+    std::size_t __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__max_wg_size);
+
+    const bool __is_cpu = __device.is_cpu();
+    std::uint32_t __max_sg_size{};
+    if (__is_cpu)
+    {
+        const auto __sg_sizes = __device.template get_info<sycl::info::device::sub_group_sizes>();
+        __max_sg_size = __sg_sizes.empty() ? 1 : *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
+    }
+    // Assume CPUs handle one sub-group (SIMD) per CU;
+    // Assume GPUs handle multiple sub-groups per CU,
+    // while the maximum work-group size also includes hardware multithreading (occupancy)
+    const std::size_t __max_hw_wg_size = __is_cpu ? __max_sg_size : __max_wg_size;
+    const auto __max_cu = __device.template get_info<sycl::info::device::max_compute_units>();
+    const auto __saturation_point = __max_cu * __max_hw_wg_size;
+    const auto __desired_data_per_workitem = __n / __saturation_point;
+
+    // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
+    // TODO: investigate if the adjustment can be less conservative
+    const std::size_t __max_slm_items =
+        __device.template get_info<sycl::info::device::local_mem_size>() / (sizeof(_Tp) * 2);
+    auto __caller = __parallel_sort_submitter_caller<_IndexT>();
+    if (__max_slm_items >= _Leaf8::storage_size(__wg_size) && __desired_data_per_workitem >= 8)
+    {
+        _Leaf8 __leaf_sorter(__rng, __comp, __wg_size);
+        return __caller(std::forward<_ExecutionPolicy>(__exec), __rng, __comp, __leaf_sorter);
+    }
+    else if (__max_slm_items >= _Leaf4::storage_size(__wg_size) && __desired_data_per_workitem >= 4)
+    {
+        _Leaf4 __leaf_sorter(__rng, __comp, __wg_size);
+        return __caller(std::forward<_ExecutionPolicy>(__exec), __rng, __comp, __leaf_sorter);
+    }
+    else if (__max_slm_items >= _Leaf2::storage_size(__wg_size) && __desired_data_per_workitem >= 2)
+    {
+        _Leaf2 __leaf_sorter(__rng, __comp, __wg_size);
+        return __caller(std::forward<_ExecutionPolicy>(__exec), __rng, __comp, __leaf_sorter);
+    }
+    else
+    {
+        std::size_t __slm_max_wg_size = __max_slm_items / _Leaf2::storage_size(1);
+        // __n is taken as is because of the bit floor and processing 2 items per work-item
+        // hence the processed size always fits a single work-group if __n is chosen
+        __wg_size = std::min<std::size_t>({__wg_size, __slm_max_wg_size, __n});
+        __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__wg_size);
+        _Leaf2 __leaf_sorter(__rng, __comp, __wg_size);
+        return __caller(std::forward<_ExecutionPolicy>(__exec), __rng, __comp, __leaf_sorter);
+    }
+};
+
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
 __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                      _Compare __comp)
 {
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-
-    const auto __n = __rng.size();
-
-    auto __index_selector = [__n]() -> std::variant<std::uint32_t, std::uint64_t> {
-        if (__n <= std::numeric_limits<std::uint32_t>::max())
-            return std::uint32_t{};
-        else
-            return std::uint64_t{};
-    };
-    auto __index_alternatives = __index_selector();
-    auto __leaf_sorter_alternatives = __leaf_sorter_selector<_Range, _Compare>().select(__exec.queue(), __rng, __comp);
-
-    return std::visit(
-        [&](auto& __leaf_sorter, auto __index) {
-            using _IndexT = decltype(__index);
-            using _LeafSorterT = std::decay_t<decltype(__leaf_sorter)>;
-            using _LeafDPWI = std::integral_constant<std::uint16_t, _LeafSorterT::__data_per_workitem>;
-
-            // TODO: split the submitter into multiple ones to avoid extra compilation of kernels
-            // - _LeafSortKernel does not need _IndexT
-            // - _GlobalSortKernel does not need _LeafDPWI
-            // - _CopyBackKernel does not need either of them
-            using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_leaf_kernel<_CustomName, _IndexT, _LeafDPWI>>;
-            using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_global_kernel<_CustomName, _IndexT, _LeafDPWI>>;
-            using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __sort_copy_back_kernel<_CustomName, _IndexT, _LeafDPWI>>;
-
-            return __parallel_sort_submitter<_IndexT, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
-                std::forward<_Range>(__rng), __comp, __leaf_sorter);
-        },
-        __leaf_sorter_alternatives, __index_alternatives);
+    if (__rng.size() <= std::numeric_limits<std::uint32_t>::max())
+    {
+        return __submit_selecting_leaf<std::uint32_t>(std::forward<_ExecutionPolicy>(__exec),
+                                                      std::forward<_Range>(__rng), __comp);
+    }
+    else
+    {
+        return __submit_selecting_leaf<std::size_t>(std::forward<_ExecutionPolicy>(__exec),
+                                                    std::forward<_Range>(__rng), __comp);
+    }
 }
 
 } // namespace __par_backend_hetero
