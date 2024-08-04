@@ -1090,15 +1090,16 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
     }
     else
     {
-        unseq_backend::__copy_by_mask<std::plus<decltype(__n)>, oneapi::dpl::__internal::__pstl_assign,
-                                      /*inclusive*/ std::true_type, 1>
-            __copy_by_mask_op;
-        oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
-                                                           decltype(__n)>
-            __create_mask_op{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}};
+
+        using _ReduceOp = std::plus<decltype(__n)>;
+        using _CreateOp = oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
+                                                           decltype(__n)>;
+        using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1>;
 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                                    std::forward<_Range2>(__result), __n, __create_mask_op, __copy_by_mask_op);
+                                    std::forward<_Range2>(__result), __n,
+                                    _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
+                                    _CopyOp{_ReduceOp{}, std::forward<_Assign>(__assign)});
     }
 }
 
@@ -1121,12 +1122,11 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
     else
     {
         using _ReduceOp = std::plus<decltype(__n)>;
-
-        unseq_backend::__create_mask<_UnaryPredicate, decltype(__n)> __create_mask_op{__pred};
-        unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ std::true_type> __partition_by_mask{_ReduceOp{}};
+        using _CreateOp = unseq_backend::__create_mask<_UnaryPredicate, decltype(__n)>;
+        using _CopyOp = unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ std::true_type>;
 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                                    std::forward<_Range2>(__result), __n, __create_mask_op, __partition_by_mask);
+                                    std::forward<_Range2>(__result), __n, _CreateOp{__pred}, _CopyOp{_ReduceOp{}});
     }
 }
 
@@ -1168,18 +1168,19 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{}, /*Unique=*/std::false_type{});
+                                                _GenMask{__pred}, _WriteOp{std::forward<_Assign>(__assign)},
+                                                /*Unique=*/std::false_type{});
     }
     else
     {
         using _ReduceOp = std::plus<_Size>;
-        using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
-        using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
+        using _CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
+        using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign,
                                                      /*inclusive*/ std::true_type, 1>;
 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                     std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                    CreateOp{__pred}, CopyOp{});
+                                    _CreateOp{__pred}, _CopyOp{_ReduceOp{}, std::forward<_Assign>(__assign)});
     }
 }
 
