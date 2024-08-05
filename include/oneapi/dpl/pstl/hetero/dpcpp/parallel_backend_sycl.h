@@ -1082,12 +1082,13 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize,
-              typename _LocalFoundState, typename _BrickTag, typename... _Ranges>
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+              typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
-               const _LocalFoundState __init_value, _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
+               const _LocalFoundState __init_value, _LocalFoundState& __found_local, _BrickTag __brick_tag,
+               _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1179,7 +1180,8 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 //  - after this call __found_local may still have initial value:
                 //    1) if no element satisfies pred;
                 //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __init_value, __found_local, __brick_tag, __rngs...);
+                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __init_value, __found_local,
+                       __brick_tag, __rngs...);
 
                 // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                 // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1313,7 +1315,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     using _AtomicType = typename _BrickTag::_AtomicType;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     constexpr bool __or_tag_check = std::is_same_v<_BrickTag, __parallel_or_tag>;
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __or_tag_check>{__f};
+    const auto __pred =
+        oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __or_tag_check>{__f};
 
     _AtomicType __result;
     if (__n_groups == 1)
