@@ -1100,7 +1100,6 @@ struct __early_exit_find_or
         const auto __global_id = __item_id.get_global_linear_id();
 
         auto __sub_group = __item_id.get_sub_group();
-        typename _BrickTag::_LocalResultsReduceOp __reduce_op;
 
         for (_SrcDataSize __i = 0; __found_local == __init_value && __i < __iters_per_work_item; ++__i)
         {
@@ -1122,7 +1121,8 @@ struct __early_exit_find_or
             if constexpr (__or_tag_check)
                 __found_local = __dpl_sycl::__any_of_group(__sub_group, __found_local);
             else
-                __found_local = __dpl_sycl::__reduce_over_group(__sub_group, __found_local, __reduce_op);
+                __found_local = __dpl_sycl::__reduce_over_group(__sub_group, __found_local,
+                                                                typename _BrickTag::_LocalResultsReduceOp{});
         }
     }
 };
