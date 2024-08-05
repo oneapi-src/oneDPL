@@ -199,7 +199,10 @@ template <typename... _Name>
 class __find_or_kernel_one_wg;
 
 template <typename... _Name>
-class __find_or_kernel;
+class __find_or_kernel_multiple_wgs_wo_check_in_group;
+
+template <typename... _Name>
+class __find_or_kernel_multiple_wgs_with_check_in_group;
 
 template <typename... _Name>
 class __scan_propagate_kernel;
@@ -1077,8 +1080,19 @@ __is_backward_tag(_TagType)
 // early_exit (find_or)
 //------------------------------------------------------------------------
 
+struct __early_exit_find_or_wo_check_in_groups
+{
+};
+
+struct __early_exit_find_or_with_check_in_groups
+{
+};
+
+template <typename _ExecutionPolicy, typename _Pred, typename _CheckStateInGroup>
+struct __early_exit_find_or;
+
 template <typename _ExecutionPolicy, typename _Pred>
-struct __early_exit_find_or
+struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_wo_check_in_groups>
 {
     _Pred __pred;
 
@@ -1087,6 +1101,61 @@ struct __early_exit_find_or
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
+               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
+    {
+        // There are 3 possible tag types here:
+        //  - __parallel_find_forward_tag : in case when we find the first value in the data;
+        //  - __parallel_find_backward_tag : in case when we find the last value in the data;
+        //  - __parallel_or_tag : in case when we find any value in the data.
+        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+
+        // Return the index of this item in the kernel's execution range
+        const auto __global_id = __item_id.get_global_linear_id();
+
+        bool __something_was_found = false;
+        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        {
+            auto __local_src_data_idx = __i;
+            if constexpr (__is_backward_tag(__brick_tag))
+                __local_src_data_idx = __iters_per_work_item - 1 - __i;
+
+            const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
+            if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
+            {
+                // Update local found state
+                _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
+
+                // This break is mandatory from the performance point of view.
+                // This break is safe for all our cases:
+                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
+                //    This means that after first found entry there is no reason to process data anymore.
+                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
+                //    This means that after the first found entry there is no reason to process data anymore too.
+                // But break statement here shows poor perf in some cases.
+                // So we use bool variable state check in the for-loop header.
+                __something_was_found = true;
+            }
+
+            // Share found into state between items in our sub-group to early exit if something was found
+            //  - the update of __found_local state isn't required here because it updates later on the caller side
+            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+        }
+    }
+};
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_check_in_groups>
+{
+    _Pred __pred;
+
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+              typename _BrickTag, typename... _Ranges>
+    void
+    operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
+               const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
+               const std::size_t __check_in_groups_interval,
                _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
@@ -1194,10 +1263,11 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
 template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
           typename _Predicate, typename... _Ranges>
 _AtomicType
-__parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                     _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __n_groups,
-                                     const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
-                                     _Ranges&&... __rngs)
+__parallel_find_or_impl_multiple_wgs_wo_check_in_groups(
+    oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+    _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __n_groups,
+    const std::size_t __wgroup_size, const _AtomicType __init_value, _Predicate __pred,
+    _Ranges&&... __rngs)
 {
     auto __result = __init_value;
 
@@ -1257,6 +1327,74 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
+template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType,
+          typename _Predicate, typename... _Ranges>
+_AtomicType
+__parallel_find_or_impl_multiple_wgs_with_check_in_groups(
+    oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+    _BrickTag __brick_tag, const std::size_t __rng_n, const std::size_t __n_groups,
+    const std::size_t __wgroup_size, const std::size_t __check_in_groups_interval,
+    const _AtomicType __init_value, _Predicate __pred,
+    _Ranges&&... __rngs)
+{
+    auto __result = __init_value;
+
+    // Calculate the number of elements to be processed by each work-item.
+    const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
+    // scope is to copy data back to __result after destruction of temporary sycl:buffer
+    {
+        sycl::buffer<_AtomicType, 1> __result_sycl_buf(&__result, 1); // temporary storage for global atomic
+
+        // main parallel_for
+        __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+            auto __result_sycl_buf_acc = __result_sycl_buf.template get_access<access_mode::read_write>(__cgh);
+
+            __cgh.parallel_for<KernelName>(
+                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                          sycl::range</*dim=*/1>(__wgroup_size)),
+                [=](sycl::nd_item</*dim=*/1> __item_id) {
+                    auto __local_idx = __item_id.get_local_id(0);
+
+                    // 1. Set initial value to local found state
+                    _AtomicType __found_local = __init_value;
+
+                    // 2. Find any element that satisfies pred
+                    //  - after this call __found_local may still have initial value:
+                    //    1) if no element satisfies pred;
+                    //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
+                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size,
+                           __check_in_groups_interval, __found_local, __brick_tag, __rngs...);
+
+                    // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
+                    // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
+                    // or update state with __dpl_sycl::__any_of_group (for the __parallel_or_tag)
+                    // inside all our group items
+                    if constexpr (__or_tag_check)
+                        __found_local = __dpl_sycl::__any_of_group(__item_id.get_group(), __found_local);
+                    else
+                        __found_local = __dpl_sycl::__reduce_over_group(__item_id.get_group(), __found_local,
+                                                                        typename _BrickTag::_LocalResultsReduceOp{});
+
+                    // Set local found state value value to global atomic
+                    if (__local_idx == 0 && __found_local != __init_value)
+                    {
+                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                            *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
+
+                        // Update global (for all groups) atomic state with the found index
+                        _BrickTag::__save_state_to_atomic(__found, __found_local);
+                    }
+                });
+        });
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
+    }
+
+    return __result;
+}
+
+// Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
@@ -1268,9 +1406,12 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     using _FindOrKernelOneWG =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel_one_wg, _CustomName,
                                                                                _Brick, _BrickTag, _Ranges...>;
-    using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _BrickTag, _Ranges...>;
+    using _FindOrKernelMultipleWgsWoCheckInGroup =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __find_or_kernel_multiple_wgs_wo_check_in_group, _CustomName, _Brick, _BrickTag, _Ranges...>;
+    using _FindOrKernelMultipleWgsWithCheckInGroup =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __find_or_kernel_multiple_wgs_with_check_in_group, _CustomName, _Brick, _BrickTag, _Ranges...>;
 
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
@@ -1299,7 +1440,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     using _AtomicType = typename _BrickTag::_AtomicType;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
 
     constexpr bool __or_tag_check = std::is_same_v<_BrickTag, __parallel_or_tag>;
 
@@ -1312,17 +1452,38 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
-            __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
+            __rng_n, __wgroup_size, __init_value,
+            oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __early_exit_find_or_wo_check_in_groups>{__f},
+            std::forward<_Ranges>(__rngs)...);
     }
     else
     {
         assert("This device does not support 64-bit atomics" &&
                (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
-        // Multiple WG implementation
-        __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
-            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
-            __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
+        constexpr std::size_t __check_state_in_groups_interval = 100;
+
+        // Calculate the number of elements to be processed by each work-item.
+        const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
+        if (__iters_per_work_item <= __check_state_in_groups_interval)
+        {
+            // Multiple WG implementation - without check state in groups
+            __result = __parallel_find_or_impl_multiple_wgs_wo_check_in_groups<_FindOrKernelMultipleWgsWoCheckInGroup, __or_tag_check>(
+                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+                __rng_n, __n_groups, __wgroup_size, __init_value,
+                oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __early_exit_find_or_wo_check_in_groups>{__f},
+                std::forward<_Ranges>(__rngs)...);
+        }
+        else
+        {
+            // Multiple WG implementation - with check state in groups
+            __result = __parallel_find_or_impl_multiple_wgs_with_check_in_groups<_FindOrKernelMultipleWgsWithCheckInGroup, __or_tag_check>(
+                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+                __rng_n, __n_groups, __wgroup_size, __check_state_in_groups_interval, __init_value,
+                oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __early_exit_find_or_with_check_in_groups>{__f},
+                std::forward<_Ranges>(__rngs)...);
+        }
     }
 
     if constexpr (__or_tag_check)
