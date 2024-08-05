@@ -42,7 +42,7 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 
         assert(stdrng::distance(segment) > 0);
 
-        auto local_segment = ranges::local_or_identity(segment);
+        auto local_segment = ranges::__detail::local_or_identity(segment);
 
         auto first = stdrng::begin(local_segment);
 

@@ -55,11 +55,11 @@ transform(ExecutionPolicy&& policy, distributed_range auto&& in, distributed_ite
         auto&& q = __detail::queue(ranges::rank(in_seg));
         const std::size_t seg_size = stdrng::size(in_seg);
         assert(seg_size == stdrng::size(out_seg));
-        auto local_in_seg = ranges::local_or_identity(in_seg);
+        auto local_in_seg = ranges::__detail::local_or_identity(in_seg);
 
         if (in_seg.rank() == out_seg.rank())
         {
-            auto local_out_seg = ranges::local_or_identity(out_seg);
+            auto local_out_seg = ranges::__detail::local_or_identity(out_seg);
             events.emplace_back(
                 q.parallel_for(seg_size, [=](auto idx) { local_out_seg[idx] = fn(local_in_seg[idx]); }));
         }
@@ -70,7 +70,8 @@ transform(ExecutionPolicy&& policy, distributed_range auto&& in, distributed_ite
 
             sycl::event compute_event =
                 q.parallel_for(seg_size, [=](auto idx) { buffer[idx] = fn(local_in_seg[idx]); });
-            events.emplace_back(q.copy(buffer, ranges::local_or_identity(out_seg.begin()), seg_size, compute_event));
+            events.emplace_back(
+                q.copy(buffer, ranges::__detail::local_or_identity(out_seg.begin()), seg_size, compute_event));
         }
     }
     __detail::wait(events);

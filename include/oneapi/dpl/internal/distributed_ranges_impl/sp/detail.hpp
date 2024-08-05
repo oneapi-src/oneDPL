@@ -30,7 +30,7 @@ namespace oneapi::dpl::experimental::dr::sp
 namespace __detail
 {
 
-inline constexpr auto local = ranges::local_or_identity;
+inline constexpr auto local = ranges::__detail::local_or_identity;
 
 template <typename Src, typename Dest>
 concept is_syclmemcopyable = std::is_same_v<std::remove_const_t<Src>, Dest> && std::is_trivially_copyable_v<Dest>;

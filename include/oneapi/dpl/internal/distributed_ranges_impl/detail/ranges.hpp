@@ -353,11 +353,11 @@ struct local_or_identity_fn_
     }
 };
 
+inline constexpr auto local_or_identity = local_or_identity_fn_{};
+
 } // namespace __detail
 
 inline constexpr auto segments = __detail::segments_fn_{};
-
-inline constexpr auto local_or_identity = __detail::local_or_identity_fn_{};
 
 } // namespace ranges
 
