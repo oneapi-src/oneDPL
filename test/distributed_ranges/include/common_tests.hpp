@@ -130,7 +130,7 @@ bool is_equal_impl(std::pair<A, B> const &x, std::tuple<C, D> const &y) {
 
 template <class A, class B, class C, class D>
 bool is_equal_impl(std::tuple<C, D> const &y, std::pair<A, B> const &x) {
-    return x == y;
+    return is_equal_impl(x, y);
 }
 
 template <class A, class B, class C, class D>
