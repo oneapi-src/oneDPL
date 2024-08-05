@@ -37,13 +37,13 @@ namespace __par_backend_hetero
 
 struct __subgroup_bubble_sorter
 {
-    template <typename _Storage, typename _Compare, typename _Size>
+    template <typename _Storage, typename _Compare>
     void
-    sort(_Storage& __storage, _Compare __comp, _Size __start, _Size __end) const
+    sort(_Storage& __storage, _Compare __comp, std::uint32_t __start, std::uint32_t __end) const
     {
-        for (_Size i = __start; i < __end; ++i)
+        for (std::uint32_t i = __start; i < __end; ++i)
         {
-            for (_Size j = __start + 1; j < __start + __end - i; ++j)
+            for (std::uint32_t j = __start + 1; j < __start + __end - i; ++j)
             {
                 auto& __first_item = __storage[j - 1];
                 auto& __second_item = __storage[j];
@@ -60,10 +60,10 @@ struct __subgroup_bubble_sorter
 template <std::uint16_t __data_per_workitem>
 struct __group_merge_path_sorter
 {
-    template <typename _Storage, typename _Compare, typename _Size1, typename _Size2>
+    template <typename _Storage, typename _Compare>
     bool
-    sort(const sycl::nd_item<1>& __item, _Storage& __storage, _Compare __comp, _Size1 __start, _Size1 __end,
-         _Size2 __sorted, std::uint32_t __workgroup_size) const
+    sort(const sycl::nd_item<1>& __item, _Storage& __storage, _Compare __comp, std::uint32_t __start,
+         std::uint32_t __end, std::uint32_t __sorted, std::uint32_t __workgroup_size) const
     {
         const std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
 
@@ -78,10 +78,10 @@ struct __group_merge_path_sorter
         {
             const std::uint32_t __id_local = __id % __next_sorted;
             // Borders of the ranges to be merged
-            const std::uint32_t __start1 = std::min<std::uint32_t>(__id - __id_local, __end);
-            const std::uint32_t __end1 = std::min<std::uint32_t>(__start1 + __sorted, __end);
+            const std::uint32_t __start1 = std::min(__id - __id_local, __end);
+            const std::uint32_t __end1 = std::min(__start1 + __sorted, __end);
             const std::uint32_t __start2 = __end1;
-            const std::uint32_t __end2 = std::min<std::uint32_t>(__start2 + __sorted, __end);
+            const std::uint32_t __end2 = std::min(__start2 + __sorted, __end);
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
@@ -171,8 +171,8 @@ struct __leaf_sorter
         // TODO: set a threshold for bubble sorter (likely 4 items)
         std::uint32_t __item_start = __sg_start + __sg_local_id * __data_per_workitem;
         std::uint32_t __item_end = __item_start + __data_per_workitem;
-        __item_start = std::min<std::uint32_t>(__item_start, __adjusted_process_size);
-        __item_end = std::min<std::uint32_t>(__item_end, __adjusted_process_size);
+        __item_start = std::min(__item_start, __adjusted_process_size);
+        __item_end = std::min(__item_end, __adjusted_process_size);
         __sub_group_sorter.sort(__storage, __comp, __item_start, __item_end);
         __dpl_sycl::__group_barrier(__item);
 
