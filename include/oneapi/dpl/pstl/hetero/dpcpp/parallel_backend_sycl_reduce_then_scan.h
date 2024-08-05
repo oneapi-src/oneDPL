@@ -462,7 +462,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __carry_last;
 
-                // propogate carry in from previous block
+                // propagate carry in from previous block
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
 
                 // on the first sub-group in a work-group (assuming S subgroups in a work-group):
@@ -705,8 +705,8 @@ __prefer_reduce_then_scan(const _ExecutionPolicy& __exec)
 //                   used in the reduction operation (to calculate the global carries)
 // _GenScanInput - a function which accepts the input range and index to generate the data needed by the final scan
 //                 and write operations, for scan patterns
-// _ScanInputTransform - a unary function applied to the ouput of `_GenScanInput` to extract the component used in the scan, but
-//             not the part only required for the final write operation
+// _ScanInputTransform - a unary function applied to the output of `_GenScanInput` to extract the component used in the
+//             scan, but not the part only required for the final write operation
 // _ReduceOp - a binary function which is used in the reduction and scan operations
 // _WriteOp - a function which accepts output range, index, and output of `_GenScanInput` applied to the input range
 //            and performs the final write to output operation
