@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 #define _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 
-#ifndef DR_USE_RANGES_V3
+#if 1 // ifndef DR_USE_RANGES_V3
 
 #    include <ranges>
 
