@@ -810,6 +810,19 @@ struct __gen_mask
     _Predicate __pred;
 };
 
+template <typename _BinaryPredicate>
+struct __gen_unique_mask
+{
+    template <typename _InRng>
+    bool
+    operator()(_InRng&& __in_rng, std::size_t __idx) const
+    {
+        //starting index is offset to 1 for "unique" patterns and 0th element copy is handled separately
+        return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
+    }
+    _BinaryPredicate __pred;
+};
+
 template <typename _GenMask>
 struct __gen_count_mask
 {
@@ -929,7 +942,8 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             return __parallel_transform_reduce_then_scan(
                 __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
                 std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
-                _WriteOp{}, __init, _Inclusive{});
+                _WriteOp{}, __init, _Inclusive{},
+                /*_IsUniquePattern=*/std::false_type{});
         }
     }
 
@@ -1006,11 +1020,11 @@ struct __invoke_single_group_copy_if
 };
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _GenMask,
-          typename _WriteOp>
+          typename _WriteOp, typename _IsUniquePattern>
 auto
 __parallel_reduce_then_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                                  _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask,
-                                 _WriteOp __write_op)
+                                 _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
 {
     using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
     using _ReduceOp = std::plus<_Size>;
@@ -1021,7 +1035,7 @@ __parallel_reduce_then_scan_copy(oneapi::dpl::__internal::__device_backend_tag _
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
         std::forward<_OutRng>(__out_rng), _GenReduceInput{__generate_mask}, _ReduceOp{}, _GenScanInput{__generate_mask},
         _ScanInputTransform{}, __write_op, oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
-        /*_Inclusive=*/std::true_type{});
+        /*_Inclusive=*/std::true_type{}, __is_unique_pattern);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
@@ -1064,6 +1078,40 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         __copy_by_mask_op);
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate,
+          typename _Assign = oneapi::dpl::__internal::__pstl_assign>
+auto
+__parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                       _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred,
+                       _Assign&& __assign = oneapi::dpl::__internal::__pstl_assign{})
+{
+
+    auto __n = __rng.size();
+    if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
+    {
+        using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
+        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1, _Assign>;
+
+        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
+                                                _GenMask{__pred}, _WriteOp{std::forward<_Assign>(__assign)},
+                                                /*_IsUniquePattern=*/std::true_type{});
+    }
+    else
+    {
+
+        using _ReduceOp = std::plus<decltype(__n)>;
+        using _CreateOp = oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
+                                                           decltype(__n)>;
+        using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1>;
+
+        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                    std::forward<_Range2>(__result), __n,
+                                    _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
+                                    _CopyOp{_ReduceOp{}, std::forward<_Assign>(__assign)});
+    }
+}
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate>
 auto
 __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
@@ -1078,7 +1126,7 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                _GenMask{__pred}, _WriteOp{});
+                                                _GenMask{__pred}, _WriteOp{}, /*_IsUniquePattern=*/std::false_type{});
     }
     else
     {
@@ -1129,7 +1177,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{__assign});
+                                                _GenMask{__pred}, _WriteOp{__assign}, /*Unique=*/std::false_type{});
     }
     else
     {
@@ -1141,7 +1189,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                     std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
                                     _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
-    }
+g    }
 }
 
 //------------------------------------------------------------------------
