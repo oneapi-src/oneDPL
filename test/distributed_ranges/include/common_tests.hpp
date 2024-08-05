@@ -362,7 +362,9 @@ bool operator==(const distributed_vector<T> &dist_vec,
 
 } // namespace oneapi::dpl::experimental::dr::sp
 
-namespace __ONEDPL_DR_STD_RANGES_NAMESPACE {
+namespace _ONEDPL_DR_STD_RANGES_NAMESPACE {
+
+// For EXPECT_EQ to work with two arbitrary ranges, define operator== to do elementwise comparison
 
 template <stdrng::range R1, stdrng::range R2> bool operator==(R1 &&r1, R2 &&r2) {
   return is_equal(std::forward<R1>(r1), std::forward<R2>(r2));

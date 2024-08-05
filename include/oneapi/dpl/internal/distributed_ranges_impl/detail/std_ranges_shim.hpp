@@ -28,7 +28,7 @@
 
 namespace stdrng = ::std::ranges;
 
-#    define __ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
+#    define _ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
 
 #endif /* _ONEDPL_DR_STD_RANGES_SHIM_HEADER */
 
