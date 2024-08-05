@@ -1150,13 +1150,15 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize,
+              typename _GlobalFoundState, typename _LocalFoundState,
               typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
                const std::size_t __check_in_groups_interval,
-               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
+               _GlobalFoundState& __found_global, _LocalFoundState& __found_local, const _LocalFoundState __init_value,
+               _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1312,11 +1314,11 @@ __parallel_find_or_impl_multiple_wgs_wo_check_in_groups(
                     // Set local found state value value to global atomic
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
-                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found_global(
                             *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
 
                         // Update global (for all groups) atomic state with the found index
-                        _BrickTag::__save_state_to_atomic(__found, __found_local);
+                        _BrickTag::__save_state_to_atomic(__found_global, __found_local);
                     }
                 });
         });
@@ -1357,6 +1359,9 @@ __parallel_find_or_impl_multiple_wgs_with_check_in_groups(
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found_global(
+                        *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
+
                     // 1. Set initial value to local found state
                     _AtomicType __found_local = __init_value;
 
@@ -1365,7 +1370,9 @@ __parallel_find_or_impl_multiple_wgs_with_check_in_groups(
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
                     __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size,
-                           __check_in_groups_interval, __found_local, __brick_tag, __rngs...);
+                           __check_in_groups_interval,
+                           __found_global, __found_local, __init_value,
+                           __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1380,11 +1387,8 @@ __parallel_find_or_impl_multiple_wgs_with_check_in_groups(
                     // Set local found state value value to global atomic
                     if (__local_idx == 0 && __found_local != __init_value)
                     {
-                        __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                            *__dpl_sycl::__get_accessor_ptr(__result_sycl_buf_acc));
-
                         // Update global (for all groups) atomic state with the found index
-                        _BrickTag::__save_state_to_atomic(__found, __found_local);
+                        _BrickTag::__save_state_to_atomic(__found_global, __found_local);
                     }
                 });
         });
