@@ -49,10 +49,10 @@ public:
 private:
     /* Internal generator state */
     struct state {
-        result_type X[word_count];   //counters
-        result_type K[word_count/2]; //keys
-        result_type Y[word_count];   //results
-        result_type idx;             //index
+        ::std::array<result_type, word_count> X;   // counters
+        ::std::array<result_type, word_count/2> K; // keys
+        ::std::array<result_type, word_count> Y;   // results
+        result_type idx;                           // index
     } state_; 
   
     /* Processing mask */
@@ -102,9 +102,7 @@ public:
     // constructors and seeding functions
     philox_engine() : philox_engine(default_seed) {}
     explicit philox_engine(result_type value) { seed(value); }
-    template <class Sseq> explicit philox_engine(Sseq& q) { seed(q); }
     void seed(result_type value = default_seed) { seed_internal({ value & in_mask }); }
-    template <class Sseq> void seed(Sseq& q) { ; /*q.generate(state_.begin(), state_.end());*/ }
 
     // Set the state to arbitrary position
     void set_counter(const ::std::array<result_type, word_count>& counter) {
@@ -113,6 +111,22 @@ public:
         for (size_t i = 0; i < word_count; i++) {
             state_.X[i] = (start == end) ? 0 : (*start++) & in_mask; // all counters are set
         }
+    }
+
+    friend bool operator==(const philox_engine& x, const philox_engine& y) {
+        if(!std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
+           !std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
+           !std::equal(x.state_.Y.begin(), x.state_.Y.end(), y.state_.Y.begin()) ||
+           x.state_.idx != y.state_.idx
+           )
+            
+            return false;
+    }
+
+    friend bool
+    operator!=(const philox_engine& __x, const philox_engine& __y)
+    {
+        return !(__x == __y);
     }
 
     // generating functions
@@ -141,7 +155,14 @@ public:
         state_.idx = newridx;
     }
     
-    // [ToDO] inserters and extractors
+    // inserters and extractors
+    template<class CharT, class Traits, typename UIntType_, std::size_t w_, std::size_t n_, std::size_t r_, UIntType... consts_>
+    friend ::std::basic_ostream<CharT, Traits>& 
+    operator<<(::std::basic_ostream<CharT, Traits>& os, const philox_engine<UIntType_, w_, n_, r_, consts_...>& engine);
+    
+    template<class CharT, class Traits, typename UIntType_, std::size_t w_, std::size_t n_, std::size_t r_, UIntType... consts_>
+    friend ::std::basic_istream<CharT, Traits>& 
+    operator>>(::std::basic_istream<CharT, Traits>& is, philox_engine<UIntType_, w_, n_, r_, consts_...>& engine);
 
 private:
 
@@ -198,6 +219,54 @@ private:
         }
     }
 };
+
+template<class CharT, class Traits, typename UIntType, std::size_t w, std::size_t n, std::size_t r, UIntType... consts>
+::std::basic_ostream<CharT, Traits>& 
+operator<<(::std::basic_ostream<CharT, Traits>& os, const philox_engine<UIntType, w, n, r, consts...>& engine) {
+    internal::save_stream_flags<CharT, Traits> __flags(os);
+
+    os.setf(std::ios_base::dec | std::ios_base::left);
+    CharT sp = os.widen(' ');
+    os.fill(sp);
+
+    for(auto x_elm: engine.state_.X) {
+        os << x_elm << sp;
+    }
+    for(auto k_elm: engine.state_.K) {
+        os << k_elm << sp;
+    }
+    for(auto y_elm: engine.state_.Y) {
+        os << y_elm << sp;
+    }
+    os << engine.state_.idx;
+    
+    return os;
+}
+
+template<class CharT, class Traits, typename UIntType, std::size_t w, std::size_t n, std::size_t r, UIntType... consts>
+::std::basic_istream<CharT, Traits>& 
+operator<<(::std::basic_istream<CharT, Traits>& is, const philox_engine<UIntType, w, n, r, consts...>& engine) {
+    internal::save_stream_flags<CharT, Traits> __flags(is);
+
+    is.setf(std::ios_base::dec);
+
+    std::vector<UIntType> tmp_inp(sizeof(engine.state_));
+    for (size_t i = 0; i < sizeof(engine.state_); ++i)
+        is >> tmp_inp[i];
+
+
+    if (!is.fail())
+    {
+        for (size_t i = 0; i < w; ++i)
+            engine.state_.X >> tmp_inp[i];
+        for (size_t i = 0; i < w/2; ++i)
+            engine.state_.K >> tmp_inp[i];
+        for (size_t i = 0; i < w; ++i)
+            engine.state_.Y >> tmp_inp[i];
+    }
+    
+    return is;
+}
 
 } // namespace dpl
 } // namespace oneapi
