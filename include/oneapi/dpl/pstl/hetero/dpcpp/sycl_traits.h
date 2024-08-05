@@ -233,14 +233,14 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::
 namespace oneapi::dpl::__par_backend_hetero
 {
 
-template <typename _ExecutionPolicy, typename _Pred>
+template <typename _ExecutionPolicy, typename _Pred, bool __or_tag_check>
 struct __early_exit_find_or;
 
 } // namespace oneapi::dpl::__par_backend_hetero
 
-template <typename _ExecutionPolicy, typename _Pred>
+template <typename _ExecutionPolicy, typename _Pred, bool __or_tag_check>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__early_exit_find_or,
-                                                       _ExecutionPolicy, _Pred)>
+                                                       _ExecutionPolicy, _Pred, __or_tag_check)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Pred>
 {
 };

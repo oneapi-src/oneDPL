@@ -1077,17 +1077,17 @@ __is_backward_tag(_TagType)
 // early_exit (find_or)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Pred>
+template <typename _ExecutionPolicy, typename _Pred, bool __or_tag_check>
 struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize, typename _LocalFoundState,
-              typename _BrickTag, typename... _Ranges>
+    template <typename _NDItemId, typename _SrcDataSize, typename _IterationDataSize,
+              typename _LocalFoundState, typename _BrickTag, typename... _Ranges>
     void
     operator()(const _NDItemId __item_id, const _SrcDataSize __source_data_size,
                const std::size_t __iters_per_work_item, const _IterationDataSize __iteration_data_size,
-               _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
+               const _LocalFoundState __init_value, _LocalFoundState& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
@@ -1097,6 +1097,8 @@ struct __early_exit_find_or
 
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
+
+        auto __sub_group = __item_id.get_sub_group();
 
         bool __something_was_found = false;
         for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
@@ -1124,9 +1126,20 @@ struct __early_exit_find_or
                 __something_was_found = true;
             }
 
+            // If we find first/last item, we should at first share (reduce) found position inside our sub-group,
+            // because we should finish search in the current work-item only if the found position from another work-item
+            // is more preferable: in case of forward search - is less then for this work-item,
+            // in case of backward search - is great then for this work-item.
+            if constexpr (!__or_tag_check)
+            {
+                __found_local = __dpl_sycl::__reduce_over_group(__sub_group, __found_local,
+                                                                typename _BrickTag::_LocalResultsReduceOp{});
+                __something_was_found = __found_local != __init_value;
+            }
+
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__item_id.get_sub_group(), __something_was_found);
+            __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
         }
     }
 };
@@ -1166,7 +1179,7 @@ __parallel_find_or_impl_one_wg(oneapi::dpl::__internal::__device_backend_tag, _E
                 //  - after this call __found_local may still have initial value:
                 //    1) if no element satisfies pred;
                 //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __found_local, __brick_tag, __rngs...);
+                __pred(__item_id, __rng_n, __iters_per_work_item, __wgroup_size, __init_value, __found_local, __brick_tag, __rngs...);
 
                 // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                 // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1226,8 +1239,8 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
                     //  - after this call __found_local may still have initial value:
                     //    1) if no element satisfies pred;
                     //    2) early exit from sub-group occurred: in this case the state of __found_local will updated in the next group operation (3)
-                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __found_local,
-                           __brick_tag, __rngs...);
+                    __pred(__item_id, __rng_n, __iters_per_work_item, __n_groups * __wgroup_size, __init_value,
+                           __found_local, __brick_tag, __rngs...);
 
                     // 3. Reduce over group: find __dpl_sycl::__minimum (for the __parallel_find_forward_tag),
                     // find __dpl_sycl::__maximum (for the __parallel_find_backward_tag)
@@ -1299,9 +1312,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     using _AtomicType = typename _BrickTag::_AtomicType;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
-
     constexpr bool __or_tag_check = std::is_same_v<_BrickTag, __parallel_or_tag>;
+    const auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick, __or_tag_check>{__f};
 
     _AtomicType __result;
     if (__n_groups == 1)
