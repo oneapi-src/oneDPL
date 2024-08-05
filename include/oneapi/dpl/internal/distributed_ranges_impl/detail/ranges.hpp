@@ -174,35 +174,6 @@ concept iter_has_local_method = std::forward_iterator<Iter> && requires(Iter ite
         } -> std::forward_iterator;
 };
 
-template <typename T>
-struct is_localizable_helper : std::false_type
-{
-};
-
-template <has_local_adl T>
-struct is_localizable_helper<T> : std::true_type
-{
-};
-
-template <iter_has_local_method T>
-struct is_localizable_helper<T> : std::true_type
-{
-};
-
-template <std::forward_iterator Iter>
-requires(not iter_has_local_method<Iter> && not has_local_adl<Iter>) && requires() { std::iter_value_t<Iter>(); }
-struct is_localizable_helper<Iter> : is_localizable_helper<std::iter_value_t<Iter>>
-{
-};
-
-template <stdrng::forward_range R>
-struct is_localizable_helper<R> : is_localizable_helper<stdrng::iterator_t<R>>
-{
-};
-
-template <typename T>
-concept is_localizable = is_localizable_helper<T>::value;
-
 template <typename Segment>
 concept segment_has_local_method = stdrng::forward_range<Segment> && requires(Segment segment)
 {
@@ -214,62 +185,8 @@ concept segment_has_local_method = stdrng::forward_range<Segment> && requires(Se
 struct local_fn_
 {
 
-    // based on https://ericniebler.github.io/range-v3/#autotoc_md30  "Create
-    // custom iterators"
-    // TODO: rewrite using iterator_interface from
-    //  https://github.com/boostorg/stl_interfaces
-    template <typename Iter>
-    requires stdrng::forward_range<typename Iter::value_type>
-    struct cursor_over_local_ranges
-    {
-        Iter iter;
-        auto
-        make_begin_for_counted() const
-        {
-            if constexpr (iter_has_local_method<stdrng::iterator_t<typename Iter::value_type>>)
-                return stdrng::begin(*iter).local();
-            else
-                return std::iterator<std::bidirectional_iterator_tag,
-                                     cursor_over_local_ranges<stdrng::iterator_t<typename Iter::value_type>>>(
-                    stdrng::begin(*iter));
-        }
-        auto
-        read() const
-        {
-            return stdrng::views::counted(make_begin_for_counted(), stdrng::size(*iter));
-        }
-        bool
-        equal(const cursor_over_local_ranges& other) const
-        {
-            return iter == other.iter;
-        }
-        void
-        next()
-        {
-            ++iter;
-        }
-        void
-        prev()
-        {
-            --iter;
-        }
-        void
-        advance(std::ptrdiff_t n)
-        {
-            this->iter += n;
-        }
-        std::ptrdiff_t
-        distance_to(const cursor_over_local_ranges& other) const
-        {
-            return other.iter - this->iter;
-        }
-        cursor_over_local_ranges() = default;
-        cursor_over_local_ranges(Iter iter) : iter(iter) {}
-    };
-
     template <std::forward_iterator Iter>
-    requires(has_local_adl<Iter> || iter_has_local_method<Iter> || std::contiguous_iterator<Iter> ||
-             is_localizable<Iter>) auto
+    requires(has_local_adl<Iter> || iter_has_local_method<Iter> || std::contiguous_iterator<Iter>) auto
     operator()(Iter iter) const
     {
         if constexpr (iter_has_local_method<Iter>)
@@ -280,10 +197,6 @@ struct local_fn_
         {
             return local_(iter);
         }
-        else if constexpr (is_localizable<Iter>)
-        {
-            return std::iterator<std::bidirectional_iterator_tag, cursor_over_local_ranges<Iter>>(iter);
-        }
         else if constexpr (std::contiguous_iterator<Iter>)
         {
             return iter;
@@ -292,7 +205,7 @@ struct local_fn_
 
     template <stdrng::forward_range R>
     requires(has_local_adl<R> || iter_has_local_method<stdrng::iterator_t<R>> || segment_has_local_method<R> ||
-             std::contiguous_iterator<stdrng::iterator_t<R>> || is_localizable<R> || stdrng::contiguous_range<R>) auto
+             std::contiguous_iterator<stdrng::iterator_t<R>> || stdrng::contiguous_range<R>) auto
     operator()(R&& r) const
     {
         if constexpr (segment_has_local_method<R>)
@@ -306,13 +219,6 @@ struct local_fn_
         else if constexpr (has_local_adl<R>)
         {
             return local_(std::forward<R>(r));
-        }
-        else if constexpr (is_localizable<R>)
-        {
-            return stdrng::views::counted(
-                std::iterator<std::input_iterator_tag, cursor_over_local_ranges<stdrng::iterator_t<R>>>(
-                    stdrng::begin(r)),
-                stdrng::size(r));
         }
         else if constexpr (std::contiguous_iterator<stdrng::iterator_t<R>>)
         {
