@@ -1160,6 +1160,8 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
                _GlobalFoundState& __found_global, _LocalFoundState& __found_local, const _LocalFoundState __init_value,
                _BrickTag __brick_tag, _Ranges&&... __rngs) const
     {
+        assert(__iters_per_work_item > 0);
+
         // There are 3 possible tag types here:
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
@@ -1208,17 +1210,17 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
                 __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
             }
 
-            // Share found into state between items in our group to early exit if something was found
-            //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__group, __something_was_found);
-
             // Check global state
             if constexpr (_OrTagType{})
-                __something_was_found = __found_global.load() != __init_value;
+                __something_was_found |= __found_global.load() != __init_value;
             else if constexpr (__is_backward_tag(__brick_tag))
-                __something_was_found = __found_global.load() < __i_portion_start;
+                __something_was_found |= __found_global.load() < __i_portion_start;
             else
-                __something_was_found = __found_global.load() >= __i_portion_finish;
+                __something_was_found |= __found_global.load() >= __i_portion_finish;
+
+                // Share found into state between items in our sub-group to early exit if something was found
+            //  - the update of __found_local state isn't required here because it updates later on the caller side
+            __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
         }
     }
 };
