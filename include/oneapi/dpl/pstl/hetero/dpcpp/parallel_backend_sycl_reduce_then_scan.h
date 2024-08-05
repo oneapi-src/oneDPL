@@ -462,7 +462,6 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __carry_last;
-                oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __value;
 
                 // propogate carry in from previous block
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
@@ -517,27 +516,27 @@ struct __parallel_reduce_then_scan_scan_submitter<
                             auto __reduction_idx = (__proposed_idx < __subgroups_before_my_group)
                                                        ? __proposed_idx
                                                        : __subgroups_before_my_group - 1;
-                            __value.__setup(__tmp_ptr[__reduction_idx]);
+                            auto __value = __tmp_ptr[__reduction_idx];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
-                                                     /*__init_present=*/false>(__sub_group, __value.__v, __reduce_op,
+                                                     /*__init_present=*/false>(__sub_group, __value, __reduce_op,
                                                                                __carry_last, __remaining_elements);
                         }
                         else
                         {
                             // multiple iterations
                             // first 1 full
-                            __value.__setup(__tmp_ptr[__num_sub_groups_local * __sub_group_local_id + __offset]);
+                            auto __value = __tmp_ptr[__num_sub_groups_local * __sub_group_local_id + __offset];
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
-                                __sub_group, __value.__v, __reduce_op, __carry_last);
+                                __sub_group, __value, __reduce_op, __carry_last);
 
                             // then some number of full iterations
                             for (std::uint32_t __i = 1; __i < __pre_carry_iters - 1; __i++)
                             {
                                 auto __reduction_idx = __i * __num_sub_groups_local * __sub_group_size +
                                                        __num_sub_groups_local * __sub_group_local_id + __offset;
-                                __value.__v = __tmp_ptr[__reduction_idx];
+                                __value = __tmp_ptr[__reduction_idx];
                                 __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
-                                    __sub_group, __value.__v, __reduce_op, __carry_last);
+                                    __sub_group, __value, __reduce_op, __carry_last);
                             }
 
                             // final partial iteration
@@ -548,43 +547,39 @@ struct __parallel_reduce_then_scan_scan_submitter<
                             auto __reduction_idx = (__proposed_idx < __subgroups_before_my_group)
                                                        ? __proposed_idx
                                                        : __subgroups_before_my_group - 1;
-                            __value.__v = __tmp_ptr[__reduction_idx];
+                            __value = __tmp_ptr[__reduction_idx];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
-                                                     /*__init_present=*/true>(__sub_group, __value.__v, __reduce_op,
+                                                     /*__init_present=*/true>(__sub_group, __value, __reduce_op,
                                                                               __carry_last, __remaining_elements);
                         }
+
+                        // steps 3/4) load global carry in from neighbor work-group
+                        //            and apply to local sub-group prefix carries
+                        auto __carry_offset = 0;
+
+                        std::uint8_t __iters =
+                            oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
+
+                        std::uint8_t __i = 0;
+                        for (; __i < __iters - 1; ++__i)
+                        {
+                            __sub_group_partials[__carry_offset + __sub_group_local_id] =
+                                __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __carry_offset += __sub_group_size;
+                        }
+                        if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
+                        {
+                            __sub_group_partials[__carry_offset + __sub_group_local_id] =
+                                __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __carry_offset += __sub_group_size;
+                        }
+                        if (__sub_group_local_id == 0)
+                            __sub_group_partials[__active_subgroups] = __carry_last.__v;
+                        __carry_last.__destroy();
+
                     }
+
                 }
-
-                __dpl_sycl::__group_barrier(__ndi);
-
-                // steps 3/4) load global carry in from neighbor work-group
-                //            and apply to local sub-group prefix carries
-                if ((__sub_group_id == 0) && (__g > 0))
-                {
-                    auto __carry_offset = 0;
-
-                    std::uint8_t __iters =
-                        oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
-
-                    std::uint8_t __i = 0;
-                    for (; __i < __iters - 1; ++__i)
-                    {
-                        __sub_group_partials[__carry_offset + __sub_group_local_id] =
-                            __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
-                        __carry_offset += __sub_group_size;
-                    }
-                    if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
-                    {
-                        __sub_group_partials[__carry_offset + __sub_group_local_id] =
-                            __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
-                        __carry_offset += __sub_group_size;
-                    }
-                    if (__sub_group_local_id == 0)
-                        __sub_group_partials[__active_subgroups] = __carry_last.__v;
-                    __carry_last.__destroy();
-                }
-                __value.__destroy();
 
                 __dpl_sycl::__group_barrier(__ndi);
 
