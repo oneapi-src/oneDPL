@@ -45,10 +45,8 @@ struct __subgroup_bubble_sorter
         {
             for (_Size j = __start + 1; j < __start + __end - i; ++j)
             {
-                // forwarding references allow binding of internal tuple of references with rvalue
-                // TODO: avoid bank conflicts, or reconsider the algorithm
-                auto&& __first_item = __storage[j - 1];
-                auto&& __second_item = __storage[j];
+                auto& __first_item = __storage[j - 1];
+                auto& __second_item = __storage[j];
                 if (__comp(__second_item, __first_item))
                 {
                     using std::swap;
@@ -87,10 +85,10 @@ struct __group_merge_path_sorter
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
-            const auto& __in_it = __storage.begin() + __data_in_temp * __sorted_final;
-            const auto& __out_it = __storage.begin() + (!__data_in_temp) * __sorted_final;
-            const auto& __in_it1 = __in_it + __start1;
-            const auto& __in_it2 = __in_it + __start2;
+            auto __in_it = __storage.begin() + __data_in_temp * __sorted_final;
+            auto __out_it = __storage.begin() + (!__data_in_temp) * __sorted_final;
+            auto __in_it1 = __in_it + __start1;
+            auto __in_it2 = __in_it + __start2;
 
             const auto __start = __find_start_point(__in_it1, __in_it2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
@@ -362,7 +360,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
 
     const std::size_t __n = __rng.size();
-    auto&& __device = __exec.queue().get_device();
+    auto __device = __exec.queue().get_device();
 
     const std::size_t __max_wg_size = __device.template get_info<sycl::info::device::max_work_group_size>();
     std::size_t __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__max_wg_size);
