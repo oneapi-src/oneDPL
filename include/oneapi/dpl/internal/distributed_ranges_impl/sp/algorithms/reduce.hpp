@@ -26,7 +26,9 @@
 #include "../init.hpp"
 #include "execution_policy.hpp"
 
-namespace
+namespace oneapi::dpl::experimental::dr::sp
+{
+namespace __detail
 {
 
 // Precondition: stdrng::distance(first, last) >= 2
@@ -58,10 +60,7 @@ requires(sycl::has_known_identity_v<Fn, T>) auto reduce_no_init_async(ExecutionP
                                                    sycl::known_identity_v<Fn, T>, std::forward<Fn>(fn));
 }
 
-} // namespace
-
-namespace oneapi::dpl::experimental::dr::sp
-{
+} // namespace __detail
 
 template <typename ExecutionPolicy, distributed_range R, typename T, typename BinaryOp>
 T
@@ -89,7 +88,8 @@ reduce(ExecutionPolicy&& policy, R&& r, T init, BinaryOp binary_op)
             continue;
         }
 
-        auto future = reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
+        auto future =
+            __detail::reduce_no_init_async<T>(local_policy, stdrng::begin(segment), stdrng::end(segment), binary_op);
 
         futures.push_back(std::move(future));
     }
