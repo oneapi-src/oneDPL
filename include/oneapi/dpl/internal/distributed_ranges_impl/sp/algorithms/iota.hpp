@@ -20,6 +20,7 @@
 
 #include "../../detail/std_ranges_shim.hpp"
 #include "../../views/iota.hpp"
+#include "../views/zip.hpp"
 #include "for_each.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp

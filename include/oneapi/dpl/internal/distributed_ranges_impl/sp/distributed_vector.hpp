@@ -191,7 +191,7 @@ struct distributed_vector
     {
         size_type segment_id = pos / segment_size_;
         size_type local_id = pos % segment_size_;
-        return *(segments_[segment_id].begin() + local_id);
+        return segments_[segment_id][local_id];
     }
 
     const_reference
@@ -199,7 +199,7 @@ struct distributed_vector
     {
         size_type segment_id = pos / segment_size_;
         size_type local_id = pos % segment_size_;
-        return *(segments_[segment_id].begin() + local_id);
+        return segments_[segment_id][local_id];
     }
 
     size_type
