@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 #define _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 
-#if 1 // ifndef DR_USE_RANGES_V3
+#ifndef _ONEDPL_DR_STD_RANGES_SHIM_HEADER
 
 #    include <ranges>
 
@@ -26,12 +26,8 @@ namespace stdrng = ::std::ranges;
 
 #else
 
-#    include <range/v3/all.hpp>
+#    include _ONEDPL_DR_STD_RANGES_SHIM_HEADER
 
-namespace stdrng = ::ranges;
-
-#    define __ONEDPL_DR_STD_RANGES_NAMESPACE ranges
-
-#endif /* DR_USE_RANGES_V3 */
+#endif /* _ONEDPL_DR_STD_RANGES_SHIM_HEADER */
 
 #endif /* _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP */
