@@ -282,7 +282,7 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     auto
     local_impl_(std::index_sequence<Ints...>) const noexcept
     {
-        return stdrng::views::zip(ranges::__detail::local(std::get<Ints>(views_))...);
+        return stdrng::views::zip(ranges::__detail::local_or_identity(std::get<Ints>(views_))...);
     }
 
     template <std::size_t I, typename R>
