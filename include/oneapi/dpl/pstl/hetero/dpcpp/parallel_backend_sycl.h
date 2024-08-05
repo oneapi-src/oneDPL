@@ -1171,7 +1171,6 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
 
-        auto __group = __item_id.get_group();
         auto __sub_group = __item_id.get_sub_group();
 
         for (_SrcDataSize __i_main = 0; __i_main < __iters_per_work_item; __i_main += __check_in_groups_interval)
