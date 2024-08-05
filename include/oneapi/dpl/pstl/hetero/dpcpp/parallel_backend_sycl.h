@@ -1127,9 +1127,9 @@ struct __early_exit_find_or
                 __something_was_found = true;
             }
 
-            // If we find first/last item, we should at first share (reduce) found position inside our sub-group,
-            // because we should finish search in the current work-item only if the found position from another work-item
-            // is more preferable: in case of forward search - is less then for this work-item,
+            // If we find the first/last item, we should at first share (reduce) the found position inside our sub-group
+            // because we should finish the search in the current work-item only if the found position from another work-item
+            // is preferable: in case of forward search - is less then for this work-item,
             // in case of backward search - is great then for this work-item.
             if constexpr (!__or_tag_check)
             {
