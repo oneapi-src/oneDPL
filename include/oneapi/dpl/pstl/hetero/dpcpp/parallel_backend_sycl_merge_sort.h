@@ -264,7 +264,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        const auto __offset = std::min<_IdType>(__i_elem  - __i_elem_local, __n);
+                        const auto __offset = std::min<_IdType>(__i_elem - __i_elem_local, __n);
                         const auto __n1 = std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
                         const auto __n2 = std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
