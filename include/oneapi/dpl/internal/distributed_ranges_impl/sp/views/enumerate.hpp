@@ -16,15 +16,12 @@
 #ifndef _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
 #define _ONEDPL_DR_SP_VIEWS_ENUMERATE_HPP
 
-#include "../zip_view.hpp"
+#include "../views/zip.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
 
 namespace views
-{
-
-namespace
 {
 
 template <stdrng::range R>
@@ -42,8 +39,6 @@ struct range_size<R>
 template <stdrng::range R>
 using range_size_t = typename range_size<R>::type;
 
-} // namespace
-
 class enumerate_adapter_closure
 {
   public:
@@ -51,8 +46,9 @@ class enumerate_adapter_closure
     requires(stdrng::sized_range<R>) auto
     operator()(R&& r) const
     {
-        using W = std::uint32_t;
-        return zip_view(stdrng::views::iota(W(0), W(stdrng::size(r))), std::forward<R>(r));
+        using IntT = std::uint32_t;
+        return zip_view(stdrng::views::iota(static_cast<IntT>(0), static_cast<IntT>(stdrng::size(r))),
+                        std::forward<R>(r));
     }
 
     template <stdrng::viewable_range R>

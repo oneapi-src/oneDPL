@@ -21,7 +21,6 @@
 #include "../detail.hpp"
 #include "../init.hpp"
 #include "../util.hpp"
-#include "../zip_view.hpp"
 #include "execution_policy.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
@@ -35,6 +34,7 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
         std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     std::vector<sycl::event> events;
+    events.reserve(stdrng::size(ranges::segments(r)));
 
     for (auto&& segment : ranges::segments(r))
     {
@@ -42,12 +42,12 @@ for_each(ExecutionPolicy&& policy, R&& r, Fn fn)
 
         assert(stdrng::distance(segment) > 0);
 
-        auto local_segment = __detail::local(segment);
+        auto local_segment = ranges::__detail::local_or_identity(segment);
 
         auto first = stdrng::begin(local_segment);
 
         auto event = dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(local_segment)),
-                                                [=](auto idx) { fn(*(first + idx)); });
+                                                [=](auto idx) { fn(first[idx]); });
         events.emplace_back(event);
     }
     __detail::wait(events);

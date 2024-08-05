@@ -34,6 +34,9 @@
 namespace oneapi::dpl::experimental::dr::sp
 {
 
+namespace __detail
+{
+
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename BinaryOp,
           typename U = stdrng::range_value_t<R>>
 void
@@ -131,7 +134,7 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
             auto first = stdrng::begin(out_segment);
             dr::__detail::direct_iterator d_first(first);
 
-            auto d_sum = ranges::__detail::local(partial_sums).begin() + idx - 1;
+            auto d_sum = ranges::__detail::local_or_identity(partial_sums).begin() + idx - 1;
 
             sycl::event e = dr::__detail::parallel_for(q, sycl::range<>(stdrng::distance(out_segment)), [=](auto idx) {
                 d_first[idx] = binary_op(d_first[idx], *d_sum);
@@ -145,20 +148,23 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
     __detail::wait(events);
 }
 
+} // namespace __detail
+
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename BinaryOp,
           typename T>
 void
 inclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op, T init)
 {
-    inclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), binary_op,
-                         std::optional(init));
+    __detail::inclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o),
+                                   binary_op, std::optional(init));
 }
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O, typename BinaryOp>
 void
 inclusive_scan(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op)
 {
-    inclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o), binary_op);
+    __detail::inclusive_scan_impl_(std::forward<ExecutionPolicy>(policy), std::forward<R>(r), std::forward<O>(o),
+                                   binary_op);
 }
 
 template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_contiguous_range O>
