@@ -221,6 +221,7 @@ main()
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
+
     {
         using ValueType = MatrixPoint<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
