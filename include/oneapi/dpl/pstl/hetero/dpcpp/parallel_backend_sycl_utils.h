@@ -509,6 +509,7 @@ template <typename _ExecutionPolicy, typename _T>
 struct __result_and_scratch_storage
 {
     using __value_type = _T;
+
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
 
@@ -820,8 +821,7 @@ bool
 __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_size)
 {
     const auto __subgroup_sizes = __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-    return std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), __target_size) !=
-           __subgroup_sizes.end();
+    return std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), __target_size) != __subgroup_sizes.end();
 }
 
 } // namespace __par_backend_hetero
