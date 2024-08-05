@@ -78,7 +78,7 @@ struct __group_merge_path_sorter
         {
             const std::uint32_t __id_local = __id % __next_sorted;
             // Borders of the ranges to be merged
-            const std::uint32_t __start1 = std::min<std::uint32_t>((__id / __next_sorted) * __next_sorted, __end);
+            const std::uint32_t __start1 = std::min<std::uint32_t>(__id - __id_local, __end);
             const std::uint32_t __end1 = std::min<std::uint32_t>(__start1 + __sorted, __end);
             const std::uint32_t __start2 = __end1;
             const std::uint32_t __end2 = std::min<std::uint32_t>(__start2 + __sorted, __end);
@@ -253,7 +253,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf);
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-            __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __event1, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
@@ -264,7 +264,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        const auto __offset = std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
+                        const auto __offset = std::min<_IdType>(__i_elem  - __i_elem_local, __n);
                         const auto __n1 = std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
                         const auto __n2 = std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
@@ -295,7 +295,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         // 3. If the data remained in the temporary buffer then copy it back
         if (__data_in_temp)
         {
-            __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __event1](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
