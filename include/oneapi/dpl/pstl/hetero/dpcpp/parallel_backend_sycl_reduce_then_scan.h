@@ -231,7 +231,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
                     __write_op(__out_rng, __start_idx, __v);
                 }
 
-                for (int __j = 1; __j < __iters - 1; __j++)
+                for (std::uint32_t __j = 1; __j < __iters - 1; __j++)
                 {
                     auto __local_idx = __start_idx + __j * __sub_group_size;
                     __v = __gen_input(__in_rng, __local_idx);
@@ -331,9 +331,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         __sub_group_partials[__sub_group_id] = __sub_group_carry.__v;
                     __sub_group_carry.__destroy();
                 }
-                // TODO: This is slower then ndi.barrier which was removed in SYCL2020. Can we do anything about it?
-                //sycl::group_barrier(ndi.get_group());
-                __ndi.barrier(sycl::access::fence_space::local_space);
+                __dpl_sycl::__group_barrier(__ndi);
 
                 // compute sub-group local prefix sums on (T0..63) carries
                 // and store to scratch space at the end of dst; next
@@ -364,7 +362,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                             __sub_group, __v, __reduce_op, __sub_group_carry);
                         __temp_ptr[__start_idx + __sub_group_local_id] = __v;
 
-                        for (int __i = 1; __i < __iters - 1; __i++)
+                        for (std::uint32_t __i = 1; __i < __iters - 1; __i++)
                         {
                             __v = __sub_group_partials[__i * __sub_group_size + __sub_group_local_id];
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
@@ -542,7 +540,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                 __sub_group, __value.__v, __reduce_op, __carry_last);
 
                             // then some number of full iterations
-                            for (int __i = 1; __i < __pre_carry_iters - 1; __i++)
+                            for (std::uint32_t __i = 1; __i < __pre_carry_iters - 1; __i++)
                             {
                                 auto __reduction_idx = __i * __num_sub_groups_local * __sub_group_size +
                                                        __num_sub_groups_local * __sub_group_local_id + __offset;
@@ -567,9 +565,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     }
                 }
 
-                // N.B. barrier could be earlier, guarantees slm local carry update
-                //sycl::group_barrier(ndi.get_group());
-                __ndi.barrier(sycl::access::fence_space::local_space);
+                __dpl_sycl::__group_barrier(__ndi);
 
                 // steps 3/4) load global carry in from neighbor work-group
                 //            and apply to local sub-group prefix carries
@@ -599,8 +595,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 }
                 __value.__destroy();
 
-                //sycl::group_barrier(ndi.get_group());
-                __ndi.barrier(sycl::access::fence_space::local_space);
+                __dpl_sycl::__group_barrier(__ndi);
 
                 // Get inter-work group and adjusted for intra-work group prefix
                 bool __sub_group_carry_initialized = true;
@@ -771,12 +766,11 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     constexpr bool __inclusive = _Inclusive::value;
     constexpr bool __is_unique_pattern_v = _IsUniquePattern::value;
 
-    // TODO: Do we need to adjust for slm usage or is the amount we use reasonably small enough
-    // that no check is needed?
     // TODO: This min call is temporary until PR #1683 is merged.
     const std::size_t __work_group_size = std::min(std::size_t(8192), oneapi::dpl::__internal::__max_work_group_size(__exec));
 
-    // TODO: base on max compute units. Recall disconnect in vendor definitions (# SMs vs. # XVEs)
+    // TODO: Investigate potentially basing this on some scale of the number of compute units. 128 work-groups has been
+    // found to be reasonable number for most devices.
     const std::size_t __num_work_groups = 128;
     const std::size_t __num_work_items = __num_work_groups * __work_group_size;
     const std::size_t __num_sub_groups_local = __work_group_size / __sub_group_size;
@@ -809,21 +803,33 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     // Reduce and scan step implementations
     using _ReduceSubmitter =
-        __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __inclusive, __is_unique_pattern_v,
-                                                     _GenReduceInput, _ReduceOp, _InitType, _ReduceKernel>;
+        __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
+                                                     __is_unique_pattern_v, _GenReduceInput, _ReduceOp, _InitType,
+                                                     _ReduceKernel>;
     using _ScanSubmitter =
-        __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive, __is_unique_pattern_v,
-                                                   _GenReduceInput, _ReduceOp, _GenScanInput, _ScanInputTransform,
-                                                   _WriteOp, _InitType, _ScanKernel>;
-    // TODO: remove below before merging. used for convenience now
-    // clang-format off
-    _ReduceSubmitter __reduce_submitter{__max_inputs_per_block, __num_sub_groups_local,
-        __num_sub_groups_global, __num_work_items, __n, __gen_reduce_input, __reduce_op, __init};
-    _ScanSubmitter __scan_submitter{__max_inputs_per_block, __num_sub_groups_local,
-        __num_sub_groups_global, __num_work_items, __num_blocks, __n, __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_input_transform,
-        __write_op, __init};
-    // clang-format on
-
+        __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
+                                                   __is_unique_pattern_v, _GenReduceInput, _ReduceOp, _GenScanInput,
+                                                   _ScanInputTransform, _WriteOp, _InitType, _ScanKernel>;
+    _ReduceSubmitter __reduce_submitter{__max_inputs_per_block,
+                                        __num_sub_groups_local,
+                                        __num_sub_groups_global,
+                                        __num_work_items,
+                                        __n,
+                                        __gen_reduce_input,
+                                        __reduce_op,
+                                        __init};
+    _ScanSubmitter __scan_submitter{__max_inputs_per_block,
+                                    __num_sub_groups_local,
+                                    __num_sub_groups_global,
+                                    __num_work_items,
+                                    __num_blocks,
+                                    __n,
+                                    __gen_reduce_input,
+                                    __reduce_op,
+                                    __gen_scan_input,
+                                    __scan_input_transform,
+                                    __write_op,
+                                    __init};
     sycl::event __event;
     // Data is processed in 2-kernel blocks to allow contiguous input segment to persist in LLC between the first and second kernel for accelerators
     // with sufficiently large L2 / L3 caches.
@@ -842,13 +848,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
         __event = __scan_submitter(__exec, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event,
                                    __inputs_per_sub_group, __inputs_per_item, __b);
-
-        if (__num_remaining > __block_size)
+        __num_remaining -= std::min(__num_remaining, __block_size);
+        // We only need to resize these parameters prior to the last block as it is the only non-full case.
+        if (__b + 2 == __num_blocks)
         {
-            // Resize for the next block.
-            __num_remaining -= __block_size;
-            // TODO: This recalculation really only matters for the second to last iteration
-            // of the loop since the last iteration is the only non-full block.
             __inputs_per_sub_group =
                 __num_remaining >= __max_inputs_per_block
                     ? __max_inputs_per_block / __num_sub_groups_global
