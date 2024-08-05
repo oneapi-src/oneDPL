@@ -1100,9 +1100,9 @@ struct __early_exit_find_or
         const auto __global_id = __item_id.get_global_linear_id();
 
         auto __sub_group = __item_id.get_sub_group();
+        typename _BrickTag::_LocalResultsReduceOp __reduce_op;
 
-        bool __something_was_found = false;
-        for (_SrcDataSize __i = 0; !__something_was_found && __i < __iters_per_work_item; ++__i)
+        for (_SrcDataSize __i = 0; __found_local == __init_value && __i < __iters_per_work_item; ++__i)
         {
             auto __local_src_data_idx = __i;
             if constexpr (__is_backward_tag(__brick_tag))
@@ -1113,34 +1113,16 @@ struct __early_exit_find_or
             {
                 // Update local found state
                 _BrickTag::__save_state_to(__found_local, __src_data_idx_current);
-
-                // This break is mandatory from the performance point of view.
-                // This break is safe for all our cases:
-                // 1) __parallel_find_forward_tag : when we search for the first matching data entry, we process data from start to end (forward direction).
-                //    This means that after first found entry there is no reason to process data anymore.
-                // 2) __parallel_find_backward_tag : when we search for the last matching data entry, we process data from end to start (backward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // 3) __parallel_or_tag : when we search for any matching data entry, we process data from start to end (forward direction).
-                //    This means that after the first found entry there is no reason to process data anymore too.
-                // But break statement here shows poor perf in some cases.
-                // So we use bool variable state check in the for-loop header.
-                __something_was_found = true;
             }
 
             // If we find the first/last item, we should at first share (reduce) the found position inside our sub-group
             // because we should finish the search in the current work-item only if the found position from another work-item
             // is preferable: in case of forward search - is less then for this work-item,
             // in case of backward search - is great then for this work-item.
-            if constexpr (!__or_tag_check)
-            {
-                __found_local = __dpl_sycl::__reduce_over_group(__sub_group, __found_local,
-                                                                typename _BrickTag::_LocalResultsReduceOp{});
-                __something_was_found = __found_local != __init_value;
-            }
-
-            // Share found into state between items in our sub-group to early exit if something was found
-            //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
+            if constexpr (__or_tag_check)
+                __found_local = __dpl_sycl::__any_of_group(__sub_group, __found_local);
+            else
+                __found_local = __dpl_sycl::__reduce_over_group(__sub_group, __found_local, __reduce_op);
         }
     }
 };
