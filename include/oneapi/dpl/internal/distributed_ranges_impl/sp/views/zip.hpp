@@ -18,11 +18,11 @@
 
 #include "oneapi/dpl/iterator"
 
-#include "../detail/iterator_adaptor.hpp"
-#include "../detail/owning_view.hpp"
-#include "../detail/std_ranges_shim.hpp"
-#include "../detail/view_detectors.hpp"
-#include "remote_span.hpp"
+#include "../../detail/iterator_adaptor.hpp"
+#include "../../detail/owning_view.hpp"
+#include "../../detail/std_ranges_shim.hpp"
+#include "../../detail/view_detectors.hpp"
+#include "../remote_span.hpp"
 
 namespace oneapi::dpl::experimental::dr::sp
 {
