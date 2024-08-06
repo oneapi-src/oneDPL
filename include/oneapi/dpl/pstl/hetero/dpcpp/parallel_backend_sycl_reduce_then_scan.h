@@ -162,6 +162,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
     bool __is_full_thread = __subgroup_start_idx + __iters_per_item * __sub_group_size <= __n;
     if (__is_full_thread && __is_full_block)
     {
+        // For full block and full thread, we can unroll the loop
         auto __v = __gen_input(__in_rng, __start_idx);
         __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_input_transform(__v),
                                                                            __binary_op, __sub_group_carry);
@@ -184,6 +185,9 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
     }
     else if (__is_full_thread)
     {
+        // For full thread but not full block, we can't unroll the loop, but we
+        // can proceed without special casing for partial subgroups.
+
         auto __v = __gen_input(__in_rng, __start_idx);
         __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_input_transform(__v),
                                                                            __binary_op, __sub_group_carry);
@@ -204,6 +208,7 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
     }
     else
     {
+        // For partial thread, we need to handle the partial subgroup at the end of the range
         if (__sub_group_id < __active_subgroups)
         {
             auto __iters = oneapi::dpl::__internal::__dpl_ceiling_div(__n - __subgroup_start_idx, __sub_group_size);
@@ -552,7 +557,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                                                               __carry_last, __remaining_elements);
                         }
 
-                        // steps 3/4) load global carry in from neighbor work-group
+                        // steps 3+4) load global carry in from neighbor work-group
                         //            and apply to local sub-group prefix carries
                         auto __carry_offset = 0;
 
