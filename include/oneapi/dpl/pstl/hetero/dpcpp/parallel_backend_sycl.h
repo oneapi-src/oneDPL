@@ -879,6 +879,7 @@ struct __invoke_single_group_copy_if
         constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
         const bool __is_full_group = __n == __wg_size;
+
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
         using _ReduceOp = ::std::plus<::std::uint16_t>;
@@ -923,10 +924,12 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
     using _InitType = unseq_backend::__no_init_value<_Size>;
+
     _Assigner __assign_op;
     _ReduceOp __reduce_op;
     _DataAcc __get_data_op;
     _MaskAssigner __add_mask_op;
+
     // temporary buffer to store boolean mask
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
@@ -958,9 +961,11 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(static_cast<::std::make_unsigned_t<_Size>>(__n));
+
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
         __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
+
     // The kernel stores n integers for the predicate and another n integers for the offsets
     const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform * 2;
 
