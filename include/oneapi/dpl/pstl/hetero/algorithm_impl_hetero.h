@@ -1298,7 +1298,7 @@ void
 __pattern_sort_by_key(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __keys_first,
                       _Iterator1 __keys_last, _Iterator2 __values_first, _Compare __comp)
 {
-    __pattern_stable_sort_by_key(__tag, ::std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last,
+    __pattern_stable_sort_by_key(__tag, std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last,
                                  __values_first, __comp);
 }
 
@@ -1511,7 +1511,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         // TODO: __pattern_walk2 is a blocking call here, so there is a synchronization between the patterns.
         // But, when the input iterators are a kind of hetero iterator on top of sycl::buffer, SYCL
-        // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to 
+        // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to
         // be asynchronous for better performance.
 
         // Use regular sort as partial_sort isn't required to be stable.
