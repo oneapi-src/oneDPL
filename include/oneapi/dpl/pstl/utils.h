@@ -772,10 +772,12 @@ union __lazy_ctor_storage
     using __value_type = _Tp;
     _Tp __v;
     __lazy_ctor_storage() {}
+
+    template<typename _U>
     void
-    __setup(const _Tp& init)
+    __setup(_U&& init)
     {
-        new (&__v) _Tp(init);
+        new (&__v) _Tp(std::forward<_U>(init));
     }
     void
     __destroy()
