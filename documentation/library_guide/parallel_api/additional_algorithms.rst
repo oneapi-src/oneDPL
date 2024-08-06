@@ -79,6 +79,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
 * ``sort_by_key``: performs a key-value sort.
   The algorithm sorts a sequence of keys based on a comparison function object.
   If it is not provided, the elements are compared with ``operator<``.
+  A sequence of values is simultaneously permuted according to the sorted order of keys.
   For correct behavior, a sequence of values must have at least as many elements as the sequence of keys.
 
   For example::
