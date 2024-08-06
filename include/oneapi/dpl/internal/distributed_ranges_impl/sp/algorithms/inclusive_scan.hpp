@@ -98,7 +98,10 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 
         sycl::event event = futures.back();
 
-        auto e = h.single_task([=]() { *dst_iter = *src_iter; });
+        auto e = q.submit([&](auto&& h) {
+            h.depends_on(event);
+            h.single_task([=]() { *dst_iter = *src_iter; });
+        });
 
         events.push_back(e);
 
