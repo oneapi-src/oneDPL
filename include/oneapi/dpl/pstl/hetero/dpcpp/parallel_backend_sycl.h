@@ -1172,6 +1172,18 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
 
+        // Evaluate real source data index
+        auto __fnc_eval_src_data_idx = [&__brick_tag, __iters_per_work_item, __global_id, __iteration_data_size](_SrcDataSize __i) {
+
+            auto __local_src_data_idx = __i;
+
+            if constexpr (__is_backward_tag(__brick_tag))
+                __local_src_data_idx = __iters_per_work_item - 1 - __i;
+
+            // To __iteration_data_size passed the expression : __n_groups * __wgroup_size
+            return __global_id + __local_src_data_idx * __iteration_data_size;
+        };
+
         auto __sub_group = __item_id.get_sub_group();
 
         bool __something_was_found = false;
@@ -1182,12 +1194,9 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
 
             for (_SrcDataSize __i = __i_portion_start; !__something_was_found && __i < __i_portion_finish; ++__i)
             {
-                auto __local_src_data_idx = __i;
-                if constexpr (__is_backward_tag(__brick_tag))
-                    __local_src_data_idx = __iters_per_work_item - 1 - __i;
+                // Evaluate real source data index
+                const auto __src_data_idx_current = __fnc_eval_src_data_idx(__i);
 
-                // To __iteration_data_size passed the expression : __n_groups * __wgroup_size
-                const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
                 if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
                 {
                     // Update local found state
@@ -1215,9 +1224,9 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
             if constexpr (_OrTagType{})
                 __something_was_found |= __found_global.load() != __init_value;
             else if constexpr (__is_backward_tag(__brick_tag))
-                __something_was_found |= __found_global.load() < __i_portion_start;
+                __something_was_found |= std::max(__fnc_eval_src_data_idx(__i_portion_start), __fnc_eval_src_data_idx(__i_portion_finish)) <= __found_global.load();
             else
-                __something_was_found |= __found_global.load() >= __i_portion_finish;
+                __something_was_found |= __found_global.load() <= std::max(__fnc_eval_src_data_idx(__i_portion_start), __fnc_eval_src_data_idx(__i_portion_finish));
 
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
