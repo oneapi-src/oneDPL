@@ -299,6 +299,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     auto result = oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, _TagType{},
+        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
         oneapi::dpl::__ranges::zip_view(__rng1, __rng2));
 
     // inverted conditional because of
