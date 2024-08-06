@@ -1453,7 +1453,9 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
+                         __f, _TagType{},
+                        __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
+                        __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1473,7 +1475,9 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{}, __buf.all_view());
+                         __f, _TagType{},
+                         __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
+                         __buf.all_view());
 }
 
 //------------------------------------------------------------------------
