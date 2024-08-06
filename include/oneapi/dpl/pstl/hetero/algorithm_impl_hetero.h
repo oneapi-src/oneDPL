@@ -681,6 +681,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
     return !__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
+        __par_backend_hetero::__parallel_find_or_nd_range_tuner_none{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 }
 
