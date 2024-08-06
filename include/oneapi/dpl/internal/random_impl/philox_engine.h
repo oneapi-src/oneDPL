@@ -27,6 +27,21 @@ namespace oneapi
 namespace dpl
 {
 
+template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r, UIntType ...consts>
+class philox_engine;
+
+template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
+::std::basic_ostream<CharT, Traits>& 
+operator<<(::std::basic_ostream<CharT, Traits>&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
+
+template<typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
+const sycl::stream&
+operator<<(const sycl::stream&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
+
+template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
+::std::basic_istream<CharT, Traits>& 
+operator>>(::std::basic_istream<CharT, Traits>&, philox_engine<UIntType_, w_, n_, r_, consts_...>&);
+
 template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r,
          UIntType ...consts>
 class philox_engine
@@ -96,7 +111,7 @@ public:
         detail::get_odd_array_from_tuple<UIntType>(::std::make_tuple(consts...),
                                                    ::std::make_index_sequence<array_size>{});
     static constexpr result_type min() { return 0; }
-    static constexpr result_type max() { return (2 << word_size) - 1; }
+    static constexpr result_type max() { return ::std::numeric_limits<result_type>::max(); }
     static constexpr result_type default_seed = 20111115u;
 
     // constructors and seeding functions
@@ -114,13 +129,13 @@ public:
     }
 
     friend bool operator==(const philox_engine& x, const philox_engine& y) {
-        if(!std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
-           !std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
-           !std::equal(x.state_.Y.begin(), x.state_.Y.end(), y.state_.Y.begin()) ||
-           x.state_.idx != y.state_.idx
-           )
-            
-            return false;
+        if(!::std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
+           !::std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
+           !::std::equal(x.state_.Y.begin(), x.state_.Y.end(), y.state_.Y.begin()) ||
+           x.state_.idx != y.state_.idx) {
+                return false;
+        }
+        return true;
     }
 
     friend bool
@@ -154,15 +169,20 @@ public:
 
         state_.idx = newridx;
     }
-    
+
     // inserters and extractors
-    template<class CharT, class Traits, typename UIntType_, std::size_t w_, std::size_t n_, std::size_t r_, UIntType... consts_>
+            
+    template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
     friend ::std::basic_ostream<CharT, Traits>& 
-    operator<<(::std::basic_ostream<CharT, Traits>& os, const philox_engine<UIntType_, w_, n_, r_, consts_...>& engine);
+    operator<<(::std::basic_ostream<CharT, Traits>&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
     
-    template<class CharT, class Traits, typename UIntType_, std::size_t w_, std::size_t n_, std::size_t r_, UIntType... consts_>
+    template<typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
+    friend const sycl::stream&
+    operator<<(const sycl::stream&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
+
+    template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
     friend ::std::basic_istream<CharT, Traits>& 
-    operator>>(::std::basic_istream<CharT, Traits>& is, philox_engine<UIntType_, w_, n_, r_, consts_...>& engine);
+    operator>>(::std::basic_istream<CharT, Traits>&, philox_engine<UIntType_, w_, n_, r_, consts_...>&);
 
 private:
 
@@ -220,12 +240,12 @@ private:
     }
 };
 
-template<class CharT, class Traits, typename UIntType, std::size_t w, std::size_t n, std::size_t r, UIntType... consts>
+template<class CharT, class Traits, typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r, UIntType... consts>
 ::std::basic_ostream<CharT, Traits>& 
 operator<<(::std::basic_ostream<CharT, Traits>& os, const philox_engine<UIntType, w, n, r, consts...>& engine) {
     internal::save_stream_flags<CharT, Traits> __flags(os);
 
-    os.setf(std::ios_base::dec | std::ios_base::left);
+    os.setf(::std::ios_base::dec | ::std::ios_base::left);
     CharT sp = os.widen(' ');
     os.fill(sp);
 
@@ -243,26 +263,47 @@ operator<<(::std::basic_ostream<CharT, Traits>& os, const philox_engine<UIntType
     return os;
 }
 
-template<class CharT, class Traits, typename UIntType, std::size_t w, std::size_t n, std::size_t r, UIntType... consts>
+template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r, UIntType... consts>
+const sycl::stream&
+operator<<(const sycl::stream& os, const philox_engine<UIntType, w, n, r, consts...>& engine) {
+    for(auto x_elm: engine.state_.X) {
+        os << x_elm << ' ';
+    }
+    for(auto k_elm: engine.state_.K) {
+        os << k_elm << ' ';
+    }
+    for(auto y_elm: engine.state_.Y) {
+        os << y_elm << ' ';
+    }
+    os << engine.state_.idx;
+    
+    return os;
+}
+
+template<class CharT, class Traits, typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r, UIntType... consts>
 ::std::basic_istream<CharT, Traits>& 
-operator<<(::std::basic_istream<CharT, Traits>& is, const philox_engine<UIntType, w, n, r, consts...>& engine) {
+operator>>(::std::basic_istream<CharT, Traits>& is, philox_engine<UIntType, w, n, r, consts...>& engine) {
     internal::save_stream_flags<CharT, Traits> __flags(is);
 
-    is.setf(std::ios_base::dec);
+    is.setf(::std::ios_base::dec);
 
-    std::vector<UIntType> tmp_inp(sizeof(engine.state_));
-    for (size_t i = 0; i < sizeof(engine.state_); ++i)
+    const size_t state_size = 2*n + n/2 + 1;
+
+    ::std::vector<UIntType> tmp_inp(state_size);
+    for (size_t i = 0; i < state_size; ++i) {
         is >> tmp_inp[i];
-
+    }
 
     if (!is.fail())
     {
-        for (size_t i = 0; i < w; ++i)
-            engine.state_.X >> tmp_inp[i];
-        for (size_t i = 0; i < w/2; ++i)
-            engine.state_.K >> tmp_inp[i];
-        for (size_t i = 0; i < w; ++i)
-            engine.state_.Y >> tmp_inp[i];
+        int inp_itr = 0;
+        for (size_t i = 0; i < n; ++i, ++inp_itr)
+            engine.state_.X[i] = tmp_inp[inp_itr];
+        for (size_t i = 0; i < n/2; ++i, ++inp_itr)
+            engine.state_.K[i] = tmp_inp[inp_itr];
+        for (size_t i = 0; i < n; ++i, ++inp_itr)
+            engine.state_.Y[i] = tmp_inp[inp_itr];
+        engine.state_.idx = tmp_inp[inp_itr];
     }
     
     return is;

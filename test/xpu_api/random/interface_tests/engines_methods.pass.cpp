@@ -92,6 +92,28 @@ check_params(oneapi::dpl::ranlux24_vec<N>& engine)
             (engine.max() != RANLUX24_BASE_MAX));
 }
 
+std::int32_t
+check_params(oneapi::dpl::philox4x32& engine)
+{
+    return ((oneapi::dpl::philox4x32::word_size != 32)           || 
+            (oneapi::dpl::philox4x32::word_count != 4)           ||
+            (oneapi::dpl::philox4x32::round_count != 10)         ||
+            (oneapi::dpl::philox4x32::default_seed != 20111115u) ||
+            (engine.min() != 0) ||
+            (engine.max() !=  (std::numeric_limits<oneapi::dpl::philox4x32::result_type>::max())));
+}
+
+std::int32_t
+check_params(oneapi::dpl::philox4x64& engine)
+{
+    return ((oneapi::dpl::philox4x64::word_size != 64)           || 
+            (oneapi::dpl::philox4x64::word_count != 4)           ||
+            (oneapi::dpl::philox4x64::round_count != 10)         ||
+            (oneapi::dpl::philox4x64::default_seed != 20111115u) ||
+            (engine.min() != 0) ||
+            (engine.max() != (std::numeric_limits<oneapi::dpl::philox4x64::result_type>::max())));
+}
+
 template <class Engine>
 class
 test_vec
