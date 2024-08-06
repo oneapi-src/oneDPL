@@ -94,7 +94,7 @@ TEST(Sort, Wave) { test_sort2s({1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1}); }
 
 TEST(Sort, LongSorted) {
   LV v(100000);
-  stdrng::iota(v, 1);
+  std::iota(std::begin(v), std::end(v), 1);
   test_sort2s(v);
 
   stdrng::reverse(v);

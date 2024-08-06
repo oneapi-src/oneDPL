@@ -57,7 +57,7 @@ inline std::ostream &operator<<(std::ostream &os, const AOS_Struct &st) {
 template <typename T> struct Ops1 {
   Ops1(std::size_t n) : dist_vec(n), vec(n) {
     iota(dist_vec, 100);
-    stdrng::iota(vec, 100);
+    std::iota(stdrng::begin(vec), stdrng::end(vec), 100);
   }
 
   T dist_vec;
@@ -68,8 +68,8 @@ template <typename T> struct Ops2 {
   Ops2(std::size_t n) : dist_vec0(n), dist_vec1(n), vec0(n), vec1(n) {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
-    stdrng::iota(vec0, 100);
-    stdrng::iota(vec1, 200);
+    std::iota(stdrng::begin(vec0), stdrng::end(vec0), 100);
+    std::iota(stdrng::begin(vec1), stdrng::end(vec1), 200);
   }
 
   T dist_vec0, dist_vec1;
@@ -82,9 +82,9 @@ template <typename T> struct Ops3 {
     iota(dist_vec0, 100);
     iota(dist_vec1, 200);
     iota(dist_vec2, 300);
-    stdrng::iota(vec0, 100);
-    stdrng::iota(vec1, 200);
-    stdrng::iota(vec2, 300);
+    std::iota(stdrng::begin(vec0), stdrng::end(vec0), 100);
+    std::iota(stdrng::begin(vec1), stdrng::end(vec1), 200);
+    std::iota(stdrng::begin(vec2), stdrng::end(vec2), 300);
   }
 
   T dist_vec0, dist_vec1, dist_vec2;

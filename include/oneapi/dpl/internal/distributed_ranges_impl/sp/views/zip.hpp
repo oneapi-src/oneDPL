@@ -17,6 +17,7 @@
 #define _ONEDPL_DR_SP_ZIP_VIEW_HPP
 
 #include "oneapi/dpl/iterator"
+#include "oneapi/dpl/pstl/utils_ranges.h"
 
 #include "../../detail/iterator_adaptor.hpp"
 #include "../../detail/owning_view.hpp"
@@ -282,7 +283,7 @@ class zip_view : public stdrng::view_interface<zip_view<Rs...>>
     auto
     local_impl_(std::index_sequence<Ints...>) const noexcept
     {
-        return stdrng::views::zip(ranges::__detail::local_or_identity(std::get<Ints>(views_))...);
+        return __ranges::make_zip_view(ranges::__detail::local_or_identity(std::get<Ints>(views_))...);
     }
 
     template <std::size_t I, typename R>

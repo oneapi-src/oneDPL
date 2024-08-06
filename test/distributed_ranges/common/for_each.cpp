@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "xp_tests.hpp"
+#include "oneapi/dpl/pstl/utils_ranges.h" // zip_view
 
 // Fixture
 template <typename T> class ForEach : public testing::Test {
@@ -109,7 +110,7 @@ TYPED_TEST(ForEach, DISABLED_RangeUnalignedZip) {
   auto copy = [](auto v) { std::get<0>(v) = std::get<1>(v); };
   auto dist =
       xp::views::zip(xp::views::drop(ops.dist_vec0, 1), ops.dist_vec1);
-  auto local = stdrng::views::zip(stdrng::views::drop(ops.vec0, 1), ops.vec1);
+  auto local = __ranges::make_zip(stdrng::views::drop(ops.vec0, 1), ops.vec1);
 
   xp::for_each(dist, copy);
   stdrng::for_each(local, copy);

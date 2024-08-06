@@ -17,6 +17,7 @@
 #define _ONEDPL_DR_DETAIL_VIEW_DETECTORS_HPP
 
 #include <type_traits>
+#include "oneapi/dpl/pstl/utils_ranges.h" // zip_view
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -105,7 +106,6 @@ template <typename... T>
 struct is_zip_view<__ranges::zip_view<T...>> : std::true_type
 {
 };
-
 
 #if (defined _cpp_lib_ranges_zip)
 template <typename... Views>

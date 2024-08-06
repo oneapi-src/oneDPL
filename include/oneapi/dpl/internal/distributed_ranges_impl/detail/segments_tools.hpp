@@ -26,6 +26,14 @@ namespace oneapi::dpl::experimental::dr
 namespace __detail
 {
 
+template <stdrng::viewable_range R>
+auto
+make_enumerate(R&& r)
+{
+    using W = std::size_t;
+    return __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+}
+
 // Take all elements up to and including segment `segment_id` at index
 // `local_id`
 template <typename R>
@@ -49,7 +57,7 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
         }
     };
 
-    return stdrng::views::enumerate(segments) | stdrng::views::take(last_seg + 1) |
+    return make_enumerate(segments) | stdrng::views::take(last_seg + 1) |
            stdrng::views::transform(std::move(take_partial));
 }
 
@@ -96,7 +104,7 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
         }
     };
 
-    return stdrng::views::enumerate(segments) | stdrng::views::drop(first_seg) |
+    return make_enumerate(segments) | stdrng::views::drop(first_seg) |
            stdrng::views::transform(std::move(drop_partial));
 }
 

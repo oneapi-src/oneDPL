@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "xp_tests.hpp"
+#include "oneapi/dpl/pstl/utils_ranges.h"
 
 template <typename... Rs> auto test_zip(Rs &&...rs) {
   return xp::views::zip(std::forward<Rs>(rs)...);
@@ -29,7 +30,7 @@ TYPED_TEST_SUITE(Zip, AllTypes);
 TYPED_TEST(Zip, Dist1) {
   Ops1<TypeParam> ops(10);
 
-  auto local = stdrng::views::zip(ops.vec);
+  auto local = oneapi::dpl::__ranges::make_zip_view(ops.vec);
   auto dist = test_zip(ops.dist_vec);
   static_assert(compliant_view<decltype(dist)>);
   EXPECT_TRUE(check_view(local, dist));
