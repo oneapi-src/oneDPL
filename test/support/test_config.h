@@ -221,4 +221,9 @@
 #    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 0
 #endif
 
+// A specific kernel compilation order causes incorrect results on Windows with the DPCPP backend. For now, we reorder
+// the test while the issue is being reported to the compiler team. Once it is resolved, this macro can be removed
+// or limited to older compiler versions.
+#define _PSTL_RED_BY_SEG_WINDOWS_COMPILE_ORDER_BROKEN (_MSC_VER && TEST_DPCPP_BACKEND_PRESENT)
+
 #endif // _TEST_CONFIG_H
