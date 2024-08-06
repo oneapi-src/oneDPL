@@ -246,7 +246,9 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
         _BackendTag{},
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<
             oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+        _Predicate{__pred}, _TagType{},
+        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
+        ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
