@@ -765,6 +765,7 @@ struct __is_iterator_type<_T, std::void_t<typename std::iterator_traits<_T>::dif
 template <typename _T>
 static constexpr bool __is_iterator_type_v = __is_iterator_type<_T>::value;
 
+// Storage helper since _Tp may not have a default constructor.
 template <typename _Tp>
 union __lazy_ctor_storage
 {
