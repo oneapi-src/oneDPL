@@ -773,7 +773,7 @@ union __lazy_ctor_storage
     _Tp __v;
     __lazy_ctor_storage() {}
 
-    template<typename _U>
+    template <typename _U>
     void
     __setup(_U&& init)
     {
