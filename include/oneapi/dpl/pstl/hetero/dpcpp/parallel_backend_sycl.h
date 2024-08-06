@@ -1508,12 +1508,10 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         assert("This device does not support 64-bit atomics" &&
                (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
-        constexpr std::size_t __check_state_in_groups_interval = 500;
-
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
 
-        if (__iters_per_work_item <= __check_state_in_groups_interval)
+        if (__rng_n < 1'048'576)
         {
             // Multiple WG implementation - without check state in groups
             __result = __parallel_find_or_impl_multiple_wgs_wo_check_in_groups<_FindOrKernelMultipleWgsWoCheckInGroup, __or_tag_check>(
@@ -1524,6 +1522,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         }
         else
         {
+            const auto __check_state_in_groups_interval = oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, 2);
+
             // Multiple WG implementation - with check state in groups
             __result = __parallel_find_or_impl_multiple_wgs_with_check_in_groups<_FindOrKernelMultipleWgsWithCheckInGroup, __or_tag_check>(
                 oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
