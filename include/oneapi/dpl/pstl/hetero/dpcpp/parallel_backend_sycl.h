@@ -1183,17 +1183,19 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
             // __global_id : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, ...., __n_groups * __wgroup_size)
             // sub groups:    SG1....SG1, SG2....SG2, SG3....SG3,......., SGn....SGn
             // each item should process __iters_per_work_item elements
-            // requirement to have ability to call __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found)
-            //  - any already found data inside the current sub-group should be acceptable for all items in this sub-group
-            //    and for all source data processed by this work-item
-            // requirement to have ability to call __found_global.load()
-            //  - any already found data inside the global state should be acceptable for all items in this sub-group
-            //    and for all source data processed by this work-item
+            // requirements:
+            // 1) to have ability to call __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found) :
+            //    - any already found data inside the current sub-group should be acceptable for all items in this sub-group
+            //      and for all source data processed by this work-item;
+            // 2) to have ability to call __found_global.load() :
+            //    - any already found data inside the global state should be acceptable for all items in this sub-group
+            //      and for all source data processed by this work-item.
 
             // To __iteration_data_size passed the expression : __n_groups * __wgroup_size
             return __global_id + __local_src_data_idx * __iteration_data_size;
         };
 
+        auto __group = __item_id.get_group();
         auto __sub_group = __item_id.get_sub_group();
 
         bool __something_was_found = false;
@@ -1230,17 +1232,9 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
                 __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
             }
 
-            // Check global state
-            if constexpr (_OrTagType{})
-                __something_was_found |= __found_global.load() != __init_value;
-            else if constexpr (__is_backward_tag(__brick_tag))
-                __something_was_found |= std::max(__fnc_eval_src_data_idx(__i_portion_start), __fnc_eval_src_data_idx(__i_portion_finish)) <= __found_global.load();
-            else
-                __something_was_found |= __found_global.load() <= std::max(__fnc_eval_src_data_idx(__i_portion_start), __fnc_eval_src_data_idx(__i_portion_finish));
-
             // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
-            __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
+            __something_was_found = __dpl_sycl::__any_of_group(__group, __something_was_found);
         }
     }
 };
