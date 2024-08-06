@@ -257,7 +257,8 @@ template <typename _Tp>
 struct __value_holder
 {
     __value_holder() = default;
-    __value_holder(auto&& t) : value(::std::forward<_Tp>(t))
+    //__value_holder(auto&& t) : value(::std::forward<_Tp>(t))
+     __value_holder(const auto& t) : value(t)
     {
     }
     _Tp value;
