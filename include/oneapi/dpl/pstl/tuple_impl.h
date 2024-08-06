@@ -261,7 +261,7 @@ struct __value_holder
      __value_holder(const auto& t) : value(t)
     {
     }
-    _Tp value;
+    const _Tp value;
 };
 
 // Necessary to make tuple trivially_copy_assignable. This type decided
