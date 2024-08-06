@@ -21,6 +21,6 @@
 int
 main()
 {
-    test_all_policies(UnstableSort{});
+    test_all_policies(UnstableSortTag{});
     return TestUtils::done();
 }
