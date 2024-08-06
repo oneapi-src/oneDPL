@@ -1119,6 +1119,7 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_wo_che
             if constexpr (__is_backward_tag(__brick_tag))
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
+            // __iteration_data_size = __n_groups * __wgroup_size
             const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
             if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
             {
@@ -1173,18 +1174,19 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
 
         auto __sub_group = __item_id.get_sub_group();
 
-        for (_SrcDataSize __i_main = 0; __i_main < __iters_per_work_item; __i_main += __check_in_groups_interval)
+        bool __something_was_found = false;
+        for (_SrcDataSize __i_main = 0; !__something_was_found && __i_main < __iters_per_work_item; __i_main += __check_in_groups_interval)
         {
             const _SrcDataSize __i_portion_start = __i_main;
             const _SrcDataSize __i_portion_finish = std::min(__i_portion_start + __check_in_groups_interval, __iters_per_work_item);
 
-            bool __something_was_found = false;
             for (_SrcDataSize __i = __i_portion_start; !__something_was_found && __i < __i_portion_finish; ++__i)
             {
                 auto __local_src_data_idx = __i;
                 if constexpr (__is_backward_tag(__brick_tag))
                     __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
+                // __iteration_data_size = __n_groups * __wgroup_size
                 const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
                 if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
                 {
@@ -1217,7 +1219,7 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
             else
                 __something_was_found |= __found_global.load() >= __i_portion_finish;
 
-                // Share found into state between items in our sub-group to early exit if something was found
+            // Share found into state between items in our sub-group to early exit if something was found
             //  - the update of __found_local state isn't required here because it updates later on the caller side
             __something_was_found = __dpl_sycl::__any_of_group(__sub_group, __something_was_found);
         }
