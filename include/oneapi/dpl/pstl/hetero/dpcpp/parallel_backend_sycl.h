@@ -1134,6 +1134,60 @@ struct __early_exit_find_or
 // parallel_find_or - sync pattern
 //------------------------------------------------------------------------
 
+template <typename Tag>
+struct __parallel_find_or_nd_range_tuner
+{
+    // Calculate the number of work groups.
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, const std::size_t /*__rng_n*/, std::size_t __n_groups,
+               std::size_t /*__wgroup_size*/) const
+    {
+        return __n_groups;
+    }
+};
+
+using __parallel_find_or_nd_range_tuner_none = __parallel_find_or_nd_range_tuner<int>;
+
+// No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
+#if !_ONEDPL_FPGA_EMU
+template <>
+struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>
+{
+    static constexpr std::size_t __base_rng_n = 4096;
+
+    // Calculate the number of work groups.
+    template <typename _ExecutionPolicy>
+    std::size_t
+    operator()(_ExecutionPolicy&& /*__exec*/, const std::size_t __rng_n, std::size_t __n_groups,
+               std::size_t __wgroup_size) const
+    {
+        assert(__rng_n > 0);
+
+        if (__n_groups > 1 && __rng_n >= __base_rng_n)
+        {
+            // Empirically found formula for typical devices.
+            const auto __rng_x = __rng_n / __base_rng_n;
+            const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
+
+            auto __iters_per_work_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
+            // We halve the number of work-groups until the number of iterations per work-item
+            // is greater than or equal to the desired number of iterations per work-item.
+            while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
+            {
+                __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                __iters_per_work_item =
+                    oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+            }
+        }
+
+        return __n_groups;
+    }
+};
+#endif // !_ONEDPL_FPGA_EMU
+
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
 template <typename KernelName, bool __or_tag_check, typename _ExecutionPolicy, typename _BrickTag,
           typename __FoundStateType, typename _Predicate, typename... _Ranges>
