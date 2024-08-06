@@ -1119,7 +1119,7 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_wo_che
             if constexpr (__is_backward_tag(__brick_tag))
                 __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
-            // __iteration_data_size = __n_groups * __wgroup_size
+            // To __iteration_data_size passed the expression : __n_groups * __wgroup_size
             const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
             if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
             {
@@ -1186,7 +1186,7 @@ struct __early_exit_find_or<_ExecutionPolicy, _Pred, __early_exit_find_or_with_c
                 if constexpr (__is_backward_tag(__brick_tag))
                     __local_src_data_idx = __iters_per_work_item - 1 - __i;
 
-                // __iteration_data_size = __n_groups * __wgroup_size
+                // To __iteration_data_size passed the expression : __n_groups * __wgroup_size
                 const auto __src_data_idx_current = __global_id + __local_src_data_idx * __iteration_data_size;
                 if (__src_data_idx_current < __source_data_size && __pred(__src_data_idx_current, __rngs...))
                 {
