@@ -512,8 +512,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n, __lacc_ptr,
-                                                              __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
+                                                              __lacc_ptr, __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
@@ -617,7 +617,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
                     __scan_work_group<_ValueType, /* _Inclusive */ false>(
                         __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
-                        __init);
+                         __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
