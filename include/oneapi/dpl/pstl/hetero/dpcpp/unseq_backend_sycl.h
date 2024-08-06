@@ -627,7 +627,7 @@ struct __copy_by_mask
         if (__item_idx == 0)
         {
             //copy final result to output
-            __ret_ptr[0] = __wg_sums_ptr[(__n - 1) / __size_per_wg];
+            *__ret_ptr = __wg_sums_ptr[(__n - 1) / __size_per_wg];
         }
     }
 };
@@ -675,7 +675,7 @@ struct __partition_by_mask
         if (__item_idx == 0)
         {
             //copy final result to output
-            __ret_ptr[0] = __wg_sums_ptr[(__n - 1) / __size_per_wg];
+            *__ret_ptr = __wg_sums_ptr[(__n - 1) / __size_per_wg];
         }
     }
 };

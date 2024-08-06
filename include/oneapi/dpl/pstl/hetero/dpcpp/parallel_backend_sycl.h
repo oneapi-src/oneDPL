@@ -636,7 +636,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     if (__item_id == 0)
                     {
                         // Add predicate of last element to account for the scan's exclusivity
-                        __res_ptr[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
+                        *__res_ptr = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
                     }
                 });
         });
