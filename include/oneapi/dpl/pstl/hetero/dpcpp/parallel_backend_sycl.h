@@ -1310,12 +1310,12 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename _GroupsTuner, typename... _Ranges>
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+                   _BrickTag __brick_tag, const _GroupsTuner& __n_groups_tuner, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _FindOrKernelOneWG =
@@ -1343,6 +1343,9 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     {
         __n_groups = 1;
     }
+
+    // Tune __n_groups count
+    __n_groups = __n_groups_tuner(__exec, __rng_n, __n_groups, __wgroup_size);
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
