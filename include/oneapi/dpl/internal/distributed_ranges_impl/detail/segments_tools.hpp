@@ -31,7 +31,8 @@ auto
 make_enumerate(R&& r)
 {
     using W = std::size_t;
-    return __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+    auto __r = std::ranges::subrange(r.begin(), r.end());
+    return __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::move(__r));
 }
 
 // Take all elements up to and including segment `segment_id` at index
