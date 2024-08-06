@@ -16,20 +16,14 @@
 #ifndef _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 #define _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 
-#ifdef _ONEDPL_DR_STD_RANGES_SHIM_HEADER
+#ifndef _ONEDPL_DR_STD_RANGES_NAMESPACE
 
-// The macro expands to the name of a custom ranges shim header for DR to use
-#    include _ONEDPL_DR_STD_RANGES_SHIM_HEADER
-
-#else
-
-// If no custom shim, use std::ranges
+// If not overridden, use std::ranges
 #    include <ranges>
-
-namespace stdrng = ::std::ranges;
-
 #    define _ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
 
-#endif /* _ONEDPL_DR_STD_RANGES_SHIM_HEADER */
+#endif
+
+namespace stdrng = ::_ONEDPL_DR_STD_RANGES_NAMESPACE;
 
 #endif /* _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP */
