@@ -34,8 +34,8 @@
 #include <type_traits> // std::is_same
 #include <unordered_map> // std::unordered_map
 
-struct StableSort{};
-struct UnstableSort{};
+struct StableSortTag{};
+struct UnstableSortTag{};
 
 struct NoComparatorTag{};
 struct GreaterComparatorTag
@@ -85,7 +85,7 @@ remove_duplicates_by_key(const KeyIt& keys_begin, const ValIt& vals_begin, Size 
 
 template<typename KeyIt, typename ValIt, typename Size>
 void
-generate_data(KeyIt keys_begin, ValIt vals_begin, Size n, std::uint32_t seed)
+generate_data(KeyIt keys_begin, ValIt vals_begin, Size keys_n, Size vals_n, std::uint32_t seed)
 {
     using KeyT = typename std::iterator_traits<KeyIt>::value_type;
     using ValT = typename std::iterator_traits<ValIt>::value_type;
@@ -96,23 +96,23 @@ generate_data(KeyIt keys_begin, ValIt vals_begin, Size n, std::uint32_t seed)
         std::uniform_real_distribution<float> mass_dist(0.0, 1000.0);
         std::uniform_real_distribution<float> velocity_dist(0.0, 1.0);
         std::uniform_real_distribution<float> coord_dist(0.0, 1.0);
-        std::generate(vals_begin, vals_begin + n, [&gen, &mass_dist, &velocity_dist, &coord_dist]() {
+        std::generate(vals_begin, vals_begin + vals_n, [&gen, &mass_dist, &velocity_dist, &coord_dist]() {
             return Particle{mass_dist(gen), velocity_dist(gen), {coord_dist(gen), coord_dist(gen), coord_dist(gen)}};
         });
-        std::transform(vals_begin, vals_begin + n, keys_begin, [](const auto& particle) { return particle.energy(); });
+        std::transform(vals_begin, vals_begin + keys_n, keys_begin, [](const auto& particle) { return particle.energy(); });
     }
     else
     {
-        TestUtils::generate_arithmetic_data(keys_begin, n, seed);
-        TestUtils::generate_arithmetic_data(vals_begin, n, seed + 1);
+        TestUtils::generate_arithmetic_data(keys_begin, keys_n, seed);
+        TestUtils::generate_arithmetic_data(vals_begin, vals_n, seed + 1);
         // avoid having value duplicates at the same locations as key duplicates for a more robust stability check
-        std::shuffle(vals_begin, vals_begin + n, std::default_random_engine(seed));
+        std::shuffle(vals_begin, vals_begin + keys_n, std::default_random_engine(seed));
     }
 }
 
 template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
 void
-call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, StableSort)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, StableSortTag)
 {
     if constexpr (std::is_same_v<Compare, NoComparatorTag>)
         oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
@@ -122,7 +122,7 @@ call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare c
 
 template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
 void
-call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, UnstableSort)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, UnstableSortTag)
 {
     if constexpr (std::is_same_v<Compare, NoComparatorTag>)
         oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
@@ -154,36 +154,40 @@ template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigI
 void
 check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
            const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
-           Size n, Compare compare, StableSort)
+           Size keys_n, Size vals_n, Compare compare, StableSortTag)
 {
     using KeyT = typename std::iterator_traits<KeyIt>::value_type;
     using ValT = typename std::iterator_traits<ValIt>::value_type;
-    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + n);
-    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + n);
-    call_reference_sort(keys_expected.begin(), vals_expected.begin(), n, compare);
-    EXPECT_EQ_N(keys_expected.begin(), keys_begin, n, "wrong result stable sort: keys");
-    EXPECT_EQ_N(vals_expected.begin(), vals_begin, n, "wrong result stable sort: values");
+    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
+    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
+    EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result stable sort: keys");
+    EXPECT_EQ_N(vals_expected.begin(), vals_begin, keys_n, "wrong result stable sort: values");
+    EXPECT_EQ_N(vals_expected.begin() + keys_n, vals_begin + keys_n, vals_n - keys_n,
+                "wrong result stable sort: remaining values should not be touched");
 }
 
 template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename Compare>
 void
 check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
            const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
-           Size n, Compare compare, UnstableSort)
+           Size keys_n, Size vals_n, Compare compare, UnstableSortTag)
 {
     using KeyT = typename std::iterator_traits<KeyIt>::value_type;
     using ValT = typename std::iterator_traits<ValIt>::value_type;
-    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + n);
-    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + n);
-    call_reference_sort(keys_expected.begin(), vals_expected.begin(), n, compare);
-    EXPECT_EQ_N(keys_expected.begin(), keys_begin, n, "wrong result non-stable sort: keys");
+    std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
+    std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
+    EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result non-stable sort: keys");
+    EXPECT_EQ_N(vals_expected.begin() + keys_n, vals_begin + keys_n, vals_n - keys_n,
+                "wrong result non-stable sort: remaining values should not be touched");
 
     // Remove key-value pairs with duplicate keys
     // The resulting value sequence is deterministic even for non-stable sort
-    auto expected_unique_n = remove_duplicates_by_key(keys_expected.begin(), vals_expected.begin(), n);
-    std::vector<KeyT> keys(keys_begin, keys_begin + n);
-    std::vector<ValT> vals(vals_begin, vals_begin + n);
-    auto unique_n = remove_duplicates_by_key(keys.begin(), vals.begin(), n);
+    auto expected_unique_n = remove_duplicates_by_key(keys_expected.begin(), vals_expected.begin(), keys_n);
+    std::vector<KeyT> keys(keys_begin, keys_begin + keys_n);
+    std::vector<ValT> vals(vals_begin, vals_begin + vals_n);
+    auto unique_n = remove_duplicates_by_key(keys.begin(), vals.begin(), keys_n);
     EXPECT_EQ(expected_unique_n, unique_n, "the number of unique keys does not much the expected value");
     EXPECT_EQ_N(vals_expected.begin(), vals.begin(), expected_unique_n, "wrong result non-stable sort: values");
 }
@@ -192,14 +196,16 @@ template<typename KeyT, typename ValT, typename Size, typename Policy, typename 
 void
 test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stability_tag)
 {
-    std::vector<KeyT> origin_keys(n);
-    std::vector<ValT> origin_vals(n);
-    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    Size keys_n = n;
+    Size vals_n = n + 5; // to test that the remaining values are not touched
+    std::vector<KeyT> origin_keys(keys_n);
+    std::vector<ValT> origin_vals(vals_n);
+    generate_data(origin_keys.data(), origin_vals.data(), keys_n, vals_n, 42);
     std::vector<KeyT> keys(origin_keys);
     std::vector<ValT> vals(origin_vals);
 
-    call_sort(policy, keys.begin(), vals.begin(), n, compare, stability_tag);
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, stability_tag);
+    call_sort(policy, keys.begin(), vals.begin(), keys_n, compare, stability_tag);
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, compare, stability_tag);
 
 }
 
@@ -209,9 +215,12 @@ template <typename KeyT, typename ValT, sycl::usm::alloc alloc_type, std::uint32
 void
 test_with_usm(sycl::queue& q, Size n, Compare compare, StabilityTag stability_tag)
 {
-    std::vector<KeyT> origin_keys(n);
-    std::vector<ValT> origin_vals(n);
-    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    Size keys_n = n;
+    Size vals_n = n + 5; // to test that the remaining values are not touched
+
+    std::vector<KeyT> origin_keys(keys_n);
+    std::vector<ValT> origin_vals(vals_n);
+    generate_data(origin_keys.data(), origin_vals.data(), keys_n, vals_n, 42);
     std::vector<KeyT> keys(origin_keys);
     std::vector<ValT> vals(origin_vals);
     TestUtils::usm_data_transfer<alloc_type, KeyT> keys_device(q, keys.begin(), keys.end());
@@ -219,13 +228,13 @@ test_with_usm(sycl::queue& q, Size n, Compare compare, StabilityTag stability_ta
 
     // calling sort
     auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class USM, KernelNameID>>(q);
-    call_sort(policy, keys_device.get_data(), vals_device.get_data(), n, compare, stability_tag);
+    call_sort(policy, keys_device.get_data(), vals_device.get_data(), keys_n, compare, stability_tag);
 
     // checking results
     keys_device.retrieve_data(keys.begin());
     vals_device.retrieve_data(vals.begin());
-   // sort_by_key with device policy guarantees stability, hence StableSort{} is passed
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, StableSort{});
+   // sort_by_key with device policy guarantees stability, hence StableSortTag{} is passed
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, compare, StableSortTag{});
 }
 
 template <typename KeyT, typename ValT, std::uint32_t KernelNameID,
@@ -235,7 +244,7 @@ test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stabilit
 {
     std::vector<KeyT> origin_keys(n);
     std::vector<ValT> origin_vals(n);
-    generate_data(origin_keys.data(), origin_vals.data(), n, 42);
+    generate_data(origin_keys.data(), origin_vals.data(), n, n, 42);
     std::vector<KeyT> keys(origin_keys);
     std::vector<ValT> vals(origin_vals);
 
@@ -246,8 +255,8 @@ test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stabilit
         auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class Buffer, KernelNameID>>(q);
         call_sort(policy, oneapi::dpl::begin(keys_device), oneapi::dpl::begin(vals_device), n, compare, stability_tag);
     }
-   // sort_by_key with device policy guarantees stability, hence StableSort{} is passed
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, compare, StableSort{});
+   // sort_by_key with device policy guarantees stability, hence StableSortTag{} is passed
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, n, compare, StableSortTag{});
 }
 
 template <typename StabilityTag>
