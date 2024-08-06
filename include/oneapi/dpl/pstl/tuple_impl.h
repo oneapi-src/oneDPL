@@ -257,11 +257,11 @@ template <typename _Tp>
 struct __value_holder
 {
     __value_holder() = default;
-    //__value_holder(auto&& t) : value(::std::forward<_Tp>(t))
-     __value_holder(const auto& t) : value(t)
+    template <typename _Up>
+    __value_holder(_Up&& t) : value(::std::forward<_Up>(t))
     {
     }
-    const _Tp value;
+    _Tp value;
 };
 
 // Necessary to make tuple trivially_copy_assignable. This type decided
