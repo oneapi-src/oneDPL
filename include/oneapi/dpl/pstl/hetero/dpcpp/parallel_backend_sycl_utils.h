@@ -20,7 +20,6 @@
 #include <memory>
 #include <type_traits>
 #include <tuple>
-#include <algorithm>
 
 #include "../../iterator_impl.h"
 
@@ -548,8 +547,7 @@ struct __result_and_scratch_storage
     }
 
   public:
-    template <typename _Policy>
-    __result_and_scratch_storage(_Policy&& __exec, ::std::size_t __scratch_n)
+    __result_and_scratch_storage(_ExecutionPolicy& __exec, ::std::size_t __scratch_n)
         : __exec{__exec}, __scratch_n{__scratch_n}, __use_USM_host{__use_USM_host_allocations(__exec.queue())},
           __supports_USM_device{__use_USM_allocations(__exec.queue())}
     {
