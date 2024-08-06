@@ -101,8 +101,7 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
         auto e = q.submit([&](auto&& h) {
             h.depends_on(event);
             h.single_task([=]() {
-                stdrng::range_value_t<O> value = *src_iter;
-                *dst_iter = value;
+                *dst_iter = *src_iter;
             });
         });
 
@@ -125,10 +124,9 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
     std::size_t idx = 0;
     for (auto&& segs : zipped_segments)
     {
-        auto&& [in_segment, out_segment] = segs;
-
         if (idx > 0)
         {
+            auto&& [in_segment, out_segment] = segs;
             auto&& q = __detail::queue(ranges::rank(out_segment));
 
             auto first = stdrng::begin(out_segment);
