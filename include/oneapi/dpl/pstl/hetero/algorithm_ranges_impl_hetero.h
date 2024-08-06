@@ -104,6 +104,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& 
     return !oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         oneapi::dpl::__par_backend_hetero::__parallel_or_tag{},
+        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner_none{},
         oneapi::dpl::__ranges::zip_view(::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2)));
 }
 
