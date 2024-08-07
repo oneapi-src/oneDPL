@@ -44,6 +44,11 @@ inclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, BinaryOp binary_op,
 {
     using T = stdrng::range_value_t<O>;
 
+    if (stdrng::begin(r) == stdrng::end(r))
+    {
+        return;
+    }
+
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
 
     auto zipped_view = views::zip(r, o);

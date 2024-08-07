@@ -40,6 +40,12 @@ template <typename ExecutionPolicy, distributed_contiguous_range R, distributed_
 void
 exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp binary_op)
 {
+    if (stdrng::begin(r) == stdrng::end(r))
+    {
+        *stdrng::begin(o) = init;
+        return;
+    }
+
     using T = stdrng::range_value_t<O>;
 
     static_assert(std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, sycl_device_collection>);
@@ -52,6 +58,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
     std::vector<sycl::event> events;
 
     std::size_t segment_id = 0;
+
     for (auto&& segs : zipped_segments)
     {
         auto&& [in_segment, out_segment] = segs;
@@ -71,7 +78,7 @@ exclusive_scan_impl_(ExecutionPolicy&& policy, R&& r, O&& o, U init, BinaryOp bi
 
     std::vector<U> inits(stdrng::size(zipped_segments));
 
-    copy(d_inits, d_inits + inits.size(), inits.data() + 1);
+    copy(d_inits, d_inits + (inits.size() - 1), inits.data() + 1);
 
     sycl::free(d_inits, context());
 
