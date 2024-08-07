@@ -101,7 +101,7 @@ endfunction()
 # sort: https://github.com/oneapi-src/distributed-ranges/issues/785
 # ExclusiveScan.empty: https://github.com/oneapi-src/distributed-ranges/issues/791
 # IotaView.ZipWithDR: https://github.com/oneapi-src/distributed-ranges/issues/792
-set(test-exclusions Sort*:SpTests.Sort*:ExclusiveScan*empty:IotaView*ZipWithDR)
+set(test-exclusions Sort*:SpTests.Sort*:IotaView*ZipWithDR)
 
 add_sp_ctest(sp_tests sp_tests --gtest_filter=-${test-exclusions})
 add_sp_ctest(sp_tests_3 sp_tests --devicesCount 3 --gtest_filter=-${test-exclusions})
