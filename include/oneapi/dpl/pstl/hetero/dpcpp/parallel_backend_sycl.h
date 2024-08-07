@@ -1077,15 +1077,18 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         __copy_by_mask_op);
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate,
-          typename _Assign = oneapi::dpl::__internal::__pstl_assign>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
 auto
 __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                       _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred,
-                       _Assign __assign = oneapi::dpl::__internal::__pstl_assign{})
+                       _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
 {
-
+    using _Assign = oneapi::dpl::__internal::__pstl_assign;
     auto __n = __rng.size();
+
+    // We expect at least two elements to perform unique_copy.  With fewer we
+    // can simply copy the input range to the output.
+    assert(__n > 1);
+
     if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
@@ -1093,7 +1096,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                _GenMask{__pred}, _WriteOp{__assign},
+                                                _GenMask{__pred}, _WriteOp{_Assign{}},
                                                 /*_IsUniquePattern=*/std::true_type{});
     }
     else
@@ -1107,7 +1110,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
                                     std::forward<_Range2>(__result), __n,
                                     _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
-                                    _CopyOp{_ReduceOp{}, __assign});
+                                    _CopyOp{_ReduceOp{}, _Assign{}});
     }
 }
 

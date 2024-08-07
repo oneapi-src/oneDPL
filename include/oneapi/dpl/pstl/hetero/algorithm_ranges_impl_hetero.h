@@ -390,7 +390,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typ
           typename _BinaryPredicate, typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
-                      _BinaryPredicate __pred, _Assign __assign)
+                      _BinaryPredicate __pred)
 {
     auto __n = __rng.size();
     if (__n == 0)
@@ -411,7 +411,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 
     return oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(
                _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-               std::forward<_Range2>(__result), __pred, __assign)
+               std::forward<_Range2>(__result), __pred)
         .get();
 }
 
