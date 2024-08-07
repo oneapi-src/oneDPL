@@ -218,7 +218,7 @@ class zip_view
 
 template <typename... _Ranges>
 auto
-make_zip_view(_Ranges&&... args) -> decltype(zip_view<_Ranges...>(::std::forward<_Ranges>(args)...))
+make_zip_view(_Ranges&&... args)
 {
     return zip_view<_Ranges...>(::std::forward<_Ranges>(args)...);
 }
