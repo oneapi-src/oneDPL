@@ -233,9 +233,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             const std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
             const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __leaf_sorter.__workgroup_size),
                                                sycl::range<1>(__leaf_sorter.__workgroup_size));
-            __cgh.parallel_for<_LeafSortName...>(__nd_range, [=](sycl::nd_item<1> __item) {
-                __leaf_sorter.sort(__item, __storage_acc);
-            });
+            __cgh.parallel_for<_LeafSortName...>(
+                __nd_range, [=](sycl::nd_item<1> __item) { __leaf_sorter.sort(__item, __storage_acc); });
         });
 
         // 2. Merge sorting
