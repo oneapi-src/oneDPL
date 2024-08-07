@@ -30,9 +30,9 @@ template <stdrng::viewable_range R>
 auto
 make_enumerate(R&& r)
 {
-    using W = std::size_t;
-    auto __r = std::ranges::subrange(r.begin(), r.end());
-    return __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::move(__r));
+    using W = std::size_t;    
+    auto zip_v = __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+    return std::ranges::subrange(zip_v.begin(), zip_v.end());
 }
 
 // Take all elements up to and including segment `segment_id` at index
@@ -57,7 +57,7 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
             return remote_subrange(segment);
         }
     };
-#if 0
+#if 1
     return make_enumerate(segments) | stdrng::views::take(last_seg + 1) |
            stdrng::views::transform(std::move(take_partial));
 #else
@@ -108,7 +108,7 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
             return remote_subrange(segment);
         }
     };
-#if 0
+#if 1
     return make_enumerate(segments) | stdrng::views::drop(first_seg) |
            stdrng::views::transform(std::move(drop_partial));
 #else
