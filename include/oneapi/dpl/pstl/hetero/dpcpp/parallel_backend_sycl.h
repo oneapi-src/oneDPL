@@ -942,8 +942,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             return __parallel_transform_reduce_then_scan(
                 __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
                 std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
-                _WriteOp{}, __init, _Inclusive{},
-                /*_IsUniquePattern=*/std::false_type{});
+                _WriteOp{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{});
         }
     }
 
@@ -1083,7 +1082,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 auto
 __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                        _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred,
-                       _Assign&& __assign = oneapi::dpl::__internal::__pstl_assign{})
+                       _Assign __assign = oneapi::dpl::__internal::__pstl_assign{})
 {
 
     auto __n = __rng.size();
@@ -1094,7 +1093,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                _GenMask{__pred}, _WriteOp{std::forward<_Assign>(__assign)},
+                                                _GenMask{__pred}, _WriteOp{__assign},
                                                 /*_IsUniquePattern=*/std::true_type{});
     }
     else
@@ -1108,7 +1107,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
                                     std::forward<_Range2>(__result), __n,
                                     _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
-                                    _CopyOp{_ReduceOp{}, std::forward<_Assign>(__assign)});
+                                    _CopyOp{_ReduceOp{}, __assign});
     }
 }
 
@@ -1177,7 +1176,8 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{__assign}, /*Unique=*/std::false_type{});
+                                                _GenMask{__pred}, _WriteOp{__assign}, 
+                                                /*_IsUniquePattern=*/std::false_type{});
     }
     else
     {
@@ -1189,7 +1189,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                     std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
                                     _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
-g    }
+    }
 }
 
 //------------------------------------------------------------------------

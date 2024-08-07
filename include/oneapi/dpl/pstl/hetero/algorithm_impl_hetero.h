@@ -965,6 +965,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
         return __result_first;
     if (__n == 1)
     {
+        // For a sequnce of size 1, we can just copy the only element to the result.
         oneapi::dpl::__internal::__pattern_walk2_brick(
             __hetero_tag<_BackendTag>{}, std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
             oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
