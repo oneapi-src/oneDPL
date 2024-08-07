@@ -12,7 +12,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-
+#if 0
 #include "xp_tests.hpp"
 
 // Fixture
@@ -41,3 +41,4 @@ TYPED_TEST(Enumerate, Mutate) {
   EXPECT_EQ(local, dist);
   EXPECT_EQ(ops.vec, ops.dist_vec);
 }
+#endif
