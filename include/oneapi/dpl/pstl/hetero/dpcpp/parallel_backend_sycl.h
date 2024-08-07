@@ -872,7 +872,7 @@ struct __write_to_idx_if_else
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
     void
-    operator()(_OutRng&& __out_rng, _SizeType __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __idx, const ValueType& __v) const
     {
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
