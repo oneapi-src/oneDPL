@@ -65,8 +65,8 @@ TYPED_TEST(ForEach, RangeAlignedZip) {
   Ops2<TypeParam> ops(10);
 
   auto copy = [](auto v) { std::get<0>(v) = std::get<1>(v); };
-  auto dist = xp::views::zip(ops.dist_vec0, ops.dist_vec1);
-  auto local = stdrng::views::zip(ops.vec0, ops.vec1);
+  auto dist = oneapi::dpl::__ranges::make_zip_view(ops.dist_vec0, ops.dist_vec1);
+  auto local = oneapi::dpl::__ranges::make_zip_view(ops.vec0, ops.vec1);
 
   xp::for_each(dist, copy);
   stdrng::for_each(local, copy);
@@ -108,9 +108,8 @@ TYPED_TEST(ForEach, DISABLED_RangeUnalignedZip) {
   Ops2<TypeParam> ops(10);
 
   auto copy = [](auto v) { std::get<0>(v) = std::get<1>(v); };
-  auto dist =
-      xp::views::zip(xp::views::drop(ops.dist_vec0, 1), ops.dist_vec1);
-  auto local = __ranges::make_zip(stdrng::views::drop(ops.vec0, 1), ops.vec1);
+  auto dist = oneapi::dpl::__ranges::make_zip_view(xp::views::drop(ops.dist_vec0, 1), ops.dist_vec1);
+  auto local = oneapi::dpl::__ranges::make_zip_view(stdrng::views::drop(ops.vec0, 1), ops.vec1);
 
   xp::for_each(dist, copy);
   stdrng::for_each(local, copy);
