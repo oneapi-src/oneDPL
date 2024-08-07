@@ -57,9 +57,13 @@ take_segments(R&& segments, std::size_t last_seg, std::size_t local_id)
             return remote_subrange(segment);
         }
     };
-
+#if 0
     return make_enumerate(segments) | stdrng::views::take(last_seg + 1) |
            stdrng::views::transform(std::move(take_partial));
+#else
+    auto enu = make_enumerate(segments);
+    return stdrng::transform_view(stdrng::take_view(enu, last_seg + 1), std::move(take_partial));
+#endif    
 }
 
 // Take the first n elements
@@ -104,9 +108,13 @@ drop_segments(R&& segments, std::size_t first_seg, std::size_t local_id)
             return remote_subrange(segment);
         }
     };
-
+#if 0
     return make_enumerate(segments) | stdrng::views::drop(first_seg) |
            stdrng::views::transform(std::move(drop_partial));
+#else
+    auto enu = make_enumerate(segments);
+    return stdrng::transform_view(stdrng::drop_view(enu, first_seg), std::move(drop_partial));
+#endif
 }
 
 // Drop the first n elements
