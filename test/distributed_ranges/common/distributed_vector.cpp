@@ -65,7 +65,7 @@ TYPED_TEST(DistributedVectorAllTypes, Stream) {
 TYPED_TEST(DistributedVectorAllTypes, Equality) {
   Ops1<TypeParam> ops(10);
   iota(ops.dist_vec, 100);
-  stdrng::iota(ops.vec, 100);
+  std::iota(stdrng::begin(ops.vec), stdrng::end(ops.vec), 100);
   EXPECT_TRUE(ops.dist_vec == ops.vec);
   EXPECT_EQ(ops.vec, ops.dist_vec);
 }
@@ -83,7 +83,7 @@ TEST(DistributedVector, ConstructorBasic) {
   iota(dist_vec, 100);
 
   std::vector<int> local_vec(10);
-  stdrng::iota(local_vec, 100);
+  std::iota(stdrng::begin(local_vec), stdrng::end(local_vec), 100);
 
   EXPECT_EQ(local_vec, dist_vec);
 }

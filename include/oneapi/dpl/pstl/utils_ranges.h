@@ -159,6 +159,13 @@ class zip_view
             ::std::get<_Ip>(__t).operator[](__i)...);
     }
 
+    template <std::size_t... _Ip>
+    auto
+    make_iter(_tuple_ranges_t __t, std::index_sequence<_Ip...>) const
+    {
+        return make_zip_iterator(std::get<_Ip>(__t).begin()...);
+    }
+
   public:
     using value_type = oneapi::dpl::__internal::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>;
     static constexpr ::std::size_t __num_ranges = sizeof...(_Ranges);
@@ -177,6 +184,15 @@ class zip_view
         -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i, ::std::make_index_sequence<__num_ranges>()))
     {
         return make_reference(__m_ranges, __i, ::std::make_index_sequence<__num_ranges>());
+    }
+
+    auto begin() const
+    {
+        return make_iter(__m_ranges, std::make_index_sequence<__num_ranges>());
+    }
+    auto end() const
+    {
+        return begin() + size();
     }
 
     bool
@@ -202,7 +218,7 @@ class zip_view
 
 template <typename... _Ranges>
 auto
-make_zip_view(_Ranges&&... args) -> decltype(zip_view<_Ranges...>(::std::forward<_Ranges>(args)...))
+make_zip_view(_Ranges&&... args)
 {
     return zip_view<_Ranges...>(::std::forward<_Ranges>(args)...);
 }

@@ -17,6 +17,7 @@
 #define _ONEDPL_DR_DETAIL_VIEW_DETECTORS_HPP
 
 #include <type_traits>
+#include "oneapi/dpl/pstl/utils_ranges.h" // zip_view
 
 namespace oneapi::dpl::experimental::dr
 {
@@ -98,6 +99,11 @@ inline constexpr bool is_sliding_view_v = is_sliding_view<std::remove_cvref_t<T>
 
 template <typename T>
 struct is_zip_view : std::false_type
+{
+};
+
+template <typename... T>
+struct is_zip_view<__ranges::zip_view<T...>> : std::true_type
 {
 };
 

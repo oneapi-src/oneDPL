@@ -112,7 +112,7 @@ sort(R&& r, Compare comp = Compare())
 
     T* medians = sycl::malloc_device<T>(n_segments * n_splitters, sp::devices()[0], sp::context());
 
-    for (auto&& [segment_id_, segment] : stdrng::views::enumerate(segments))
+    for (auto&& [segment_id_, segment] : dr::__detail::make_enumerate(segments))
     {
         auto const segment_id = static_cast<std::size_t>(segment_id_);
         auto&& q = __detail::queue(ranges::rank(segment));
@@ -172,7 +172,7 @@ sort(R&& r, Compare comp = Compare())
     // segments". Simultaneously compute the offsets `push_positions` where each
     // segments' corresponding elements will be pushed.
 
-    for (auto&& [segment_id, segment] : stdrng::views::enumerate(segments))
+    for (auto&& [segment_id, segment] : dr::__detail::make_enumerate(segments))
     {
         auto&& q = __detail::queue(ranges::rank(segment));
         auto&& local_policy = __detail::dpl_policy(ranges::rank(segment));
@@ -208,7 +208,7 @@ sort(R&& r, Compare comp = Compare())
     // Allocate new "sorted segments"
     std::vector<T*> sorted_segments;
 
-    for (auto&& [segment_id, segment] : stdrng::views::enumerate(segments))
+    for (auto&& [segment_id, segment] : dr::__detail::make_enumerate(segments))
     {
         auto&& q = __detail::queue(ranges::rank(segment));
 
@@ -217,7 +217,7 @@ sort(R&& r, Compare comp = Compare())
     }
 
     // Copy corresponding elements to each "sorted segment"
-    for (auto&& [segment_id_, segment] : stdrng::views::enumerate(segments))
+    for (auto&& [segment_id_, segment] : dr::__detail::make_enumerate(segments))
     {
         auto&& local_segment = ranges::__detail::local_or_identity(segment);
         const auto segment_id = static_cast<std::size_t>(segment_id_);

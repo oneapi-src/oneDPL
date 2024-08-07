@@ -173,7 +173,7 @@ jobs:
 #            device_type: HOST
           - os: ubuntu-24.04
             cxx_compiler: icpx
-            std: 23
+            std: 20
             build_type: release
             backend: dpcpp
             device_type: CPU
@@ -202,7 +202,7 @@ jobs:
         run: |
           sudo apt-get install intel-oneapi-compiler-fpga -y
       - name: Install libfmt and gtest needed by Distributed Ranges tests
-        if: (matrix.std == '23')
+        if: (matrix.std == '20')
         run: |
           sudo apt-get install libgtest-dev libfmt-dev -y
       - name: Install OpenMP dependencies
@@ -224,10 +224,10 @@ jobs:
             ctest_flags="-R sycl_iterator_.*\.pass"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
           
-            if [[ "${{ matrix.std }}" == "23" ]]; then
+            if [[ "${{ matrix.std }}" == "20" ]]; then
               make_targets="$make_targets sp-all-tests"
               ctest_flags="$ctest_flags|sp_tests"
-              echo "::warning::23 standard is set. Compile and run distributed ranges tests"
+              echo "::warning::20 standard is set. Compile and run distributed ranges tests"
             fi
           
           else
