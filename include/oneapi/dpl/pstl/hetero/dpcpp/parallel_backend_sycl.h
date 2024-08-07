@@ -868,7 +868,7 @@ struct __write_to_idx_if
     Assign __assign;
 };
 
-template <typename Assign = oneapi::dpl::__internal::__pstl_assign>
+template <typename Assign>
 struct __write_to_idx_if_else
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
