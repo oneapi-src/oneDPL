@@ -835,7 +835,7 @@ struct __gen_expand_count_mask
         using _ElementType =
             oneapi::dpl::__internal::__decay_with_tuple_specialization_t<oneapi::dpl::__internal::__value_t<_InRng>>;
         _ElementType ele = __in_rng[__idx];
-        bool mask = __gen_mask(__in_rng, __idx);
+        bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __idx);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
     _GenMask __gen_mask;
@@ -855,7 +855,7 @@ struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
     void
-    operator()(_OutRng&& __out_rng, _SizeType __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __idx, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
