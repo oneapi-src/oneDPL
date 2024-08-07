@@ -1071,7 +1071,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
         __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
     {
-        using _SizeBreakpoints = ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
+        using _SizeBreakpoints = std::integer_sequence<std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
             _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
