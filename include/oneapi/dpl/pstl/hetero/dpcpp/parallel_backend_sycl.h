@@ -771,7 +771,7 @@ struct __gen_transform_input
 {
     template <typename InRng>
     auto
-    operator()(InRng&& __in_rng, std::size_t __idx) const
+    operator()(const InRng& __in_rng, std::size_t __idx) const
     {
         using _ValueType = oneapi::dpl::__internal::__value_t<InRng>;
         using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<
@@ -785,7 +785,7 @@ struct __simple_write_to_idx
 {
     template <typename _OutRng, typename ValueType>
     void
-    operator()(_OutRng&& __out_rng, std::size_t __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, std::size_t __idx, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
