@@ -1033,9 +1033,8 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
     return __parallel_transform_scan_base(
         __backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::zip_view(
-            ::std::forward<_InRng>(__in_rng),
-            oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                __mask_buf.get_buffer())),
+            __in_rng, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                          __mask_buf.get_buffer())),
         ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
         // local scan
         unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
