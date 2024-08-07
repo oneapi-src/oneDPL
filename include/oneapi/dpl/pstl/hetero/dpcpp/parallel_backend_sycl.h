@@ -803,7 +803,7 @@ struct __gen_mask
 {
     template <typename _InRng>
     bool
-    operator()(_InRng&& __in_rng, std::size_t __idx) const
+    operator()(const _InRng& __in_rng, std::size_t __idx) const
     {
         return __pred(__in_rng[__idx]);
     }
