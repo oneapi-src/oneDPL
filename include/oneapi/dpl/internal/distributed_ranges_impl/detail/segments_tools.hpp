@@ -30,8 +30,9 @@ template <stdrng::viewable_range R>
 auto
 make_enumerate(R&& r)
 {
-    using W = std::size_t;    
-    auto zip_v = __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(r)}), std::forward<R>(r));
+    using W = std::size_t;
+    auto __r = std::ranges::subrange(r.begin(), r.end());
+    auto zip_v = __ranges::make_zip_view(stdrng::views::iota(W{0}, W{stdrng::size(__r)}), std::move(__r));
     return std::ranges::subrange(zip_v.begin(), zip_v.end());
 }
 
