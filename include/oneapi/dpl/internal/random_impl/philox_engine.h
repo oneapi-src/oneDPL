@@ -103,6 +103,25 @@ private:
         }
     }
 
+    void increase_counter_internal(unsigned long long z) {
+    
+    unsigned long long carry = 0;
+    unsigned long long ctr_inc = z;
+
+    for (size_t i = 0; i < word_count; ++i) {
+        result_type prv_x = state_.X[i];
+        state_.X[i] = ((state_.X[i] + ctr_inc&in_mask) & in_mask) + carry;
+        carry = 0;
+
+        if(state_.X[i] < prv_x) { // overflow of the chunk
+            carry = 1;
+        }
+
+        ctr_inc = (ctr_inc&(~in_mask))>>(sizeof(z)*8-word_size);
+
+    }
+}
+
 public:
     static constexpr ::std::array<result_type, array_size> multipliers =
         detail::get_even_array_from_tuple<UIntType>(::std::make_tuple(consts...),
@@ -128,6 +147,30 @@ public:
         }
     }
 
+    // generating functions
+    result_type operator()() {
+        result_type ret;
+        (*this)(&ret);
+        return ret;
+    }
+
+    /* shift the counter only forward relative to its current position*/
+    void discard(unsigned long long z) {
+        result_type curr_idx = state_.idx % word_count;
+        result_type newridx;
+
+        newridx = (curr_idx + z) % (word_count);
+        unsigned long long counters_increment = z / word_count;
+        increase_counter_internal(counters_increment);
+
+        if(newridx < word_count) {
+            generate();
+            increase_counter_internal();
+        }
+
+        state_.idx = newridx;
+    }
+
     friend bool operator==(const philox_engine& x, const philox_engine& y) {
         if(!::std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
            !::std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
@@ -144,34 +187,7 @@ public:
         return !(__x == __y);
     }
 
-    // generating functions
-    result_type operator()() {
-        result_type ret;
-        (*this)(&ret);
-        return ret;
-    }
-
-    /* shift the counter only forward relative to its current position*/
-    void discard(unsigned long long z) {
-        result_type curr_idx = state_.idx % word_count;
-        result_type newridx;
-
-        newridx = (curr_idx + z) % (word_count);
-        int counters_increment = z / word_count;
-
-        for(int i = 0; i < counters_increment; i++)
-            increase_counter_internal(); // rewrite with z
-
-        if(newridx < word_count) {
-            generate();
-            increase_counter_internal();
-        }
-
-        state_.idx = newridx;
-    }
-
-    // inserters and extractors
-            
+    // inserters and extractors        
     template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
     friend ::std::basic_ostream<CharT, Traits>& 
     operator<<(::std::basic_ostream<CharT, Traits>&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
@@ -194,7 +210,7 @@ private:
             curr_idx = 0;
         }
         
-        // There are already generated numebrs in the buffer
+        // There are already generated numbers in the buffer
         *out = state_.Y[curr_idx];
         state_.idx=++curr_idx;
 
