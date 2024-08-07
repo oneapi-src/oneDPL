@@ -16,22 +16,14 @@
 #ifndef _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 #define _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP
 
-#ifndef DR_USE_RANGES_V3
+#ifndef _ONEDPL_DR_STD_RANGES_NAMESPACE
 
+// If not overridden, use std::ranges
 #    include <ranges>
+#    define _ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
 
-namespace stdrng = ::std::ranges;
+#endif
 
-#    define __ONEDPL_DR_STD_RANGES_NAMESPACE std::ranges
-
-#else
-
-#    include <range/v3/all.hpp>
-
-namespace stdrng = ::ranges;
-
-#    define __ONEDPL_DR_STD_RANGES_NAMESPACE ranges
-
-#endif /* DR_USE_RANGES_V3 */
+namespace stdrng = ::_ONEDPL_DR_STD_RANGES_NAMESPACE;
 
 #endif /* _ONEDPL_DR_DETAIL_RANGES_SHIM_HPP */

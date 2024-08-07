@@ -124,7 +124,7 @@ drop_segments(R&& segments, std::size_t n)
 
 } // namespace oneapi::dpl::experimental::dr
 
-namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
+namespace _ONEDPL_DR_STD_RANGES_NAMESPACE
 {
 
 // A standard library range adaptor does not change the rank of a
@@ -170,6 +170,6 @@ requires(oneapi::dpl::experimental::dr::is_subrange_view_v<std::remove_cvref_t<V
         oneapi::dpl::experimental::dr::ranges::segments(first), size);
 }
 
-} // namespace __ONEDPL_DR_STD_RANGES_NAMESPACE
+} // namespace _ONEDPL_DR_STD_RANGES_NAMESPACE
 
 #endif /* _ONEDPL_DR_DETAIL_SEGMENT_TOOLS_HPP */
