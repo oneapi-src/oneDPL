@@ -850,7 +850,7 @@ struct __get_zeroth_element
         return std::get<0>(std::forward<_Tp>(__a));
     }
 };
-template <std::int32_t __offset = 0, typename Assign = oneapi::dpl::__internal::__pstl_assign>
+template <std::int32_t __offset, typename Assign>
 struct __write_to_idx_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
@@ -949,8 +949,8 @@ struct __invoke_single_group_copy_if
     template <std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred,
               typename _Assign = oneapi::dpl::__internal::__pstl_assign>
     auto
-    operator()(_ExecutionPolicy&& __exec, std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred,
-               _Assign&& __assign)
+    operator()(_ExecutionPolicy&& __exec, std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred __pred,
+               _Assign __assign)
     {
         constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
@@ -969,8 +969,7 @@ struct __invoke_single_group_copy_if
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true, _FullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred),
-                std::forward<_Assign>(__assign));
+                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, __pred, __assign);
         }
         else
         {
@@ -983,8 +982,7 @@ struct __invoke_single_group_copy_if
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false, _NonFullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred),
-                std::forward<_Assign>(__assign));
+                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, __pred, __assign);
         }
     }
 };
@@ -1052,7 +1050,7 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 auto
 __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred, _Assign&& __assign = _Assign{})
+                   _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred, _Assign __assign = _Assign{})
 {
     using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
 
@@ -1077,7 +1075,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
             _SingleGroupInvoker{}, __n, std::forward<_ExecutionPolicy>(__exec), __n, std::forward<_InRng>(__in_rng),
-            std::forward<_OutRng>(__out_rng), __pred, std::forward<_Assign>(__assign));
+            std::forward<_OutRng>(__out_rng), __pred, __assign);
     }
     else if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
     {
@@ -1086,7 +1084,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{std::forward<_Assign>(__assign)});
+                                                _GenMask{__pred}, _WriteOp{__assign});
     }
     else
     {
@@ -1097,7 +1095,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                     std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                    _CreateOp{__pred}, _CopyOp{_ReduceOp{}, std::forward<_Assign>(__assign)});
+                                    _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
     }
 }
 
