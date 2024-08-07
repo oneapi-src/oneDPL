@@ -384,7 +384,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typ
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                  _Predicate __pred, _Assign&& __assign)
+                  _Predicate __pred, _Assign __assign)
 {
     auto __n = __rng1.size();
     if (__n == 0)
@@ -392,7 +392,7 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
         _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1),
-        std::forward<_Range2>(__rng2), __n, __pred, std::forward<_Assign>(__assign));
+        std::forward<_Range2>(__rng2), __n, __pred, __assign);
 
     return __res.get(); //is a blocking call
 }
