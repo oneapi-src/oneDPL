@@ -1185,19 +1185,24 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
         {
             auto __wgroup_size = std::get<1>(__nd_range_params);
 
-            // Empirically found formula for typical devices.
-            const auto __rng_x = __rng_n / __base_rng_n;
-            const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
-
             auto __iters_per_work_item =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
-
-            // We halve the number of work-groups until the number of iterations per work-item
-            // is greater than or equal to the desired number of iterations per work-item.
-            while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
+            
+            // If our work capacity is not enough to process all data in one iteration, will tune the number of work-groups
+            if (__iters_per_work_item > 1)
             {
-                __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                // Empirically found formula for typical devices.
+                const auto __rng_x = __rng_n / __base_rng_n;
+                const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
+
+
+                // We halve the number of work-groups until the number of iterations per work-item
+                // is greater than or equal to the desired number of iterations per work-item.
+                while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
+                {
+                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                    __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                }
             }
 
             __nd_range_params = {__n_groups, __wgroup_size};
