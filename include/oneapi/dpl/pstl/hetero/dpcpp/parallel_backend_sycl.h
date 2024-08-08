@@ -1164,8 +1164,6 @@ struct __parallel_find_or_nd_range_tuner
     }
 };
 
-using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<int>;
-
 // No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
 #if !_ONEDPL_FPGA_EMU
 template <>
@@ -1178,6 +1176,9 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
     std::tuple<std::size_t, std::size_t>
     operator()(const _ExecutionPolicy& __exec, const std::size_t __rng_n) const
     {
+        // Define common tuner type
+        using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<int>;
+
         // Call common tuning function to get the work-group size
         auto __nd_range_params = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
 
