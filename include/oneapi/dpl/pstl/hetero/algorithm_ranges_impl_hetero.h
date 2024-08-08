@@ -409,10 +409,11 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
         return 1;
     }
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(
-               _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-               std::forward<_Range2>(__result), __pred)
-        .get();
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(
+        _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+        std::forward<_Range2>(__result), __pred);
+
+    return __res.get(); // is a blocking call
 }
 
 //------------------------------------------------------------------------

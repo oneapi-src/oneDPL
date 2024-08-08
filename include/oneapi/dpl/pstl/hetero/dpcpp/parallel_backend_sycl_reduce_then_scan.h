@@ -691,6 +691,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     {
                         if constexpr (__is_unique_pattern_v)
                         {
+                            // unique patterns automatically copy the 0th element and scan starting at index 1
                             __res_ptr[0] = __sub_group_carry.__v + 1;
                         }
                         else

@@ -980,7 +980,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     auto __result = oneapi::dpl::__par_backend_hetero::__parallel_unique_copy(
         _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __pred);
 
-    return __result_first + __result.get();
+    return __result_first + __result.get(); // is a blocking call
 }
 
 template <typename _Name>
