@@ -817,7 +817,9 @@ struct __gen_unique_mask
     bool
     operator()(const _InRng& __in_rng, std::size_t __idx) const
     {
-        //starting index is offset to 1 for "unique" patterns and 0th element copy is handled separately
+        // Starting index is offset to 1 for "unique" patterns and 0th element
+        // copy is handled separately, which allows us to do this without
+        // branching each access to protect underflow
         return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
     }
     _BinaryPredicate __pred;
