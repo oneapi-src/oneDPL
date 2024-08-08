@@ -1197,8 +1197,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
             while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
             {
                 __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                __iters_per_work_item =
-                    oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
             }
 
             __nd_range_params = {__n_groups, __wgroup_size};
