@@ -16,7 +16,6 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_SORT_H
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_MERGE_SORT_H
 
-#include <cmath>       // std::log2
 #include <limits>      // std::numeric_limits
 #include <cassert>     // assert
 #include <utility>     // std::swap
@@ -369,7 +368,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     if (__is_cpu)
     {
         const auto __sg_sizes = __device.template get_info<sycl::info::device::sub_group_sizes>();
-        __max_sg_size = __sg_sizes.empty() ? 1 : *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
+        __max_sg_size = *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
     }
     // Assume CPUs handle one sub-group (SIMD) per CU;
     // Assume GPUs handle multiple sub-groups per CU,
