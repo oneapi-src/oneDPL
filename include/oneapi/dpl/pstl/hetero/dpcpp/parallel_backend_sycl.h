@@ -1169,6 +1169,7 @@ struct __parallel_find_or_nd_range_tuner
 template <>
 struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>
 {
+    static constexpr std::size_t __min_tune_rng_n = 65'536;
     static constexpr std::size_t __base_rng_n = 4096;
 
     // Tune the amount of work-groups and work-group size
@@ -1182,7 +1183,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
         // Call common tuning function to get the work-group size
         auto __nd_range_params = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
 
-        if (__rng_n >= __base_rng_n)
+        if (__rng_n >= __min_tune_rng_n)
         {
             auto __n_groups = std::get<0>(__nd_range_params);
             if (__n_groups > 1)
