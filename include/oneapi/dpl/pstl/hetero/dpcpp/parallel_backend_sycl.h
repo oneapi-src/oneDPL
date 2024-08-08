@@ -1339,12 +1339,12 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename _GroupsTuner, typename... _Ranges>
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, const _GroupsTuner& __n_groups_tuner, _Ranges&&... __rngs)
+                   _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _FindOrKernelOneWG =
@@ -1358,7 +1358,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     assert(__rng_n > 0);
 
     // Evaluate the amount of work-groups and work-group size
-    const auto __nd_range_params = __n_groups_tuner(__exec, __rng_n);
+    const auto __nd_range_params =
+        __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
     const auto __n_groups = std::get<0>(__nd_range_params);
     const auto __wgroup_size = std::get<1>(__nd_range_params);
 
@@ -1417,9 +1418,7 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{},
-        __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
-        __buf.all_view(), __s_buf.all_view());
+        __parallel_or_tag{}, __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1436,9 +1435,7 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{},
-        __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
-        __buf.all_view());
+        __parallel_or_tag{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -1466,9 +1463,7 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{},
-                        __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
-                        __buf.all_view(), __s_buf.all_view());
+                         __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1488,9 +1483,7 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{},
-                         __par_backend_hetero::__parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{},
-                         __buf.all_view());
+                         __f, _TagType{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------

@@ -104,7 +104,6 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& 
     return !oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         oneapi::dpl::__par_backend_hetero::__parallel_or_tag{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
         oneapi::dpl::__ranges::zip_view(::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2)));
 }
 
@@ -127,9 +126,7 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
-        ::std::forward<_Range>(__rng));
+        _Predicate{__pred}, _TagType{}, ::std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
@@ -159,9 +156,7 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
-        ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -185,9 +180,7 @@ __pattern_find_first_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
-        ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -206,9 +199,7 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& 
         _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__or_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, oneapi::dpl::__par_backend_hetero::__parallel_or_tag{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
-        ::std::forward<_Range>(__rng));
+        _Predicate{__pred}, oneapi::dpl::__par_backend_hetero::__parallel_or_tag{}, ::std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
@@ -246,9 +237,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
         _BackendTag{},
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<
             oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
-        ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -310,7 +299,6 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     auto result = oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, _TagType{},
-        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<_BackendTag>{},
         oneapi::dpl::__ranges::zip_view(__rng1, __rng2));
 
     // inverted conditional because of
