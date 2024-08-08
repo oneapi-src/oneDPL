@@ -349,7 +349,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
 {
     // 8 is the maximum reasonable value for bubble sub-group sorter due to algorithm complexity
     // TODO: reconsider the value if another algorithm is used,
-    //       or an internal cap is set (e.g. sorting 2 sequences of 4/8 items each)
+    // or an internal cap is set (e.g. sorting 2 sequences of 4/8 items each)
     using _Leaf8 = __leaf_sorter<8, std::decay_t<_Range>, _Compare>;
     using _Leaf4 = __leaf_sorter<4, std::decay_t<_Range>, _Compare>;
     // 2 is the smallest reasonable value for merge-path group sorter since it loads 2 values at least
@@ -375,6 +375,9 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     // while the maximum work-group size takes hardware multithreading (occupancy) into account
     const std::size_t __max_hw_wg_size = __is_cpu ? __max_sg_size : __max_wg_size;
     const auto __max_cu = __device.template get_info<sycl::info::device::max_compute_units>();
+    // TODO: adjust the saturation point for Intel GPUs:
+    // CU number is incorrect for Intel GPUs since it returns the number of VE instead of XC,
+    // and max work-group size utilizes only a half of the XC resources for Data Center GPUs
     const auto __saturation_point = __max_cu * __max_hw_wg_size;
     const auto __desired_data_per_workitem = __n / __saturation_point;
 
