@@ -833,23 +833,30 @@ struct __invoke_single_group_copy_if
         using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
         using _ReduceOp = ::std::plus<::std::uint16_t>;
         if (__is_full_group)
+        {
+            using _FullKernel =
+                __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
+                                             std::integral_constant<std::uint16_t, __num_elems_per_item>,
+                                             /* _IsFullGroup= */ std::true_type, _CustomName>;
+            using _FullKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_FullKernel>;
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, true,
-                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                    __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
-                                                 std::integral_constant<std::uint16_t, __num_elems_per_item>,
-                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
+                _SizeType, __num_elems_per_item, __wg_size, true, _FullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                 std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred));
+        }
         else
+        {
+            using _NonFullKernel =
+                __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
+                                             std::integral_constant<std::uint16_t, __num_elems_per_item>,
+                                             /* _IsFullGroup= */ std::false_type, _CustomName>;
+            using _NonFullKernelName =
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_NonFullKernel>;
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, false,
-                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                    __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
-                                                 std::integral_constant<std::uint16_t, __num_elems_per_item>,
-                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
+                _SizeType, __num_elems_per_item, __wg_size, false, _NonFullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                 std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred));
+        }
     }
 };
 
