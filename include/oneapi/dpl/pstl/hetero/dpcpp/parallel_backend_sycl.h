@@ -1158,8 +1158,6 @@ struct __parallel_find_or_nd_range_tuner
             __n_groups = 1;
         }
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
-
         return {__n_groups, __wgroup_size};
     }
 };
@@ -1205,8 +1203,6 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                     __iters_per_work_item =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
                 }
-
-                _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
 
                 __nd_range_params = {__n_groups, __wgroup_size};
             }
@@ -1362,6 +1358,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
     const auto __n_groups = std::get<0>(__nd_range_params);
     const auto __wgroup_size = std::get<1>(__nd_range_params);
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
 
     using _AtomicType = typename _BrickTag::_AtomicType;
     const _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
