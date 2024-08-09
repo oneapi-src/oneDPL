@@ -1178,13 +1178,10 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
         using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<int>;
 
         // Call common tuning function to get the work-group size
-        auto __nd_range_params = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
+        auto [__n_groups, __wgroup_size] = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
 
-        auto __n_groups = std::get<0>(__nd_range_params);
         if (__n_groups > 1)
         {
-            auto __wgroup_size = std::get<1>(__nd_range_params);
-
             auto __iters_per_work_item =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
 
@@ -1204,11 +1201,9 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                         oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
                 }
             }
-
-            __nd_range_params = {__n_groups, __wgroup_size};
         }
 
-        return __nd_range_params;
+        return {__n_groups, __wgroup_size};
     }
 };
 #endif // !_ONEDPL_FPGA_EMU
