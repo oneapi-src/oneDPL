@@ -19,6 +19,10 @@
 #include <iterator>
 #include <type_traits>
 
+#if _ONEDPL_CPP20_RANGES_PRESENT
+#include <span>
+#endif
+
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
@@ -127,6 +131,15 @@ struct all_view_fn
     {
         return ::std::forward<_R>(__r);
     }
+#if _ONEDPL_CPP20_RANGES_PRESENT
+    template <typename _T, sycl::usm::alloc _MemoryType>
+    auto
+    operator()(const std::vector<_T, sycl::usm_allocator<_T, _MemoryType>>& __vec) const 
+        -> decltype(std::ranges::subrange(__vec.begin(), __vec.end()))
+    {
+        return std::span(__vec.begin(), __vec.end());
+    }
+#endif //_ONEDPL_CPP20_RANGES_PRESENT
 };
 
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
