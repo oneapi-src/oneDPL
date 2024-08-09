@@ -22,10 +22,16 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<0, int, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable);
-    test_range_algo<1, int, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, proj_mutuable);
-    test_range_algo<2, P2, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::x);
-    test_range_algo<3, P2, data_in, false/*return type check*/>{}(dpl_ranges::for_each, std::ranges::for_each, f_mutuable, &P2::proj);
+    //A checker below modifies a return type; a range based version with policy has another return type.
+    auto for_each_checker = [](auto&&... args) {
+        auto res = std::ranges::for_each(std::forward<decltype(args)>(args)...);
+        return res.in;
+    };
+
+    test_range_algo<0>{}(dpl_ranges::for_each, for_each_checker, f_mutuable);
+    test_range_algo<1>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, proj_mutuable);
+    test_range_algo<2, P2>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, &P2::x);
+    test_range_algo<3, P2>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
