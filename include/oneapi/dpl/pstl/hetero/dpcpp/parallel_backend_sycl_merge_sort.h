@@ -112,7 +112,7 @@ struct __leaf_sorter
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
     using _StorageAcc = __dpl_sycl::__local_accessor<_Tp>;
     // TODO: select a better sub-group sorter depending on sort stability,
-    //       a type (e.g. it can be trivially copied for shuffling within a sub-group)
+    // a type (e.g. it can be trivially copied for shuffling within a sub-group)
     using _SubGroupSorter = __subgroup_bubble_sorter;
     using _GroupSorter = __group_merge_path_sorter<__data_per_workitem>;
 
@@ -139,8 +139,7 @@ struct __leaf_sorter
     sort(const sycl::nd_item<1>& __item, const _StorageAcc& __storage_acc) const
     {
         sycl::sub_group __sg = __item.get_sub_group();
-        sycl::group __wg = __item.get_group();
-        const std::uint32_t __wg_id = __wg.get_group_linear_id();
+        const std::uint32_t __wg_id = __item.get_group_linear_id();
         const std::uint32_t __sg_id = __sg.get_group_linear_id();
         const std::uint32_t __sg_size = __sg.get_local_linear_range();
         const std::uint32_t __sg_local_id = __sg.get_local_linear_id();
