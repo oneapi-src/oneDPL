@@ -22,7 +22,9 @@
 #if _ENABLE_STD_RANGES_TESTING
 
 #include <oneapi/dpl/ranges>
+#if _ONEDPL_CPP20_SPAN_PRESENT
 #include <span>
+#endif
 #include <vector>
 #include <typeinfo>
 #include <string>
@@ -322,8 +324,10 @@ struct host_subrange_impl
 template<typename T>
 using  host_subrange = host_subrange_impl<T, std::ranges::subrange<T*>>;
 
+#if _ONEDPL_CPP20_SPAN_PRESENT
 template<typename T>
 using  host_span = host_subrange_impl<T, std::span<T>>;
+#endif
 
 template<typename T>
 struct host_vector
@@ -402,8 +406,10 @@ struct usm_subrange_impl
 template<typename T>
 using  usm_subrange = usm_subrange_impl<T, std::ranges::subrange<T*>>;
 
+#if _ONEDPL_CPP20_SPAN_PRESENT
 template<typename T>
 using  usm_span = usm_subrange_impl<T, std::span<T>>;
+#endif
 
 #endif // _ONEDPL_HETERO_BACKEND
 
@@ -414,7 +420,9 @@ struct test_range_algo
     {
 
         auto subrange_view = [](auto&& v) { return std::ranges::subrange(v); };
+#if _ONEDPL_CPP20_SPAN_PRESENT
         auto span_view = [](auto&& v) { return std::span(v); };
+#endif
 
         if constexpr(ForwardRangeCheck)
         {
@@ -426,19 +434,23 @@ struct test_range_algo
         }
 
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
         test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+#if _ONEDPL_CPP20_SPAN_PRESENT
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
         test<T, host_span<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+#endif
 
 #if _ONEDPL_HETERO_BACKEND
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
             test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
             test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
+#if _ONEDPL_CPP20_SPAN_PRESENT
+            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
             test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
+#endif
         }
 #endif //_ONEDPL_HETERO_BACKEND
     }
