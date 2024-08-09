@@ -1354,10 +1354,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     assert(__rng_n > 0);
 
     // Evaluate the amount of work-groups and work-group size
-    const auto __nd_range_params =
+    const auto [__n_groups, __wgroup_size] =
         __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
-    const auto __n_groups = std::get<0>(__nd_range_params);
-    const auto __wgroup_size = std::get<1>(__nd_range_params);
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
 
