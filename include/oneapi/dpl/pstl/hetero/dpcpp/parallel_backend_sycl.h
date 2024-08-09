@@ -1164,8 +1164,6 @@ struct __parallel_find_or_nd_range_tuner
 template <>
 struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>
 {
-    static constexpr std::size_t __base_rng_n = 4096;
-
     // Tune the amount of work-groups and work-group size
     template <typename _ExecutionPolicy>
     std::tuple<std::size_t, std::size_t>
@@ -1183,7 +1181,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
             if (__iters_per_work_item > 1)
             {
                 // Empirically found formula for GPU devices.
-                const auto __rng_x = __rng_n / __base_rng_n;
+                const auto __rng_x = __rng_n / 4096;
                 const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
 
                 // We halve the number of work-groups until the number of iterations per work-item
