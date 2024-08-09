@@ -1190,7 +1190,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                 if (__current_iters_per_work_item < __desired_iters_per_work_item)
                 {
                     auto __k = __desired_iters_per_work_item / __current_iters_per_work_item;
-                    __k = std::pow(2, std::floor(std::log2(__k)));
+                    __k = std::pow(2, std::ceil(std::log2(__k)));
                     __n_groups = (std::size_t)std::ceil(__n_groups / __k);
 
                     assert(oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size) <=
