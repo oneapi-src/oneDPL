@@ -1182,7 +1182,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
             // If our work capacity is not enough to process all data in one iteration, will tune the number of work-groups
             if (__iters_per_work_item > 1)
             {
-                // Empirically found formula for typical devices.
+                // Empirically found formula for GPU devices.
                 const auto __rng_x = __rng_n / __base_rng_n;
                 const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
 
