@@ -1180,17 +1180,21 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
             // If our work capacity is not enough to process all data in one iteration, will tune the number of work-groups
             if (__iters_per_work_item > 1)
             {
+                auto __current_iters_per_work_item =
+                    oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+
                 // Empirically found formula for GPU devices.
                 const auto __rng_x = __rng_n / 4096;
-                const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
+                const auto __desired_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
 
-                // We halve the number of work-groups until the number of iterations per work-item
-                // is greater than or equal to the desired number of iterations per work-item.
-                while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
+                if (__current_iters_per_work_item < __desired_iters_per_work_item)
                 {
-                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
-                    __iters_per_work_item =
-                        oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
+                    auto __k = __desired_iters_per_work_item / __current_iters_per_work_item;
+                    __k = std::pow(2, std::ceil(std::log2(__k)));
+                    __n_groups = (std::size_t)std::ceil(__n_groups / __k);
+
+                    assert(oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size) <=
+                           __desired_iters_per_work_item);
                 }
             }
         }
