@@ -1186,12 +1186,11 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
 
                 if (__iters_per_work_item < __desired_iters_per_work_item)
                 {
+
                     auto __k = oneapi::dpl::__internal::__dpl_bit_ceil(
                         (std::size_t)std::ceil(__desired_iters_per_work_item / __iters_per_work_item));
-                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __k);
-
-                    assert(oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size) <=
-                           __desired_iters_per_work_item);
+                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size *
+                                                                                         __iters_per_work_item * __k);
                 }
             }
         }
