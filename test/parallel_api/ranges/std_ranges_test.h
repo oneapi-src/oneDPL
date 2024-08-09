@@ -68,7 +68,7 @@ auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };
 struct P2
 {
     P2() {}
-    P2(auto v): x(v) {}
+    P2(int v): x(v) {}
     int x = {};
     int y = {};
 
@@ -207,7 +207,7 @@ struct test
             auto res = algo(exec, tr_in(A), tr_in(B), tr_out(C), args...);
 
             if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C.begin(), args...))>, "Wrong return type");
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C, args...))>, "Wrong return type");
 
             auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
