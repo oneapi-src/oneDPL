@@ -550,8 +550,8 @@ struct __result_and_scratch_storage
   public:
     __result_and_scratch_storage(const _ExecutionPolicy& __exec_, std::size_t __result_n, std::size_t __scratch_n)
         : __exec{__exec_}, __result_n{__result_n}, __scratch_n{__scratch_n},
-          __use_USM_host{__use_USM_host_allocations(__exec.queue())},
-          __supports_USM_device{__use_USM_allocations(__exec.queue())}
+          __use_USM_host{__use_USM_host_allocations(__exec.queue())}, __supports_USM_device{
+                                                                          __use_USM_allocations(__exec.queue())}
     {
         std::size_t __total_n = __scratch_n + __result_n;
         // Skip in case this is a dummy container

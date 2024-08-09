@@ -339,8 +339,9 @@ struct __parallel_transform_reduce_impl
         _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
 
         // Create temporary global buffers to store temporary values
+        const std::size_t __n_scratch = 2 * __n_groups;
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _Tp>;
-        __result_and_scratch_storage_t __scratch_container{__exec, 1, 2 * __n_groups};
+        __result_and_scratch_storage_t __scratch_container{__exec, 1, __n_scratch};
 
         // __is_first == true. Reduce over each work_group
         // __is_first == false. Reduce between work groups
