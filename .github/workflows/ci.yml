@@ -8,6 +8,7 @@ on:
       - release_oneDPL
       - main
       - 'release/**'
+      - dev/mdvorski/std_ranges_support_mvp
 
 permissions: read-all
 
