@@ -1141,6 +1141,9 @@ struct _parallel_find_or_nd_range_tuner_params_default
 
     // Required maximal number of iterations per work-item to fit data into one work-group when possible
     static constexpr std::size_t __max_iters_per_work_item_for_pack_into_one_wg = 32;
+
+    static constexpr std::size_t __group_reduce_multiplier = 1;
+    static constexpr std::size_t __group_reduce_divisor = 2;
 };
 
 template <typename _TunerParams, typename _Tag>
@@ -1208,7 +1211,8 @@ struct __parallel_find_or_nd_range_tuner<_TunerParams, oneapi::dpl::__internal::
                 // is greater than or equal to the desired number of iterations per work-item.
                 while (__iters_per_work_item < __required_iters_per_work_item && __n_groups > 1)
                 {
-                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, 2);
+                    __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
+                        __n_groups * _TunerParams::__group_reduce_multiplier, _TunerParams::__group_reduce_divisor);
                     __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
                 }
             }

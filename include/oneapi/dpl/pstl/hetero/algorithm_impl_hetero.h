@@ -542,6 +542,18 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 // adjacent_find
 //------------------------------------------------------------------------
 
+struct __pattern_adjacent_find_nd_range_tuner_params
+{
+    // Enable reduce the amount of work-groups
+    static constexpr bool __enable_reduce_wg_amount = true;
+
+    // Required maximal number of iterations per work-item to fit data into one work-group when possible
+    static constexpr std::size_t __max_iters_per_work_item_for_pack_into_one_wg = 32;
+
+    static constexpr std::size_t __group_reduce_multiplier = 4;
+    static constexpr std::size_t __group_reduce_divisor = 5;
+};
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 _Iterator
 __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
@@ -563,8 +575,8 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     bool result = __par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
-        __par_backend_hetero::__parallel_find_or_nd_range_tuner<
-            __par_backend_hetero::_parallel_find_or_nd_range_tuner_params_default, _BackendTag>{},
+        __par_backend_hetero::__parallel_find_or_nd_range_tuner<__pattern_adjacent_find_nd_range_tuner_params,
+                                                                _BackendTag>{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 
     // inverted conditional because of
