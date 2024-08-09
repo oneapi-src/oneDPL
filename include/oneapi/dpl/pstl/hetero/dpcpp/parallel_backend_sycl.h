@@ -1145,15 +1145,14 @@ struct __parallel_find_or_nd_range_tuner
         // TODO: find a way to generalize getting of reliable work-group size
         // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
         // This value exceeds the current practical limit for GPUs, but may need to be re-evaluated in the future.
-        namespace __util = oneapi::dpl::__internal;
-        const std::size_t __wgroup_size = __util::__max_work_group_size(__exec, (std::size_t)4096);
+        const std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)4096);
         std::size_t __n_groups = 1;
         // If no more than 32 data elements per work item, a single work group will be used
         if (__rng_n > __wgroup_size * 32)
         {
             // Compute the number of groups and limit by the number of compute units
-            __n_groups = std::min<std::size_t>(__util::__dpl_ceiling_div(__rng_n, __wgroup_size),
-                                               __util::__max_compute_units(__exec)));
+            __n_groups = std::min<std::size_t>(oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size),
+                                               oneapi::dpl::__internal::__max_compute_units(__exec));
         }
 
         return {__n_groups, __wgroup_size};
