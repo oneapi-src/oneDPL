@@ -1174,11 +1174,8 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
     std::tuple<std::size_t, std::size_t>
     operator()(const _ExecutionPolicy& __exec, const std::size_t __rng_n) const
     {
-        // Define common tuner type
-        using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<int>;
-
         // Call common tuning function to get the work-group size
-        auto [__n_groups, __wgroup_size] = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
+        auto [__n_groups, __wgroup_size] = __parallel_find_or_nd_range_tuner<int>{}(__exec, __rng_n);
 
         if (__n_groups > 1)
         {
