@@ -1134,7 +1134,17 @@ struct __early_exit_find_or
 // parallel_find_or - sync pattern
 //------------------------------------------------------------------------
 
-template <typename Tag>
+struct _parallel_find_or_nd_range_tuner_params_default
+{
+    // Required minimal number of iterations per work-item to pack data into one work-group when possible
+    //  - if it's zero, we don't pack data into one work-group
+    static constexpr std::size_t __max_iters_per_work_item_for_pack_into_one_wg = 32;
+
+    // Minimal number of iterations per work-item for reduce work-group count
+    static constexpr std::size_t __min_iters_per_work_item_for_reduce_wg_count = 1;
+};
+
+template <typename _TunerParams, typename _Tag>
 struct __parallel_find_or_nd_range_tuner
 {
     // Tune the amount of work-groups and work-group size
@@ -1152,8 +1162,7 @@ struct __parallel_find_or_nd_range_tuner
         __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
         // Pass all small data into single WG implementation
-        constexpr std::size_t __max_iters_per_work_item = 32;
-        if (__rng_n <= __wgroup_size * __max_iters_per_work_item)
+        if (__rng_n <= __wgroup_size * _TunerParams::__max_iters_per_work_item_for_pack_into_one_wg)
         {
             __n_groups = 1;
         }
@@ -1164,18 +1173,18 @@ struct __parallel_find_or_nd_range_tuner
 
 // No tuning for FPGA_EMU because we are not going to tune here the performance for FPGA emulation.
 #if !_ONEDPL_FPGA_EMU
-template <>
-struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>
+template <typename _TunerParams>
+struct __parallel_find_or_nd_range_tuner<_TunerParams, oneapi::dpl::__internal::__device_backend_tag>
 {
-    static constexpr std::size_t __base_rng_n = 4096;
-
     // Tune the amount of work-groups and work-group size
     template <typename _ExecutionPolicy>
     std::tuple<std::size_t, std::size_t>
     operator()(const _ExecutionPolicy& __exec, const std::size_t __rng_n) const
     {
+        static constexpr std::size_t __base_rng_n = 4096;
+
         // Define common tuner type
-        using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<int>;
+        using __parallel_find_or_nd_range_tuner_common = __parallel_find_or_nd_range_tuner<_TunerParams, int>;
 
         // Call common tuning function to get the work-group size
         auto __nd_range_params = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
@@ -1189,12 +1198,11 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                 oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
             
             // If our work capacity is not enough to process all data in one iteration, will tune the number of work-groups
-            if (__iters_per_work_item > 1)
+            if (__iters_per_work_item > _TunerParams::__min_iters_per_work_item_for_reduce_wg_count)
             {
                 // Empirically found formula for typical devices.
                 const auto __rng_x = __rng_n / __base_rng_n;
                 const auto __required_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
-
 
                 // We halve the number of work-groups until the number of iterations per work-item
                 // is greater than or equal to the desired number of iterations per work-item.
@@ -1355,7 +1363,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
     // Evaluate the amount of work-groups and work-group size
     const auto __nd_range_params =
-        __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
+        __parallel_find_or_nd_range_tuner<_parallel_find_or_nd_range_tuner_params_default,
+                                          oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
     const auto __n_groups = std::get<0>(__nd_range_params);
     const auto __wgroup_size = std::get<1>(__nd_range_params);
 
