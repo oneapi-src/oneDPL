@@ -553,7 +553,7 @@ struct __result_and_scratch_storage
           __use_USM_host{__use_USM_host_allocations(__exec.queue())}, __supports_USM_device{
                                                                           __use_USM_allocations(__exec.queue())}
     {
-        std::size_t __total_n = __scratch_n + __result_n;
+        const std::size_t __total_n = __scratch_n + __result_n;
         // Skip in case this is a dummy container
         if (__total_n > 0)
         {
