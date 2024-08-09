@@ -16,6 +16,9 @@
 #ifndef _ONEDPL_TUPLE_IMPL_H
 #define _ONEDPL_TUPLE_IMPL_H
 
+#if __has_include(<version>)
+#    include <version>
+#endif
 #include <iterator>
 #include <tuple>
 #include <cassert>
@@ -37,23 +40,6 @@ struct tuple;
 
 namespace std
 {
-//forward declare new std::get<I>() functions so they can be used in impl
-template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
-get(oneapi::dpl::__internal::tuple<_Tp...>&);
-
-template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
-get(const oneapi::dpl::__internal::tuple<_Tp...>&);
-
-template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
-get(oneapi::dpl::__internal::tuple<_Tp...>&&);
-
-template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
-get(const oneapi::dpl::__internal::tuple<_Tp...>&&);
-
 template <::std::size_t N, typename T, typename... Rest>
 struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
     : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
@@ -70,6 +56,23 @@ template <typename... Args>
 struct tuple_size<oneapi::dpl::__internal::tuple<Args...>> : ::std::integral_constant<::std::size_t, sizeof...(Args)>
 {
 };
+
+//forward declare new std::get<I>() functions so they can be used in impl
+template <size_t _Idx, typename... _Tp>
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
+get(oneapi::dpl::__internal::tuple<_Tp...>&);
+
+template <size_t _Idx, typename... _Tp>
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
+get(const oneapi::dpl::__internal::tuple<_Tp...>&);
+
+template <size_t _Idx, typename... _Tp>
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
+get(oneapi::dpl::__internal::tuple<_Tp...>&&);
+
+template <size_t _Idx, typename... _Tp>
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
+get(const oneapi::dpl::__internal::tuple<_Tp...>&&);
 } // namespace std
 
 //custom tuple utilities
@@ -336,6 +339,37 @@ __less(const _Tuple1& __lhs, const _Tuple2& __rhs)
     }
 }
 
+template <typename _Tuple1, typename _Tuple2, int I = 0>
+constexpr int
+__three_way_comp(const _Tuple1& __lhs, const _Tuple2& __rhs)
+{
+    if constexpr (I < std::tuple_size_v<_Tuple1>)
+    {
+        auto __left = std::get<I>(__lhs);
+        auto __right = std::get<I>(__rhs);
+
+#if __cpp_lib_three_way_comparison >= 201907L
+// implement with spaceship operator
+        std::cout<<"here\n";
+        if (__left == __right)
+            return oneapi::dpl::__internal::__three_way_comp<_Tuple1, _Tuple2, I + 1>(__lhs, __rhs);
+        else
+            return __left <=> __right;
+#else
+        if (__left == __right)
+            return oneapi::dpl::__internal::__three_way_comp<_Tuple1, _Tuple2, I + 1>(__lhs, __rhs);
+        else if (__left < __right)
+            return -1;
+        else
+            return 1;
+#endif
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 template <typename T1, typename... T>
 struct tuple<T1, T...>
 {
@@ -477,41 +511,55 @@ struct tuple<T1, T...>
     friend constexpr bool
     operator==(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__equal(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) == 0;
     }
+
+#if __cpp_lib_three_way_comparison >= 201907L
+
+    template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
+    friend constexpr int
+    operator<=>(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
+    {
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs);
+    }
+
+#else // __cpp_lib_three_way_comparison >= 201907L
+
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator!=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__equal(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) != 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) < 0;
     }
 
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__rhs, __lhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) <= 0;
     }
 
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__rhs, __lhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) > 0;
     }
 
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>=(const tuple& __lhs, const oneapi::dpl::__internal::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) >= 0;
     }
+
+#endif // __cpp_lib_three_way_comparison >= 201907L
 
     // The following operators enable support of binary comparison of oneDPL internal tuples with std::tuple as rhs
     // with the same number of types where individual elements are binary comparable
@@ -519,38 +567,51 @@ struct tuple<T1, T...>
     friend constexpr bool
     operator==(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__equal(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) == 0;
     }
+
+#if __cpp_lib_three_way_comparison >= 201907L
+
+    template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
+    friend constexpr int
+    operator<=>const tuple& __lhs, const std::tuple<_U...>& __rhs)
+    {
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs);
+    }
+
+#else // __cpp_lib_three_way_comparison >= 201907L
+
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator!=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__equal(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) != 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) < 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__rhs, __lhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) <= 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__rhs, __lhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) > 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>=(const tuple& __lhs, const std::tuple<_U...>& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) >= 0;
     }
+#endif // __cpp_lib_three_way_comparison >= 201907L
 
     // The following operators enable support of binary comparison of oneDPL internal tuples with std::tuple as lhs
     // with the same number of types where individual elements are binary comparable
@@ -558,38 +619,53 @@ struct tuple<T1, T...>
     friend constexpr bool
     operator==(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return oneapi::dpl::__internal::__equal(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) == 0;
     }
+
+#if __cpp_lib_three_way_comparison >= 201907L
+
+    // The following operators enable support of binary comparison of oneDPL internal tuples with std::tuple as lhs
+    // with the same number of types where individual elements are binary comparable
+    template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
+    friend constexpr bool
+    operator<=>(const std::tuple<_U...>& __lhs, const tuple& __rhs)
+    {
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs);
+    }
+
+#else
+
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator!=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return !(oneapi::dpl::__internal::__equal(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) != 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__lhs, __rhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) < 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator<=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__rhs, __lhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) <= 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return oneapi::dpl::__internal::__less(__rhs, __lhs);
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) > 0;
     }
     template <typename... _U, std::enable_if_t<sizeof...(_U) == (sizeof...(T) + 1), int> = 0>
     friend constexpr bool
     operator>=(const std::tuple<_U...>& __lhs, const tuple& __rhs)
     {
-        return !(oneapi::dpl::__internal::__less(__lhs, __rhs));
+        return oneapi::dpl::__internal::__three_way_comp(__lhs, __rhs) >= 0;
     }
+#endif // __cpp_lib_three_way_comparison < 201907L
 
     template <typename U1, typename... U, ::std::size_t... _Ip>
     static ::std::tuple<U1, U...>
@@ -621,32 +697,32 @@ struct tuple<>
         return *this;
     }
     friend constexpr bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
+    operator==(const tuple&, const tuple&)
     {
         return true;
     }
     friend constexpr bool
-    operator!=(const tuple& __lhs, const tuple& __rhs)
+    operator!=(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator<(const tuple& __lhs, const tuple& __rhs)
+    operator<(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator<=(const tuple& __lhs, const tuple& __rhs)
+    operator<=(const tuple&, const tuple&)
     {
         return true;
     }
     friend constexpr bool
-    operator>(const tuple& __lhs, const tuple& __rhs)
+    operator>(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator>=(const tuple& __lhs, const tuple& __rhs)
+    operator>=(const tuple&, const tuple&)
     {
         return true;
     }

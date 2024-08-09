@@ -18,6 +18,7 @@
 #include _PSTL_TEST_HEADER(tuple)
 
 #include "support/utils.h"
+#include <version>
 
 template <typename... _T>
 static oneapi::dpl::__internal::tuple<_T...>
@@ -31,6 +32,10 @@ void
 test_tuple(Tuple1 t1, Tuple2 t2)
 {
 
+
+#if __cpp_lib_three_way_comparison >= 201907L
+    std::cout<"here\n";
+#endif
     auto onedpl_t1 = to_onedpl_tuple(t1);
     auto onedpl_t2 = to_onedpl_tuple(t2);
 
