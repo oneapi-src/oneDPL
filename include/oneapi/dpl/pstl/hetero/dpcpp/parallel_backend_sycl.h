@@ -1136,12 +1136,11 @@ struct __early_exit_find_or
 
 struct _parallel_find_or_nd_range_tuner_params_default
 {
-    // Required minimal number of iterations per work-item to pack data into one work-group when possible
-    //  - if it's zero, we don't pack data into one work-group
-    static constexpr std::size_t __max_iters_per_work_item_for_pack_into_one_wg = 32;
+    // Enable reduce the amount of work-groups
+    static constexpr bool __enable_reduce_wg_amount = true;
 
-    // Minimal number of iterations per work-item for reduce work-group count
-    static constexpr std::size_t __min_iters_per_work_item_for_reduce_wg_count = 1;
+    // Required maximal number of iterations per work-item to fit data into one work-group when possible
+    static constexpr std::size_t __max_iters_per_work_item_for_pack_into_one_wg = 32;
 };
 
 template <typename _TunerParams, typename _Tag>
@@ -1162,7 +1161,8 @@ struct __parallel_find_or_nd_range_tuner
         __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
         // Pass all small data into single WG implementation
-        if (__rng_n <= __wgroup_size * _TunerParams::__max_iters_per_work_item_for_pack_into_one_wg)
+        if (_TunerParams::__enable_reduce_wg_amount &&
+            __rng_n <= __wgroup_size * _TunerParams::__max_iters_per_work_item_for_pack_into_one_wg)
         {
             __n_groups = 1;
         }
@@ -1190,7 +1190,7 @@ struct __parallel_find_or_nd_range_tuner<_TunerParams, oneapi::dpl::__internal::
         auto __nd_range_params = __parallel_find_or_nd_range_tuner_common{}(__exec, __rng_n);
 
         auto __n_groups = std::get<0>(__nd_range_params);
-        if (__n_groups > 1)
+        if (_TunerParams::__enable_reduce_wg_amount && __n_groups > 1)
         {
             auto __wgroup_size = std::get<1>(__nd_range_params);
 
@@ -1198,7 +1198,7 @@ struct __parallel_find_or_nd_range_tuner<_TunerParams, oneapi::dpl::__internal::
                 oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __n_groups * __wgroup_size);
             
             // If our work capacity is not enough to process all data in one iteration, will tune the number of work-groups
-            if (__iters_per_work_item > _TunerParams::__min_iters_per_work_item_for_reduce_wg_count)
+            if (__iters_per_work_item > 1)
             {
                 // Empirically found formula for typical devices.
                 const auto __rng_x = __rng_n / __base_rng_n;
@@ -1343,12 +1343,12 @@ __parallel_find_or_impl_multiple_wgs(oneapi::dpl::__internal::__device_backend_t
 }
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename _NDRangeTuner, typename... _Ranges>
 ::std::conditional_t<
     ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
     oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
 __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
-                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+                   _BrickTag __brick_tag, const _NDRangeTuner& __nd_range_tuner, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _FindOrKernelOneWG =
@@ -1362,9 +1362,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
     assert(__rng_n > 0);
 
     // Evaluate the amount of work-groups and work-group size
-    const auto __nd_range_params =
-        __parallel_find_or_nd_range_tuner<_parallel_find_or_nd_range_tuner_params_default,
-                                          oneapi::dpl::__internal::__device_backend_tag>{}(__exec, __rng_n);
+    const auto __nd_range_params = __nd_range_tuner(__exec, __rng_n);
     const auto __n_groups = std::get<0>(__nd_range_params);
     const auto __wgroup_size = std::get<1>(__nd_range_params);
 
@@ -1422,10 +1420,15 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
+    using _BackendTag = oneapi::dpl::__internal::__device_backend_tag;
+
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{}, __buf.all_view(), __s_buf.all_view());
+        __parallel_or_tag{},
+        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<
+            oneapi::dpl::__par_backend_hetero::_parallel_find_or_nd_range_tuner_params_default, _BackendTag>{},
+        __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1439,10 +1442,15 @@ __parallel_or(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Exec
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
+    using _BackendTag = oneapi::dpl::__internal::__device_backend_tag;
+
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __backend_tag,
         __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
-        __parallel_or_tag{}, __buf.all_view());
+        __parallel_or_tag{},
+        oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<
+            oneapi::dpl::__par_backend_hetero::_parallel_find_or_nd_range_tuner_params_default, _BackendTag>{},
+        __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -1464,13 +1472,18 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
+    using _BackendTag = oneapi::dpl::__internal::__device_backend_tag;
+
     using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                           __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
+                         __f, _TagType{},
+                           oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<
+                               oneapi::dpl::__par_backend_hetero::_parallel_find_or_nd_range_tuner_params_default, _BackendTag>{},
+                         __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -1484,13 +1497,18 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
+    using _BackendTag = oneapi::dpl::__internal::__device_backend_tag;
+
     using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                           __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
-                         __f, _TagType{}, __buf.all_view());
+                         __f, _TagType{},
+                         oneapi::dpl::__par_backend_hetero::__parallel_find_or_nd_range_tuner<
+                            oneapi::dpl::__par_backend_hetero::_parallel_find_or_nd_range_tuner_params_default, _BackendTag>{},
+                         __buf.all_view());
 }
 
 //------------------------------------------------------------------------
