@@ -48,9 +48,9 @@ struct GreaterComparatorTag
 
 struct Particle
 {
-    float mass;
-    float velocity;
-    float coordinates[3];
+    float mass = 0;
+    float velocity = 0;
+    float coordinates[3] = {0, 0, 0};
     using energy_type = float;
     energy_type energy() const
     {
