@@ -397,7 +397,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<int call_id = 0, typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true, bool ForwardRangeCheck = false>
+template<int call_id = 0, typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto... args)
@@ -407,15 +407,6 @@ struct test_range_algo
 #if _ONEDPL_CPP20_SPAN_PRESENT
         auto span_view = [](auto&& v) { return std::span(v); };
 #endif
-
-        if constexpr(ForwardRangeCheck)
-        {
-            auto forward_view = [](auto&& v) {
-                using forward_it = TestUtils::ForwardIterator<decltype(v.begin()), ::std::forward_iterator_tag>;
-                return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
-            };
-            test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, forward_view, args...);
-        }
 
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
