@@ -724,7 +724,17 @@ class __future
     }
 
   public:
+
+    using FutureType = __future<_Event, _Args...>;
+
     __future(_Event __e, _Args... __args) : __my_event(__e), __data(std::forward<_Args>(__args)...) {}
+    __future(const FutureType&) = delete;
+    __future(FutureType&&) = default;
+
+    FutureType&
+    operator=(const FutureType&) = delete;
+    FutureType&
+    operator=(FutureType&&) = default;
 
     auto
     event() const
