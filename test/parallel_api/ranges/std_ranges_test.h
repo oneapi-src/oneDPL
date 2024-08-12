@@ -291,22 +291,6 @@ private:
     }
 };
 
-#if _ONEDPL_HETERO_BACKEND
-template<typename T>
-struct sycl_buffer
-{
-    using type = sycl::buffer<T>;
-    type buf;
-
-    template<typename Policy>
-    sycl_buffer(Policy&&, T* data, int n): buf(data, sycl::range<1>(n)) {}
-    type& operator()()
-    {
-        return buf;
-    }
-};
-#endif //#if _ONEDPL_HETERO_BACKEND
-
 template<typename T, typename ViewType>
 struct host_subrange_impl
 {
