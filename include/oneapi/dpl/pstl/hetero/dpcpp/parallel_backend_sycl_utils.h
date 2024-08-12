@@ -695,10 +695,13 @@ struct __deferrable_mode
 template <typename _Event, typename... _Args>
 class __future
 {
-    _Event __my_event;
+  public:
 
-    using _Data = std::tuple<_Args...>;
-    _Data __data;
+      using _DataTuple = std::tuple<_Args...>;
+
+  protected:
+    _Event __my_event;
+    _DataTuple __my_data;
 
     template <typename _T>
     constexpr auto
@@ -727,7 +730,9 @@ class __future
 
     using FutureType = __future<_Event, _Args...>;
 
-    __future(_Event __e, _Args... __args) : __my_event(__e), __data(std::forward<_Args>(__args)...) {}
+    __future(_Event __e) : __my_event(__e) {}
+    __future(_Event __e, const _DataTuple& __data) : __my_event(__e), __my_data(__data) {}
+    __future(_Event __e, _DataTuple&& __data) : __my_event(__e), __my_data(std::forward<_DataTuple>(__data)) {}
     __future(const FutureType&) = delete;
     __future(FutureType&&) = default;
 
@@ -770,7 +775,7 @@ class __future
     {
         if constexpr (sizeof...(_Args) > 0)
         {
-            auto& __val = std::get<0>(__data);
+            auto& __val = std::get<0>(__my_data);
             return __wait_and_get_value(__val);
         }
         else
@@ -784,7 +789,7 @@ class __future
     __make_future(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, __data);
+        auto new_tuple = std::tuple_cat(new_val, __my_data);
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
