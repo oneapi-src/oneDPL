@@ -37,6 +37,18 @@ struct tuple;
 
 namespace std
 {
+template <::std::size_t N, typename T, typename... Rest>
+struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
+    : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
+{
+};
+
+template <typename T, typename... Rest>
+struct tuple_element<0, oneapi::dpl::__internal::tuple<T, Rest...>>
+{
+    using type = T;
+};
+
 //forward declare new std::get<I>() functions so they can be used in impl
 template <size_t _Idx, typename... _Tp>
 constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
@@ -53,18 +65,6 @@ get(oneapi::dpl::__internal::tuple<_Tp...>&&);
 template <size_t _Idx, typename... _Tp>
 constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&&);
-
-template <::std::size_t N, typename T, typename... Rest>
-struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
-    : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
-{
-};
-
-template <typename T, typename... Rest>
-struct tuple_element<0, oneapi::dpl::__internal::tuple<T, Rest...>>
-{
-    using type = T;
-};
 
 template <typename... Args>
 struct tuple_size<oneapi::dpl::__internal::tuple<Args...>> : ::std::integral_constant<::std::size_t, sizeof...(Args)>
