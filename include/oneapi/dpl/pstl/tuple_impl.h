@@ -368,8 +368,19 @@ struct __is_std_tuple<std::tuple<Ts...>> : std::true_type
 template <typename T>
 inline constexpr bool __is_std_tuple_v = __is_std_tuple<T>::value;
 
-template <typename T>
-inline constexpr bool __is_tuple_comparable_v = __is_std_tuple_v<T> || __is_internal_tuple_v<T>;
+// Either LHS = this internal tuple type + RHS = any compatible tuple type
+// or     LHS = std::tuple               + RHS = this internal tuple type
+// Note: We do not allow LHS to be "any compatible type" with a RHS as this internal tuple type because then we would
+//       have ambiguity comaparing two different compatible internal tuple types, because both instantiations would
+//       create the necessary comparison. As written, the type instatation of the type in the LHS is always
+//       responsible for creating this comparison operator.
+template <typename _ThisTuple, typename _U, typename _V>
+inline constexpr bool __enable_comparison_op_v =
+    (std::is_same_v<std::decay_t<_ThisTuple>, std::decay_t<_U>> &&                         //LHS +
+                    (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_V>> ||        //RHS option 1
+                     oneapi::dpl::__internal::__is_internal_tuple_v<std::decay_t<_V>>)) || //RHS option 2  - OR -
+    (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&                        //LHS +
+                    std::is_same_v<std::decay_t<_ThisTuple>, std::decay_t<_V>>);           //RHS
 
 template <typename T1, typename... T>
 struct tuple<T1, T...>
@@ -507,11 +518,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator==(_U&& __lhs, _V&& __rhs)
     {
@@ -519,11 +526,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator!=(_U&& __lhs, _V&& __rhs)
     {
@@ -531,11 +534,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator<(_U&& __lhs, _V&& __rhs)
     {
@@ -543,11 +542,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator<=(_U&& __lhs, _V&& __rhs)
     {
@@ -555,11 +550,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator>(_U&& __lhs, _V&& __rhs)
     {
@@ -567,11 +558,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U, typename _V,
-              std::enable_if_t<(std::is_same_v<tuple, std::decay_t<_U>> &&
-                                oneapi::dpl::__internal::__is_tuple_comparable_v<std::decay_t<_V>>) ||
-                                   (oneapi::dpl::__internal::__is_std_tuple_v<std::decay_t<_U>> &&
-                                    std::is_same_v<tuple, std::decay_t<_V>>),
-                               int> = 0>
+              std::enable_if_t<oneapi::dpl::__internal::__enable_comparison_op_v<tuple, _U, _V>, int> = 0>
     friend constexpr bool
     operator>=(_U&& __lhs, _V&& __rhs)
     {
