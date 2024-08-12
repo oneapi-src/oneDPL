@@ -424,8 +424,8 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     }
     else
     {
-        return __submit_selecting_leaf<std::uint64_t>(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng),
-                                                    __comp);
+        return __submit_selecting_leaf<std::uint64_t>(std::forward<_ExecutionPolicy>(__exec),
+                                                      std::forward<_Range>(__rng), __comp);
     }
 }
 
