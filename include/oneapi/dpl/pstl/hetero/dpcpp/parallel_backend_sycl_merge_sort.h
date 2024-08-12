@@ -121,7 +121,7 @@ struct __leaf_sorter
     }
 
     _StorageAcc
-    create_storage_accessor(sycl::handler& __cgh)
+    create_storage_accessor(sycl::handler& __cgh) const
     {
         return _StorageAcc(storage_size(__data_per_workitem, __workgroup_size), __cgh);
     }
