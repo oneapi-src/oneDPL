@@ -621,32 +621,32 @@ struct tuple<>
         return *this;
     }
     friend constexpr bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
+    operator==(const tuple&, const tuple&)
     {
         return true;
     }
     friend constexpr bool
-    operator!=(const tuple& __lhs, const tuple& __rhs)
+    operator!=(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator<(const tuple& __lhs, const tuple& __rhs)
+    operator<(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator<=(const tuple& __lhs, const tuple& __rhs)
+    operator<=(const tuple&, const tuple&)
     {
         return true;
     }
     friend constexpr bool
-    operator>(const tuple& __lhs, const tuple& __rhs)
+    operator>(const tuple&, const tuple&)
     {
         return false;
     }
     friend constexpr bool
-    operator>=(const tuple& __lhs, const tuple& __rhs)
+    operator>=(const tuple&, const tuple&)
     {
         return true;
     }
