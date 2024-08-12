@@ -174,9 +174,9 @@ struct __leaf_sorter
         __dpl_sycl::__group_barrier(__item);
 
         // 3. Sort on work-group level
-        bool __data_in_temp = __group_sorter.sort(__item, __storage_acc, __comp, static_cast<std::uint32_t>(0),
-                                                  __adjusted_process_size, /*sorted per sub-group*/__data_per_workitem,
-                                                  __data_per_workitem, __workgroup_size);
+        bool __data_in_temp =
+            __group_sorter.sort(__item, __storage_acc, __comp, static_cast<std::uint32_t>(0), __adjusted_process_size,
+                                /*sorted per sub-group*/ __data_per_workitem, __data_per_workitem, __workgroup_size);
         // barrier is not needed here because of the barrier inside the sort method
 
         // 4. Store
@@ -360,8 +360,10 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     // 8 is the maximum reasonable value for bubble sub-group sorter due to algorithm complexity
     // 2 is the smallest reasonable value for merge-path group sorter since it loads 2 values at least
     // TODO: reconsider the values if other algorithms are used
-    const std::uint16_t __data_per_workitem = __desired_data_per_workitem <= 2 ?
-        2 : std::min<std::uint32_t>(oneapi::dpl::__internal::__dpl_bit_floor(__desired_data_per_workitem), 8);
+    const std::uint16_t __data_per_workitem =
+        __desired_data_per_workitem <= 2
+            ? 2
+            : std::min<std::uint32_t>(oneapi::dpl::__internal::__dpl_bit_floor(__desired_data_per_workitem), 8);
 
     // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
     // TODO: investigate if the adjustment can be less conservative
