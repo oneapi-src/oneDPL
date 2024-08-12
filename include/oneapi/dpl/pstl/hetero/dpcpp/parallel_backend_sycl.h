@@ -1190,7 +1190,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                     // We should halve the number of work-groups until the number of iterations per work-item
                     // is greater than or equal to the desired number of iterations per work-item.
                     // For that we evaluate the max power of 2 not smaller than the given value.
-                    std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
+                    const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
                         (std::size_t)std::ceil(__desired_iters_per_work_item / __iters_per_work_item));
                     __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size *
                                                                                          __iters_per_work_item * __k);
