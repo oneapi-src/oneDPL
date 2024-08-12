@@ -1182,8 +1182,8 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
             {
                 // Empirically found formula for GPU devices.
                 // TODO : need to re-evaluate this formula.
-                const auto __rng_x = __rng_n / 4096;
-                const float __desired_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.);
+                const float __rng_x = (float)__rng_n / 4096.f;
+                const float __desired_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.f);
 
                 if (__iters_per_work_item < __desired_iters_per_work_item)
                 {
