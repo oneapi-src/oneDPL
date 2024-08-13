@@ -77,7 +77,7 @@ struct P2
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
-template<typename DataType, typename Container, TestDataMode mode = data_in, bool RetTypeCheck = true>
+template<typename DataType, typename Container, TestDataMode mode = data_in>
 struct test
 {
     template<typename Policy, typename Algo, typename... Args>
@@ -107,8 +107,7 @@ struct test
             auto res = algo(exec, tr_in(A), args...);
 
             //check result
-            if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), args...))>, "Wrong return type");
+            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), args...))>, "Wrong return type");
 
             auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
@@ -140,8 +139,7 @@ struct test
             auto res = algo(exec, tr_in(A), tr_out(B), args...);
 
             //check result
-            if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), B, args...))>, "Wrong return type");
+            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), B, args...))>, "Wrong return type");
 
             auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
@@ -174,8 +172,7 @@ struct test
 
             auto res = algo(exec, tr_in(A), tr_in(B), args...);
 
-            if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), args...))>, "Wrong return type");
+            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), args...))>, "Wrong return type");
 
             auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
@@ -207,8 +204,7 @@ struct test
 
             auto res = algo(exec, tr_in(A), tr_in(B), tr_out(C), args...);
 
-            if constexpr(RetTypeCheck)
-                static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C, args...))>, "Wrong return type");
+            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C, args...))>, "Wrong return type");
 
             auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
@@ -398,7 +394,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // _ONEDPL_HETERO_BACKEND
 
-template<int call_id = 0, typename T = int, TestDataMode mode = data_in, bool RetTypeCheck = true>
+template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
 struct test_range_algo
 {
     void operator()(auto algo, auto checker, auto... args)
@@ -409,24 +405,24 @@ struct test_range_algo
         auto span_view = [](auto&& v) { return std::span(v); };
 #endif
 
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
-        test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_subrange<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 #if _ONEDPL_CPP20_SPAN_PRESENT
-        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
-        test<T, host_span<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
+        test<T, host_span<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 #endif
 
 #if _ONEDPL_HETERO_BACKEND
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
-            test<T, usm_subrange<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
+            test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
+            test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
 #if _ONEDPL_CPP20_SPAN_PRESENT
-            test<T, usm_vector<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
-            test<T, usm_span<T>, mode, RetTypeCheck>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
+            test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
+            test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
 #endif
         }
 #endif //_ONEDPL_HETERO_BACKEND
