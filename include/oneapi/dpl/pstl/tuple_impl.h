@@ -372,7 +372,7 @@ inline constexpr bool __is_std_tuple_v = __is_std_tuple<T>::value;
 // or     LHS = std::tuple               + RHS = this internal tuple type
 // Note: We do not allow LHS to be "any compatible type" with a RHS as this internal tuple type because then we would
 //       have ambiguity comparing two different compatible internal tuple types, because both instantiations would
-//       create the necessary comparison. As written, the type instantation of the type in the LHS is always
+//       create the necessary comparison. As written, the type instantiation of the type in the LHS is always
 //       responsible for creating this comparison operator.
 template <typename _ThisTuple, typename _U, typename _V>
 inline constexpr bool __enable_comparison_op_v =
