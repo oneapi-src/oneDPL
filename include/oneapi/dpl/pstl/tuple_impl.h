@@ -446,7 +446,7 @@ struct tuple<T1, T...>
     }
 
     // conversion to ::std::tuple with the same template arguments
-    constexpr operator ::std::tuple<T1, T...>() const
+    operator ::std::tuple<T1, T...>() const
     {
         static constexpr ::std::size_t __tuple_size = sizeof...(T) + 1;
         return to_std_tuple(*this, ::std::make_index_sequence<__tuple_size>());
