@@ -380,14 +380,14 @@ __pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_sort2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_sort_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
 }
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_sort2(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     if constexpr(typename _Tag::__is_vector{})
         return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
@@ -493,7 +493,7 @@ __pattern_copy_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r,
 template <typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred,
           typename _Proj>
 auto
-__pattern_copy_if_2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
+__pattern_copy_if_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
     _Pred __pred, _Proj __proj)
 {
     return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
@@ -503,7 +503,7 @@ __pattern_copy_if_2(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__pattern_copy_if_2(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj)
+__pattern_copy_if_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj)
 {
     if constexpr(typename _Tag::__is_vector{})
         return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
