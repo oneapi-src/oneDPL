@@ -771,6 +771,55 @@ class __future : private std::tuple<_Args...>
     }
 };
 
+// Tag __async_mode describe a pattern call mode which should be executed asynchronously
+struct __async_mode
+{
+};
+// Tag __sync_mode describe a pattern call mode which should be executed synchronously
+struct __sync_mode
+{
+};
+// Tag __deferrable_mode describe a pattern call mode which should be executed
+// synchronously/asynchronously : it's depends on ONEDPL_ALLOW_DEFERRED_WAITING macro state
+struct __deferrable_mode
+{
+};
+
+template <typename _Mode>
+struct __wait_future_result;
+
+template <>
+struct __wait_future_result<__async_mode>
+{
+    template <typename _Future>
+    void
+    operator()(_Future& /*__future*/) const
+    {
+    }
+};
+
+template <>
+struct __wait_future_result<__sync_mode>
+{
+    template <typename _Future>
+    void
+    operator()(_Future& __future) const
+    {
+        __future.wait();
+    }
+};
+
+template <>
+struct __wait_future_result<__deferrable_mode>
+{
+    template <typename _Future>
+    void
+    operator()(_Future& __future) const
+    {
+        __future.__deferrable_wait();
+    }
+};
+
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
 // value in the integer_sequence not less than the run-time integer. For example:
