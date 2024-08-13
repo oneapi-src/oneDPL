@@ -75,55 +75,6 @@ __pattern_walk1_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _F
 // walk2
 //------------------------------------------------------------------------
 
-// Tag __async_mode describe a pattern call mode which should be executed asynchronously
-struct __async_mode
-{
-};
-// Tag __sync_mode describe a pattern call mode which should be executed synchronously
-struct __sync_mode
-{
-};
-// Tag __deferrable_mode describe a pattern call mode which should be executed
-// synchronously/asynchronously : it's depends on ONEDPL_ALLOW_DEFERRED_WAITING macro state
-struct __deferrable_mode
-{
-};
-
-template <typename _Mode>
-struct __wait_future_result;
-
-template <>
-struct __wait_future_result<__async_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& /*__future*/) const
-    {
-    }
-};
-
-template <>
-struct __wait_future_result<__sync_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& __future) const
-    {
-        __future.wait();
-    }
-};
-
-template <>
-struct __wait_future_result<__deferrable_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& __future) const
-    {
-        __future.__deferrable_wait();
-    }
-};
-
 // TODO: A tag _WaitMode is used for provide a patterns call pipeline, where the last one should be synchronous
 // Probably it should be re-designed by a pipeline approach, when a pattern returns some sync objects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
