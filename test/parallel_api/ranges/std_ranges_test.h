@@ -409,7 +409,7 @@ struct test_range_algo
         auto span_view = [](auto&& v) { return std::span(v); };
 #endif
 
-	    test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
+        test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
         test<T, host_vector<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
         test<T, host_subrange<T>, mode, RetTypeCheck>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
