@@ -446,7 +446,7 @@ __pattern_copy_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
     assert(std::ranges::size(__in_r) == std::ranges::size(__out_r));
 
     oneapi::dpl::__internal::__pattern_walk2_brick(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__in_r), std::ranges::begin(__in_r) + std::ranges::size(__in_r), __out_r.begin(),
+        std::ranges::begin(__in_r), std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r),
         oneapi::dpl::__internal::__brick_copy<decltype(__tag), _ExecutionPolicy>{});
 }
 
@@ -466,7 +466,7 @@ __pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRan
         __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
             std::forward<_OutRange>(__out_r));
     else
-        std::ranges::copy(std::forward<_InRange>(__in_r), __out_r.begin());
+        std::ranges::copy(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r));
 }
 //---------------------------------------------------------------------------------------------------------------------
 // pattern_copy_if
@@ -482,19 +482,19 @@ __pattern_copy_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r,
     auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj, __val));};
 
     auto __res_idx = oneapi::dpl::__internal::__pattern_copy_if(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__in_r),
-        std::ranges::begin(__in_r) + std::ranges::size(__in_r), __out_r.begin(), __pred_1) - __out_r.begin();
+        std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r), __pred_1) - std::ranges::begin(__out_r);
 
     using __return_t = std::ranges::copy_if_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{__in_r.begin() + std::ranges::size(__in_r), __out_r.begin() + __res_idx};
+    return __return_t{std::ranges::begin(__in_r) + std::ranges::size(__in_r), __out_r.begin() + __res_idx};
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred,
           typename _Proj>
 auto
 __pattern_copy_if_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
-    _Pred __pred, _Proj __proj)
+                         _Pred __pred, _Proj __proj)
 {
     return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
         std::forward<_OutRange>(__out_r), __pred, __proj);
@@ -509,7 +509,7 @@ __pattern_copy_if_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_
         return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
             std::forward<_OutRange>(__out_r), __pred, __proj);
     else
-        return std::ranges::copy_if(std::forward<_InRange>(__in_r), __out_r.begin(), __pred, __proj);
+        return std::ranges::copy_if(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r), __pred, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -520,7 +520,7 @@ template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, t
          typename _Proj1, typename _Proj2>
 auto
 __pattern_merge_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
-    _Proj1 __proj1, _Proj2 __proj2)
+                     _Proj1 __proj1, _Proj2 __proj2)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
     assert(std::ranges::size(__r1) + std::ranges::size(__r2) == std::ranges::size(__out_r));
@@ -530,19 +530,19 @@ __pattern_merge_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
 
     auto __res = oneapi::dpl::__internal::__pattern_merge(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
-        std::ranges::begin(__r2) + std::ranges::size(__r2), __out_r.begin(), __comp_2);
+        std::ranges::begin(__r2) + std::ranges::size(__r2), std::ranges::begin(__out_r), __comp_2);
 
     using __return_t = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{__r1.begin() + std::ranges::size(__r1), __r2.begin() + std::ranges::size(__r2), __res};
+    return __return_t{std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2) + std::ranges::size(__r2), __res};
 }
 
 template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
          typename _Proj1, typename _Proj2>
 auto
 __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r,
-    _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
+                _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
 {
     return __pattern_merge_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
         std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
@@ -552,14 +552,14 @@ template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, t
          typename _Proj1, typename _Proj2>
 auto
 __pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
-    _Proj1 __proj1, _Proj2 __proj2)
+                _Proj1 __proj1, _Proj2 __proj2)
 {
     if constexpr(typename _Tag::__is_vector{})
         return __pattern_merge_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
             std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
     else
-        return std::ranges::merge(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __out_r.begin(), __comp, __proj1,
-            __proj2);
+        return std::ranges::merge(std::forward<_R1>(__r1), std::forward<_R2>(__r2), std::ranges::begin(__out_r), __comp, __proj1,
+                                  __proj2);
 }
 
 } // namespace __ranges
