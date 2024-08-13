@@ -19,7 +19,7 @@
 #include <iterator>
 #include <type_traits>
 
-#if _ONEDPL_CPP20_RANGES_PRESENT
+#if _ONEDPL_CPP20_SPAN_PRESENT
 #include <span>
 #endif
 
@@ -127,17 +127,21 @@ struct all_view_fn
 
     template <typename _R>
     auto
-    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
+    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r)) const
     {
         return ::std::forward<_R>(__r);
     }
+
 #if _ONEDPL_CPP20_RANGES_PRESENT
     template <typename _T, sycl::usm::alloc _MemoryType>
     auto
-    operator()(const std::vector<_T, sycl::usm_allocator<_T, _MemoryType>>& __vec) const 
-        -> decltype(std::ranges::subrange(__vec.begin(), __vec.end()))
+    operator()(const std::vector<_T, sycl::usm_allocator<_T, _MemoryType>>& __vec) const
     {
+#if _ONEDPL_CPP20_SPAN_PRESENT
         return std::span(__vec.begin(), __vec.end());
+#else
+        return std::ranges::subrange(__vec.begin(), __vec.end());
+#endif
     }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
 };
