@@ -51,19 +51,19 @@ struct tuple_element<0, oneapi::dpl::__internal::tuple<T, Rest...>>
 
 //forward declare new std::get<I>() functions so they can be used in impl
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
 get(oneapi::dpl::__internal::tuple<_Tp...>&);
 
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&);
 
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
 get(oneapi::dpl::__internal::tuple<_Tp...>&&);
 
 template <size_t _Idx, typename... _Tp>
-constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
+constexpr std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&&);
 
 template <typename... Args>
