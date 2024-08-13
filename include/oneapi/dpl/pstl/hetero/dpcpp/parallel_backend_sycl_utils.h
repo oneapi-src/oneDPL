@@ -672,6 +672,7 @@ template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
+    bool __result_waited = false;
 
     template <typename _T>
     constexpr auto
@@ -693,7 +694,22 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(const _T& __val)
     {
         wait();
+
+        assert(__get_waited_state() && "Result was not waited");
+
         return __val;
+    }
+
+    bool
+    __get_waited_state() const
+    {
+        return __result_waited;
+    }
+
+    void
+    __set_waited_state()
+    {
+        __result_waited = true;
     }
 
   public:
@@ -712,6 +728,7 @@ class __future : private std::tuple<_Args...>
     wait()
     {
         __my_event.wait_and_throw();
+        __set_waited_state();
     }
 
     void
@@ -742,7 +759,11 @@ class __future : private std::tuple<_Args...>
     {
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
-        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
+
+        __future<_Event, _T, _Args...> __f_obj(__my_event, new_tuple);
+        if (__get_waited_state())
+            __f_obj.__set_waited_state();
+        return __f_obj;
     }
 };
 
