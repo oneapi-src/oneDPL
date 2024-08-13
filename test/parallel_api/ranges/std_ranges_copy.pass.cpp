@@ -25,12 +25,15 @@ main()
     auto copy_checker = [](std::ranges::random_access_range auto&& __r_in,
                            std::ranges::random_access_range auto&& __r_out, auto&&... args)
     {
-        auto res = std::ranges::copy(std::forward<decltype(__r_in)>(__r_in), std::ranges::begin(__r_out),
+        const auto _size = std::ranges::min(std::ranges::size(__r_in), std::ranges::size(__r_out));
+
+        auto res = std::ranges::copy(std::ranges::take_view(__r_in, _size), std::ranges::take_view(__r_out, _size),
             std::forward<decltype(args)>(args)...);
 
         using ret_type = std::ranges::copy_result<std::ranges::borrowed_iterator_t<decltype(__r_in)>,
             std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
-        return ret_type{res.in, res.out};
+
+        return ret_type{std::ranges::begin(__r_in) + _size, std::ranges::begin(__r_out) +  _size};
     };
 
     test_range_algo<0, int, data_in_out>{}(dpl_ranges::copy,  copy_checker);
