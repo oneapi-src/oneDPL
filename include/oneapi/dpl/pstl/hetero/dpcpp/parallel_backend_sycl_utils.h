@@ -700,18 +700,6 @@ class __future : private std::tuple<_Args...>
         return __val;
     }
 
-    bool
-    __get_waited_state() const
-    {
-        return __result_waited;
-    }
-
-    void
-    __set_waited_state()
-    {
-        __result_waited = true;
-    }
-
   public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
@@ -737,6 +725,18 @@ class __future : private std::tuple<_Args...>
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
         wait();
 #endif
+    }
+
+    bool
+    __get_waited_state() const
+    {
+        return __result_waited;
+    }
+
+    void
+    __set_waited_state()
+    {
+        __result_waited = true;
     }
 
     auto
