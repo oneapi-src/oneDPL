@@ -672,21 +672,25 @@ template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
-    bool __result_waited = false;
+    bool __waited_for_result = false;
 
     template <typename _T>
     constexpr auto
     __wait_and_get_value(const sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
-        return __buf.get_host_access(sycl::read_only)[0];
+        auto __val = __buf.get_host_access(sycl::read_only)[0];
+        __set_waited_for_result();
+        return __val;
     }
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
     __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
     {
-        return __storage.__wait_and_get_value(__my_event);
+        auto __val = __storage.__wait_and_get_value(__my_event);
+        __set_waited_for_result();
+        return __val;
     }
 
     template <typename _T>
@@ -695,7 +699,7 @@ class __future : private std::tuple<_Args...>
     {
         wait();
 
-        assert(__get_waited_state() && "Result was not waited");
+        assert(__get_waited_for_result() && "Result was not waited");
 
         return __val;
     }
@@ -716,7 +720,7 @@ class __future : private std::tuple<_Args...>
     wait()
     {
         __my_event.wait_and_throw();
-        __set_waited_state();
+        __set_waited_for_result();
     }
 
     void
@@ -728,15 +732,15 @@ class __future : private std::tuple<_Args...>
     }
 
     bool
-    __get_waited_state() const
+    __get_waited_for_result() const
     {
-        return __result_waited;
+        return __waited_for_result;
     }
 
     void
-    __set_waited_state()
+    __set_waited_for_result()
     {
-        __result_waited = true;
+        __waited_for_result = true;
     }
 
     auto
@@ -761,8 +765,8 @@ class __future : private std::tuple<_Args...>
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
 
         __future<_Event, _T, _Args...> __f_obj(__my_event, new_tuple);
-        if (__get_waited_state())
-            __f_obj.__set_waited_state();
+        if (__get_waited_for_result())
+            __f_obj.__set_waited_for_result();
         return __f_obj;
     }
 };
