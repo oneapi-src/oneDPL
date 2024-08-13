@@ -23,15 +23,15 @@ main()
     namespace dpl_ranges = oneapi::dpl::ranges;
 
     //A checker below modifies a return type; a range based version with policy has another return type.
-    auto merge_checker = [](std::ranges::random_access_range auto&& __r_1,
-                                       std::ranges::random_access_range auto&& __r_2,
-                                       std::ranges::random_access_range auto&& __r_out, auto&&... args)
+    auto merge_checker = [](std::ranges::random_access_range auto&& r_1,
+                                       std::ranges::random_access_range auto&& r_2,
+                                       std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
-        auto res = std::ranges::merge(std::forward<decltype(__r_1)>(__r_1), std::forward<decltype(__r_2)>(__r_2),
-            std::ranges::begin(__r_out), std::forward<decltype(args)>(args)...);
+        auto res = std::ranges::merge(std::forward<decltype(r_1)>(r_1), std::forward<decltype(r_2)>(r_2),
+            std::ranges::begin(r_out), std::forward<decltype(args)>(args)...);
 
-        using ret_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<decltype(__r_1)>,
-            std::ranges::borrowed_iterator_t<decltype(__r_2)>, std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
+        using ret_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<decltype(r_1)>,
+            std::ranges::borrowed_iterator_t<decltype(r_2)>, std::ranges::borrowed_iterator_t<decltype(r_out)>>;
         return ret_type{res.in1, res.in2, res.out};
     };
 
