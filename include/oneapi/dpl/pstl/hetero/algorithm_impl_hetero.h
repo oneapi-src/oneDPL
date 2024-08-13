@@ -97,12 +97,12 @@ __pattern_walk2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIt
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
+    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     // Call no wait, wait or deferrable wait depending on _WaitMode
-    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future);
 
     return __first2 + __n;
 }

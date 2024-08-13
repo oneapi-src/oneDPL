@@ -48,7 +48,7 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
     return __future_obj;
 }
 
-template <typename _IsSync = ::std::false_type,
+template <typename _WaitMode = __par_backend_hetero::__async_mode,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
           typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
@@ -70,8 +70,8 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
-    if constexpr (_IsSync::value)
-        __future.__deferrable_wait();
+    // Call no wait, wait or deferrable wait depending on _WaitMode
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future.__make_future(__first2 + __n);
 }
