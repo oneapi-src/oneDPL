@@ -12,7 +12,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-
+#include <cstdint>
 #include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(tuple)
