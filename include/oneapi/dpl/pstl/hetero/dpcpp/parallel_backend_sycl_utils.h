@@ -666,31 +666,43 @@ struct __result_and_scratch_storage
     }
 };
 
+#define _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT ONEDPL_ALLOW_DEFERRED_WAITING
+
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
+#if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
     bool __waited_for_result = false;
+#endif
 
     template <typename _T>
     constexpr auto
     __wait_and_get_value(const sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
+#if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
         auto __val = __buf.get_host_access(sycl::read_only)[0];
         __set_waited_for_result();
         return __val;
+#else
+        return __buf.get_host_access(sycl::read_only)[0];
+#endif
     }
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
     __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
     {
+#if !_ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
+        return __storage.__wait_and_get_value(__my_event);
+#else
         auto __val = __storage.__wait_and_get_value(__my_event);
         __set_waited_for_result();
         return __val;
+#endif
     }
 
     template <typename _T>
@@ -699,7 +711,9 @@ class __future : private std::tuple<_Args...>
     {
         wait();
 
+#if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
         assert(__get_waited_for_result() && "Result was not waited");
+#endif
 
         return __val;
     }
@@ -720,7 +734,9 @@ class __future : private std::tuple<_Args...>
     wait()
     {
         __my_event.wait_and_throw();
+#if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
         __set_waited_for_result();
+#endif
     }
 
     void
@@ -731,6 +747,7 @@ class __future : private std::tuple<_Args...>
 #endif
     }
 
+#if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
     bool
     __get_waited_for_result() const
     {
@@ -742,6 +759,7 @@ class __future : private std::tuple<_Args...>
     {
         __waited_for_result = true;
     }
+#endif
 
     auto
     get()
@@ -764,10 +782,14 @@ class __future : private std::tuple<_Args...>
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
 
+#if !_ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
+        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
+#else
         __future<_Event, _T, _Args...> __f_obj(__my_event, new_tuple);
         if (__get_waited_for_result())
             __f_obj.__set_waited_for_result();
         return __f_obj;
+#endif
     }
 };
 
