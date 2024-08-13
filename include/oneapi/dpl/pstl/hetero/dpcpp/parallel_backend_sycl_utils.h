@@ -666,6 +666,20 @@ struct __result_and_scratch_storage
     }
 };
 
+// Tag __async_mode describe a pattern call mode which should be executed asynchronously
+struct __async_mode
+{
+};
+// Tag __sync_mode describe a pattern call mode which should be executed synchronously
+struct __sync_mode
+{
+};
+// Tag __deferrable_mode describe a pattern call mode which should be executed
+// synchronously/asynchronously : it's depends on ONEDPL_ALLOW_DEFERRED_WAITING macro state
+struct __deferrable_mode
+{
+};
+
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
@@ -711,6 +725,14 @@ class __future : private std::tuple<_Args...>
     {
         __my_event.wait_and_throw();
     }
+    template <typename _WaitModeTag>
+    void wait(_WaitModeTag)
+    {
+        if constexpr (std::is_same_v<_WaitModeTag, __sync_mode>)
+            wait();
+        else if constexpr (std::is_same_v<_WaitModeTag, __deferrable_mode>)
+            __deferrable_wait();
+    }
 
     void
     __deferrable_wait()
@@ -741,55 +763,6 @@ class __future : private std::tuple<_Args...>
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
-    }
-};
-
-// Tag __async_mode describe a pattern call mode which should be executed asynchronously
-struct __async_mode
-{
-};
-// Tag __sync_mode describe a pattern call mode which should be executed synchronously
-struct __sync_mode
-{
-};
-// Tag __deferrable_mode describe a pattern call mode which should be executed
-// synchronously/asynchronously : it's depends on ONEDPL_ALLOW_DEFERRED_WAITING macro state
-struct __deferrable_mode
-{
-};
-
-template <typename _Mode>
-struct __wait_future_result;
-
-template <>
-struct __wait_future_result<__async_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& /*__future*/) const
-    {
-    }
-};
-
-template <>
-struct __wait_future_result<__sync_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& __future) const
-    {
-        __future.wait();
-    }
-};
-
-template <>
-struct __wait_future_result<__deferrable_mode>
-{
-    template <typename _Future>
-    void
-    operator()(_Future& __future) const
-    {
-        __future.__deferrable_wait();
     }
 };
 
