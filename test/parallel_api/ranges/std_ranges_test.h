@@ -27,6 +27,7 @@
 #endif
 #include <vector>
 #include <typeinfo>
+#include <type_traits>
 #include <string>
 
 namespace test_std_ranges
