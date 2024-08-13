@@ -534,7 +534,8 @@ struct __merge_fn
              std::ranges::random_access_range _OutRange, typename _Comp = std::ranges::less,
              typename _Proj1 = std::identity, typename _Proj2 = std::identity>
     requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R1>
-        && std::ranges::sized_range<_R1> && std::mergeable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>,
+        && std::ranges::sized_range<_R2> && std::ranges::sized_range<_OutRange>
+        && std::mergeable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>,
         std::ranges::iterator_t<_OutRange>, _Comp, _Proj1, _Proj2>
     auto
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp = {}, _Proj1 __proj1 = {},
