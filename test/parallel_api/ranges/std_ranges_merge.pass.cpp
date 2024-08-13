@@ -22,15 +22,28 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<0, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{});
+    //A checker below modifies a return type; a range based version with policy has another return type.
+    auto merge_checker = [](std::ranges::random_access_range auto&& __r_1,
+                                       std::ranges::random_access_range auto&& __r_2,
+                                       std::ranges::random_access_range auto&& __r_out, auto&&... args)
+    {
+        auto res = std::ranges::merge(std::forward<decltype(__r_1)>(__r_1), std::forward<decltype(__r_2)>(__r_2),
+            std::ranges::begin(__r_out), std::forward<decltype(args)>(args)...);
 
-    test_range_algo<1, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, proj, proj);
-    test_range_algo<2, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::x, &P2::x);
-    test_range_algo<3, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::less{}, &P2::proj, &P2::proj);
+        using ret_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<decltype(__r_1)>,
+            std::ranges::borrowed_iterator_t<decltype(__r_2)>, std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
+        return ret_type{res.in1, res.in2, res.out};
+    };
 
-    test_range_algo<4, int, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, proj, proj);
-    test_range_algo<5, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::x, &P2::x);
-    test_range_algo<6, P2, data_in_in_out>{}(dpl_ranges::merge, std::ranges::merge, std::ranges::greater{}, &P2::proj, &P2::proj);
+    test_range_algo<0, int, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{});
+
+    test_range_algo<1, int, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, proj, proj);
+    test_range_algo<2, P2, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, &P2::x, &P2::x);
+    test_range_algo<3, P2, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, &P2::proj, &P2::proj);
+
+    test_range_algo<4, int, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::greater{}, proj, proj);
+    test_range_algo<5, P2, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::greater{}, &P2::x, &P2::x);
+    test_range_algo<6, P2, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::greater{}, &P2::proj, &P2::proj);
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
