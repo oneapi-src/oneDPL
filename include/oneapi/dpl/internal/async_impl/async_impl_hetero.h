@@ -48,7 +48,7 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
 
     // Call optional wait: no wait, wait or deferrable wait.
-    __wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future_obj;
 }
@@ -76,7 +76,7 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     // Call optional wait: no wait, wait or deferrable wait.
-    __wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future_obj.__make_future(__first2 + __n);
 }
@@ -107,7 +107,7 @@ __pattern_walk3_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
                                                           __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
     // Call optional wait: no wait, wait or deferrable wait.
-    __wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future_obj.__make_future(__first3 + __n);
 }

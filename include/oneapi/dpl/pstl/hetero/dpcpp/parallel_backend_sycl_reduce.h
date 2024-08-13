@@ -157,7 +157,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
         __future __future_obj(__reduce_event, __scratch_container);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -277,7 +277,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
         __future __future_obj(__reduce_event, __scratch_container);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -432,7 +432,7 @@ struct __parallel_transform_reduce_impl
         __future __future_obj(__reduce_event, __scratch_container);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }

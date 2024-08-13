@@ -870,7 +870,7 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     __future __future_obj(__event);
 
     // Call optional wait: no wait, wait or deferrable wait.
-    __wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future_obj;
 }

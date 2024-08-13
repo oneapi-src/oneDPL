@@ -522,7 +522,7 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
                 ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -536,7 +536,7 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
             ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -552,7 +552,7 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
             __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }

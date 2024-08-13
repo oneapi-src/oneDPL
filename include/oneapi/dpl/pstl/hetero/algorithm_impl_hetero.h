@@ -101,7 +101,7 @@ __pattern_walk2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIt
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     // Call no wait, wait or deferrable wait depending on _WaitMode
-    __par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __first2 + __n;
 }

@@ -245,7 +245,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
         __future __future_obj(__event);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -382,7 +382,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         __future __future_obj(__final_event, __result_and_scratch);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -656,7 +656,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
         __future __future_obj(__event, __result);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -718,7 +718,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
             __future __future_obj(__event, __dummy_result_and_scratch);
 
             // Call optional wait: no wait, wait or deferrable wait.
-            __wait_future_result<_WaitMode>{}(__future_obj);
+            oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
             return __future_obj;
         };
@@ -757,7 +757,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
         __future __future_obj(__event, __dummy_result_and_scratch);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
@@ -781,7 +781,7 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 
     // Call optional wait: no wait, wait or deferrable wait.
-    __wait_future_result<_WaitMode>{}(__future_obj);
+    oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
     return __future_obj;
 }
@@ -1660,7 +1660,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
         __future __future_obj(__event1);
 
         // Call optional wait: no wait, wait or deferrable wait.
-        __wait_future_result<_WaitMode>{}(__future_obj);
+        oneapi::dpl::__par_backend_hetero::__wait_future_result<_WaitMode>{}(__future_obj);
 
         return __future_obj;
     }
