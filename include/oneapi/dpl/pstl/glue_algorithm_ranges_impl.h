@@ -482,7 +482,8 @@ struct __copy_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
              std::ranges::random_access_range _OutRange>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_InRange>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+        && std::ranges::sized_range<_InRange> && std::ranges::sized_range<_OutRange>
         && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
 
     std::ranges::copy_result<std::ranges::borrowed_iterator_t<_InRange>, std::ranges::borrowed_iterator_t<_OutRange>>
@@ -508,8 +509,9 @@ struct __copy_if_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
              std::ranges::random_access_range _OutRange, typename _Proj = std::identity,
              std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_InRange>, _Proj>> _Pred>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_InRange>
-     && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
+    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+        && std::ranges::sized_range<_InRange> && std::ranges::sized_range<_OutRange>
+        && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
     auto
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj = {}) const
     {
