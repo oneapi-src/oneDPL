@@ -68,7 +68,7 @@ auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };
 struct P2
 {
     P2() {}
-    explicit P2(int v): x(v) {}
+    P2(int v): x(v) {}
     int x = {};
     int y = {};
 
