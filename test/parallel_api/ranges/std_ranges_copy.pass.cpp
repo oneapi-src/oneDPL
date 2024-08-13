@@ -22,18 +22,18 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto copy_checker = [](std::ranges::random_access_range auto&& __r_in,
-                           std::ranges::random_access_range auto&& __r_out, auto&&... args)
+    auto copy_checker = [](std::ranges::random_access_range auto&& r_in,
+                           std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
-        const auto _size = std::ranges::min(std::ranges::size(__r_in), std::ranges::size(__r_out));
+        const auto size = std::ranges::min(std::ranges::size(r_in), std::ranges::size(r_out));
 
-        auto res = std::ranges::copy(std::ranges::take_view(__r_in, _size), std::ranges::take_view(__r_out, _size),
+        auto res = std::ranges::copy(std::ranges::take_view(r_in, _size), std::ranges::take_view(r_out, size),
             std::forward<decltype(args)>(args)...);
 
-        using ret_type = std::ranges::copy_result<std::ranges::borrowed_iterator_t<decltype(__r_in)>,
-            std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
+        using ret_type = std::ranges::copy_result<std::ranges::borrowed_iterator_t<decltype(r_in)>,
+            std::ranges::borrowed_iterator_t<decltype(r_out)>>;
 
-        return ret_type{std::ranges::begin(__r_in) + _size, std::ranges::begin(__r_out) +  _size};
+        return ret_type{std::ranges::begin(r_in) + size, std::ranges::begin(r_out) + size};
     };
 
     test_range_algo<0, int, data_in_out>{}(dpl_ranges::copy,  copy_checker);
