@@ -20,6 +20,7 @@
 #include <memory>
 #include <type_traits>
 #include <tuple>
+#include <stdexcept>
 
 #include "../../iterator_impl.h"
 
@@ -712,7 +713,8 @@ class __future : private std::tuple<_Args...>
         wait();
 
 #if _ONEDPL_CATCH_GET_RESULT_WITHOUT_WAIT
-        assert(__get_waited_for_result() && "Result was not waited");
+        if (!__get_waited_for_result())
+            throw std::runtime_error("Attempt to get result without it's wait");
 #endif
 
         return __val;
