@@ -18,7 +18,7 @@
 
 #include "oneapi/dpl/internal/common_config.h"
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
-#include <ranges>
+#include <type_traits>
 
 // TODO: Figure out the order of headers and add standard header version/ciso646 for library version macros.
 #if defined(_GLIBCXX_RELEASE)

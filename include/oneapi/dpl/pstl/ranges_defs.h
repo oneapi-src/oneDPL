@@ -19,6 +19,10 @@
 #include "ranges/nanorange.hpp"
 #include "ranges/nanorange_ext.h"
 
+#if _ONEDPL_CPP20_RANGES_PRESENT
+#include <ranges>
+#endif
+
 #include "utils_ranges.h"
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/utils_ranges_sycl.h"
