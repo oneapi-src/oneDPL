@@ -1512,7 +1512,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_first = __buf.get();
 
-        auto __buf_last = __pattern_walk2<__par_backend_hetero::__sync_mode>(
+        auto __buf_last = __pattern_walk2<__par_backend_hetero::__async_mode>(
             __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
             __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
