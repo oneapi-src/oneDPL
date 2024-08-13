@@ -693,15 +693,9 @@ struct __deferrable_mode
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
-class __future
+class __future : private std::tuple<_Args...>
 {
-  public:
-
-      using _DataTuple = std::tuple<_Args...>;
-
-  protected:
     _Event __my_event;
-    _DataTuple __my_data;
 
     template <typename _T>
     constexpr auto
@@ -729,10 +723,11 @@ class __future
   public:
 
     using FutureType = __future<_Event, _Args...>;
+    using _DataTuple = std::tuple<_Args...>;
 
     __future(_Event __e) : __my_event(__e) {}
-    __future(_Event __e, const _DataTuple& __data) : __my_event(__e), __my_data(__data) {}
-    __future(_Event __e, _DataTuple&& __data) : __my_event(__e), __my_data(std::forward<_DataTuple>(__data)) {}
+    __future(_Event __e, const _DataTuple& __data) : std::tuple<_Args...>(__data), __my_event(__e) {}
+    __future(_Event __e, _DataTuple&& __data) : : std::tuple<_Args...>(std::forward<_DataTuple>(__data)), __my_event(__e) {}
     __future(const FutureType&) = delete;
     __future(FutureType&&) = default;
 
@@ -775,7 +770,7 @@ class __future
     {
         if constexpr (sizeof...(_Args) > 0)
         {
-            auto& __val = std::get<0>(__my_data);
+            auto& __val = std::get<0>(*this);
             return __wait_and_get_value(__val);
         }
         else
@@ -789,7 +784,7 @@ class __future
     __make_future(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, __my_data);
+        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
