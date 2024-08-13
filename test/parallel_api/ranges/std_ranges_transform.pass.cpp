@@ -26,12 +26,13 @@ main()
     auto transform_unary_checker = [](std::ranges::random_access_range auto&& __r_in,
                                       std::ranges::random_access_range auto&& __r_out, auto&&... args)
     {
-        auto res = std::ranges::transform(std::forward<decltype(__r_in)>(__r_in), std::ranges::begin(__r_out),
+        const auto _size = std::ranges::min(std::ranges::size(__r_in), std::ranges::size(__r_out));
+        auto res = std::ranges::transform(std::ranges::take_view(__r, _size), std::ranges::take_view(__out_r, _size),
             std::forward<decltype(args)>(args)...);
 
         using ret_type = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<decltype(__r_in)>,
             std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
-        return ret_type{res.in, res.out};
+        return ret_type{std::ranges::begin(__r_in) + _size, std::ranges::begin(__r_out) +  _size};
     };
 
     test_range_algo<0, int, data_in_out>{}(dpl_ranges::transform, transform_unary_checker, f);
@@ -44,12 +45,14 @@ main()
                                        std::ranges::random_access_range auto&& __r_2,
                                        std::ranges::random_access_range auto&& __r_out, auto&&... args)
     {
-        auto res = std::ranges::transform(std::forward<decltype(__r_1)>(__r_1), std::forward<decltype(__r_2)>(__r_2),
-            std::ranges::begin(__r_out), std::forward<decltype(args)>(args)...);
+        const auto _size = std::ranges::min({std::ranges::size(__r_1), std::ranges::size(__r_2__r2), std::ranges::size(__r_out)});
+
+        auto res = std::ranges::transform(std::ranges::take_view(__r_1, _size), std::ranges::take_view(__r_2, _size),
+            std::ranges::take_view(__r_out, _size), std::forward<decltype(args)>(args)...);
 
         using ret_type = std::ranges::binary_transform_result<std::ranges::borrowed_iterator_t<decltype(__r_1)>,
             std::ranges::borrowed_iterator_t<decltype(__r_2)>, std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
-        return ret_type{res.in1, res.in2, res.out};
+        return ret_type{std::ranges::begin(__r1) + _size, std::ranges::begin(__r2) + _size, std::ranges::begin(__out_r) + _size};
     };
 
     test_range_algo<4, int, data_in_in_out>{}(dpl_ranges::transform, transform_binary_checker, binary_f);
