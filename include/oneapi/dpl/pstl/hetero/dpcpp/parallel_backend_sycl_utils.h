@@ -810,7 +810,7 @@ struct __wait_future_result<__sync_mode>
 };
 
 template <>
-struct __wait_future_result<__deferrable_mode>
+struct __wait_future_result<__par_backend_hetero::__deferrable_mode>
 {
     template <typename _Future>
     void

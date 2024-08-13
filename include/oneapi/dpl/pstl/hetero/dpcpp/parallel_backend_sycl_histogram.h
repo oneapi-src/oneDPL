@@ -495,8 +495,8 @@ __histogram_general_private_global_atomics(oneapi::dpl::__internal::__device_bac
         __binhash_manager);
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
-          typename _BinHashMgr>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, ::std::uint16_t __iters_per_work_item,
+          typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
 __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
                                    _ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input,
@@ -516,19 +516,29 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
     // if bins fit into registers, use register private accumulation
     if (__num_bins <= __max_work_item_private_bins)
     {
-        return __future(
+        __future __future_obj(
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
                 __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
                 ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
     // if bins fit into SLM, use local atomics
     else if (__num_bins * sizeof(_local_histogram_type) +
                  __binhash_manager.get_required_SLM_elements() * sizeof(_extra_memory_type) <
              __local_mem_size)
     {
-        return __future(__histogram_general_local_atomics<__iters_per_work_item>(
+        __future __future_obj(__histogram_general_local_atomics<__iters_per_work_item>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
             ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
     else // otherwise, use global atomics (private copies per workgroup)
     {
@@ -537,13 +547,19 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
         // suggestion which but global memory limitations may increase this value to be able to fit the workgroup
         // private copies of the histogram bins in global memory.  No unrolling is taken advantage of here because it
         // is a runtime argument.
-        return __future(__histogram_general_private_global_atomics(
+        __future __future_obj(__histogram_general_private_global_atomics(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, __iters_per_work_item,
             __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__deferrable_mode, typename _ExecutionPolicy,
+          typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
 __parallel_histogram(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                      const sycl::event& __init_event, _Range1&& __input, _Range2&& __bins,
@@ -551,13 +567,13 @@ __parallel_histogram(oneapi::dpl::__internal::__device_backend_tag __backend_tag
 {
     if (__input.size() < 1048576) // 2^20
     {
-        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(
+        return __parallel_histogram_select_kernel<_WaitMode, /*iters_per_workitem = */ 4>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
             ::std::forward<_Range2>(__bins), __binhash_manager);
     }
     else
     {
-        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(
+        return __parallel_histogram_select_kernel<_WaitMode, /*iters_per_workitem = */ 32>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
             ::std::forward<_Range2>(__bins), __binhash_manager);
     }

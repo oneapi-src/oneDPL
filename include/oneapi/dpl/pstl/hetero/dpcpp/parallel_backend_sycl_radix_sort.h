@@ -765,7 +765,8 @@ struct __parallel_radix_sort_iteration
 //-----------------------------------------------------------------------
 // radix sort: main function
 //-----------------------------------------------------------------------
-template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, bool __is_ascending, typename _Range,
+          typename _ExecutionPolicy, typename _Proj>
 auto
 __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __in_rng,
                       _Proj __proj)
@@ -866,7 +867,12 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
         }
     }
 
-    return __future(__event);
+    __future __future_obj(__event);
+
+    // Call optional wait: no wait, wait or deferrable wait.
+    __wait_future_result<_WaitMode>{}(__future_obj);
+
+    return __future_obj;
 }
 
 } // namespace __par_backend_hetero

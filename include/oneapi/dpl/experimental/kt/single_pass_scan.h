@@ -302,7 +302,8 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
     }
 };
 
-template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, bool _Inclusive, typename _InRange,
+          typename _OutRange, typename _BinaryOp, typename _KernelParam>
 sycl::event
 __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op, _KernelParam)
 {
@@ -334,7 +335,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     // Perform a single-work group scan if the input is small
     if (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<_Type>(__queue, __n, __n_uniform))
     {
-        return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
+        return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group<_WaitMode>(
             oneapi::dpl::__internal::__device_backend_tag{},
             oneapi::dpl::execution::__dpl::make_device_policy<typename _KernelParam::kernel_name>(__queue),
             std::forward<_InRange>(__in_rng), std::forward<_OutRange>(__out_rng), __n,
@@ -411,7 +412,8 @@ inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _Bin
     auto __in_view = oneapi::dpl::__ranges::views::all(std::forward<_InRng>(__in_rng));
     auto __out_view = oneapi::dpl::__ranges::views::all(std::forward<_OutRng>(__out_rng));
 
-    return __impl::__single_pass_scan<true>(__queue, std::move(__in_view), std::move(__out_view), __binary_op, __param);
+    return __impl::__single_pass_scan<__par_backend_hetero::__deferrable_mode>(__queue, std::move(__in_view), std::move(__out_view),
+                                                         __binary_op, __param);
 }
 
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
@@ -426,7 +428,8 @@ inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
     auto __buf2 = __keep2(__out_begin, __out_begin + __n);
 
-    return __impl::__single_pass_scan<true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op, __param);
+    return __impl::__single_pass_scan<__par_backend_hetero::__deferrable_mode>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op,
+                                                         __param);
 }
 
 } // namespace gpu

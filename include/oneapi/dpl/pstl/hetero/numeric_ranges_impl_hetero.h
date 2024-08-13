@@ -105,7 +105,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
-    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
+    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base<__par_backend_hetero::__deferrable_mode>(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
         ::std::forward<_Range2>(__rng2), __binary_op, __init,
         // local scan
@@ -117,8 +117,8 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
-        .__deferrable_wait();
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
+
     return __rng1_size;
 }
 

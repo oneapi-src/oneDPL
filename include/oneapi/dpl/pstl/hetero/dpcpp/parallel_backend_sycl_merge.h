@@ -147,7 +147,8 @@ struct __parallel_merge_submitter;
 template <typename _IdType, typename... _Name>
 struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
@@ -173,7 +174,12 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                                __comp);
             });
         });
-        return __future(__event);
+        __future __future_obj(__event);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 

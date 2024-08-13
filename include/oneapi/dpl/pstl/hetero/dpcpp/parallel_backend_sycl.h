@@ -226,7 +226,8 @@ struct __parallel_for_submitter;
 template <typename... _Name>
 struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    template <typename _WaitMode = __async_mode, typename _ExecutionPolicy, typename _Fp, typename _Index,
+              typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
@@ -241,13 +242,19 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                 __brick(__idx, __rngs...);
             });
         });
-        return __future(__event);
+        __future __future_obj(__event);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
-template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy, typename _Fp,
+          typename _Index, typename... _Ranges>
 auto
 __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
                _Ranges&&... __rngs)
@@ -255,8 +262,8 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                  ::std::forward<_Ranges>(__rngs)...);
+    return __parallel_for_submitter<_ForKernel>{}.template operator()<_WaitMode>(
+        ::std::forward<_ExecutionPolicy>(__exec), __brick, __count, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -272,8 +279,9 @@ struct __parallel_scan_submitter;
 template <typename _CustomName, typename... _PropagateScanName>
 struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
-              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType, typename _LocalScan,
+              typename _GroupScan, typename _GlobalScan>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
@@ -371,7 +379,12 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             });
         });
 
-        return __future(__final_event, __result_and_scratch);
+        __future __future_obj(__final_event, __result_and_scratch);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 
@@ -553,8 +566,8 @@ template <typename _Size, ::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize
 struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _WGSize, _IsFullGroup,
                                                         __internal::__optional_kernel_name<_ScanKernelName...>>
 {
-    template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
-              typename _UnaryOp>
+    template <typename _WaitMode = __async_mode, typename _Policy, typename _InRng, typename _OutRng,
+              typename _InitType, typename _BinaryOperation, typename _UnaryOp>
     auto
     operator()(_Policy&& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
                _BinaryOperation __bin_op, _UnaryOp __unary_op)
@@ -640,12 +653,18 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     }
                 });
         });
-        return __future(__event, __result);
+        __future __future_obj(__event, __result);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
-          typename _BinaryOperation, typename _Inclusive>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+          typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType, typename _BinaryOperation,
+          typename _Inclusive>
 auto
 __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                        _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
@@ -696,7 +715,12 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                         /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                     std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
-            return __future(__event, __dummy_result_and_scratch);
+            __future __future_obj(__event, __dummy_result_and_scratch);
+
+            // Call optional wait: no wait, wait or deferrable wait.
+            __wait_future_result<_WaitMode>{}(__future_obj);
+
+            return __future_obj;
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -730,12 +754,18 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
             __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                 std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __max_wg_size);
-        return __future(__event, __dummy_result_and_scratch);
+        __future __future_obj(__event, __dummy_result_and_scratch);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+          typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType, typename _LocalScan,
+          typename _GroupScan, typename _GlobalScan>
 auto
 __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
@@ -746,9 +776,14 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
     using _PropagateKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
+    auto __future_obj = __parallel_scan_submitter<_CustomName, _PropagateKernel>{}.template operator()<_WaitMode>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
+
+    // Call optional wait: no wait, wait or deferrable wait.
+    __wait_future_result<_WaitMode>{}(__future_obj);
+
+    return __future_obj;
 }
 
 template <typename _Type>
@@ -821,7 +856,8 @@ struct __invoke_single_group_copy_if
     // Specialization for devices that have a max work-group size of at least 1024
     static constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
-    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, ::std::uint16_t _Size,
+              typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
     auto
     operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred)
     {
@@ -840,9 +876,10 @@ struct __invoke_single_group_copy_if
                                              /* _IsFullGroup= */ std::true_type, _CustomName>;
             using _FullKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_FullKernel>;
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, true, _FullKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred));
+                       _SizeType, __num_elems_per_item, __wg_size, true, _FullKernelName>{}
+                .template operator()<_WaitMode>(std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+                                                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                                                std::forward<_Pred>(__pred));
         }
         else
         {
@@ -853,9 +890,10 @@ struct __invoke_single_group_copy_if
             using _NonFullKernelName =
                 oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_NonFullKernel>;
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, false, _NonFullKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
-                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, std::forward<_Pred>(__pred));
+                       _SizeType, __num_elems_per_item, __wg_size, false, _NonFullKernelName>{}
+                .template operator()<_WaitMode>(std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+                                                std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{},
+                                                std::forward<_Pred>(__pred));
         }
     }
 };
@@ -1557,7 +1595,8 @@ template <typename... _GlobalSortName, typename... _CopyBackName>
 struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_GlobalSortName...>,
                                          __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _BackendTag,
+              typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
     auto
     operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
@@ -1618,11 +1657,17 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future(__event1);
+        __future __future_obj(__event1);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+          typename _Range, typename _Merge, typename _Compare>
 auto
 __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                              _Merge __merge, _Compare __comp)
@@ -1633,7 +1678,7 @@ __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _Exe
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_partial_sort_submitter<_GlobalSortKernel, _CopyBackKernel>()(
+    return __parallel_partial_sort_submitter<_GlobalSortKernel, _CopyBackKernel>{}.template operator()<_WaitMode>(
         oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         ::std::forward<_Range>(__rng), __merge, __comp);
 }
@@ -1664,7 +1709,8 @@ auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                        _Range&& __rng, _Compare, _Proj __proj)
 {
-    return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
+    return __parallel_radix_sort</*_WaitMode*/ __async_mode,
+                                 __internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
         __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
 #endif

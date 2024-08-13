@@ -123,8 +123,8 @@ template <typename _Tp, typename _Commutative, std::uint8_t _VecSize, typename..
 struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
                                                    __internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
-              typename... _Ranges>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType, typename... _Ranges>
     auto
     operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, const _Size __n,
                const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
@@ -154,7 +154,12 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
                 });
         });
 
-        return __future(__reduce_event, __scratch_container);
+        __future __future_obj(__reduce_event, __scratch_container);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -170,9 +175,10 @@ __parallel_transform_reduce_small_impl(oneapi::dpl::__internal::__device_backend
     using _ReduceKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_small_kernel<_CustomName>>;
 
-    return __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize, _ReduceKernel>()(
-        __backend_tag, std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __iters_per_work_item,
-        __reduce_op, __transform_op, __init, std::forward<_Ranges>(__rngs)...);
+    return __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize, _ReduceKernel>{}
+        .template operator()<__async_mode>(__backend_tag, std::forward<_ExecutionPolicy>(__exec), __n,
+                                           __work_group_size, __iters_per_work_item, __reduce_op, __transform_op,
+                                           __init, std::forward<_Ranges>(__rngs)...);
 }
 
 // Submits the first kernel of the parallel_transform_reduce for mid-sized arrays.
@@ -233,8 +239,8 @@ template <typename _Tp, typename _Commutative, std::uint8_t _VecSize, typename..
 struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative, _VecSize,
                                                                __internal::__optional_kernel_name<_KernelName...>>
 {
-    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _InitType,
-              typename _ExecutionPolicy2>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Size, typename _ReduceOp, typename _InitType, typename _ExecutionPolicy2>
     auto
     operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, sycl::event& __reduce_event,
                const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
@@ -268,7 +274,12 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
                 });
         });
 
-        return __future(__reduce_event, __scratch_container);
+        __future __future_obj(__reduce_event, __scratch_container);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
@@ -308,8 +319,8 @@ __parallel_transform_reduce_mid_impl(oneapi::dpl::__internal::__device_backend_t
 template <typename _Tp, typename _Commutative, std::uint8_t _VecSize>
 struct __parallel_transform_reduce_impl
 {
-    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
-              typename... _Ranges>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType, typename... _Ranges>
     static auto
     submit(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n, _Size __work_group_size,
            const _Size __iters_per_work_item, _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
@@ -418,7 +429,12 @@ struct __parallel_transform_reduce_impl
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
-        return __future(__reduce_event, __scratch_container);
+        __future __future_obj(__reduce_event, __scratch_container);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 }; // struct __parallel_transform_reduce_impl
 
@@ -512,7 +528,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     }
     // Otherwise use a recursive tree reduction with __max_iters_per_work_item __iters_per_work_item.
     const auto __work_group_size_long = static_cast<_Size>(__work_group_size);
-    return __parallel_transform_reduce_impl<_Tp, _Commutative, __vector_size>::submit(
+    return __parallel_transform_reduce_impl<_Tp, _Commutative, __vector_size>::template submit<__async_mode>(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size_long, __max_iters_per_work_item,
         __reduce_op, __transform_op, __init, std::forward<_Ranges>(__rngs)...);
 }

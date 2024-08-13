@@ -211,7 +211,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
+    template <typename _WaitMode = oneapi::dpl::__par_backend_hetero::__async_mode, typename _ExecutionPolicy,
+              typename _Range, typename _Compare, typename _LeafSorter>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
     {
@@ -304,7 +305,12 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             });
         }
 
-        return __future(__event1);
+        __future __future_obj(__event1);
+
+        // Call optional wait: no wait, wait or deferrable wait.
+        __wait_future_result<_WaitMode>{}(__future_obj);
+
+        return __future_obj;
     }
 };
 
