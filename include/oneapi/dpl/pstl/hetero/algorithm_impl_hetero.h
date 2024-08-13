@@ -151,7 +151,7 @@ __pattern_walk2(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
-    // Call optional wait: no wait, wait or deferrable wait.
+    // Call no wait, wait or deferrable wait depending on _WaitMode
     __wait_future_result<_WaitMode>{}(__future_obj);
 
     return __first2 + __n;
