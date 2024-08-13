@@ -103,8 +103,8 @@ Macro                              Description
                                    a device policy might return before the computation completes on the device.
 
                                    .. Warning:: Before accessing data produced or modified by the call, waiting
-                                   for completion of all tasks in the corresponding SYCL queue is required;
-                                   otherwise, the program behavior is undefined.
+                                      for completion of all tasks in the corresponding SYCL queue is required;
+                                      otherwise, the program behavior is undefined.
 ---------------------------------- ------------------------------
 ``ONEDPL_FPGA_DEVICE``             Use this macro to build your code containing |onedpl_short| parallel
                                    algorithms for FPGA devices. (Disabled by default.)
