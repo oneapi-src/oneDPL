@@ -371,7 +371,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             });
         });
 
-        return __future<sycl::event, __result_and_scratch_storage_t>(std::move(__final_event), std::move(__result_and_scratch));
+        return __make_future(std::move(__final_event), std::move(__result_and_scratch));
     }
 };
 
@@ -643,7 +643,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     }
                 });
         });
-        return __future<sycl::event, __result_and_scratch_storage_t>(std::move(__event), std::move(__result));
+        return __make_future(std::move(__event), std::move(__result));
     }
 };
 
@@ -699,7 +699,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                         /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
                     ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                     std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
-            return __future<sycl::event, __result_and_scratch_storage_t>(std::move(__event), std::move(__dummy_result_and_scratch));
+            return __make_future(std::move(__event), std::move(__dummy_result_and_scratch));
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -733,7 +733,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
             __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
                 std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __max_wg_size);
-        return __future<sycl::event, __result_and_scratch_storage_t>(std::move(__event), std::move(__dummy_result_and_scratch));
+        return __make_future(std::move(__event), std::move(__dummy_result_and_scratch));
     }
 }
 
