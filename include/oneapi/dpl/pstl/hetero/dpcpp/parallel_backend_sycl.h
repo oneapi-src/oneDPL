@@ -809,9 +809,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
         // Next power of 2 greater than or equal to __n
-        auto __n_uniform = __n;
-        if ((__n_uniform & (__n_uniform - 1)) != 0)
-            __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+        auto __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec);
 
         // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
