@@ -242,7 +242,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                 __brick(__idx, __rngs...);
             });
         });
-        return __future(std::move(__event));
+        return __future<sycl::event>(std::move(__event));
     }
 };
 
@@ -1866,7 +1866,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future(std::move(__event1));
+        return __future<sycl::event>(std::move(__event1));
     }
 };
 

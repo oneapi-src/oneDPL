@@ -162,7 +162,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                                __comp);
             });
         });
-        return __future(std::move(__event));
+        return __future<sycl::event>(std::move(__event));
     }
 };
 
