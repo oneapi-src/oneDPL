@@ -702,7 +702,7 @@ bool
 __prefer_reduce_then_scan(const _ExecutionPolicy& __exec)
 {
     const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
-    return (!__exec.queue().get_device().is_cpu() && __dev_has_sg32);
+    return (__exec.queue().get_device().is_gpu() && __dev_has_sg32);
 }
 
 // General scan-like algorithm helpers
