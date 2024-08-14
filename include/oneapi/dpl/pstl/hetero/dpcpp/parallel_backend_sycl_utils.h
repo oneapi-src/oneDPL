@@ -797,6 +797,12 @@ class __future : private std::tuple<_Args...>
     }
 };
 
+template <typename _TData>
+inline __make_future(sycl::event&& __event, _TData&& __data)
+{
+    return __future<sycl::event, _TData>(std::move(__event), std::forward<_TData>(__data));
+}
+
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
 // value in the integer_sequence not less than the run-time integer. For example:
