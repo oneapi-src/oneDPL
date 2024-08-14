@@ -228,12 +228,12 @@ template <typename... _Name>
 struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    auto
+    __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+        return __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
@@ -242,7 +242,6 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                 __brick(__idx, __rngs...);
             });
         });
-        return __future<sycl::event>(std::move(__event));
     }
 };
 
@@ -1806,7 +1805,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
                                          __internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-    auto
+    __future<sycl::event>
     operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -1866,7 +1865,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future<sycl::event>(std::move(__event1));
+        return __event1;
     }
 };
 

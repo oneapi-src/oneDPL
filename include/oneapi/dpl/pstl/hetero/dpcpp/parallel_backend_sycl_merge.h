@@ -137,7 +137,7 @@ template <typename _IdType, typename... _Name>
 struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    auto
+    __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         const _IdType __n1 = __rng1.size();
@@ -153,7 +153,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
-        auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
@@ -162,7 +162,6 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                                __comp);
             });
         });
-        return __future<sycl::event>(std::move(__event));
     }
 };
 
