@@ -132,9 +132,8 @@ call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare c
 
 template<typename KeyIt, typename ValIt, typename Size, typename Compare>
 void
-call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare)
+call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare compare)
 {
-    static_assert(std::is_same_v<Compare, NoComparator> || std::is_same_v<Compare, GreaterComparator>);
     auto first = oneapi::dpl::make_zip_iterator(ref_keys_begin, ref_vals_begin);
     if constexpr (std::is_same_v<Compare, NoComparator>)
     {
@@ -142,10 +141,10 @@ call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare)
             return std::get<0>(lhs) < std::get<0>(rhs);
         });
     }
-    if constexpr (std::is_same_v<Compare, GreaterComparator>)
+    else
     {
-        std::stable_sort(first, first + n, [](const auto& lhs, const auto& rhs) {
-            return std::get<0>(lhs) > std::get<0>(rhs);
+        std::stable_sort(first, first + n, [compare](const auto& lhs, const auto& rhs) {
+            return compare(std::get<0>(lhs), std::get<0>(rhs));
         });
     }
 }
@@ -206,7 +205,6 @@ test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stab
 
     call_sort(policy, keys.begin(), vals.begin(), keys_n, compare, stability_tag);
     check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, compare, stability_tag);
-
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -247,8 +245,6 @@ test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stabilit
     generate_data(origin_keys.data(), origin_vals.data(), n, n, 42);
     std::vector<KeyT> keys(origin_keys);
     std::vector<ValT> vals(origin_vals);
-
-    // calling sort
     {
         sycl::buffer<KeyT> keys_device(keys.data(), n);
         sycl::buffer<ValT> vals_device(vals.data(), n);
@@ -288,7 +284,6 @@ test_all_policies(StabilityTag stability_tag)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     test_device_policy(stability_tag);
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
     test_std_polcies<int, int>(large_size, NoComparator{}, stability_tag);
     test_std_polcies<std::size_t, float>(large_size, GreaterComparator{}, stability_tag);
