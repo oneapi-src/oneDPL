@@ -27,8 +27,8 @@ main()
                                       std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
         const auto size = std::ranges::min(std::ranges::size(r_in), std::ranges::size(r_out));
-        auto res = std::ranges::transform(std::ranges::take_view(r_in, size), std::ranges::take_view(r_out, size),
-            std::forward<decltype(args)>(args)...);
+        auto res = std::ranges::transform(std::ranges::take_view(r_in, size),
+            std::ranges::take_view(r_out, size).begin(), std::forward<decltype(args)>(args)...);
 
         using ret_type = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<decltype(r_in)>,
             std::ranges::borrowed_iterator_t<decltype(r_out)>>;
@@ -48,7 +48,7 @@ main()
         const auto size = std::ranges::min({std::ranges::size(r_1), std::ranges::size(r_2), std::ranges::size(r_out)});
 
         auto res = std::ranges::transform(std::ranges::take_view(r_1, size), std::ranges::take_view(r_2, size),
-            std::ranges::take_view(r_out, size), std::forward<decltype(args)>(args)...);
+            std::ranges::take_view(r_out, size).begin(), std::forward<decltype(args)>(args)...);
 
         using ret_type = std::ranges::binary_transform_result<std::ranges::borrowed_iterator_t<decltype(r_1)>,
             std::ranges::borrowed_iterator_t<decltype(r_2)>, std::ranges::borrowed_iterator_t<decltype(r_out)>>;
