@@ -23,16 +23,16 @@ main()
     namespace dpl_ranges = oneapi::dpl::ranges;
 
     //A checker below modifies a return type; a range based version with policy has another return type.
-    auto transform_unary_checker = [](std::ranges::random_access_range auto&& __r_in,
-                                      std::ranges::random_access_range auto&& __r_out, auto&&... args)
+    auto transform_unary_checker = [](std::ranges::random_access_range auto&& r_in,
+                                      std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
-        const auto _size = std::ranges::min(std::ranges::size(__r_in), std::ranges::size(__r_out));
-        auto res = std::ranges::transform(std::ranges::take_view(__r, _size), std::ranges::take_view(__out_r, _size),
+        const auto size = std::ranges::min(std::ranges::size(r_in), std::ranges::size(r_out));
+        auto res = std::ranges::transform(std::ranges::take_view(r_in, size), std::ranges::take_view(r_out, size),
             std::forward<decltype(args)>(args)...);
 
-        using ret_type = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<decltype(__r_in)>,
-            std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
-        return ret_type{std::ranges::begin(__r_in) + _size, std::ranges::begin(__r_out) +  _size};
+        using ret_type = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<decltype(r_in)>,
+            std::ranges::borrowed_iterator_t<decltype(r_out)>>;
+        return ret_type{std::ranges::begin(r_in) + size, std::ranges::begin(r_out) +  size};
     };
 
     test_range_algo<0, int, data_in_out>{}(dpl_ranges::transform, transform_unary_checker, f);
@@ -41,18 +41,18 @@ main()
     test_range_algo<3, P2, data_in_out>{}(dpl_ranges::transform, transform_unary_checker, f, &P2::proj);
 
     //A checker below modifies a return type; a range based version with policy has another return type.
-    auto transform_binary_checker = [](std::ranges::random_access_range auto&& __r_1,
-                                       std::ranges::random_access_range auto&& __r_2,
-                                       std::ranges::random_access_range auto&& __r_out, auto&&... args)
+    auto transform_binary_checker = [](std::ranges::random_access_range auto&& r_1,
+                                       std::ranges::random_access_range auto&& r_2,
+                                       std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
-        const auto _size = std::ranges::min({std::ranges::size(__r_1), std::ranges::size(__r_2__r2), std::ranges::size(__r_out)});
+        const auto size = std::ranges::min({std::ranges::size(r_1), std::ranges::size(r_2), std::ranges::size(r_out)});
 
-        auto res = std::ranges::transform(std::ranges::take_view(__r_1, _size), std::ranges::take_view(__r_2, _size),
-            std::ranges::take_view(__r_out, _size), std::forward<decltype(args)>(args)...);
+        auto res = std::ranges::transform(std::ranges::take_view(r_1, size), std::ranges::take_view(r_2, size),
+            std::ranges::take_view(r_out, size), std::forward<decltype(args)>(args)...);
 
-        using ret_type = std::ranges::binary_transform_result<std::ranges::borrowed_iterator_t<decltype(__r_1)>,
-            std::ranges::borrowed_iterator_t<decltype(__r_2)>, std::ranges::borrowed_iterator_t<decltype(__r_out)>>;
-        return ret_type{std::ranges::begin(__r1) + _size, std::ranges::begin(__r2) + _size, std::ranges::begin(__out_r) + _size};
+        using ret_type = std::ranges::binary_transform_result<std::ranges::borrowed_iterator_t<decltype(r_1)>,
+            std::ranges::borrowed_iterator_t<decltype(r_2)>, std::ranges::borrowed_iterator_t<decltype(r_out)>>;
+        return ret_type{std::ranges::begin(r_1) + size, std::ranges::begin(r_2) + size, std::ranges::begin(r_out) + size};
     };
 
     test_range_algo<4, int, data_in_in_out>{}(dpl_ranges::transform, transform_binary_checker, binary_f);
