@@ -275,7 +275,7 @@ struct __value_holder
 {
     constexpr __value_holder() = default;
     template <typename _Up>
-    constexpr __value_holder(_Up&& t) : value(::std::forward<_Up>(t))
+    constexpr __value_holder(_Up&& t) : value(std::forward<_Up>(t))
     {
     }
     _Tp value;
@@ -435,12 +435,12 @@ struct tuple<T1, T...>
               typename = ::std::enable_if_t<
                   (sizeof...(_U) == sizeof...(T) &&
                    ::std::conjunction_v<::std::is_constructible<T1, _U1&&>, ::std::is_constructible<T, _U&&>...>)>>
-    constexpr tuple(_U1&& _value, _U&&... _next) : holder(::std::forward<_U1>(_value)), next(::std::forward<_U>(_next)...)
+    constexpr tuple(_U1&& _value, _U&&... _next) : holder(std::forward<_U1>(_value)), next(std::forward<_U>(_next)...)
     {
     }
 
     // required to convert ::std::tuple to inner tuple in user-provided functor
-    constexpr tuple(const ::std::tuple<T1, T...>& other)
+    constexpr tuple(const std::tuple<T1, T...>& other)
         : holder(::std::get<0>(other)), next(oneapi::dpl::__internal::get_tuple_tail(other))
     {
     }
@@ -566,7 +566,7 @@ struct tuple<T1, T...>
     }
 
     template <typename U1, typename... U, ::std::size_t... _Ip>
-    constexpr static ::std::tuple<U1, U...>
+    constexpr static std::tuple<U1, U...>
     to_std_tuple(const oneapi::dpl::__internal::tuple<U1, U...>& __t, ::std::index_sequence<_Ip...>)
     {
         return ::std::tuple<U1, U...>(oneapi::dpl::__internal::get_impl<_Ip>()(__t)...);
