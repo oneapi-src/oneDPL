@@ -725,9 +725,18 @@ class __future : private std::tuple<_Args...>
     using FutureType = __future<_Event, _Args...>;
     using _DataTuple = std::tuple<_Args...>;
 
-    __future(_Event __e) : __my_event(__e) {}
-    __future(_Event __e, const _DataTuple& __data) : std::tuple<_Args...>(__data), __my_event(__e) {}
-    __future(_Event __e, _DataTuple&& __data) : std::tuple<_Args...>(std::forward<_DataTuple>(__data)), __my_event(__e) {}
+    __future(const _Event& __e) : __my_event(__e) {}
+    __future(const _Event& __e, const _DataTuple& __data) : std::tuple<_Args...>(__data), __my_event(__e) {}
+    __future(const _Event& __e, _DataTuple&& __data)
+        : std::tuple<_Args...>(std::forward<_DataTuple>(__data)), __my_event(__e)
+    {
+    }
+    __future(_Event&& __e) : __my_event(std::move(__e)) {}
+    __future(_Event&& __e, const _DataTuple& __data) : std::tuple<_Args...>(__data), __my_event(std::move(__e)) {}
+    __future(_Event&& __e, _DataTuple&& __data)
+        : std::tuple<_Args...>(std::forward<_DataTuple>(__data)), __my_event(std::move(__e))
+    {
+    }
     __future(const FutureType&) = delete;
     __future(FutureType&&) = default;
 
