@@ -58,10 +58,11 @@ test_tuple(Tuple1 t1, Tuple2 t2)
     EXPECT_EQ((t1 > t2), (onedpl_t1 > t2), "greater than comparison does not match std::tuple");
     EXPECT_EQ((t1 >= t2), (onedpl_t1 >= t2), "greater than or equal to comparison does not match std::tuple");
 
-    auto onedpl_t3 = to_onedpl_tuple(t1);
-    auto onedpl_t4 = to_onedpl_tuple(t2);
-    auto t3 = t1;
-    auto t4 = t2;
+    //checking default construction (assumes elements are default constructible)
+    decltype(onedpl_t1) onedpl_t3{};
+    decltype(onedpl_t2) onedpl_t4{};
+    decltype(t1) t3{};
+    decltype(t2) t4{};
 
     t4 = onedpl_t1;
     EXPECT_TRUE(t1 == t4, "assignment of oneDPL tuple to std::tuple provides incorrect results");
@@ -69,11 +70,11 @@ test_tuple(Tuple1 t1, Tuple2 t2)
     t3 = onedpl_t2;
     EXPECT_TRUE(t2 == t3, "assignment of oneDPL tuple to std::tuple provides incorrect results");
 
-    onedpl_t3 = t1;
-    EXPECT_TRUE(onedpl_t1 == onedpl_t3, "assignment of oneDPL tuple from std::tuple provides incorrect results");
+    onedpl_t3 = t2;
+    EXPECT_TRUE(onedpl_t2 == onedpl_t3, "assignment of oneDPL tuple from std::tuple provides incorrect results");
 
-    onedpl_t4 = t2;
-    EXPECT_TRUE(onedpl_t2 == onedpl_t4, "assignment of oneDPL tuple from std::tuple provides incorrect results");
+    onedpl_t4 = t1;
+    EXPECT_TRUE(onedpl_t1 == onedpl_t4, "assignment of oneDPL tuple from std::tuple provides incorrect results");
 
     decltype(onedpl_t1) onedpl_t5 = onedpl_t2;
     decltype(onedpl_t1) onedpl_t6 = onedpl_t1;
