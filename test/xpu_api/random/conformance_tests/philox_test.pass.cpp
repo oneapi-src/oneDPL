@@ -26,17 +26,36 @@
 int main() {
     sycl::queue queue = TestUtils::get_test_queue();
 
+    // Reference values
     uint_fast32_t philox4_32_ref = 1955073260;
     uint_fast64_t philox4_64_ref = 3409172418970261260;
     int err = 0;
 
     // Generate 10 000th element for philox4_32
     err += test<oneapi::dpl::philox4x32, 10000, 1>(queue) != philox4_32_ref;
+    err += test<oneapi::dpl::philox4x32_vec<1>, 10000, 1>(queue)  != philox4_32_ref;
+    err += test<oneapi::dpl::philox4x32_vec<2>, 10000, 2>(queue)  != philox4_32_ref;
+    // // In case of philox4x32_vec<3> engine generate 10002 values as 10000 % 3 != 0
+    err += test<oneapi::dpl::philox4x32_vec<3>, 10002, 3>(queue)  != philox4_32_ref;
+    err += test<oneapi::dpl::philox4x32_vec<4>, 10000, 4>(queue)  != philox4_32_ref;
+    err += test<oneapi::dpl::philox4x32_vec<8>, 10000, 8>(queue)  != philox4_32_ref;
+    err += test<oneapi::dpl::philox4x32_vec<16>,10000, 16>(queue) != philox4_32_ref;
+
     std::cout << "\t\texpected: " << philox4_32_ref << std::endl;
+    EXPECT_TRUE(!err, "Test FAILED");
+
+
     // Generate 10 000th element for philox4_64
     err += test<oneapi::dpl::philox4x64, 10000, 1>(queue) != philox4_64_ref;
-    std::cout << "\t\texpected: " << philox4_64_ref << std::endl;
+    err += test<oneapi::dpl::philox4x64_vec<1>, 10000, 1>(queue)  != philox4_64_ref;
+    err += test<oneapi::dpl::philox4x64_vec<2>, 10000, 2>(queue)  != philox4_64_ref;
+    // // In case of philox4x64_vec<3> engine generate 10002 values as 10000 % 3 != 0
+    err += test<oneapi::dpl::philox4x64_vec<3>, 10002, 3>(queue)  != philox4_64_ref;
+    err += test<oneapi::dpl::philox4x64_vec<4>, 10000, 4>(queue)  != philox4_64_ref;
+    err += test<oneapi::dpl::philox4x64_vec<8>, 10000, 8>(queue)  != philox4_64_ref;
+    err += test<oneapi::dpl::philox4x64_vec<16>,10000, 16>(queue) != philox4_64_ref;
 
+    std::cout << "\t\texpected: " << philox4_64_ref << std::endl;
     EXPECT_TRUE(!err, "Test FAILED");
 
     return TestUtils::done(TEST_UNNAMED_LAMBDAS);

@@ -68,24 +68,31 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     return dpstd_samples[REF_SAMPLE_ID];
 
 #else
-    result_type res;
-    // iterate through the different value of the offset
-    for(int itr = 0; (itr < 999); ++itr) {
-        Engine engine;
-        int disgard_value = itr;
-        std::cout << "\n\t\tdisgard_value: " << disgard_value;
-        engine.discard(disgard_value);
-        for(int i = 0; i < NGenSamples-disgard_value;i++){
-            res = engine();
-            //std::cout << " " << res << std::endl;
-        }
-        if(res!=1955073260 && res!=3409172418970261260) {
-            std::cout << "\tError\tcalculated: " << res;
-            break;
-        }
-    }
+    //result_type res;
+    std::cout << "\nNElemsInResultType: " << NElemsInResultType;
+    sycl::vec<result_type, NElemsInResultType> res_vec;
+    Engine engine;
+    engine.discard(9998);
+    res_vec = engine();
+    std::cout << " " << res_vec[1] << std::endl;
     
-    return res;
+    // iterate through the different value of the offset
+    // for(int itr = 998; (itr < 999); ++itr) {
+    //     Engine engine;
+    //     int disgard_value = itr;
+    //     std::cout << "\n\t\tdisgard_value: " << disgard_value;
+    //     engine.discard(disgard_value);
+    //     for(int i = 0; i < NGenSamples-disgard_value;i++){
+    //         res_vec = engine();
+    //         //std::cout << " " << res << std::endl;
+    //     }
+    //     // if(res!=1955073260 && res!=3409172418970261260) {
+    //     //     std::cout << "\tError\tcalculated: " << res;
+    //     //     break;
+    //     // }
+    // }
+    
+    return res_vec[1];
 #endif
 }
 

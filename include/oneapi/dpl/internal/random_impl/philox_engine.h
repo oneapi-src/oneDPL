@@ -20,6 +20,7 @@
 #ifndef _ONEDPL_PHILOX_ENGINE_H
 #define _ONEDPL_PHILOX_ENGINE_H
 
+#include "random_common.h"
 #include "counter_based_engines_stuff.h"
 
 namespace oneapi
@@ -27,7 +28,7 @@ namespace oneapi
 namespace dpl
 {
 
-template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r, UIntType ...consts>
+template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r,  internal::element_type_t<UIntType> ...consts>
 class philox_engine;
 
 template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
@@ -43,19 +44,21 @@ template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std:
 operator>>(::std::basic_istream<CharT, Traits>&, philox_engine<UIntType_, w_, n_, r_, consts_...>&);
 
 template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r,
-         UIntType ...consts>
+         internal::element_type_t<UIntType> ...consts>
 class philox_engine
 {
-    static_assert(n == 2 || n == 4); // [ToDO] Extend to n = 8 and 16 
-    static_assert(sizeof...(consts) == n);
-    static_assert(r > 0);
-    static_assert(w > 0 && w <= ::std::numeric_limits<UIntType>::digits);
-
 public:
     //types
     using result_type = UIntType;
     using scalar_type = internal::element_type_t<result_type>;
-    
+
+private:
+    static_assert(n == 2 || n == 4); // [ToDO] Extend to n = 8 and 16 
+    static_assert(sizeof...(consts) == n);
+    static_assert(r > 0);
+    static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits);
+
+public:
     // engine characteristics
     static constexpr ::std::size_t word_size = w;
     static constexpr ::std::size_t word_count = n;
@@ -64,17 +67,17 @@ public:
 private:
     /* Internal generator state */
     struct state {
-        ::std::array<result_type, word_count> X;   // counters
-        ::std::array<result_type, word_count/2> K; // keys
-        ::std::array<result_type, word_count> Y;   // results
-        result_type idx;                           // index
+        ::std::array<scalar_type, word_count> X;   // counters
+        ::std::array<scalar_type, word_count/2> K; // keys
+        ::std::array<scalar_type, word_count> Y;   // results
+        scalar_type idx;                           // index
     } state_; 
   
     /* Processing mask */
-    static constexpr auto in_mask = detail::fffmask<result_type, word_size>;
+    static constexpr auto in_mask = detail::fffmask<scalar_type, word_size>;
     static constexpr ::std::size_t array_size = word_count / 2;
     
-    void seed_internal(::std::initializer_list<result_type> seed) {
+    void seed_internal(::std::initializer_list<scalar_type> seed) {
         auto start = seed.begin();
         auto end = seed.end();
         // all counters are set to zero
@@ -105,41 +108,79 @@ private:
 
     void increase_counter_internal(unsigned long long z) {
     
-    unsigned long long carry = 0;
-    unsigned long long ctr_inc = z;
+        unsigned long long carry = 0;
+        unsigned long long ctr_inc = z;
 
-    for (size_t i = 0; i < word_count; ++i) {
-        result_type prv_x = state_.X[i];
-        state_.X[i] = ((state_.X[i] + ctr_inc&in_mask) & in_mask) + carry;
-        carry = 0;
+        for (size_t i = 0; i < word_count; ++i) {
+            scalar_type prv_x = state_.X[i];
+            state_.X[i] = ((state_.X[i] + ctr_inc&in_mask) & in_mask) + carry;
+            carry = 0;
 
-        if(state_.X[i] < prv_x) { // overflow of the chunk
-            carry = 1;
+            if(state_.X[i] < prv_x) { // overflow of the chunk
+                carry = 1;
+            }
+
+            ctr_inc = (ctr_inc&(~in_mask))>>(sizeof(z)*8-word_size);
         }
-
-        ctr_inc = (ctr_inc&(~in_mask))>>(sizeof(z)*8-word_size);
-
     }
-}
+    
+    template <unsigned int _N = 0>
+    ::std::enable_if_t<(_N > 0), result_type>
+    operator()() {
+        result_type tmp;
+        scalar_type curr_idx = state_.idx;
+
+        for (int elm_count = 0; elm_count < _N; elm_count++, curr_idx++) {
+            if(curr_idx  == word_count) { // empty buffer
+                generate();
+                increase_counter_internal();
+                curr_idx = 0;
+            }
+            tmp[elm_count] = state_.Y[curr_idx];
+        }
+        
+        state_.idx=++curr_idx;
+
+        return tmp;
+    }
+    
+    template <unsigned int _N = 0>
+    ::std::enable_if_t<(_N == 0), result_type>
+    operator()() {
+        result_type tmp;
+
+        scalar_type curr_idx = state_.idx;
+        if(curr_idx  == word_count) { // empty buffer
+            generate();
+            increase_counter_internal();
+            curr_idx = 0;
+        }
+        
+        // There are already generated numbers in the buffer
+        tmp = state_.Y[curr_idx];
+        state_.idx=++curr_idx;
+
+        return tmp;
+    }
 
 public:
-    static constexpr ::std::array<result_type, array_size> multipliers =
-        detail::get_even_array_from_tuple<UIntType>(::std::make_tuple(consts...),
+    static constexpr ::std::array<scalar_type, array_size> multipliers =
+        detail::get_even_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
                                                     ::std::make_index_sequence<array_size>{});
-    static constexpr ::std::array<result_type, array_size> round_consts =
-        detail::get_odd_array_from_tuple<UIntType>(::std::make_tuple(consts...),
+    static constexpr ::std::array<scalar_type, array_size> round_consts =
+        detail::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
                                                    ::std::make_index_sequence<array_size>{});
-    static constexpr result_type min() { return 0; }
-    static constexpr result_type max() { return ::std::numeric_limits<result_type>::max(); }
-    static constexpr result_type default_seed = 20111115u;
+    static constexpr scalar_type min() { return 0; }
+    static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max(); }
+    static constexpr scalar_type default_seed = 20111115u;
 
     // constructors and seeding functions
     philox_engine() : philox_engine(default_seed) {}
-    explicit philox_engine(result_type value) { seed(value); }
-    void seed(result_type value = default_seed) { seed_internal({ value & in_mask }); }
+    explicit philox_engine(scalar_type value) { seed(value); }
+    void seed(scalar_type value = default_seed) { seed_internal({ value & in_mask }); }
 
     // Set the state to arbitrary position
-    void set_counter(const ::std::array<result_type, word_count>& counter) {
+    void set_counter(const ::std::array<scalar_type, word_count>& counter) {
         auto start = counter.begin();
         auto end = counter.end();
         for (size_t i = 0; i < word_count; i++) {
@@ -149,15 +190,14 @@ public:
 
     // generating functions
     result_type operator()() {
-        result_type ret;
-        (*this)(&ret);
+        result_type ret = this->operator()<internal::type_traits_t<result_type>::num_elems>();
         return ret;
     }
 
     /* shift the counter only forward relative to its current position*/
     void discard(unsigned long long z) {
-        result_type curr_idx = state_.idx % word_count;
-        result_type newridx;
+        scalar_type curr_idx = state_.idx % word_count;
+        scalar_type newridx;
 
         newridx = (curr_idx + z) % (word_count);
         unsigned long long counters_increment = z / word_count;
@@ -171,6 +211,7 @@ public:
         state_.idx = newridx;
     }
 
+    // equality operators        
     friend bool operator==(const philox_engine& x, const philox_engine& y) {
         if(!::std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
            !::std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
@@ -180,7 +221,6 @@ public:
         }
         return true;
     }
-
     friend bool
     operator!=(const philox_engine& __x, const philox_engine& __y)
     {
@@ -202,28 +242,13 @@ public:
 
 private:
 
-    result_type* operator()(result_type* out) {
-        result_type curr_idx = state_.idx;
-        if(curr_idx  == word_count) { // empty buffer
-            generate();
-            increase_counter_internal();
-            curr_idx = 0;
-        }
-        
-        // There are already generated numbers in the buffer
-        *out = state_.Y[curr_idx];
-        state_.idx=++curr_idx;
-
-        return out;
-    }
-
     void generate() {
         if constexpr (word_count == 2) {
-                result_type R0 = (state_.X[0]) & in_mask;
-                result_type L0 = (state_.X[1]) & in_mask;
-                result_type K0 = (state_.K[0]) & in_mask;
+                scalar_type R0 = (state_.X[0]) & in_mask;
+                scalar_type L0 = (state_.X[1]) & in_mask;
+                scalar_type K0 = (state_.K[0]) & in_mask;
                 for (size_t i = 0; i < round_count; ++i) {
-                    auto [hi0, lo0] = detail::mulhilo<result_type, word_size>(R0, multipliers[0]);
+                    auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
                     R0 = hi0 ^ K0 ^ L0;
                     L0 = lo0;
                     K0 = (K0 + round_consts[0]) & in_mask;
@@ -232,15 +257,15 @@ private:
                 state_.Y[1] = L0;
         }
         else if constexpr (word_count == 4) {
-                result_type R0 = (state_.X[0]) & in_mask;
-                result_type L0 = (state_.X[1]) & in_mask;
-                result_type R1 = (state_.X[2]) & in_mask;
-                result_type L1 = (state_.X[3]) & in_mask;
-                result_type K0 = (state_.K[0]) & in_mask;
-                result_type K1 = (state_.K[1]) & in_mask;
+                scalar_type R0 = (state_.X[0]) & in_mask;
+                scalar_type L0 = (state_.X[1]) & in_mask;
+                scalar_type R1 = (state_.X[2]) & in_mask;
+                scalar_type L1 = (state_.X[3]) & in_mask;
+                scalar_type K0 = (state_.K[0]) & in_mask;
+                scalar_type K1 = (state_.K[1]) & in_mask;
                 for (size_t i = 0; i < round_count; ++i) {
-                    auto [hi0, lo0] = detail::mulhilo<result_type, word_size>(R0, multipliers[0]);
-                    auto [hi1, lo1] = detail::mulhilo<result_type, word_size>(R1, multipliers[1]);
+                    auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
+                    auto [hi1, lo1] = detail::mulhilo<scalar_type, word_size>(R1, multipliers[1]);
                     R0 = hi1 ^ L0 ^ K0;
                     L0 = lo1;
                     R1 = hi0 ^ L1 ^ K1; 
