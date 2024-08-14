@@ -40,29 +40,15 @@ namespace __internal
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1,
           typename _RandomAccessIterator2, typename _Tp, typename _BinaryOperation1, typename _BinaryOperation2>
 _Tp
-__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                            _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                            _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
     if (__first1 == __last1)
         return __init;
 
-    using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _BinaryOperation2>;
-    using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
-
-    auto __n = __last1 - __first1;
-    auto __keep1 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>();
-    auto __buf1 = __keep1(__first1, __last1);
-    auto __keep2 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __n);
-
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                          ::std::true_type /*is_commutative*/>(
-               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
-               unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
-               __buf1.all_view(), __buf2.all_view())
+    return __pattern_transform_reduce_async(__tag, std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+                                            __init, __binary_op1, __binary_op2)
         .get();
 }
 
