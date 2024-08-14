@@ -41,19 +41,14 @@ namespace __internal
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 void
-__pattern_walk1(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+__pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                 _Function __f)
 {
     auto __n = __last - __first;
     if (__n <= 0)
         return;
 
-    auto __keep =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
-    auto __buf = __keep(__first, __last);
-
-    oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, __exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view())
+    __pattern_walk1_async(__tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __f)
         .__deferrable_wait();
 }
 
