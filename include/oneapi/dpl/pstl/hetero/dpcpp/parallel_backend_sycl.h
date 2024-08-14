@@ -754,10 +754,9 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
 
 template <typename _Type>
 bool
-__group_scan_fits_in_slm(const sycl::queue& __queue, ::std::size_t __n, ::std::size_t __n_uniform)
+__group_scan_fits_in_slm(const sycl::queue& __queue, std::size_t __n, std::size_t __n_uniform,
+                         std::size_t __single_group_upper_limit)
 {
-    constexpr int __single_group_upper_limit = 2048;
-
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
         __queue.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
@@ -813,20 +812,23 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         auto __n_uniform = __n;
         if ((__n_uniform & (__n_uniform - 1)) != 0)
             __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+        bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec);
 
         // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
         // for the last block if it is sufficiently small
         constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
         if constexpr (__can_use_group_scan)
         {
-            if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform))
+            // Empirically found values for reduce-then-scan and legacy scan implemetation for single wg cutoff
+            std::size_t __single_group_upper_limit = __pref_reduce_then_scan ? 2048 : 16384;
+            if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform, __single_group_upper_limit))
             {
                 return __parallel_transform_scan_single_group(
                     __backend_tag, std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
                     ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
             }
         }
-        if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
+        if (__pref_reduce_then_scan)
         {
             using _GenInput = oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>;
             using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
