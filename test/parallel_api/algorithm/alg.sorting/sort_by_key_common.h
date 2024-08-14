@@ -159,8 +159,12 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
     using ValT = typename std::iterator_traits<ValIt>::value_type;
     std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
     std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
+
     call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
     EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result stable sort: keys");
+    // TODO: investigate how to make sure that the values are reordered together with their keys
+    // currently, the check does not guarantee it,
+    // but the probability of missing it very low due to having random values and further shuffling
     EXPECT_EQ_N(vals_expected.begin(), vals_begin, keys_n, "wrong result stable sort: values");
     EXPECT_EQ_N(vals_expected.begin() + keys_n, vals_begin + keys_n, vals_n - keys_n,
                 "wrong result stable sort: remaining values should not be touched");
@@ -176,6 +180,7 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
     using ValT = typename std::iterator_traits<ValIt>::value_type;
     std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
     std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
+
     call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
     EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result non-stable sort: keys");
     EXPECT_EQ_N(vals_expected.begin() + keys_n, vals_begin + keys_n, vals_n - keys_n,
