@@ -79,22 +79,14 @@ template <typename _WaitMode = __par_backend_hetero::__deferrable_mode,
           typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _Function>
 _ForwardIterator2
-__pattern_walk2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+__pattern_walk2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                 _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
 {
     auto __n = __last1 - __first1;
     if (__n <= 0)
         return __first2;
 
-    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
-    auto __buf1 = __keep1(__first1, __last1);
-
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __n);
-
-    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
+    auto __future = __pattern_walk2_async(__tag, std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 
     // Call no wait, wait or deferrable wait depending on _WaitMode
     __future.wait(_WaitMode{});
