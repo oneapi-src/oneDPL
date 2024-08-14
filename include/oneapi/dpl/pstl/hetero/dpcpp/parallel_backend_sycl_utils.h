@@ -726,7 +726,8 @@ class __future : private std::tuple<_Args...>
         __my_event.wait_and_throw();
     }
     template <typename _WaitModeTag>
-    void wait(_WaitModeTag)
+    void
+    wait(_WaitModeTag)
     {
         if constexpr (std::is_same_v<_WaitModeTag, __sync_mode>)
             wait();
