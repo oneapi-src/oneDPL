@@ -168,11 +168,8 @@ __pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
                          _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op, _Type __init,
                          _BinaryOperation __binary_op, _Inclusive)
 {
-    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
-    using _InitType = unseq_backend::__init_value<_RepackedType>;
-
-    return __pattern_transform_scan_base(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                                         __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
+    return __pattern_transform_scan_async(__tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+                                          __unary_op, __init, __binary_op, _Inclusive{}).get();
 }
 
 // scan without initial element
