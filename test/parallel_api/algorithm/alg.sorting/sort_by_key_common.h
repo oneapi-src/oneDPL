@@ -37,15 +37,6 @@
 struct StableSortTag{};
 struct UnstableSortTag{};
 
-struct NoComparator{};
-struct GreaterComparator
-{
-    template<typename T>
-    bool operator()(const T& lhs, const T& rhs) const {
-        return lhs > rhs;
-    }
-};
-
 struct Particle
 {
     float mass = 0;
@@ -110,57 +101,41 @@ generate_data(KeyIt keys_begin, ValIt vals_begin, Size keys_n, Size vals_n, std:
     }
 }
 
-template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
+template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename ...Compare>
 void
-call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, StableSortTag)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, StableSortTag, Compare... compare)
 {
-    if constexpr (std::is_same_v<Compare, NoComparator>)
-        oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
-    else
-        oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare);
+    oneapi::dpl::stable_sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare...);
 }
 
-template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename Compare>
+template<typename Policy, typename KeyIt, typename ValIt, typename Size, typename ...Compare>
 void
-call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, Compare compare, UnstableSortTag)
+call_sort(Policy&& policy, KeyIt keys_begin, ValIt vals_begin, Size n, UnstableSortTag, Compare... compare)
 {
-    if constexpr (std::is_same_v<Compare, NoComparator>)
-        oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin);
-    else
-        oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare);
+    oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, compare...);
 }
 
-template<typename KeyIt, typename ValIt, typename Size, typename Compare>
+template<typename KeyIt, typename ValIt, typename Size, typename Compare = std::less>
 void
-call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare compare)
+call_reference_sort(KeyIt ref_keys_begin, ValIt ref_vals_begin, Size n, Compare compare = {})
 {
     auto first = oneapi::dpl::make_zip_iterator(ref_keys_begin, ref_vals_begin);
-    if constexpr (std::is_same_v<Compare, NoComparator>)
-    {
-        std::stable_sort(first, first + n, [](const auto& lhs, const auto& rhs) {
-            return std::get<0>(lhs) < std::get<0>(rhs);
-        });
-    }
-    else
-    {
-        std::stable_sort(first, first + n, [compare](const auto& lhs, const auto& rhs) {
-            return compare(std::get<0>(lhs), std::get<0>(rhs));
-        });
-    }
+    std::stable_sort(first, first + n, [compare](const auto& lhs, const auto& rhs) {
+        return compare(std::get<0>(lhs), std::get<0>(rhs));
+    });
 }
 
-template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename Compare>
+template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename ...Compare>
 void
 check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
            const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
-           Size keys_n, Size vals_n, Compare compare, StableSortTag)
+           Size keys_n, Size vals_n, StableSortTag, Compare... compare)
 {
     using KeyT = typename std::iterator_traits<KeyIt>::value_type;
     using ValT = typename std::iterator_traits<ValIt>::value_type;
     std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
     std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
-
-    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare...);
     EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result stable sort: keys");
     // TODO: investigate how to make sure that the values are reordered together with their keys
     // currently, the check does not guarantee it,
@@ -170,18 +145,17 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
                 "wrong result stable sort: remaining values should not be touched");
 }
 
-template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename Compare>
+template<typename KeyIt, typename ValIt, typename KeysOrigIt, typename ValsOrigIt, typename Size, typename ...Compare>
 void
 check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
            const KeysOrigIt& keys_orig_begin, const ValsOrigIt& vals_orig_begin,
-           Size keys_n, Size vals_n, Compare compare, UnstableSortTag)
+           Size keys_n, Size vals_n, UnstableSortTag, Compare... compare)
 {
     using KeyT = typename std::iterator_traits<KeyIt>::value_type;
     using ValT = typename std::iterator_traits<ValIt>::value_type;
     std::vector<KeyT> keys_expected(keys_orig_begin, keys_orig_begin + keys_n);
     std::vector<ValT> vals_expected(vals_orig_begin, vals_orig_begin + vals_n);
-
-    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare);
+    call_reference_sort(keys_expected.begin(), vals_expected.begin(), keys_n, compare...);
     EXPECT_EQ_N(keys_expected.begin(), keys_begin, keys_n, "wrong result non-stable sort: keys");
     EXPECT_EQ_N(vals_expected.begin() + keys_n, vals_begin + keys_n, vals_n - keys_n,
                 "wrong result non-stable sort: remaining values should not be touched");
@@ -196,9 +170,9 @@ check_sort(const KeyIt& keys_begin, const ValIt& vals_begin,
     EXPECT_EQ_N(vals_expected.begin(), vals.begin(), expected_unique_n, "wrong result non-stable sort: values");
 }
 
-template<typename KeyT, typename ValT, typename Size, typename Policy, typename Compare, typename StabilityTag>
+template<typename KeyT, typename ValT, typename Size, typename Policy, typename StabilityTag, typename ...Compare>
 void
-test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stability_tag)
+test_with_std_policy(Policy&& policy, Size n, StabilityTag stability_tag, Compare... compare)
 {
     Size keys_n = n;
     Size vals_n = n + 5; // to test that the remaining values are not touched
@@ -208,15 +182,15 @@ test_with_std_policy(Policy&& policy, Size n, Compare compare, StabilityTag stab
     std::vector<KeyT> keys(origin_keys);
     std::vector<ValT> vals(origin_vals);
 
-    call_sort(policy, keys.begin(), vals.begin(), keys_n, compare, stability_tag);
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, compare, stability_tag);
+    call_sort(policy, keys.begin(), vals.begin(), keys_n, stability_tag, compare...);
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, stability_tag, compare...);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename KeyT, typename ValT, sycl::usm::alloc alloc_type, std::uint32_t KernelNameID,
-          typename Size, typename Compare, typename StabilityTag>
+          typename Size, typename StabilityTag, typename ...Compare>
 void
-test_with_usm(sycl::queue& q, Size n, Compare compare, StabilityTag stability_tag)
+test_with_usm(sycl::queue& q, Size n, StabilityTag stability_tag, Compare... compare)
 {
     Size keys_n = n;
     Size vals_n = n + 5; // to test that the remaining values are not touched
@@ -231,19 +205,19 @@ test_with_usm(sycl::queue& q, Size n, Compare compare, StabilityTag stability_ta
 
     // calling sort
     auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class USM, KernelNameID>>(q);
-    call_sort(policy, keys_device.get_data(), vals_device.get_data(), keys_n, compare, stability_tag);
+    call_sort(policy, keys_device.get_data(), vals_device.get_data(), keys_n, stability_tag, compare...);
 
     // checking results
     keys_device.retrieve_data(keys.begin());
     vals_device.retrieve_data(vals.begin());
    // sort_by_key with device policy guarantees stability, hence StableSortTag{} is passed
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, compare, StableSortTag{});
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), keys_n, vals_n, StableSortTag{}, compare...);
 }
 
 template <typename KeyT, typename ValT, std::uint32_t KernelNameID,
-          typename Size, typename Compare, typename StabilityTag>
+          typename Size, typename StabilityTag, typename ...Compare>
 void
-test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stability_tag)
+test_with_buffers(sycl::queue& q, Size n, StabilityTag stability_tag, Compare... compare)
 {
     std::vector<KeyT> origin_keys(n);
     std::vector<ValT> origin_vals(n);
@@ -254,10 +228,10 @@ test_with_buffers(sycl::queue& q, Size n, Compare compare, StabilityTag stabilit
         sycl::buffer<KeyT> keys_device(keys.data(), n);
         sycl::buffer<ValT> vals_device(vals.data(), n);
         auto policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<class Buffer, KernelNameID>>(q);
-        call_sort(policy, oneapi::dpl::begin(keys_device), oneapi::dpl::begin(vals_device), n, compare, stability_tag);
+        call_sort(policy, oneapi::dpl::begin(keys_device), oneapi::dpl::begin(vals_device), n, stability_tag, compare...);
     }
    // sort_by_key with device policy guarantees stability, hence StableSortTag{} is passed
-    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, n, compare, StableSortTag{});
+    check_sort(keys.begin(), vals.begin(), origin_keys.begin(), origin_vals.begin(), n, n, StableSortTag{}, compare...);
 }
 
 template <typename StabilityTag>
@@ -265,22 +239,22 @@ void
 test_device_policy(StabilityTag stability_tag)
 {
     sycl::queue q = TestUtils::get_test_queue();
-    test_with_usm<std::int16_t, float, sycl::usm::alloc::shared, 1>(q, large_size, NoComparator{}, stability_tag);
-    test_with_usm<std::uint32_t, std::uint32_t, sycl::usm::alloc::device, 2>(q, large_size, NoComparator{}, stability_tag);
-    test_with_buffers<float, float, 3>(q, small_size, GreaterComparator{}, stability_tag);
-    test_with_buffers<Particle::energy_type, Particle, 4>(q, large_size, GreaterComparator{}, stability_tag);
-    test_with_buffers<Particle::energy_type, Particle, 5>(q, small_size, NoComparator{}, stability_tag);
+    test_with_usm<std::int16_t, float, sycl::usm::alloc::shared, 1>(q, large_size, stability_tag, std::greater{});
+    test_with_usm<std::uint32_t, std::uint32_t, sycl::usm::alloc::device, 2>(q, large_size, stability_tag);
+    test_with_buffers<float, float, 3>(q, small_size, stability_tag, std::greater{});
+    test_with_buffers<Particle::energy_type, Particle, 4>(q, large_size, stability_tag, std::greater{});
+    test_with_buffers<Particle::energy_type, Particle, 5>(q, small_size, stability_tag);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-template <typename KeyT, typename ValT, typename Size, typename Compare, typename StabilityTag>
+template <typename KeyT, typename ValT, typename Size, typename StabilityTag, typename ...Compare>
 void
-test_std_polcies(Size n, Compare compare, StabilityTag stability_tag)
+test_std_polcies(Size n, StabilityTag stability_tag, Compare... compare)
 {
-    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::seq, n, compare, stability_tag);
-    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::unseq, n, compare, stability_tag);
-    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par, n, compare, stability_tag);
-    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par_unseq, n, compare, stability_tag);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::seq, n, stability_tag, compare...);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::unseq, n, stability_tag, compare...);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par, n, stability_tag, compare...);
+    test_with_std_policy<KeyT, ValT>(oneapi::dpl::execution::par_unseq, n, stability_tag, compare...);
 }
 
 template <typename StabilityTag>
@@ -290,9 +264,9 @@ test_all_policies(StabilityTag stability_tag)
 #if TEST_DPCPP_BACKEND_PRESENT
     test_device_policy(stability_tag);
 #endif // TEST_DPCPP_BACKEND_PRESENT
-    test_std_polcies<int, int>(large_size, NoComparator{}, stability_tag);
-    test_std_polcies<std::size_t, float>(large_size, GreaterComparator{}, stability_tag);
-    test_std_polcies<Particle::energy_type, Particle>(small_size, NoComparator{}, stability_tag);
+    test_std_polcies<int, int>(large_size, stability_tag);
+    test_std_polcies<std::size_t, float>(large_size, stability_tag, std::greater{});
+    test_std_polcies<Particle::energy_type, Particle>(small_size, stability_tag);
 }
 
 #endif // _SORT_BY_KEY_COMMON_H
