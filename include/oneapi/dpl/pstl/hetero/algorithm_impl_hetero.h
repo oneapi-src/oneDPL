@@ -278,11 +278,7 @@ _ForwardIterator
 __pattern_fill(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                _ForwardIterator __last, const _T& __value)
 {
-    __pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                    fill_functor<_T>{__value});
-    return __last;
+    return __pattern_fill_async(__tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __value).get();
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, class _Size, typename _T>
