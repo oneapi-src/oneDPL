@@ -810,7 +810,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     {
         // Next power of 2 greater than or equal to __n
         auto __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec);
+        bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec);
 
         // TODO: Consider re-implementing single group scan to support types without known identities. This could also
         // allow us to use single wg scan for the last block of reduce-then-scan if it is sufficiently small.
