@@ -805,11 +805,11 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
-        auto __inputs_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
+        auto __workitems_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
             std::min(__inputs_remaining, __max_inputs_per_block), __inputs_per_item);
-        auto __inputs_in_block_round_up_workgroup =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__inputs_in_block, __work_group_size) * __work_group_size;
-        auto __global_range = sycl::range<1>(__inputs_in_block_round_up_workgroup);
+        auto __workitems_in_block_round_up_workgroup =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__workitems_in_block, __work_group_size) * __work_group_size;
+        auto __global_range = sycl::range<1>(__workitems_in_block_round_up_workgroup);
         auto __local_range = sycl::range<1>(__work_group_size);
         auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
