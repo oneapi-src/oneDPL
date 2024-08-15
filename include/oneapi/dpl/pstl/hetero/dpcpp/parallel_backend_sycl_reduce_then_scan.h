@@ -535,29 +535,29 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         {
                             // multiple iterations
                             // first 1 full
-                            auto __value = __tmp_ptr[__num_sub_groups_local * __sub_group_local_id + __offset];
+                            std::uint32_t __reduction_id = __num_sub_groups_local * __sub_group_local_id + __offset;
+                            std::uint32_t __reduction_id_increment = __num_sub_groups_local * __sub_group_size;
+                            auto __value = __tmp_ptr[__reduction_id];
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                                 __sub_group, __value, __reduce_op, __carry_last);
-
+                            __reduction_id += __reduction_id_increment;
                             // then some number of full iterations
                             for (std::uint32_t __i = 1; __i < __pre_carry_iters - 1; __i++)
                             {
-                                auto __reduction_id = __i * __num_sub_groups_local * __sub_group_size +
-                                                       __num_sub_groups_local * __sub_group_local_id + __offset;
                                 __value = __tmp_ptr[__reduction_id];
                                 __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
                                     __sub_group, __value, __reduce_op, __carry_last);
+                                __reduction_id += __reduction_id_increment;
                             }
 
                             // final partial iteration
-                            auto __proposed_id = (__pre_carry_iters - 1) * __num_sub_groups_local * __sub_group_size +
-                                                  __num_sub_groups_local * __sub_group_local_id + __offset;
+
                             auto __remaining_elements =
                                 __elements_to_process - ((__pre_carry_iters - 1) * __sub_group_size);
-                            auto __reduction_id = (__proposed_id < __subgroups_before_my_group)
-                                                       ? __proposed_id
-                                                       : __subgroups_before_my_group - 1;
-                            __value = __tmp_ptr[__reduction_id];
+                            auto __final_reduction_id = (__reduction_id < __subgroups_before_my_group)
+                                                       ? __reduction_id
+                                                       : __subgroups_before_my_group - 1; // dummy to avoid OOB
+                            __value = __tmp_ptr[__final_reduction_id];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
                                                      /*__init_present=*/true>(__sub_group, __value, __reduce_op,
                                                                               __carry_last, __remaining_elements);
