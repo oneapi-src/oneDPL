@@ -283,7 +283,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     template <typename _ExecutionPolicy, typename _InRng, typename _TmpStorageAcc>
     auto
     operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng,
-               _TmpStorageAcc __scratch_container, const sycl::event& __prior_event,
+               _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
                const std::size_t __block_num) const
     {
@@ -429,7 +429,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
     template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _TmpStorageAcc>
     auto
     operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng,
-               _TmpStorageAcc __scratch_container, const sycl::event& __prior_event,
+               _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
                const std::size_t __block_num) const
     {
