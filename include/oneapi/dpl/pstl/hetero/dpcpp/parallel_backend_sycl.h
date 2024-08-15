@@ -1070,7 +1070,7 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
                           _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred)
 {
     auto __n = __rng.size();
-    if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
+    if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
         using _WriteOp =
