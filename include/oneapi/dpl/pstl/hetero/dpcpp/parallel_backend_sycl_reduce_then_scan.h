@@ -213,8 +213,8 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
 
             if (__iters == 1)
             {
-                auto __local_idx = (__start_id < __n) ? __start_id : __n - 1;
-                auto __v = __gen_input(__in_rng, __local_idx);
+                auto __local_id = (__start_id < __n) ? __start_id : __n - 1;
+                auto __v = __gen_input(__in_rng, __local_id);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, __init_present>(
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry,
                     __n - __subgroup_start_id);
@@ -236,19 +236,19 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
 
                 for (std::uint32_t __j = 1; __j < __iters - 1; __j++)
                 {
-                    auto __local_idx = __start_id + __j * __sub_group_size;
-                    __v = __gen_input(__in_rng, __local_idx);
+                    auto __local_id = __start_id + __j * __sub_group_size;
+                    __v = __gen_input(__in_rng, __local_id);
                     __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
                         __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
                     if constexpr (__capture_output)
                     {
-                        __write_op(__out_rng, __local_idx, __v);
+                        __write_op(__out_rng, __local_id, __v);
                     }
                 }
 
                 auto __offset = __start_id + (__iters - 1) * __sub_group_size;
-                auto __local_idx = (__offset < __n) ? __offset : __n - 1;
-                __v = __gen_input(__in_rng, __local_idx);
+                auto __local_id = (__offset < __n) ? __offset : __n - 1;
+                __v = __gen_input(__in_rng, __local_id);
                 __sub_group_scan_partial<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry,
                     __n - (__subgroup_start_id + (__iters - 1) * __sub_group_size));
@@ -342,10 +342,10 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
                     if (__iters == 1)
                     {
-                        auto __load_idx = (__sub_group_local_id < __active_subgroups)
+                        auto __load_id = (__sub_group_local_id < __active_subgroups)
                                               ? __sub_group_local_id
                                               : (__active_subgroups - 1); // else is unused dummy value
-                        auto __v = __sub_group_partials[__load_idx];
+                        auto __v = __sub_group_partials[__load_id];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                             __sub_group, __v, __reduce_op, __sub_group_carry, __active_subgroups);
                         if (__sub_group_local_id < __active_subgroups)
@@ -376,7 +376,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         auto __load_id =
                             (__reduction_scan_id < __num_sub_groups_local) ? __reduction_scan_id : (__num_sub_groups_local - 1);
 
-                        __v = __sub_group_partials[__load_idx];
+                        __v = __sub_group_partials[__load_id];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
                             __sub_group, __v, __reduce_op, __sub_group_carry,
                             __active_subgroups - ((__iters - 1) * __sub_group_size));
@@ -519,12 +519,12 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         if (__pre_carry_iters == 1)
                         {
                             // single partial scan
-                            auto __proposed_idx = __num_sub_groups_local * __sub_group_local_id + __offset;
+                            auto __proposed_id = __num_sub_groups_local * __sub_group_local_id + __offset;
                             auto __remaining_elements = __elements_to_process;
-                            auto __reduction_idx = (__proposed_idx < __subgroups_before_my_group)
-                                                       ? __proposed_idx
+                            auto __reduction_id = (__proposed_id < __subgroups_before_my_group)
+                                                       ? __proposed_id
                                                        : __subgroups_before_my_group - 1;
-                            auto __value = __tmp_ptr[__reduction_idx];
+                            auto __value = __tmp_ptr[__reduction_id];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
                                                      /*__init_present=*/false>(__sub_group, __value, __reduce_op,
                                                                                __carry_last, __remaining_elements);
@@ -540,22 +540,22 @@ struct __parallel_reduce_then_scan_scan_submitter<
                             // then some number of full iterations
                             for (std::uint32_t __i = 1; __i < __pre_carry_iters - 1; __i++)
                             {
-                                auto __reduction_idx = __i * __num_sub_groups_local * __sub_group_size +
+                                auto __reduction_id = __i * __num_sub_groups_local * __sub_group_size +
                                                        __num_sub_groups_local * __sub_group_local_id + __offset;
-                                __value = __tmp_ptr[__reduction_idx];
+                                __value = __tmp_ptr[__reduction_id];
                                 __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
                                     __sub_group, __value, __reduce_op, __carry_last);
                             }
 
                             // final partial iteration
-                            auto __proposed_idx = (__pre_carry_iters - 1) * __num_sub_groups_local * __sub_group_size +
+                            auto __proposed_id = (__pre_carry_iters - 1) * __num_sub_groups_local * __sub_group_size +
                                                   __num_sub_groups_local * __sub_group_local_id + __offset;
                             auto __remaining_elements =
                                 __elements_to_process - ((__pre_carry_iters - 1) * __sub_group_size);
-                            auto __reduction_idx = (__proposed_idx < __subgroups_before_my_group)
-                                                       ? __proposed_idx
+                            auto __reduction_id = (__proposed_id < __subgroups_before_my_group)
+                                                       ? __proposed_id
                                                        : __subgroups_before_my_group - 1;
-                            __value = __tmp_ptr[__reduction_idx];
+                            __value = __tmp_ptr[__reduction_id];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
                                                      /*__init_present=*/true>(__sub_group, __value, __reduce_op,
                                                                               __carry_last, __remaining_elements);
