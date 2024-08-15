@@ -758,11 +758,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // reduce_then_scan kernel is not built to handle "empty".
     // These trivial end cases should be handled at a higher level.
     assert(__num_remaining > 0);
-    auto __inputs_per_sub_group =
-        __num_remaining >= __max_inputs_per_block
-            ? __max_inputs_per_block / __num_sub_groups_global
-            : std::max(__sub_group_size,
+    const std::uint32_t __max_inputs_per_subgroup = __max_inputs_per_block / __num_sub_groups_global;
+    std::uint32_t __evenly_divided_remaining_elements = std::max(__sub_group_size,
                        oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+    auto __inputs_per_sub_group = __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
     auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
     const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
@@ -823,11 +822,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         // We only need to resize these parameters prior to the last block as it is the only non-full case.
         if (__b + 2 == __num_blocks)
         {
+            __evenly_divided_remaining_elements = std::max(__sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
             __inputs_per_sub_group =
                 __num_remaining >= __max_inputs_per_block
-                    ? __max_inputs_per_block / __num_sub_groups_global
-                    : std::max(__sub_group_size,
-                               oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+                    ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
             __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
         }
     }
