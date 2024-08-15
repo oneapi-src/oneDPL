@@ -353,33 +353,35 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                     }
                     else
                     {
-                        //need to pull out first iteration tp avoid identity
-                        auto __v = __sub_group_partials[__sub_group_local_id];
+                        std::uint32_t __reduction_scan_id = __sub_group_local_id;
+                        // need to pull out first iteration tp avoid identity
+                        auto __v = __sub_group_partials[__reduction_scan_id];
                         __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                             __sub_group, __v, __reduce_op, __sub_group_carry);
-                        __temp_ptr[__start_id + __sub_group_local_id] = __v;
+                        __temp_ptr[__start_id + __reduction_scan_id] = __v;
+                        __reduction_scan_id += __sub_group_size;
 
                         for (std::uint32_t __i = 1; __i < __iters - 1; __i++)
                         {
-                            __v = __sub_group_partials[__i * __sub_group_size + __sub_group_local_id];
+                            __v = __sub_group_partials[__reduction_scan_id];
                             __sub_group_scan<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
                                 __sub_group, __v, __reduce_op, __sub_group_carry);
-                            __temp_ptr[__start_id + __i * __sub_group_size + __sub_group_local_id] = __v;
+                            __temp_ptr[__start_id + __reduction_scan_id] = __v;
+                            __reduction_scan_id += __sub_group_size;
                         }
                         // If we are past the input range, then the previous value of v is passed to the sub-group scan.
                         // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
 
                         // else is an unused dummy value
-                        auto __proposed_idx = (__iters - 1) * __sub_group_size + __sub_group_local_id;
-                        auto __load_idx =
-                            (__proposed_idx < __num_sub_groups_local) ? __proposed_idx : (__num_sub_groups_local - 1);
+                        auto __load_id =
+                            (__reduction_scan_id < __num_sub_groups_local) ? __reduction_scan_id : (__num_sub_groups_local - 1);
 
                         __v = __sub_group_partials[__load_idx];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
                             __sub_group, __v, __reduce_op, __sub_group_carry,
                             __active_subgroups - ((__iters - 1) * __sub_group_size));
-                        if (__proposed_idx < __num_sub_groups_local)
-                            __temp_ptr[__start_id + __proposed_idx] = __v;
+                        if (__reduction_scan_id < __num_sub_groups_local)
+                            __temp_ptr[__start_id + __reduction_scan_id] = __v;
                     }
 
                     __sub_group_carry.__destroy();
