@@ -1091,7 +1091,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
     // can simply copy the input range to the output.
     assert(__n > 1);
 
-    if (oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec))
+    if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1, _Assign>;
