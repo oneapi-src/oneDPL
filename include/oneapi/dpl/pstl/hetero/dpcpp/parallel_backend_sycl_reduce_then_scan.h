@@ -767,9 +767,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
     const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
 
-    //We need temporary storage for reductions of each sub-group (__num_sub_groups_global), and also 2 for the
-    // block carry-out.  We need two for the block carry-out to prevent a race condition between reading and writing
-    // the block carry-out within a single kernel.
+    // We need temporary storage for reductions of each sub-group (__num_sub_groups_global).
+    // Additionally, we need two elements for the block carry-out to prevent a race condition
+    // between reading and writing the block carry-out within a single kernel.
     __result_and_scratch_storage<_ExecutionPolicy, _ValueType> __result_and_scratch{__exec, 1,
                                                                                     __num_sub_groups_global + 2};
 
