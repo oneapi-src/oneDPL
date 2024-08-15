@@ -297,14 +297,14 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                                                             *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
                                                                __sub_group_size)]] {
                 auto __temp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
-                auto __g = __ndi.get_group(0);
+                auto __group_id = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
                 auto __sub_group_id = __sub_group.get_group_linear_id();
                 auto __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
                 std::size_t __group_start_idx =
-                    (__block_num * __max_block_size) + (__g * __inputs_per_sub_group * __num_sub_groups_local);
+                    (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __elements_in_group =
                     std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
@@ -336,7 +336,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 // to compute a prefix sum on global carries
                 if (__sub_group_id == 0)
                 {
-                    __start_idx = (__g * __num_sub_groups_local);
+                    __start_idx = (__group_id * __num_sub_groups_local);
                     std::uint8_t __iters =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
                     if (__iters == 1)
@@ -451,13 +451,13 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 auto __res_ptr =
                     _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
                 auto __lid = __ndi.get_local_id(0);
-                auto __g = __ndi.get_group(0);
+                auto __group_id = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
                 auto __sub_group_id = __sub_group.get_group_linear_id();
                 auto __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 auto __group_start_idx =
-                    (__block_num * __max_block_size) + (__g * __inputs_per_sub_group * __num_sub_groups_local);
+                    (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __elements_in_group =
                     std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
@@ -486,7 +486,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     //           S: sum(T0 carry...TS carry)
                     std::uint8_t __iters =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
-                    auto __subgroups_before_my_group = __g * __num_sub_groups_local;
+                    auto __subgroups_before_my_group = __group_id * __num_sub_groups_local;
                     std::uint8_t __i = 0;
                     for (; __i < __iters - 1; __i++)
                     {
@@ -504,7 +504,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     //         memory accesses: gather(63, 127, 191, 255, ...)
                     std::uint32_t __offset = __num_sub_groups_local - 1;
                     // only need 32 carries for WGs0..WG32, 64 for WGs32..WGs64, etc.
-                    if (__g > 0)
+                    if (__group_id > 0)
                     {
                         // only need the last element from each scan of num_sub_groups_local subgroup reductions
                         const auto __elements_to_process = __subgroups_before_my_group / __num_sub_groups_local;
@@ -595,7 +595,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
                         __sub_group_carry.__setup(__value);
                     }
-                    else if (__g > 0)
+                    else if (__group_id > 0)
                     {
                         auto __value = __sub_group_partials[__active_subgroups];
                         oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
@@ -625,7 +625,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                            : __sub_group_partials[__active_subgroups - 1];
                         __sub_group_carry.__setup(__reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __value));
                     }
-                    else if (__g > 0)
+                    else if (__group_id > 0)
                     {
                         __sub_group_carry.__setup(__reduce_op(__get_block_carry_in(__block_num, __tmp_ptr),
                                                               __sub_group_partials[__active_subgroups]));
@@ -660,7 +660,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 }
                 //If within the last active group and subgroup of the block, use the 0th work item of the subgroup
                 // to write out the last carry out for either the return value or the next block
-                if (__sub_group_local_id == 0 && (__active_groups == __g + 1) &&
+                if (__sub_group_local_id == 0 && (__active_groups == __group_id + 1) &&
                     (__active_subgroups == __sub_group_id + 1))
                 {
                     if (__block_num + 1 == __num_blocks)
