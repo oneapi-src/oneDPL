@@ -804,20 +804,20 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
 {
     using _Type = typename _InitType::__value_type;
     // Reduce-then-scan is dependent on sycl::shift_group_right which requires the underlying type to be trivially
-    // copyable. If this is not met, then we must fallback to the legacy implementation. The single work-group implementation
-    // requires a fundamental type which must also be trivially copyable.
+    // copyable. If this is not met, then we must fallback to the multi pass scan implementation. The single 
+    // work-group implementation requires a fundamental type which must also be trivially copyable.
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
         // Next power of 2 greater than or equal to __n
         auto __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__prefer_reduce_then_scan(__exec);
 
-        // TODO: can we reimplement this with support for non-identities as well? We can then use in reduce-then-scan
-        // for the last block if it is sufficiently small
+        // TODO: Consider re-implementing single group scan to support types without known identities. This could also
+        // allow us to use single wg scan for the last block of reduce-then-scan if it is sufficiently small.
         constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
         if constexpr (__can_use_group_scan)
         {
-            // Empirically found values for reduce-then-scan and legacy scan implementation for single wg cutoff
+            // Empirically found values for reduce-then-scan and multi pass scan implementation for single wg cutoff
             std::size_t __single_group_upper_limit = __pref_reduce_then_scan ? 2048 : 16384;
             if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform, __single_group_upper_limit))
             {
@@ -841,7 +841,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         }
     }
 
-    //else use legacy scan implementation
+    //else use multi pass scan implementation
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
