@@ -493,16 +493,18 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     std::uint8_t __iters =
                         oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
                     auto __subgroups_before_my_group = __group_id * __num_sub_groups_local;
+                    std::uint32_t __load_reduction_id = __sub_group_local_id;
                     std::uint8_t __i = 0;
                     for (; __i < __iters - 1; __i++)
                     {
-                        __sub_group_partials[__i * __sub_group_size + __sub_group_local_id] =
-                            __tmp_ptr[__subgroups_before_my_group + __i * __sub_group_size + __sub_group_local_id];
+                        __sub_group_partials[__load_reduction_id] =
+                            __tmp_ptr[__subgroups_before_my_group + __load_reduction_id];
+                        __load_reduction_id += __sub_group_size;
                     }
-                    if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
+                    if (__load_reduction_id < __active_subgroups)
                     {
-                        __sub_group_partials[__i * __sub_group_size + __sub_group_local_id] =
-                            __tmp_ptr[__subgroups_before_my_group + __i * __sub_group_size + __sub_group_local_id];
+                        __sub_group_partials[__load_reduction_id] =
+                            __tmp_ptr[__subgroups_before_my_group + __load_reduction_id];
                     }
 
                     // step 2) load 32, 64, 96, etc. work-group carry outs on every work-group; then
