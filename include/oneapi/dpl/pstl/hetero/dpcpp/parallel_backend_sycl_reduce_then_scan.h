@@ -307,8 +307,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __max_elements_in_group = __inputs_per_sub_group * __num_sub_groups_local;
-                std::size_t __elements_in_group =
-                    std::min(__n - __group_start_id, __max_elements_in_group);
+                std::size_t __elements_in_group = std::min(__n - __group_start_id, __max_elements_in_group);
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
                 std::size_t __subgroup_start_id = __group_start_id + (__sub_group_id * __inputs_per_sub_group);
@@ -343,8 +342,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                     if (__iters == 1)
                     {
                         auto __load_id = (__sub_group_local_id < __active_subgroups)
-                                              ? __sub_group_local_id
-                                              : (__active_subgroups - 1); // else is unused dummy value
+                                             ? __sub_group_local_id
+                                             : (__active_subgroups - 1); // else is unused dummy value
                         auto __v = __sub_group_partials[__load_id];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                             __sub_group, __v, __reduce_op, __sub_group_carry, __active_subgroups);
@@ -373,8 +372,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                         // It does not affect the result as our sub_group_scan will use a mask to only process in-range elements.
 
                         // else is an unused dummy value
-                        auto __load_id =
-                            (__reduction_scan_id < __num_sub_groups_local) ? __reduction_scan_id : (__num_sub_groups_local - 1);
+                        auto __load_id = (__reduction_scan_id < __num_sub_groups_local) ? __reduction_scan_id
+                                                                                        : (__num_sub_groups_local - 1);
 
                         __v = __sub_group_partials[__load_id];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/true>(
@@ -465,8 +464,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __max_elements_in_group = __inputs_per_sub_group * __num_sub_groups_local;
-                std::size_t __elements_in_group =
-                    std::min(__n - __group_start_id, __max_elements_in_group);
+                std::size_t __elements_in_group = std::min(__n - __group_start_id, __max_elements_in_group);
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __carry_last;
@@ -524,8 +522,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
                             auto __proposed_id = __num_sub_groups_local * __sub_group_local_id + __offset;
                             auto __remaining_elements = __elements_to_process;
                             auto __reduction_id = (__proposed_id < __subgroups_before_my_group)
-                                                       ? __proposed_id
-                                                       : __subgroups_before_my_group - 1;
+                                                      ? __proposed_id
+                                                      : __subgroups_before_my_group - 1;
                             auto __value = __tmp_ptr[__reduction_id];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
                                                      /*__init_present=*/false>(__sub_group, __value, __reduce_op,
@@ -555,8 +553,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
                             auto __remaining_elements =
                                 __elements_to_process - ((__pre_carry_iters - 1) * __sub_group_size);
                             auto __final_reduction_id = (__reduction_id < __subgroups_before_my_group)
-                                                       ? __reduction_id
-                                                       : __subgroups_before_my_group - 1; // dummy to avoid OOB
+                                                            ? __reduction_id
+                                                            : __subgroups_before_my_group - 1; // dummy to avoid OOB
                             __value = __tmp_ptr[__final_reduction_id];
                             __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true,
                                                      /*__init_present=*/true>(__sub_group, __value, __reduce_op,
@@ -573,14 +571,14 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         std::uint8_t __i = 0;
                         for (; __i < __iters - 1; ++__i)
                         {
-                            __sub_group_partials[__carry_offset] = __reduce_op(
-                                __carry_last.__v, __sub_group_partials[__carry_offset]);
+                            __sub_group_partials[__carry_offset] =
+                                __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset]);
                             __carry_offset += __sub_group_size;
                         }
                         if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
                         {
-                            __sub_group_partials[__carry_offset] = __reduce_op(
-                                __carry_last.__v, __sub_group_partials[__carry_offset]);
+                            __sub_group_partials[__carry_offset] =
+                                __reduce_op(__carry_last.__v, __sub_group_partials[__carry_offset]);
                             __carry_offset += __sub_group_size;
                         }
                         if (__sub_group_local_id == 0)
@@ -654,8 +652,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                                    /*__init_present=*/true,
                                                    /*__capture_output=*/true, __max_inputs_per_item>(
                         __sub_group, __gen_scan_input, __scan_input_transform, __reduce_op, __write_op,
-                        __sub_group_carry, __in_rng, __out_rng, __start_id, __n, __inputs_per_item,
-                        __subgroup_start_id, __sub_group_id, __active_subgroups);
+                        __sub_group_carry, __in_rng, __out_rng, __start_id, __n, __inputs_per_item, __subgroup_start_id,
+                        __sub_group_id, __active_subgroups);
                 }
                 else // first group first block, no subgroup carry
                 {
@@ -663,8 +661,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
                                                    /*__init_present=*/false,
                                                    /*__capture_output=*/true, __max_inputs_per_item>(
                         __sub_group, __gen_scan_input, __scan_input_transform, __reduce_op, __write_op,
-                        __sub_group_carry, __in_rng, __out_rng, __start_id, __n, __inputs_per_item,
-                        __subgroup_start_id, __sub_group_id, __active_subgroups);
+                        __sub_group_carry, __in_rng, __out_rng, __start_id, __n, __inputs_per_item, __subgroup_start_id,
+                        __sub_group_id, __active_subgroups);
                 }
                 // If within the last active group and sub-group of the block, use the 0th work-item of the sub-group
                 // to write out the last carry out for either the return value or the next block
@@ -759,9 +757,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // These trivial end cases should be handled at a higher level.
     assert(__num_remaining > 0);
     const std::uint32_t __max_inputs_per_subgroup = __max_inputs_per_block / __num_sub_groups_global;
-    std::uint32_t __evenly_divided_remaining_elements = std::max(__sub_group_size,
-                       oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
-    auto __inputs_per_sub_group = __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
+    std::uint32_t __evenly_divided_remaining_elements =
+        std::max(__sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+    auto __inputs_per_sub_group =
+        __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
     auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
     const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
     const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
@@ -822,10 +821,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         // We only need to resize these parameters prior to the last block as it is the only non-full case.
         if (__b + 2 == __num_blocks)
         {
-            __evenly_divided_remaining_elements = std::max(__sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
-            __inputs_per_sub_group =
-                __num_remaining >= __max_inputs_per_block
-                    ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
+            __evenly_divided_remaining_elements = std::max(
+                __sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+            __inputs_per_sub_group = __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup
+                                                                               : __evenly_divided_remaining_elements;
             __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
         }
     }
