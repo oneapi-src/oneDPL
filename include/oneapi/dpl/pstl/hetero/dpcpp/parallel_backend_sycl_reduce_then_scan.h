@@ -163,9 +163,8 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
 {
     bool __is_full_block = (__iters_per_item == __max_inputs_per_item);
     bool __is_full_thread = __subgroup_start_idx + __iters_per_item * __sub_group_size <= __n;
-    if (__is_full_thread && __is_full_block)
+    if (__is_full_thread)
     {
-        // For full block and full thread, we can unroll the loop
         auto __v = __gen_input(__in_rng, __start_idx);
         __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_input_transform(__v),
                                                                            __binary_op, __sub_group_carry);
@@ -174,38 +173,34 @@ __scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_inp
             __write_op(__out_rng, __start_idx, __v);
         }
 
-        _ONEDPL_PRAGMA_UNROLL
-        for (std::uint32_t __j = 1; __j < __max_inputs_per_item; __j++)
+        if (__is_full_block)
         {
-            __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
-            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
-                __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
-            if constexpr (__capture_output)
+            // For full block and full thread, we can unroll the loop
+            _ONEDPL_PRAGMA_UNROLL
+            for (std::uint32_t __j = 1; __j < __max_inputs_per_item; __j++)
             {
-                __write_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
+                __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
+                __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
+                    __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
+                if constexpr (__capture_output)
+                {
+                    __write_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
+                }
             }
         }
-    }
-    else if (__is_full_thread)
-    {
-        // For full thread but not full block, we can't unroll the loop, but we
-        // can proceed without special casing for partial subgroups.
-
-        auto __v = __gen_input(__in_rng, __start_idx);
-        __sub_group_scan<__sub_group_size, __is_inclusive, __init_present>(__sub_group, __scan_input_transform(__v),
-                                                                           __binary_op, __sub_group_carry);
-        if constexpr (__capture_output)
+        else
         {
-            __write_op(__out_rng, __start_idx, __v);
-        }
-        for (std::uint32_t __j = 1; __j < __iters_per_item; __j++)
-        {
-            __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
-            __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
-                __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
-            if constexpr (__capture_output)
+            // For full thread but not full block, we can't unroll the loop, but we
+            // can proceed without special casing for partial subgroups.
+            for (std::uint32_t __j = 1; __j < __iters_per_item; __j++)
             {
-                __write_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
+                __v = __gen_input(__in_rng, __start_idx + __j * __sub_group_size);
+                __sub_group_scan<__sub_group_size, __is_inclusive, /*__init_present=*/true>(
+                    __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
+                if constexpr (__capture_output)
+                {
+                    __write_op(__out_rng, __start_idx + __j * __sub_group_size, __v);
+                }
             }
         }
     }
