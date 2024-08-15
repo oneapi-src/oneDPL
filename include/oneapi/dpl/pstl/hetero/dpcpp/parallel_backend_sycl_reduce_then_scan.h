@@ -561,7 +561,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
 
                         // steps 3+4) load global carry in from neighbor work-group
                         //            and apply to local sub-group prefix carries
-                        auto __carry_offset = 0;
+                        auto __carry_offset = __sub_group_local_id;
 
                         std::uint8_t __iters =
                             oneapi::dpl::__internal::__dpl_ceiling_div(__active_subgroups, __sub_group_size);
@@ -569,14 +569,14 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         std::uint8_t __i = 0;
                         for (; __i < __iters - 1; ++__i)
                         {
-                            __sub_group_partials[__carry_offset + __sub_group_local_id] = __reduce_op(
-                                __carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __sub_group_partials[__carry_offset] = __reduce_op(
+                                __carry_last.__v, __sub_group_partials[__carry_offset]);
                             __carry_offset += __sub_group_size;
                         }
                         if (__i * __sub_group_size + __sub_group_local_id < __active_subgroups)
                         {
-                            __sub_group_partials[__carry_offset + __sub_group_local_id] = __reduce_op(
-                                __carry_last.__v, __sub_group_partials[__carry_offset + __sub_group_local_id]);
+                            __sub_group_partials[__carry_offset] = __reduce_op(
+                                __carry_last.__v, __sub_group_partials[__carry_offset]);
                             __carry_offset += __sub_group_size;
                         }
                         if (__sub_group_local_id == 0)
