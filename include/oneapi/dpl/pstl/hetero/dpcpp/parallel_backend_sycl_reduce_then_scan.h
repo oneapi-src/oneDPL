@@ -105,14 +105,13 @@ __inclusive_sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_f
     //return by reference __value and __init_and_carry
 }
 
-template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _SubGroup,
-          typename _BinaryOp, typename _ValueType, typename _LazyValueType>
+template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _MaskOp,
+          typename _InitBroadcastId, typename _SubGroup, typename _BinaryOp, typename _ValueType,
+          typename _LazyValueType>
 void
-__sub_group_scan(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
-                 _LazyValueType& __init_and_carry)
+__sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
+                        _ValueType& __value, _BinaryOp __binary_op, _LazyValueType& __init_and_carry)
 {
-    auto __mask_fn = [](auto __sub_group_local_id, auto __offset) { return __sub_group_local_id >= __offset; };
-    constexpr auto __init_broadcast_id = __sub_group_size - 1;
     if constexpr (__is_inclusive)
     {
         __inclusive_sub_group_masked_scan<__sub_group_size, __init_present>(__sub_group, __mask_fn, __init_broadcast_id,
@@ -126,6 +125,18 @@ __sub_group_scan(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _SubGroup,
+          typename _BinaryOp, typename _ValueType, typename _LazyValueType>
+void
+__sub_group_scan(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
+                 _LazyValueType& __init_and_carry)
+{
+    auto __mask_fn = [](auto __sub_group_local_id, auto __offset) { return __sub_group_local_id >= __offset; };
+    constexpr auto __init_broadcast_id = __sub_group_size - 1;
+    __sub_group_masked_scan<__sub_group_size, __is_inclusive, __init_present>(
+        __sub_group, __mask_fn, __init_broadcast_id, __value, __binary_op, __init_and_carry);
+}
+
+template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _SubGroup,
           typename _BinaryOp, typename _ValueType, typename _LazyValueType, typename _SizeType>
 void
 __sub_group_scan_partial(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
@@ -135,16 +146,8 @@ __sub_group_scan_partial(const _SubGroup& __sub_group, _ValueType& __value, _Bin
         return __sub_group_local_id >= __offset && __sub_group_local_id < __elements_to_process;
     };
     auto __init_broadcast_id = __elements_to_process - 1;
-    if constexpr (__is_inclusive)
-    {
-        __inclusive_sub_group_masked_scan<__sub_group_size, __init_present>(__sub_group, __mask_fn, __init_broadcast_id,
-                                                                            __value, __binary_op, __init_and_carry);
-    }
-    else
-    {
-        __exclusive_sub_group_masked_scan<__sub_group_size, __init_present>(__sub_group, __mask_fn, __init_broadcast_id,
-                                                                            __value, __binary_op, __init_and_carry);
-    }
+    __sub_group_masked_scan<__sub_group_size, __is_inclusive, __init_present>(
+        __sub_group, __mask_fn, __init_broadcast_id, __value, __binary_op, __init_and_carry);
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, bool __capture_output,
