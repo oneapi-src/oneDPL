@@ -303,14 +303,14 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 auto __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
-                std::size_t __group_start_idx =
+                std::size_t __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __elements_in_group =
-                    std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
+                    std::min(__n - __group_start_id, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
-                std::size_t __subgroup_start_idx = __group_start_idx + (__sub_group_id * __inputs_per_sub_group);
+                std::size_t __subgroup_start_idx = __group_start_id + (__sub_group_id * __inputs_per_sub_group);
 
                 std::size_t __start_idx = __subgroup_start_idx + __sub_group_local_id;
 
@@ -456,11 +456,11 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 auto __sub_group_id = __sub_group.get_group_linear_id();
                 auto __sub_group_local_id = __sub_group.get_local_linear_id();
 
-                auto __group_start_idx =
+                auto __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
                 std::size_t __elements_in_group =
-                    std::min(__n - __group_start_idx, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
+                    std::min(__n - __group_start_id, std::size_t(__num_sub_groups_local * __inputs_per_sub_group));
                 std::uint32_t __active_subgroups =
                     oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __carry_last;
@@ -637,7 +637,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 }
 
                 // step 5) apply global carries
-                std::size_t __subgroup_start_idx = __group_start_idx + (__sub_group_id * __inputs_per_sub_group);
+                std::size_t __subgroup_start_idx = __group_start_id + (__sub_group_id * __inputs_per_sub_group);
                 std::size_t __start_idx = __subgroup_start_idx + __sub_group_local_id;
 
                 if (__sub_group_carry_initialized)
