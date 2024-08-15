@@ -306,10 +306,10 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 std::size_t __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
-                std::size_t __max_elements_in_group = __inputs_per_sub_group * __num_sub_groups_local;
-                std::size_t __elements_in_group = std::min(__n - __group_start_id, __max_elements_in_group);
+                std::size_t __max_inputs_in_group = __inputs_per_sub_group * __num_sub_groups_local;
+                std::size_t __inputs_in_group = std::min(__n - __group_start_id, __max_inputs_in_group);
                 std::uint32_t __active_subgroups =
-                    oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
+                    oneapi::dpl::__internal::__dpl_ceiling_div(__inputs_in_group, __inputs_per_sub_group);
                 std::size_t __subgroup_start_id = __group_start_id + (__sub_group_id * __inputs_per_sub_group);
 
                 std::size_t __start_id = __subgroup_start_id + __sub_group_local_id;
@@ -435,9 +435,9 @@ struct __parallel_reduce_then_scan_scan_submitter<
                const std::size_t __inputs_per_sub_group, const std::size_t __inputs_per_item,
                const std::size_t __block_num) const
     {
-        std::size_t __elements_in_block = std::min(__n - __block_num * __max_block_size, std::size_t(__max_block_size));
+        std::size_t __inputs_in_block = std::min(__n - __block_num * __max_block_size, std::size_t(__max_block_size));
         std::size_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
-            __elements_in_block, __inputs_per_sub_group * __num_sub_groups_local);
+            __inputs_in_block, __inputs_per_sub_group * __num_sub_groups_local);
         using _InitValueType = typename _InitType::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
             // We need __num_sub_groups_local + 1 temporary SLM locations to store intermediate results:
@@ -463,10 +463,10 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 auto __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
 
-                std::size_t __max_elements_in_group = __inputs_per_sub_group * __num_sub_groups_local;
-                std::size_t __elements_in_group = std::min(__n - __group_start_id, __max_elements_in_group);
+                std::size_t __max_inputs_in_group = __inputs_per_sub_group * __num_sub_groups_local;
+                std::size_t __inputs_in_group = std::min(__n - __group_start_id, __max_inputs_in_group);
                 std::uint32_t __active_subgroups =
-                    oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_group, __inputs_per_sub_group);
+                    oneapi::dpl::__internal::__dpl_ceiling_div(__inputs_in_group, __inputs_per_sub_group);
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __carry_last;
 
                 // propagate carry in from previous block
@@ -751,19 +751,20 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     const std::size_t __num_sub_groups_global = __num_sub_groups_local * __num_work_groups;
     const std::size_t __n = __in_rng.size();
     const std::size_t __max_inputs_per_block = __work_group_size * __max_inputs_per_item * __num_work_groups;
-    std::size_t __num_remaining = __n;
+    std::size_t __inputs_remaining = __n;
 
     // reduce_then_scan kernel is not built to handle "empty".
     // These trivial end cases should be handled at a higher level.
-    assert(__num_remaining > 0);
+    assert(__inputs_remaining > 0);
     const std::uint32_t __max_inputs_per_subgroup = __max_inputs_per_block / __num_sub_groups_global;
-    std::uint32_t __evenly_divided_remaining_elements =
-        std::max(__sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
+    std::uint32_t __evenly_divided_remaining_inputs = std::max(
+        __sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
     auto __inputs_per_sub_group =
-        __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_elements;
+        __inputs_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_inputs;
     auto __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
-    const auto __block_size = (__num_remaining < __max_inputs_per_block) ? __num_remaining : __max_inputs_per_block;
-    const auto __num_blocks = __num_remaining / __block_size + (__num_remaining % __block_size != 0);
+    const auto __block_size =
+        (__inputs_remaining < __max_inputs_per_block) ? __inputs_remaining : __max_inputs_per_block;
+    const auto __num_blocks = __inputs_remaining / __block_size + (__inputs_remaining % __block_size != 0);
 
     // We need temporary storage for reductions of each sub-group (__num_sub_groups_global).
     // Additionally, we need two elements for the block carry-out to prevent a race condition
@@ -804,11 +805,11 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
     {
-        auto __elements_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
-            std::min(__num_remaining, __max_inputs_per_block), __inputs_per_item);
-        auto __ele_in_block_round_up_workgroup =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__elements_in_block, __work_group_size) * __work_group_size;
-        auto __global_range = sycl::range<1>(__ele_in_block_round_up_workgroup);
+        auto __inputs_in_block = oneapi::dpl::__internal::__dpl_ceiling_div(
+            std::min(__inputs_remaining, __max_inputs_per_block), __inputs_per_item);
+        auto __inputs_in_block_round_up_workgroup =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__inputs_in_block, __work_group_size) * __work_group_size;
+        auto __global_range = sycl::range<1>(__inputs_in_block_round_up_workgroup);
         auto __local_range = sycl::range<1>(__work_group_size);
         auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
@@ -817,14 +818,15 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
         __event = __scan_submitter(__exec, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event,
                                    __inputs_per_sub_group, __inputs_per_item, __b);
-        __num_remaining -= std::min(__num_remaining, __block_size);
+        __inputs_remaining -= std::min(__inputs_remaining, __block_size);
         // We only need to resize these parameters prior to the last block as it is the only non-full case.
         if (__b + 2 == __num_blocks)
         {
-            __evenly_divided_remaining_elements = std::max(
-                __sub_group_size, oneapi::dpl::__internal::__dpl_bit_ceil(__num_remaining) / __num_sub_groups_global);
-            __inputs_per_sub_group = __num_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup
-                                                                               : __evenly_divided_remaining_elements;
+            __evenly_divided_remaining_inputs =
+                std::max(__sub_group_size,
+                         oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
+            __inputs_per_sub_group = __inputs_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup
+                                                                                  : __evenly_divided_remaining_inputs;
             __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
         }
     }
