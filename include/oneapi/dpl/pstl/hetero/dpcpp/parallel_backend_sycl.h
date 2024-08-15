@@ -804,7 +804,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
 {
     using _Type = typename _InitType::__value_type;
     // Reduce-then-scan is dependent on sycl::shift_group_right which requires the underlying type to be trivially
-    // copyable. If this is not met, then we must fallback to the multi pass scan implementation. The single 
+    // copyable. If this is not met, then we must fallback to the multi pass scan implementation. The single
     // work-group implementation requires a fundamental type which must also be trivially copyable.
     if constexpr (std::is_trivially_copyable_v<_Type>)
     {
