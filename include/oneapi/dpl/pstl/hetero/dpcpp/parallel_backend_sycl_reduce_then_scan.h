@@ -318,7 +318,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 if (__sub_group_id < __active_subgroups)
                 {
                     // adjust for lane-id
-                    // compute sub-group local pfix on T0..63, K samples/T, send to accumulator kernel
+                    // compute sub-group local prefix on T0..63, K samples/T, send to accumulator kernel
                     __scan_through_elements_helper<__sub_group_size, __is_inclusive,
                                                    /*__init_present=*/false,
                                                    /*__capture_output=*/false, __max_inputs_per_item>(
@@ -451,7 +451,6 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr =
                     _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
-                auto __lid = __ndi.get_local_id(0);
                 auto __group_id = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
                 auto __sub_group_id = __sub_group.get_group_linear_id();
@@ -471,18 +470,18 @@ struct __parallel_reduce_then_scan_scan_submitter<
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
 
                 // on the first sub-group in a work-group (assuming S subgroups in a work-group):
-                // 1. load S sub-group local carry pfix sums (T0..TS-1) to slm
+                // 1. load S sub-group local carry prefix sums (T0..TS-1) to SLM
                 // 2. load 32, 64, 96, etc. TS-1 work-group carry-outs (32 for WG num<32, 64 for WG num<64, etc.),
                 //    and then compute the prefix sum to generate global carry out
                 //    for each WG, i.e., prefix sum on TS-1 carries over all WG.
                 // 3. on each WG select the adjacent neighboring WG carry in
-                // 4. on each WG add the global carry-in to S sub-group local pfix sums to
+                // 4. on each WG add the global carry-in to S sub-group local prefix sums to
                 //    get a T-local global carry in
-                // 5. recompute T-local pfix values, add the T-local global carries,
+                // 5. recompute T-local prefix values, add the T-local global carries,
                 //    and then write back the final values to memory
                 if (__sub_group_id == 0)
                 {
-                    // step 1) load to Xe slm the WG-local S prefix sums
+                    // step 1) load to Xe SLM the WG-local S prefix sums
                     //         on WG T-local carries
                     //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
                     //           S: sum(T0 carry...TS carry)
@@ -660,7 +659,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                         __sub_group_carry, __in_rng, __out_rng, __start_id, __n, __inputs_per_item,
                         __subgroup_start_id, __sub_group_id, __active_subgroups);
                 }
-                //If within the last active group and subgroup of the block, use the 0th work item of the subgroup
+                // If within the last active group and sub-group of the block, use the 0th work-item of the sub-group
                 // to write out the last carry out for either the return value or the next block
                 if (__sub_group_local_id == 0 && (__active_groups == __group_id + 1) &&
                     (__active_subgroups == __sub_group_id + 1))
@@ -671,7 +670,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
                     }
                     else
                     {
-                        //capture the last carry out for the next block
+                        // capture the last carry out for the next block
                         __set_block_carry_out(__block_num, __tmp_ptr, __sub_group_carry.__v);
                     }
                 }
@@ -696,7 +695,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
 };
 
 // reduce_then_scan requires subgroup size of 32, and performs well only on devices with fast coordinated subgroup
-// operations.  We do not want to run this can on CPU targets, as they are not performant with this algorithm.
+// operations.  We do not want to run this scan on CPU targets, as they are not performant with this algorithm.
 template <typename _ExecutionPolicy>
 bool
 __prefer_reduce_then_scan(const _ExecutionPolicy& __exec)
