@@ -1092,7 +1092,7 @@ struct __early_exit_find_or
         //  - __parallel_find_forward_tag : in case when we find the first value in the data;
         //  - __parallel_find_backward_tag : in case when we find the last value in the data;
         //  - __parallel_or_tag : in case when we find any value in the data.
-        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+        // using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
 
         // Return the index of this item in the kernel's execution range
         const auto __global_id = __item_id.get_global_linear_id();
