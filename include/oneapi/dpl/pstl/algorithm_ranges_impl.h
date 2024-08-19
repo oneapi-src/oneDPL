@@ -258,7 +258,8 @@ __pattern_count_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred _
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj, __val));};
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj,
+        std::forward<decltype(__val)>(__val)));};
     return oneapi::dpl::__internal::__pattern_count(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __pred_1);
 }
@@ -293,7 +294,8 @@ __pattern_equal_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
     auto __pred_2 = [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2)
-        { return std::invoke(__pred, std::invoke(__proj1, __val1), std::invoke(__proj2, __val2));};
+        { return std::invoke(__pred, std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
+        std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     return oneapi::dpl::__internal::__pattern_equal(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
@@ -332,8 +334,8 @@ __pattern_is_sorted_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp 
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2)
-        { return std::invoke(__comp, std::invoke(__proj, __val1), std::invoke(__proj, __val2));};
+    auto __pred_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp, std::invoke(__proj,
+        std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     return oneapi::dpl::__internal::__pattern_adjacent_find(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r),
@@ -368,8 +370,8 @@ __pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2)
-        { return std::invoke(__comp, std::invoke(__proj, __val1), std::invoke(__proj, __val2));};
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp, std::invoke(__proj,
+        std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     using _InputType  = std::ranges::range_value_t<_R>;
     oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
@@ -406,8 +408,8 @@ __pattern_min_element_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Com
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2)
-        { return std::invoke(__comp, std::invoke(__proj, __val1), std::invoke(__proj, __val2));};
+    auto __comp_2 = [__comp, __proj](auto&& __val1, auto&& __val2) { return std::invoke(__comp, std::invoke(__proj,
+        std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     auto __res = oneapi::dpl::__internal::__pattern_min_element(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
         std::ranges::begin(__r) + std::ranges::size(__r), __comp_2);
@@ -479,10 +481,12 @@ __pattern_copy_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r,
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj, __val));};
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return std::invoke(__pred, std::invoke(__proj,
+        std::forward<decltype(__val)>(__val)));};
 
-    auto __res_idx = oneapi::dpl::__internal::__pattern_copy_if(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__in_r),
-        std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r), __pred_1) - std::ranges::begin(__out_r);
+    auto __res_idx = oneapi::dpl::__internal::__pattern_copy_if(__tag, std::forward<_ExecutionPolicy>(__exec),
+        std::ranges::begin(__in_r), std::ranges::begin(__in_r) + std::ranges::size(__in_r),
+        std::ranges::begin(__out_r), __pred_1) - std::ranges::begin(__out_r);
 
     using __return_t = std::ranges::copy_if_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
@@ -525,8 +529,9 @@ __pattern_merge_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
     assert(std::ranges::size(__r1) + std::ranges::size(__r2) == std::ranges::size(__out_r));
 
-    auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2)
-        { return std::invoke(__comp, std::invoke(__proj1, __val1), std::invoke(__proj2, __val2));};
+    auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
+        std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj2,
+        std::forward<decltype(__val2)>(__val2)));};
 
     auto __res = oneapi::dpl::__internal::__pattern_merge(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
