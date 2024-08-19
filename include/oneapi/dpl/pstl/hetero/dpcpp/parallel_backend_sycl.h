@@ -832,8 +832,7 @@ struct __gen_expand_count_mask
         // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
         //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
         //  the values of zipped the input types rather than their references.
-        using _ElementType =
-            oneapi::dpl::__internal::__decay_with_tuple_specialization_t<oneapi::dpl::__internal::__value_t<_InRng>>;
+        using _ElementType = oneapi::dpl::__internal::__value_t<_InRng>;
         _ElementType ele = __in_rng[__idx];
         bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __idx);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
