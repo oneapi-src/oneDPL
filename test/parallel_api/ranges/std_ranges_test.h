@@ -80,19 +80,19 @@ struct P2
 template<typename DataType, typename Container, TestDataMode mode = data_in>
 struct test
 {
-    template<typename Policy, typename Algo, typename... Args>
+    template<typename Policy>
     std::enable_if_t<std::is_same_v<Policy, std::true_type>>
-    operator()(Policy, Algo algo, Args... args)
+    operator()(Policy, auto algo, auto& checker, auto... args)
     {
-        operator()(oneapi::dpl::execution::seq, algo, args...);
-        operator()(oneapi::dpl::execution::unseq, algo, args...);
-        operator()(oneapi::dpl::execution::par, algo, args...);
-        operator()(oneapi::dpl::execution::par_unseq, algo, args...);
+        operator()(oneapi::dpl::execution::seq, algo, checker, args...);
+        operator()(oneapi::dpl::execution::unseq, algo, checker, args...);
+        operator()(oneapi::dpl::execution::par, algo, checker,  args...);
+        operator()(oneapi::dpl::execution::par_unseq, algo, checker, args...);
     }
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
-    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         constexpr int max_n = 10;
         DataType data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -120,7 +120,7 @@ struct test
     }
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
-    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut tr_out, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -154,7 +154,7 @@ struct test
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
-    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -181,7 +181,7 @@ struct test
     }
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
-    operator()(Policy&& exec, Algo algo, Checker checker, TransIn tr_in, TransOut tr_out, auto... args)
+    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
         constexpr int max_n = 10;
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -397,7 +397,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
 struct test_range_algo
 {
-    void operator()(auto algo, auto checker, auto... args)
+    void operator()(auto algo, auto& checker, auto... args)
     {
 
         auto subrange_view = [](auto&& v) { return std::ranges::subrange(v); };
@@ -432,4 +432,3 @@ struct test_range_algo
 }; //namespace test_std_ranges
 
 #endif //_ENABLE_STD_RANGES_TESTING
-
