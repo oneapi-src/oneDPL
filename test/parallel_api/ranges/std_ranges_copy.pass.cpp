@@ -23,12 +23,11 @@ main()
     namespace dpl_ranges = oneapi::dpl::ranges;
 
     auto copy_checker = [](std::ranges::random_access_range auto&& r_in,
-                           std::ranges::random_access_range auto&& r_out, auto&&... args)
+                           std::ranges::random_access_range auto&& r_out)
     {
         const auto size = std::ranges::min(std::ranges::size(r_in), std::ranges::size(r_out));
 
-        auto res = std::ranges::copy(std::ranges::take_view(r_in, _size), std::ranges::take_view(r_out, size),
-            std::forward<decltype(args)>(args)...);
+        auto res = std::ranges::copy(std::ranges::take_view(r_in, size), std::ranges::take_view(r_out, size).begin());
 
         using ret_type = std::ranges::copy_result<std::ranges::borrowed_iterator_t<decltype(r_in)>,
             std::ranges::borrowed_iterator_t<decltype(r_out)>>;
