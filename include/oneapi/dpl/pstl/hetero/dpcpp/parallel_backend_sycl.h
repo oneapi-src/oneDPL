@@ -800,7 +800,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 auto
 __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                           _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op,
-                          _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+                          _InitType __init, bool __is_possibly_inplace, _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename _InitType::__value_type;
     // Reduce-then-scan is dependent on sycl::shift_group_right which requires the underlying type to be trivially
@@ -851,19 +851,39 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
+    auto __local_scan = unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner,
+                                _Assigner,_NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                        __get_data_op};
+
+    auto __scan_between_groups = unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor, _NoAssign,
+                                _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op};
+
+    auto __global_scan = unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init};
+
+    if (__is_possibly_inplace && __n > 1 && !_Inclusive{})
+    {
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        auto __temp = __temp_buf.get_buffer();
+
+        using CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{},
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_wrapper>(
+                std::forward<_ExecutionPolicy>(__exec)),
+            unseq_backend::walk_n<_ExecutionPolicy, CopyBrick>{CopyBrick{}}, __n, std::forward<_Range1>(__in_rng),
+            __temp)
+            .get();
+
+        return __parallel_transform_scan_base(
+            __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::move(__temp),
+            std::forward<_Range2>(__out_rng), __binary_op, __init, std::move(__local_scan),
+            std::move(__scan_between_groups), std::move(__global_scan));
+    }
     return __parallel_transform_scan_base(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-        std::forward<_Range2>(__out_rng), __binary_op, __init,
-        // local scan
-        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
-                                                       __get_data_op},
-        // scan between groups
-        unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor, _NoAssign,
-                              _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-        // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
+        std::forward<_Range2>(__out_rng), __binary_op, __init, std::move(__local_scan),
+        std::move(__scan_between_groups), std::move(__global_scan));
 }
 
 template <typename _SizeType>
