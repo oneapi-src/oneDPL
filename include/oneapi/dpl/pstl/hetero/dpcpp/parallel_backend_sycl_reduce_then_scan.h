@@ -293,9 +293,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng);
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
-            __cgh.parallel_for<_KernelName...>(__nd_range, [=,
-                                                            *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
-                                                               __sub_group_size)]] {
+            __cgh.parallel_for<_KernelName...>(
+                    __nd_range, [=, *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
                 auto __temp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __group_id = __ndi.get_group(0);
                 auto __sub_group = __ndi.get_sub_group();
@@ -449,9 +448,8 @@ struct __parallel_reduce_then_scan_scan_submitter<
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
             auto __res_acc = __scratch_container.__get_result_acc(__cgh);
 
-            __cgh.parallel_for<_KernelName...>(__nd_range, [=,
-                                                            *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(
-                                                               __sub_group_size)]] {
+            __cgh.parallel_for<_KernelName...>(
+                    __nd_range, [=, *this] (sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
                 auto __tmp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr =
                     _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
@@ -691,7 +689,6 @@ struct __parallel_reduce_then_scan_scan_submitter<
     const std::size_t __num_blocks;
     const std::size_t __n;
 
-    const _GenReduceInput __gen_reduce_input;
     const _ReduceOp __reduce_op;
     const _GenScanInput __gen_scan_input;
     const _ScanInputTransform __scan_input_transform;
@@ -777,9 +774,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
                                                      _GenReduceInput, _ReduceOp, _InitType, _ReduceKernel>;
     using _ScanSubmitter =
-        __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
-                                                   _GenReduceInput, _ReduceOp, _GenScanInput, _ScanInputTransform,
-                                                   _WriteOp, _InitType, _ScanKernel>;
+        __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive, _ReduceOp,
+                                                   _GenScanInput, _ScanInputTransform, _WriteOp, _InitType,
+                                                   _ScanKernel>;
     _ReduceSubmitter __reduce_submitter{__max_inputs_per_block,
                                         __num_sub_groups_local,
                                         __num_sub_groups_global,
@@ -794,7 +791,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                                     __num_work_items,
                                     __num_blocks,
                                     __n,
-                                    __gen_reduce_input,
                                     __reduce_op,
                                     __gen_scan_input,
                                     __scan_input_transform,

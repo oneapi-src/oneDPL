@@ -810,7 +810,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
     {
         // Next power of 2 greater than or equal to __n
         auto __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
-        bool __pref_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec);
+        bool __use_reduce_then_scan = oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec);
 
         // TODO: Consider re-implementing single group scan to support types without known identities. This could also
         // allow us to use single wg scan for the last block of reduce-then-scan if it is sufficiently small.
@@ -818,7 +818,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         if constexpr (__can_use_group_scan)
         {
             // Empirically found values for reduce-then-scan and multi pass scan implementation for single wg cutoff
-            std::size_t __single_group_upper_limit = __pref_reduce_then_scan ? 2048 : 16384;
+            std::size_t __single_group_upper_limit = __use_reduce_then_scan ? 2048 : 16384;
             if (__group_scan_fits_in_slm<_Type>(__exec.queue(), __n, __n_uniform, __single_group_upper_limit))
             {
                 return __parallel_transform_scan_single_group(
@@ -826,7 +826,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
                     ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
             }
         }
-        if (__pref_reduce_then_scan)
+        if (__use_reduce_then_scan)
         {
             using _GenInput = oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>;
             using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
