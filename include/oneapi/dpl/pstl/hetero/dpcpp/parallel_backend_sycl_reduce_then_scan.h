@@ -400,17 +400,17 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     _InitType __init;
 };
 
-template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _GenReduceInput, typename _ReduceOp, typename _GenScanInput, typename _ScanInputTransform,
-          typename _WriteOp, typename _InitType, typename _KernelName>
+template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
+          typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
+          typename _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter;
 
-template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
-          typename _GenReduceInput, typename _ReduceOp, typename _GenScanInput, typename _ScanInputTransform,
-          typename _WriteOp, typename _InitType, typename... _KernelName>
-struct __parallel_reduce_then_scan_scan_submitter<
-    __sub_group_size, __max_inputs_per_item, __is_inclusive, _GenReduceInput, _ReduceOp, _GenScanInput,
-    _ScanInputTransform, _WriteOp, _InitType, __internal::__optional_kernel_name<_KernelName...>>
+template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
+          typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
+          typename... _KernelName>
+struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive, _ReduceOp,
+                                                  _GenScanInput, _ScanInputTransform, _WriteOp, _InitType,
+                                                  __internal::__optional_kernel_name<_KernelName...>>
 {
 
     template <typename _TmpPtr>
@@ -702,7 +702,7 @@ template <typename _ExecutionPolicy>
 bool
 __is_gpu_with_sg_32(const _ExecutionPolicy& __exec)
 {
-    const bool __dev_has_sg32 = __par_backend_hetero::__supports_sub_group_size(__exec, 32);
+    const bool __dev_has_sg32 = oneapi::dpl::__internal::__supports_sub_group_size(__exec, 32);
     return (__exec.queue().get_device().is_gpu() && __dev_has_sg32);
 }
 
