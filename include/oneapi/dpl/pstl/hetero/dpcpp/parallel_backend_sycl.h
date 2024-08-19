@@ -768,14 +768,15 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, std::size_t __n, std::size_
 template <typename _UnaryOp>
 struct __gen_transform_input
 {
-    template <typename InRng>
+    template <typename _InRng>
     auto
-    operator()(const InRng& __in_rng, std::size_t __idx) const
+    operator()(const _InRng& __in_rng, std::size_t __idx) const
     {
-        using _ValueType = oneapi::dpl::__internal::__value_t<InRng>;
-        using _OutValueType = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<
-            typename std::invoke_result<_UnaryOp, _ValueType>::type>;
-        return _OutValueType{__unary_op(__in_rng[__idx])};
+        // We explicitly convert __in_rng[__idx] to the value type of _InRng to properly handle the case where we
+        // process zip_iterator input where the reference type is a tuple of a references. This prevents the caller
+        // from modifying the input range when altering the return of this functor.
+        using _ValueType = oneapi::dpl::__internal::__value_t<_InRng>;
+        return __unary_op(_ValueType{__in_rng[__idx]});
     }
     _UnaryOp __unary_op;
 };
