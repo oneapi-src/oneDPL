@@ -48,9 +48,14 @@ template<typename UIntType, ::std::size_t w, ::std::size_t n, ::std::size_t r,
 class philox_engine
 {
 public:
-    //types
+    /* types */
     using result_type = UIntType;
     using scalar_type = internal::element_type_t<result_type>;
+
+    /* engine characteristics */
+    static constexpr ::std::size_t word_size = w;
+    static constexpr ::std::size_t word_count = n;
+    static constexpr ::std::size_t round_count = r;
 
 private:
     static_assert(n == 2 || n == 4); // [ToDO] Extend to n = 8 and 16 
@@ -58,13 +63,6 @@ private:
     static_assert(r > 0);
     static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits);
 
-public:
-    // engine characteristics
-    static constexpr ::std::size_t word_size = w;
-    static constexpr ::std::size_t word_count = n;
-    static constexpr ::std::size_t round_count = r;
-
-private:
     /* Internal generator state */
     struct state {
         ::std::array<scalar_type, word_count> X;   // counters
@@ -107,7 +105,6 @@ private:
     }
 
     void increase_counter_internal(unsigned long long z) {
-    
         unsigned long long carry = 0;
         unsigned long long ctr_inc = z;
 
@@ -124,6 +121,7 @@ private:
         }
     }
     
+    /* operator() specified for sycl_vec output */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N > 0), result_type>
     operator()() {
@@ -139,11 +137,12 @@ private:
             tmp[elm_count] = state_.Y[curr_idx];
         }
         
-        state_.idx=++curr_idx;
+        state_.idx = ++curr_idx;
 
         return tmp;
     }
     
+    /* operator() specified for a scalar output */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N == 0), result_type>
     operator()() {
@@ -158,7 +157,7 @@ private:
         
         // There are already generated numbers in the buffer
         tmp = state_.Y[curr_idx];
-        state_.idx=++curr_idx;
+        state_.idx = ++curr_idx;
 
         return tmp;
     }
@@ -169,49 +168,60 @@ public:
                                                     ::std::make_index_sequence<array_size>{});
     static constexpr ::std::array<scalar_type, array_size> round_consts =
         detail::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
-                                                   ::std::make_index_sequence<array_size>{});
+                                                    ::std::make_index_sequence<array_size>{});
     static constexpr scalar_type min() { return 0; }
     static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max(); }
     static constexpr scalar_type default_seed = 20111115u;
 
-    // constructors and seeding functions
+    /* Constructors and seeding functions */
     philox_engine() : philox_engine(default_seed) {}
     explicit philox_engine(scalar_type value) { seed(value); }
     void seed(scalar_type value = default_seed) { seed_internal({ value & in_mask }); }
 
-    // Set the state to arbitrary position
+    /* Set the state to arbitrary position */
     void set_counter(const ::std::array<scalar_type, word_count>& counter) {
         auto start = counter.begin();
         auto end = counter.end();
         for (size_t i = 0; i < word_count; i++) {
-            state_.X[i] = (start == end) ? 0 : (*start++) & in_mask; // all counters are set
+            // all counters are set in everse order
+            state_.X[i] = (start == end) ? 0 : (*--end) & in_mask;
         }
     }
 
-    // generating functions
+    /* Generating functions */
     result_type operator()() {
         result_type ret = this->operator()<internal::type_traits_t<result_type>::num_elems>();
         return ret;
     }
 
-    /* shift the counter only forward relative to its current position*/
+    /* Shift the counter only forward relative to its current position */
     void discard(unsigned long long z) {
         scalar_type curr_idx = state_.idx % word_count;
-        scalar_type newridx;
+        scalar_type newridx = (curr_idx + z) % (word_count);
+        if(newridx == 0) {
+            newridx = word_count;
+        }
+        
+        // otherwise, simply iterate the index in the buffer
+        if(z >= word_count - state_.idx) {
+            unsigned long long counters_increment = (z+curr_idx) / word_count;
 
-        newridx = (curr_idx + z) % (word_count);
-        unsigned long long counters_increment = z / word_count;
-        increase_counter_internal(counters_increment);
+            if(state_.idx < word_count) {
+                counters_increment--;
+            }
 
-        if(newridx < word_count) {
-            generate();
-            increase_counter_internal();
+            increase_counter_internal(counters_increment);
+
+            if(newridx < word_count) {
+                generate();
+                increase_counter_internal();
+            }
         }
 
         state_.idx = newridx;
     }
 
-    // equality operators        
+    /* Equality operators */
     friend bool operator==(const philox_engine& x, const philox_engine& y) {
         if(!::std::equal(x.state_.X.begin(), x.state_.X.end(), y.state_.X.begin()) ||
            !::std::equal(x.state_.K.begin(), x.state_.K.end(), y.state_.K.begin()) ||
@@ -227,7 +237,7 @@ public:
         return !(__x == __y);
     }
 
-    // inserters and extractors        
+    /* inserters and extractors */
     template<class CharT, class Traits, typename UIntType_, ::std::size_t w_, ::std::size_t n_, ::std::size_t r_, UIntType_... consts_>
     friend ::std::basic_ostream<CharT, Traits>& 
     operator<<(::std::basic_ostream<CharT, Traits>&, const philox_engine<UIntType_, w_, n_, r_, consts_...>&);
@@ -241,7 +251,7 @@ public:
     operator>>(::std::basic_istream<CharT, Traits>&, philox_engine<UIntType_, w_, n_, r_, consts_...>&);
 
 private:
-
+    /* Internal generation Philox kernel */
     void generate() {
         if constexpr (word_count == 2) {
                 scalar_type R0 = (state_.X[0]) & in_mask;
