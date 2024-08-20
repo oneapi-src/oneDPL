@@ -197,14 +197,15 @@ public:
     /* Shift the counter only forward relative to its current position */
     void discard(unsigned long long z) {
         scalar_type curr_idx = state_.idx % word_count;
-        scalar_type newridx = (curr_idx + z) % (word_count);
+        unsigned long long newridx = (curr_idx + z) % (word_count);
         if(newridx == 0) {
             newridx = word_count;
         }
         
         // otherwise, simply iterate the index in the buffer
         if(z >= word_count - state_.idx) {
-            unsigned long long counters_increment = (z+curr_idx) / word_count;
+            unsigned long long counters_increment = z / word_count;
+            counters_increment += ((z % word_count) + curr_idx)/word_count;
 
             if(state_.idx < word_count) {
                 counters_increment--;
