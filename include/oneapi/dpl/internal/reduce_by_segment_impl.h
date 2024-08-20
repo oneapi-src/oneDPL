@@ -351,7 +351,8 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
             __seg_reduce_wg_kernel,
 #endif
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                ::std::array<__val_type, __vals_per_item> __loc_partials;
+                auto __identity = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
+                std::array<__val_type, __vals_per_item> __loc_partials = {__identity};
 
                 auto __group = __item.get_group();
                 ::std::size_t __group_id = __item.get_group(0);
@@ -368,7 +369,6 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
 
                 ::std::size_t __max_end = 0;
                 ::std::size_t __item_segments = 0;
-                auto __identity = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
 
                 __val_type __accumulator = __identity;
                 for (::std::size_t __i = __start; __i < __end; ++__i)

@@ -13,14 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
-#undef ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
-#endif
-
-#if defined(_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
-#    define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION _ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
-#endif
-
 #include "support/test_config.h"
 
 #include "oneapi/dpl/execution"
@@ -306,18 +298,12 @@ void
 run_test_on_device()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    // Skip 64-byte types testing when the algorithm is broken and there is no the workaround
-#if _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES && !ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
-    if constexpr (sizeof(ValueType) != 8)
-#endif
+    if (TestUtils::has_type_support<ValueType>(TestUtils::get_test_queue().get_device()))
     {
-        if (TestUtils::has_type_support<ValueType>(TestUtils::get_test_queue().get_device()))
-        {
-            // Run tests for USM shared memory
-            test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-            // Run tests for USM device memory
-            test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        }
+        // Run tests for USM shared memory
+        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        // Run tests for USM device memory
+        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 }
