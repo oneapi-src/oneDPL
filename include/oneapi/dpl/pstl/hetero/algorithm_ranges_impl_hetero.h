@@ -392,7 +392,7 @@ oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
                       _BinaryPredicate __pred)
 {
-    auto __n = __rng.size();
+    oneapi::dpl::__internal::__difference_t<_Range1> __n = __rng.size();
     if (__n == 0)
         return 0;
     if (__n == 1)
@@ -434,7 +434,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    auto res = __ranges::__pattern_unique_copy(
+    oneapi::dpl::__internal::__difference_t<_Range> res = __ranges::__pattern_unique_copy(
         __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__unique_wrapper>(__exec), __rng, res_rng, __pred);
 
     __ranges::__pattern_walk_n(__tag,

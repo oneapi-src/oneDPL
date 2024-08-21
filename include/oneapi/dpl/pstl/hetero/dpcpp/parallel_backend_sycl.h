@@ -1085,7 +1085,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
                        _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
 {
     using _Assign = oneapi::dpl::__internal::__pstl_assign;
-    auto __n = __rng.size();
+    oneapi::dpl::__internal::__difference_t<_Range1> __n = __rng.size();
 
     // We expect at least two elements to perform unique_copy.  With fewer we
     // can simply copy the input range to the output.
