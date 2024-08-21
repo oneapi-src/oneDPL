@@ -127,9 +127,9 @@ struct all_view_fn
 
     template <typename _R>
     auto
-    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r)) const
+    operator()(_R&& __r) const -> decltype(std::forward<_R>(__r)) const
     {
-        return ::std::forward<_R>(__r);
+        return std::forward<_R>(__r);
     }
 };
 
