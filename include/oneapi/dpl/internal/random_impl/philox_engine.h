@@ -63,7 +63,7 @@ private:
     static_assert(r > 0, "r must be more than 0");
     static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits, "w must 0 < w < ::std::numeric_limits<UIntType>::digits");
     static_assert(::std::numeric_limits<scalar_type>::digits <= 64, "UIntType size must be less than 64 bits");
-    static_assert(::std::is_unsigned_v<UIntType>, "UIntType must be unsigned type");
+    static_assert(::std::is_unsigned_v<scalar_type>, "UIntType must be unsigned type or vector of unsigned types");
 
     /* Internal generator state */
     struct state {
@@ -126,37 +126,64 @@ private:
             ctr_inc = (ctr_inc & (~in_mask)) >> (std::numeric_limits<unsigned long long>::digits - word_size);
         }
     }
-    
-    /* operator() specified for sycl_vec output */
+
+    /* generate_internal() specified for sycl_vec output and overload for result portion generation */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N > 0), result_type>
-    operator()() {
+    generate_internal(unsigned int __random_nums) {
+
+        if (__random_nums >= _N)
+            return operator()();
+
         result_type tmp;
         scalar_type curr_idx = state_.idx;
 
-        for (int elm_count = 0; elm_count < _N; elm_count++, curr_idx++) {
+        for (int elm_count = 0; elm_count < __random_nums; elm_count++) {
             if(curr_idx  == word_count) { // empty buffer
-                generate();
+                philox_kernel();
                 increase_counter_internal();
                 curr_idx = 0;
             }
             tmp[elm_count] = state_.Y[curr_idx];
+            curr_idx++;
         }
         
-        state_.idx = ++curr_idx;
+        state_.idx = curr_idx;
 
         return tmp;
     }
     
-    /* operator() specified for a scalar output */
+    /* generate_internal() specified for sycl_vec output */
+    template <unsigned int _N = 0>
+    ::std::enable_if_t<(_N > 0), result_type>
+    generate_internal() {
+        result_type tmp;
+        scalar_type curr_idx = state_.idx;
+
+        for (int elm_count = 0; elm_count < _N; elm_count++) {
+            if(curr_idx  == word_count) { // empty buffer
+                philox_kernel();
+                increase_counter_internal();
+                curr_idx = 0;
+            }
+            tmp[elm_count] = state_.Y[curr_idx];
+            curr_idx++;
+        }
+        
+        state_.idx = curr_idx;
+
+        return tmp;
+    }
+    
+    /* generate_internal() specified for a scalar output */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N == 0), result_type>
-    operator()() {
+    generate_internal() {
         result_type tmp;
 
         scalar_type curr_idx = state_.idx;
         if(curr_idx  == word_count) { // empty buffer
-            generate();
+            philox_kernel();
             increase_counter_internal();
             curr_idx = 0;
         }
@@ -196,7 +223,13 @@ public:
 
     /* Generating functions */
     result_type operator()() {
-        result_type ret = this->operator()<internal::type_traits_t<result_type>::num_elems>();
+        result_type ret = generate_internal<internal::type_traits_t<result_type>::num_elems>();
+        return ret;
+    }
+    
+    /* operator () overload for result portion generation */
+    result_type operator()(unsigned int __random_nums) {
+        result_type ret = generate_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
         return ret;
     }
 
@@ -220,7 +253,7 @@ public:
             increase_counter_internal(counters_increment);
 
             if(newridx < word_count) {
-                generate();
+                philox_kernel();
                 increase_counter_internal();
             }
         }
@@ -259,7 +292,7 @@ public:
 
 private:
     /* Internal generation Philox kernel */
-    void generate() {
+    void philox_kernel() {
         if constexpr (word_count == 2) {
                 scalar_type R0 = (state_.X[0]) & in_mask;
                 scalar_type L0 = (state_.X[1]) & in_mask;

@@ -117,6 +117,34 @@ main()
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "philox_engine<uint_fast32_t, 32, 4, 10, 0xD2511F53, 0x9E3779B9, 0xCD9E8D57, 0xBB67AE85>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32>(queue);
+#if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<16>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<8>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<4>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<3>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<2>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x32_vec<1>>(queue);
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "philox_engine<uint_fast64_t, 64, 4, 10, 0xD2E7470EE14C6C93, 0x9E3779B97F4A7C15, 0xCA5A826395121157, 0xBB67AE8584CAA73B>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64>(queue);
+#if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<16>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<8>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<4>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<3>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<2>>(queue);
+    err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, oneapi::dpl::philox4x64_vec<1>>(queue);
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
 #endif // TEST_UNNAMED_LAMBDAS
 
     return TestUtils::done(TEST_UNNAMED_LAMBDAS);
