@@ -112,7 +112,7 @@ struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : 
 
 template <class _ExecPolicy, class _T = void>
 using __enable_if_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::is_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
+    std::enable_if_t<oneapi::dpl::is_execution_policy_v<std::decay_t<_ExecPolicy>>, _T>;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
