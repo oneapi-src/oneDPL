@@ -75,6 +75,7 @@ private:
   
     /* Processing mask */
     static constexpr auto in_mask = detail::word_mask<scalar_type, word_size>;
+    /* The size of the consts arrays */
     static constexpr ::std::size_t array_size = word_count / 2;
     
     void seed_internal(::std::initializer_list<scalar_type> seed) {
@@ -127,15 +128,15 @@ private:
         }
     }
 
-    /* generate_internal() specified for sycl_vec output and overload for result portion generation */
+    /* generate_internal() specified for sycl_vec output 
+       and overload for result portion generation */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N > 0), result_type>
     generate_internal(unsigned int __random_nums) {
-
         if (__random_nums >= _N)
             return operator()();
 
-        result_type tmp;
+        result_type loc_result;
         scalar_type curr_idx = state_.idx;
 
         for (int elm_count = 0; elm_count < __random_nums; elm_count++) {
@@ -144,20 +145,20 @@ private:
                 increase_counter_internal();
                 curr_idx = 0;
             }
-            tmp[elm_count] = state_.Y[curr_idx];
+            loc_result[elm_count] = state_.Y[curr_idx];
             curr_idx++;
         }
         
         state_.idx = curr_idx;
 
-        return tmp;
+        return loc_result;
     }
     
     /* generate_internal() specified for sycl_vec output */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N > 0), result_type>
     generate_internal() {
-        result_type tmp;
+        result_type loc_result;
         scalar_type curr_idx = state_.idx;
 
         for (int elm_count = 0; elm_count < _N; elm_count++) {
@@ -166,20 +167,20 @@ private:
                 increase_counter_internal();
                 curr_idx = 0;
             }
-            tmp[elm_count] = state_.Y[curr_idx];
+            loc_result[elm_count] = state_.Y[curr_idx];
             curr_idx++;
         }
         
         state_.idx = curr_idx;
 
-        return tmp;
+        return loc_result;
     }
     
     /* generate_internal() specified for a scalar output */
     template <unsigned int _N = 0>
     ::std::enable_if_t<(_N == 0), result_type>
     generate_internal() {
-        result_type tmp;
+        result_type loc_result;
 
         scalar_type curr_idx = state_.idx;
         if(curr_idx  == word_count) { // empty buffer
@@ -189,10 +190,10 @@ private:
         }
         
         // There are already generated numbers in the buffer
-        tmp = state_.Y[curr_idx];
+        loc_result = state_.Y[curr_idx];
         state_.idx = ++curr_idx;
 
-        return tmp;
+        return loc_result;
     }
 
 public:
@@ -226,7 +227,6 @@ public:
         result_type ret = generate_internal<internal::type_traits_t<result_type>::num_elems>();
         return ret;
     }
-    
     /* operator () overload for result portion generation */
     result_type operator()(unsigned int __random_nums) {
         result_type ret = generate_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
@@ -241,7 +241,7 @@ public:
             newridx = word_count;
         }
         
-        // otherwise, simply iterate the index in the buffer
+        // check if we can't simply iterate the index in the buffer
         if(z >= word_count - state_.idx) {
             unsigned long long counters_increment = z / word_count;
             counters_increment += ((z % word_count) + curr_idx)/word_count;

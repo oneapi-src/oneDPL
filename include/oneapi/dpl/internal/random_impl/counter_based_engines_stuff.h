@@ -16,9 +16,6 @@
 // Abstract:
 //
 // Header file provides stuff functionality for counter-based RNG engines.
-//
-//   word_mask<Uint, w> - the Uint with the low w bits set
-
 
 #ifndef _ONEDPL_CTR_ENGINES_STUFF_H
 #define _ONEDPL_CTR_ENGINES_STUFF_H
@@ -35,24 +32,24 @@ namespace dpl
 {
 namespace detail 
 {
-
+  
+/* word_mask<U, W> - an unsigned integral type with the low W bits set */
 template <typename U, unsigned W,
           typename = ::std::enable_if_t<::std::is_unsigned_v<U> && (W <= ::std::numeric_limits<U>::digits)>>
 constexpr U word_mask = W ? (U(~(U(0))) >> (::std::numeric_limits<U>::digits - W)) : 0;
 
-// For unpacking variadic of constants into two arrays:
+/* For unpacking variadic of constants into two arrays */
 template <typename UIntType, typename Tuple, ::std::size_t... Is>
 constexpr auto get_even_array_from_tuple(Tuple t, ::std::index_sequence<Is...>) {
     return ::std::array<UIntType, ::std::index_sequence<Is...>::size()>{ ::std::get<Is * 2>(t)... };
 }
-
 template <typename UIntType, typename Tuple, ::std::size_t... Is>
 constexpr auto get_odd_array_from_tuple(Tuple t, std::index_sequence<Is...>) {
     return ::std::array<UIntType, ::std::index_sequence<Is...>::size()>{ ::std::get<Is * 2 + 1>(t)... };
 }
 
-// Implement w-bit mulhilo with an 2w-wide integer - returns
-// the w hi and w low bits of the 2w-bit product of a and b.
+/* Implement W-bit mulhilo - returns the W hi and W low 
+   bits of the 2W-bit product of a and b */
 template <typename UIntType, unsigned W>
 static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
 {
