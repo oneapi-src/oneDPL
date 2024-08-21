@@ -61,7 +61,7 @@ private:
     static_assert(n == 2 || n == 4, "n must be 2 or 4");
     static_assert(sizeof...(consts) == n, "the amount of consts must be equal to n");
     static_assert(r > 0, "r must be more than 0");
-    static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits, "w must 0 < w < ::std::numeric_limits<UIntType>::digits");
+    static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits, "w must satisfy 0 < w < ::std::numeric_limits<UIntType>::digits");
     static_assert(::std::numeric_limits<scalar_type>::digits <= 64, "UIntType size must be less than 64 bits");
     static_assert(::std::is_unsigned_v<scalar_type>, "UIntType must be unsigned type or vector of unsigned types");
 
@@ -101,7 +101,7 @@ private:
         state_.X[0] = (state_.X[0] + 1) & in_mask;
         for (::std::size_t i = 1; i < word_count; ++i) {
             if (state_.X[i - 1]) {
-                [[likely]] return;
+                return;
             }
             state_.X[i] = (state_.X[i] + 1) & in_mask;
         }
@@ -217,7 +217,7 @@ public:
         auto end = counter.end();
         for (::std::size_t i = 0; i < word_count; i++) {
             // all counters are set in everse order
-            state_.X[i] = (start == end) ? 0 : (*--end) & in_mask;
+            state_.X[i] = (*--end) & in_mask;
         }
     }
 

@@ -29,7 +29,13 @@
 #include <tuple>
 #include <limits>
 
-namespace detail {
+namespace oneapi
+{
+namespace dpl
+{
+namespace detail 
+{
+
 template <typename U, unsigned W,
           typename = ::std::enable_if_t<::std::is_unsigned_v<U> && (W <= ::std::numeric_limits<U>::digits)>>
 constexpr U word_mask = W ? (U(~(U(0))) >> (::std::numeric_limits<U>::digits - W)) : 0;
@@ -50,7 +56,7 @@ constexpr auto get_odd_array_from_tuple(Tuple t, std::index_sequence<Is...>) {
 template <typename UIntType, unsigned W>
 static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
 {
-    static_assert(W <= 64, "W must be 0 < w <= 64");
+    static_assert(W <= 64, "W must be 0 < W <= 64");
 
     using result_type = UIntType;
     result_type res_hi, res_lo;
@@ -84,6 +90,9 @@ static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
     
     return { res_hi, res_lo };
 }
+
 } // namespace detail
+} // namespace dpl
+} // namespace oneapi
 
 #endif // _ONEDPL_CTR_ENGINES_STUFF_H

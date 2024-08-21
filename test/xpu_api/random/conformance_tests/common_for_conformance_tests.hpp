@@ -35,8 +35,6 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     // Memory allocation
     std::vector<result_type> dpstd_samples(NGenSamples);
 
-#if 1
-
     // Random number generation
     {
         sycl::buffer<result_type, 1> dpstd_buffer(dpstd_samples.data(), NGenSamples);
@@ -64,36 +62,8 @@ typename Engine::scalar_type test(sycl::queue& queue) {
             return 0;
         }
     }
-    std::cout << "\n\t\tres sycl: " << dpstd_samples[REF_SAMPLE_ID] << std::endl;
-    return dpstd_samples[REF_SAMPLE_ID];
 
-#else
-    //result_type res;
-    std::cout << "\nNElemsInResultType: " << NElemsInResultType;
-    sycl::vec<result_type, NElemsInResultType> res_vec;
-    Engine engine;
-    engine.discard(9998);
-    res_vec = engine();
-    std::cout << " " << res_vec[1] << std::endl;
-    
-    // iterate through the different value of the offset
-    // for(int itr = 998; (itr < 999); ++itr) {
-    //     Engine engine;
-    //     int disgard_value = itr;
-    //     std::cout << "\n\t\tdisgard_value: " << disgard_value;
-    //     engine.discard(disgard_value);
-    //     for(int i = 0; i < NGenSamples-disgard_value;i++){
-    //         res_vec = engine();
-    //         //std::cout << " " << res << std::endl;
-    //     }
-    //     // if(res!=1955073260 && res!=3409172418970261260) {
-    //     //     std::cout << "\tError\tcalculated: " << res;
-    //     //     break;
-    //     // }
-    // }
-    
-    return res_vec[1];
-#endif
+    return dpstd_samples[REF_SAMPLE_ID];
 }
 
 #endif // _DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON_HPP
