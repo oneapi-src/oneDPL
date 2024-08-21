@@ -817,7 +817,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         if constexpr (__can_use_group_scan)
         {
             // Next power of 2 greater than or equal to __n
-            auto __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
+            std::size_t __n_uniform = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
 
             // Empirically found values for reduce-then-scan and multi pass scan implementation for single wg cutoff
             std::size_t __single_group_upper_limit = __use_reduce_then_scan ? 2048 : 16384;
