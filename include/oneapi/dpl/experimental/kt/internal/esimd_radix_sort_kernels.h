@@ -480,9 +480,6 @@ struct __radix_sort_onesweep_kernel
     static inline __dpl_esimd::__ns::simd<::std::uint32_t, 32>
     __match_bins(const __dpl_esimd::__ns::simd<::std::uint32_t, 32>& __bins, ::std::uint32_t __local_tid)
     {
-        // Software barriers (here and below) are used in order to trick the compiler,
-        // thus it generates memory operations with better performance
-        // TODO: check if it is still necessary.
         __dpl_esimd::__ns::simd<::std::uint32_t, 32> __matched_bins(0xffffffff);
         _ONEDPL_PRAGMA_UNROLL
         for (int __i = 0; __i < __radix_bits; __i++)
@@ -642,9 +639,6 @@ struct __radix_sort_onesweep_kernel
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
                         __p_prev_group_hist + __local_tid * __bin_width);
-                    // Software barrier is used in order to motivate the compiler
-                    // to generate memory operations in an order which results in better performance
-                    // TODO: check if it is still necessary.
                     __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global>();
                 } while (((__prev_group_hist & __hist_updated) == 0).any());
                 __prev_group_hist_sum.merge(__prev_group_hist_sum + __prev_group_hist, __is_not_accumulated);
