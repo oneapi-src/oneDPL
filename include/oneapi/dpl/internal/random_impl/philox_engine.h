@@ -58,10 +58,12 @@ public:
     static constexpr ::std::size_t round_count = r;
 
 private:
-    static_assert(n == 2 || n == 4); // [ToDO] Extend to n = 8 and 16 
-    static_assert(sizeof...(consts) == n);
-    static_assert(r > 0);
-    static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits);
+    static_assert(n == 2 || n == 4, "n must be 2 or 4");
+    static_assert(sizeof...(consts) == n, "the amount of consts must be equal to n");
+    static_assert(r > 0, "r must be more than 0");
+    static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits, "w must 0 < w < ::std::numeric_limits<UIntType>::digits");
+    static_assert(::std::numeric_limits<scalar_type>::digits <= 64, "UIntType size must be less than 64 bits");
+    static_assert(::std::is_unsigned_v<UIntType>, "UIntType must be unsigned type");
 
     /* Internal generator state */
     struct state {
@@ -72,31 +74,32 @@ private:
     } state_; 
   
     /* Processing mask */
-    static constexpr auto in_mask = detail::fffmask<scalar_type, word_size>;
+    static constexpr auto in_mask = detail::word_mask<scalar_type, word_size>;
     static constexpr ::std::size_t array_size = word_count / 2;
     
     void seed_internal(::std::initializer_list<scalar_type> seed) {
         auto start = seed.begin();
         auto end = seed.end();
         // all counters are set to zero
-        for(size_t i = 0; i < word_count; i++) {
+        for(::std::size_t i = 0; i < word_count; i++) {
             state_.X[i] = 0;
         }
         // keys are set as seed
-        for (size_t i = 0; i < (word_count/2); i++) {
+        for (::std::size_t i = 0; i < (word_count/2); i++) {
             state_.K[i] = (start == end) ? 0 : (*start++) & in_mask;
         }
         // results are set to zero
-        for (size_t i = 0; i < (word_count); i++) {
+        for (::std::size_t i = 0; i < word_count; i++) {
             state_.Y[i] = 0;
         }
 
         state_.idx = word_count;
     }
     
+    /* Increment counter by 1 */
     void increase_counter_internal() {
         state_.X[0] = (state_.X[0] + 1) & in_mask;
-        for (size_t i = 1; i < word_count; ++i) {
+        for (::std::size_t i = 1; i < word_count; ++i) {
             if (state_.X[i - 1]) {
                 [[likely]] return;
             }
@@ -104,20 +107,23 @@ private:
         }
     }
 
+    /* Increment counter by an arbitrary z */
     void increase_counter_internal(unsigned long long z) {
         unsigned long long carry = 0;
         unsigned long long ctr_inc = z;
 
-        for (size_t i = 0; i < word_count; ++i) {
-            scalar_type prv_x = state_.X[i];
-            state_.X[i] = ((state_.X[i] + ctr_inc&in_mask) & in_mask) + carry;
-            carry = 0;
+        for (::std::size_t i = 0; i < word_count; ++i) {
+            scalar_type initial_x = state_.X[i];
+            state_.X[i] = (initial_x + ctr_inc + carry) & in_mask;
 
-            if(state_.X[i] < prv_x) { // overflow of the chunk
+            carry = 0;
+            // check overflow of the current chunk
+            if(state_.X[i] < initial_x) {
                 carry = 1;
             }
 
-            ctr_inc = (ctr_inc&(~in_mask))>>(sizeof(z)*8-word_size);
+            //          select high chunk            shift for addition with the next counter chunk
+            ctr_inc = (ctr_inc & (~in_mask)) >> (std::numeric_limits<unsigned long long>::digits - word_size);
         }
     }
     
@@ -170,7 +176,7 @@ public:
         detail::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
                                                     ::std::make_index_sequence<array_size>{});
     static constexpr scalar_type min() { return 0; }
-    static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max(); }
+    static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max() & in_mask; }
     static constexpr scalar_type default_seed = 20111115u;
 
     /* Constructors and seeding functions */
@@ -182,7 +188,7 @@ public:
     void set_counter(const ::std::array<scalar_type, word_count>& counter) {
         auto start = counter.begin();
         auto end = counter.end();
-        for (size_t i = 0; i < word_count; i++) {
+        for (::std::size_t i = 0; i < word_count; i++) {
             // all counters are set in everse order
             state_.X[i] = (start == end) ? 0 : (*--end) & in_mask;
         }
@@ -197,7 +203,7 @@ public:
     /* Shift the counter only forward relative to its current position */
     void discard(unsigned long long z) {
         scalar_type curr_idx = state_.idx % word_count;
-        unsigned long long newridx = (curr_idx + z) % (word_count);
+        unsigned long long newridx = (curr_idx + z) % word_count;
         if(newridx == 0) {
             newridx = word_count;
         }
@@ -258,7 +264,7 @@ private:
                 scalar_type R0 = (state_.X[0]) & in_mask;
                 scalar_type L0 = (state_.X[1]) & in_mask;
                 scalar_type K0 = (state_.K[0]) & in_mask;
-                for (size_t i = 0; i < round_count; ++i) {
+                for (::std::size_t i = 0; i < round_count; ++i) {
                     auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
                     R0 = hi0 ^ K0 ^ L0;
                     L0 = lo0;
@@ -274,7 +280,7 @@ private:
                 scalar_type L1 = (state_.X[3]) & in_mask;
                 scalar_type K0 = (state_.K[0]) & in_mask;
                 scalar_type K1 = (state_.K[1]) & in_mask;
-                for (size_t i = 0; i < round_count; ++i) {
+                for (::std::size_t i = 0; i < round_count; ++i) {
                     auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
                     auto [hi1, lo1] = detail::mulhilo<scalar_type, word_size>(R1, multipliers[1]);
                     R0 = hi1 ^ L0 ^ K0;
@@ -339,21 +345,21 @@ operator>>(::std::basic_istream<CharT, Traits>& is, philox_engine<UIntType, w, n
 
     is.setf(::std::ios_base::dec);
 
-    const size_t state_size = 2*n + n/2 + 1;
+    const ::std::size_t state_size = 2*n + n/2 + 1;
 
     ::std::vector<UIntType> tmp_inp(state_size);
-    for (size_t i = 0; i < state_size; ++i) {
+    for (::std::size_t i = 0; i < state_size; ++i) {
         is >> tmp_inp[i];
     }
 
     if (!is.fail())
     {
         int inp_itr = 0;
-        for (size_t i = 0; i < n; ++i, ++inp_itr)
+        for (::std::size_t i = 0; i < n; ++i, ++inp_itr)
             engine.state_.X[i] = tmp_inp[inp_itr];
-        for (size_t i = 0; i < n/2; ++i, ++inp_itr)
+        for (::std::size_t i = 0; i < n/2; ++i, ++inp_itr)
             engine.state_.K[i] = tmp_inp[inp_itr];
-        for (size_t i = 0; i < n; ++i, ++inp_itr)
+        for (::std::size_t i = 0; i < n; ++i, ++inp_itr)
             engine.state_.Y[i] = tmp_inp[inp_itr];
         engine.state_.idx = tmp_inp[inp_itr];
     }
