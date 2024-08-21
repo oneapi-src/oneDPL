@@ -303,8 +303,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 _InitValueType* __temp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 std::size_t __group_id = __ndi.get_group(0);
                 __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
-                std::size_t __sub_group_id = __sub_group.get_group_linear_id();
-                std::size_t __sub_group_local_id = __sub_group.get_local_linear_id();
+                std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
+                std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
                 std::size_t __group_start_id =
@@ -460,8 +460,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                     _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__res_acc, __num_sub_groups_global + 2);
                 std::size_t __group_id = __ndi.get_group(0);
                 __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
-                std::size_t __sub_group_id = __sub_group.get_group_linear_id();
-                std::size_t __sub_group_local_id = __sub_group.get_local_linear_id();
+                std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
+                std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 std::size_t __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
