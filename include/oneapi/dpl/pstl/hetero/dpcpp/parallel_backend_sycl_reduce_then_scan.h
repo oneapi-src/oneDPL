@@ -36,9 +36,9 @@ namespace __par_backend_hetero
 {
 
 template <std::uint8_t __sub_group_size, bool __init_present, typename _MaskOp, typename _InitBroadcastId,
-          typename _SubGroup, typename _BinaryOp, typename _ValueType, typename _LazyValueType>
+           typename _BinaryOp, typename _ValueType, typename _LazyValueType>
 void
-__exclusive_sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
+__exclusive_sub_group_masked_scan(const __dpl_sycl::__sub_group& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
                                   _ValueType& __value, _BinaryOp __binary_op, _LazyValueType& __init_and_carry)
 {
     std::uint8_t __sub_group_local_id = __sub_group.get_local_linear_id();
@@ -77,9 +77,9 @@ __exclusive_sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_f
 }
 
 template <std::uint8_t __sub_group_size, bool __init_present, typename _MaskOp, typename _InitBroadcastId,
-          typename _SubGroup, typename _BinaryOp, typename _ValueType, typename _LazyValueType>
+           typename _BinaryOp, typename _ValueType, typename _LazyValueType>
 void
-__inclusive_sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
+__inclusive_sub_group_masked_scan(const __dpl_sycl::__sub_group& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
                                   _ValueType& __value, _BinaryOp __binary_op, _LazyValueType& __init_and_carry)
 {
     std::uint8_t __sub_group_local_id = __sub_group.get_local_linear_id();
@@ -106,10 +106,10 @@ __inclusive_sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_f
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _MaskOp,
-          typename _InitBroadcastId, typename _SubGroup, typename _BinaryOp, typename _ValueType,
+          typename _InitBroadcastId,  typename _BinaryOp, typename _ValueType,
           typename _LazyValueType>
 void
-__sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
+__sub_group_masked_scan(const __dpl_sycl::__sub_group& __sub_group, _MaskOp __mask_fn, _InitBroadcastId __init_broadcast_id,
                         _ValueType& __value, _BinaryOp __binary_op, _LazyValueType& __init_and_carry)
 {
     if constexpr (__is_inclusive)
@@ -124,10 +124,10 @@ __sub_group_masked_scan(const _SubGroup& __sub_group, _MaskOp __mask_fn, _InitBr
     }
 }
 
-template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _SubGroup,
+template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present,
           typename _BinaryOp, typename _ValueType, typename _LazyValueType>
 void
-__sub_group_scan(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
+__sub_group_scan(const __dpl_sycl::__sub_group& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
                  _LazyValueType& __init_and_carry)
 {
     auto __mask_fn = [](auto __sub_group_local_id, auto __offset) { return __sub_group_local_id >= __offset; };
@@ -136,10 +136,10 @@ __sub_group_scan(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __
         __sub_group, __mask_fn, __init_broadcast_id, __value, __binary_op, __init_and_carry);
 }
 
-template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, typename _SubGroup,
+template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present,
           typename _BinaryOp, typename _ValueType, typename _LazyValueType, typename _SizeType>
 void
-__sub_group_scan_partial(const _SubGroup& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
+__sub_group_scan_partial(const __dpl_sycl::__sub_group& __sub_group, _ValueType& __value, _BinaryOp __binary_op,
                          _LazyValueType& __init_and_carry, _SizeType __elements_to_process)
 {
     auto __mask_fn = [__elements_to_process](auto __sub_group_local_id, auto __offset) {
@@ -151,10 +151,10 @@ __sub_group_scan_partial(const _SubGroup& __sub_group, _ValueType& __value, _Bin
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, bool __capture_output,
-          std::uint32_t __max_inputs_per_item, typename _SubGroup, typename _GenInput, typename _ScanInputTransform,
+          std::uint32_t __max_inputs_per_item,  typename _GenInput, typename _ScanInputTransform,
           typename _BinaryOp, typename _WriteOp, typename _LazyValueType, typename _InRng, typename _OutRng>
 void
-__scan_through_elements_helper(const _SubGroup& __sub_group, _GenInput __gen_input,
+__scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenInput __gen_input,
                                _ScanInputTransform __scan_input_transform, _BinaryOp __binary_op, _WriteOp __write_op,
                                _LazyValueType& __sub_group_carry, _InRng __in_rng, _OutRng __out_rng,
                                std::size_t __start_id, std::size_t __n, std::uint32_t __iters_per_item,
