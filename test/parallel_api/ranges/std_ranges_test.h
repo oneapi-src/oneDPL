@@ -118,20 +118,28 @@ struct test
         EXPECT_EQ_N(expected, data, max_n, (std::string("wrong effect algo with ranges: ")
             + typeid(Algo).name() + typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
     }
+
+private:
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
-    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
+    void
+    process_data_in_out(int n_in, int n_out, Policy&& exec, Algo algo, Checker& checker, TransIn tr_in,
+                        TransOut tr_out, auto... args)
     {
+        static_assert(mode == data_in_out);
+
         constexpr int max_n = 10;
         DataType data_in[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType data_out[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         DataType expected[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        auto src_view = tr_in(std::ranges::subrange(data_in, data_in + max_n));
-        auto expected_res = checker(src_view, expected, args...);
+        assert(n_in <= max_n);
+        assert(n_out <= max_n);
+
+        auto src_view = tr_in(std::ranges::subrange(data_in, data_in + n_in));
+        auto expected_res = checker(src_view, std::ranges::subrange(expected, expected + n_out), args...);
         {
-            Container cont_in(exec, data_in, max_n);
-            Container cont_out(exec, data_out, max_n);
+            Container cont_in(exec, data_in, n_in);
+            Container cont_out(exec, data_out, n_out);
 
             typename Container::type& A = cont_in();
             typename Container::type& B = cont_out();
@@ -149,7 +157,20 @@ struct test
         }
 
         //check result
-        EXPECT_EQ_N(expected, data_out, max_n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        EXPECT_EQ_N(expected, data_out, n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+    }
+
+public:
+    template<typename Policy, typename Algo, typename Checker>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
+    operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
+    {
+        const int r_size = 10;
+        process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
+
+        //test case size of input range is less than size of output and viceversa
+        process_data_in_out(r_size/2, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_out(r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
@@ -179,10 +200,14 @@ struct test
                 typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
         }
     }
+
+private:
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
-    operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
+    void
+    process_data_in_in_out(int n_in1, int n_in2, int n_out, Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
+        static_assert(mode == data_in_in_out);
+
         constexpr int max_n = 10;
         DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         DataType data_in2[max_n] = {0, 0, 2, 3, 4, 5, 6, 6, 6, 6};
@@ -190,13 +215,17 @@ struct test
         DataType data_out[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //TODO: size
         DataType expected[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + max_n));
-        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + max_n));
-        auto expected_res = checker(src_view1, src_view2, expected, args...);
+        assert(n_in1 <= max_n);
+        assert(n_in2 <= max_n);
+        assert(n_out <= max_n_out);
+        
+        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + n_in1));
+        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + n_in2));
+        auto expected_res = checker(src_view1, src_view2, std::ranges::subrange(expected, expected + n_out), args...);
         {
-            Container cont_in1(exec, data_in1, max_n);
-            Container cont_in2(exec, data_in2, max_n);
-            Container cont_out(exec, data_out, max_n_out);
+            Container cont_in1(exec, data_in1, n_in1);
+            Container cont_in2(exec, data_in2, n_in2);
+            Container cont_out(exec, data_out, n_out);
 
             typename Container::type& A = cont_in1();
             typename Container::type& B = cont_in2();
@@ -211,7 +240,19 @@ struct test
                 typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
         }
         //check result
-        EXPECT_EQ_N(expected, data_out, max_n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        EXPECT_EQ_N(expected, data_out, n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+    }
+
+public:
+    template<typename Policy, typename Algo, typename Checker>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
+    operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
+    {
+        const int r_size = 10;
+        process_data_in_in_out(r_size, r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_in_out(r_size/2, r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_in_out(r_size, r_size/2, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_in_out(r_size, r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 private:
 
