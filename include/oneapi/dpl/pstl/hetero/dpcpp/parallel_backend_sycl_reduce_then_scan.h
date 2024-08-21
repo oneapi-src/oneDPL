@@ -304,7 +304,7 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                 std::size_t __group_id = __ndi.get_group(0);
                 __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
                 std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
-                std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
+                std::uint8_t __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 oneapi::dpl::__internal::__lazy_ctor_storage<_InitValueType> __sub_group_carry;
                 std::size_t __group_start_id =
@@ -461,7 +461,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 std::size_t __group_id = __ndi.get_group(0);
                 __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
                 std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
-                std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
+                std::uint8_t __sub_group_local_id = __sub_group.get_local_linear_id();
 
                 std::size_t __group_start_id =
                     (__block_num * __max_block_size) + (__group_id * __inputs_per_sub_group * __num_sub_groups_local);
@@ -739,7 +739,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         __reduce_then_scan_scan_kernel<_CustomName>>;
     using _ValueType = typename _InitType::__value_type;
 
-    constexpr std::uint32_t __sub_group_size = 32;
+    constexpr std::uint8_t __sub_group_size = 32;
     // Empirically determined maximum. May be less for non-full blocks.
     constexpr std::uint8_t __max_inputs_per_item = 128;
     constexpr bool __inclusive = _Inclusive::value;
