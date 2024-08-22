@@ -831,7 +831,7 @@ struct __gen_expand_count_mask
     {
         // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
         //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
-        //  the values of zipped the input types rather than their references.
+        //  the values of zipped input types rather than their references.
         using _ElementType = oneapi::dpl::__internal::__value_t<_InRng>;
         _ElementType ele = __in_rng[__id];
         bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
@@ -849,12 +849,12 @@ struct __get_zeroth_element
         return std::get<0>(std::forward<_Tp>(__a));
     }
 };
-template <std::int32_t __offset, typename Assign>
+template <std::int32_t __offset, typename _Assign>
 struct __write_to_id_if
 {
-    template <typename _OutRng, typename _SizeType, typename ValueType>
+    template <typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(const _OutRng& __out_rng, _SizeType __id, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
@@ -864,7 +864,7 @@ struct __write_to_id_if
         if (std::get<1>(__v))
             __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out_rng[std::get<0>(__v) - 1 + __offset]);
     }
-    Assign __assign;
+    _Assign __assign;
 };
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
