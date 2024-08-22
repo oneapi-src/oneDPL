@@ -868,20 +868,20 @@ struct __write_to_id_if
 };
 
 template <typename Assign>
-struct __write_to_idx_if_else
+struct __write_to_id_if_else
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
     void
-    operator()(const _OutRng& __out_rng, _SizeType __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __id, const ValueType& __v) const
     {
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
-                                                               std::decay_t<decltype(__out_rng[__idx])>>::__type;
+                                                               std::decay_t<decltype(__out_rng[__id])>>::__type;
         if (std::get<1>(__v))
             __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), std::get<0>(__out_rng[std::get<0>(__v) - 1]));
         else
             __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)),
-                     std::get<1>(__out_rng[__idx - std::get<0>(__v)]));
+                     std::get<1>(__out_rng[__id - std::get<0>(__v)]));
     }
     Assign __assign;
 };
@@ -1074,7 +1074,7 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
         using _WriteOp =
-            oneapi::dpl::__par_backend_hetero::__write_to_idx_if_else<oneapi::dpl::__internal::__pstl_assign>;
+            oneapi::dpl::__par_backend_hetero::__write_to_id_if_else<oneapi::dpl::__internal::__pstl_assign>;
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
