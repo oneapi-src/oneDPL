@@ -397,12 +397,12 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
         return 0;
     if (__n == 1)
     {
-        using CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
+        using _CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{},
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_wrapper>(
                 std::forward<_ExecutionPolicy>(__exec)),
-            unseq_backend::walk_n<_ExecutionPolicy, CopyBrick>{CopyBrick{}}, __n, std::forward<_Range1>(__rng),
+            unseq_backend::walk_n<_ExecutionPolicy, _CopyBrick>{_CopyBrick{}}, __n, std::forward<_Range1>(__rng),
             std::forward<_Range2>(__result))
             .get();
 
