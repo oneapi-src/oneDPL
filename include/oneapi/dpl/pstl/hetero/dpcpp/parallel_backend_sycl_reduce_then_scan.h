@@ -273,11 +273,11 @@ class __reduce_then_scan_reduce_kernel;
 template <typename... _Name>
 class __reduce_then_scan_scan_kernel;
 
-template <std::size_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
+template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
           typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter;
 
-template <std::size_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
+template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
           typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename... _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive,
                                                     _GenReduceInput, _ReduceOp, _InitType,
