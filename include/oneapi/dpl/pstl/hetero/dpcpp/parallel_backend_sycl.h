@@ -770,29 +770,29 @@ struct __gen_transform_input
 {
     template <typename _InRng>
     auto
-    operator()(const _InRng& __in_rng, std::size_t __idx) const
+    operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        // We explicitly convert __in_rng[__idx] to the value type of _InRng to properly handle the case where we
+        // We explicitly convert __in_rng[__id] to the value type of _InRng to properly handle the case where we
         // process zip_iterator input where the reference type is a tuple of a references. This prevents the caller
         // from modifying the input range when altering the return of this functor.
         using _ValueType = oneapi::dpl::__internal::__value_t<_InRng>;
-        return __unary_op(_ValueType{__in_rng[__idx]});
+        return __unary_op(_ValueType{__in_rng[__id]});
     }
     _UnaryOp __unary_op;
 };
 
-struct __simple_write_to_idx
+struct __simple_write_to_id
 {
     template <typename _OutRng, typename ValueType>
     void
-    operator()(const _OutRng& __out_rng, std::size_t __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, std::size_t __id, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(__v)>,
-                                                               std::decay_t<decltype(__out_rng[__idx])>>::__type;
-        __out_rng[__idx] = static_cast<_ConvertedTupleType>(__v);
+                                                               std::decay_t<decltype(__out_rng[__id])>>::__type;
+        __out_rng[__id] = static_cast<_ConvertedTupleType>(__v);
     }
 };
 
@@ -832,7 +832,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
         {
             using _GenInput = oneapi::dpl::__par_backend_hetero::__gen_transform_input<_UnaryOperation>;
             using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
-            using _WriteOp = oneapi::dpl::__par_backend_hetero::__simple_write_to_idx;
+            using _WriteOp = oneapi::dpl::__par_backend_hetero::__simple_write_to_id;
 
             _GenInput __gen_transform{__unary_op};
 
