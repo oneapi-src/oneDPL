@@ -803,9 +803,9 @@ struct __gen_mask
 {
     template <typename _InRng>
     bool
-    operator()(const _InRng& __in_rng, std::size_t __idx) const
+    operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        return __pred(__in_rng[__idx]);
+        return __pred(__in_rng[__id]);
     }
     _Predicate __pred;
 };
@@ -815,9 +815,9 @@ struct __gen_count_mask
 {
     template <typename _InRng, typename _SizeType>
     _SizeType
-    operator()(_InRng&& __in_rng, _SizeType __idx) const
+    operator()(_InRng&& __in_rng, _SizeType __id) const
     {
-        return __gen_mask(std::forward<_InRng>(__in_rng), __idx) ? _SizeType{1} : _SizeType{0};
+        return __gen_mask(std::forward<_InRng>(__in_rng), __id) ? _SizeType{1} : _SizeType{0};
     }
     _GenMask __gen_mask;
 };
@@ -827,14 +827,14 @@ struct __gen_expand_count_mask
 {
     template <typename _InRng, typename _SizeType>
     auto
-    operator()(_InRng&& __in_rng, _SizeType __idx) const
+    operator()(_InRng&& __in_rng, _SizeType __id) const
     {
         // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
         //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
         //  the values of zipped the input types rather than their references.
         using _ElementType = oneapi::dpl::__internal::__value_t<_InRng>;
-        _ElementType ele = __in_rng[__idx];
-        bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __idx);
+        _ElementType ele = __in_rng[__id];
+        bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
     _GenMask __gen_mask;
@@ -850,17 +850,17 @@ struct __get_zeroth_element
     }
 };
 template <std::int32_t __offset, typename Assign>
-struct __write_to_idx_if
+struct __write_to_id_if
 {
     template <typename _OutRng, typename _SizeType, typename ValueType>
     void
-    operator()(const _OutRng& __out_rng, _SizeType __idx, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __id, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
-                                                               std::decay_t<decltype(__out_rng[__idx])>>::__type;
+                                                               std::decay_t<decltype(__out_rng[__id])>>::__type;
         if (std::get<1>(__v))
             __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)), __out_rng[std::get<0>(__v) - 1 + __offset]);
     }
@@ -1079,7 +1079,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
     else if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
-        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<0, _Assign>;
+        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,

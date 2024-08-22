@@ -255,7 +255,7 @@ template <typename _GenMask>
 struct __gen_expand_count_mask;
 
 template <int32_t __offset, typename Assign>
-struct __write_to_idx_if;
+struct __write_to_id_if;
 
 template <typename _ExecutionPolicy, typename _Pred>
 struct __early_exit_find_or;
@@ -289,7 +289,7 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 };
 
 template <int32_t __offset, typename Assign>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_idx_if, __offset,
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_to_id_if, __offset,
                                                        Assign)>
     : oneapi::dpl::__internal::__are_all_device_copyable<Assign>
 {
