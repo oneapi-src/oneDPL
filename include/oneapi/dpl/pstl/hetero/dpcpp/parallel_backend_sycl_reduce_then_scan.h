@@ -153,7 +153,7 @@ __sub_group_scan_partial(const __dpl_sycl::__sub_group& __sub_group, _ValueType&
 }
 
 template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_present, bool __capture_output,
-          std::uint32_t __max_inputs_per_item, typename _GenInput, typename _ScanInputTransform, typename _BinaryOp,
+          std::uint16_t __max_inputs_per_item, typename _GenInput, typename _ScanInputTransform, typename _BinaryOp,
           typename _WriteOp, typename _LazyValueType, typename _InRng, typename _OutRng>
 void
 __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenInput __gen_input,
@@ -273,11 +273,11 @@ class __reduce_then_scan_reduce_kernel;
 template <typename... _Name>
 class __reduce_then_scan_scan_kernel;
 
-template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
+template <std::size_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
           typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter;
 
-template <std::size_t __sub_group_size, std::size_t __max_inputs_per_item, bool __is_inclusive,
+template <std::size_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
           typename _GenReduceInput, typename _ReduceOp, typename _InitType, typename... _KernelName>
 struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive,
                                                     _GenReduceInput, _ReduceOp, _InitType,
@@ -403,12 +403,12 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
     _InitType __init;
 };
 
-template <std::uint8_t __sub_group_size, std::uint8_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
+template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
           typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
           typename _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter;
 
-template <std::uint8_t __sub_group_size, std::uint8_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
+template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive, typename _ReduceOp,
           typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
           typename... _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __is_inclusive, _ReduceOp,
@@ -737,8 +737,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     using _ValueType = typename _InitType::__value_type;
 
     constexpr std::uint8_t __sub_group_size = 32;
+    constexpr std::uint8_t __block_size_scale = std::max(1lu, sizeof(double) / sizeof(_ValueType));
     // Empirically determined maximum. May be less for non-full blocks.
-    constexpr std::uint8_t __max_inputs_per_item = 128;
+    constexpr std::uint16_t __max_inputs_per_item = 64 * __block_size_scale;
     constexpr bool __inclusive = _Inclusive::value;
 
     const std::uint32_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 8192);
