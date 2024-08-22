@@ -815,12 +815,12 @@ struct __gen_unique_mask
 {
     template <typename _InRng>
     bool
-    operator()(const _InRng& __in_rng, std::size_t __idx) const
+    operator()(const _InRng& __in_rng, std::size_t __id) const
     {
         // Starting index is offset to 1 for "unique" patterns and 0th element
         // copy is handled separately, which allows us to do this without
         // branching each access to protect underflow
-        return !__pred(__in_rng[__idx], __in_rng[__idx - 1]);
+        return !__pred(__in_rng[__id], __in_rng[__id - 1]);
     }
     _BinaryPredicate __pred;
 };
@@ -1094,7 +1094,7 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
-        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_idx_if<1, _Assign>;
+        using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<1, _Assign>;
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
