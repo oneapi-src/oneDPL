@@ -867,12 +867,12 @@ struct __write_to_id_if
     _Assign __assign;
 };
 
-template <typename Assign>
+template <typename _Assign>
 struct __write_to_id_if_else
 {
-    template <typename _OutRng, typename _SizeType, typename ValueType>
+    template <typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(const _OutRng& __out_rng, _SizeType __id, const ValueType& __v) const
+    operator()(const _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
@@ -883,7 +883,7 @@ struct __write_to_id_if_else
             __assign(static_cast<_ConvertedTupleType>(std::get<2>(__v)),
                      std::get<1>(__out_rng[__id - std::get<0>(__v)]));
     }
-    Assign __assign;
+    _Assign __assign;
 };
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
