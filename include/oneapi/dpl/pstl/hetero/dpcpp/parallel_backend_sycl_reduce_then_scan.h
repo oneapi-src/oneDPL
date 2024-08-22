@@ -738,7 +738,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     constexpr std::uint8_t __sub_group_size = 32;
     // Empirically determined maximum. May be less for non-full blocks.
-    constexpr std::uint8_t __max_inputs_per_item = 128;
+    constexpr std::uint8_t __block_size_factor = sizeof(_ValueType) > sizeof(std::uint32_t) ? sizeof(_ValueType) / sizeof(std::uint32_t) : sizeof(std::uint32_t) / sizeof(_ValueType);
+    constexpr std::uint8_t __max_inputs_per_item = sizeof(_ValueType) > sizeof(std::uint32_t) ? 128 / __block_size_factor : 128 * __block_size_factor;
     constexpr bool __inclusive = _Inclusive::value;
 
     const std::uint32_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 8192);
