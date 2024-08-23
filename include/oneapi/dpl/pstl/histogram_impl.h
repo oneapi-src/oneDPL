@@ -57,7 +57,7 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(exec, first, histogram_first);
 
     oneapi::dpl::__internal::__pattern_histogram(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
+        __dispatch_tag, std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__evenly_divided_binhash<_BoundaryType>(first_bin_min_val, last_bin_max_val, num_bins),
         histogram_first);
     return histogram_first + num_bins;
@@ -69,7 +69,7 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
 // std::iterator_traits<_RandomAccessIterator1>::value_type rather than enforcing they were the same type
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
           typename _ValueType>
-std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecutionPolicy>> &&
+std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<std::decay_t<_ExecutionPolicy>> &&
                      !std::is_same_v<_ValueType, typename std::iterator_traits<_RandomAccessIterator1>::value_type>,
                  _RandomAccessIterator2>
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
@@ -78,7 +78,7 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(exec, first, histogram_first);
 
     oneapi::dpl::__internal::__pattern_histogram(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
+        __dispatch_tag, std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__evenly_divided_binhash<_ValueType>(first_bin_min_val, last_bin_max_val, num_bins),
         histogram_first);
     return histogram_first + num_bins;
