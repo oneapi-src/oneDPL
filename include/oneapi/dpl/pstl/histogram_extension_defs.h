@@ -22,10 +22,18 @@ namespace oneapi
 {
 namespace dpl
 {
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
+histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
+          typename std::iterator_traits<_RandomAccessIterator1>::value_type first_bin_min_val,
+          typename std::iterator_traits<_RandomAccessIterator1>::value_type last_bin_max_val,
+          _RandomAccessIterator2 histogram_first);
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
-          typename _ValueType = typename ::std::iterator_traits<_RandomAccessIterator1>::value_type>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
+          typename _ValueType>
+std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecutionPolicy>> &&
+                     !std::is_same_v<_ValueType, typename std::iterator_traits<_RandomAccessIterator1>::value_type>,
+                 _RandomAccessIterator2>
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
           _ValueType first_bin_min_val, _ValueType last_bin_max_val, _RandomAccessIterator2 histogram_first);
 
