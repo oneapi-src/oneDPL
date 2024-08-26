@@ -639,7 +639,11 @@ struct __radix_sort_onesweep_kernel
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
                         __p_prev_group_hist + __local_tid * __bin_width);
-                    __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::global>();
+#if _ONEDPL_SORT_KT_EXTRA_BARRIER_NEEDED
+                    // TODO: This barrier is added to prevent a hang that occurs otherwise. However, this barrier
+                    // should not logically be needed. Consider removing once this has been further investigated.
+                    __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::local>();
+#endif
                 } while (((__prev_group_hist & __hist_updated) == 0).any());
                 __prev_group_hist_sum.merge(__prev_group_hist_sum + __prev_group_hist, __is_not_accumulated);
                 __is_not_accumulated = (__prev_group_hist_sum & __global_accumulated) == 0;
