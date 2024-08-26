@@ -62,7 +62,7 @@ private:
     static_assert(sizeof...(consts) == n, "the amount of consts must be equal to n");
     static_assert(r > 0, "r must be more than 0");
     static_assert(w > 0 && w <= ::std::numeric_limits<scalar_type>::digits, "w must satisfy 0 < w < ::std::numeric_limits<UIntType>::digits");
-    static_assert(::std::numeric_limits<scalar_type>::digits <= 64, "UIntType size must be less than 64 bits");
+    static_assert(::std::numeric_limits<scalar_type>::digits <= 64, "size of the scalar UIntType (in case of sycl::vec<T, N> the size of T) must be less than 64 bits");
     static_assert(::std::is_unsigned_v<scalar_type>, "UIntType must be unsigned type or vector of unsigned types");
 
     /* Internal generator state */
@@ -74,7 +74,7 @@ private:
     } state_; 
   
     /* Processing mask */
-    static constexpr auto in_mask = detail::word_mask<scalar_type, word_size>;
+    static constexpr auto in_mask = internal::word_mask<scalar_type, word_size>;
     /* The size of the consts arrays */
     static constexpr ::std::size_t array_size = word_count / 2;
     
@@ -198,10 +198,10 @@ private:
 
 public:
     static constexpr ::std::array<scalar_type, array_size> multipliers =
-        detail::get_even_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
+        internal::get_even_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
                                                     ::std::make_index_sequence<array_size>{});
     static constexpr ::std::array<scalar_type, array_size> round_consts =
-        detail::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
+        internal::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(consts...),
                                                     ::std::make_index_sequence<array_size>{});
     static constexpr scalar_type min() { return 0; }
     static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max() & in_mask; }
@@ -298,7 +298,7 @@ private:
                 scalar_type L0 = (state_.X[1]) & in_mask;
                 scalar_type K0 = (state_.K[0]) & in_mask;
                 for (::std::size_t i = 0; i < round_count; ++i) {
-                    auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
+                    auto [hi0, lo0] = internal::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
                     R0 = hi0 ^ K0 ^ L0;
                     L0 = lo0;
                     K0 = (K0 + round_consts[0]) & in_mask;
@@ -314,8 +314,8 @@ private:
                 scalar_type K0 = (state_.K[0]) & in_mask;
                 scalar_type K1 = (state_.K[1]) & in_mask;
                 for (::std::size_t i = 0; i < round_count; ++i) {
-                    auto [hi0, lo0] = detail::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
-                    auto [hi1, lo1] = detail::mulhilo<scalar_type, word_size>(R1, multipliers[1]);
+                    auto [hi0, lo0] = internal::mulhilo<scalar_type, word_size>(R0, multipliers[0]);
+                    auto [hi1, lo1] = internal::mulhilo<scalar_type, word_size>(R1, multipliers[1]);
                     R0 = hi1 ^ L0 ^ K0;
                     L0 = lo1;
                     R1 = hi0 ^ L1 ^ K1; 

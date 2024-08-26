@@ -30,7 +30,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace detail 
+namespace internal 
 {
   
 /* word_mask<U, W> - an unsigned integral type with the low W bits set */
@@ -62,15 +62,15 @@ static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
     if constexpr (W <= 32) {
         uint_fast64_t mult_result = (uint_fast64_t)a * (uint_fast64_t)b;
         res_hi = mult_result >> W;
-        res_lo =  mult_result & detail::word_mask<result_type, W>;
+        res_lo =  mult_result & internal::word_mask<result_type, W>;
     }
     /* pen-pencil multiplication by 32-bit chunks */
     else if constexpr(W > 32) {
         res_lo = a * b;
 
-        result_type x0 = a & detail::word_mask<result_type, 32>;
+        result_type x0 = a & internal::word_mask<result_type, 32>;
         result_type x1 = a >> 32;
-        result_type y0 = b & detail::word_mask<result_type, 32>;
+        result_type y0 = b & internal::word_mask<result_type, 32>;
         result_type y1 = b >> 32;
 
         result_type p11 = x1 * y1;
@@ -79,7 +79,7 @@ static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
         result_type p00 = x0 * y0;
 
         // 64-bit product + two 32-bit values
-        result_type middle = p10 + (p00 >> 32) + (p01 & detail::word_mask<result_type, 32>);
+        result_type middle = p10 + (p00 >> 32) + (p01 & internal::word_mask<result_type, 32>);
 
         // 64-bit product + two 32-bit values
         res_hi = p11 + (middle >> 32) + (p01 >> 32);
@@ -88,7 +88,7 @@ static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
     return { res_hi, res_lo };
 }
 
-} // namespace detail
+} // namespace internal
 } // namespace dpl
 } // namespace oneapi
 
