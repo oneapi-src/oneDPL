@@ -355,7 +355,8 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
                 // TODO: Remove this initialization to the identity when possible. We load real data to __loc_partials
                 // in the first loop below but this initialization to the identity works around an IGC register
                 // filling bug.
-                std::array<__val_type, __vals_per_item> __loc_partials = {__identity};
+                std::array<__val_type, __vals_per_item> __loc_partials;
+                std::fill(__loc_partials.begin(), __loc_partials.end(), __identity);
 
                 auto __group = __item.get_group();
                 ::std::size_t __group_id = __item.get_group(0);
