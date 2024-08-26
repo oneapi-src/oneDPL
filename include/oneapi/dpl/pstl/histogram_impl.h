@@ -47,7 +47,7 @@ __pattern_histogram(_Tag, _ExecutionPolicy&& exec, _RandomAccessIterator1 __firs
 } // namespace __internal
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
-          typename> //final unused template param is to avoid breaking change from original API (below)
+          typename> //final unused template param support extension API in combination with overload below
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
           typename std::iterator_traits<_RandomAccessIterator1>::value_type first_bin_min_val,
@@ -66,8 +66,8 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
 
 // This overload is provided to support an extension to the oneDPL specification to support the original implementation
 // of the histogram API, where the boundary type _ValueType could differ from the value type of the input iterator,
-// and required `operator<` and `operator<=` to be defined between _ValueType and
-// std::iterator_traits<_RandomAccessIterator1>::value_type rather than enforcing they were the same type
+// and required `<`, `<=`, `+`, `-`, and `/` to be defined between _ValueType and
+// std::iterator_traits<_RandomAccessIterator1>::value_type rather than enforcing they were the same type or convertible
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
           typename _ValueType>
 std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<std::decay_t<_ExecutionPolicy>> &&
