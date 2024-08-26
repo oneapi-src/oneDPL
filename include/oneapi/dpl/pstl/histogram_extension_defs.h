@@ -22,7 +22,8 @@ namespace oneapi
 {
 namespace dpl
 {
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
+          typename = void>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
           typename std::iterator_traits<_RandomAccessIterator1>::value_type first_bin_min_val,
