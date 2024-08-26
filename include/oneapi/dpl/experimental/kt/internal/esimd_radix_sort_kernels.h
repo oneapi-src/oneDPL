@@ -639,7 +639,7 @@ struct __radix_sort_onesweep_kernel
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
                         __p_prev_group_hist + __local_tid * __bin_width);
-                    // TODO: This barrier is added to prevent a hang that occurs otherwise. However, this barrier
+                    // TODO: This fence is added to prevent a hang that occurs otherwise. However, this fence
                     // should not logically be needed. Consider removing once this has been further investigated.
                     // This preprocessor check is set to expire and needs to be reevaluated once the SYCL major version
                     // is upgraded to 9.
