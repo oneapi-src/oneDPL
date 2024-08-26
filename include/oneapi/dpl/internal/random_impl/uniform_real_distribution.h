@@ -274,7 +274,7 @@ class uniform_real_distribution
             auto __engine_output = __engine();
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
             __res_tmp =
-                ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                ((__res_tmp - static_cast<scalar_type>(__engine.min())) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                     (__params.b() - __params.a()) +
                 __params.a();
 
@@ -288,7 +288,7 @@ class uniform_real_distribution
             auto __engine_output = __engine(__tail_size);
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
             __res_tmp =
-                ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                ((__res_tmp - static_cast<scalar_type>(__engine.min())) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                     (__params.b() - __params.a()) +
                 __params.a();
             for (int __j = 0; __j < __tail_size; __j++)
