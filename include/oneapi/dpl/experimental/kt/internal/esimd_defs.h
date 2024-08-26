@@ -21,8 +21,6 @@
 // https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_esimd/sycl_ext_intel_esimd.md#static-allocation-of-slm-using-slm_init-function
 #define _ONEDPL_ESIMD_INLINE inline __attribute__((always_inline))
 
-#define _ONEDPL_SORT_KT_EXTRA_BARRIER_NEEDED (__INTEL_LLVM_COMPILER > 0 && __INTEL_LLVM_COMPILER <= 20250000)
-
 namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
