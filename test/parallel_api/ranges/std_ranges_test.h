@@ -33,7 +33,7 @@
 namespace test_std_ranges
 {
 
-#if _ONEDPL_HETERO_BACKEND
+#if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
 auto dpcpp_policy()
 {
@@ -41,7 +41,7 @@ auto dpcpp_policy()
     using Policy = decltype(exec);
     return TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, call_id>>(TestUtils::default_dpcpp_policy);
 }
-#endif //_ONEDPL_HETERO_BACKEND
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 auto host_policies() { return std::true_type{};}
 
@@ -370,7 +370,7 @@ struct host_vector
     }
 };
 
-#if _ONEDPL_HETERO_BACKEND
+#if TEST_DPCPP_BACKEND_PRESENT
 template<typename T>
 struct usm_vector
 {
@@ -433,7 +433,7 @@ template<typename T>
 using  usm_span = usm_subrange_impl<T, std::span<T>>;
 #endif
 
-#endif // _ONEDPL_HETERO_BACKEND
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
 struct test_range_algo
@@ -455,7 +455,7 @@ struct test_range_algo
         test<T, host_span<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 #endif
 
-#if _ONEDPL_HETERO_BACKEND
+#if TEST_DPCPP_BACKEND_PRESENT
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
@@ -466,7 +466,7 @@ struct test_range_algo
             test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
 #endif
         }
-#endif //_ONEDPL_HETERO_BACKEND
+#endif //TEST_DPCPP_BACKEND_PRESENT
     }
 };
 
