@@ -307,6 +307,9 @@
 #    define _ONEDPL_CPP20_RANGES_PRESENT 0
 #endif
 
+// Feature public macros
+#define ONEDPL_HAS_RANGES_API _ONEDPL_CPP20_RANGES_PRESENT
+
 #if _ONEDPL_STD_FEATURE_MACROS_PRESENT
 #    define _ONEDPL_CPP20_SPAN_PRESENT (__cpp_lib_span >= 202002L)
 #    define _ONEDPL_CPP20_CONCEPTS_PRESENT (__cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L)
