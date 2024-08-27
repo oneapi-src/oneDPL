@@ -106,11 +106,12 @@ class zip_forward_iterator
     zip_forward_iterator() : __my_it_() {}
     explicit zip_forward_iterator(_Types... __args) : __my_it_(__tuple_t<_Types...>{__args...}) {}
 
-    reference operator*() const
+    reference
+    operator*() const
 #if _ONEDPL_CPP20_CONCEPTS_PRESENT
         // On windows, this is required so that concepts in MSVC STL do not detect the iterator as dereferenceable when
         // a source iterator is a sycl_iterator, which is a supported type.
-        requires (std::indirectly_readable<_Types> && ...)
+        requires(std::indirectly_readable<_Types> &&...)
 #endif
     {
         return __make_references<reference>()(__my_it_, ::std::make_index_sequence<__num_types>());
@@ -291,11 +292,12 @@ class zip_iterator
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
 
-    reference operator*() const
+    reference
+    operator*() const
 #if _ONEDPL_CPP20_CONCEPTS_PRESENT
         // On windows, this is required so that concepts in MSVC STL do not detect the iterator as dereferenceable when
         // a source iterator is a sycl_iterator, which is a supported type.
-        requires (std::indirectly_readable<_Types> && ...)
+        requires(std::indirectly_readable<_Types> &&...)
 #endif
     {
         return oneapi::dpl::__internal::__make_references<reference>()(__my_it_,
@@ -470,14 +472,15 @@ class transform_iterator
         }
         return *this;
     }
-    reference operator*() const
+    reference
+    operator*() const
 #if _ONEDPL_CPP20_CONCEPTS_PRESENT
         // On windows, this is required so that concepts in MSVC STL do not detect the iterator as dereferenceable when
         // the source iterator is a sycl_iterator, which is a supported source iterator (_Iter).
         requires std::indirectly_readable<_Iter>
 #endif
     {
-        return __my_unary_func_(*__my_it_); 
+        return __my_unary_func_(*__my_it_);
     }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
@@ -660,11 +663,12 @@ class permutation_iterator
             return my_index;
     }
 
-    reference operator*() const
+    reference
+    operator*() const
 #if _ONEDPL_CPP20_CONCEPTS_PRESENT
         // On windows, this is required so that concepts in MSVC STL do not detect the iterator as dereferenceable when
         // the source iterator or IndexMap is a sycl_iterator, which is a supported type for both.
-        requires std::indirectly_readable<SourceIterator> && std::indirectly_readable<IndexMap>
+        requires std::indirectly_readable<SourceIterator>&& std::indirectly_readable<IndexMap>
 #endif
     {
         return my_source_it[*my_index];
