@@ -30,7 +30,7 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace internal 
+namespace internal
 {
 namespace experimental
 {
@@ -42,18 +42,23 @@ constexpr _U word_mask = __W ? (_U(~(_U(0))) >> (::std::numeric_limits<_U>::digi
 
 /* For unpacking variadic of constants into two arrays */
 template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
-constexpr auto get_even_array_from_tuple(_Tuple __t, ::std::index_sequence<__Is...>) {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{ ::std::get<__Is * 2>(__t)... };
+constexpr auto
+get_even_array_from_tuple(_Tuple __t, ::std::index_sequence<__Is...>)
+{
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2>(__t)...};
 }
 template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
-constexpr auto get_odd_array_from_tuple(_Tuple __t, std::index_sequence<__Is...>) {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{ ::std::get<__Is * 2 + 1>(__t)... };
+constexpr auto
+get_odd_array_from_tuple(_Tuple __t, std::index_sequence<__Is...>)
+{
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2 + 1>(__t)...};
 }
 
 /* Implement __W-bit mulhilo - returns the __W hi and __W low 
    bits of the 2__W-bit product of __a and __b */
 template <typename _UIntType, unsigned __W>
-static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
+static ::std::pair<_UIntType, _UIntType>
+mulhilo(_UIntType __a, _UIntType __b)
 {
     static_assert(__W <= 64, "__W must be 0 < __W <= 64");
 
@@ -61,13 +66,15 @@ static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
     result_type __res_hi, __res_lo;
 
     /* multiplication fits standard types */
-    if constexpr (__W <= 32) {
+    if constexpr (__W <= 32)
+    {
         uint_fast64_t __mult_result = (uint_fast64_t)__a * (uint_fast64_t)__b;
         __res_hi = __mult_result >> __W;
-        __res_lo =  __mult_result & internal::experimental::word_mask<result_type, __W>;
+        __res_lo = __mult_result & internal::experimental::word_mask<result_type, __W>;
     }
     /* pen-pencil multiplication by 32-bit chunks */
-    else if constexpr(__W > 32) {
+    else if constexpr (__W > 32)
+    {
         __res_lo = __a * __b;
 
         result_type __x0 = __a & internal::experimental::word_mask<result_type, 32>;
@@ -86,8 +93,8 @@ static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
         // 64-bit product + two 32-bit values
         __res_hi = __p11 + (__middle >> 32) + (__p01 >> 32);
     }
-    
-    return { __res_hi, __res_lo };
+
+    return {__res_hi, __res_lo};
 }
 
 } // namespace experimental
