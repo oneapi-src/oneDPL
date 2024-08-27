@@ -854,7 +854,7 @@ struct __write_to_id_if
 {
     template <typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(const _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
+    operator()(_OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
