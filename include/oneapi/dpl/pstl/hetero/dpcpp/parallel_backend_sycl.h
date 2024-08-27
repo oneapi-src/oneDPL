@@ -785,7 +785,7 @@ struct __simple_write_to_id
 {
     template <typename _OutRng, typename ValueType>
     void
-    operator()(const _OutRng& __out_rng, std::size_t __id, const ValueType& __v) const
+    operator()(_OutRng& __out_rng, std::size_t __id, const ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.

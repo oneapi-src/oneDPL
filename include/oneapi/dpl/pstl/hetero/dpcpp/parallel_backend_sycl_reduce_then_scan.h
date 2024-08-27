@@ -158,7 +158,7 @@ template <std::uint8_t __sub_group_size, bool __is_inclusive, bool __init_presen
 void
 __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenInput __gen_input,
                                _ScanInputTransform __scan_input_transform, _BinaryOp __binary_op, _WriteOp __write_op,
-                               _LazyValueType& __sub_group_carry, _InRng __in_rng, _OutRng __out_rng,
+                               _LazyValueType& __sub_group_carry, const _InRng& __in_rng, _OutRng& __out_rng,
                                std::size_t __start_id, std::size_t __n, std::uint32_t __iters_per_item,
                                std::size_t __subgroup_start_id, std::uint32_t __sub_group_id,
                                std::uint32_t __active_subgroups)
@@ -326,8 +326,8 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
                                                    /*__init_present=*/false,
                                                    /*__capture_output=*/false, __max_inputs_per_item>(
                         __sub_group, __gen_reduce_input, oneapi::dpl::__internal::__no_op{}, __reduce_op, nullptr,
-                        __sub_group_carry, __in_rng, nullptr, __start_id, __n, __inputs_per_item, __subgroup_start_id,
-                        __sub_group_id, __active_subgroups);
+                        __sub_group_carry, __in_rng, /*unused*/ __in_rng, __start_id, __n, __inputs_per_item,
+                        __subgroup_start_id, __sub_group_id, __active_subgroups);
                     if (__sub_group_local_id == 0)
                         __sub_group_partials[__sub_group_id] = __sub_group_carry.__v;
                     __sub_group_carry.__destroy();
