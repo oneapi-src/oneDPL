@@ -24,8 +24,8 @@ main()
     const char* err_msg = "Wrong effect algo transform with unsized ranges.";
 
     const int n = 100;
-    std::ranges::iota_view view1(0,  n); //size range
-    std::ranges::iota_view view2(0,  std::unreachable_sentinel_t{}); //unsized
+    std::ranges::iota_view view1(0, n); //size range
+    std::ranges::iota_view view2(0, std::unreachable_sentinel_t{}); //unsized
 
     std::vector<int> res(n), expected(n);
     std::ranges::transform(view1, view2, expected.begin(), binary_f, proj, proj);
