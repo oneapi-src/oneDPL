@@ -108,9 +108,8 @@ struct __transform_fn
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
 
-        //std::make_unsigned_t
-        using Size = std::common_type_t<std::make_unsigned_t<std::ranges::range_difference_t<_R1>>,
-            std::make_unsigned_t<std::ranges::range_difference_t<_R2>>, std::ranges::range_size_t<_OutRange>>;
+        using Size = std::common_type_t<oneapi::dpl::__internal::__range_size_t<_R1>,
+            oneapi::dpl::__internal::__range_size_t<_R2>, std::ranges::range_size_t<_OutRange>>;
         Size _size = std::ranges::size(__out_r);
         if constexpr(std::ranges::sized_range<_R1>)
             _size = std::ranges::min(_size, (Size)std::ranges::size(__r1));
