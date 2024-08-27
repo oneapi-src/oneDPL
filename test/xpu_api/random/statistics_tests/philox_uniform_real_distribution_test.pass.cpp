@@ -27,8 +27,8 @@
 #include "statistics_common.h"
 
 // Tested engines
-using philox2x32 = oneapi::dpl::philox_engine<uint_fast32_t, 32, 2, 10, 0xd256d193, 0x0>;
-using philox2x64 = oneapi::dpl::philox_engine<uint_fast64_t, 64, 2, 10, 0xD2B74407B1CE6E93, 0x0>;
+using philox2x32 = oneapi::dpl::experimental::philox_engine<uint_fast32_t, 32, 2, 10, 0xd256d193, 0x0>;
+using philox2x64 = oneapi::dpl::experimental::philox_engine<uint_fast64_t, 64, 2, 10, 0xD2B74407B1CE6E93, 0x0>;
 
 template<typename RealType>
 std::int32_t statistics_check(int nsamples, RealType left, RealType right,

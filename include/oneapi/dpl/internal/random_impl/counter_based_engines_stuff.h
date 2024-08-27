@@ -32,7 +32,9 @@ namespace dpl
 {
 namespace internal 
 {
-  
+namespace experimental
+{
+
 /* word_mask<_U, __W> - an unsigned integral type with the low __W bits set */
 template <typename _U, unsigned __W,
           typename = ::std::enable_if_t<::std::is_unsigned_v<_U> && (__W <= ::std::numeric_limits<_U>::digits)>>
@@ -62,15 +64,15 @@ static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
     if constexpr (__W <= 32) {
         uint_fast64_t __mult_result = (uint_fast64_t)__a * (uint_fast64_t)__b;
         __res_hi = __mult_result >> __W;
-        __res_lo =  __mult_result & internal::word_mask<result_type, __W>;
+        __res_lo =  __mult_result & internal::experimental::word_mask<result_type, __W>;
     }
     /* pen-pencil multiplication by 32-bit chunks */
     else if constexpr(__W > 32) {
         __res_lo = __a * __b;
 
-        result_type __x0 = __a & internal::word_mask<result_type, 32>;
+        result_type __x0 = __a & internal::experimental::word_mask<result_type, 32>;
         result_type __x1 = __a >> 32;
-        result_type __y0 = __b & internal::word_mask<result_type, 32>;
+        result_type __y0 = __b & internal::experimental::word_mask<result_type, 32>;
         result_type __y1 = __b >> 32;
 
         result_type __p11 = __x1 * __y1;
@@ -79,7 +81,7 @@ static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
         result_type __p00 = __x0 * __y0;
 
         // 64-bit product + two 32-bit values
-        result_type __middle = __p10 + (__p00 >> 32) + (__p01 & internal::word_mask<result_type, 32>);
+        result_type __middle = __p10 + (__p00 >> 32) + (__p01 & internal::experimental::word_mask<result_type, 32>);
 
         // 64-bit product + two 32-bit values
         __res_hi = __p11 + (__middle >> 32) + (__p01 >> 32);
@@ -88,6 +90,7 @@ static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
     return { __res_hi, __res_lo };
 }
 
+} // namespace experimental
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi

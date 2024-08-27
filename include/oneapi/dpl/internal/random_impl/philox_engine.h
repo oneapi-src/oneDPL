@@ -27,6 +27,8 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace experimental
+{
 
 template<typename _UIntType, ::std::size_t _w, ::std::size_t _n, ::std::size_t _r,  internal::element_type_t<_UIntType> ..._consts>
 class philox_engine;
@@ -68,11 +70,11 @@ public:
     static_assert(::std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
     
     static constexpr ::std::array<scalar_type, array_size> multipliers =
-        internal::get_even_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                         ::std::make_index_sequence<array_size>{});
+        internal::experimental::get_even_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
+                                                                       ::std::make_index_sequence<array_size>{});
     static constexpr ::std::array<scalar_type, array_size> round_consts =
-        internal::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                        ::std::make_index_sequence<array_size>{});
+        internal::experimental::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
+                                                                      ::std::make_index_sequence<array_size>{});
     static constexpr scalar_type min() { return 0; }
     static constexpr scalar_type max() { return ::std::numeric_limits<scalar_type>::max() & in_mask; }
     static constexpr scalar_type default_seed = 20111115u;
@@ -146,7 +148,7 @@ private:
     } state_; 
   
     /* Processing mask */
-    static constexpr auto in_mask = internal::word_mask<scalar_type, word_size>;
+    static constexpr auto in_mask = internal::experimental::word_mask<scalar_type, word_size>;
 
     void seed_internal(::std::initializer_list<scalar_type> __seed) {
         auto __start = __seed.begin();
@@ -300,7 +302,7 @@ private:
                 scalar_type __L0 = (state_.X[1]) & in_mask;
                 scalar_type __K0 = (state_.K[0]) & in_mask;
                 for (::std::size_t __i = 0; __i < round_count; ++__i) {
-                    auto [__hi0, __lo0] = internal::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
+                    auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
                     __R0 = __hi0 ^ __K0 ^ __L0;
                     __L0 = __lo0;
                     __K0 = (__K0 + round_consts[0]) & in_mask;
@@ -316,8 +318,8 @@ private:
                 scalar_type __K0 = (state_.K[0]) & in_mask;
                 scalar_type __K1 = (state_.K[1]) & in_mask;
                 for (::std::size_t __i = 0; __i < round_count; ++__i) {
-                    auto [__hi0, __lo0] = internal::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
-                    auto [__hi1, __lo1] = internal::mulhilo<scalar_type, word_size>(__R1, multipliers[1]);
+                    auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
+                    auto [__hi1, __lo1] = internal::experimental::mulhilo<scalar_type, word_size>(__R1, multipliers[1]);
                     __R0 = __hi1 ^ __L0 ^ __K0;
                     __L0 = __lo1;
                     __R1 = __hi0 ^ __L1 ^ __K1; 
@@ -402,6 +404,7 @@ operator>>(::std::basic_istream<_CharT, _Traits>& __is, philox_engine<__UIntType
     return __is;
 }
 
+} // namespace experimental
 } // namespace dpl
 } // namespace oneapi
 
