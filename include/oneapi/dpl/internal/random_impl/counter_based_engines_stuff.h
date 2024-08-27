@@ -33,59 +33,59 @@ namespace dpl
 namespace internal 
 {
   
-/* word_mask<U, W> - an unsigned integral type with the low W bits set */
-template <typename U, unsigned W,
-          typename = ::std::enable_if_t<::std::is_unsigned_v<U> && (W <= ::std::numeric_limits<U>::digits)>>
-constexpr U word_mask = W ? (U(~(U(0))) >> (::std::numeric_limits<U>::digits - W)) : 0;
+/* word_mask<_U, __W> - an unsigned integral type with the low __W bits set */
+template <typename _U, unsigned __W,
+          typename = ::std::enable_if_t<::std::is_unsigned_v<_U> && (__W <= ::std::numeric_limits<_U>::digits)>>
+constexpr _U word_mask = __W ? (_U(~(_U(0))) >> (::std::numeric_limits<_U>::digits - __W)) : 0;
 
 /* For unpacking variadic of constants into two arrays */
-template <typename UIntType, typename Tuple, ::std::size_t... Is>
-constexpr auto get_even_array_from_tuple(Tuple t, ::std::index_sequence<Is...>) {
-    return ::std::array<UIntType, ::std::index_sequence<Is...>::size()>{ ::std::get<Is * 2>(t)... };
+template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
+constexpr auto get_even_array_from_tuple(_Tuple __t, ::std::index_sequence<__Is...>) {
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{ ::std::get<__Is * 2>(__t)... };
 }
-template <typename UIntType, typename Tuple, ::std::size_t... Is>
-constexpr auto get_odd_array_from_tuple(Tuple t, std::index_sequence<Is...>) {
-    return ::std::array<UIntType, ::std::index_sequence<Is...>::size()>{ ::std::get<Is * 2 + 1>(t)... };
+template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
+constexpr auto get_odd_array_from_tuple(_Tuple __t, std::index_sequence<__Is...>) {
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{ ::std::get<__Is * 2 + 1>(__t)... };
 }
 
-/* Implement W-bit mulhilo - returns the W hi and W low 
-   bits of the 2W-bit product of a and b */
-template <typename UIntType, unsigned W>
-static ::std::pair<UIntType, UIntType> mulhilo(UIntType a, UIntType b)
+/* Implement __W-bit mulhilo - returns the __W hi and __W low 
+   bits of the 2__W-bit product of __a and __b */
+template <typename _UIntType, unsigned __W>
+static ::std::pair<_UIntType, _UIntType> mulhilo(_UIntType __a, _UIntType __b)
 {
-    static_assert(W <= 64, "W must be 0 < W <= 64");
+    static_assert(__W <= 64, "__W must be 0 < __W <= 64");
 
-    using result_type = UIntType;
-    result_type res_hi, res_lo;
+    using result_type = _UIntType;
+    result_type __res_hi, __res_lo;
 
     /* multiplication fits standard types */
-    if constexpr (W <= 32) {
-        uint_fast64_t mult_result = (uint_fast64_t)a * (uint_fast64_t)b;
-        res_hi = mult_result >> W;
-        res_lo =  mult_result & internal::word_mask<result_type, W>;
+    if constexpr (__W <= 32) {
+        uint_fast64_t __mult_result = (uint_fast64_t)__a * (uint_fast64_t)__b;
+        __res_hi = __mult_result >> __W;
+        __res_lo =  __mult_result & internal::word_mask<result_type, __W>;
     }
     /* pen-pencil multiplication by 32-bit chunks */
-    else if constexpr(W > 32) {
-        res_lo = a * b;
+    else if constexpr(__W > 32) {
+        __res_lo = __a * __b;
 
-        result_type x0 = a & internal::word_mask<result_type, 32>;
-        result_type x1 = a >> 32;
-        result_type y0 = b & internal::word_mask<result_type, 32>;
-        result_type y1 = b >> 32;
+        result_type __x0 = __a & internal::word_mask<result_type, 32>;
+        result_type __x1 = __a >> 32;
+        result_type __y0 = __b & internal::word_mask<result_type, 32>;
+        result_type __y1 = __b >> 32;
 
-        result_type p11 = x1 * y1;
-        result_type p01 = x0 * y1;
-        result_type p10 = x1 * y0;
-        result_type p00 = x0 * y0;
-
-        // 64-bit product + two 32-bit values
-        result_type middle = p10 + (p00 >> 32) + (p01 & internal::word_mask<result_type, 32>);
+        result_type __p11 = __x1 * __y1;
+        result_type __p01 = __x0 * __y1;
+        result_type __p10 = __x1 * __y0;
+        result_type __p00 = __x0 * __y0;
 
         // 64-bit product + two 32-bit values
-        res_hi = p11 + (middle >> 32) + (p01 >> 32);
+        result_type __middle = __p10 + (__p00 >> 32) + (__p01 & internal::word_mask<result_type, 32>);
+
+        // 64-bit product + two 32-bit values
+        __res_hi = __p11 + (__middle >> 32) + (__p01 >> 32);
     }
     
-    return { res_hi, res_lo };
+    return { __res_hi, __res_lo };
 }
 
 } // namespace internal
