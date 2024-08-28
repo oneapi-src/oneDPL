@@ -36,7 +36,7 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
           _RandomAccessIterator2 boundary_first, _RandomAccessIterator2 boundary_last,
           _RandomAccessIterator3 histogram_first);
 
-// Support extention API to cover existing API (previous to specification) with the following two overloads
+// Support extension API to cover existing API (previous to specification) with the following two overloads
 
 // This overload is provided to support an extension to the oneDPL specification to support the original implementation
 // of the histogram API, where the boundary type _ValueType could differ from the value type of the input iterator,
