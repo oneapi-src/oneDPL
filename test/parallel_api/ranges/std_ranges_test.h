@@ -214,7 +214,7 @@ public:
         process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker>
+    template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
@@ -305,7 +305,7 @@ public:
         process_data_in_in_out(r_size, r_size, r_size*2, std::forward<Policy>(exec), algo, checker, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker>
+    template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
