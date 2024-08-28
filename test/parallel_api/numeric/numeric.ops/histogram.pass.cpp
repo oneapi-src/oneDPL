@@ -26,6 +26,8 @@ using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+#define TEST_DEPRECATED_APIS 1
+
 // Create a custom wrapped arithmetic type which does not implement conversion
 // to the base type, but implements all the necessary arithmetic operations
 // to implement the histogram kernel
@@ -224,27 +226,27 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
                                                         expected.end(), out.begin(), out.end(), trash);
 #    endif // !ONEDPL_FPGA_DEVICE
 
-    //test extension
-    
+    //test deprecated extension
+#    if TEST_DEPRECATED_APIS
     invoke_on_all_hetero_policies<CallNumber * 8 + 4>()(test_histogram_even_bins_extension_explicit_template<ExplicitValueType>{}, in.begin(), in.end(), expected.begin(),
                                                     expected.end(), out.begin(), out.end(), Size(in.size()),
                                                     min_boundary, max_boundary, trash);
-#    if !ONEDPL_FPGA_DEVICE
+#       if !ONEDPL_FPGA_DEVICE
     invoke_on_all_hetero_policies<CallNumber * 8 + 5>()(test_histogram_even_bins_extension_explicit_template<ExplicitValueType>{}, in.cbegin(), in.cend(),
                                                         expected.begin(), expected.end(), out.begin(), out.end(),
                                                         Size(in.size()), min_boundary, max_boundary, trash);
-#    endif // !ONEDPL_FPGA_DEVICE
+#       endif // !ONEDPL_FPGA_DEVICE
 
 
      invoke_on_all_hetero_policies<CallNumber * 8 + 6>()(test_histogram_even_bins_extension_non_convertible(), in.begin(), in.end(), expected.begin(),
                                                      expected.end(), out.begin(), out.end(), Size(in.size()),
                                                      min_boundary, max_boundary, trash);
-#    if !ONEDPL_FPGA_DEVICE
+#       if !ONEDPL_FPGA_DEVICE
     invoke_on_all_hetero_policies<CallNumber * 8 + 7>()(test_histogram_even_bins_extension_non_convertible(), in.cbegin(), in.cend(),
                                                         expected.begin(), expected.end(), out.begin(), out.end(),
                                                         Size(in.size()), min_boundary, max_boundary, trash);
-#    endif // !ONEDPL_FPGA_DEVICE
-
+#       endif // !ONEDPL_FPGA_DEVICE
+#   endif // TEST_DEPRECATED_APIS
 
 }
 

@@ -87,6 +87,10 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
 // std::iterator_traits<_RandomAccessIterator1>::value_type rather than enforcing they were the same type or convertible
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
           typename _ValueType>
+[[deprecated("Use of oneapi::dpl::histogram API with bin boundary value arguments which are not convertible to the "
+             " value type of the input iterator is deprecated and will be removed in a future release. Please use "
+             " the oneapi::dpl histogram API with the same value type for both the input iterator and bin boundary "
+             " values.")]]
 std::enable_if_t<
     oneapi::dpl::execution::is_execution_policy_v<std::decay_t<_ExecutionPolicy>> &&
         !std::is_convertible_v<_ValueType, typename std::iterator_traits<_RandomAccessIterator1>::value_type>,
@@ -110,6 +114,10 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
 // when users explicitly specify the _ValueType template argument.
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
           typename _ValueType, typename _RealValueType1, typename _RealValueType2>
+[[deprecated("Use of oneapi::dpl::histogram API with explicit specification of the template type for the "
+             " bin boundary value parameters is deprecated and will be removed in a future release. Please use "
+             " the oneapi::dpl histogram API with the same value type for both the input iterator and bin boundary "
+             " values.")]]
 std::enable_if_t<
     oneapi::dpl::execution::is_execution_policy_v<std::decay_t<_ExecutionPolicy>> &&
         std::is_convertible_v<_ValueType, typename std::iterator_traits<_RandomAccessIterator1>::value_type> &&
