@@ -184,7 +184,8 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&
                  _Proj1 __proj1, _Proj2 __proj2)
 {
     auto __pred_2 = [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2)
-        { return std::invoke(__pred, std::invoke(__proj1, __val1), std::invoke(__proj2, __val2));};
+        { return std::invoke(__pred, std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
+                             std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     return oneapi::dpl::__internal::__ranges::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::views::all_read(::std::forward<_R1>(__r1)),
