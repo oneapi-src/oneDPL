@@ -106,7 +106,8 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
 // This overload is provided to support an extension to the oneDPL specification to support the original implementation
 // of the histogram API, where if users explicitly-specify all template arguments, their arguments for bin boundary min
 // and max are convertible to the specified _ValueType, and the _ValueType is convertible to the value type of the
-// input iterator.
+// input iterator. Note that _ValueType is not deducable from the function arugments, so this overload is only used
+// when users explicitly specify the _ValueType template argument.
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
           typename _ValueType, typename _RealValueType1, typename _RealValueType2>
 std::enable_if_t<
