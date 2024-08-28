@@ -77,6 +77,48 @@ struct P2
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
+template<typename, typename = void>
+static constexpr bool is_iterator{};
+
+template<typename T>
+static constexpr
+bool is_iterator<T, std::void_t<decltype(++std::declval<T&>()), decltype(*std::declval<T&>())>> = true;
+
+template<typename, typename = void>
+static constexpr bool check_in{};
+
+template<typename T>
+static constexpr
+bool check_in<T, std::void_t<decltype(std::declval<T>().in)>> = true;
+
+template<typename, typename = void>
+static constexpr bool check_in1{};
+
+template<typename T>
+static constexpr
+bool check_in1<T, std::void_t<decltype(std::declval<T>().in1)>> = true;
+
+template<typename, typename = void>
+static constexpr bool check_in2{};
+
+template<typename T>
+static constexpr
+bool check_in2<T, std::void_t<decltype(std::declval<T>().in2)>> = true;
+
+template<typename, typename = void>
+static constexpr bool check_out{};
+
+template<typename T>
+static constexpr
+bool check_out<T, std::void_t<decltype(std::declval<T>().out)>> = true;
+
+template<typename, typename = void>
+static constexpr bool is_range{};
+
+template<typename T>
+static constexpr
+bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
+
 template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
 {
@@ -255,48 +297,6 @@ public:
         process_data_in_in_out(r_size, r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 private:
-
-    template<typename, typename = void>
-    static constexpr bool is_iterator{};
-
-    template<typename T>
-    static constexpr
-    bool is_iterator<T, std::void_t<decltype(++std::declval<T&>()), decltype(*std::declval<T&>())>> = true;
-
-    template<typename, typename = void>
-    static constexpr bool check_in{};
-
-    template<typename T>
-    static constexpr
-    bool check_in<T, std::void_t<decltype(std::declval<T>().in)>> = true;
-
-    template<typename, typename = void>
-    static constexpr bool check_in1{};
-
-    template<typename T>
-    static constexpr
-    bool check_in1<T, std::void_t<decltype(std::declval<T>().in1)>> = true;
-
-    template<typename, typename = void>
-    static constexpr bool check_in2{};
-
-    template<typename T>
-    static constexpr
-    bool check_in2<T, std::void_t<decltype(std::declval<T>().in2)>> = true;
-
-    template<typename, typename = void>
-    static constexpr bool check_out{};
-
-    template<typename T>
-    static constexpr
-    bool check_out<T, std::void_t<decltype(std::declval<T>().out)>> = true;
-
-    template<typename, typename = void>
-    static constexpr bool is_range{};
-
-    template<typename T>
-    static constexpr
-    bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 
     template<typename Ret, typename Begin>
     auto ret_in_val(Ret&& ret, Begin&& begin)
