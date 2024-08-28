@@ -5,12 +5,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-//
 //===----------------------------------------------------------------------===//
 //
 // Abstract:
@@ -31,8 +25,8 @@ main()
     sycl::queue queue = TestUtils::get_test_queue();
 
     // Reference values
-    uint_fast32_t philox4_32_ref = 1955073260;
-    uint_fast64_t philox4_64_ref = 3409172418970261260;
+    std::uint_fast32_t philox4_32_ref = 1955073260;
+    std::uint_fast64_t philox4_64_ref = 3409172418970261260;
     int err = 0;
 
     // Generate 10 000th element for philox4_32
