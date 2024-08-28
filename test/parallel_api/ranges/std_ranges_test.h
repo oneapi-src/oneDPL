@@ -77,7 +77,7 @@ struct P2
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
-template<typename DataType, typename Container, TestDataMode mode = data_in>
+template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
 {
     template<typename Policy>
@@ -90,7 +90,7 @@ struct test
         operator()(oneapi::dpl::execution::par_unseq, algo, checker, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
@@ -120,7 +120,7 @@ struct test
     }
 
 private:
-    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
     void
     process_data_in_out(int n_in, int n_out, Policy&& exec, Algo algo, Checker& checker, TransIn tr_in,
                         TransOut tr_out, auto... args)
@@ -161,7 +161,7 @@ private:
     }
 
 public:
-    template<typename Policy, typename Algo, typename Checker>
+    template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
@@ -173,7 +173,7 @@ public:
         process_data_in_out(r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
@@ -202,7 +202,7 @@ public:
     }
 
 private:
-    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut>
+    template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
     void
     process_data_in_in_out(int n_in1, int n_in2, int n_out, Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut tr_out, auto... args)
     {
@@ -244,7 +244,7 @@ private:
     }
 
 public:
-    template<typename Policy, typename Algo, typename Checker>
+    template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
