@@ -739,7 +739,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     constexpr std::uint16_t __max_inputs_per_item = 64 * __block_size_scale;
     constexpr bool __inclusive = _Inclusive::value;
 
-    const std::uint32_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 8192);
+    const std::uint32_t __max_work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 8192);
+    // Round down to nearest multiple of the subgroup size
+    const std::uint32_t __work_group_size = (__max_work_group_size / __sub_group_size) * __sub_group_size;
 
     // TODO: Investigate potentially basing this on some scale of the number of compute units. 128 work-groups has been
     // found to be reasonable number for most devices.
