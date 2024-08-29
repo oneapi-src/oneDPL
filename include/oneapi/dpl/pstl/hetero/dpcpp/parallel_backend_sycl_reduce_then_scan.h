@@ -103,7 +103,6 @@ __inclusive_sub_group_masked_scan(const __dpl_sycl::__sub_group& __sub_group, _M
     {
         __init_and_carry.__setup(sycl::group_broadcast(__sub_group, __value, __init_broadcast_id));
     }
-
     //return by reference __value and __init_and_carry
 }
 
@@ -485,7 +484,7 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 //    and then write back the final values to memory
                 if (__sub_group_id == 0)
                 {
-                    // step 1) load to Xe SLM the WG-local S prefix sums
+                    // step 1) load to SLM the WG-local S prefix sums
                     //         on WG T-local carries
                     //            0: T0 carry, 1: T0 + T1 carry, 2: T0 + T1 + T2 carry, ...
                     //           S: sum(T0 carry...TS carry)
@@ -596,9 +595,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 {
                     if (__sub_group_id > 0)
                     {
-                        _InitValueType __value = __sub_group_id - 1 < __active_subgroups
-                                                     ? __sub_group_partials[__sub_group_id - 1]
-                                                     : __sub_group_partials[__active_subgroups - 1];
+                        _InitValueType __value =
+                            __sub_group_partials[std::min(__sub_group_id - 1, __active_subgroups - 1)];
                         oneapi::dpl::unseq_backend::__init_processing<_InitValueType>{}(__init, __value, __reduce_op);
                         __sub_group_carry.__setup(__value);
                     }
@@ -627,9 +625,8 @@ struct __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs
                 {
                     if (__sub_group_id > 0)
                     {
-                        _InitValueType __value = __sub_group_id - 1 < __active_subgroups
-                                                     ? __sub_group_partials[__sub_group_id - 1]
-                                                     : __sub_group_partials[__active_subgroups - 1];
+                        _InitValueType __value =
+                            __sub_group_partials[std::min(__sub_group_id - 1, __active_subgroups - 1)];
                         __sub_group_carry.__setup(__reduce_op(__get_block_carry_in(__block_num, __tmp_ptr), __value));
                     }
                     else if (__group_id > 0)
