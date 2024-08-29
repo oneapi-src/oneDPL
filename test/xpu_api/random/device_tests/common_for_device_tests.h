@@ -98,9 +98,6 @@ int device_copyable_test(sycl::queue& queue) {
         for (int j = 0; j < num_elems; j++)
             r_host[i*num_elems + j] = res[j];
     }
-    for (int j = 0; j < N; j++)
-        std::cout << r_host[j] << " ";
-    std::cout << std::endl;
 
     // compare
     return comparison(r_dev, r_host, N);
