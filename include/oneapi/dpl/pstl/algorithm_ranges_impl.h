@@ -76,7 +76,7 @@ __pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
     assert(std::ranges::size(__in_r) == std::ranges::size(__out_r));
 
-    auto __unary_op = [=](auto&& __val) -> decltype(auto) { 
+    auto __unary_op = [__op, __proj](auto&& __val) -> decltype(auto) { 
         return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
     oneapi::dpl::__internal::__pattern_walk2(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__in_r),
@@ -118,7 +118,7 @@ __pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange1&& __in
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    auto __f = [=](auto&& __val1, auto&& __val2) -> decltype(auto) { 
+    auto __f = [__binary_op, __proj1, __proj2](auto&& __val1, auto&& __val2) -> decltype(auto) { 
         return std::invoke(__binary_op, std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
             std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
