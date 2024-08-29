@@ -397,6 +397,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
         return 0;
     if (__n == 1)
     {
+        // For a sequence of size 1, we can just copy the only element to the result.
         using _CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{},
