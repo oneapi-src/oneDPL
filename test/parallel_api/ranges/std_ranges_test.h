@@ -459,12 +459,17 @@ struct test_range_algo
         //Skip the cases with pointer-to-function and hetero policy because pointer-to-function is not supported within kernel code.
         if constexpr(!std::disjunction_v<std::is_member_function_pointer<decltype(args)>...>)
         {
-            test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
-            test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
-#if TEST_CPP20_SPAN_PRESENT
-            test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
-            test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
+#if _PSTL_LAMBDA_PTR_TO_MEMBER_WINDOWS_BROKEN
+            if constexpr(!std::disjunction_v<std::is_member_pointer<decltype(args)>...>)
 #endif
+            {
+                test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
+                test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
+#if TEST_CPP20_SPAN_PRESENT
+                test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
+                test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
+#endif
+            }
         }
 #endif //TEST_DPCPP_BACKEND_PRESENT
     }
