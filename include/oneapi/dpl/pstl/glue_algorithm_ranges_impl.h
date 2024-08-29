@@ -320,7 +320,8 @@ struct __count_if_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
              std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Pred>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R>
 
     std::ranges::range_difference_t<_R>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
@@ -340,7 +341,8 @@ struct __count_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
              typename _T>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R>
         && std::indirect_binary_predicate<std::ranges::equal_to, std::projected<std::ranges::iterator_t<_R>, _Proj>,
         const _T*>
     std::ranges::range_difference_t<_R>
@@ -361,7 +363,7 @@ struct __equal_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
              typename _Pred = std::ranges::equal_to, typename _Proj1 = std::identity, typename _Proj2 = std::identity>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>>
            && (std::ranges::sized_range<_R1> || std::ranges::sized_range<_R2>)
            && std::indirectly_comparable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>, _Pred, _Proj1,
            _Proj2>
@@ -391,7 +393,8 @@ struct __is_sorted_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
              std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>>
              _Comp = std::ranges::less>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R>
     bool
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -410,8 +413,8 @@ struct __stable_sort_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Comp = std::ranges::less,
              typename _Proj = std::identity>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
-           && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R> && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -430,8 +433,8 @@ struct __sort_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Comp = std::ranges::less,
              typename _Proj = std::identity>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
-           && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R> && std::sortable<std::ranges::iterator_t<_R>, _Comp, _Proj>
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -450,7 +453,8 @@ struct __min_element_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
              std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>>
              _Comp = std::ranges::less>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R>
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -469,7 +473,8 @@ struct __max_element_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R, typename _Proj = std::identity,
              std::indirect_strict_weak_order<std::projected<std::ranges::iterator_t<_R>, _Proj>> _Comp = std::ranges::less>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R>
     auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
@@ -487,7 +492,7 @@ struct __copy_fn
 {
     template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
              std::ranges::random_access_range _OutRange>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>>
         && std::ranges::sized_range<_InRange> && std::ranges::sized_range<_OutRange>
         && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
 
@@ -514,7 +519,7 @@ struct __copy_if_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _InRange,
              std::ranges::random_access_range _OutRange, typename _Proj = std::identity,
              std::indirect_unary_predicate<std::projected<std::ranges::iterator_t<_InRange>, _Proj>> _Pred>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>>
         && std::ranges::sized_range<_InRange> && std::ranges::sized_range<_OutRange>
         && std::indirectly_copyable<std::ranges::iterator_t<_InRange>, std::ranges::iterator_t<_OutRange>>
     auto
@@ -536,8 +541,8 @@ struct __merge_fn
     template<typename _ExecutionPolicy, std::ranges::random_access_range _R1, std::ranges::random_access_range _R2,
              std::ranges::random_access_range _OutRange, typename _Comp = std::ranges::less,
              typename _Proj1 = std::identity, typename _Proj2 = std::identity>
-    requires oneapi::dpl::is_execution_policy_v<std::remove_cvref_t<_ExecutionPolicy>> && std::ranges::sized_range<_R1>
-        && std::ranges::sized_range<_R2> && std::ranges::sized_range<_OutRange>
+    requires oneapi::dpl::execution::is_execution_policy_v_v<std::remove_cvref_t<_ExecutionPolicy>> &&
+        std::ranges::sized_range<_R1> && std::ranges::sized_range<_R2> && std::ranges::sized_range<_OutRange>
         && std::mergeable<std::ranges::iterator_t<_R1>, std::ranges::iterator_t<_R2>,
         std::ranges::iterator_t<_OutRange>, _Comp, _Proj1, _Proj2>
     auto
