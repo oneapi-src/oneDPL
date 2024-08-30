@@ -274,24 +274,3 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
-
-# add additional TUs if required
-if (TARGET interop_allocs.pass)
-    target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
-                                               "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
-endif()
-
-# we want to test configurations when our dynamic library loaded before pstloffload as well as after pstloffload
-if (TARGET free_after_unload.pass)
-    add_library(free_after_unload_lib SHARED "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/general/free_after_unload_lib.cpp")
-    target_include_directories(free_after_unload_lib PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-    target_link_libraries(free_after_unload.pass PRIVATE free_after_unload_lib)
-endif()
-
-if (TARGET free_after_unload.pass.after_pstl_offload)
-    if (NOT TARGET free_after_unload_lib)
-        add_library(free_after_unload_lib SHARED "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/general/free_after_unload_lib.cpp")
-        target_include_directories(free_after_unload_lib PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-    endif()
-    target_link_libraries(free_after_unload.pass.after_pstl_offload PRIVATE pstloffload free_after_unload_lib)
-endif()
