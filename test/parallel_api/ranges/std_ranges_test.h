@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include <oneapi/dpl/execution>
+#include <oneapi/dpl/algorithm>
 
 #include "support/test_config.h"
 
