@@ -218,7 +218,7 @@ class uniform_real_distribution
                           static_cast<scalar_type>(1 + (__engine.max() - __engine.min()))) *
                              (__params.b() - __params.a()) +
                          __params.a();
-         }
+        }
 
         return __res;
     }
@@ -292,8 +292,8 @@ class uniform_real_distribution
                                          static_cast<scalar_type>(1 + (__engine.max() - __engine.min()))) *
                                             (__params.b() - __params.a()) +
                                         __params.a();
-                 __res[__i + __j] = __res_tmp;
-             }
+                __res[__i + __j] = __res_tmp;
+            }
         }
         return __res;
     }
