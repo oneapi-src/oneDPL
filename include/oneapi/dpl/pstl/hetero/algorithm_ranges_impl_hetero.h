@@ -478,8 +478,9 @@ __pattern_is_sorted(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
         std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
 
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
-        std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)),
-        oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) == __r.size();
+        std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__ranges::views::all_read(__r),
+        oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) 
+        == std::ranges::size(__r);
 }
 
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
