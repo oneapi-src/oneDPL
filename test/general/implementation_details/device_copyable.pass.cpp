@@ -387,9 +387,9 @@ test_non_device_copyable()
                   "__gen_expand_count_mask is device copyable with non device copyable types");
 
     //__write_to_id_if
-    static_assert(!sycl::is_device_copyable_v<
-                      oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, assign_non_device_copyable>>,
-                  "__write_to_id_if is device copyable with non device copyable types");
+    static_assert(
+        !sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, assign_non_device_copyable>>,
+        "__write_to_id_if is device copyable with non device copyable types");
 
     // __early_exit_find_or
     static_assert(
