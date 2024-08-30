@@ -208,10 +208,10 @@ class uniform_real_distribution
     inline scalar_type
     make_real_uniform(_IntegerT __int_val, _Engine& __engine, const param_type& __params)
     {
-        return static_cast<scalar_type>(((__int_val - __engine.min()) /
-                static_cast<scalar_type>(1 + (__engine.max() - __engine.min()))) *
-                                            (__params.b() - __params.a()) +
-                                        __params.a());
+        return static_cast<scalar_type>(
+            ((__int_val - __engine.min()) / static_cast<scalar_type>(1 + (__engine.max() - __engine.min()))) *
+                (__params.b() - __params.a()) +
+            __params.a());
     }
 
     // Implementation for generate function
@@ -344,7 +344,7 @@ class uniform_real_distribution
 
                 for (unsigned int __j = 0; __j < __tail_size; ++__j)
                 {
-                    __res[__i + __j] = make_real_uniform(__engine_output[__j], __engine, __params);;
+                    __res[__i + __j] = make_real_uniform(__engine_output[__j], __engine, __params);
                 }
             }
         }
