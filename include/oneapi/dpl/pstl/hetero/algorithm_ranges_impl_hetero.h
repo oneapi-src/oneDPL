@@ -392,7 +392,7 @@ oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
                       _BinaryPredicate __pred)
 {
-    oneapi::dpl::__internal::__difference_t<_Range1> __n = __rng.size();
+    oneapi::dpl::__internal::__difference_t<_Range2> __n = __rng.size();
     if (__n == 0)
         return 0;
     if (__n == 1)
