@@ -195,7 +195,7 @@ __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     auto __pred_1 = [__pred, __proj](auto&& __val)
         { return std::invoke(__pred, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_find_if(__tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)), __pred_1);
+        oneapi::dpl::__ranges::views::all_read(__r), __pred_1);
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + __idx);
 }
@@ -336,8 +336,8 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
                         std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search(__tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::views::all_read(std::forward<_R1>(__r1)),
-        oneapi::dpl::__ranges::views::all_read(std::forward<_R2>(__r2)), __pred_2);
+        oneapi::dpl::__ranges::views::all_read(__r1),
+        oneapi::dpl::__ranges::views::all_read(__r2), __pred_2);
     auto __res = std::ranges::begin(__r1) + __idx;
 
     return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1)
@@ -375,7 +375,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
         std::forward<decltype(__val2)>(__val2));};
 
     auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search_n(__tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)), __count, __value, __pred_2);
+        oneapi::dpl::__ranges::views::all_read(__r), __count, __value, __pred_2);
 
     auto __end = (__idx == __r.size() ? std::ranges::begin(__r) + __idx : std::ranges::begin(__r) + __idx + __count);
     return std::ranges::borrowed_subrange_t<_R>(std::ranges::begin(__r) + __idx, __end);
@@ -435,7 +435,7 @@ __pattern_adjacent_find_ranges(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy
 
     auto __idx =
         oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::views::all_read(std::forward<_R>(__r)), __pred_2,
+        oneapi::dpl::__ranges::views::all_read(__r), __pred_2,
         oneapi::dpl::__internal::__first_semantic());
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + __idx);
