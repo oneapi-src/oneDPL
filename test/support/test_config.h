@@ -34,7 +34,7 @@
 // before updating to the newest version in this section.
 
 // According to https://gcc.gnu.org/develop.html#timeline use last known _GLIBCXX_ to check the version of libstdc++
-#define _PSTL_TEST_LATEST_GLIBCXX 20240426
+#define _PSTL_TEST_LATEST_GLIBCXX 20240801
 
 #define _PSTL_TEST_LATEST_INTEL_LLVM_COMPILER 20250000
 
