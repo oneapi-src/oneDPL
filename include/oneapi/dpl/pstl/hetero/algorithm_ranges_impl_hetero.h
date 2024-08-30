@@ -341,7 +341,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
     auto __res = std::ranges::begin(__r1) + __idx;
 
     return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1)
-        ? __res : __res + std::ranges(__r2));
+        ? __res : __res + std::ranges::size(__r2));
 }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
 
