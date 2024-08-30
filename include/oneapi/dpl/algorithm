@@ -25,6 +25,7 @@
 #if !_ONEDPL_ALGORITHM_FORWARD_DECLARED
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/pstl/glue_algorithm_defs.h"
+#    include "oneapi/dpl/pstl/glue_algorithm_ranges_defs.h"
 #    include "oneapi/dpl/internal/by_segment_extension_defs.h"
 #    include "oneapi/dpl/internal/binary_search_extension_defs.h"
 #    include "oneapi/dpl/pstl/histogram_extension_defs.h"
