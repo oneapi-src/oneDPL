@@ -464,7 +464,7 @@ struct test_range_algo
 #endif
             {
                 test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
-                test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id +30>(), algo, checker, std::identity{}, std::identity{}, args...);
+                test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id + 30>(), algo, checker, std::identity{}, std::identity{}, args...);
 #if TEST_CPP20_SPAN_PRESENT
                 test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
                 test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
