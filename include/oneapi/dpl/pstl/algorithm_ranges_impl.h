@@ -283,7 +283,8 @@ __pattern_search_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& _
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
         std::ranges::begin(__r2) + std::ranges::size(__r2), __pred_2);
 
-    return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1) ? __res : __res + __r2.size());
+    return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1)
+        ? __res : __res + std::ranges::size(__r2));
 }
 
 template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,

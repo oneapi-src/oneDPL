@@ -21,7 +21,6 @@
 
 #if _ENABLE_STD_RANGES_TESTING
 
-#include <oneapi/dpl/ranges>
 #if TEST_CPP20_SPAN_PRESENT
 #include <span>
 #endif
@@ -29,6 +28,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <string>
+#include <ranges>
 
 namespace test_std_ranges
 {
