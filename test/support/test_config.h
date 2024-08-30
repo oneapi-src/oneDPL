@@ -232,9 +232,8 @@
 // oneAPI DPC++ compiler fails to compile the sum of an integer and an iterator to a usm-allocated std vector when
 // building for an FPGA device.  This prevents fpga compilation of usm-allocated std vector wrapped in zip, transform,
 // and permutation iterators (as a map).
-// TODO: Update intel llvm version number as releases are made until a fix is in place.
 #if (TEST_DPCPP_BACKEND_PRESENT && defined(ONEDPL_FPGA_DEVICE) && defined(__INTEL_LLVM_COMPILER) &&                   \
-        __INTEL_LLVM_COMPILER <= 20240200)
+        __INTEL_LLVM_COMPILER <= _PSTL_TEST_LATEST_INTEL_LLVM_COMPILER)
 #    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 1
 #else
 #    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 0
