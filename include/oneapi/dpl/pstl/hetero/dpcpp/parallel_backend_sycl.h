@@ -1821,9 +1821,8 @@ auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                        _Range&& __rng, _Compare __comp, _Proj __proj)
 {
-    auto __cmp_f = oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj};
     return __parallel_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                __cmp_f);
+                                oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
 }
 
 //------------------------------------------------------------------------
