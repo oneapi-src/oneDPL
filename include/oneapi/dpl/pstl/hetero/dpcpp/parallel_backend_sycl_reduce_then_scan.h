@@ -409,16 +409,16 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
 };
 
 template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
-          bool __is_unique_pattern_v, typename _ReduceOp, typename _GenScanInput,
-          typename _ScanInputTransform, typename _WriteOp, typename _InitType, typename _KernelName>
+          bool __is_unique_pattern_v, typename _ReduceOp, typename _GenScanInput, typename _ScanInputTransform,
+          typename _WriteOp, typename _InitType, typename _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter;
 
 template <std::uint8_t __sub_group_size, std::uint16_t __max_inputs_per_item, bool __is_inclusive,
-          bool __is_unique_pattern_v, typename _ReduceOp, typename _GenScanInput,
-          typename _ScanInputTransform, typename _WriteOp, typename _InitType, typename... _KernelName>
+          bool __is_unique_pattern_v, typename _ReduceOp, typename _GenScanInput, typename _ScanInputTransform,
+          typename _WriteOp, typename _InitType, typename... _KernelName>
 struct __parallel_reduce_then_scan_scan_submitter<
-    __sub_group_size, __max_inputs_per_item, __is_inclusive, __is_unique_pattern_v, _ReduceOp,
-    _GenScanInput, _ScanInputTransform, _WriteOp, _InitType, __internal::__optional_kernel_name<_KernelName...>>
+    __sub_group_size, __max_inputs_per_item, __is_inclusive, __is_unique_pattern_v, _ReduceOp, _GenScanInput,
+    _ScanInputTransform, _WriteOp, _InitType, __internal::__optional_kernel_name<_KernelName...>>
 {
     using _InitValueType = typename _InitType::__value_type;
 
@@ -812,8 +812,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                                                      _ReduceKernel>;
     using _ScanSubmitter =
         __parallel_reduce_then_scan_scan_submitter<__sub_group_size, __max_inputs_per_item, __inclusive,
-                                                   __is_unique_pattern_v, _ReduceOp, _GenScanInput,
-                                                   _ScanInputTransform, _WriteOp, _InitType, _ScanKernel>;
+                                                   __is_unique_pattern_v, _ReduceOp, _GenScanInput, _ScanInputTransform,
+                                                   _WriteOp, _InitType, _ScanKernel>;
     _ReduceSubmitter __reduce_submitter{__max_inputs_per_block,
                                         __num_sub_groups_local,
                                         __num_sub_groups_global,

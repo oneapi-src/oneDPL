@@ -1105,8 +1105,9 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
     {
 
         using _ReduceOp = std::plus<decltype(__n)>;
-        using _CreateOp = oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
-                                                           decltype(__n)>;
+        using _CreateOp =
+            oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
+                                                               decltype(__n)>;
         using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1>;
 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
@@ -1181,7 +1182,7 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 
         return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                                 std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{__assign}, 
+                                                _GenMask{__pred}, _WriteOp{__assign},
                                                 /*_IsUniquePattern=*/std::false_type{});
     }
     else
