@@ -254,7 +254,7 @@ __pattern_search_n(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&&
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 std::ranges::range_difference_t<_R>
-__pattern_count_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+__pattern_count_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -264,22 +264,11 @@ __pattern_count_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred _
         std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __pred_1);
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+template <typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 std::ranges::range_difference_t<_R>
-__pattern_count_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+__pattern_count_if(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
-    return __pattern_count_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
-}
-
-template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-std::ranges::range_difference_t<_R>
-__pattern_count_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_count_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred,
-                                       __proj);
-    else
-        return std::ranges::count_if(std::forward<_R>(__r), __pred, __proj);
+    return std::ranges::count_if(std::forward<_R>(__r), __pred, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -288,8 +277,8 @@ __pattern_count_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred
 template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
          typename _Proj2>
 bool
-__pattern_equal_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
-                 _Proj1 __proj1, _Proj2 __proj2)
+__pattern_equal(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                _Proj1 __proj1, _Proj2 __proj2)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -302,26 +291,12 @@ __pattern_equal_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
         std::ranges::begin(__r2) + std::ranges::size(__r2), __pred_2);
 }
 
-template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
          typename _Proj2>
 bool
-__pattern_equal(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
-                 _Proj1 __proj1, _Proj2 __proj2)
+__pattern_equal(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2)
 {
-    return __pattern_equal_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
-                                std::forward<_R2>(__r2), __pred, __proj1, __proj2);
-}
-
-template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
-         typename _Proj2>
-bool
-__pattern_equal(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_equal_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
-                                    std::forward<_R2>(__r2), __pred, __proj1, __proj2);
-    else
-        return std::ranges::equal(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1, __proj2);
+    return std::ranges::equal(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1, __proj2);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -330,7 +305,7 @@ __pattern_equal(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 bool
-__pattern_is_sorted_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_is_sorted(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -342,22 +317,11 @@ __pattern_is_sorted_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp 
         oneapi::dpl::__internal::__reorder_pred(__pred_2), oneapi::dpl::__internal::__or_semantic()) == __r.end();
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+template <typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 bool
-__pattern_is_sorted(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_is_sorted(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    return __pattern_is_sorted_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
-}
-
-template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
-bool
-__pattern_is_sorted(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_is_sorted_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
-                                        __proj);
-    else
-        return std::ranges::is_sorted(std::forward<_R>(__r), __comp, __proj);
+    return std::ranges::is_sorted(std::forward<_R>(__r), __comp, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -366,7 +330,7 @@ __pattern_is_sorted(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -380,22 +344,11 @@ __pattern_sort_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __com
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+template <typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_sort_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_sort_ranges(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
-}
-
-template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
-auto
-__pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_sort_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
-                                   __proj);
-    else
-        return std::ranges::stable_sort(std::forward<_R>(__r), __comp, __proj);
+    return std::ranges::stable_sort(std::forward<_R>(__r), __comp, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -404,7 +357,7 @@ __pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __c
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_min_element_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_min_element(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -417,22 +370,11 @@ __pattern_min_element_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Com
     return std::ranges::borrowed_iterator_t<_R>(__res);
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
+template <typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_min_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_min_element(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
-    return __pattern_min_element_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
-}
-
-template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
-auto
-__pattern_min_element(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_min_element_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp,
-                                          __proj);
-    else
-        return std::ranges::min_element(std::forward<_R>(__r), __comp, __proj);
+    return std::ranges::min_element(std::forward<_R>(__r), __comp, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -441,7 +383,7 @@ __pattern_min_element(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __c
 
 template <typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
 void
-__pattern_copy_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
+__pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -452,23 +394,11 @@ __pattern_copy_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
         oneapi::dpl::__internal::__brick_copy<decltype(__tag), _ExecutionPolicy>{});
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
+template<typename _ExecutionPolicy, typename _InRange, typename _OutRange>
 void
-__pattern_copy(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
+__pattern_copy(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
-    __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
-        std::forward<_OutRange>(__out_r));
-}
-
-template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange>
-void
-__pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        __pattern_copy_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
-            std::forward<_OutRange>(__out_r));
-    else
-        std::ranges::copy(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r));
+    std::ranges::copy(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r));
 }
 //---------------------------------------------------------------------------------------------------------------------
 // pattern_copy_if
@@ -477,7 +407,7 @@ __pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRan
 template <typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred,
           typename _Proj>
 auto
-__pattern_copy_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj)
+__pattern_copy_if_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
@@ -488,32 +418,18 @@ __pattern_copy_if_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r,
         std::ranges::begin(__in_r), std::ranges::begin(__in_r) + std::ranges::size(__in_r),
         std::ranges::begin(__out_r), __pred_1) - std::ranges::begin(__out_r);
 
-    using __return_t = std::ranges::copy_if_result<std::ranges::borrowed_iterator_t<_InRange>,
+    using __return_type = std::ranges::copy_if_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r) + __res_idx};
+    return __return_type{std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r) + __res_idx};
 }
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred,
-          typename _Proj>
+template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj>
 auto
-__pattern_copy_if_ranges(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
+__pattern_copy_if_ranges(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
                          _Pred __pred, _Proj __proj)
 {
-    return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
-        std::forward<_OutRange>(__out_r), __pred, __proj);
-}
-
-template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _Pred, typename _Proj,
-             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-auto
-__pattern_copy_if_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj)
-{
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_copy_if_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_InRange>(__in_r),
-            std::forward<_OutRange>(__out_r), __pred, __proj);
-    else
-        return std::ranges::copy_if(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r), __pred, __proj);
+    return std::ranges::copy_if(std::forward<_InRange>(__in_r), std::ranges::begin(__out_r), __pred, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -523,8 +439,8 @@ __pattern_copy_if_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_
 template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
          typename _Proj1, typename _Proj2>
 auto
-__pattern_merge_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
-                     _Proj1 __proj1, _Proj2 __proj2)
+__pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
+                _Proj1 __proj1, _Proj2 __proj2)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
     assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r));
@@ -537,34 +453,20 @@ __pattern_merge_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
         std::ranges::begin(__r2) + std::ranges::size(__r2), std::ranges::begin(__out_r), __comp_2);
 
-    using __return_t = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
+    using __return_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2) + std::ranges::size(__r2), __res};
+    return __return_type{std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2) + std::ranges::size(__r2), __res};
 }
 
-template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
+template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
          typename _Proj1, typename _Proj2>
 auto
-__pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r,
-                _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
-{
-    return __pattern_merge_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
-        std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
-}
-
-template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
-         typename _Proj1, typename _Proj2>
-auto
-__pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
+__pattern_merge(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
                 _Proj1 __proj1, _Proj2 __proj2)
 {
-    if constexpr(typename _Tag::__is_vector{})
-        return __pattern_merge_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1),
-            std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
-    else
-        return std::ranges::merge(std::forward<_R1>(__r1), std::forward<_R2>(__r2), std::ranges::begin(__out_r), __comp, __proj1,
-                                  __proj2);
+    return std::ranges::merge(std::forward<_R1>(__r1), std::forward<_R2>(__r2), std::ranges::begin(__out_r), __comp, __proj1,
+                              __proj2);
 }
 
 } // namespace __ranges
