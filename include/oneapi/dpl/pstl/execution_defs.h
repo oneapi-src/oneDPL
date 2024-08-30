@@ -82,6 +82,7 @@ inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_executi
 } // namespace v1
 } // namespace execution
 
+using oneapi::dpl::execution::is_execution_policy;
 using oneapi::dpl::execution::is_execution_policy_v;
 
 namespace __internal
