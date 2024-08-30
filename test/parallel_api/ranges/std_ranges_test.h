@@ -211,7 +211,7 @@ public:
         process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
 
         //test case size of input range is less than size of output and viceversa
-        process_data_in_out(r_size/2, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_out(r_size/2, r_size, exec, algo, checker, args...);
         process_data_in_out(r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 
@@ -291,9 +291,9 @@ public:
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = 10;
-        process_data_in_in_out(r_size, r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
-        process_data_in_in_out(r_size/2, r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
-        process_data_in_in_out(r_size, r_size/2, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_in_out(r_size, r_size, r_size, exec, algo, checker, args...);
+        process_data_in_in_out(r_size/2, r_size, r_size, exec, algo, checker, args...);
+        process_data_in_in_out(r_size, r_size/2, r_size, exec, algo, checker, args...);
         process_data_in_in_out(r_size, r_size, r_size/2, std::forward<Policy>(exec), algo, checker, args...);
     }
 private:

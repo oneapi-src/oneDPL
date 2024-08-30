@@ -74,7 +74,7 @@ __pattern_transform_impl(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_
                          _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
-    assert(std::ranges::size(__in_r) == std::ranges::size(__out_r));
+    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r));
 
     auto __unary_op = [__op, __proj](auto&& __val) -> decltype(auto) { 
         return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};

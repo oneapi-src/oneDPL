@@ -341,7 +341,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
     auto __res = std::ranges::begin(__r1) + __idx;
 
     return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1)
-        ? __res : __res + std::ranges(__r2));
+        ? __res : __res + std::ranges::size(__r2));
 }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT
 
@@ -528,8 +528,8 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
     unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
 
-    return __ranges::__pattern_scan_copy(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1),
-                               std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
+    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+                               ::std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------

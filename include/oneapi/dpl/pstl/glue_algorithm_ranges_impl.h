@@ -336,8 +336,8 @@ any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
     const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
-    return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
-                                                               views::all_read(std::forward<_Range>(__rng)), __pred);
+    return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                               views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
 
 // [alg.all_of]
