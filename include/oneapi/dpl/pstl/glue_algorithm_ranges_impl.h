@@ -61,7 +61,7 @@ struct __for_each_fn
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         oneapi::dpl::__internal::__ranges::__pattern_for_each(
-            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
+            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), __r, __f, __proj);
 
         return {std::ranges::begin(__r) + std::ranges::size(__r)};
     }
