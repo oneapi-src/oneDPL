@@ -167,7 +167,7 @@ __pattern_any_of(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& _
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 auto
-__pattern_adjacent_find(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
+__pattern_adjacent_find_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
                         _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
@@ -208,8 +208,8 @@ __pattern_search(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, 
         std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
         std::ranges::begin(__r2) + std::ranges::size(__r2), __pred_2);
 
-    return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1) ? __res : 
-        __res + std::ranges::size(__r2));
+    return std::ranges::borrowed_subrange_t<_R1>(__res, __res == std::ranges::end(__r1)
+        ? __res : __res + std::ranges::size(__r2));
 }
 
 template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
