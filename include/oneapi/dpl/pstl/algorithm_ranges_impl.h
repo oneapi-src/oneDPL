@@ -70,7 +70,7 @@ __pattern_transform(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
                     _Proj __proj)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
-    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r));
+    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r)); // for debug purposes only
 
     auto __unary_op = [__op, __proj](auto&& __val) {
         return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
@@ -392,7 +392,7 @@ __pattern_copy(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRan
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 
-    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r));
+    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r)); // for debug purposes only
 
     oneapi::dpl::__internal::__pattern_walk2_brick(__tag, std::forward<_ExecutionPolicy>(__exec),
         std::ranges::begin(__in_r), std::ranges::begin(__in_r) + std::ranges::size(__in_r), std::ranges::begin(__out_r),
@@ -448,7 +448,7 @@ __pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _
                 _Proj1 __proj1, _Proj2 __proj2)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
-    assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r));
+    assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r)); // for debug purposes only
 
     auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
         std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj2,
