@@ -28,10 +28,7 @@ main()
     {
         using Size = std::common_type_t<std::ranges::range_size_t<decltype(r_in)>,
             std::ranges::range_size_t<decltype(r_out)>>;
-
-        Size size = std::ranges::size(r_out);
-        if constexpr(std::ranges::sized_range<decltype(r_in)>)
-            size = std::ranges::min(size, (Size)std::ranges::size(r_in));
+        Size size = std::ranges::min((Size)std::ranges::size(r_out), (Size)std::ranges::size(r_in));
 
         auto res = std::ranges::transform(std::ranges::take_view(r_in, size),
             std::ranges::take_view(r_out, size).begin(), std::forward<decltype(args)>(args)...);
@@ -51,7 +48,7 @@ main()
                                        std::ranges::random_access_range auto&& r_2,
                                        std::ranges::random_access_range auto&& r_out, auto&&... args)
     {
-        using Size = std::common_type_t<std::ranges::range_size_t<decltype(r_1)>, std::ranges::range_size_t<decltype(r_2)>,
+        using Size = std::common_type_t<range_size_t<decltype(r_1)>, range_size_t<decltype(r_2)>,
             std::ranges::range_size_t<decltype(r_out)>>;
         Size size = std::ranges::size(r_out);
         if constexpr(std::ranges::sized_range<decltype(r_1)>)
