@@ -117,6 +117,7 @@
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
+// make sure _ENABLE_STD_RANGES_TESTING is always defined for the use at runtime, e.g. by TestUtils::done
 #if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __cpp_lib_ranges >= 201911L
 #   define _ENABLE_STD_RANGES_TESTING 1
 #else
