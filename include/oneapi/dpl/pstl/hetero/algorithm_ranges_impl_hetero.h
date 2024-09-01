@@ -117,6 +117,8 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _InRange, ty
 void
 __pattern_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r)
 {
+    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r));
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__internal::__brick_copy<decltype(__tag), _ExecutionPolicy>{},
@@ -723,6 +725,8 @@ auto
 __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r,
     _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
 {
+    assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r));
+
     auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
         std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
         std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
