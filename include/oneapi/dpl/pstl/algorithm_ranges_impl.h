@@ -19,7 +19,12 @@
 #if _ONEDPL_CPP20_RANGES_PRESENT
 
 #include <ranges>
+#include <utility>
+#include <functional>
+#include <type_traits>
+
 #include "algorithm_fwd.h"
+#include "execution_impl.h"
 
 namespace oneapi
 {

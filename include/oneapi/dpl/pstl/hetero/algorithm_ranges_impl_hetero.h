@@ -24,12 +24,14 @@
 #    include "dpcpp/utils_ranges_sycl.h"
 #    include "dpcpp/unseq_backend_sycl.h"
 #    include "dpcpp/parallel_backend_sycl_utils.h"
+#    include "dpcpp/execution_sycl_defs.h"
 #endif
 
 #if _ONEDPL_CPP20_RANGES_PRESENT
 #include <ranges>
-#include <functional>
 #include <utility>
+#include <functional>
+#include <type_traits>
 #endif
 
 namespace oneapi
