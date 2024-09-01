@@ -350,7 +350,8 @@ struct __count_fn
     std::ranges::range_difference_t<_R>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj = {}) const
     {
-        auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(__val, __value);};
+        auto __pred = [__value](auto&& __val) { return std::ranges::equal_to{}(
+            std::forward<decltype(__val)>(__val), __value);};
         return oneapi::dpl::ranges::count_if(std::forward<_ExecutionPolicy>(__exec),
             std::forward<_R>(__r), __pred, __proj);
     }
