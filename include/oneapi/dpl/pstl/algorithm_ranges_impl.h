@@ -20,6 +20,7 @@
 
 #include <ranges>
 #include <utility>
+#include <cassert>
 #include <functional>
 #include <type_traits>
 

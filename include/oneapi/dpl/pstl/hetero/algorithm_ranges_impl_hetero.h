@@ -30,6 +30,7 @@
 #if _ONEDPL_CPP20_RANGES_PRESENT
 #include <ranges>
 #include <utility>
+#include <cassert>
 #include <functional>
 #include <type_traits>
 #endif
@@ -85,6 +86,7 @@ void
 __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
                     _F __op, _Proj __proj)
 {
+    assert(std::ranges::size(__in_r) <= std::ranges::size(__out_r));
     auto __unary_op = [__op, __proj](auto&& __val) -> decltype(auto)
         { return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
