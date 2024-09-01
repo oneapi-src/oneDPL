@@ -78,6 +78,22 @@ struct P2
     friend bool operator==(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
 };
 
+
+// These are copies of __range_size and __range_size_t utilities from oneDPL
+// to get a size type of a range be it sized or not
+template <typename R>
+struct range_size {
+    using type = std::uint8_t;
+};
+
+template <std::ranges::sized_range R>
+struct range_size<R> {
+    using type = std::ranges::range_size_t<R>;
+};
+
+template <typename R>
+using range_size_t = typename range_size<R>::type;
+
 template<typename, typename = void>
 static constexpr bool is_iterator{};
 
