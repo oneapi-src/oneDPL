@@ -525,6 +525,7 @@ struct __copy_if_fn
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
+        // No minimum common size is calculated here, because the size of the output range is unknown
         return oneapi::dpl::__internal::__ranges::__pattern_copy_if_ranges(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
             std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __pred, __proj);
     }
