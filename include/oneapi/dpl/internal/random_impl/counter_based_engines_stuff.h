@@ -14,11 +14,6 @@
 #ifndef _ONEDPL_CTR_ENGINES_STUFF_H
 #define _ONEDPL_CTR_ENGINES_STUFF_H
 
-#include <concepts>
-#include <iterator>
-#include <utility>
-#include <tuple>
-#include <limits>
 
 namespace oneapi
 {
@@ -35,17 +30,17 @@ template <typename _U, unsigned __W,
 constexpr _U word_mask = __W ? (_U(~(_U(0))) >> (::std::numeric_limits<_U>::digits - __W)) : 0;
 
 /* For unpacking variadic of constants into two arrays */
-template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
+template <typename _UIntType, typename _Array, ::std::size_t... __Is>
 constexpr auto
-get_even_array_from_tuple(_Tuple __t, ::std::index_sequence<__Is...>)
+get_even_elm_array(_Array __inp, ::std::index_sequence<__Is...>)
 {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2>(__t)...};
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2>(__inp)...};
 }
-template <typename _UIntType, typename _Tuple, ::std::size_t... __Is>
+template <typename _UIntType, typename _Array, ::std::size_t... __Is>
 constexpr auto
-get_odd_array_from_tuple(_Tuple __t, std::index_sequence<__Is...>)
+get_odd_elm_array(_Array __inp, std::index_sequence<__Is...>)
 {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2 + 1>(__t)...};
+    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2 + 1>(__inp)...};
 }
 
 /* Implement __W-bit mulhilo - returns the __W hi and __W low 

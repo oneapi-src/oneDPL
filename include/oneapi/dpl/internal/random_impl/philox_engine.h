@@ -14,6 +14,12 @@
 #ifndef _ONEDPL_PHILOX_ENGINE_H
 #define _ONEDPL_PHILOX_ENGINE_H
 
+#include <array>
+#include <utility>
+#include <cstdint>
+#include <type_traits>
+#include <limits>
+
 #include "random_common.h"
 #include "counter_based_engines_stuff.h"
 
@@ -69,11 +75,11 @@ class philox_engine
     static_assert(::std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr ::std::array<scalar_type, __array_size> multipliers =
-        internal::experimental::get_even_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                                       ::std::make_index_sequence<__array_size>{}); //array ?
+        internal::experimental::get_even_elm_array<scalar_type>(::std::array{_consts...},
+                                                                ::std::make_index_sequence<__array_size>{});
     static constexpr ::std::array<scalar_type, __array_size> round_consts =
-        internal::experimental::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                                      ::std::make_index_sequence<__array_size>{}); //array ?
+        internal::experimental::get_odd_elm_array<scalar_type>(::std::array{_consts...},
+                                                               ::std::make_index_sequence<__array_size>{});
     static constexpr scalar_type
     min()
     {
