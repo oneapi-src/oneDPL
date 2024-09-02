@@ -47,7 +47,7 @@ template <typename _UIntType, ::std::size_t _w, ::std::size_t _n, ::std::size_t 
 class philox_engine
 {
     /* The size of the consts arrays */
-    static constexpr ::std::size_t array_size = _n / 2;
+    static constexpr ::std::size_t __array_size = _n / 2;
 
   public:
     /* Types */
@@ -68,17 +68,18 @@ class philox_engine
                   "size of the scalar _UIntType (in case of sycl::vec<T, N> the size of T) must be less than 64 bits");
     static_assert(::std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
-    static constexpr ::std::array<scalar_type, array_size> multipliers =
+    static constexpr ::std::array<scalar_type, __array_size> multipliers =
         internal::experimental::get_even_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                                       ::std::make_index_sequence<array_size>{});
-    static constexpr ::std::array<scalar_type, array_size> round_consts =
+                                                                       ::std::make_index_sequence<__array_size>{}); //array ?
+    static constexpr ::std::array<scalar_type, __array_size> round_consts =
         internal::experimental::get_odd_array_from_tuple<scalar_type>(::std::make_tuple(_consts...),
-                                                                      ::std::make_index_sequence<array_size>{});
+                                                                      ::std::make_index_sequence<__array_size>{}); //array ?
     static constexpr scalar_type
     min()
     {
         return 0;
     }
+
     static constexpr scalar_type
     max()
     {
@@ -133,14 +134,10 @@ class philox_engine
     friend bool
     operator==(const philox_engine& __x, const philox_engine& __y)
     {
-        if (!::std::equal(__x.state_.X.begin(), __x.state_.X.end(), __y.state_.X.begin()) ||
-            !::std::equal(__x.state_.K.begin(), __x.state_.K.end(), __y.state_.K.begin()) ||
-            !::std::equal(__x.state_.Y.begin(), __x.state_.Y.end(), __y.state_.Y.begin()) ||
-            __x.state_.idx != __y.state_.idx)
-        {
-            return false;
-        }
-        return true;
+        return (::std::equal(__x.state_.X.begin(), __x.state_.X.end(), __y.state_.X.begin()) &&
+                ::std::equal(__x.state_.K.begin(), __x.state_.K.end(), __y.state_.K.begin()) &&
+                ::std::equal(__x.state_.Y.begin(), __x.state_.Y.end(), __y.state_.Y.begin()) &&
+                __x.state_.idx == __y.state_.idx);
     }
     friend bool
     operator!=(const philox_engine& __x, const philox_engine& __y)
@@ -177,24 +174,19 @@ class philox_engine
     static constexpr auto in_mask = internal::experimental::word_mask<scalar_type, word_size>;
 
     void
-    seed_internal(::std::initializer_list<scalar_type> __seed)
+    seed_internal(scalar_type __seed)
     {
-        auto __start = __seed.begin();
-        auto __end = __seed.end();
-        // all counters are set to zero
+        // zeroize counters and results
         for (::std::size_t __i = 0; __i < word_count; __i++)
         {
             state_.X[__i] = 0;
-        }
-        // keys are set as seed
-        for (::std::size_t __i = 0; __i < (word_count / 2); __i++)
-        {
-            state_.K[__i] = (__start == __end) ? 0 : (*__start++) & in_mask;
-        }
-        // results are set to zero
-        for (::std::size_t __i = 0; __i < word_count; __i++)
-        {
             state_.Y[__i] = 0;
+        }
+        // 0th key element is set as seed, others are 0
+        state_.K[0] = __seed & in_mask;
+        for (::std::size_t __i = 1; __i < (word_count / 2); __i++)
+        {
+            state_.K[__i] = 0;
         }
 
         state_.idx = word_count;
@@ -273,6 +265,7 @@ class philox_engine
     ::std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
+        // generate_internal(unsigned int __N)
         result_type __loc_result;
         scalar_type __curr_idx = state_.idx;
 
@@ -356,7 +349,7 @@ class philox_engine
         {
             scalar_type __R0 = (state_.X[0]) & in_mask;
             scalar_type __L0 = (state_.X[1]) & in_mask;
-            scalar_type __K0 = (state_.K[0]) & in_mask;
+            scalar_type __K0 = (state_.K[0]);
             for (::std::size_t __i = 0; __i < round_count; ++__i)
             {
                 auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
@@ -369,20 +362,21 @@ class philox_engine
         }
         else if constexpr (word_count == 4)
         {
-            scalar_type __R0 = (state_.X[0]) & in_mask;
-            scalar_type __L0 = (state_.X[1]) & in_mask;
-            scalar_type __R1 = (state_.X[2]) & in_mask;
-            scalar_type __L1 = (state_.X[3]) & in_mask;
-            scalar_type __K0 = (state_.K[0]) & in_mask;
-            scalar_type __K1 = (state_.K[1]) & in_mask;
+            // better to rename to V
+            scalar_type __R0 = (state_.X[0]) & in_mask; //X0, ToDo to check if we need mask
+            scalar_type __L0 = (state_.X[1]) & in_mask; //X1 
+            scalar_type __R1 = (state_.X[2]) & in_mask; //X2
+            scalar_type __L1 = (state_.X[3]) & in_mask; //X3
+            scalar_type __K0 = (state_.K[0]); //key0
+            scalar_type __K1 = (state_.K[1]); //key1
             for (::std::size_t __i = 0; __i < round_count; ++__i)
             {
-                auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
-                auto [__hi1, __lo1] = internal::experimental::mulhilo<scalar_type, word_size>(__R1, multipliers[1]);
-                __R0 = __hi1 ^ __L0 ^ __K0;
-                __L0 = __lo1;
-                __R1 = __hi0 ^ __L1 ^ __K1;
-                __L1 = __lo0;
+                auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R1, multipliers[0]);
+                auto [__hi1, __lo1] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[1]);
+                __R0 = __hi0 ^ __L0 ^ __K0;
+                __L0 = __lo0;
+                __R1 = __hi1 ^ __L1 ^ __K1;
+                __L1 = __lo1;
                 __K0 = (__K0 + round_consts[0]) & in_mask;
                 __K1 = (__K1 + round_consts[1]) & in_mask;
             }
