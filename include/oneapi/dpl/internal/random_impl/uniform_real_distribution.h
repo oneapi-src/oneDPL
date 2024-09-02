@@ -204,7 +204,7 @@ class uniform_real_distribution
     scalar_type a_;
     scalar_type b_;
 
-    template<typename _IntegerT, typename _Engine>
+    template <typename _IntegerT, typename _Engine>
     inline scalar_type
     make_real_uniform(_IntegerT __int_val, _Engine& __engine, const param_type& __params)
     {
