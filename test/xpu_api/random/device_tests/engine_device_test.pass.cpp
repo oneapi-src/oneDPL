@@ -120,7 +120,7 @@ main()
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "philox_engine<uint_fast32_t, 32, 4, 10, 0xD2511F53, 0x9E3779B9, 0xCD9E8D57, 0xBB67AE85>" << std::endl;
+    std::cout << "philox_engine<uint_fast32_t, 32, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, ex::philox4x32>(queue);
 #if TEST_LONG_RUN
@@ -134,7 +134,7 @@ main()
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "philox_engine<uint_fast64_t, 64, 4, 10, 0xD2E7470EE14C6C93, 0x9E3779B97F4A7C15, 0xCA5A826395121157, 0xBB67AE8584CAA73B>" << std::endl;
+    std::cout << "philox_engine<uint_fast64_t, 64, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15, 0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += device_copyable_test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>, ex::philox4x64>(queue);
 #if TEST_LONG_RUN
