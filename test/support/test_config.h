@@ -117,13 +117,24 @@
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
-#if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __cpp_lib_ranges >= 201911L
-#   define _ENABLE_STD_RANGES_TESTING 1
-#else
-#   define _ENABLE_STD_RANGES_TESTING 0
+#if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<version>)
+#    include <version>
+#    define TEST_STD_FEATURE_MACROS_PRESENT 1
 #endif
 
-#define TEST_CPP20_SPAN_PRESENT (__cpp_lib_span >= 202002L)
+#if TEST_STD_FEATURE_MACROS_PRESENT
+// Make sure _ENABLE_STD_RANGES_TESTING is always defined for the use at runtime, e.g. by TestUtils::done
+// Clang 15 and older do not support range adaptors, see https://bugs.llvm.org/show_bug.cgi?id=44833
+#   if __cpp_lib_ranges >= 201911L && !(__clang__ && __clang_major__ < 16)
+#       define _ENABLE_STD_RANGES_TESTING 1
+#   else
+#       define _ENABLE_STD_RANGES_TESTING 0
+#   endif
+#   define TEST_CPP20_SPAN_PRESENT (__cpp_lib_span >= 202002L)
+#else
+#   define _ENABLE_STD_RANGES_TESTING 0
+#   define TEST_CPP20_SPAN_PRESENT 0
+#endif // TEST_STD_FEATURE_MACROS_PRESENT
 
 #define TEST_HAS_NO_INT128
 #define _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE (_MSVC_STL_VERSION < 143)
