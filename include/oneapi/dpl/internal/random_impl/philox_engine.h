@@ -15,13 +15,8 @@
 #define _ONEDPL_PHILOX_ENGINE_H
 
 #include <array>
-#include <utility>
-#include <cstdint>
-#include <type_traits>
-#include <limits>
 
 #include "random_common.h"
-#include "counter_based_engines_stuff.h"
 
 namespace oneapi
 {
@@ -55,6 +50,20 @@ class philox_engine
     /* The size of the consts arrays */
     static constexpr std::size_t __array_size = _n / 2;
 
+    /* Methods for unpacking variadic of constants into two arrays */
+    template <typename _Array, std::size_t... __Is>
+    static constexpr auto
+    get_even_elm_array(_Array __inp, std::index_sequence<__Is...>)
+    {
+        return std::array<scalar_type, std::index_sequence<__Is...>::size()>{std::get<__Is * 2>(__inp)...};
+    }
+    template <typename _Array, std::size_t... __Is>
+    static constexpr auto
+    get_odd_elm_array(_Array __inp, std::index_sequence<__Is...>)
+    {
+        return std::array<scalar_type, std::index_sequence<__Is...>::size()>{std::get<__Is * 2 + 1>(__inp)...};
+    }
+
   public:
     /* Types */
     using result_type = _UIntType;
@@ -75,11 +84,11 @@ class philox_engine
     static_assert(std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr std::array<scalar_type, __array_size> multipliers =
-        internal::experimental::get_even_elm_array<scalar_type>(std::array{_consts...},
-                                                                std::make_index_sequence<__array_size>{});
+                     get_even_elm_array(std::array<scalar_type, word_count>{_consts...},
+                                        std::make_index_sequence<__array_size>{});
     static constexpr std::array<scalar_type, __array_size> round_consts =
-        internal::experimental::get_odd_elm_array<scalar_type>(std::array{_consts...},
-                                                               std::make_index_sequence<__array_size>{});
+                     get_odd_elm_array(std::array<scalar_type, word_count>{_consts...},
+                                       std::make_index_sequence<__array_size>{});
     static constexpr scalar_type
     min()
     {
@@ -93,9 +102,12 @@ class philox_engine
     }
     static constexpr scalar_type default_seed = 20111115u;
 
-    /* Constructors and seeding functions */
+    /* Constructors */
     philox_engine() : philox_engine(default_seed) {}
+
     explicit philox_engine(scalar_type __seed) { seed(__seed); }
+    
+    /* Seeding function */
     void
     seed(scalar_type __seed = default_seed)
     {
@@ -173,11 +185,15 @@ class philox_engine
         std::array<scalar_type, word_count> X;     // counters
         std::array<scalar_type, word_count / 2> K; // keys
         std::array<scalar_type, word_count> Y;     // results
-        scalar_type idx;                             // index
+        scalar_type idx;                           // index
     } state_;
 
+    /* __word_mask<_W> - scalar_type with the low _W bits set */
+    template <std::size_t _W>
+    static constexpr scalar_type __word_mask = _W ? (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - _W)) : 0;
+
     /* Processing mask */
-    static constexpr auto in_mask = internal::experimental::word_mask<scalar_type, word_size>;
+    static constexpr auto in_mask = __word_mask<word_size>;
 
     void
     seed_internal(scalar_type __seed)
@@ -358,7 +374,7 @@ class philox_engine
             scalar_type __K0 = (state_.K[0]);
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
-                auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[0]);
+                auto [__hi0, __lo0] = mulhilo(__R0, multipliers[0]);
                 __R0 = __hi0 ^ __K0 ^ __L0;
                 __L0 = __lo0;
                 __K0 = (__K0 + round_consts[0]) & in_mask;
@@ -377,8 +393,8 @@ class philox_engine
             scalar_type __K1 = (state_.K[1]); //key1
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
-                auto [__hi0, __lo0] = internal::experimental::mulhilo<scalar_type, word_size>(__R1, multipliers[0]);
-                auto [__hi1, __lo1] = internal::experimental::mulhilo<scalar_type, word_size>(__R0, multipliers[1]);
+                auto [__hi0, __lo0] = mulhilo(__R1, multipliers[0]);
+                auto [__hi1, __lo1] = mulhilo(__R0, multipliers[1]);
                 __R0 = __hi0 ^ __L0 ^ __K0;
                 __L0 = __lo0;
                 __R1 = __hi1 ^ __L1 ^ __K1;
@@ -391,6 +407,45 @@ class philox_engine
             state_.Y[2] = __R1;
             state_.Y[3] = __L1;
         }
+    }
+
+    /* Returns the word_size high and word_size low
+       bits of the 2*word_size-bit product of __a and __b */
+    static std::pair<scalar_type, scalar_type>
+    mulhilo(scalar_type __a, scalar_type __b)
+    {
+        scalar_type __res_hi, __res_lo;
+
+        /* multiplication fits standard types */
+        if constexpr (word_size <= 32)
+        {
+            std::uint_fast64_t __mult_result = (std::uint_fast64_t)__a * (std::uint_fast64_t)__b;
+            __res_hi = __mult_result >> word_size;
+            __res_lo = __mult_result & in_mask;
+        }
+        /* pen-pencil multiplication by 32-bit chunks */
+        else if constexpr (word_size > 32)
+        {
+            __res_lo = __a * __b;
+
+            scalar_type __x0 = __a & __word_mask<32>;
+            scalar_type __x1 = __a >> 32;
+            scalar_type __y0 = __b & __word_mask<32>;
+            scalar_type __y1 = __b >> 32;
+
+            scalar_type __p11 = __x1 * __y1;
+            scalar_type __p01 = __x0 * __y1;
+            scalar_type __p10 = __x1 * __y0;
+            scalar_type __p00 = __x0 * __y0;
+
+            // 64-bit product + two 32-bit values
+            scalar_type __middle = __p10 + (__p00 >> 32) + (__p01 & __word_mask<32>);
+
+            // 64-bit product + two 32-bit values
+            __res_hi = __p11 + (__middle >> 32) + (__p01 >> 32);
+        }
+
+        return {__res_hi, __res_lo};
     }
 };
 
