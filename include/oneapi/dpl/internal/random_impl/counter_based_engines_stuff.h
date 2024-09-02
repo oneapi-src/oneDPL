@@ -26,27 +26,27 @@ namespace experimental
 
 /* word_mask<_U, __W> - an unsigned integral type with the low __W bits set */
 template <typename _U, unsigned __W,
-          typename = ::std::enable_if_t<::std::is_unsigned_v<_U> && (__W <= ::std::numeric_limits<_U>::digits)>>
-constexpr _U word_mask = __W ? (_U(~(_U(0))) >> (::std::numeric_limits<_U>::digits - __W)) : 0;
+          typename = std::enable_if_t<std::is_unsigned_v<_U> && (__W <= std::numeric_limits<_U>::digits)>>
+constexpr _U word_mask = __W ? (_U(~(_U(0))) >> (std::numeric_limits<_U>::digits - __W)) : 0;
 
 /* For unpacking variadic of constants into two arrays */
-template <typename _UIntType, typename _Array, ::std::size_t... __Is>
+template <typename _UIntType, typename _Array, std::size_t... __Is>
 constexpr auto
-get_even_elm_array(_Array __inp, ::std::index_sequence<__Is...>)
+get_even_elm_array(_Array __inp, std::index_sequence<__Is...>)
 {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2>(__inp)...};
+    return std::array<_UIntType, std::index_sequence<__Is...>::size()>{std::get<__Is * 2>(__inp)...};
 }
-template <typename _UIntType, typename _Array, ::std::size_t... __Is>
+template <typename _UIntType, typename _Array, std::size_t... __Is>
 constexpr auto
 get_odd_elm_array(_Array __inp, std::index_sequence<__Is...>)
 {
-    return ::std::array<_UIntType, ::std::index_sequence<__Is...>::size()>{::std::get<__Is * 2 + 1>(__inp)...};
+    return std::array<_UIntType, std::index_sequence<__Is...>::size()>{std::get<__Is * 2 + 1>(__inp)...};
 }
 
 /* Implement __W-bit mulhilo - returns the __W hi and __W low 
    bits of the 2__W-bit product of __a and __b */
 template <typename _UIntType, unsigned __W>
-static ::std::pair<_UIntType, _UIntType>
+static std::pair<_UIntType, _UIntType>
 mulhilo(_UIntType __a, _UIntType __b)
 {
     static_assert(__W <= 64, "__W must be 0 < __W <= 64");
