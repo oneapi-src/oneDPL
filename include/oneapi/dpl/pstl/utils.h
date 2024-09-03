@@ -128,6 +128,21 @@ class __pstl_assign
     }
 };
 
+template <typename _Comp, typename _Proj>
+struct __compare
+{
+    //'mutable' is to relax the requirements for a user comparator or/and projection type operator() may be non-const
+    mutable _Comp __comp;
+    mutable _Proj __proj;
+
+    template <typename _Xp, typename _Yp>
+    bool
+    operator()(const _Xp& __x, const _Yp& __y) const
+    {
+        return __comp(__proj(__x), __proj(__y));
+    }
+};
+
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
     argument-dependent name lookup by code expecting to find the usual ::std::equal. */
@@ -764,6 +779,27 @@ struct __is_iterator_type<_T, std::void_t<typename std::iterator_traits<_T>::dif
 
 template <typename _T>
 static constexpr bool __is_iterator_type_v = __is_iterator_type<_T>::value;
+
+// Storage helper since _Tp may not have a default constructor.
+template <typename _Tp>
+union __lazy_ctor_storage
+{
+    using __value_type = _Tp;
+    _Tp __v;
+    __lazy_ctor_storage() {}
+
+    template <typename _U>
+    void
+    __setup(_U&& init)
+    {
+        new (&__v) _Tp(std::forward<_U>(init));
+    }
+    void
+    __destroy()
+    {
+        __v.~_Tp();
+    }
+};
 
 } // namespace __internal
 } // namespace dpl
