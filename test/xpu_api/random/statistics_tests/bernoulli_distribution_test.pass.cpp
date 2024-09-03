@@ -50,7 +50,7 @@ test(sycl::queue& queue, double p, int nsamples)
 {
 
     // memory allocation
-    bool samples[nsamples];
+    bool* samples = new bool[nsamples];
 
     constexpr int num_elems = oneapi::dpl::internal::type_traits_t<BoolType>::num_elems == 0
                                   ? 1
@@ -85,6 +85,7 @@ test(sycl::queue& queue, double p, int nsamples)
     {
         std::cout << "\tPassed" << std::endl;
     }
+    delete[] samples;
 
     return err;
 }
@@ -95,7 +96,7 @@ test_portion(sycl::queue& queue, double p, int nsamples, unsigned int part)
 {
 
     // memory allocation
-    bool samples[nsamples];
+    bool* samples = new bool[nsamples];
     constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<BoolType>::num_elems == 0
                                            ? 1
                                            : oneapi::dpl::internal::type_traits_t<BoolType>::num_elems;
@@ -133,7 +134,7 @@ test_portion(sycl::queue& queue, double p, int nsamples, unsigned int part)
     {
         std::cout << "\tPassed" << std::endl;
     }
-
+    delete[] samples;
     return err;
 }
 

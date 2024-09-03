@@ -99,8 +99,6 @@ test_vec
 public:
     bool run(sycl::queue& queue)
     {
-        using result_type = typename Engine::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
@@ -173,8 +171,6 @@ test_vec<oneapi::dpl::ranlux24_vec<N>>
 public:
     bool run(sycl::queue& queue)
     {
-        using result_type = typename oneapi::dpl::ranlux24_vec<N>::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
@@ -202,7 +198,6 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
                         oneapi::dpl::ranlux24_vec<N> engine(engine1);
-                        auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
                         std::int32_t is_inequal = 0;
@@ -248,8 +243,6 @@ test
 public:
     bool run(sycl::queue& queue)
     {
-        using result_type = typename Engine::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
@@ -350,8 +343,6 @@ test<oneapi::dpl::ranlux24>
 public:
     bool run(sycl::queue& queue)
     {
-        using result_type = typename oneapi::dpl::ranlux24::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
@@ -412,7 +403,6 @@ public:
                         }
                         typename oneapi::dpl::ranlux24::result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
-                        auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
                         if (res0 != res1)
