@@ -14,7 +14,13 @@
 #ifndef _ONEDPL_PHILOX_ENGINE_H
 #define _ONEDPL_PHILOX_ENGINE_H
 
+#include <cstdint>
+#include <utility>
+#include <type_traits>
+#include <limits>
 #include <array>
+#include <iostream>
+#include <algorithm>
 
 #include "random_common.h"
 
@@ -29,19 +35,19 @@ template <typename _UIntType, std::size_t _w, std::size_t _n, std::size_t _r,
           internal::element_type_t<_UIntType>... _consts>
 class philox_engine;
 
-template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-          __UIntType... __consts>
-std::basic_ostream<_CharT, _Traits>&
-operator<<(std::basic_ostream<_CharT, _Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
+template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
+std::basic_ostream<__CharT, __Traits>&
+operator<<(std::basic_ostream<__CharT, __Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, __UIntType... __consts>
+template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
 const sycl::stream&
 operator<<(const sycl::stream&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-          __UIntType... __consts>
-std::basic_istream<_CharT, _Traits>&
-operator>>(std::basic_istream<_CharT, _Traits>&, philox_engine<__UIntType, __w, __n, __r, __consts...>&);
+template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
+std::basic_istream<__CharT, __Traits>&
+operator>>(std::basic_istream<__CharT, __Traits>&, philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
 template <typename _UIntType, std::size_t _w, std::size_t _n, std::size_t _r,
           internal::element_type_t<_UIntType>... _consts>
@@ -51,17 +57,17 @@ class philox_engine
     static constexpr std::size_t __array_size = _n / 2;
 
     /* Methods for unpacking variadic of constants into two arrays */
-    template <typename _Array, std::size_t... __Is>
+    template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_even_elm_array(_Array __inp, std::index_sequence<__Is...>)
+    get_even_elm_array(_Array __inp, std::index_sequence<_Is...>)
     {
-        return std::array<scalar_type, std::index_sequence<__Is...>::size()>{std::get<__Is * 2>(__inp)...};
+        return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2>(__inp)...};
     }
-    template <typename _Array, std::size_t... __Is>
+    template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_odd_elm_array(_Array __inp, std::index_sequence<__Is...>)
+    get_odd_elm_array(_Array __inp, std::index_sequence<_Is...>)
     {
-        return std::array<scalar_type, std::index_sequence<__Is...>::size()>{std::get<__Is * 2 + 1>(__inp)...};
+        return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2 + 1>(__inp)...};
     }
 
   public:
@@ -98,7 +104,7 @@ class philox_engine
     static constexpr scalar_type
     max()
     {
-        return std::numeric_limits<scalar_type>::max() & in_mask;
+        return (std::numeric_limits<scalar_type>::max() & in_mask) - 1;
     }
     static constexpr scalar_type default_seed = 20111115u;
 
@@ -164,19 +170,19 @@ class philox_engine
     }
 
     /* Inserters and extractors */
-    template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-              __UIntType... __consts>
-    friend std::basic_ostream<_CharT, _Traits>&
-    operator<<(std::basic_ostream<_CharT, _Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
+    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+              internal::element_type_t<__UIntType>... __consts>
+    friend std::basic_ostream<__CharT, __Traits>&
+    operator<<(std::basic_ostream<__CharT, __Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-    template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, __UIntType... __consts>
+    template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
     friend const sycl::stream&
     operator<<(const sycl::stream&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-    template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-              __UIntType... __consts>
-    friend std::basic_istream<_CharT, _Traits>&
-    operator>>(std::basic_istream<_CharT, _Traits>&, philox_engine<__UIntType, __w, __n, __r, __consts...>&);
+    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+              internal::element_type_t<__UIntType>... __consts>
+    friend std::basic_istream<__CharT, __Traits>&
+    operator>>(std::basic_istream<__CharT, __Traits>&, philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
   private:
     /* Internal generator state */
@@ -261,14 +267,16 @@ class philox_engine
     {
         if (__random_nums >= _N)
             return operator()();
+            //__random_nums = _N;
 
         result_type __loc_result;
         scalar_type __curr_idx = state_.idx;
 
         for (int __elm_count = 0; __elm_count < __random_nums; __elm_count++)
         {
+            // check if buffer is empty
             if (__curr_idx == word_count)
-            { // empty buffer
+            {
                 philox_kernel();
                 increase_counter_internal();
                 __curr_idx = 0;
@@ -293,8 +301,9 @@ class philox_engine
 
         for (int __elm_count = 0; __elm_count < _N; __elm_count++)
         {
+            // check if buffer is empty
             if (__curr_idx == word_count)
-            { // empty buffer
+            {
                 philox_kernel();
                 increase_counter_internal();
                 __curr_idx = 0;
@@ -313,21 +322,19 @@ class philox_engine
     std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {
-        result_type __loc_result;
         scalar_type __curr_idx = state_.idx;
 
+        // check if buffer is empty
         if (__curr_idx == word_count)
-        { // empty buffer
+        { 
             philox_kernel();
             increase_counter_internal();
             __curr_idx = 0;
         }
 
-        // There are already generated numbers in the buffer
-        __loc_result = state_.Y[__curr_idx];
-        state_.idx = ++__curr_idx;
+        state_.idx = __curr_idx + 1;
 
-        return __loc_result;
+        return state_.Y[__curr_idx];;
     }
 
     void
@@ -420,18 +427,19 @@ class philox_engine
         if constexpr (word_size <= 32)
         {
             std::uint_fast64_t __mult_result = (std::uint_fast64_t)__a * (std::uint_fast64_t)__b;
-            __res_hi = __mult_result >> word_size;
+            __res_hi = (__mult_result >> word_size) & in_mask;
             __res_lo = __mult_result & in_mask;
         }
         /* pen-pencil multiplication by 32-bit chunks */
         else if constexpr (word_size > 32)
         {
-            __res_lo = __a * __b;
+            constexpr std::size_t chunk_size = 32;
+            __res_lo = (__a * __b) & in_mask;
 
-            scalar_type __x0 = __a & __word_mask<32>;
-            scalar_type __x1 = __a >> 32;
-            scalar_type __y0 = __b & __word_mask<32>;
-            scalar_type __y1 = __b >> 32;
+            scalar_type __x0 = __a & __word_mask<chunk_size>;
+            scalar_type __x1 = __a >> chunk_size;
+            scalar_type __y0 = __b & __word_mask<chunk_size>;
+            scalar_type __y1 = __b >> chunk_size;
 
             scalar_type __p11 = __x1 * __y1;
             scalar_type __p01 = __x0 * __y1;
@@ -439,26 +447,26 @@ class philox_engine
             scalar_type __p00 = __x0 * __y0;
 
             // 64-bit product + two 32-bit values
-            scalar_type __middle = __p10 + (__p00 >> 32) + (__p01 & __word_mask<32>);
+            scalar_type __middle = __p10 + (__p00 >> chunk_size) + (__p01 & __word_mask<chunk_size>);
 
             // 64-bit product + two 32-bit values
-            __res_hi = __p11 + (__middle >> 32) + (__p01 >> 32);
+            __res_hi = (__p11 + (__middle >> chunk_size) + (__p01 >> chunk_size)) & in_mask;
         }
 
         return {__res_hi, __res_lo};
     }
 };
 
-template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-          __UIntType... __consts>
-std::basic_ostream<_CharT, _Traits>&
-operator<<(std::basic_ostream<_CharT, _Traits>& __os,
+template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
+std::basic_ostream<__CharT, __Traits>&
+operator<<(std::basic_ostream<__CharT, __Traits>& __os,
            const philox_engine<__UIntType, __w, __n, __r, __consts...>& __engine)
 {
-    internal::save_stream_flags<_CharT, _Traits> __flags(__os);
+    internal::save_stream_flags<__CharT, __Traits> __flags(__os);
 
     __os.setf(std::ios_base::dec | std::ios_base::left);
-    _CharT __sp = __os.widen(' ');
+    __CharT __sp = __os.widen(' ');
     __os.fill(__sp);
 
     for (auto x_elm : __engine.state_.X)
@@ -478,7 +486,7 @@ operator<<(std::basic_ostream<_CharT, _Traits>& __os,
     return __os;
 }
 
-template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, __UIntType... __consts>
+template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
 const sycl::stream&
 operator<<(const sycl::stream& __os, const philox_engine<__UIntType, __w, __n, __r, __consts...>& __engine)
 {
@@ -499,18 +507,19 @@ operator<<(const sycl::stream& __os, const philox_engine<__UIntType, __w, __n, _
     return __os;
 }
 
-template <class _CharT, class _Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-          __UIntType... __consts>
-std::basic_istream<_CharT, _Traits>&
-operator>>(std::basic_istream<_CharT, _Traits>& __is, philox_engine<__UIntType, __w, __n, __r, __consts...>& __engine)
+template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
+std::basic_istream<__CharT, __Traits>&
+operator>>(std::basic_istream<__CharT, __Traits>& __is, philox_engine<__UIntType, __w, __n, __r, __consts...>& __engine)
 {
-    internal::save_stream_flags<_CharT, _Traits> __flags(__is);
+    internal::save_stream_flags<__CharT, __Traits> __flags(__is);
 
     __is.setf(std::ios_base::dec);
 
     const std::size_t __state_size = 2 * __n + __n / 2 + 1;
 
-    std::vector<__UIntType> __tmp_inp(__state_size);
+    std::array<internal::element_type_t<__UIntType>, __state_size> __tmp_inp; 
+    //std::vector<internal::element_type_t<__UIntType>> __tmp_inp(__state_size);
     for (std::size_t __i = 0; __i < __state_size; ++__i)
     {
         __is >> __tmp_inp[__i];
