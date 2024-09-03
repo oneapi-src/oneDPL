@@ -43,7 +43,7 @@ int
 main()
 {
     int err = 0;
-    
+
     std::cout << "void seed_test() [Engine = philox4x32]";
     err += seed_test<ex::philox4x32>();
     std::cout << "void seed_test() [Engine = philox4x64]";
@@ -86,43 +86,55 @@ main()
  */
 
 template <typename Engine>
-int seed_test() {
-    for(int i = 1; i < 5; i++) { // make sure that the state is reset properly for all idx positions
+int
+seed_test()
+{
+    for (int i = 1; i < 5; i++)
+    { // make sure that the state is reset properly for all idx positions
         Engine engine;
         typename Engine::result_type res;
-        for(int j = 0; j < i - 1; j++) {
+        for (int j = 0; j < i - 1; j++)
+        {
             engine();
         }
         res = engine();
         engine.seed();
-        for(int j = 0; j < i - 1; j++) {
+        for (int j = 0; j < i - 1; j++)
+        {
             engine();
         }
-        if(res != engine()) {
-            std::cout << " failed while generating " << i  << " elements" << std::endl;
+        if (res != engine())
+        {
+            std::cout << " failed while generating " << i << " elements" << std::endl;
             return 1;
         }
     }
-    
+
     std::cout << " passed" << std::endl;
     return 0;
 }
 
 template <typename Engine>
-int discard_test() {
+int
+discard_test()
+{
     int ret = 0;
 
     constexpr std::size_t n = 10; // arbitrary length we want to check
     typename Engine::result_type reference[n];
     Engine engine;
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         reference[i] = engine();
     }
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         engine.seed();
         engine.discard(i);
-        for(std::size_t j = i; j < n; j++) {
-            if(reference[j] != engine()) {
+        for (std::size_t j = i; j < n; j++)
+        {
+            if (reference[j] != engine())
+            {
                 std::cout << " failed with error in element " << j << " discard " << i << std::endl;
                 ret++;
                 break;
@@ -130,14 +142,18 @@ int discard_test() {
         }
     }
 
-    for(int i = 1; i < n; i++) {
-        for(int j = 1; j < i; j++) {
+    for (int i = 1; i < n; i++)
+    {
+        for (int j = 1; j < i; j++)
+        {
             engine.seed();
-            for(std::size_t k = 0; k < i - j; k++) {
+            for (std::size_t k = 0; k < i - j; k++)
+            {
                 engine();
             }
             engine.discard(j);
-            if(reference[i] != engine()) {
+            if (reference[i] != engine())
+            {
                 std::cout << " failed on step " << i << " " << j << std::endl;
                 ret++;
                 break;
@@ -145,7 +161,8 @@ int discard_test() {
         }
     }
 
-    if(!ret) {
+    if (!ret)
+    {
         std::cout << " passed" << std::endl;
     }
 
@@ -153,51 +170,65 @@ int discard_test() {
 }
 
 template <typename Engine>
-int set_counter_conformance_test() {
+int
+set_counter_conformance_test()
+{
     Engine engine;
     std::array<typename Engine::result_type, Engine::word_count> counter;
-    for(int i = 0; i < Engine::word_count - 1; i++) {
+    for (int i = 0; i < Engine::word_count - 1; i++)
+    {
         counter[i] = 0;
     }
 
     counter[Engine::word_count - 1] = 2499; // to get 10'000 element
     engine.set_counter(counter);
 
-    for(int i = 0; i < Engine::word_count - 1; i++) {
+    for (int i = 0; i < Engine::word_count - 1; i++)
+    {
         engine();
     }
 
     typename Engine::result_type reference;
-    if(std::is_same_v<Engine, ex::philox4x32>) {
+    if (std::is_same_v<Engine, ex::philox4x32>)
+    {
         reference = 1955073260;
     }
-    else {
+    else
+    {
         reference = 3409172418970261260;
     }
-    if(engine() == reference) {
+    if (engine() == reference)
+    {
         std::cout << " passed" << std::endl;
         return 0;
-    } else {
+    }
+    else
+    {
         std::cout << " failed" << std::endl;
         return 1;
     }
 }
 
 template <typename Engine>
-int skip_test() {
+int
+skip_test()
+{
     using T = typename Engine::result_type;
-    for(T i = 1; i <= Engine::word_count + 1; i++) {
+    for (T i = 1; i <= Engine::word_count + 1; i++)
+    {
         Engine engine1;
         std::array<T, Engine::word_count> counter = {0, 0, 0, i / Engine::word_count};
         engine1.set_counter(counter);
-        for(T j = 0; j < i % Engine::word_count; j++) {
+        for (T j = 0; j < i % Engine::word_count; j++)
+        {
             engine1();
         }
 
         Engine engine2;
         engine2.discard(i);
 
-        if(engine1() != engine2()) {
+        if (engine1() != engine2())
+        {
             std::cout << " failed for " << i << " skip" << std::endl;
             return 1;
         }
@@ -208,44 +239,56 @@ int skip_test() {
 }
 
 template <typename Engine>
-int counter_overflow_test() {
+int
+counter_overflow_test()
+{
     using T = typename Engine::result_type;
     Engine engine1;
     std::array<T, Engine::word_count> counter;
-    for(int i = 0; i < Engine::word_count; i++) {
+    for (int i = 0; i < Engine::word_count; i++)
+    {
         counter[i] = std::numeric_limits<T>::max();
     }
 
     engine1.set_counter(counter);
-    for(int i = 0; i < Engine::word_count; i++) {
+    for (int i = 0; i < Engine::word_count; i++)
+    {
         engine1();
     } // all counters overflowed == start from 0 0 0 0
 
     Engine engine2;
 
-    if(engine1() == engine2()) {
+    if (engine1() == engine2())
+    {
         std::cout << " passed" << std::endl;
         return 0;
-    } else {
+    }
+    else
+    {
         std::cout << " failed" << std::endl;
         return 1;
     }
 }
 
 template <typename Engine>
-int discard_overflow_test() {
+int
+discard_overflow_test()
+{
     using T = typename Engine::result_type;
     Engine engine1;
     std::array<T, Engine::word_count> counter;
 
-    for(int i = 0; i < Engine::word_count; i++) {
+    for (int i = 0; i < Engine::word_count; i++)
+    {
         counter[i] = 0;
     }
 
-    if(std::is_same_v<Engine, ex::philox4x32>) {
+    if (std::is_same_v<Engine, ex::philox4x32>)
+    {
         counter[1] = 1;
     }
-    else if(std::is_same_v<Engine, ex::philox4x64>) {
+    else if (std::is_same_v<Engine, ex::philox4x64>)
+    {
         counter[2] = 1;
     }
 
@@ -253,17 +296,22 @@ int discard_overflow_test() {
 
     Engine engine2;
 
-    for(int i = 0; i < Engine::word_count; i++) {
+    for (int i = 0; i < Engine::word_count; i++)
+    {
         engine2();
     }
-    for(int i = 0; i < Engine::word_count; i++) {
+    for (int i = 0; i < Engine::word_count; i++)
+    {
         engine2.discard(std::numeric_limits<unsigned long long>::max());
     }
 
-    if(engine1() == engine2()) {
+    if (engine1() == engine2())
+    {
         std::cout << " passed" << std::endl;
         return 0;
-    } else {
+    }
+    else
+    {
         std::cout << " failed" << std::endl;
         return 1;
     }

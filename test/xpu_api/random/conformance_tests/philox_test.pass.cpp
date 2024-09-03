@@ -54,6 +54,6 @@ main()
     err += test<ex::philox4x64_vec<16>, 10000, 16>(queue) != philox4_64_ref;
 
     EXPECT_TRUE(!err, "Test FAILED");
-    
+
     return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }

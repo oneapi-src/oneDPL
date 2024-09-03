@@ -41,7 +41,8 @@ template <typename __CharT, typename __Traits, typename __UIntType, std::size_t 
 std::basic_ostream<__CharT, __Traits>&
 operator<<(std::basic_ostream<__CharT, __Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
+template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
 const sycl::stream&
 operator<<(const sycl::stream&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
@@ -91,11 +92,9 @@ class philox_engine
     static_assert(std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr std::array<scalar_type, __array_size> multipliers =
-                     get_even_element_array(std::array{_consts...},
-                                        std::make_index_sequence<__array_size>{});
+        get_even_element_array(std::array{_consts...}, std::make_index_sequence<__array_size>{});
     static constexpr std::array<scalar_type, __array_size> round_consts =
-                     get_odd_element_array(std::array{_consts...},
-                                       std::make_index_sequence<__array_size>{});
+        get_odd_element_array(std::array{_consts...}, std::make_index_sequence<__array_size>{});
 
     static constexpr scalar_type
     min()
@@ -115,7 +114,7 @@ class philox_engine
     philox_engine() : philox_engine(default_seed) {}
 
     explicit philox_engine(scalar_type __seed) { seed(__seed); }
-    
+
     /* Seeding function */
     void
     seed(scalar_type __seed = default_seed)
@@ -171,17 +170,18 @@ class philox_engine
     }
 
     /* Inserters and extractors */
-    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-              internal::element_type_t<__UIntType>... __consts>
+    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n,
+              std::size_t __r, internal::element_type_t<__UIntType>... __consts>
     friend std::basic_ostream<__CharT, __Traits>&
     operator<<(std::basic_ostream<__CharT, __Traits>&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-    template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
+    template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+              internal::element_type_t<__UIntType>... __consts>
     friend const sycl::stream&
     operator<<(const sycl::stream&, const philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
-    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
-              internal::element_type_t<__UIntType>... __consts>
+    template <typename __CharT, typename __Traits, typename __UIntType, std::size_t __w, std::size_t __n,
+              std::size_t __r, internal::element_type_t<__UIntType>... __consts>
     friend std::basic_istream<__CharT, __Traits>&
     operator>>(std::basic_istream<__CharT, __Traits>&, philox_engine<__UIntType, __w, __n, __r, __consts...>&);
 
@@ -197,7 +197,8 @@ class philox_engine
 
     /* __word_mask<_W> - scalar_type with the low _W bits set */
     template <std::size_t _W>
-    static constexpr scalar_type __word_mask = _W ? (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - _W)) : 0;
+    static constexpr scalar_type __word_mask = _W ? (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - _W))
+                                                  : 0;
 
     /* Processing mask */
     static constexpr auto in_mask = __word_mask<word_size>;
@@ -316,7 +317,7 @@ class philox_engine
     {
         ++state_.idx;
         if (state_.idx == word_count)
-        { 
+        {
             philox_kernel();
             increase_counter_internal();
             state_.idx = 0;
@@ -329,19 +330,23 @@ class philox_engine
     discard_internal(unsigned long long __z)
     {
         std::uint32_t available_in_buffer = word_count - 1 - state_.idx;
-        if (__z <= available_in_buffer) {
+        if (__z <= available_in_buffer)
+        {
             state_.idx += __z;
         }
-        else {
+        else
+        {
             __z -= available_in_buffer;
             int tail = __z % word_count;
-            if (tail == 0) {
+            if (tail == 0)
+            {
                 increase_counter_internal(__z / word_count);
                 state_.idx = word_count - 1;
             }
             else
             {
-                if (__z > word_count) {
+                if (__z > word_count)
+                {
                     increase_counter_internal((__z - 1) / word_count);
                 }
                 philox_kernel();
@@ -467,7 +472,8 @@ operator<<(std::basic_ostream<__CharT, __Traits>& __os,
     return __os;
 }
 
-template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r, internal::element_type_t<__UIntType>... __consts>
+template <typename __UIntType, std::size_t __w, std::size_t __n, std::size_t __r,
+          internal::element_type_t<__UIntType>... __consts>
 const sycl::stream&
 operator<<(const sycl::stream& __os, const philox_engine<__UIntType, __w, __n, __r, __consts...>& __engine)
 {
@@ -499,7 +505,7 @@ operator>>(std::basic_istream<__CharT, __Traits>& __is, philox_engine<__UIntType
 
     const std::size_t __state_size = 2 * __n + __n / 2 + 1;
 
-    std::array<internal::element_type_t<__UIntType>, __state_size> __tmp_inp; 
+    std::array<internal::element_type_t<__UIntType>, __state_size> __tmp_inp;
     for (std::size_t __i = 0; __i < __state_size; ++__i)
     {
         __is >> __tmp_inp[__i];
