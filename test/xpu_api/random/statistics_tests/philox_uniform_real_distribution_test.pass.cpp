@@ -23,6 +23,7 @@
 // Tested engines
 using philox2x32 = oneapi::dpl::experimental::philox_engine<std::uint_fast32_t, 32, 2, 10, 0xd256d193, 0x0>;
 using philox2x64 = oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 64, 2, 10, 0xD2B74407B1CE6E93, 0x0>;
+// toDo add only for scalar tests for W!=32 and W!=64
 
 template <typename RealType>
 std::int32_t
@@ -36,7 +37,7 @@ statistics_check(int nsamples, RealType left, RealType right, const std::vector<
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
 
-template <class RealType, class UIntType, typename Engine>
+template <typename RealType, typename UIntType, typename Engine>
 int
 test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> left,
      oneapi::dpl::internal::element_type_t<RealType> right, int nsamples)
@@ -50,7 +51,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> left,
                                   : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
     // generation
     {
-        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
+        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
             sycl::accessor acc(buffer, cgh, sycl::write_only);
@@ -83,7 +84,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> left,
     return err;
 }
 
-template <class RealType, class UIntType, typename Engine>
+template <typename RealType, typename UIntType, typename Engine>
 int
 test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> left,
              oneapi::dpl::internal::element_type_t<RealType> right, int nsamples, unsigned int part)
@@ -98,7 +99,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
 
     // generation
     {
-        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
+        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
             sycl::accessor acc(buffer, cgh, sycl::write_only);
@@ -114,7 +115,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
                     acc[offset + i] = res[i];
             });
         });
-        queue.wait_and_throw();
+        queue.wait();
     }
 
     // statistics check
@@ -132,7 +133,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
     return err;
 }
 
-template <class RealType, class UIntType, typename Engine>
+template <typename RealType, typename UIntType, typename Engine>
 int
 tests_set(sycl::queue& queue, int nsamples)
 {
@@ -154,7 +155,7 @@ tests_set(sycl::queue& queue, int nsamples)
     return 0;
 }
 
-template <class RealType, class UIntType, typename Engine>
+template <typename RealType, typename UIntType, typename Engine>
 int
 tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part)
 {
