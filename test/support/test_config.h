@@ -24,11 +24,11 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// *** When updating we must audit each usage to ensure that the issue is still exists in the latest version ***
+//
 // This section contains macros representing the "Latest" version of compilers, STL implementations, etc. for use in
 // broken macros to represent the latest version of something which still has an ongoing issue. The intention is to
 // update this section regularly to reflect the latest version. 
-//
-// *** When updating we must audit each usage to ensure that the issue is still exists in the latest version ***
 //
 // When such an issue is fixed, we must replace the usage of these "Latest" macros with the appropriate version number
 // before updating to the newest version in this section.
