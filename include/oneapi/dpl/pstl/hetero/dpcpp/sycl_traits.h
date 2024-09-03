@@ -56,7 +56,7 @@ template <typename _Tp>
 class __not_equal_value;
 
 template <typename _Comp, typename _Proj>
-class __compare;
+struct __compare;
 
 template <typename _Pred>
 class __transform_functor;
