@@ -60,13 +60,13 @@ class philox_engine
     /* Methods for unpacking variadic of constants into two arrays */
     template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_even_elm_array(_Array __inp, std::index_sequence<_Is...>)
+    get_even_element_array(_Array __inp, std::index_sequence<_Is...>)
     {
         return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2>(__inp)...};
     }
     template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_odd_elm_array(_Array __inp, std::index_sequence<_Is...>)
+    get_odd_element_array(_Array __inp, std::index_sequence<_Is...>)
     {
         return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2 + 1>(__inp)...};
     }
@@ -91,11 +91,12 @@ class philox_engine
     static_assert(std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr std::array<scalar_type, __array_size> multipliers =
-                     get_even_elm_array(std::array{_consts...},
+                     get_even_element_array(std::array{_consts...},
                                         std::make_index_sequence<__array_size>{});
     static constexpr std::array<scalar_type, __array_size> round_consts =
-                     get_odd_elm_array(std::array{_consts...},
+                     get_odd_element_array(std::array{_consts...},
                                        std::make_index_sequence<__array_size>{});
+
     static constexpr scalar_type
     min()
     {
@@ -107,6 +108,7 @@ class philox_engine
     {
         return (std::numeric_limits<scalar_type>::max() & in_mask) - 1;
     }
+
     static constexpr scalar_type default_seed = 20111115u;
 
     /* Constructors */
@@ -118,14 +120,14 @@ class philox_engine
     void
     seed(scalar_type __seed = default_seed)
     {
-        seed_internal({__seed & in_mask});
+        seed_internal(__seed & in_mask);
     }
 
     /* Set the state to arbitrary position */
     void
     set_counter(const std::array<scalar_type, word_count>& __counter)
     {
-        for (std::size_t __i = 0; __i < word_count; __i++)
+        for (std::size_t __i = 0; __i < word_count; ++__i)
         {
             // all counters are set in reverse order
             state_.X[word_count - __i - 1] = __counter[__i] & in_mask;
@@ -136,15 +138,13 @@ class philox_engine
     result_type
     operator()()
     {
-        result_type __ret = generate_internal<internal::type_traits_t<result_type>::num_elems>();
-        return __ret;
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>();
     }
     /* operator () overload for result portion generation */
     result_type
     operator()(unsigned int __random_nums)
     {
-        result_type __ret = generate_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
-        return __ret;
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
     /* Shift the counter only forward relative to its current position */
@@ -163,6 +163,7 @@ class philox_engine
                 std::equal(__x.state_.Y.begin(), __x.state_.Y.end(), __y.state_.Y.begin()) &&
                 __x.state_.idx == __y.state_.idx);
     }
+
     friend bool
     operator!=(const philox_engine& __x, const philox_engine& __y)
     {
@@ -205,14 +206,14 @@ class philox_engine
     seed_internal(scalar_type __seed)
     {
         // set to zero counters and results
-        for (std::size_t __i = 0; __i < word_count; __i++)
+        for (std::size_t __i = 0; __i < word_count; ++__i)
         {
             state_.X[__i] = 0;
             state_.Y[__i] = 0;
         }
         // 0th key element is set as seed, others are 0
         state_.K[0] = __seed & in_mask;
-        for (std::size_t __i = 1; __i < (word_count / 2); __i++)
+        for (std::size_t __i = 1; __i < (word_count / 2); ++__i)
         {
             state_.K[__i] = 0;
         }
@@ -224,14 +225,13 @@ class philox_engine
     void
     increase_counter_internal()
     {
-        state_.X[0] = (state_.X[0] + 1) & in_mask;
-        for (std::size_t __i = 1; __i < word_count; ++__i)
+        for (std::size_t __i = 0; __i < word_count; ++__i)
         {
-            if (state_.X[__i - 1])
+            state_.X[__i] = (state_.X[__i] + 1) & in_mask;
+            if (state_.X[__i])
             {
                 return;
             }
-            state_.X[__i] = (state_.X[__i] + 1) & in_mask;
         }
     }
 
@@ -269,9 +269,9 @@ class philox_engine
             return operator()();
 
         result_type __loc_result;
-        for (int __elm_count = 0; __elm_count < __random_nums; __elm_count++)
+        for (int __elm_count = 0; __elm_count < __random_nums; ++__elm_count)
         {
-            state_.idx++;
+            ++state_.idx;
 
             // check if buffer is empty
             if (state_.idx == word_count)
@@ -292,9 +292,9 @@ class philox_engine
     generate_internal()
     {
         result_type __loc_result;
-        for (int __elm_count = 0; __elm_count < _N; __elm_count++)
+        for (int __elm_count = 0; __elm_count < _N; ++__elm_count)
         {
-            state_.idx++;
+            ++state_.idx;
 
             // check if buffer is empty
             if (state_.idx == word_count)
@@ -357,9 +357,9 @@ class philox_engine
     {
         if constexpr (word_count == 2)
         {
-            scalar_type __V0 = (state_.X[0]) & in_mask;
-            scalar_type __V1 = (state_.X[1]) & in_mask;
-            scalar_type __K0 = (state_.K[0]);
+            scalar_type __V0 = state_.X[0];
+            scalar_type __V1 = state_.X[1];
+            scalar_type __K0 = state_.K[0];
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
                 auto [__hi0, __lo0] = mulhilo(__V0, multipliers[0]);
@@ -373,12 +373,12 @@ class philox_engine
         else if constexpr (word_count == 4)
         {
             // permute X to V
-            scalar_type __V2 = (state_.X[0]) & in_mask; // ToDo to check if we need mask
-            scalar_type __V1 = (state_.X[1]) & in_mask;
-            scalar_type __V0 = (state_.X[2]) & in_mask;
-            scalar_type __V3 = (state_.X[3]) & in_mask;
-            scalar_type __K0 = (state_.K[0]);
-            scalar_type __K1 = (state_.K[1]);
+            scalar_type __V2 = state_.X[0];
+            scalar_type __V1 = state_.X[1];
+            scalar_type __V0 = state_.X[2];
+            scalar_type __V3 = state_.X[3];
+            scalar_type __K0 = state_.K[0];
+            scalar_type __K1 = state_.K[1];
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
                 auto [__hi0, __lo0] = mulhilo(__V0, multipliers[0]);

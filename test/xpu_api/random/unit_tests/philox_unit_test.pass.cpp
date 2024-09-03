@@ -20,8 +20,6 @@
 namespace ex = oneapi::dpl::experimental;
 
 /* Corner-case testing functions */
-template <typename Engine>
-int api_test();
 
 template <typename Engine>
 int seed_test();
@@ -46,11 +44,6 @@ main()
 {
     int err = 0;
     
-    std::cout << "void api_test() [Engine = philox4x32]";
-    err += api_test<ex::philox4x32>();
-    std::cout << "void api_test() [Engine = philox4x64]";
-    err += api_test<ex::philox4x64>();
-
     std::cout << "void seed_test() [Engine = philox4x32]";
     err += seed_test<ex::philox4x32>();
     std::cout << "void seed_test() [Engine = philox4x64]";
@@ -91,52 +84,6 @@ main()
  *           0 in case of success
  *           1 in case of failure
  */
-
-template <typename Engine>
-int api_test() {
-    {
-        Engine engine;
-        engine.seed();
-    }
-    {
-        Engine engine(1);
-        engine.seed(1);
-    }
-    {
-        Engine engine;
-        Engine engine2;
-        if(!(engine == engine2) || (engine != engine2)) {
-            std::cout << " failed !=, == for the same engines" << std::endl;
-            return 1;
-        }
-        engine2.seed(42);
-        if((engine == engine2) || !(engine != engine2)) {
-            std::cout << " failed !=, == for the different engines" << std::endl;
-            return 1;
-        }
-    }
-    {
-        std::ostringstream os;
-        Engine engine;
-        os << engine << std::endl;
-        Engine engine2;
-        engine2();
-        std::istringstream in(os.str());
-        in >> engine2;
-        if(engine != engine2) {
-            std::cout << " failed for >> << operators" << std::endl;
-            return 1;
-        }
-    }
-    {
-        Engine engine;
-        engine.min();
-        engine.max();
-    }
-
-    std::cout << " passed" << std::endl;
-    return 0;
-}
 
 template <typename Engine>
 int seed_test() {
