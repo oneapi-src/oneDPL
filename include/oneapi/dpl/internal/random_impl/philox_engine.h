@@ -19,7 +19,8 @@
 #include <type_traits>
 #include <limits>
 #include <array>
-#include <iostream>
+#include <istream>
+#include <ostream>
 #include <algorithm>
 
 #include "random_common.h"
@@ -216,7 +217,7 @@ class philox_engine
             state_.K[__i] = 0;
         }
 
-        state_.idx = word_count;
+        state_.idx = word_count - 1;
     }
 
     /* Increment counter by 1 */
@@ -268,22 +269,19 @@ class philox_engine
             return operator()();
 
         result_type __loc_result;
-        scalar_type __curr_idx = state_.idx;
-
         for (int __elm_count = 0; __elm_count < __random_nums; __elm_count++)
         {
+            state_.idx++;
+
             // check if buffer is empty
-            if (__curr_idx == word_count)
+            if (state_.idx == word_count)
             {
                 philox_kernel();
                 increase_counter_internal();
-                __curr_idx = 0;
+                state_.idx = 0;
             }
-            __loc_result[__elm_count] = state_.Y[__curr_idx];
-            __curr_idx++;
+            __loc_result[__elm_count] = state_.Y[state_.idx];
         }
-
-        state_.idx = __curr_idx;
 
         return __loc_result;
     }
@@ -293,24 +291,20 @@ class philox_engine
     std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
-        // generate_internal(unsigned int __N)
         result_type __loc_result;
-        scalar_type __curr_idx = state_.idx;
-
         for (int __elm_count = 0; __elm_count < _N; __elm_count++)
         {
+            state_.idx++;
+
             // check if buffer is empty
-            if (__curr_idx == word_count)
+            if (state_.idx == word_count)
             {
                 philox_kernel();
                 increase_counter_internal();
-                __curr_idx = 0;
+                state_.idx = 0;
             }
-            __loc_result[__elm_count] = state_.Y[__curr_idx];
-            __curr_idx++;
+            __loc_result[__elm_count] = state_.Y[state_.idx];
         }
-
-        state_.idx = __curr_idx;
 
         return __loc_result;
     }
@@ -320,52 +314,41 @@ class philox_engine
     std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {
-        scalar_type __curr_idx = state_.idx;
-
-        // check if buffer is empty
-        if (__curr_idx == word_count)
+        ++state_.idx;
+        if (state_.idx == word_count)
         { 
             philox_kernel();
             increase_counter_internal();
-            __curr_idx = 0;
+            state_.idx = 0;
         }
 
-        state_.idx = __curr_idx + 1;
-
-        return state_.Y[__curr_idx];;
+        return state_.Y[state_.idx];
     }
 
     void
     discard_internal(unsigned long long __z)
     {
-        scalar_type __curr_idx = state_.idx % word_count;
-        unsigned long long __newridx = (__curr_idx + __z) % word_count;
-        if (__newridx == 0)
-        {
-            __newridx = word_count;
+        std::uint32_t available_in_buffer = word_count - 1 - state_.idx;
+        if (__z <= available_in_buffer) {
+            state_.idx += __z;
         }
-
-        // check if we can't simply iterate the index in the buffer
-        if (__z >= word_count - state_.idx)
-        {
-            unsigned long long __counters_increment = __z / word_count;
-            __counters_increment += ((__z % word_count) + __curr_idx) / word_count;
-
-            if (state_.idx < word_count)
-            {
-                __counters_increment--;
+        else {
+            __z -= available_in_buffer;
+            int tail = __z % word_count;
+            if (tail == 0) {
+                increase_counter_internal(__z / word_count);
+                state_.idx = word_count - 1;
             }
-
-            increase_counter_internal(__counters_increment);
-
-            if (__newridx < word_count)
+            else
             {
+                if (__z > word_count) {
+                    increase_counter_internal((__z - 1) / word_count);
+                }
                 philox_kernel();
                 increase_counter_internal();
+                state_.idx = tail - 1;
             }
         }
-
-        state_.idx = __newridx;
     }
 
     /* Internal generation Philox kernel */

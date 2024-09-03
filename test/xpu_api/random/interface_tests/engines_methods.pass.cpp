@@ -47,9 +47,9 @@ constexpr auto PHILOX4x64_N   = 4;
 constexpr auto PHILOX4x32_R   = 10;
 constexpr auto PHILOX4x64_R   = 10;
 constexpr auto PHILOX4x32_MIN = 0;
-constexpr auto PHILOX4x32_MAX = std::numeric_limits<ex::philox4x32::result_type>::max() & 0xFFFFFFFF;
+constexpr auto PHILOX4x32_MAX = (std::numeric_limits<ex::philox4x32::result_type>::max() & 0xFFFFFFFF) - 1;
 constexpr auto PHILOX4x64_MIN = 0;
-constexpr auto PHILOX4x64_MAX = std::numeric_limits<ex::philox4x64::result_type>::max() & 0xFFFFFFFFFFFFFFFF;
+constexpr auto PHILOX4x64_MAX = (std::numeric_limits<ex::philox4x64::result_type>::max() & 0xFFFFFFFFFFFFFFFF) - 1;
 constexpr auto PHILOX_SEED = 20111115u;
 
 std::int32_t
