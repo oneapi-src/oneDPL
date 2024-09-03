@@ -552,6 +552,7 @@ struct __merge_fn
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp = {}, _Proj1 __proj1 = {},
                _Proj2 __proj2 = {}) const
     {
+        // TODO: develop a strategy to get a common minimum size
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         return oneapi::dpl::__internal::__ranges::__pattern_merge(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
             std::forward<_R1>(__r1), std::forward<_R2>(__r2), std::forward<_OutRange>(__out_r), __comp, __proj1, __proj2);
