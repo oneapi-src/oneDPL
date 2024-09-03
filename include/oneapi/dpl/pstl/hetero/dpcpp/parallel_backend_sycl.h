@@ -29,6 +29,7 @@
 #include <limits>
 #include <cstdint>
 
+#include "../../utils.h"
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
@@ -1889,6 +1890,7 @@ __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _Exe
 // parallel_stable_sort - async pattern
 //-----------------------------------------------------------------------
 
+
 template <typename _T, typename _Compare>
 struct __is_radix_sort_usable_for_type
 {
@@ -1914,7 +1916,21 @@ __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_t
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
         __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
-#endif
+
+#if _ONEDPL_CPP20_RANGES_PRESENT
+template <
+    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+    ::std::enable_if_t<
+        __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+auto
+__parallel_stable_sort_ranges(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                       _Range&& __rng, _Compare, _Proj __proj)
+{
+    return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
+        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+}
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
+#endif // _USE_RADIX_SORT
 
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
@@ -1924,9 +1940,25 @@ auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                        _Range&& __rng, _Compare __comp, _Proj __proj)
 {
-    return __parallel_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
+    return __parallel_sort_impl<oneapi::dpl::__internal::__classic_sort_policy>(
+        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
 }
+
+#if _ONEDPL_CPP20_RANGES_PRESENT
+template <
+    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+    ::std::enable_if_t<
+        !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+auto
+__parallel_stable_sort_ranges(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                       _Range&& __rng, _Compare __comp, _Proj __proj)
+{
+    return __parallel_sort_impl<oneapi::dpl::__internal::__ranges_sort_policy>(
+        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
+}
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
 
 //------------------------------------------------------------------------
 // parallel_partial_sort - async pattern

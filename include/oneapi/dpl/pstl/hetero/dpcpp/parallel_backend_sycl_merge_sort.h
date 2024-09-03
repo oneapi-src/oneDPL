@@ -23,8 +23,12 @@
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
 
+#if _ONEDPL_CPP20_RANGES_PRESENT
+#   include <concepts>    // std::ranges::swap
+#endif
+
 #include "sycl_defs.h"                   // __dpl_sycl::__local_accessor, __dpl_sycl::__group_barrier
-#include "../../utils.h"                 // __dpl_bit_floor, __dpl_bit_ceil
+#include "../../utils.h"                 // __dpl_bit_floor, __dpl_bit_ceil,  __classic_sort_policy, __ranges_sort_policy
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
 namespace oneapi
@@ -34,6 +38,7 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
+template <typename _SortPolicy>
 struct __subgroup_bubble_sorter
 {
     template <typename _StorageAcc, typename _Compare>
@@ -48,8 +53,17 @@ struct __subgroup_bubble_sorter
                 auto& __second_item = __storage_acc[j];
                 if (__comp(__second_item, __first_item))
                 {
-                    using std::swap;
-                    swap(__first_item, __second_item);
+                    if constexpr (std::is_same_v<_SortPolicy, oneapi::dpl::__internal::__classic_sort_policy>)
+                    {
+                        using std::swap;
+                        swap(__first_item, __second_item);
+                    }
+#if _ONEDPL_CPP20_RANGES_PRESENT
+                    else
+                    {
+                        std::ranges::swap(__first_item, __second_item);
+                    }
+#endif
                 }
             }
         }
@@ -103,7 +117,7 @@ struct __group_merge_path_sorter
     }
 };
 
-template <typename _Range, typename _Compare>
+template <typename _SortPolicy, typename _Range, typename _Compare>
 struct __leaf_sorter
 {
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -111,7 +125,7 @@ struct __leaf_sorter
     using _StorageAcc = __dpl_sycl::__local_accessor<_Tp>;
     // TODO: select a better sub-group sorter depending on sort stability,
     // a type (e.g. it can be trivially copied for shuffling within a sub-group)
-    using _SubGroupSorter = __subgroup_bubble_sorter;
+    using _SubGroupSorter = __subgroup_bubble_sorter<_SortPolicy>;
     using _GroupSorter = __group_merge_path_sorter;
 
     static std::uint32_t
@@ -316,11 +330,11 @@ class __sort_global_kernel;
 template <typename... _Name>
 class __sort_copy_back_kernel;
 
-template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
+template <typename _IndexT, typename _SortPolicy, typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
 __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    using _Leaf = __leaf_sorter<std::decay_t<_Range>, _Compare>;
+    using _Leaf = __leaf_sorter<_SortPolicy, std::decay_t<_Range>, _Compare>;
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
 
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -380,20 +394,22 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
         std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __comp, __leaf);
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+template <typename _SortPolicy, typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
 __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                      _Compare __comp)
 {
+    static_assert(std::is_same_v<_SortPolicy, oneapi::dpl::__internal::__classic_sort_policy> ||
+                  std::is_same_v<_SortPolicy, oneapi::dpl::__internal::__ranges_sort_policy>);
     if (__rng.size() <= std::numeric_limits<std::uint32_t>::max())
     {
-        return __submit_selecting_leaf<std::uint32_t>(std::forward<_ExecutionPolicy>(__exec),
-                                                      std::forward<_Range>(__rng), __comp);
+        return __submit_selecting_leaf<std::uint32_t, _SortPolicy>(std::forward<_ExecutionPolicy>(__exec),
+                                                                   std::forward<_Range>(__rng), __comp);
     }
     else
     {
-        return __submit_selecting_leaf<std::uint64_t>(std::forward<_ExecutionPolicy>(__exec),
-                                                      std::forward<_Range>(__rng), __comp);
+        return __submit_selecting_leaf<std::uint64_t, _SortPolicy>(std::forward<_ExecutionPolicy>(__exec),
+                                                                   std::forward<_Range>(__rng), __comp);
     }
 }
 
