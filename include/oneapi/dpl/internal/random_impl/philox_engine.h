@@ -90,10 +90,10 @@ class philox_engine
     static_assert(std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr std::array<scalar_type, __array_size> multipliers =
-                     get_even_elm_array(std::array<scalar_type, word_count>{_consts...},
+                     get_even_elm_array(std::array{_consts...},
                                         std::make_index_sequence<__array_size>{});
     static constexpr std::array<scalar_type, __array_size> round_consts =
-                     get_odd_elm_array(std::array<scalar_type, word_count>{_consts...},
+                     get_odd_elm_array(std::array{_consts...},
                                        std::make_index_sequence<__array_size>{});
     static constexpr scalar_type
     min()
@@ -124,11 +124,10 @@ class philox_engine
     void
     set_counter(const std::array<scalar_type, word_count>& __counter)
     {
-        auto __end = __counter.end();
         for (std::size_t __i = 0; __i < word_count; __i++)
         {
             // all counters are set in reverse order
-            state_.X[__i] = (*--__end) & in_mask;
+            state_.X[word_count - __i - 1] = __counter[__i] & in_mask;
         }
     }
 
@@ -204,7 +203,7 @@ class philox_engine
     void
     seed_internal(scalar_type __seed)
     {
-        // zeroize counters and results
+        // set to zero counters and results
         for (std::size_t __i = 0; __i < word_count; __i++)
         {
             state_.X[__i] = 0;
@@ -267,7 +266,6 @@ class philox_engine
     {
         if (__random_nums >= _N)
             return operator()();
-            //__random_nums = _N;
 
         result_type __loc_result;
         scalar_type __curr_idx = state_.idx;
@@ -376,43 +374,43 @@ class philox_engine
     {
         if constexpr (word_count == 2)
         {
-            scalar_type __R0 = (state_.X[0]) & in_mask;
-            scalar_type __L0 = (state_.X[1]) & in_mask;
+            scalar_type __V0 = (state_.X[0]) & in_mask;
+            scalar_type __V1 = (state_.X[1]) & in_mask;
             scalar_type __K0 = (state_.K[0]);
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
-                auto [__hi0, __lo0] = mulhilo(__R0, multipliers[0]);
-                __R0 = __hi0 ^ __K0 ^ __L0;
-                __L0 = __lo0;
+                auto [__hi0, __lo0] = mulhilo(__V0, multipliers[0]);
+                __V0 = __hi0 ^ __K0 ^ __V1;
+                __V1 = __lo0;
                 __K0 = (__K0 + round_consts[0]) & in_mask;
             }
-            state_.Y[0] = __R0;
-            state_.Y[1] = __L0;
+            state_.Y[0] = __V0;
+            state_.Y[1] = __V1;
         }
         else if constexpr (word_count == 4)
         {
-            // better to rename to V
-            scalar_type __R0 = (state_.X[0]) & in_mask; //X0, ToDo to check if we need mask
-            scalar_type __L0 = (state_.X[1]) & in_mask; //X1 
-            scalar_type __R1 = (state_.X[2]) & in_mask; //X2
-            scalar_type __L1 = (state_.X[3]) & in_mask; //X3
-            scalar_type __K0 = (state_.K[0]); //key0
-            scalar_type __K1 = (state_.K[1]); //key1
+            // permute X to V
+            scalar_type __V2 = (state_.X[0]) & in_mask; // ToDo to check if we need mask
+            scalar_type __V1 = (state_.X[1]) & in_mask;
+            scalar_type __V0 = (state_.X[2]) & in_mask;
+            scalar_type __V3 = (state_.X[3]) & in_mask;
+            scalar_type __K0 = (state_.K[0]);
+            scalar_type __K1 = (state_.K[1]);
             for (std::size_t __i = 0; __i < round_count; ++__i)
             {
-                auto [__hi0, __lo0] = mulhilo(__R1, multipliers[0]);
-                auto [__hi1, __lo1] = mulhilo(__R0, multipliers[1]);
-                __R0 = __hi0 ^ __L0 ^ __K0;
-                __L0 = __lo0;
-                __R1 = __hi1 ^ __L1 ^ __K1;
-                __L1 = __lo1;
+                auto [__hi0, __lo0] = mulhilo(__V0, multipliers[0]);
+                auto [__hi1, __lo1] = mulhilo(__V2, multipliers[1]);
+                __V2 = __hi0 ^ __V1 ^ __K0;
+                __V1 = __lo0;
+                __V0 = __hi1 ^ __V3 ^ __K1;
+                __V3 = __lo1;
                 __K0 = (__K0 + round_consts[0]) & in_mask;
                 __K1 = (__K1 + round_consts[1]) & in_mask;
             }
-            state_.Y[0] = __R0;
-            state_.Y[1] = __L0;
-            state_.Y[2] = __R1;
-            state_.Y[3] = __L1;
+            state_.Y[0] = __V2;
+            state_.Y[1] = __V1;
+            state_.Y[2] = __V0;
+            state_.Y[3] = __V3;
         }
     }
 
@@ -519,7 +517,6 @@ operator>>(std::basic_istream<__CharT, __Traits>& __is, philox_engine<__UIntType
     const std::size_t __state_size = 2 * __n + __n / 2 + 1;
 
     std::array<internal::element_type_t<__UIntType>, __state_size> __tmp_inp; 
-    //std::vector<internal::element_type_t<__UIntType>> __tmp_inp(__state_size);
     for (std::size_t __i = 0; __i < __state_size; ++__i)
     {
         __is >> __tmp_inp[__i];
