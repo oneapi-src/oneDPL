@@ -61,15 +61,15 @@ class philox_engine
     /* Methods for unpacking variadic of constants into two arrays */
     template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_even_element_array(_Array __inp, std::index_sequence<_Is...>)
+    get_even_element_array(_Array __input_array, std::index_sequence<_Is...>)
     {
-        return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2>(__inp)...};
+        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2]...};
     }
     template <typename _Array, std::size_t... _Is>
     static constexpr auto
-    get_odd_element_array(_Array __inp, std::index_sequence<_Is...>)
+    get_odd_element_array(_Array __input_array, std::index_sequence<_Is...>)
     {
-        return std::array<scalar_type, std::index_sequence<_Is...>::size()>{std::get<_Is * 2 + 1>(__inp)...};
+        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2 + 1]...};
     }
 
   public:
@@ -82,14 +82,14 @@ class philox_engine
     static constexpr std::size_t word_count = _n;
     static constexpr std::size_t round_count = _r;
 
-    static_assert(_n == 2 || _n == 4, "_n must be 2 or 4");
-    static_assert(sizeof...(_consts) == _n, "the amount of _consts must be equal to _n");
-    static_assert(_r > 0, "_r must be more than 0");
+    static_assert(_n == 2 || _n == 4, "parameter n must be 2 or 4");
+    static_assert(sizeof...(_consts) == _n, "the amount of consts must be equal to n");
+    static_assert(_r > 0, "parameter r must be more than 0");
     static_assert(_w > 0 && _w <= std::numeric_limits<scalar_type>::digits,
-                  "_w must satisfy 0 < _w < std::numeric_limits<_UIntType>::digits");
+                  "parameter w must satisfy 0 < w < std::numeric_limits<UIntType>::digits");
     static_assert(std::numeric_limits<scalar_type>::digits <= 64,
-                  "size of the scalar _UIntType (in case of sycl::vec<T, N> the size of T) must be less than 64 bits");
-    static_assert(std::is_unsigned_v<scalar_type>, "_UIntType must be unsigned type or vector of unsigned types");
+                  "size of the scalar UIntType (in case of sycl::vec<T, N> the size of T) must be less than 64 bits");
+    static_assert(std::is_unsigned_v<scalar_type>, "UIntType must be unsigned type or vector of unsigned types");
 
     static constexpr std::array<scalar_type, __array_size> multipliers =
         get_even_element_array(std::array{_consts...}, std::make_index_sequence<__array_size>{});
@@ -139,6 +139,7 @@ class philox_engine
     {
         return generate_internal<internal::type_traits_t<result_type>::num_elems>();
     }
+
     /* operator () overload for result portion generation */
     result_type
     operator()(unsigned int __random_nums)
