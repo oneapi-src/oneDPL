@@ -24,6 +24,7 @@ namespace ex = oneapi::dpl::experimental;
 int
 main()
 {
+#if TEST_UNNAMED_LAMBDAS
     sycl::queue queue = TestUtils::get_test_queue();
 
     // Reference values
@@ -54,6 +55,7 @@ main()
     err += test<ex::philox4x64_vec<16>, 10000, 16>(queue) != philox4_64_ref;
 
     EXPECT_TRUE(!err, "Test FAILED");
+#endif
 
     return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }
