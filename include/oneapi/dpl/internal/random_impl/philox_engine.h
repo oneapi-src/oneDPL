@@ -107,7 +107,8 @@ class philox_engine
     static constexpr scalar_type
     max()
     {
-        return (std::numeric_limits<scalar_type>::max() & in_mask) - 1;
+        // equals to 2^w - 1
+        return in_mask;
     }
 
     static constexpr scalar_type default_seed = 20111115u;
@@ -331,16 +332,16 @@ class philox_engine
     void
     discard_internal(unsigned long long __z)
     {
-        std::uint32_t available_in_buffer = word_count - 1 - state_.idx;
-        if (__z <= available_in_buffer)
+        std::uint32_t __available_in_buffer = word_count - 1 - state_.idx;
+        if (__z <= __available_in_buffer)
         {
             state_.idx += __z;
         }
         else
         {
-            __z -= available_in_buffer;
-            int tail = __z % word_count;
-            if (tail == 0)
+            __z -= __available_in_buffer;
+            int __tail = __z % word_count;
+            if (__tail == 0)
             {
                 increase_counter_internal(__z / word_count);
                 state_.idx = word_count - 1;
@@ -353,7 +354,7 @@ class philox_engine
                 }
                 philox_kernel();
                 increase_counter_internal();
-                state_.idx = tail - 1;
+                state_.idx = __tail - 1;
             }
         }
     }
