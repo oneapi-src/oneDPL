@@ -55,28 +55,30 @@ template <typename _UIntType, std::size_t _w, std::size_t _n, std::size_t _r,
           internal::element_type_t<_UIntType>... _consts>
 class philox_engine
 {
-    /* The size of the consts arrays */
-    static constexpr std::size_t __array_size = _n / 2;
-
-    /* Methods for unpacking variadic of constants into two arrays */
-    template <typename _Array, std::size_t... _Is>
-    static constexpr auto
-    get_even_element_array(_Array __input_array, std::index_sequence<_Is...>)
-    {
-        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2]...};
-    }
-    template <typename _Array, std::size_t... _Is>
-    static constexpr auto
-    get_odd_element_array(_Array __input_array, std::index_sequence<_Is...>)
-    {
-        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2 + 1]...};
-    }
-
   public:
     /* Types */
     using result_type = _UIntType;
     using scalar_type = internal::element_type_t<result_type>;
 
+  private:
+    /* The size of the consts arrays */
+    static constexpr std::size_t __array_size = _n / 2;
+
+    /* Methods for unpacking variadic of constants into two arrays */
+    template <std::size_t... _Is>
+    static constexpr auto
+    get_even_element_array(std::array<scalar_type, _n> __input_array, std::index_sequence<_Is...>)
+    {
+        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2]...};
+    }
+    template <std::size_t... _Is>
+    static constexpr auto
+    get_odd_element_array(std::array<scalar_type, _n> __input_array, std::index_sequence<_Is...>)
+    {
+        return std::array<scalar_type, sizeof...(_Is)>{__input_array[_Is * 2 + 1]...};
+    }
+
+  public:
     /* Engine characteristics */
     static constexpr std::size_t word_size = _w;
     static constexpr std::size_t word_count = _n;
@@ -197,9 +199,8 @@ class philox_engine
     } state_;
 
     /* __word_mask<_W> - scalar_type with the low _W bits set */
-    template <std::size_t _W>
-    static constexpr scalar_type __word_mask = _W ? (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - _W))
-                                                  : 0;
+    template <std::size_t _W, typename = std::enable_if_t<_W != 0>>
+    static constexpr scalar_type __word_mask = ~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - _W);
 
     /* Processing mask */
     static constexpr auto in_mask = __word_mask<word_size>;
@@ -263,7 +264,7 @@ class philox_engine
 
     /* generate_internal() specified for sycl_vec output 
        and overload for result portion generation */
-    template <unsigned int _N = 0>
+    template <unsigned int _N>
     std::enable_if_t<(_N > 0), result_type>
     generate_internal(unsigned int __random_nums)
     {
@@ -289,7 +290,7 @@ class philox_engine
     }
 
     /* generate_internal() specified for sycl_vec output */
-    template <unsigned int _N = 0>
+    template <unsigned int _N>
     std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
@@ -312,7 +313,7 @@ class philox_engine
     }
 
     /* generate_internal() specified for a scalar output */
-    template <unsigned int _N = 0>
+    template <unsigned int _N>
     std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {

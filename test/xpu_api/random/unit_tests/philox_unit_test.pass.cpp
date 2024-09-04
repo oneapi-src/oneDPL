@@ -39,11 +39,32 @@ int counter_overflow_test();
 template <typename Engine>
 int discard_overflow_test();
 
+using philox4x32_w5 = ex::philox_engine<std::uint_fast32_t, 5, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
+using philox4x32_w15 = ex::philox_engine<std::uint_fast32_t, 15, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
+using philox4x32_w18 = ex::philox_engine<std::uint_fast32_t, 18, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
+using philox4x32_w30 = ex::philox_engine<std::uint_fast32_t, 30, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
+using philox4x64_w5 =
+    oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 5, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15,
+                                             0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>;
+using philox4x64_w15 =
+    oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 15, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15,
+                                             0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>;
+using philox4x64_w18 =
+    oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 18, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15,
+                                             0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>;
+using philox4x64_w25 =
+    oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 25, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15,
+                                             0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>;
+using philox4x64_w49 =
+    oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 49, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15,
+                                             0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>;
+
 int
 main()
 {
     int err = 0;
 
+    /* Test of the Philox engine with pre-defined standard parameters */
     std::cout << "void seed_test() [Engine = philox4x32]";
     err += seed_test<ex::philox4x32>();
     std::cout << "void seed_test() [Engine = philox4x64]";
@@ -75,6 +96,49 @@ main()
     err += discard_overflow_test<ex::philox4x64>();
 
     EXPECT_TRUE(!err, "Test FAILED");
+
+    /* Test of the Philox engine with non-standard parameters */
+    std::cout << "void counter_overflow_test() [Engine = philox4x32_w5]";
+    err += counter_overflow_test<philox4x32_w5>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x32_w15]";
+    err += counter_overflow_test<philox4x32_w15>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x32_w18]";
+    err += counter_overflow_test<philox4x32_w18>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x32_w30]";
+    err += counter_overflow_test<philox4x32_w30>();
+
+    std::cout << "void counter_overflow_test() [Engine = philox4x64_w5]";
+    err += counter_overflow_test<philox4x64_w5>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x64_w15]";
+    err += counter_overflow_test<philox4x64_w15>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x64_w18]";
+    err += counter_overflow_test<philox4x64_w18>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x64_w25]";
+    err += counter_overflow_test<philox4x64_w25>();
+    std::cout << "void counter_overflow_test() [Engine = philox4x64_w49]";
+    err += counter_overflow_test<philox4x64_w49>();
+
+    std::cout << "void discard_overflow_test() [Engine = philox4x32_w5]";
+    err += discard_overflow_test<philox4x32_w5>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x32_w15]";
+    err += discard_overflow_test<philox4x32_w15>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x32_w18]";
+    err += discard_overflow_test<philox4x32_w18>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x32_w30]";
+    err += discard_overflow_test<philox4x32_w30>();
+
+    std::cout << "void discard_overflow_test() [Engine = philox4x64]";
+    err += discard_overflow_test<ex::philox4x64>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x64_w5]";
+    err += discard_overflow_test<philox4x64_w5>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x64_w15]";
+    err += discard_overflow_test<philox4x64_w15>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x64_w18]";
+    err += discard_overflow_test<philox4x64_w18>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x64_w25]";
+    err += discard_overflow_test<philox4x64_w25>();
+    std::cout << "void discard_overflow_test() [Engine = philox4x64_w49]";
+    err += discard_overflow_test<philox4x64_w49>();
 
     return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }
@@ -275,6 +339,8 @@ int
 discard_overflow_test()
 {
     using T = typename Engine::result_type;
+    using scalar_type = typename Engine::scalar_type;
+
     Engine engine1;
     std::array<T, Engine::word_count> counter;
 
@@ -283,14 +349,8 @@ discard_overflow_test()
         counter[i] = 0;
     }
 
-    if (std::is_same_v<Engine, ex::philox4x32>)
-    {
-        counter[1] = 1;
-    }
-    else if (std::is_same_v<Engine, ex::philox4x64>)
-    {
-        counter[2] = 1;
-    }
+    // overflow of the 0th counter element
+    counter[2] = 1;
 
     engine1.set_counter(counter);
 
@@ -302,7 +362,8 @@ discard_overflow_test()
     }
     for (int i = 0; i < Engine::word_count; i++)
     {
-        engine2.discard(std::numeric_limits<unsigned long long>::max());
+        engine2.discard(std::numeric_limits<unsigned long long>::max() &
+                        (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - Engine::word_size)));
     }
 
     if (engine1() == engine2())
