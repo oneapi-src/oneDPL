@@ -21,9 +21,6 @@
 #include "support/utils.h"
 #include "support/test_iterators.h"
 
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
-
 template <typename _T1, typename _T2>
 void
 ASSERT_EQUAL(_T1&& X, _T2&& Y)
@@ -51,9 +48,9 @@ test()
         sycl::buffer<int, 1> buffer2(input2, numOfItems1);
         sycl::buffer<int, 1> buffer3(output, numOfItems2);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto in1 = buffer1.get_access<sycl_read>(cgh);
-            auto in2 = buffer2.get_access<sycl_read>(cgh);
-            auto out = buffer3.get_access<sycl_write>(cgh);
+            auto in1 = buffer1.get_access<sycl::access::mode::read>(cgh);
+            auto in2 = buffer2.get_access<sycl::access::mode::read>(cgh);
+            auto out = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelName<Iter1, Iter2>>([=]() {
                 out[0] = oneapi::dpl::inner_product(Iter1(&in1[0]), Iter1(&in1[0]), Iter2(&in2[0]), 0);
                 out[1] = oneapi::dpl::inner_product(Iter1(&in1[0]), Iter1(&in1[0]), Iter2(&in2[0]), 10);

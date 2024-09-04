@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/binary_search_utils.h"
 
@@ -28,7 +29,7 @@ using namespace TestUtils;
 
 DEFINE_TEST(test_binary_search)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_binary_search)
+    DEFINE_TEST_CONSTRUCTOR(test_binary_search, 1.0f, 1.0f)
 
     // TODO: replace data generation with random data and update check to compare result to
     // the result of the serial algorithm

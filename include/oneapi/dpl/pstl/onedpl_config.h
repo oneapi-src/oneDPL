@@ -108,7 +108,8 @@
 
 // Enable loop unrolling pragmas where supported
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
-     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) &&                                                 \
+      ((_ONEDPL_GCC_VERSION >= 80000) || (_ONEDPL_CLANG_VERSION >= 30700))))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL
@@ -286,20 +287,47 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
-#define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
-
-// When compile with Intel(R) oneAPI DPC++ Compiler macro is on
-// We need this macro to use compiler specific implementation of SYCL
-#if defined(__INTEL_LLVM_COMPILER) && defined(SYCL_LANGUAGE_VERSION)
-#    define _ONEDPL_SYCL_INTEL_COMPILER 1
+#if _ONEDPL_STD_FEATURE_MACROS_PRESENT
+#    define _ONEDPL_CPP20_SPAN_PRESENT (__cpp_lib_span >= 202002L)
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT (__cpp_concepts >= 201907L && __cpp_lib_concepts >= 202002L)
+// Clang 15 and older do not support range adaptors, see https://bugs.llvm.org/show_bug.cgi?id=44833
+#    define _ONEDPL_CPP20_RANGES_PRESENT ((__cpp_lib_ranges >= 201911L) && !(__clang__ && __clang_major__ < 16))
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT                                                          \
+        (_ONEDPL___cplusplus >= 202302L && __cpp_lib_tuple_like >= 202207L)
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT (_ONEDPL___cplusplus >= 202302L && __cpp_lib_ranges_zip >= 202110L)
+#else
+#    define _ONEDPL_CPP20_SPAN_PRESENT 0
+#    define _ONEDPL_CPP20_CONCEPTS_PRESENT 0
+#    define _ONEDPL_CPP20_RANGES_PRESENT 0
+#    define _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT 0
+#    define _ONEDPL_CPP23_RANGES_ZIP_PRESENT 0
 #endif
 
-// This 'broken' macro should be defined to 1 till the compiler processes 'omp simd' code correctly
-// TODO: limit the macro with a specific version once the issue is fixed
-#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
+// When C++20 concepts are available, we must use std::tuple as a proxy reference to satisfy iterator concepts, which
+// requires the changes to std::tuple in P2321R2 and the tuple-like basic_common_reference specialization in P2165R4.
+#define _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR                                                                       \
+    (!_ONEDPL_CPP20_CONCEPTS_PRESENT ||                                                                                \
+     (_ONEDPL_CPP23_RANGES_ZIP_PRESENT && _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT))
+
+#if _ONEDPL_CPP20_CONCEPTS_PRESENT
+#    define _ONEDPL_CPP20_REQUIRES(req) requires(req)
+#else
+#    define _ONEDPL_CPP20_REQUIRES(req)
+#endif
+
+#define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
+
+#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
+#endif
+
+// The implementation of std::bit_floor in MS STL does not meet requirements for SYCL device functions
+#if defined(_MSC_VER) && (__SYCL_DEVICE_ONLY__ || __SYCL_SINGLE_SOURCE__)
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 1
+#else
+#    define _ONEDPL_STD_BIT_FLOOR_BROKEN 0
 #endif
 
 #endif // _ONEDPL_CONFIG_H

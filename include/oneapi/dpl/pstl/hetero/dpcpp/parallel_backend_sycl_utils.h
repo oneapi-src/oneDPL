@@ -20,6 +20,7 @@
 #include <memory>
 #include <type_traits>
 #include <tuple>
+#include <algorithm>
 
 #include "../../iterator_impl.h"
 
@@ -56,10 +57,14 @@ __device_info(const _ExecutionPolicy& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-::std::size_t
-__max_work_group_size(const _ExecutionPolicy& __policy)
+std::size_t
+__max_work_group_size(const _ExecutionPolicy& __policy, std::size_t __wg_size_limit = 8192)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    std::size_t __wg_size = __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    // Limit the maximum work-group size supported by the device to optimize the throughput or minimize communication
+    // costs. This is limited to 8192 which is the highest current limit of the tested hardware (opencl:cpu devices) to
+    // prevent huge work-group sizes returned on some devices (e.g., FPGU emulation).
+    return std::min(__wg_size, __wg_size_limit);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
@@ -90,6 +95,15 @@ __max_compute_units(const _ExecutionPolicy& __policy)
     return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }
 
+template <typename _ExecutionPolicy>
+bool
+__supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_size)
+{
+    const std::vector<std::size_t> __subgroup_sizes =
+        __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
+    return std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(), __target_size) != __subgroup_sizes.end();
+}
+
 //-----------------------------------------------------------------------------
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
@@ -102,19 +116,11 @@ template <typename _ExecutionPolicy>
 __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-    ::std::size_t __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
-        __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
+    return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
-        __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
+    return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
 #endif
-    // The variable below is needed to achieve better performance on CPU devices.
-    // Experimentally it was found that the most common divisor is 4 with all patterns.
-    // TODO: choose the divisor according to specific pattern.
-    if (__device.is_cpu() && __max_wg_size >= 4)
-        __max_wg_size /= 4;
-
-    return __max_wg_size;
 }
 
 template <typename _ExecutionPolicy>
@@ -161,11 +167,9 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<
-                _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_device_policy<
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -173,13 +177,10 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
-                                                         _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
-                                                    _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_fpga_policy<
+        oneapi::dpl::__internal::__policy_unroll_factor<_Policy>,
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 #endif
 
@@ -279,7 +280,7 @@ class __kernel_compiler
         if constexpr (__kernel_count > 1)
             return __make_kernels_array(__kernel_bundle, __kernel_ids, ::std::make_index_sequence<__kernel_count>());
         else
-            return __kernel_bundle.template get_kernel(__kernel_ids[0]);
+            return __kernel_bundle.get_kernel(__kernel_ids[0]);
     }
 
   private:
@@ -287,7 +288,7 @@ class __kernel_compiler
     static auto
     __make_kernels_array(_KernelBundle __kernel_bundle, _KernelIds& __kernel_ids, ::std::index_sequence<_Ip...>)
     {
-        return __kernel_array_type{__kernel_bundle.template get_kernel(__kernel_ids[_Ip])...};
+        return __kernel_array_type{__kernel_bundle.get_kernel(__kernel_ids[_Ip])...};
     }
 #else
     template <typename _Exec>
@@ -307,7 +308,7 @@ class __kernel_compiler
 template <typename _Policy>
 inline void
 // Passing policy by value should be enough for debugging
-__print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __max_cu = 0)
+__print_device_debug_info(const _Policy& __policy, size_t __wg_size = 0, size_t __max_cu = 0)
 {
     ::std::cout << "Device info" << ::std::endl;
     ::std::cout << " > device name:         " << oneapi::dpl::__internal::__device_info(__policy) << ::std::endl;
@@ -318,7 +319,8 @@ __print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __max_c
 }
 #else
 template <typename _Policy>
-inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
+inline void
+__print_device_debug_info(const _Policy& __policy, size_t = 0, size_t = 0)
 {
 }
 #endif
@@ -381,22 +383,19 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-// __buffer defaulted to sycl::buffer<_T, 1, ...>
-template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-struct __buffer;
-
 // impl for sycl::buffer<...>
-template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+template <typename _ExecutionPolicy, typename _T>
+class __buffer_impl
 {
   private:
-    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
-    using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)} {}
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
+    {
+    }
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -432,38 +431,11 @@ struct __sycl_usm_alloc
     operator()(::std::size_t __elements) const
     {
         const auto& __queue = __exec.queue();
-        return (_T*)sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t);
-    }
-};
+        if (auto __buf = static_cast<_T*>(
+                sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t)))
+            return __buf;
 
-// impl for USM pointer
-template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-struct __buffer<_ExecutionPolicy, _T, _BValueT*>
-{
-  private:
-    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
-    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
-    using __alloc_t = sycl::usm::alloc;
-
-    __container_t __container;
-
-  public:
-    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements)
-        : __container(__sycl_usm_alloc<__exec_policy_t, _T, __alloc_t::shared>{__exec}(__n_elements),
-                      __sycl_usm_free<__exec_policy_t, _T>{__exec})
-    {
-    }
-
-    _T*
-    get() const
-    {
-        return __container.get();
-    }
-
-    _T*
-    get_buffer() const
-    {
-        return __container.get();
+        throw std::bad_alloc();
     }
 };
 
@@ -485,6 +457,9 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
+template <typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
+
 template <typename T>
 struct __repacked_tuple
 {
@@ -504,7 +479,7 @@ template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
 template <typename _T>
-struct __accessor
+struct __usm_or_buffer_accessor
 {
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
@@ -512,76 +487,210 @@ struct __accessor
     __accessor_t __acc;
     _T* __ptr = nullptr;
     bool __usm = false;
+    size_t __offset = 0;
 
   public:
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    __accessor(sycl::handler& __cgh, bool __u, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-               ::std::shared_ptr<_T> __usm_buf)
-        : __usm(__u)
-    {
-        if (__usm)
-            __ptr = __usm_buf.get();
-        else
-            __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
-    }
-#else
-    __accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-               ::std::shared_ptr<_T> __usm_buf)
-        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    // Buffer accessor
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
-#endif
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __offset(__acc_offset)
+    {
+    }
+
+    // USM pointer
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset)
+        : __ptr(__usm_buf), __usm(true), __offset(__ptr_offset)
+    {
+    }
 
     auto
     __get_pointer() const // should be cached within a kernel
     {
-        return __usm ? __ptr : &__acc[0];
+        return __usm ? __ptr + __offset : &__acc[__offset];
     }
 };
 
 template <typename _ExecutionPolicy, typename _T>
-struct __storage
+struct __result_and_scratch_storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
-    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
-    ::std::shared_ptr<_T> __usm_buf;
-    bool __usm;
+
+    _ExecutionPolicy __exec;
+    std::shared_ptr<_T> __scratch_buf;
+    std::shared_ptr<_T> __result_buf;
+    std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+
+    std::size_t __result_n;
+    std::size_t __scratch_n;
+    bool __use_USM_host;
+    bool __supports_USM_device;
+
+    // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a device allocation instead.
+    inline bool
+    __use_USM_host_allocations(sycl::queue __queue)
+    {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        auto __device = __queue.get_device();
+        if (!__device.is_gpu())
+            return false;
+        if (!__device.has(sycl::aspect::usm_host_allocations))
+            return false;
+        if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+            return false;
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    inline bool
+    __use_USM_allocations(sycl::queue __queue)
+    {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        return __queue.get_device().has(sycl::aspect::usm_device_allocations);
+#else
+        return false;
+#endif
+    }
 
   public:
-    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    __result_and_scratch_storage(const _ExecutionPolicy& __exec_, std::size_t __result_n, std::size_t __scratch_n)
+        : __exec{__exec_}, __result_n{__result_n}, __scratch_n{__scratch_n},
+          __use_USM_host{__use_USM_host_allocations(__exec.queue())}, __supports_USM_device{
+                                                                          __use_USM_allocations(__exec.queue())}
     {
-        if (__usm)
+        const std::size_t __total_n = __scratch_n + __result_n;
+        // Skip in case this is a dummy container
+        if (__total_n > 0)
         {
-            __usm_buf = std::shared_ptr<_T>(
-                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
-                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+            if (__use_USM_host && __supports_USM_device)
+            {
+                // Separate scratch (device) and result (host) allocations on performant backends (i.e. L0)
+                if (__scratch_n > 0)
+                {
+                    __scratch_buf = std::shared_ptr<_T>(
+                        __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(
+                            __scratch_n),
+                        __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+                }
+                if (__result_n > 0)
+                {
+                    __result_buf = std::shared_ptr<_T>(
+                        __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__result_n),
+                        __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+                }
+            }
+            else if (__supports_USM_device)
+            {
+                // If we don't use host memory, malloc only a single unified device allocation
+                __scratch_buf = std::shared_ptr<_T>(
+                    __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__total_n),
+                    __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+            }
+            else
+            {
+                // If we don't have USM support allocate memory here
+                __sycl_buf = std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__total_n));
+            }
         }
-        else
-            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
+    }
+
+    template <typename _Acc>
+    static auto
+    __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, std::size_t __scratch_n = 0)
+    {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        return __acc.__get_pointer();
+#else
+        return &__acc[__scratch_n];
+#endif
     }
 
     auto
-    __get_acc(sycl::handler& __cgh)
+    __get_result_acc(sycl::handler& __cgh) const
     {
-        return __accessor<_T>(__cgh, __usm, __sycl_buf, __usm_buf);
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        if (__use_USM_host && __supports_USM_device)
+            return __usm_or_buffer_accessor<_T>(__cgh, __result_buf.get());
+        else if (__supports_USM_device)
+            return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
+        return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     auto
-    __get_value(size_t idx = 0)
+    __get_scratch_acc(sycl::handler& __cgh) const
     {
-        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        if (__use_USM_host || __supports_USM_device)
+            return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
+        return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     bool
-    __get_usm() const
+    is_USM() const
     {
-        return __usm;
+        return __supports_USM_device;
+    }
+
+    // Note: this member function assumes the result is *ready*, since the __future has already
+    // waited on the relevant event.
+    _T
+    __get_value(size_t idx = 0) const
+    {
+        assert(idx < __result_n);
+        if (__use_USM_host && __supports_USM_device)
+        {
+            return *(__result_buf.get() + idx);
+        }
+        else if (__supports_USM_device)
+        {
+            _T __tmp;
+            __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n + idx, 1 * sizeof(_T)).wait();
+            return __tmp;
+        }
+        else
+        {
+            return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n];
+        }
+    }
+
+    template <typename _Event>
+    _T
+    __wait_and_get_value(_Event&& __event, size_t idx = 0) const
+    {
+        if (is_USM())
+            __event.wait_and_throw();
+
+        return __get_value(idx);
     }
 };
 
-//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
+// Tag __async_mode describe a pattern call mode which should be executed asynchronously
+struct __async_mode
+{
+};
+// Tag __sync_mode describe a pattern call mode which should be executed synchronously
+struct __sync_mode
+{
+};
+// Tag __deferrable_mode describe a pattern call mode which should be executed
+// synchronously/asynchronously : it's depends on ONEDPL_ALLOW_DEFERRED_WAITING macro state
+struct __deferrable_mode
+{
+};
+
+//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
@@ -590,7 +699,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _T>
     constexpr auto
-    __wait_and_get_value(sycl::buffer<_T>& __buf)
+    __wait_and_get_value(const sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
         return __buf.get_host_access(sycl::read_only)[0];
@@ -598,17 +707,14 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
+    __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
     {
-        // Explicit wait in case of USM memory. Buffer accessors are synchronous.
-        if (__buf.__get_usm())
-            wait();
-        return __buf.__get_value();
+        return __storage.__wait_and_get_value(__my_event);
     }
 
     template <typename _T>
     constexpr auto
-    __wait_and_get_value(_T& __val)
+    __wait_and_get_value(const _T& __val)
     {
         wait();
         return __val;
@@ -627,8 +733,23 @@ class __future : private std::tuple<_Args...>
     void
     wait()
     {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
         __my_event.wait_and_throw();
+    }
+    template <typename _WaitModeTag>
+    void
+    wait(_WaitModeTag)
+    {
+        if constexpr (std::is_same_v<_WaitModeTag, __sync_mode>)
+            wait();
+        else if constexpr (std::is_same_v<_WaitModeTag, __deferrable_mode>)
+            __deferrable_wait();
+    }
+
+    void
+    __deferrable_wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        wait();
 #endif
     }
 
@@ -655,25 +776,6 @@ class __future : private std::tuple<_Args...>
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
-
-// Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
-inline bool
-__use_USM_host_allocations(sycl::queue __queue)
-{
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    auto __device = __queue.get_device();
-    if (!__device.is_gpu())
-        return false;
-    if (!__device.has(sycl::aspect::usm_host_allocations))
-        return false;
-    if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
-        return false;
-    return true;
-#else
-    return false;
-#endif
-}
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest

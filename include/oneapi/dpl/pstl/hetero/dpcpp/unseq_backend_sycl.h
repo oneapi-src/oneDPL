@@ -30,15 +30,25 @@ namespace dpl
 namespace unseq_backend
 {
 
-#if _USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
+#if _USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
-//We need to use _ONEDPL_SYCL_INTEL_COMPILER macro as a guard.
+//We need to use defined(SYCL_IMPLEMENTATION_INTEL) macro as a guard.
+
+template <typename _Tp>
+inline constexpr bool __can_use_known_identity =
+#    if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    // When ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined as non-zero, we avoid using known identity for 64-bit arithmetic data types
+    !(::std::is_arithmetic_v<_Tp> && sizeof(_Tp) == sizeof(::std::uint64_t));
+#    else
+    true;
+#    endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity =
+using __has_known_identity = ::std::conditional_t<
+    __can_use_known_identity<_Tp>,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
@@ -50,22 +60,23 @@ using __has_known_identity =
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
+    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
 
-#else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
+#else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = std::false_type;
 
-#endif //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
+#endif //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
@@ -191,40 +202,146 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
+          std::uint8_t _VecSize>
 struct transform_reduce
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    template <typename _Size, typename _Res, typename... _Acc>
     void
-    operator()(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
+    vectorized_reduction_first(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
+    {
+        __res.__setup(__unary_op(__start_idx, __acc...));
+        _ONEDPL_PRAGMA_UNROLL
+        for (_Size __i = 1; __i < _VecSize; ++__i)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __i, __acc...));
+    }
+
+    template <typename _Size, typename _Res, typename... _Acc>
+    void
+    vectorized_reduction_remainder(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (_Size __i = 0; __i < _VecSize; ++__i)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __i, __acc...));
+    }
+
+    template <typename _Size, typename _Res, typename... _Acc>
+    void
+    scalar_reduction_remainder(const _Size __start_idx, const _Size __adjusted_n, _Res& __res,
+                               const _Acc&... __acc) const
+    {
+        // The boundary checks are done in the caller, i.e., __start_idx <= __adjusted_n
+        const _Size __no_iters = __adjusted_n - __start_idx;
+        for (_Size __idx = 0; __idx < __no_iters; ++__idx)
+            __res.__v = __binary_op(__res.__v, __unary_op(__start_idx + __idx, __acc...));
+    }
+
+    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    void
+    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __iters_per_work_item,
+               const _Size& __global_offset, const bool __is_full, const _Size __n_groups, _Res& __res,
                const _Acc&... __acc) const
     {
-        auto __global_idx = __item_id.get_global_id(0);
-        auto __local_idx = __item_id.get_local_id(0);
-        const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
-        const _Size __adjusted_n = __global_offset + __n;
-        // Add neighbour to the current __local_mem
-        if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
+        const _Size __global_idx = __item_id.get_global_id(0);
+        // Check if there is any work to do
+        if (__global_idx >= __n)
+            return;
+        if (__iters_per_work_item == 1)
         {
-            // Keep these statements in the same scope to allow for better memory alignment
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            _ONEDPL_PRAGMA_UNROLL
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-            __local_mem[__local_idx] = __res;
+            __res.__setup(__unary_op(__global_idx, __acc...));
+            return;
         }
+        const _Size __local_range = __item_id.get_local_range(0);
+        const _Size __no_vec_ops = __iters_per_work_item / _VecSize;
+        const _Size __adjusted_n = __global_offset + __n;
+        constexpr _Size __vec_size_minus_one = _VecSize - 1;
+
+        _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
+        _Size __adjusted_global_id = __global_offset;
+        if constexpr (_Commutative{})
+        {
+            __stride *= __local_range; // coalesced loads with _VecSize-wide vectors
+            _Size __local_idx = __item_id.get_local_id(0);
+            _Size __group_idx = __item_id.get_group_linear_id();
+            __adjusted_global_id += __group_idx * __local_range * __iters_per_work_item + __local_idx * _VecSize;
+        }
+        else
+            __adjusted_global_id += __iters_per_work_item * __global_idx;
+
+        // Groups are full if n is evenly divisible by the number of elements processed per work-group.
+        // Multi group reductions will be full for all groups before the last group.
+        _Size __group_idx = __item_id.get_group(0);
+        _Size __n_groups_minus_one = __n_groups - 1;
+
+        // _VecSize-wide vectorized path (__iters_per_work_item are multiples of _VecSize)
+        if (__is_full || (__group_idx < __n_groups_minus_one))
+        {
+            vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
+            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+                vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
+        }
+        // At least one vector operation
+        else if (__adjusted_global_id + __vec_size_minus_one < __adjusted_n)
+        {
+            vectorized_reduction_first(__adjusted_global_id, __res, __acc...);
+            if (__no_vec_ops > 1)
+            {
+                _Size __n_diff = __adjusted_n - __adjusted_global_id - _VecSize;
+                _Size __no_iters = __n_diff / __stride;
+                _Size __no_vec_ops_minus_one = __no_vec_ops - 1;
+                bool __excess_scalar_elements = false;
+                if (__no_iters >= __no_vec_ops_minus_one)
+                {
+                    // Completely full work item
+                    __no_iters = __no_vec_ops_minus_one;
+                    __excess_scalar_elements = false;
+                }
+                else
+                {
+                    // Partially full work item, but we need to consider if it's next iteration after its last
+                    // vector instruction begins within the sequence
+                    __excess_scalar_elements = __adjusted_global_id + (__no_iters + 1) * __stride < __adjusted_n;
+                }
+                _Size __base_idx = __adjusted_global_id + __stride;
+                for (_Size __i = 1; __i <= __no_iters; ++__i)
+                {
+                    vectorized_reduction_remainder(__base_idx, __res, __acc...);
+                    __base_idx += __stride;
+                }
+                if (__excess_scalar_elements)
+                    scalar_reduction_remainder(__base_idx, __adjusted_n, __res, __acc...);
+            }
+        }
+        // Scalar remainder
         else if (__adjusted_global_id < __adjusted_n)
         {
-            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
-            // Keep these statements in the same scope to allow for better memory alignment
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            for (_Size __i = 1; __i < __items_to_process; ++__i)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-            __local_mem[__local_idx] = __res;
+            __res.__setup(__unary_op(__adjusted_global_id, __acc...));
+            const _Size __adjusted_global_id_plus_one = __adjusted_global_id + 1;
+            scalar_reduction_remainder(__adjusted_global_id_plus_one, __adjusted_n, __res, __acc...);
         }
+    }
+
+    template <typename _Size>
+    _Size
+    output_size(const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item) const
+    {
+        if (__iters_per_work_item == 1)
+            return __n;
+        if constexpr (_Commutative{})
+        {
+            _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
+            _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
+            _Size __last_wg_remainder = __n % __items_per_work_group;
+            // Adjust remainder and wg size for vector size
+            _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
+            _Size __last_wg_contrib = std::min(__last_wg_vec, __work_group_size);
+            return __full_group_contrib + __last_wg_contrib;
+        }
+        // else (if not commutative)
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 
@@ -239,30 +356,25 @@ struct reduce_over_group
     // Reduce on local memory with subgroups
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
+    reduce_impl(const _NDItemId __item_id, const _Size __n, const _Tp& __val, const _AccLocal& /*__local_mem*/,
                 std::true_type /*has_known_identity*/) const
     {
-        auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
-        if (__global_idx >= __n)
-        {
-            // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
-            // for each work-item in sub-group
-            __local_mem[__local_idx] = __known_identity<_BinaryOperation1, _Tp>;
-        }
-        return __dpl_sycl::__reduce_over_group(__item_id.get_group(), __local_mem[__local_idx], __bin_op1);
+        const _Size __global_idx = __item_id.get_global_id(0);
+        return __dpl_sycl::__reduce_over_group(
+            __item_id.get_group(), __global_idx >= __n ? __known_identity<_BinaryOperation1, _Tp> : __val, __bin_op1);
     }
 
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
+    reduce_impl(const _NDItemId __item_id, const _Size __n, const _Tp& __val, const _AccLocal& __local_mem,
                 std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
-        for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
+        __local_mem[__local_idx] = __val;
+        for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
             __dpl_sycl::__group_barrier(__item_id);
             if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
@@ -276,9 +388,9 @@ struct reduce_over_group
 
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    operator()(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem) const
+    operator()(const _NDItemId __item_id, const _Size __n, const _Tp& __val, const _AccLocal& __local_mem) const
     {
-        return reduce_impl(__item_id, __n, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
+        return reduce_impl(__item_id, __n, __val, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
     }
 
     template <typename _InitType, typename _Result>
@@ -286,6 +398,15 @@ struct reduce_over_group
     apply_init(const _InitType& __init, _Result&& __result) const
     {
         __init_processing<_Tp>{}(__init, __result, __bin_op1);
+    }
+
+    inline std::size_t
+    local_mem_req(const std::uint16_t& __work_group_size) const
+    {
+        if constexpr (__has_known_identity<_BinaryOperation1, _Tp>{})
+            return 0;
+
+        return __work_group_size;
     }
 };
 
@@ -407,8 +528,15 @@ struct __mask_assigner
 struct __scan_assigner
 {
     template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
-    void
+    std::enable_if_t<!std::is_pointer_v<_OutAcc>>
     operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx) const
+    {
+        __out_acc[__out_idx] = __in_acc[__in_idx];
+    }
+
+    template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
+    std::enable_if_t<std::is_pointer_v<_OutAcc>>
+    operator()(_OutAcc __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx) const
     {
         __out_acc[__out_idx] = __in_acc[__in_idx];
     }
@@ -456,11 +584,11 @@ struct __copy_by_mask
     _BinaryOp __binary_op;
     _Assigner __assigner;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsPtr, typename _RetPtr, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
-               _SizePerWg __size_per_wg) const
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, _WgSumsPtr* __wg_sums_ptr, _RetPtr* __ret_ptr,
+               _Size __n, _SizePerWg __size_per_wg) const
     {
         using ::std::get;
         auto __item_idx = __item.get_linear_id();
@@ -476,7 +604,7 @@ struct __copy_by_mask
             if (__item_idx >= __size_per_wg)
             {
                 auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
-                __out_idx = __binary_op(__out_idx, __wg_sums_acc[__wg_sums_idx]);
+                __out_idx = __binary_op(__out_idx, __wg_sums_ptr[__wg_sums_idx]);
             }
             if (__item_idx % __size_per_wg == 0 || (get<N>(__in_acc[__item_idx]) != get<N>(__in_acc[__item_idx - 1])))
                 // If we work with tuples we might have a situation when internal tuple is assigned to ::std::tuple
@@ -495,6 +623,11 @@ struct __copy_by_mask
                 // is performed(i.e. __typle_type is the same type as its operand).
                 __assigner(static_cast<__tuple_type>(get<0>(__in_acc[__item_idx])), __out_acc[__out_idx]);
         }
+        if (__item_idx == 0)
+        {
+            //copy final result to output
+            *__ret_ptr = __wg_sums_ptr[(__n - 1) / __size_per_wg];
+        }
     }
 };
 
@@ -503,11 +636,11 @@ struct __partition_by_mask
 {
     _BinaryOp __binary_op;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsPtr, typename _RetPtr, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
-               _SizePerWg __size_per_wg) const
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, _WgSumsPtr* __wg_sums_ptr, _RetPtr* __ret_ptr,
+               _Size __n, _SizePerWg __size_per_wg) const
     {
         auto __item_idx = __item.get_linear_id();
         if (__item_idx < __n)
@@ -524,7 +657,7 @@ struct __partition_by_mask
                     __in_type, ::std::decay_t<decltype(get<0>(__out_acc[__out_idx]))>>::__type;
 
                 if (__not_first_wg)
-                    __out_idx = __binary_op(__out_idx, __wg_sums_acc[__wg_sums_idx - 1]);
+                    __out_idx = __binary_op(__out_idx, __wg_sums_ptr[__wg_sums_idx - 1]);
                 get<0>(__out_acc[__out_idx]) = static_cast<__tuple_type>(get<0>(__in_acc[__item_idx]));
             }
             else
@@ -534,9 +667,14 @@ struct __partition_by_mask
                     __in_type, ::std::decay_t<decltype(get<1>(__out_acc[__out_idx]))>>::__type;
 
                 if (__not_first_wg)
-                    __out_idx -= __wg_sums_acc[__wg_sums_idx - 1];
+                    __out_idx -= __wg_sums_ptr[__wg_sums_idx - 1];
                 get<1>(__out_acc[__out_idx]) = static_cast<__tuple_type>(get<0>(__in_acc[__item_idx]));
             }
+        }
+        if (__item_idx == 0)
+        {
+            //copy final result to output
+            *__ret_ptr = __wg_sums_ptr[(__n - 1) / __size_per_wg];
         }
     }
 };
@@ -547,10 +685,10 @@ struct __global_scan_functor
     _BinaryOp __binary_op;
     _InitType __init;
 
-    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
+    template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsPtr, typename _RetPtr, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc&, const _WgSumsAcc& __wg_sums_acc, _Size __n,
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc&, _WgSumsPtr* __wg_sums_ptr, _RetPtr*, _Size __n,
                _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
@@ -561,7 +699,7 @@ struct __global_scan_functor
             auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
             // an initial value precedes the first group for the exclusive scan
             __item_idx += __shift;
-            auto __bin_op_result = __binary_op(__wg_sums_acc[__wg_sums_idx], __out_acc[__item_idx]);
+            auto __bin_op_result = __binary_op(__wg_sums_ptr[__wg_sums_idx], __out_acc[__item_idx]);
             using __out_type = ::std::decay_t<decltype(__out_acc[__item_idx])>;
             using __in_type = ::std::decay_t<decltype(__bin_op_result)>;
             __out_acc[__item_idx] =
@@ -590,10 +728,10 @@ struct __scan
     _DataAccessor __data_acc;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
-              typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
+              typename _WGSumsPtr, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
     void
     scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-              _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
+              _WGSumsPtr* __wg_sums_ptr, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
               _InitType __init, std::false_type /*has_known_identity*/) const
     {
         ::std::size_t __group_id = __item.get_group(0);
@@ -663,18 +801,18 @@ struct __scan
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
 
             if (__adjusted_global_id == __n - 1)
-                __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
+                __wg_assigner(__wg_sums_ptr, __group_id, __local_acc, __local_id);
         }
 
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
-            __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
+            __wg_assigner(__wg_sums_ptr, __group_id, __local_acc, __local_id);
     }
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
-              typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
+              typename _WGSumsPtr, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
     void
     scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-              _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
+              _WGSumsPtr* __wg_sums_ptr, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
               _InitType __init, std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
@@ -709,21 +847,21 @@ struct __scan
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
 
             if (__adjusted_global_id == __n - 1)
-                __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
+                __wg_assigner(__wg_sums_ptr, __group_id, __local_acc, __local_id);
         }
 
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
-            __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
+            __wg_assigner(__wg_sums_ptr, __group_id, __local_acc, __local_id);
     }
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
-              typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
+              typename _WGSumsPtr, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
     void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-                    _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
+                    _WGSumsPtr* __wg_sums_ptr, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
                     _ItersPerWG __iters_per_wg,
                     _InitType __init = __no_init_value<typename _InitType::__value_type>{}) const
     {
-        scan_impl(__item, __n, __local_acc, __acc, __out_acc, __wg_sums_acc, __size_per_wg, __wgroup_size,
+        scan_impl(__item, __n, __local_acc, __acc, __out_acc, __wg_sums_ptr, __size_per_wg, __wgroup_size,
                   __iters_per_wg, __init, __has_known_identity<_BinaryOperation, _Tp>{});
     }
 };

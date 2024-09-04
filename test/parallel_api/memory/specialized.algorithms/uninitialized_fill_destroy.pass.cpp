@@ -29,6 +29,7 @@
 #include "support/utils.h"
 
 #include <memory>
+#include <cstdlib>
 
 using namespace TestUtils;
 
@@ -173,7 +174,11 @@ test_uninitialized_fill_destroy_by_type()
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
-        ::std::unique_ptr<T[]> p(new T[n]);
+        // We use malloc / free instead of a typical approach with operator new T[] and a smart pointer (which calls
+        // operator delete[] within its destructor) to avoid double creation/destroy the elements of type T in the test.
+        auto free_allocation = [](auto ptr) { ::std::free(ptr); };
+        ::std::unique_ptr<T[], decltype(free_allocation)> p(static_cast<T*>(::std::malloc(sizeof(T) * n)),
+                                                            free_allocation);
         auto p_begin = p.get();
 #else
         Sequence<T> p(n, [](size_t){ return T{}; });

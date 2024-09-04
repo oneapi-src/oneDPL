@@ -19,13 +19,13 @@
 
 #if !__has_include(<execution>)
 static_assert(_PSTL_VERSION == 14000);
-static_assert(_PSTL_VERSION_MAJOR == 11);
+static_assert(_PSTL_VERSION_MAJOR == 14);
 static_assert(_PSTL_VERSION_MINOR == 00);
 static_assert(_PSTL_VERSION_PATCH == 0);
 #endif
 
 static_assert(ONEDPL_VERSION_MAJOR == 2022);
-static_assert(ONEDPL_VERSION_MINOR == 3);
+static_assert(ONEDPL_VERSION_MINOR == 7);
 static_assert(ONEDPL_VERSION_PATCH == 0);
 
 #include "support/utils.h"

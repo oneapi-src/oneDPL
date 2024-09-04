@@ -13,17 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#include "support/utils_sycl_defs.h"
 
 using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -35,7 +35,7 @@ using namespace TestUtils;
 
 DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment)
+    DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment, 1.0f, 1.0f)
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
@@ -223,7 +223,7 @@ main()
     }
 
     {
-        using ValueType = ::std::complex<float>;
+        using ValueType = MatrixPoint<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 

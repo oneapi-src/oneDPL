@@ -7,18 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_version_H
-#define __ONEDPL_version_H
+#ifndef _ONEDPL_VERSION
+#define _ONEDPL_VERSION
 
 #include "oneapi/dpl/internal/common_config.h"
 
-#if _ONEDPL___cplusplus >= 202002L
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
 #    include <version> // The standard C++20 header
+#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
 #endif
 
 // The library version
 #define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 3
+#define ONEDPL_VERSION_MINOR 7
 #define ONEDPL_VERSION_PATCH 0
 
 #ifndef _PSTL_VERSION
@@ -31,4 +32,4 @@
 // Feature macros
 #define ONEDPL_HAS_RANDOM_NUMBERS 202210L
 
-#endif // __ONEDPL_version_H
+#endif // _ONEDPL_VERSION

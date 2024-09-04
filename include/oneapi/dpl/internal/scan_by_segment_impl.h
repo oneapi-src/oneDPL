@@ -38,13 +38,15 @@
 #include <utility>
 #include <algorithm>
 
-#include <oneapi/dpl/pstl/algorithm_fwd.h>
-#include <oneapi/dpl/pstl/parallel_backend.h>
-#include <oneapi/dpl/pstl/hetero/utils_hetero.h>
+#include "../pstl/algorithm_fwd.h"
+#include "../pstl/parallel_backend.h"
+#include "../pstl/hetero/utils_hetero.h"
 
-#include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+
+#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 namespace oneapi
 {
@@ -103,14 +105,13 @@ struct __sycl_scan_by_segment_impl
     template <typename... _Name>
     using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
 
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
-        using _Policy = ::std::decay_t<_ExecutionPolicy>;
-        using _CustomName = typename _Policy::kernel_name;
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
         using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             _SegScanWgPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _BinaryPredicate,
@@ -126,7 +127,9 @@ struct __sycl_scan_by_segment_impl
         constexpr ::std::uint16_t __vals_per_item =
             4; // Assigning 4 elements per work item resulted in best performance on gpu.
 
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+        // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
+        // This value exceeds the current practical limit for GPUs, but may need to be re-evaluated in the future.
+        std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)2048);
 
         // We require 2 * sizeof(__val_type) * __wgroup_size of SLM for the work group segmented scan. We add
         // an additional sizeof(__val_type) * __wgroup_size requirement to ensure sufficient SLM for the group algorithms.
@@ -146,13 +149,11 @@ struct __sycl_scan_by_segment_impl
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
-            oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
-                .get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups).get_buffer();
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, bool>(__exec, __n_groups)
-                .get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, bool>(__exec, __n_groups).get_buffer();
 
         // 1. Work group reduction
         auto __wg_scan = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -367,11 +368,12 @@ struct __sycl_scan_by_segment_impl
     }
 };
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
-          typename BinaryPredicate, typename Operator, typename Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-__scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                              OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op, Inclusive)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename T, typename BinaryPredicate, typename Operator, typename Inclusive>
+OutputIterator
+__scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1,
+                              InputIterator1 last1, InputIterator2 first2, OutputIterator result, T init,
+                              BinaryPredicate binary_pred, Operator binary_op, Inclusive)
 {
     const auto n = ::std::distance(first1, last1);
 
@@ -392,7 +394,7 @@ __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputItera
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    __sycl_scan_by_segment_impl<Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
+    __sycl_scan_by_segment_impl<Inclusive::value>()(_BackendTag{}, ::std::forward<Policy>(policy), key_buf.all_view(),
                                                     value_buf.all_view(), value_output_buf.all_view(), binary_pred,
                                                     binary_op, init, identity);
     return result + n;

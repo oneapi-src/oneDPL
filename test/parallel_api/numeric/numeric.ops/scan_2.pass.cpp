@@ -16,11 +16,12 @@
 // We create this additional test for test functional of inclusive scan
 // and exclusive scan for an in-place and non-in-place scan variants.
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
 
-#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
@@ -141,7 +142,7 @@ struct TestingAlgoritmExclusiveScanExt
 
 DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_scan_non_inplace)
+    DEFINE_TEST_CONSTRUCTOR(test_scan_non_inplace, 1.0f, 1.0f)
 
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
@@ -227,7 +228,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
 DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_scan_inplace)
+    DEFINE_TEST_CONSTRUCTOR(test_scan_inplace, 1.0f, 1.0f)
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Size>

@@ -63,6 +63,7 @@ using namespace TestUtils;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
+#include "support/utils_device_copyable.h"
 
 // just a temporary include and NoOp functor to check
 // algorithms that require init element with zip_iterators
@@ -104,7 +105,7 @@ using namespace oneapi::dpl::execution;
 
 DEFINE_TEST(test_for_each)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -122,6 +123,12 @@ DEFINE_TEST(test_for_each)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(std::make_tuple(first1, first1));
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (for_each) not properly copyable");
+        }
+
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                       TuplePredicate<decltype(f), 0>{f});
 #if _PSTL_SYCL_TEST_USM
@@ -136,7 +143,7 @@ DEFINE_TEST(test_for_each)
 
 DEFINE_TEST(test_for_each_structured_binding)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each_structured_binding)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each_structured_binding, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -153,6 +160,13 @@ DEFINE_TEST(test_for_each_structured_binding)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, 
+                        "zip_iterator (structured_binding) not properly copyable");
+        }
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                         [f](auto value)
@@ -172,7 +186,7 @@ DEFINE_TEST(test_for_each_structured_binding)
 
 DEFINE_TEST(test_transform_reduce_unary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -189,6 +203,12 @@ DEFINE_TEST(test_transform_reduce_unary)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (reduce_unary) not properly copyable");
+        }
+
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                                 ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
@@ -199,7 +219,7 @@ DEFINE_TEST(test_transform_reduce_unary)
 
 DEFINE_TEST(test_transform_reduce_binary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -216,6 +236,12 @@ DEFINE_TEST(test_transform_reduce_binary)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (reduce_binary) not properly copyable");
+        }
+
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
                                   tuple_last1, tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
@@ -226,7 +252,7 @@ DEFINE_TEST(test_transform_reduce_binary)
 
 DEFINE_TEST(test_min_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_min_element)
+    DEFINE_TEST_CONSTRUCTOR(test_min_element, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -252,6 +278,12 @@ DEFINE_TEST(test_min_element)
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (min_element) not properly copyable");
+        }
+
         auto tuple_result =
             ::std::min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
                              TuplePredicate<::std::less<IteratorValueType>, 0>{::std::less<IteratorValueType>{}});
@@ -267,7 +299,7 @@ DEFINE_TEST(test_min_element)
 
 DEFINE_TEST(test_count_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_count_if)
+    DEFINE_TEST_CONSTRUCTOR(test_count_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -286,6 +318,12 @@ DEFINE_TEST(test_count_if)
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (count_if) not properly copyable");
+        }
+
         auto comp = [](ValueType const& value) { return value % 10 == 0; };
         ReturnType expected = (n - 1) / 10 + 1;
 
@@ -301,7 +339,7 @@ DEFINE_TEST(test_count_if)
 
 DEFINE_TEST(test_equal)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_equal)
+    DEFINE_TEST_CONSTRUCTOR(test_equal, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -320,6 +358,13 @@ DEFINE_TEST(test_equal)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (equal1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>, "zip_iterator (equal2) not properly copyable");
+        }
 
         bool is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                    TuplePredicate<::std::equal_to<T>, 0>{::std::equal_to<T>{}});
@@ -344,7 +389,7 @@ DEFINE_TEST(test_equal)
 #if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
 DEFINE_TEST(test_equal_structured_binding)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding)
+    DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -363,6 +408,15 @@ DEFINE_TEST(test_equal_structured_binding)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>,
+                        "zip_iterator (equal_structured_binding1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>,
+                        "zip_iterator (equal_structured_binding2) not properly copyable");
+        }
 
         auto compare = [](auto tuple_first1, auto tuple_first2)
         {
@@ -397,7 +451,7 @@ DEFINE_TEST(test_equal_structured_binding)
 
 DEFINE_TEST(test_find_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_find_if)
+    DEFINE_TEST_CONSTRUCTOR(test_find_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -412,6 +466,12 @@ DEFINE_TEST(test_find_if)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (find_if) not properly copyable");
+        }
 
         auto f_for_last = [n](T1 x) { return x == n - 1; };
         auto f_for_none = [](T1 x) { return x == -1; };
@@ -448,7 +508,7 @@ DEFINE_TEST(test_find_if)
 
 DEFINE_TEST(test_transform_inclusive_scan)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -465,6 +525,14 @@ DEFINE_TEST(test_transform_inclusive_scan)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (inclusive_scan1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>, "zip_iterator (inclusive_scan2) not properly copyable");
+        }
+
         auto value = T1(333);
 
         auto res = ::std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
@@ -479,7 +547,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
 
 DEFINE_TEST(test_unique)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique)
+    DEFINE_TEST_CONSTRUCTOR(test_unique, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -498,6 +566,12 @@ DEFINE_TEST(test_unique)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (unique) not properly copyable");
+        }
 
         auto tuple_lastnew =
             ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -518,7 +592,7 @@ DEFINE_TEST(test_unique)
 
 DEFINE_TEST(test_unique_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_unique_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -541,6 +615,13 @@ DEFINE_TEST(test_unique_copy)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (unique_copy1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>, "zip_iterator (unique_copy2) not properly copyable");
+        }
+
         auto tuple_last2 = ::std::unique_copy(
             make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
             TuplePredicate<::std::equal_to<Iterator1ValueType>, 0>{::std::equal_to<Iterator1ValueType>{}});
@@ -560,7 +641,7 @@ DEFINE_TEST(test_unique_copy)
 
 DEFINE_TEST(test_merge)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_merge)
+    DEFINE_TEST_CONSTRUCTOR(test_merge, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -600,6 +681,14 @@ DEFINE_TEST(test_merge)
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(first2 + size2, first2 + size2);
         auto tuple_first3 = oneapi::dpl::make_zip_iterator(first3, first3);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (merge1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>, "zip_iterator (merge2) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first3)>, "zip_iterator (merge3) not properly copyable");
+        }
+
         auto tuple_last3 = ::std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                       tuple_last2, tuple_first3, TuplePredicate<::std::less<T2>, 0>{::std::less<T2>{}});
 #if _PSTL_SYCL_TEST_USM
@@ -628,7 +717,7 @@ DEFINE_TEST(test_merge)
 
 DEFINE_TEST(test_stable_sort)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_stable_sort)
+    DEFINE_TEST_CONSTRUCTOR(test_stable_sort, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -644,8 +733,16 @@ DEFINE_TEST(test_stable_sort)
         ::std::copy_n(host_keys.get(), n, host_vals.get());
         update_data(host_keys, host_vals);
 
-        ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), oneapi::dpl::make_zip_iterator(first1, first2),
-                         oneapi::dpl::make_zip_iterator(last1, last2),
+        auto tuple_first = oneapi::dpl::make_zip_iterator(first1, first2);
+        auto tuple_last = oneapi::dpl::make_zip_iterator(last1, last2);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (stable_sort) not properly copyable");
+        }
+
+        ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
                          TuplePredicate<::std::greater<T>, 0>{::std::greater<T>{}});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -661,7 +758,7 @@ DEFINE_TEST(test_stable_sort)
 
 DEFINE_TEST(test_lexicographical_compare)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare)
+    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -687,6 +784,15 @@ DEFINE_TEST(test_lexicographical_compare)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>,
+                         "zip_iterator (lexicographical_compare1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first2)>,
+                         "zip_iterator (lexicographical_compare2) not properly copyable");
+        }
 
         auto comp = [](ValueType const& first, ValueType const& second) { return first < second; };
 
@@ -715,7 +821,7 @@ struct Assigner{
 // Make sure that it's possible to use counting iterator inside zip iterator
 DEFINE_TEST(test_counting_zip_transform)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform)
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -737,6 +843,12 @@ DEFINE_TEST(test_counting_zip_transform)
 
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(start)>, "zip_iterator (counting_iterator1) not properly copyable");
+        }
 
         // This usage pattern can be rewritten equivalently and more simply using zip_iterator and discard_iterator,
         // see test_counting_zip_discard
@@ -763,7 +875,7 @@ DEFINE_TEST(test_counting_zip_transform)
 //make sure its possible to use a discard iterator in a zip iterator
 DEFINE_TEST(test_counting_zip_discard)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_discard)
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_discard, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -787,6 +899,14 @@ DEFINE_TEST(test_counting_zip_discard)
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
         auto discard = oneapi::dpl::discard_iterator();
         auto out = oneapi::dpl::make_zip_iterator(first2, discard);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
+        if (!this->host_buffering_required())
+        {
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(start)>, "zip_iterator (discard_iterator1) not properly copyable");
+            EXPECT_TRUE(sycl::is_device_copyable_v<decltype(out)>, "zip_iterator (discard_iterator2) not properly copyable");
+        }
+
         auto res = ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n, out, Assigner{});
 
 #if _PSTL_SYCL_TEST_USM
@@ -870,12 +990,32 @@ test_usm_and_buffer()
     test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
 #endif
 }
+
+void
+test_copyable()
+{
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_device_copyable, int*>>,
+                  "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(
+        sycl::is_device_copyable_v<
+            oneapi::dpl::zip_iterator<oneapi::dpl::counting_iterator<int>, constant_iterator_device_copyable, int*>>,
+        "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_non_device_copyable, int*>>,
+                  "zip_iterator is device copyable with non device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<int*, constant_iterator_non_device_copyable>>,
+                  "zip_iterator is device copyable with non device copyable types");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ::std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    test_copyable();
     //TODO: There is the over-testing here - each algorithm is run with sycl::buffer as well.
     //So, in case of a couple of 'test_usm_and_buffer' call we get double-testing case with sycl::buffer.
 

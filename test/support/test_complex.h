@@ -16,11 +16,12 @@
 #ifndef _TEST_COMPLEX_H
 #define _TEST_COMPLEX_H
 
+#include "test_config.h"
+
 #include <oneapi/dpl/complex>
 
 #include "utils.h"
 #include "utils_invoke.h"
-#include "test_config.h"
 
 #include <type_traits>
 #include <cassert>
@@ -31,6 +32,16 @@
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) assert(arg)
 #endif // !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
 
+constexpr bool
+is_fast_math_switched_on()
+{
+#if defined(__FAST_MATH__)
+    return true;
+#else
+    return false;
+#endif
+}
+
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
 int                                                                                                   \
@@ -38,6 +49,9 @@ run_test();                                                                     
                                                                                                       \
 int main(int, char**)                                                                                 \
 {                                                                                                     \
+    static_assert(!is_fast_math_switched_on(),                                                        \
+                  "Tests of std::complex are not compatible with -ffast-math compiler option.");      \
+                                                                                                      \
     run_test<::std::true_type, ::std::true_type>();                                                   \
                                                                                                       \
     /* Sometimes we may start test on device, which don't support type double. */                     \
@@ -51,9 +65,9 @@ int main(int, char**)                                                           
     using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
                                                                                                       \
     TestUtils::run_test_in_kernel(                                                                    \
-        /* labbda for the case when we have support of double type on device */                       \
+        /* lambda for the case when we have support of double type on device */                       \
         [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
-        /* labbda for the case when we haven't support of double type on device */                    \
+        /* lambda for the case when we haven't support of double type on device */                    \
         [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); }); \
                                                                                                       \
     return TestUtils::done();                                                                         \

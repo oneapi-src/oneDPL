@@ -20,6 +20,7 @@
 #include <tuple>
 #include <cassert>
 
+#include "onedpl_config.h"
 #include "utils.h"
 #include "tuple_impl.h"
 
@@ -76,30 +77,39 @@ struct __make_references
 
 //zip_iterator version for forward iterator
 //== and != comparison is performed only on the first element of the tuple
+//
+//zip_forward_iterator is implemented as an internal class and should remain so. Users should never encounter
+//this class or be returned a type of its value_type, reference, etc as the tuple-like type used internally
+//is variable dependent on the C++ standard library version and could cause an inconsistent ABI due to resulting
+//layout changes of this class.
 template <typename... _Types>
 class zip_forward_iterator
 {
+    template <typename... _Ts>
+    using __tuple_t =
+#if _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR
+        ::std::tuple<_Ts...>;
+#else
+        oneapi::dpl::__internal::tuple<_Ts...>;
+#endif
+
     static const ::std::size_t __num_types = sizeof...(_Types);
-    typedef typename ::std::tuple<_Types...> __it_types;
+    typedef __tuple_t<_Types...> __it_types;
 
   public:
     typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef __tuple_t<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    zip_forward_iterator(const zip_forward_iterator& __input) : __my_it_(__input.__my_it_) {}
-    zip_forward_iterator&
-    operator=(const zip_forward_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(__tuple_t<_Types...>{__args...}) {}
 
-    reference operator*() const
+    // On windows, this requires clause is necessary so that concepts in MSVC STL do not detect the iterator as
+    // dereferenceable when a source iterator is a sycl_iterator, which is a supported type.
+    reference
+    operator*() const _ONEDPL_CPP20_REQUIRES(std::indirectly_readable<_Types> &&...)
     {
         return __make_references<reference>()(__my_it_, ::std::make_index_sequence<__num_types>());
     }
@@ -159,7 +169,6 @@ class counting_iterator
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -279,15 +288,11 @@ class zip_iterator
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
-    zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
-    zip_iterator&
-    operator=(const zip_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
 
-    reference operator*() const
+    // On windows, this requires clause is necessary so that concepts in MSVC STL do not detect the iterator as
+    // dereferenceable when a source iterator is a sycl_iterator, which is a supported type.
+    reference
+    operator*() const _ONEDPL_CPP20_REQUIRES(std::indirectly_readable<_Types> &&...)
     {
         return oneapi::dpl::__internal::__make_references<reference>()(__my_it_,
                                                                        ::std::make_index_sequence<__num_types>());
@@ -416,7 +421,11 @@ class transform_iterator
 {
   private:
     _Iter __my_it_;
-    const _UnaryFunc __my_unary_func_;
+    _UnaryFunc __my_unary_func_;
+
+    static_assert(std::is_invocable_v<const std::decay_t<_UnaryFunc>, typename std::iterator_traits<_Iter>::reference>,
+                  "_UnaryFunc does not have a const-qualified call operator which accepts the reference type of the "
+                  "base iterator as argument.");
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
@@ -425,18 +434,46 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
-        : __my_it_(__it), __my_unary_func_(__unary_func)
+    //default constructor will only be present if both the unary functor and iterator are default constructible
+    transform_iterator() = default;
+
+    //only enable this constructor if the unary functor is default constructible
+    template <typename _UnaryFuncLocal = _UnaryFunc,
+              std::enable_if_t<std::is_default_constructible_v<_UnaryFuncLocal>, int> = 0>
+    transform_iterator(_Iter __it) : __my_it_(std::move(__it))
     {
     }
-    transform_iterator(const transform_iterator& __input) = default;
+
+    transform_iterator(_Iter __it, _UnaryFunc __unary_func)
+        : __my_it_(std::move(__it)), __my_unary_func_(std::move(__unary_func))
+    {
+    }
+
+    transform_iterator(const transform_iterator&) = default;
     transform_iterator&
     operator=(const transform_iterator& __input)
     {
         __my_it_ = __input.__my_it_;
+
+        // If copy assignment is available, copy the functor, otherwise skip it.
+        // For non-copy assignable functors, this copy assignment operator departs from the sycl 2020 specification
+        // requirement of device copyable types for copy assignment to be the same as a bitwise copy of the object.
+        // TODO: Explore (ABI breaking) change to use std::optional or similar and using copy constructor to implement
+        //       copy assignment to better comply with SYCL 2020 specification.
+        if constexpr (std::is_copy_assignable_v<_UnaryFunc>)
+        {
+            __my_unary_func_ = __input.__my_unary_func_;
+        }
         return *this;
     }
-    reference operator*() const { return __my_unary_func_(*__my_it_); }
+
+    // On windows, this requires clause is necessary so that concepts in MSVC STL do not detect the iterator as
+    // dereferenceable when the source iterator is a sycl_iterator, which is a supported type.
+    reference
+    operator*() const _ONEDPL_CPP20_REQUIRES(std::indirectly_readable<_Iter>)
+    {
+        return __my_unary_func_(*__my_it_);
+    }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
     operator++()
@@ -618,7 +655,14 @@ class permutation_iterator
             return my_index;
     }
 
-    reference operator*() const { return my_source_it[*my_index]; }
+    // On windows, this requires clause is necessary so that concepts in MSVC STL do not detect the iterator as
+    // dereferenceable when the source or map iterator is a sycl_iterator, which is a supported type for both.
+    reference
+    operator*() const
+        _ONEDPL_CPP20_REQUIRES(std::indirectly_readable<SourceIterator> && std::indirectly_readable<IndexMap>)
+    {
+        return my_source_it[*my_index];
+    }
 
     reference operator[](difference_type __i) const { return *(*this + __i); }
 
@@ -776,7 +820,6 @@ class discard_iterator
     typedef void* pointer;
     typedef value_type reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
     using is_discard = ::std::true_type;
 
     discard_iterator() : __my_position_() {}

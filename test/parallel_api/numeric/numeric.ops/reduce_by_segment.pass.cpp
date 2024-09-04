@@ -13,14 +13,23 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+#undef ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#endif
+
+#if defined(_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+#    define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION _ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#endif
+
+#include "support/test_config.h"
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
-#include "support/test_config.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 #include "support/reduce_serial_impl.h"
 
 #include <iostream>
@@ -38,7 +47,7 @@ using namespace TestUtils;
 
 DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_reduce_by_segment)
+    DEFINE_TEST_CONSTRUCTOR(test_reduce_by_segment, 1.0f, 1.0f)
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size>
     void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_key_res, Iterator4 host_val_res,
@@ -139,51 +148,34 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         TestDataTransfer<UDTKind::eRes2, Size> host_res(*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
         update_data(host_keys, host_vals, host_res_keys, host_res);
 
-        auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 =
-            oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+        std::pair<Iterator3, Iterator4> res;
+        if constexpr (std::is_same_v<std::equal_to<KeyT>, std::decay_t<BinaryPredicate>> &&
+                      std::is_same_v<std::plus<ValT>, std::decay_t<BinaryOperation>>)
+        {
+            res = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+        }
+        else if constexpr (std::is_same_v<std::plus<ValT>, std::decay_t<BinaryOperation>>)
+        {
+            res = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first,
+                                                 BinaryPredicate());
+        }
+        else
+        {
+            res = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first,
+                                                 BinaryPredicate(), BinaryOperation());
+        }
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
-        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
-        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret1,
-                     segments_val_ret1);
-
-        // call algorithm with predicate
-        initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
-        update_data(host_keys, host_vals, host_res_keys, host_res);
-
-        auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate());
-        exec.queue().wait_and_throw();
-
-        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
-        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
-        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret2,
-                     segments_val_ret2, BinaryPredicate());
-
-        // call algorithm with predicate and operator
-        initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
-        update_data(host_keys, host_vals, host_res_keys, host_res);
-
-        auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate(), BinaryOperation());
-        exec.queue().wait_and_throw();
-
-        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
-        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
-        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret3,
-                     segments_val_ret3, BinaryPredicate(), BinaryOperation());
+        size_t segments_key_ret = ::std::distance(key_res_first, res.first);
+        size_t segments_val_ret = ::std::distance(val_res_first, res.second);
+        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret,
+                     segments_val_ret, BinaryPredicate(), BinaryOperation());
     }
 #endif
 
@@ -199,30 +191,31 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
-        // call algorithm with no optional arguments
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res1 =
-            oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
-        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret1, segments_val_ret1);
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        // call algorithm with predicate
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate());
-        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
-        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret2, segments_val_ret2,
-                     BinaryPredicate());
 
-        // call algorithm with predicate and operator
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate(), BinaryOperation());
-        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
-        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret3, segments_val_ret3,
+        std::pair<Iterator3, Iterator4> res;
+        if constexpr (std::is_same_v<std::equal_to<KeyT>, std::decay_t<BinaryPredicate>> &&
+                      std::is_same_v<std::plus<ValT>, std::decay_t<BinaryOperation>>)
+        {
+            res = oneapi::dpl::reduce_by_segment(std::forward<Policy>(exec), keys_first, keys_last, vals_first,
+                                                 key_res_first, val_res_first);
+        }
+        else if constexpr (std::is_same_v<std::plus<ValT>, std::decay_t<BinaryOperation>>)
+        {
+            res = oneapi::dpl::reduce_by_segment(std::forward<Policy>(exec), keys_first, keys_last, vals_first,
+                                                 key_res_first, val_res_first, BinaryPredicate());
+        }
+        else
+        {
+            res = oneapi::dpl::reduce_by_segment(std::forward<Policy>(exec), keys_first, keys_last, vals_first,
+                                                 key_res_first, val_res_first, BinaryPredicate(), BinaryOperation());
+        }
+        size_t segments_key_ret = ::std::distance(key_res_first, res.first);
+        size_t segments_val_ret = ::std::distance(val_res_first, res.second);
+        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret, segments_val_ret,
                      BinaryPredicate(), BinaryOperation());
     }
 
@@ -242,7 +235,7 @@ template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
 void
 test_flag_pred()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
 
     // Initialize data
     //T keys[n1] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
@@ -308,53 +301,76 @@ test_flag_pred()
 }
 #endif
 
+template <typename ValueType, typename BinaryPredicate, typename BinaryOperation>
+void
+run_test_on_device()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    // Skip 64-byte types testing when the algorithm is broken and there is no the workaround
+#if _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES && !ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    if constexpr (sizeof(ValueType) != 8)
+#endif
+    {
+        if (TestUtils::has_type_support<ValueType>(TestUtils::get_test_queue().get_device()))
+        {
+            // Run tests for USM shared memory
+            test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+            // Run tests for USM device memory
+            test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        }
+    }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+}
+
+template <typename ValueType, typename BinaryPredicate, typename BinaryOperation>
+void
+run_test_on_host()
+{
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+#   else
+    test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
+#   endif
+#endif // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+}
+
+template <typename ValueType, typename BinaryPredicate, typename BinaryOperation>
+void
+run_test()
+{
+    run_test_on_host<ValueType, BinaryPredicate, BinaryOperation>();
+    run_test_on_device<ValueType, BinaryPredicate, BinaryOperation>();
+}
+
 int
 main()
 {
-    {
-        using ValueType = ::std::uint64_t;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = MaxFunctor<ValueType>;
+    // On Windows, we observe incorrect results with this test with a specific compilation order of the
+    // kernels. This is being filed to the compiler team. In the meantime, we can rearrange this test
+    // to resolve the issue on our side.
+#if _PSTL_RED_BY_SEG_WINDOWS_COMPILE_ORDER_BROKEN
+    run_test<MatrixPoint<float>, UserBinaryPredicate<MatrixPoint<float>>, MaxFunctor<MatrixPoint<float>>>();
+#endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+    // test with flag pred
+    test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();
+    test_flag_pred<sycl::usm::alloc::device, class KernelName2, MatrixPoint<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-    }
+#if !_PSTL_RED_BY_SEG_WINDOWS_COMPILE_ORDER_BROKEN
+    run_test<MatrixPoint<float>, UserBinaryPredicate<MatrixPoint<float>>, MaxFunctor<MatrixPoint<float>>>();
+#endif
 
-    {
-        using ValueType = ::std::complex<float>;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = MaxAbsFunctor<ValueType>;
+    run_test<int, ::std::equal_to<int>, ::std::plus<int>>();
+    run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
+    run_test<double, ::std::equal_to<double>, ::std::plus<double>>();
 
-#if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // test with flag pred
-        test_flag_pred<sycl::usm::alloc::device, class KernelName7, std::uint64_t>();
-        test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-    }
+    // TODO investigate possible overflow: see issue #1416
+    run_test_on_device<int, ::std::equal_to<int>, ::std::multiplies<int>>();
+    run_test_on_device<float, ::std::equal_to<float>, ::std::multiplies<float>>();
+    run_test_on_device<double, ::std::equal_to<double>, ::std::multiplies<double>>();
 
     return TestUtils::done();
 }
