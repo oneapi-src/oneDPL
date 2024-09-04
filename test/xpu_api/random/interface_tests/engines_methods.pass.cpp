@@ -99,6 +99,8 @@ test_vec
 public:
     bool run(sycl::queue& queue)
     {
+        using result_type = typename Engine::scalar_type;
+
         int sum = 0;
 
         // Memory allocation
@@ -106,7 +108,7 @@ public:
         constexpr std::int32_t num_elems =
             oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems == 0
                 ? 1
-                : oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems;
+                : oneapi::dpl::internal::type_traits_t<result_type>::num_elems;
 
         // Random number generation
         {
@@ -171,6 +173,8 @@ test_vec<oneapi::dpl::ranlux24_vec<N>>
 public:
     bool run(sycl::queue& queue)
     {
+        using result_type = typename oneapi::dpl::ranlux24_vec<N>::scalar_type;
+
         int sum = 0;
 
         // Memory allocation
@@ -178,7 +182,7 @@ public:
         constexpr std::int32_t num_elems =
             oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24_vec<N>::result_type>::num_elems == 0
                 ? 1
-                : oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24_vec<N>::result_type>::num_elems;
+                : oneapi::dpl::internal::type_traits_t<result_type>::num_elems;
 
         // Random number generation
         {
@@ -198,12 +202,13 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
                         oneapi::dpl::ranlux24_vec<N> engine(engine1);
-                        res0 = engine();
+                        auto eng = engine.base().min();
+                        res0 = engine() + eng;
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
                         std::int32_t is_inequal = 0;
                         for (std::int32_t i = 0; i < num_elems; ++i)
                         {
-                            if (res0[i] != res1[i])
+                            if (res0[i] != res1[i] + eng)
                             {
                                 is_inequal = 1;
                             }
@@ -243,6 +248,8 @@ test
 public:
     bool run(sycl::queue& queue)
     {
+        using result_type = typename Engine::scalar_type;
+
         int sum = 0;
 
         // Memory allocation
@@ -301,9 +308,9 @@ public:
                         {
                             dpstd_acc[offset] += 1;
                         }
-                        typename Engine::result_type res0;
+                        result_type res0;
                         res0 = engine0();
-                        typename Engine::result_type res1 = engine1();
+                        result_type res1 = engine1();
                         if (res0 != res1)
                         {
                             dpstd_acc[offset] += 1;
@@ -343,6 +350,8 @@ test<oneapi::dpl::ranlux24>
 public:
     bool run(sycl::queue& queue)
     {
+        using result_type = typename oneapi::dpl::ranlux24::scalar_type;
+
         int sum = 0;
 
         // Memory allocation
@@ -401,11 +410,12 @@ public:
                         {
                             dpstd_acc[offset] += 1;
                         }
-                        typename oneapi::dpl::ranlux24::result_type res0;
+                        result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
-                        res0 = engine();
-                        typename oneapi::dpl::ranlux24::result_type res1 = engine1();
-                        if (res0 != res1)
+                        auto eng = engine.base().min();
+                        res0 = engine() + eng;
+                        result_type res1 = engine1();
+                        if (res0 != res1 + eng)
                         {
                             dpstd_acc[offset] += 1;
                         }
@@ -446,7 +456,7 @@ main()
 #if TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue = TestUtils::get_test_queue();
-    
+
     std::int32_t err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
