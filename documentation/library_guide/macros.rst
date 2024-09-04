@@ -34,8 +34,14 @@ Use these macros to test presence of specific |onedpl_short| functionality.
 ================================== ===============================================
 Macro                              Macro values and the functionality
 ================================== ===============================================
-``ONEDPL_HAS_RANDOM_NUMBERS``      ``202210L`` for pseudo-random number generators and distributions,
-                                   as defined in |onedpl_short| version 2022.2 or later
+``ONEDPL_HAS_RANDOM_NUMBERS``      Pseudo-random number generators and distributions.
+
+                                   * ``202409L`` - added support of comparison and I/O stream operators and an experimental Philox engine
+---------------------------------- -----------------------------------------------
+``ONEDPL_HAS_RANGE_ALGORITHMS``    Parallel range algorithms.
+
+                                   * ``202409L`` - for_each, transform, find, find_if, find_if_not, any_of, all_of, none_of, adjacent_find, search, search_n,
+                                     count, count_if, equal, is_sorted, sort, stable_sort, min_element, max_element, copy, copy_if, merge
 ================================== ===============================================
 
 Additional Macros

@@ -15,6 +15,10 @@
 #if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
 #    include <version> // The standard C++20 header
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
+#    define _ONEDPL_CPP20_RANGES_PRESENT ((__cpp_lib_ranges >= 201911L) && !(__clang__ && __clang_major__ < 16))
+#else
+#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 0
+#    define _ONEDPL_CPP20_RANGES_PRESENT 0
 #endif
 
 // The library version
@@ -30,6 +34,9 @@
 #endif
 
 // Feature macros
-#define ONEDPL_HAS_RANDOM_NUMBERS 202210L
+#define ONEDPL_HAS_RANDOM_NUMBERS         202409L
+#if _ONEDPL_CPP20_RANGES_PRESENT
+#    define ONEDPL_HAS_RANGE_ALGORITHMS   202409L
+#endif
 
 #endif // _ONEDPL_VERSION
