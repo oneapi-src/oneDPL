@@ -34,8 +34,8 @@ struct __is_iterator_of_category_dispatch : std::false_type
 };
 
 template <typename _IteratorTag, typename _IteratorType>
-struct __is_iterator_of_category_dispatch<
-    _IteratorTag, _IteratorType, std::void_t<typename std::iterator_traits<_IteratorType>::iterator_category>>
+struct __is_iterator_of_category_dispatch<_IteratorTag, _IteratorType,
+                                          std::void_t<typename std::iterator_traits<_IteratorType>::iterator_category>>
     : std::is_base_of<_IteratorTag, typename std::iterator_traits<_IteratorType>::iterator_category>
 {
 };
