@@ -16,8 +16,8 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#include "../version"
-// The <version> header also defines a few configuration macros used in this file
+#include "version_impl.h"
+// The version header also defines a few configuration macros used in this file
 
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
