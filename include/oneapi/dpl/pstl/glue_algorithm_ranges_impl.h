@@ -22,14 +22,14 @@
 #    include <functional>
 #    include <type_traits>
 #    include <iterator>
-#endif
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
 
 #include "execution_defs.h"
 #include "oneapi/dpl/pstl/ranges_defs.h"
 
 #if _ONEDPL_CPP20_RANGES_PRESENT
 #    include "algorithm_ranges_impl.h"
-#endif
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
 
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_ranges_impl_hetero.h"
