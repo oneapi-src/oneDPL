@@ -237,13 +237,57 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+        auto __event = __exec.queue().submit([&__rngs..., &__brick, &__exec, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-            __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
-                auto __idx = __item_id.get_linear_id();
-                __brick(__idx, __rngs...);
+            // For target architectures, 512 bytes is the maximum amount of data that can be performed in a single load / store
+            // transaction. Assuming a sub-group size of 32, 512 / 32 = 16 which is the number of bytes we wish to load / store
+            // per work-item. For architectures that do not support load / stores of 512 bytes (e.g. 128 bytes), several smaller
+            // but coalesced transactions will be made and performance should still be maximized.
+            // Grab the value type of the first range to estimate the optimal iters per work item.
+            using _ValueType = oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
+            constexpr std::uint16_t __max_bytes_per_transaction = 512;
+            constexpr std::uint16_t __predicted_sub_group_size = 32;
+            constexpr std::uint16_t __bytes_per_work_item = __max_bytes_per_transaction / __predicted_sub_group_size;
+            // If the _ValueType > 128 bytes (unlikely), then perform a single iteration per work item.
+            constexpr std::uint16_t __iters_per_work_item = std::max(std::size_t{1}, __bytes_per_work_item / sizeof(_ValueType));
+            std::size_t __num_items = std::max(static_cast<_Index>(__work_group_size), oneapi::dpl::__internal::__dpl_ceiling_div(__count, __iters_per_work_item));
+            // TODO: optimize for small data sizes that do not saturate the device with this scheme
+            __cgh.parallel_for<_Name...>(sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)), [=](sycl::nd_item</*dim=*/1> __ndi) {
+                __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group(); 
+                std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
+                std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
+                std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
+                std::size_t  __work_group_id = __ndi.get_group().get_group_linear_id();
+                
+                std::size_t __sub_group_start_idx =
+                    __iters_per_work_item * (__work_group_id * __work_group_size +
+                                             __sub_group_size * __sub_group_id);
+                bool __is_full_sub_group = __sub_group_start_idx + __iters_per_work_item * __sub_group_size <= __count;
+                std::size_t __idx = __sub_group_start_idx + __sub_group_local_id;
+                if (__is_full_sub_group)
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (std::uint32_t i = 0; i < __iters_per_work_item; ++i)
+                    {
+                        __brick(__idx, __rngs...);
+                        __idx += __sub_group_size;
+                    }
+                }
+                else
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (std::uint32_t i = 0; i < __iters_per_work_item; ++i)
+                    {
+                        if (__idx < __count)
+                        {
+                            __brick(__idx, __rngs...);
+                            __idx += __sub_group_size;
+                        }
+                    }
+                }
             });
         });
         return __future(__event);
