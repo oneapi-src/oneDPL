@@ -79,6 +79,14 @@ Example:
       return 0;
   }
 
+.. Note::
+
+   When compiled with the ``-fsycl-pstl-offload`` option of the |dpcpp_cpp|
+   and with ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq``
+   offloads standard parallel algorithms to the SYCL device similarly to
+   ``std::execution::par_unseq`` in accordance with the ``-fsycl-pstl-offload`` option
+   value. This offload is performed by redirecting to oneDPL algorithms.
+
 Use the Device Execution Policies
 ========================================
 
