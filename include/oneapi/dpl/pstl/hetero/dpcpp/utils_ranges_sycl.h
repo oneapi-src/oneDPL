@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "sycl_iterator.h"
 #include "sycl_defs.h"
 
 namespace oneapi
@@ -206,6 +207,13 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 {
 };
 
+//support std::vector::iterator with usm host / shared allocator as passed directly
+template <typename Iter>
+struct is_passed_directly<Iter, std::enable_if_t<oneapi::dpl::__internal::__is_known_usm_vector_iter_v<Iter>>>
+    : std::true_type
+{
+};
+
 template <typename Ip>
 struct is_passed_directly<oneapi::dpl::counting_iterator<Ip>> : ::std::true_type
 {
@@ -228,7 +236,9 @@ struct is_passed_directly<oneapi::dpl::transform_iterator<Iter, Unary>> : is_pas
 
 template <typename SourceIterator, typename IndexIterator>
 struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>>
-    : ::std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<IndexIterator>>
+    : ::std::conjunction<
+          is_passed_directly<SourceIterator>,
+          is_passed_directly<typename oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>::IndexMap>>
 {
 };
 
@@ -481,7 +491,7 @@ struct __get_sycl_range
     {
         assert(__first < __last);
 
-        auto __res = __process_input_iter<_LocalAccMode>(__first.base(), __last.base());
+        auto __res = __process_input_iter<_LocalAccMode>(__last.base(), __first.base());
         auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__res.all_view())>{__res.all_view()};
 
         return __range_holder<decltype(__rng)>{__rng};
@@ -715,6 +725,32 @@ struct __get_sycl_range
         return __process_input_iter<AccMode>(::std::forward<_ArgTypes>(__args)...);
     }
 };
+
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
+template <typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__device_backend_tag>
+__select_backend(const execution::device_policy<_KernelName>&, _Ranges&&...)
+{
+    return {};
+}
+
+#if _ONEDPL_FPGA_DEVICE
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
+template <unsigned int _Factor, typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__fpga_backend_tag>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _Ranges&&...)
+{
+    return {};
+}
+#endif
 
 } // namespace __ranges
 } // namespace dpl

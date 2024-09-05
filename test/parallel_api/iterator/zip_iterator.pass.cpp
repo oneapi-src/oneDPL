@@ -63,6 +63,7 @@ using namespace TestUtils;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
+#include "support/utils_device_copyable.h"
 
 // just a temporary include and NoOp functor to check
 // algorithms that require init element with zip_iterators
@@ -104,7 +105,7 @@ using namespace oneapi::dpl::execution;
 
 DEFINE_TEST(test_for_each)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -142,7 +143,7 @@ DEFINE_TEST(test_for_each)
 
 DEFINE_TEST(test_for_each_structured_binding)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_for_each_structured_binding)
+    DEFINE_TEST_CONSTRUCTOR(test_for_each_structured_binding, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -185,7 +186,7 @@ DEFINE_TEST(test_for_each_structured_binding)
 
 DEFINE_TEST(test_transform_reduce_unary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -218,7 +219,7 @@ DEFINE_TEST(test_transform_reduce_unary)
 
 DEFINE_TEST(test_transform_reduce_binary)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -251,7 +252,7 @@ DEFINE_TEST(test_transform_reduce_binary)
 
 DEFINE_TEST(test_min_element)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_min_element)
+    DEFINE_TEST_CONSTRUCTOR(test_min_element, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -298,7 +299,7 @@ DEFINE_TEST(test_min_element)
 
 DEFINE_TEST(test_count_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_count_if)
+    DEFINE_TEST_CONSTRUCTOR(test_count_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator, typename Size>
     void
@@ -338,7 +339,7 @@ DEFINE_TEST(test_count_if)
 
 DEFINE_TEST(test_equal)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_equal)
+    DEFINE_TEST_CONSTRUCTOR(test_equal, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -388,7 +389,7 @@ DEFINE_TEST(test_equal)
 #if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
 DEFINE_TEST(test_equal_structured_binding)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding)
+    DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -450,7 +451,7 @@ DEFINE_TEST(test_equal_structured_binding)
 
 DEFINE_TEST(test_find_if)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_find_if)
+    DEFINE_TEST_CONSTRUCTOR(test_find_if, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -507,7 +508,7 @@ DEFINE_TEST(test_find_if)
 
 DEFINE_TEST(test_transform_inclusive_scan)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan)
+    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -546,7 +547,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
 
 DEFINE_TEST(test_unique)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique)
+    DEFINE_TEST_CONSTRUCTOR(test_unique, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -591,7 +592,7 @@ DEFINE_TEST(test_unique)
 
 DEFINE_TEST(test_unique_copy)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_unique_copy)
+    DEFINE_TEST_CONSTRUCTOR(test_unique_copy, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -640,7 +641,7 @@ DEFINE_TEST(test_unique_copy)
 
 DEFINE_TEST(test_merge)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_merge)
+    DEFINE_TEST_CONSTRUCTOR(test_merge, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -716,7 +717,7 @@ DEFINE_TEST(test_merge)
 
 DEFINE_TEST(test_stable_sort)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_stable_sort)
+    DEFINE_TEST_CONSTRUCTOR(test_stable_sort, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -757,7 +758,7 @@ DEFINE_TEST(test_stable_sort)
 
 DEFINE_TEST(test_lexicographical_compare)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare)
+    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -820,7 +821,7 @@ struct Assigner{
 // Make sure that it's possible to use counting iterator inside zip iterator
 DEFINE_TEST(test_counting_zip_transform)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform)
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -874,7 +875,7 @@ DEFINE_TEST(test_counting_zip_transform)
 //make sure its possible to use a discard iterator in a zip iterator
 DEFINE_TEST(test_counting_zip_discard)
 {
-    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_discard)
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_discard, 1.0f, 1.0f)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
@@ -989,12 +990,32 @@ test_usm_and_buffer()
     test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
 #endif
 }
+
+void
+test_copyable()
+{
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_device_copyable, int*>>,
+                  "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(
+        sycl::is_device_copyable_v<
+            oneapi::dpl::zip_iterator<oneapi::dpl::counting_iterator<int>, constant_iterator_device_copyable, int*>>,
+        "zip_iterator is not device copyable with device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<constant_iterator_non_device_copyable, int*>>,
+                  "zip_iterator is device copyable with non device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::zip_iterator<int*, constant_iterator_non_device_copyable>>,
+                  "zip_iterator is device copyable with non device copyable types");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ::std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    test_copyable();
     //TODO: There is the over-testing here - each algorithm is run with sycl::buffer as well.
     //So, in case of a couple of 'test_usm_and_buffer' call we get double-testing case with sycl::buffer.
 

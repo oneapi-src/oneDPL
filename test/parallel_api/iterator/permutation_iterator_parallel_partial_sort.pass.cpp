@@ -21,7 +21,7 @@
 // Requirements: only for random_access_iterator
 DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_partial_sort)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_partial_sort, 1.0f, 1.0f)
 
     template <typename TIterator, typename Size>
     void generate_data(TIterator itBegin, TIterator itEnd, Size n)
@@ -34,7 +34,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
     template <typename TIterator>
     void check_results(TIterator itBegin, TIterator itEnd)
     {
-        const auto result = std::is_sorted(itBegin, itEnd);
+        const auto result = std::is_sorted(oneapi::dpl::execution::par_unseq, itBegin, itEnd);
         EXPECT_TRUE(result, "Wrong partial_sort data results");
     }
 
@@ -54,9 +54,10 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
-
-                    for (::std::size_t p = 0; p < testing_n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
+                    const auto testing_n = permItEnd - permItBegin;
+                    // run at most 3 iters per n, 0 elements should be noop / cheap
+                    const auto partial_sorting_step = std::max(testing_n / 2, decltype(testing_n){1});
+                    for (::std::size_t p = 0; p <= testing_n; p += partial_sorting_step)
                     {
                         dpl::partial_sort(exec, permItBegin, permItBegin + p, permItEnd);
                         wait_and_throw(exec);

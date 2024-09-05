@@ -13,10 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
-
-#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>

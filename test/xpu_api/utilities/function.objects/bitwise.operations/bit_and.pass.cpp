@@ -19,6 +19,7 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
+#include "support/test_macros.h"
 
 class KernelBitAndTest;
 
@@ -34,9 +35,11 @@ kernel_test()
         cgh.single_task<class KernelBitAndTest>([=]() {
             typedef dpl::bit_and<int> F;
             const F f = F();
+#if TEST_STD_VER < 20
             static_assert(dpl::is_same<int, F::first_argument_type>::value);
             static_assert(dpl::is_same<int, F::second_argument_type>::value);
             static_assert(dpl::is_same<int, F::result_type>::value);
+#endif // TEST_STD_VER < 20
             ret_access[0] = (f(0xEA95, 0xEA95) == 0xEA95);
             ret_access[0] &= (f(0xEA95, 0x58D3) == 0x4891);
             ret_access[0] &= (f(0x58D3, 0xEA95) == 0x4891);

@@ -20,7 +20,7 @@
 // dpl::is_heap, dpl::includes -> __parallel_or -> _parallel_find_or
 DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_is_heap)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_is_heap, 1.0f, 1.0f)
 
     template <typename TIterator>
     void generate_data(TIterator itBegin, TIterator itEnd, TestValueType initVal)
@@ -48,7 +48,7 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
                 test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                     [&](auto permItBegin, auto permItEnd)
                     {
-                        const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                        const auto testing_n = permItEnd - permItBegin;
 
                         const auto resultIsHeap = dpl::is_heap(exec, permItBegin, permItEnd);
                         wait_and_throw(exec);

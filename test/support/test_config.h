@@ -16,6 +16,13 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
+// Any include from standard library required to have correct state of _GLIBCXX_RELEASE
+#if __has_include(<version>)
+#   include <version>
+#else
+#   include <ciso646>
+#endif
+
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
@@ -30,9 +37,6 @@
     (!_DEBUG && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900 && _MSC_VER == 1910)
 // ICC 18 doesn't vectorize the loop
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN (!_DEBUG && __INTEL_COMPILER && __INTEL_COMPILER == 1800)
-// clang 900.0.38 produces fatal error: error in backend: Section too large
-#define _PSTL_CLANG_TEST_BIG_OBJ_DEBUG_32_BROKEN                                                                      \
-    (__i386__ && PSTL_USE_DEBUG && __clang__ && _PSTL_CLANG_VERSION <= 90000)
 // ICC 18 generates wrong result with omp simd early_exit
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN                                                               \
     (!_DEBUG && __INTEL_COMPILER == 1800 && __AVX__ && !__AVX2__ && !__AVX512__)
@@ -55,7 +59,7 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
-#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE > 0 && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
@@ -126,16 +130,52 @@
 
 #define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN (_MSC_VER && __cplusplus < 202002L && _MSVC_LANG < 202002L)
 
-#define _PSTL_ICC_TEST_COMPLEX_ASIN_MINUS_INF_NAN_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_SCALAR_PASS_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
-#define _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES __INTEL_LLVM_COMPILER
+// According to https://gcc.gnu.org/develop.html#timeline use last known _GLIBCXX_ to check the version of libstdc++ : 20240426
+#define _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX (__GLIBCXX__ > 0 && __GLIBCXX__ <= 20240426)
+
+#define _PSTL_ICC_TEST_COMPLEX_ASIN_MINUS_INF_NAN_BROKEN_SIGNBIT          _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT   _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT  _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_COMPLEX_PASS_BROKEN_TEST_EDGES _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_POW_COMPLEX_SCALAR_PASS_BROKEN_TEST_EDGES  _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_POW_SCALAR_COMPLEX_PASS_BROKEN_TEST_EDGES  _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES       _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_ICC_TEST_COMPLEX_POLAR_BROKEN_TEST_EDGES                    _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+#define _PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL_GLIB_CXX                (_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX && __SYCL_DEVICE_ONLY__)
+#define _PSTL_TEST_COMPLEX_EXP_BROKEN_IN_KERNEL_GLIB_CXX                 (_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX && __SYCL_DEVICE_ONLY__)
+#define _PSTL_TEST_COMPLEX_TANH_BROKEN_IN_KERNEL_GLIB_CXX                (_PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX && __SYCL_DEVICE_ONLY__)
+
 #define _PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
 #define _PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN (_MSVC_STL_VERSION && __INTEL_LLVM_COMPILER)
+
+#define _PSTL_TEST_COMPLEX_OP_BROKEN (_MSVC_STL_VERSION && _MSVC_STL_VERSION <= 143)
+
+#define _PSTL_TEST_COMPLEX_ACOS_BROKEN  _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_ACOSH_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_ASINH_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_ATANH_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_COS_BROKEN   _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_COSH_BROKEN  _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_LOG10_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_SIN_BROKEN   _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_SINH_BROKEN  _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_TANH_BROKEN  _PSTL_TEST_COMPLEX_OP_BROKEN
+
+// oneAPI DPC++ compiler 2025.0.0 and earlier is unable to eliminate a "dead" function call to an undefined function
+// within a sycl kernel which MSVC uses to allow comparisons with literal zero without warning
+#define _PSTL_TEST_COMPARISON_BROKEN                                                                                   \
+    ((__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && _MSVC_STL_VERSION >= 143 && _MSVC_STL_UPDATE >= 202303L &&   \
+    __INTEL_LLVM_COMPILER > 0 && __INTEL_LLVM_COMPILER <= 20250000)
+
+#define _PSTL_TEST_COMPLEX_TIMES_COMPLEX_BROKEN (_PSTL_TEST_COMPLEX_OP_BROKEN || _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX)
+#define _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN _PSTL_TEST_COMPLEX_OP_BROKEN
+#define _PSTL_TEST_COMPLEX_DIV_COMPLEX_BROKEN_GLIB_CXX _PSTL_TEST_COMPLEX_OP_BROKEN_GLIBCXX
+
+#define _PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 9)
+
+// Known limitation:
+// Due to specifics of Microsoft* Visual C++, some standard floating-point math functions require device support for double precision.
+#define _PSTL_ICC_TEST_COMPLEX_MSVC_MATH_DOUBLE_REQ _MSC_VER
 
 #define _PSTL_CLANG_TEST_COMPLEX_ACOS_IS_NAN_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
@@ -150,5 +190,41 @@
 #else
 #   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH 0
 #endif
+
+// If the workaround macro for the 64-bit type bug is not defined by the user, then exclude 64-bit type testing
+// in reduce_by_segment.pass.cpp.
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#if !PSTL_USE_DEBUG && defined(__INTEL_LLVM_COMPILER)
+#    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES 1
+#endif
+
+// Group reduction produces wrong results with multiplication of 64-bit for certain driver versions
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#define _PSTL_GROUP_REDUCTION_MULT_INT64_BROKEN 1
+
+// oneAPI DPC++ compiler 2022.2 an below show an internal compiler error during the backend code generation of
+// minmax_element.pass.cpp affecting min_element, max_element, and minmax_element calls.
+
+#define _PSTL_ICPX_TEST_MINMAX_ELEMENT_PASS_BROKEN                                                                     \
+    (TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER > 0 && __INTEL_LLVM_COMPILER < 20220300)
+
+// oneAPI DPC++ compiler fails to compile the sum of an integer and an iterator to a usm-allocated std vector when
+// building for an FPGA device.  This prevents fpga compilation of usm-allocated std vector wrapped in zip, transform,
+// and permutation iterators (as a map).
+// TODO: Update intel llvm version number as releases are made until a fix is in place.
+#if (TEST_DPCPP_BACKEND_PRESENT && defined(ONEDPL_FPGA_DEVICE) && defined(__INTEL_LLVM_COMPILER) &&                   \
+        __INTEL_LLVM_COMPILER <= 20240200)
+#    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 1
+#else
+#    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 0
+#endif
+
+// A specific kernel compilation order causes incorrect results on Windows with the DPCPP backend. For now, we reorder
+// the test while the issue is being reported to the compiler team. Once it is resolved, this macro can be removed
+// or limited to older compiler versions.
+#define _PSTL_RED_BY_SEG_WINDOWS_COMPILE_ORDER_BROKEN                                                                  \
+    (_MSC_VER && TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER <= 20250000)
 
 #endif // _TEST_CONFIG_H

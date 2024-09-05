@@ -118,9 +118,9 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     void
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::forward<_SourceT>(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
     }
 };
 

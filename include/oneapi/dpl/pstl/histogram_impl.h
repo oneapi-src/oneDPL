@@ -32,12 +32,14 @@ namespace dpl
 namespace __internal
 {
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
+template <class _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator2>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
-__pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
+void
+__pattern_histogram(_Tag, _ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
+    static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
+
     static_assert(sizeof(_Size) == 0 /*false*/,
                   "Histogram API is currently unsupported for policies other than device execution policies");
 }
@@ -50,8 +52,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
           _ValueType first_bin_min_val, _ValueType last_bin_max_val, _RandomAccessIterator2 histogram_first)
 {
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(exec, first, histogram_first);
+
     oneapi::dpl::__internal::__pattern_histogram(
-        ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__evenly_divided_binhash<_ValueType>(first_bin_min_val, last_bin_max_val, num_bins),
         histogram_first);
     return histogram_first + num_bins;
@@ -64,9 +68,11 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
           _RandomAccessIterator2 boundary_first, _RandomAccessIterator2 boundary_last,
           _RandomAccessIterator3 histogram_first)
 {
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(exec, first, boundary_first, histogram_first);
+
     ::std::ptrdiff_t num_bins = boundary_last - boundary_first - 1;
     oneapi::dpl::__internal::__pattern_histogram(
-        ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__custom_boundary_binhash{boundary_first, boundary_last}, histogram_first);
     return histogram_first + num_bins;
 }

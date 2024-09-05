@@ -450,6 +450,24 @@ main()
             std::greater<std::int16_t>(),
             [](size_t k, size_t val) {
             return std::int16_t(val) * (k % 2 ? 1 : -1); });
+
+#if TEST_DPCPP_BACKEND_PRESENT
+        auto convert = [](size_t k, size_t val) {
+            constexpr std::uint16_t mask = 0xFFFFu;
+            std::uint16_t raw = std::uint16_t(val & mask);
+            // Avoid NaN values, because they need a custom comparator due to: (x < NaN = false) and (NaN < x = false).
+            constexpr std::uint16_t exp_mask = 0x7C00u;
+            constexpr std::uint16_t frac_mask = 0x03FFu;
+            bool is_nan = ((raw & exp_mask) == exp_mask) && ((raw & frac_mask) > 0);
+            if (is_nan)
+            {
+                constexpr std::uint16_t smallest_exp_bit = 0x0400u;
+                raw = raw & (~smallest_exp_bit); // flip the smallest exponent bit
+            }
+            return sycl::bit_cast<sycl::half>(raw);
+        };
+        test_sort<60, sycl::half>(std::greater<sycl::half>(), convert);
+#endif
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT

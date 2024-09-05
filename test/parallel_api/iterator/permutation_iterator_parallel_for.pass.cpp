@@ -21,7 +21,7 @@
 // Requirements: only for random_access_iterator
 DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform, 1.0f, 1.0f)
 
     struct TransformOp
     {
@@ -51,8 +51,8 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
-            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
-            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
+            auto exec1 = TestUtils::create_new_policy_idx<0>(exec);
+            auto exec2 = TestUtils::create_new_policy_idx<1>(exec);
 
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
@@ -67,7 +67,7 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     clear_output_data(host_vals_ptr, host_vals_ptr + n);
                     host_vals.update_data();
@@ -75,7 +75,7 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
                     auto itResultEnd = dpl::transform(exec, permItBegin, permItEnd, first2, TransformOp{});
                     wait_and_throw(exec);
 
-                    const auto resultSize = ::std::distance(first2, itResultEnd);
+                    const auto resultSize = itResultEnd - first2;
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
@@ -88,7 +88,7 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
                     // Check results
                     std::vector<TestValueType> transformedDataExpected(testing_n);
                     const auto itExpectedEnd = ::std::transform(sourceData.begin(), sourceData.end(), transformedDataExpected.begin(), TransformOp{});
-                    const auto expectedSize = ::std::distance(transformedDataExpected.begin(), itExpectedEnd);
+                    const auto expectedSize = itExpectedEnd - transformedDataExpected.begin();
                     EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::transform");
                     EXPECT_EQ_N(transformedDataExpected.begin(), transformedDataResult.begin(), expectedSize, "Wrong result of dpl::transform");
                 });

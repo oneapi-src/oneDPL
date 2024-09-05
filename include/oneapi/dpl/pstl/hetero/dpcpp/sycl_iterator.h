@@ -17,6 +17,7 @@
 #define _ONEDPL_SYCL_ITERATOR_H
 
 #include <iterator>
+#include <type_traits>
 #include "../../onedpl_config.h"
 #include "sycl_defs.h"
 
@@ -148,6 +149,33 @@ struct _ModeConverter<access_mode::write>
 {
     static constexpr access_mode __value = access_mode::discard_write;
 };
+
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
+using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
+
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
+using __usm_shared_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::shared>>::iterator;
+
+template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
+using __usm_host_alloc_vec_iter =
+    typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
+
+// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
+// std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
+// default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
+// could be confused with a usm allocator.
+template <typename Iter>
+constexpr bool __vector_iter_distinguishes_by_allocator_v =
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__default_alloc_vec_iter<Iter>, __usm_host_alloc_vec_iter<Iter>> &&
+    !std::is_same_v<__usm_host_alloc_vec_iter<Iter>, __usm_shared_alloc_vec_iter<Iter>>;
+
+template <typename Iter>
+constexpr bool __is_known_usm_vector_iter_v =
+    oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator_v<Iter> &&
+    (std::is_same_v<Iter, oneapi::dpl::__internal::__usm_shared_alloc_vec_iter<Iter>> ||
+     std::is_same_v<Iter, oneapi::dpl::__internal::__usm_host_alloc_vec_iter<Iter>>);
 
 } // namespace __internal
 

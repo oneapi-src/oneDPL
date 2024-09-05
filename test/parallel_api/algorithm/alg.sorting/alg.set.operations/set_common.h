@@ -25,14 +25,6 @@
 #include <cmath>
 #include <chrono>
 
-#if  !defined(_PSTL_TEST_SET_UNION) && !defined(_PSTL_TEST_SET_DIFFERENCE) && !defined(_PSTL_TEST_SET_INTERSECTION) &&\
-     !defined(_PSTL_TEST_SET_SYMMETRIC_DIFFERENCE)
-#define _PSTL_TEST_SET_UNION
-#define _PSTL_TEST_SET_DIFFERENCE
-#define _PSTL_TEST_SET_INTERSECTION
-#define _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-#endif
-
 using namespace TestUtils;
 
 template <typename T>
@@ -127,6 +119,20 @@ struct test_set_union
     }
 };
 
+// Compare the first of a tuple using the supplied comparator
+template <typename _Comp>
+struct comp_select_first
+{
+    _Comp comp;
+    comp_select_first(_Comp __comp) : comp(__comp) {}
+    template <typename _T1, typename _T2>
+    bool
+    operator()(_T1&& t1, _T2&& t2) const
+    {
+        return comp(std::get<0>(std::forward<_T1>(t1)), std::get<0>(std::forward<_T2>(t2)));
+    }
+};
+
 template <typename Type>
 struct test_set_intersection
 {
@@ -139,10 +145,41 @@ struct test_set_intersection
         auto expect = sequences.first;
         auto out = sequences.second;
         auto expect_res = ::std::set_intersection(first1, last1, first2, last2, expect.begin(), comp);
-        auto res = ::std::set_intersection(exec, first1, last1, first2, last2, out.begin(), comp);
+        auto res = ::std::set_intersection(create_new_policy_idx<0>(std::forward<Policy>(exec)), first1, last1, first2,
+                                           last2, out.begin(), comp);
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_intersection");
         EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_intersection effect");
+
+        if constexpr (TestUtils::is_base_of_iterator_category<std::random_access_iterator_tag,
+                                                              InputIterator1>::value &&
+                      TestUtils::is_base_of_iterator_category<std::random_access_iterator_tag, InputIterator2>::value)
+        {
+            // Check that set_intersection always copies from the first list to result.
+            // Will fail to compile if the second range is used to copy to the output.
+            // Comparator is designed to only compare the first element of a zip iterator.
+
+            auto zip_first1 = oneapi::dpl::make_zip_iterator(first1, oneapi::dpl::counting_iterator<int>(0));
+            auto zip_last1 = oneapi::dpl::make_zip_iterator(
+                last1, oneapi::dpl::counting_iterator<int>(std::distance(first1, last1)));
+
+            // Second value should be ignored and discarded in range 2 because the result should be copied from range 1
+            auto zip_first2 = oneapi::dpl::make_zip_iterator(first2, oneapi::dpl::discard_iterator());
+            auto zip_last2 = oneapi::dpl::make_zip_iterator(last2, oneapi::dpl::discard_iterator());
+
+            Sequence<int> expect_ints(std::distance(first1, last1) + std::distance(first2, last2));
+            Sequence<int> out_ints(std::distance(first1, last1) + std::distance(first2, last2));
+
+            auto zip_expect = oneapi::dpl::make_zip_iterator(sequences.first.begin(), expect_ints.begin());
+            auto zip_out = oneapi::dpl::make_zip_iterator(sequences.second.begin(), out_ints.begin());
+
+            auto zip_expect_res = std::set_intersection(zip_first1, zip_last1, zip_first2, zip_last2, zip_expect,
+                                                        comp_select_first(comp));
+            auto zip_res = std::set_intersection(create_new_policy_idx<1>(std::forward<Policy>(exec)), zip_first1,
+                                                 zip_last1, zip_first2, zip_last2, zip_out, comp_select_first(comp));
+            EXPECT_TRUE(zip_expect_res - zip_expect == zip_res - zip_out, "wrong result for zipped set_intersection");
+            EXPECT_EQ_N(zip_expect, zip_out, std::distance(zip_out, zip_res), "wrong zipped set_intersection effect");
+        }
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
@@ -267,11 +304,10 @@ struct test_set_symmetric_difference
     }
 };
 
-template <typename T1, typename T2, typename Compare>
+template <template <typename T> typename TestType, typename T1, typename T2, typename Compare>
 void
 test_set(Compare compare, bool comp_flag)
 {
-
     const ::std::size_t n_max = 100000;
 
     // The rand()%(2*n+1) encourages generation of some duplicates.
@@ -288,38 +324,39 @@ test_set(Compare compare, bool comp_flag)
             ::std::sort(in1.begin(), in1.end(), compare);
             ::std::sort(in2.begin(), in2.end(), compare);
 
-#ifdef _PSTL_TEST_SET_UNION
-            if(comp_flag)
-                invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
+            if (comp_flag)
+                invoke_on_all_policies<0>()(TestType<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(), compare);
             else
-                invoke_on_all_policies<4>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-
-#ifdef _PSTL_TEST_SET_INTERSECTION
-            if(comp_flag)
-                invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
-            else
-                invoke_on_all_policies<5>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-#ifdef _PSTL_TEST_SET_DIFFERENCE
-            if(comp_flag)
-                invoke_on_all_policies<2>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
-            else
-                invoke_on_all_policies<6>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-#ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-            if(comp_flag)
-                invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
-                                            in2.cend(), compare);
-            else
-                invoke_on_all_policies<7>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
-                                                in2.cend());
-#endif
+                invoke_on_all_policies<1>()(TestType<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
         }
     }
+}
+
+template <template <typename T> typename TestType>
+void
+run_test_set()
+{
+    using data_t =
+#if !ONEDPL_FPGA_DEVICE
+        float64_t;
+#else
+        std::int32_t;
+#endif
+
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), false);
+#if !ONEDPL_FPGA_DEVICE
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), true);
+#endif // !ONEDPL_FPGA_DEVICE
+
+#if !TEST_DPCPP_BACKEND_PRESENT
+    test_set<TestType, Num<std::int64_t>, Num<std::int32_t>>(
+        [](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
+
+    test_set<TestType, MemoryChecker, MemoryChecker>(
+        [](const MemoryChecker& val1, const MemoryChecker& val2) -> bool { return val1.value() < val2.value(); }, true);
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0,
+                "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
+#endif // !TEST_DPCPP_BACKEND_PRESENT
 }
 
 #endif // _SET_COMMON_H

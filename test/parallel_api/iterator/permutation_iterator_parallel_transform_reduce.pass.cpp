@@ -21,7 +21,7 @@
 // Requirements: only for random_access_iterator
 DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform_reduce)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform_reduce, 1.0f, 1.0f)
 
     template <typename TIterator>
     void generate_data(TIterator itBegin, TIterator itEnd, TestValueType initVal)
@@ -45,7 +45,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     const auto result = dpl::transform_reduce(exec, permItBegin, permItEnd, TestValueType{},
                                                               ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
@@ -56,8 +56,10 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
                     dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
                     wait_and_throw(exec);
 
-                    const auto expected = ::std::transform_reduce(sourceData.begin(), sourceData.end(), TestValueType{},
-                                                                  ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
+                    const auto expected =
+                        TestUtils::transform_reduce_serial(sourceData.begin(), sourceData.end(), TestValueType{},
+                                                           ::std::plus<TestValueType>(),
+                                                           ::std::negate<TestValueType>());
                     EXPECT_EQ(expected, result, "Wrong result of dpl::transform_reduce");
                 });
         }

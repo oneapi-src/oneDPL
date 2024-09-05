@@ -21,7 +21,7 @@
 
 #include "esimd_defs.h"
 
-namespace oneapi::dpl::experimental::kt::esimd::__impl
+namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 {
 
 template <::std::uint8_t __radix_bits, ::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size>
@@ -207,7 +207,6 @@ __create_simd(_T initial, _T step)
 {
     __dpl_esimd::__ns::simd<_T, _N> ret;
     ret.template select<16, 1>(0) = __dpl_esimd::__ns::simd<_T, 16>(0, 1) * step + initial;
-    __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
     _ONEDPL_PRAGMA_UNROLL
     for (int pos = 16; pos < _N; pos += 16)
     {
@@ -337,6 +336,6 @@ __make_simd_pack()
     }
 }
 
-} // namespace oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H

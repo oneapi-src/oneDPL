@@ -92,19 +92,28 @@ struct __is_iterator_of_category : __is_iterator_of_move_dispatch<_IteratorTag, 
 {
 };
 
-template <typename _IteratorTag, typename _IteratorType>
-inline constexpr bool __is_iterator_of_category_v = __is_iterator_of_category<_IteratorTag, _IteratorType>::value;
+template <typename _IteratorTag, typename... _IteratorTypes>
+struct __is_iterator_of : std::conjunction<__is_iterator_of_category<_IteratorTag, _IteratorTypes>...>
+{
+};
 
-/* iterator */
-template <typename _IteratorType, typename... _OtherIteratorTypes>
-struct __is_random_access_iterator
-    : ::std::conjunction<__is_iterator_of_category<::std::random_access_iterator_tag, _IteratorType>,
-                         __is_iterator_of_category<::std::random_access_iterator_tag, _OtherIteratorTypes>...>
+// Make is_random_access_iterator and is_forward_iterator not to fail with a 'hard' error when it's used in
+// SFINAE with a non-iterator type by providing a default value.
+template <typename... _IteratorTypes>
+struct __is_random_access_iterator : __is_iterator_of<::std::random_access_iterator_tag, _IteratorTypes...>
+{
+};
+
+template <typename... _IteratorTypes>
+struct __is_forward_iterator : __is_iterator_of<::std::forward_iterator_tag, _IteratorTypes...>
 {
 };
 
 template <typename... _IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
+
+template <typename... _IteratorTypes>
+inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
 
 } // namespace __internal
 } // namespace dpl

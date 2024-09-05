@@ -10,12 +10,14 @@
 #ifndef _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 #define _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 
+#include "support/test_config.h"
+
 #include <thread>
 #include <chrono>
 #include <random>
 #include <algorithm>
 #include <iostream>
-#include "support/test_config.h"
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 
 namespace TestUtils

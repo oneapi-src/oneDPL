@@ -21,7 +21,7 @@
 // Requirements: only for random_access_iterator
 DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_sort)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_sort, 2.0f, 0.65f)
 
     template <typename TIterator, typename Size>
     void generate_data(TIterator itBegin, TIterator itEnd, Size n)
@@ -52,7 +52,7 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
                 {
                     using ValueType = typename ::std::iterator_traits<decltype(permItBegin)>::value_type;
 
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     // Fill full source data set (not only values iterated by permutation iterator)
                     generate_data(host_keys_ptr, host_keys_ptr + n, n);

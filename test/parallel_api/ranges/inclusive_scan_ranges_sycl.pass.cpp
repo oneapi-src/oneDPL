@@ -13,10 +13,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/execution>
-
 #include "support/test_config.h"
 
+#include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
 
 #if _ENABLE_RANGES_TESTING

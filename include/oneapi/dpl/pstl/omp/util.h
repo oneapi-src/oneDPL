@@ -48,7 +48,7 @@ namespace __omp_backend
 // use to cancel execution
 //------------------------------------------------------------------------
 inline void
-__cancel_execution()
+__cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 {
     // TODO: Figure out how to make cancellation work.
 }
@@ -58,32 +58,7 @@ __cancel_execution()
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer_impl
-{
-    std::allocator<_Tp> __allocator_;
-    _Tp* __ptr_;
-    const std::size_t __buf_size_;
-    __buffer_impl(const __buffer_impl&) = delete;
-    void
-    operator=(const __buffer_impl&) = delete;
-
-  public:
-    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
-
-    __buffer_impl(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
-
-    operator bool() const { return __ptr_ != nullptr; }
-
-    _Tp*
-    get() const
-    {
-        return __ptr_;
-    }
-    ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
-};
-
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;

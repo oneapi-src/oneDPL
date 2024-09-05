@@ -20,7 +20,7 @@
 // dpl::find, dpl::find_if, dpl::find_if_not -> __parallel_find -> _parallel_find_or
 DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_find)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_find, 1.0f, 1.0f)
 
     template <typename TIterator>
     void generate_data(TIterator itBegin, TIterator itEnd, TestValueType initVal)
@@ -46,25 +46,25 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     if (testing_n >= 2)
                     {
                         // Get value to find: the second value
-                        TestValueType valueToFind{};
-                        dpl::copy(exec, permItBegin + 1, permItBegin + 2, &valueToFind);
+                        std::vector<TestValueType> valueToFind(1);
+                        dpl::copy(exec, permItBegin + 1, permItBegin + 2, valueToFind.begin());
                         wait_and_throw(exec);
 
-                        const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind);
+                        const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind[0]);
                         wait_and_throw(exec);
 
                         EXPECT_TRUE(result != permItEnd, "Wrong result of dpl::find");
 
                         // Copy data back
-                        TestValueType foundedVal{};
-                        dpl::copy(exec, result, result + 1, &foundedVal);
+                        std::vector<TestValueType> foundVal(1);
+                        dpl::copy(exec, result, result + 1, foundVal.begin());
                         wait_and_throw(exec);
-                        EXPECT_EQ(foundedVal, valueToFind, "Incorrect value was found in dpl::find");
+                        EXPECT_EQ(foundVal[0], valueToFind[0], "Incorrect value was found in dpl::find");
                     }
                 });
         }

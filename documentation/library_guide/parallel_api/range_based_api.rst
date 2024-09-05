@@ -92,6 +92,8 @@ Use of the range-based API requires C++17 and the C++ standard libraries that co
 The following viewable ranges are declared in the ``oneapi::dpl::experimental::ranges`` namespace.
 Only the ranges shown below and ``sycl::buffer`` are available as ranges for range-based algorithms.
 
+.. _viewable-ranges:
+
 * ``views::iota``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
 * ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
 * ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.

@@ -197,22 +197,22 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
     }
 
+    using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
+
+    // Using callable object instead of lambda here to ensure transform iterator would be
+    // default constructible, that is part of the Forward Iterator requirements in the C++ standard.
+    struct NoTransform
+    {
+        ValueType operator()(const ValueType& val) const
+        {
+            return val;
+        }
+    };
+
     template <typename Operand>
     void
     operator()(Operand op)
     {
-        using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
-
-        // Using callable object instead of lambda here to ensure transform iterator would be
-        // default constructible, that is part of the Forward Iterator requirements in the C++ standard.
-        struct NoTransform
-        {
-            ValueType operator()(const ValueType& val) const
-            {
-                return val;
-            }
-        };
-
         auto indexes_begin = dpl::counting_iterator<TSourceDataSize>(0);
         auto itTransformBegin = dpl::make_transform_iterator(indexes_begin, NoTransform{});
         auto permItBegin = dpl::make_permutation_iterator(data.itSource, itTransformBegin);

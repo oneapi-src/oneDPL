@@ -19,6 +19,7 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
+#include "support/test_macros.h"
 
 class KernelBitNotTest;
 
@@ -34,8 +35,10 @@ kernel_test()
         cgh.single_task<class KernelBitNotTest>([=]() {
             typedef dpl::bit_not<int> F;
             const F f = F();
+#if TEST_STD_VER < 20
             static_assert(dpl::is_same<F::argument_type, int>::value);
             static_assert(dpl::is_same<F::result_type, int>::value);
+#endif // TEST_STD_VER < 20
             ret_access[0] = ((f(0xEA95) & 0xFFFF) == 0x156A);
             ret_access[0] &= ((f(0x58D3) & 0xFFFF) == 0xA72C);
             ret_access[0] &= ((f(0) & 0xFFFF) == 0xFFFF);
