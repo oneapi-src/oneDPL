@@ -16,6 +16,8 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 
+static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
+
 #include "support/test_config.h"
 
 #include "support/utils.h"

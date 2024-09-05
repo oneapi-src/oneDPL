@@ -20,9 +20,11 @@
 #include "support/utils.h"
 
 #if TEST_UNNAMED_LAMBDAS
+#    include <oneapi/dpl/random>
+static_assert(ONEDPL_HAS_RANDOM_NUMBERS >= 202409L);
+
 #    include <iostream>
 #    include <vector>
-#    include <oneapi/dpl/random>
 
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;
