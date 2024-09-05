@@ -19,11 +19,12 @@
 #include "onedpl_config.h"
 
 #include <new>
-#include <iterator>
-#include <type_traits>
 #include <tuple>
 #include <utility>
 #include <climits>
+#include <iterator>
+#include <functional>
+#include <type_traits>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -128,6 +129,21 @@ class __pstl_assign
     }
 };
 
+template <typename _Comp, typename _Proj>
+struct __compare
+{
+    //'mutable' is to relax the requirements for a user comparator or/and projection type operator() may be non-const
+    mutable _Comp __comp;
+    mutable _Proj __proj;
+
+    template <typename _Xp, typename _Yp>
+    bool
+    operator()(const _Xp& __x, const _Yp& __y) const
+    {
+        return std::invoke(__comp, std::invoke(__proj, __x), std::invoke(__proj, __y));
+    }
+};
+
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
     argument-dependent name lookup by code expecting to find the usual ::std::equal. */
@@ -205,24 +221,6 @@ class __pstl_max
     {
         return (::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
                                                                      : ::std::forward<_Yp>(__y);
-    }
-};
-
-//! Like a polymorphic lambda for pred(...,value)
-template <typename _Tp, typename _Predicate>
-class __equal_value_by_pred
-{
-    const _Tp _M_value;
-    _Predicate _M_pred;
-
-  public:
-    __equal_value_by_pred(const _Tp& __value, _Predicate __pred) : _M_value(__value), _M_pred(__pred) {}
-
-    template <typename _Arg>
-    bool
-    operator()(_Arg&& __arg) const
-    {
-        return _M_pred(::std::forward<_Arg>(__arg), _M_value);
     }
 };
 
