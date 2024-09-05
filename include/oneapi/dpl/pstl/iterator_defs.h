@@ -93,7 +93,7 @@ struct __is_iterator_of_category : __is_iterator_of_move_dispatch<_IteratorTag, 
 };
 
 template <typename _IteratorTag, typename... _IteratorTypes>
-struct __is_iterator_of : std::conjunction<__is_iterator_of_category<_IteratorTag, _IteratorTypes>...>
+struct __is_iterator_of : std::conjunction<__is_iterator_of_category<_IteratorTag, ::std::decay_t<_IteratorTypes>>...>
 {
 };
 
