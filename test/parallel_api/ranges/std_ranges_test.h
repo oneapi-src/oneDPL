@@ -16,13 +16,13 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 
-static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
-
 #include "support/test_config.h"
 
 #include "support/utils.h"
 
 #if _ENABLE_STD_RANGES_TESTING
+
+static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 
 #if TEST_CPP20_SPAN_PRESENT
 #include <span>
