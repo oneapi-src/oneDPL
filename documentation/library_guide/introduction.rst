@@ -56,6 +56,27 @@ To use Parallel API with the device execution policies, you need to install the 
 
 * A C++ compiler with support for SYCL 2020
 
+Build Your Code with |onedpl_short|
+===================================
+
+Follow the steps below to build your code with |onedpl_short|:
+
+#. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
+   <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
+   for details.
+#. Set the environment variables for |onedpl_short| and |onetbb_short|.
+#. To avoid naming device policy objects explicitly, add the ``-fsycl-unnamed-lambda`` option.
+
+Below is an example of a command line used to compile code that contains
+|onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
+
+.. code:: cpp
+
+  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
+
+Useful Information
+==================
+
 Difference with Standard C++ Parallel Algorithms
 ************************************************
 
@@ -149,23 +170,5 @@ Known Limitations
   that was initialized on the host, and should be called with a device policy for data that was initialized
   on the device. Otherwise, the result is undefined.
 
-
-Build Your Code with |onedpl_short|
-===================================
-
-Follow the steps below to build your code with |onedpl_short|:
-
-#. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
-   <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
-   for details.
-#. Set the environment variables for |onedpl_short| and |onetbb_short|.
-#. To avoid naming device policy objects explicitly, add the ``-fsycl-unnamed-lambda`` option.
-
-Below is an example of a command line used to compile code that contains
-|onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
-
-.. code:: cpp
-
-  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
 
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
