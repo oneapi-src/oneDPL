@@ -27,8 +27,9 @@
 
 #include <cstdlib>
 
-#if _MSC_VER
-// algorithm is required as a workaround for a bug on windows with sycl includes not including it for std::iter_swap
+#if _MSC_VER && __INTEL_LLVM_COMPILER <= 20240000
+// Algorithm is required as a workaround for a bug on windows before icx 2024.0.0 with sycl headers
+// not including the appropriate headers for std::iter_swap
 #   include <algorithm>
 #endif
 
