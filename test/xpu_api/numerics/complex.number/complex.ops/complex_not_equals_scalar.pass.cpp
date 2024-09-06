@@ -29,7 +29,7 @@ test_constexpr()
     STD_COMPLEX_TESTS_STATIC_ASSERT(lhs != rhs);
     }
     {
-    constexpr dpl::complex<T> lhs(1.5, 2.5f);
+    constexpr dpl::complex<T> lhs(1.5f, 2.5f);
     constexpr T rhs(1.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT(lhs != rhs);
     }
