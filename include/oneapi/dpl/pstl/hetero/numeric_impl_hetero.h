@@ -109,6 +109,8 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
     if (__first == __last)
         return __result;
 
+    // TODO required to implement through __pattern_transform_scan_base_async
+
     const auto __n = __last - __first;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
