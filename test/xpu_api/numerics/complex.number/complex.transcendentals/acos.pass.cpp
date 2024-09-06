@@ -29,7 +29,7 @@ template <class T>
 void
 test()
 {
-    test(dpl::complex<T>(INFINITY, T(1)), dpl::complex<T>(T(0), -INFINITY));
+    test(dpl::complex<T>(INFINITY, 1), dpl::complex<T>(0, -INFINITY));
 }
 
 void test_edges()
