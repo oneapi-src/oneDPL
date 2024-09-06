@@ -121,7 +121,7 @@ Known Limitations
   For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 * The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
-  ``oneapi::dpl`` namespace, or create a namespace alias. 
+  the ``oneapi::dpl`` namespace, the shorter ``dpl`` namespace alias, or create your own alias. 
 * ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
   use ``std::array::operator[]`` instead.
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
