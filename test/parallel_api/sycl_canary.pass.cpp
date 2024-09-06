@@ -10,13 +10,10 @@
 // This test is a simple standalone SYCL test which is meant to prove that the SYCL installation is correct.
 // If this test fails, it means that the SYCL environment has not be configured properly.
 
-#include <cstdlib>
 #include <iostream>
 
-#if _MSC_VER
-// algorithm is required as a workaround for a bug on windows with sycl includes not including it for std::iter_swap
-#   include <algorithm>
-#endif
+#define _SKIP_RETURN_CODE 77
+
 
 #if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
      (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
@@ -26,9 +23,14 @@
 #define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
-#define _SKIP_RETURN_CODE 77
-
 #if TEST_DPCPP_BACKEND_PRESENT
+
+#include <cstdlib>
+
+#if _MSC_VER
+// algorithm is required as a workaround for a bug on windows with sycl includes not including it for std::iter_swap
+#   include <algorithm>
+#endif
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -67,7 +69,7 @@ test()
 int
 main()
 {
-
+#if TEST_DPCPP_BACKEND_PRESENT
 #if _MSC_VER
    char *pValue;
    size_t len;
@@ -77,19 +79,18 @@ main()
         std::cout << "Environment variable gather failed\n";
         return 1;
     } 
-#else
+#else // _MSC_VER
     const char* pValue = std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST");
-#endif
+#endif // _MSC_VER
     bool __skip_sycl_canary_test = (pValue != nullptr);
     // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
     // statistics, while still allowing non-ci test runs to have this as a environment health indicater.
     if (!__skip_sycl_canary_test)
     {
-#if TEST_DPCPP_BACKEND_PRESENT
         test();
         return 0;
-#endif
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
     std::cout << "Skipped\n";
     return _SKIP_RETURN_CODE;
 }
