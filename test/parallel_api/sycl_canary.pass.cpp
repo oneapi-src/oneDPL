@@ -13,6 +13,11 @@
 #include <cstdlib>
 #include <iostream>
 
+#if _MSC_VER
+// algorithm is required as a workaround for a bug on windows with sycl includes not including it for std::iter_swap
+#   include <algorithm>
+#endif
+
 #if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
      (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
     (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
@@ -65,7 +70,21 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test();
 #endif
-    if (std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST") != nullptr)
+
+#if _MSC_VER
+   char *pValue;
+   size_t len;
+   errno_t err = _dupenv_s( &pValue, &len, "_ONEDPL_SKIP_SYCL_CANARY_TEST" );
+    if (err)
+    {
+        std::cout << "Environment variable gather failed\n";
+        return 1;
+    } 
+#else
+    const char* pValue = std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST");
+#endif
+    bool __skip_sycl_canary_test = (pValue != nullptr);
+    if (__skip_sycl_canary_test)
     {
         // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
         // statistics, while still allowing non-ci test runs to have this as a environment health indicater.
