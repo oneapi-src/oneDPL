@@ -67,6 +67,8 @@ main()
 #endif
     if (std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST") != nullptr)
     {
+        // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
+        // statistics, while still allowing non-ci test runs to have this as a enviornment health indicater.
         std::cout << "Skipped\n";
         return _SKIP_RETURN_CODE;
     }
