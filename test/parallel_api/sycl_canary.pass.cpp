@@ -38,13 +38,15 @@ inline auto default_selector =
         sycl::default_selector{};
 #    endif
 
+class canary_test_name;
+
 void
 test()
 {
     sycl::queue q(default_selector);
     {
         q.submit([&](sycl::handler& cgh) {
-            cgh.single_task([=]() {});
+            cgh.single_task<canary_test_name>([=]() {});
         });
     }
 }
