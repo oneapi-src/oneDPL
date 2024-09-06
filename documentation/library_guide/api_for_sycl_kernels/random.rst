@@ -11,8 +11,8 @@ Random Number Engines
 ---------------------
 
 Random number engines use seed data as an entropy source to generate pseudo-random numbers. 
-|onedpl_short| provides several class templates for customized engines, they are defined in the header
-``<oneapi/dpl/random>``.
+|onedpl_short| provides several class templates for customizable engines, defined in the header
+``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 =============================== ============================================
 Engine                          Description
@@ -26,8 +26,11 @@ Engine                          Description
 Predefined Random Number Engines
 --------------------------------
 
-Predefined random number engines are instantiations of random number engines class templates. 
-The types below are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
+Predefined random number engines are instantiations of the random number engines class templates
+with selected engine parameters.
+
+The types below are defined in the header ``<oneapi/dpl/random>`` in the same namespaces as their
+respective class templates.
 
 ================== =================================================================================
 Type               Description
@@ -42,43 +45,44 @@ Type               Description
 ``philox4x64``     ``oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 64, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15, 0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>``
 ================== =================================================================================
 
-The engines described below can efficiently generate vectors of random numbers. These types are
-defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
+The following predefined engines can efficiently generate vectors of random numbers.
+They differ from the scalar engines above by using ``sycl::vec<T, N>`` as the data type,
+while other engine parameters remain the same.
 
 ================================================== ===============================================================================================
 Type                                               Description
 ================================================== ===============================================================================================
 ``template<std::int32_t N> minstd_rand0_vec<N>``   ``oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 16807, 0, 2147483647>``
 
-                                                   minstd_rand0 for a vector generation case
+                                                   ``minstd_rand0`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> minstd_rand_vec<N>``    ``oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 48271, 0, 2147483647>``
 
-                                                   minstd_rand for a vector generation case
+                                                   ``minstd_rand`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> ranlux24_base_vec<N>``  ``oneapi::dpl::subtract_with_carry_engine<sycl::vec<std::uint32_t, N>, 24, 10, 24>``
 
-                                                   ranlux24_base for a vector generation case
+                                                   ``ranlux24_base`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> ranlux48_base_vec<N>``  ``oneapi::dpl::subtract_with_carry_engine<sycl::vec<std::uint64_t, N>, 48, 5, 12>``
 
-                                                   ranlux48_base for a vector generation case
+                                                   ``ranlux48_base`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> ranlux24_vec<N>``       ``oneapi::dpl::discard_block_engine<ranlux24_base_vec<N>, 223, 23>``
 
-                                                   ranlux24 for a vector generation case
+                                                   ``ranlux24`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> ranlux48_vec<N>``       ``oneapi::dpl::discard_block_engine<ranlux48_base_vec<N>, 389, 11>``
 
-                                                   ranlux48 for vector generation case
+                                                   ``ranlux48`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> philox4x32_vec<N>``     ``oneapi::dpl::experimental::philox_engine<sycl::vec<std::uint_fast32_t, N>, 32, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>``
 
-                                                   philox4x32 for a vector generation case
+                                                   ``philox4x32`` that generates a vector.
 -------------------------------------------------- -----------------------------------------------------------------------------------------------
 ``template<std::int32_t N> philox4x64_vec<N>``     ``oneapi::dpl::experimental::philox_engine<sycl::vec<std::uint_fast64_t, N>, 64, 4, 10, 0xCA5A826395121157, 0x9E3779B97F4A7C15, 0xD2E7470EE14C6C93, 0xBB67AE8584CAA73B>``
 
-                                                   philox4x64 for a vector generation case
+                                                   ``philox4x64`` that generates a vector.
 ================================================== ===============================================================================================
 
 Random Number Distributions
