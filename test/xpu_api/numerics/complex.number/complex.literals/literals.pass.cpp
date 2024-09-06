@@ -34,7 +34,7 @@ ONEDPL_TEST_NUM_MAIN
                            assert(c1 == c2))
 
     IF_LONG_DOUBLE_SUPPORT(dpl::complex<float> c1 = 3.0if;
-                           assert(c1 == dpl::complex<float>(0, 3.0));
+                           assert(c1 == dpl::complex<float>(0, 3.0f));
                            auto c2 = 3if;
                            assert(c1 == c2))
 

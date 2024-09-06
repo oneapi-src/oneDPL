@@ -26,15 +26,15 @@ void
 test()
 {
     {
-    T lhs(1.5);
-    dpl::complex<T> rhs(3.5, 4.5);
-    dpl::complex<T>   x(5.0, 4.5);
+    T lhs(1.5f);
+    dpl::complex<T> rhs(3.5f, 4.5f);
+    dpl::complex<T>   x(5.0f, 4.5f);
     test(lhs, rhs, x);
     }
     {
-    T lhs(1.5);
-    dpl::complex<T> rhs(-3.5, 4.5);
-    dpl::complex<T>   x(-2.0, 4.5);
+    T lhs(1.5f);
+    dpl::complex<T> rhs(-3.5f, 4.5f);
+    dpl::complex<T>   x(-2.0f, 4.5f);
     test(lhs, rhs, x);
     }
 }

@@ -38,7 +38,7 @@ void test_edges()
         dpl::complex<double> r = dpl::exp(testcases[i]);
         if (testcases[i].real() == 0 && testcases[i].imag() == 0)
         {
-            assert(r.real() == 1.0);
+            assert(r.real() == 1.0f);
             assert(r.imag() == 0);
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }

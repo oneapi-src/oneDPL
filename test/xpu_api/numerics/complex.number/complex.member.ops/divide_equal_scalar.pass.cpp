@@ -19,17 +19,17 @@ test()
     dpl::complex<T> c(1);
     assert(c.real() == 1);
     assert(c.imag() == 0);
-    c /= 0.5;
+    c /= 0.5f;
     assert(c.real() == 2);
     assert(c.imag() == 0);
-    c /= 0.5;
+    c /= 0.5f;
     assert(c.real() == 4);
     assert(c.imag() == 0);
-    c /= -0.5;
+    c /= -0.5f;
     assert(c.real() == -8);
     assert(c.imag() == 0);
     c.imag(2);
-    c /= 0.5;
+    c /= 0.5f;
     assert(c.real() == -16);
     assert(c.imag() == 4);
 }

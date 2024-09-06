@@ -19,13 +19,13 @@ void
 test_constexpr()
 {
     {
-    constexpr dpl::complex<T> lhs(1.5,  2.5);
-    constexpr dpl::complex<T> rhs(1.5, -2.5);
+    constexpr dpl::complex<T> lhs(1.5f,  2.5f);
+    constexpr dpl::complex<T> rhs(1.5f, -2.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT( !(lhs == rhs));
     }
     {
-    constexpr dpl::complex<T> lhs(1.5, 2.5);
-    constexpr dpl::complex<T> rhs(1.5, 2.5);
+    constexpr dpl::complex<T> lhs(1.5f, 2.5f);
+    constexpr dpl::complex<T> rhs(1.5f, 2.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT(lhs == rhs);
     }
 }
@@ -35,13 +35,13 @@ void
 test()
 {
     {
-    dpl::complex<T> lhs(1.5,  2.5);
-    dpl::complex<T> rhs(1.5, -2.5);
+    dpl::complex<T> lhs(1.5f,  2.5f);
+    dpl::complex<T> rhs(1.5f, -2.5f);
     assert( !(lhs == rhs));
     }
     {
-    dpl::complex<T> lhs(1.5, 2.5);
-    dpl::complex<T> rhs(1.5, 2.5);
+    dpl::complex<T> lhs(1.5f, 2.5f);
+    dpl::complex<T> rhs(1.5f, 2.5f);
     assert(lhs == rhs);
     }
     test_constexpr<T> ();

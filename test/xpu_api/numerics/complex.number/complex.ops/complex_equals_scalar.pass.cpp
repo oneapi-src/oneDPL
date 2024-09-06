@@ -19,23 +19,23 @@ void
 test_constexpr()
 {
     {
-    constexpr dpl::complex<T> lhs(1.5, 2.5);
-    constexpr T rhs(-2.5);
+    constexpr dpl::complex<T> lhs(1.5f, 2.5f);
+    constexpr T rhs(-2.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT(!(lhs == rhs));
     }
     {
-    constexpr dpl::complex<T> lhs(1.5, 0);
-    constexpr T rhs(-2.5);
+    constexpr dpl::complex<T> lhs(1.5f, 0);
+    constexpr T rhs(-2.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT(!(lhs == rhs));
     }
     {
-    constexpr dpl::complex<T> lhs(1.5, 2.5);
-    constexpr T rhs(1.5);
+    constexpr dpl::complex<T> lhs(1.5f, 2.5f);
+    constexpr T rhs(1.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT(!(lhs == rhs));
     }
     {
-    constexpr dpl::complex<T> lhs(1.5, 0);
-    constexpr T rhs(1.5);
+    constexpr dpl::complex<T> lhs(1.5f, 0);
+    constexpr T rhs(1.5f);
     STD_COMPLEX_TESTS_STATIC_ASSERT( (lhs == rhs));
     }
 }
@@ -45,23 +45,23 @@ void
 test()
 {
     {
-    dpl::complex<T> lhs(1.5,  2.5);
-    T rhs(-2.5);
+    dpl::complex<T> lhs(1.5f,  2.5f);
+    T rhs(-2.5f);
     assert(!(lhs == rhs));
     }
     {
-    dpl::complex<T> lhs(1.5, 0);
-    T rhs(-2.5);
+    dpl::complex<T> lhs(1.5f, 0);
+    T rhs(-2.5f);
     assert(!(lhs == rhs));
     }
     {
-    dpl::complex<T> lhs(1.5, 2.5);
-    T rhs(1.5);
+    dpl::complex<T> lhs(1.5f, 2.5f);
+    T rhs(1.5f);
     assert(!(lhs == rhs));
     }
     {
-    dpl::complex<T> lhs(1.5, 0);
-    T rhs(1.5);
+    dpl::complex<T> lhs(1.5f, 0);
+    T rhs(1.5f);
     assert( (lhs == rhs));
     }
 
