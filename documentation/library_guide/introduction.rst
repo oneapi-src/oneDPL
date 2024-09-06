@@ -1,10 +1,6 @@
 |onedpl_long| Introduction
 #######################################
 
-Parallel API can be used with the `C++ Standard Execution
-Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
-to enable parallelism on the host.
-
 The |onedpl_long| (|onedpl_short|) is implemented in accordance with the `oneDPL
 Specification <https://spec.oneapi.io/versions/latest/elements/oneDPL/source/index.html>`_.
 
