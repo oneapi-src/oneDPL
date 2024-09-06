@@ -16,11 +16,22 @@
 // This test is a simple standalone SYCL test which is meant to prove that the SYCL installation is correct.
 // If this test fails, it means that the SYCL environment has not be configured properly.
 
+#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
+     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
+    (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#define TEST_DPCPP_BACKEND_PRESENT 1
+#else
+#define TEST_DPCPP_BACKEND_PRESENT 0
+#endif
+
+#if TEST_DPCPP_BACKEND_PRESENT
+
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
 #    include <CL/sycl.hpp>
 #endif
+
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -50,11 +61,13 @@ test()
         });
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     test();
-
+#endif
     return 0;
 }
