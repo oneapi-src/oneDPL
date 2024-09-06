@@ -41,15 +41,13 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1)
 #define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_LIBSYCL_VERSION >= 60200)
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
     (_ONEDPL_LIBSYCL_VERSION < 70100) && (_ONEDPL_LIBSYCL_VERSION != 0)
 
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
-
-#define _ONEDPL_SYCL_SUB_GROUP_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
 // Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
 // SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
@@ -103,11 +101,7 @@ using __maximum = sycl::maximum<_T>;
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
 
-#if _ONEDPL_SYCL_SUB_GROUP_PRESENT
 using __sub_group = sycl::sub_group;
-#else
-using __sub_group = sycl::ONEAPI::sub_group;
-#endif
 
 template <typename _Buffer>
 constexpr auto
