@@ -26,6 +26,8 @@
 #define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
+#define _SKIP_RETURN_CODE 77
+
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #if __has_include(<sycl/sycl.hpp>)
@@ -42,8 +44,6 @@
 #else
 #    define TEST_LIBSYCL_VERSION 0
 #endif
-
-#define _SKIP_RETURN_CODE 77
 
 inline auto default_selector =
 #    if TEST_LIBSYCL_VERSION >= 60000
@@ -81,18 +81,15 @@ main()
     const char* pValue = std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST");
 #endif
     bool __skip_sycl_canary_test = (pValue != nullptr);
-    if (__skip_sycl_canary_test)
-    {
-        // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
-        // statistics, while still allowing non-ci test runs to have this as a environment health indicater.
-        std::cout << "Skipped\n";
-        return _SKIP_RETURN_CODE;
-    }
-    else
+    // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
+    // statistics, while still allowing non-ci test runs to have this as a environment health indicater.
+    if (!__skip_sycl_canary_test)
     {
 #if TEST_DPCPP_BACKEND_PRESENT
         test();
-#endif
         return 0;
+#endif
     }
+    std::cout << "Skipped\n";
+    return _SKIP_RETURN_CODE;
 }
