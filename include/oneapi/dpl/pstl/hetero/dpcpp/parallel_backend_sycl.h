@@ -238,22 +238,21 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
             std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-            // For target architectures, 512 bytes is the maximum amount of data that can be performed in a single load / store
-            // transaction. Assuming a sub-group size of 32, 512 / 32 = 16 which is the number of bytes we wish to load / store
-            // per work-item. For architectures that do not support load / stores of 512 bytes (e.g. 128 bytes), several smaller
-            // but coalesced transactions will be made and performance should still be maximized.
+            // Processing 512 bytes per sub-group has shown the best performance on target architectures.
             // Grab the value type of the first range to estimate the optimal iters per work item.
             using _ValueType =
                 oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
-            constexpr std::uint16_t __max_bytes_per_transaction = 512;
+
+            constexpr std::uint16_t __max_bytes_per_sub_group = 512;
             constexpr std::uint16_t __predicted_sub_group_size = 32;
-            constexpr std::uint16_t __bytes_per_work_item = __max_bytes_per_transaction / __predicted_sub_group_size;
+            constexpr std::uint16_t __bytes_per_work_item = __max_bytes_per_sub_group / __predicted_sub_group_size;
             // If the _ValueType > 128 bytes (unlikely), then perform a single iteration per work item.
             constexpr std::uint16_t __iters_per_work_item =
                 std::max(std::size_t{1}, __bytes_per_work_item / sizeof(_ValueType));
-            std::size_t __num_items =
-                std::max(static_cast<_Index>(__work_group_size),
-                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, __iters_per_work_item));
+            std::size_t __num_groups =
+                std::max(__work_group_size,
+                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item)));
+            std::size_t __num_items = __num_groups * __work_group_size;
             // TODO: optimize for small data sizes that do not saturate the device with this scheme
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
