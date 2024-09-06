@@ -5,16 +5,13 @@
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-//
 //===----------------------------------------------------------------------===//
 
 // This test is a simple standalone SYCL test which is meant to prove that the SYCL installation is correct.
 // If this test fails, it means that the SYCL environment has not be configured properly.
+
+#include <cstdlib>
+#include <iostream>
 
 #if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
      (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
@@ -41,6 +38,7 @@
 #    define TEST_LIBSYCL_VERSION 0
 #endif
 
+#define _SKIP_RETURN_CODE 77
 
 inline auto default_selector =
 #    if TEST_LIBSYCL_VERSION >= 60000
@@ -55,11 +53,9 @@ void
 test()
 {
     sycl::queue q(default_selector);
-    {
-        q.submit([&](sycl::handler& cgh) {
-            cgh.single_task<canary_test_name>([=]() {});
-        });
-    }
+    q.submit([&](sycl::handler& cgh) {
+        cgh.single_task<canary_test_name>([=]() {});
+    });
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -69,5 +65,11 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test();
 #endif
-    return 0;
+    if (std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST") != nullptr)
+    {
+        std::cout << "Skipped\n";
+        return _SKIP_RETURN_CODE;
+    }
+    else
+        return 0;
 }
