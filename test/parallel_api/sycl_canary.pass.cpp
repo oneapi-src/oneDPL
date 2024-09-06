@@ -67,9 +67,6 @@ test()
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-    test();
-#endif
 
 #if _MSC_VER
    char *pValue;
@@ -92,5 +89,10 @@ main()
         return _SKIP_RETURN_CODE;
     }
     else
+    {
+#if TEST_DPCPP_BACKEND_PRESENT
+        test();
+#endif
         return 0;
+    }
 }
