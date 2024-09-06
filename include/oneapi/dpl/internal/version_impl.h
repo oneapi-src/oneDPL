@@ -10,6 +10,11 @@
 #ifndef _ONEDPL_VERSION_IMPL_H
 #define _ONEDPL_VERSION_IMPL_H
 
+// The library version
+#define ONEDPL_VERSION_MAJOR 2022
+#define ONEDPL_VERSION_MINOR 7
+#define ONEDPL_VERSION_PATCH 0
+
 #if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
 #    include <version> // The standard C++20 header
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
@@ -19,11 +24,6 @@
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 0
 #    define _ONEDPL_CPP20_RANGES_PRESENT 0
 #endif
-
-// The library version
-#define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 7
-#define ONEDPL_VERSION_PATCH 0
 
 #ifndef _PSTL_VERSION
 #    define _PSTL_VERSION 14000
