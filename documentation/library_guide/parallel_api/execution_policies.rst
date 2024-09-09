@@ -22,9 +22,9 @@ Execution Policy Value            Description
 --------------------------------- ------------------------------
 ``par_unseq``                     Combined effect of ``unseq`` and ``par``.
 --------------------------------- ------------------------------
-``dpcpp_default``                 Massive parallel execution on devices using |dpcpp_short|.
+``dpcpp_default``                 Massive parallel execution on SYCL devices.
 --------------------------------- ------------------------------
-``dpcpp_fpga``                    Massive parallel execution on FPGA devices.
+``dpcpp_fpga``                    Massive parallel execution on SYCL FPGA devices.
 ================================= ==============================
 
 The implementation is based on Parallel STL from the
@@ -32,10 +32,12 @@ The implementation is based on Parallel STL from the
 
 |onedpl_short| supports two parallel backends for execution with ``par`` and ``par_unseq`` policies:
 
-#. TBB backend (enabled by default) uses |onetbb_long| or |tbb_long| for parallel execution.
+#. The TBB backend (enabled by default) uses |onetbb_long| or |tbb_long| for parallel execution.
 
-#. OpenMP backend uses OpenMP* pragmas for parallel execution. Visit
+#. The OpenMP backend uses OpenMP* pragmas for parallel execution. Visit
    :doc:`Macros <../macros>` for the information how to enable the OpenMP backend.
+
+OpenMP pragmas are also used for SIMD execution with ``unseq`` and ``par_unseq`` policies.
 
 Follow these steps to add Parallel API to your application:
 
@@ -43,23 +45,22 @@ Follow these steps to add Parallel API to your application:
    Then include one or more of the following header files, depending on the algorithms you
    intend to use:
 
-   #. ``#include <oneapi/dpl/algorithm>``
-   #. ``#include <oneapi/dpl/numeric>``
-   #. ``#include <oneapi/dpl/memory>``
+   - ``#include <oneapi/dpl/algorithm>``
+   - ``#include <oneapi/dpl/numeric>``
+   - ``#include <oneapi/dpl/memory>``
 
 #. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
    namespace, to a parallel algorithm.
-#. Use the C++ standard execution policies:
 
-   #. Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
-   #. Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
+#. If you use the C++ standard aligned execution policies:
 
-#. Use the device execution policies:
+   - Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
+   - Compile and link with the |onetbb_long| or |tbb_long| library for TBB-based parallelism.
 
-   #. Compile the code with options that enable support for SYCL 2020.
+   If you use the device execution policies, compile the code with options that enable support for SYCL 2020.
 
-Use the C++ Standard Execution Policies
-=======================================
+Use the C++ Standard Aligned Execution Policies
+===============================================
 
 Example:
 
@@ -77,7 +78,7 @@ Example:
   }
 
 Use the Device Execution Policies
-========================================
+=================================
 
 The device execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL device or queue and allows you to
@@ -114,8 +115,8 @@ and ``using namespace sycl;`` directives when referring to policy classes and fu
 
 .. code:: cpp
 
-   auto policy_a = device_policy<class PolicyA> {};
-   std::for_each(policy_a, ...);
+  auto policy_a = device_policy<class PolicyA> {};
+  std::for_each(policy_a, ...);
 
 .. code:: cpp
 
@@ -194,7 +195,7 @@ The code below assumes you have added ``using namespace oneapi::dpl::execution;`
 
 
 Error Handling with Device Execution Policies
-====================================================
+=============================================
 
 The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
 runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
