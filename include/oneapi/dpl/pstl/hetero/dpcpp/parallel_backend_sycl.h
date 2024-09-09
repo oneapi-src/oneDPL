@@ -941,10 +941,14 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
 
             _GenInput __gen_transform{__unary_op};
 
-            return __parallel_transform_reduce_then_scan(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
-                _WriteOp{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{});
+            auto [__opt_return, _] = __handle_synch_sycl_exception([&] {
+                return __parallel_transform_reduce_then_scan(
+                    __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                    std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform,
+                    _ScanInputTransform{}, _WriteOp{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{});
+            });
+            if (__opt_return)
+                return __opt_return.value();
         }
     }
 
@@ -1096,25 +1100,26 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<1, _Assign>;
 
-        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                                std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                _GenMask{__pred}, _WriteOp{_Assign{}},
-                                                /*_IsUniquePattern=*/std::true_type{});
+        auto [__opt_return, _] = __handle_synch_sycl_exception([&] {
+            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                    std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
+                                                    _GenMask{__pred}, _WriteOp{_Assign{}},
+                                                    /*_IsUniquePattern=*/std::true_type{});
+        });
+        if (__opt_return)
+            return __opt_return.value();
     }
-    else
-    {
+    // Either the conditions were not met above, or we caught a sycl::errc::kernel_not_supported due to an IGC workaround.
+    using _ReduceOp = std::plus<decltype(__n)>;
+    using _CreateOp =
+        oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
+                                                           decltype(__n)>;
+    using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1>;
 
-        using _ReduceOp = std::plus<decltype(__n)>;
-        using _CreateOp =
-            oneapi::dpl::__internal::__create_mask_unique_copy<oneapi::dpl::__internal::__not_pred<_BinaryPredicate>,
-                                                               decltype(__n)>;
-        using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1>;
-
-        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                                    std::forward<_Range2>(__result), __n,
-                                    _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
-                                    _CopyOp{_ReduceOp{}, _Assign{}});
-    }
+    return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                std::forward<_Range2>(__result), __n,
+                                _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
+                                _CopyOp{_ReduceOp{}, _Assign{}});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate>
@@ -1129,19 +1134,21 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
         using _WriteOp =
             oneapi::dpl::__par_backend_hetero::__write_to_id_if_else<oneapi::dpl::__internal::__pstl_assign>;
 
-        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                                std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
-                                                _GenMask{__pred}, _WriteOp{}, /*_IsUniquePattern=*/std::false_type{});
+        auto [__opt_return, _] = __handle_synch_sycl_exception([&] {
+            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                    std::forward<_Range1>(__rng), std::forward<_Range2>(__result), __n,
+                                                    _GenMask{__pred}, _WriteOp{}, /*_IsUniquePattern=*/std::false_type{});
+        });
+        if (__opt_return)
+            return __opt_return.value();
     }
-    else
-    {
-        using _ReduceOp = std::plus<decltype(__n)>;
-        using _CreateOp = unseq_backend::__create_mask<_UnaryPredicate, decltype(__n)>;
-        using _CopyOp = unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ std::true_type>;
+    // Either the conditions were not met above, or we caught a sycl::errc::kernel_not_supported due to an IGC workaround.
+    using _ReduceOp = std::plus<decltype(__n)>;
+    using _CreateOp = unseq_backend::__create_mask<_UnaryPredicate, decltype(__n)>;
+    using _CopyOp = unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ std::true_type>;
 
-        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
-                                    std::forward<_Range2>(__result), __n, _CreateOp{__pred}, _CopyOp{_ReduceOp{}});
-    }
+    return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                std::forward<_Range2>(__result), __n, _CreateOp{__pred}, _CopyOp{_ReduceOp{}});
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
@@ -1180,22 +1187,24 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
 
-        return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                                _GenMask{__pred}, _WriteOp{__assign},
-                                                /*_IsUniquePattern=*/std::false_type{});
+        auto [__opt_return, _] = __handle_synch_sycl_exception([&] {
+            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                    std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
+                                                    _GenMask{__pred}, _WriteOp{__assign},
+                                                    /*_IsUniquePattern=*/std::false_type{});
+        });
+        if (__opt_return)
+            return __opt_return.value();
     }
-    else
-    {
-        using _ReduceOp = std::plus<_Size>;
-        using _CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
-        using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign,
-                                                      /*inclusive*/ std::true_type, 1>;
+    // Either the conditions were not met above, or we caught a sycl::errc::kernel_not_supported due to an IGC workaround.
+    using _ReduceOp = std::plus<_Size>;
+    using _CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
+    using _CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, _Assign,
+                                                  /*inclusive*/ std::true_type, 1>;
 
-        return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
-                                    std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
-                                    _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
-    }
+    return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
+                                _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
 }
 
 //------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <tuple>
 #include <algorithm>
+#include <optional>
 
 #include "../../iterator_impl.h"
 
@@ -822,6 +823,36 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         }
     }
 };
+
+// This exception handler is intended to handle a software workaround by IGC for a hardware bug that
+// causes IGC to throw a sycl::errc::kernel_not_supported exception for certain integrated graphics
+// devices. If a separate synchronous exception is encountered, then throw to the user.
+struct __bypass_sycl_kernel_not_supported
+{
+    void
+    operator()(const sycl::exception& __e) const
+    {
+        if (__e.code() != sycl::errc::kernel_not_supported)
+            throw;
+    }
+};
+
+template <typename _Callable, typename _Handler = __bypass_sycl_kernel_not_supported>
+auto
+__handle_synch_sycl_exception(_Callable __caller, _Handler __handler = {})
+    -> std::tuple<std::optional<decltype(__caller())>, std::error_code>
+{
+    try
+    {
+        return std::make_tuple(__caller(), sycl::errc::success);
+    }
+    catch (const sycl::exception& __e)
+    {
+        // Handle the error and return an empty optional with the encountered error code.
+        __handler(__e);
+        return std::make_tuple(std::optional<decltype(__caller())>{}, __e.code());
+    }
+}
 
 } // namespace __par_backend_hetero
 } // namespace dpl
