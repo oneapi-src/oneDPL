@@ -1,14 +1,14 @@
 Execution Policies
 ##################
 
-The implementation supports the device execution policies used to run the massive parallel
-computational model for heterogeneous systems. The policies are specified in
-the |onedpl_long| (|onedpl_short|) section of the `oneAPI Specification
-<https://spec.oneapi.io/versions/latest/elements/oneDPL/source/parallel_api.html#dpc-execution-policy>`_.
+Accroding to `the oneAPI specification
+<https://uxlfoundation.github.io/oneAPI-spec/spec/elements/oneDPL/source/index.html>`_,
+|onedpl_long| (|onedpl_short|) provides execution policies semantically aligned with the C++ standard,
+also referred to as *host execution policies*, and the *device execution policies* to run
+data parallel computations on heterogeneous systems.
 
-For any of the implemented algorithms, pass one of the execution policy objects as the first
-argument in a call to specify the desired execution behavior. The policies have
-the following meaning:
+For any of |onedpl_short| parallel algorithms, pass one of the execution policy objects as the first
+argument in a call to specify the desired execution behavior. The policies have the following meaning:
 
 ================================= ==============================
 Execution Policy Value            Description
@@ -54,8 +54,8 @@ Follow these steps to add Parallel API to your application:
 
 #. If you use the C++ standard aligned execution policies:
 
-   - Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
-   - Compile and link with the |onetbb_long| or |tbb_long| library for TBB-based parallelism.
+   - Compile the code with options that enable OpenMP parallelism and/or SIMD vectorization pragmas.
+   - Compile and link with the |onetbb_short| or |tbb_short| library for TBB-based parallelism.
 
    If you use the device execution policies, compile the code with options that enable support for SYCL 2020.
 
@@ -80,10 +80,8 @@ Example:
 Use the Device Execution Policies
 =================================
 
-The device execution policy specifies where a parallel algorithm runs.
-It encapsulates a SYCL device or queue and allows you to
-set an optional kernel name. Device execution policies can be used with all
-standard C++ algorithms that support execution policies.
+The device execution policy specifies where a |onedpl_short| parallel algorithm runs.
+It encapsulates a SYCL device or queue and allows you to set an optional kernel name.
 
 To create a policy object, you may use one of the following constructor arguments:
 

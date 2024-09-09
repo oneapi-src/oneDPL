@@ -35,7 +35,7 @@ C++17 is the minimal supported version of the C++ standard.
 That means, any use of |onedpl_short| may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
 
-To call Parallel API with the C++ standard policies, you need to install the following software:
+To call Parallel API with the C++ standard aligned policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
 * Depending on what parallel backend you want to use, install either:
@@ -87,7 +87,7 @@ Difference with Standard C++ Parallel Algorithms
 * Function objects passed in to algorithms executed with device policies must provide ``const``-qualified ``operator()``.
   `The SYCL specification <https://registry.khronos.org/SYCL/>`_ states that writing to such an object during a SYCL
   kernel is undefined behavior.
-* For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
+* For the following algorithms, ``par_unseq`` and ``unseq`` policies do not result in SIMD execution:
   ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
   ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``.
 * The following algorithms require additional O(n) memory space for parallel execution:
@@ -98,7 +98,7 @@ Difference with Standard C++ Parallel Algorithms
 Restrictions
 ************
 
-When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as
+When called with device execution policies, |onedpl_short| algorithms apply the same restrictions as
 |dpcpp_short| does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
@@ -126,7 +126,7 @@ Known Limitations
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
-  vector execution policies when building a program with GCC 10 and using ``-O0`` option.
+  unsequenced execution policies when building a program with GCC 10 and using ``-O0`` option.
 * Compiling ``reduce`` and ``transform_reduce`` algorithms with the Intel DPC++ Compiler, versions 2021 and older,
   may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
 * When compiling on Windows, add the option ``/EHsc`` to the compilation command to avoid errors with oneDPL's experimental
@@ -141,12 +141,12 @@ Known Limitations
   for double precision.
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
-  when used with C++ standard policies, impose limitations on the initial value type if an
+  when used with C++ standard aligned policies, impose limitations on the initial value type if an
   initial value is provided, and on the value type of the input iterator if an initial value is
   not provided.
   Firstly, it must satisfy the ``DefaultConstructible`` requirements.
   Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.
-* ``reduce_by_segment``, when used with C++ standard policies, imposes limitations on the value type.
+* ``reduce_by_segment``, when used with C++ standard aligned policies, imposes limitations on the value type.
   Firstly, it must satisfy the ``DefaultConstructible`` requirements.
   Secondly, a default-constructed instance of that type should act as the identity element for the binary reduction function.
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
