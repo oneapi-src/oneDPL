@@ -25,13 +25,6 @@ page for:
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv>`_
 to use |onedpl_short|.
 
-All |onedpl_short| header files are in the ``oneapi/dpl`` directory. To use the |onedpl_short| API,
-include the corresponding header in your source code with the ``#include <oneapi/dpl/…>`` directive.
-|onedpl_short| introduces the namespace ``oneapi::dpl`` for most its classes and functions.
-
-To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
-and use the ``std`` namespace.
-
 System Requirements
 ===================
 
@@ -45,19 +38,29 @@ While some APIs of the library may accidentally work with earlier versions of th
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
-* Depending on what parallel backend you want to use install either:
+* Depending on what parallel backend you want to use, install either:
 
-  * |onetbb_long| or |tbb_long| 2019 and later
-  * A C++ compiler with support for OpenMP 4.5 (or higher)
+  * |onetbb_long| or |tbb_long| 2019 and later,
+  * A C++ compiler with support for OpenMP 4.5 (or higher).
 
-For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
+For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`.
 
 To use Parallel API with the device execution policies, you need to install the following software:
 
-* A C++ compiler with support for SYCL 2020
+* A C++ compiler with support for SYCL 2020.
 
-Build Your Code with |onedpl_short|
-===================================
+Develop and Build Your Code with |onedpl_short|
+===============================================
+
+All |onedpl_short| header files are in the ``oneapi/dpl`` directory. To use the |onedpl_short| API,
+include the corresponding header in your source code with the ``#include <oneapi/dpl/…>`` directive.
+For better coexistence with the C++ standard library, include |onedpl_short| header files before the standard C++ ones.
+
+|onedpl_short| introduces the ``namespace oneapi::dpl`` for its classes and functions. For brevity,
+``namespace dpl`` is defined as an alias to ``oneapi::dpl`` and can be used interchangeably.
+
+To use :doc:`tested C++ standard APIs <api_for_sycl_kernels/tested_standard_cpp_api>` in SYCL device code,
+include the corresponding C++ standard header files and use the ``std`` namespace.
 
 Follow the steps below to build your code with |onedpl_short|:
 
