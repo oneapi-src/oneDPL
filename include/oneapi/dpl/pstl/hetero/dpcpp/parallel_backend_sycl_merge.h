@@ -58,8 +58,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                             [&__rng2, &__rng1, __q, &__comp](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
                                  return __zero_or_one < __value;
                              });
         return std::make_pair(*__res, __q - *__res);
@@ -70,8 +70,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                             [&__rng2, &__rng1, __n2, __q, &__comp](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
                                  return __zero_or_one < __value;
                              });
         return std::make_pair(__q + *__res, __n2 - *__res);
@@ -154,8 +154,10 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         std::uint16_t __chunk = 128;
         if (__exec.queue().get_device().is_gpu())
         {
-            if (__n > 16'777'216)
+            if (__n >= 16'777'216)
                 __chunk = 256;
+            else if (__n > 4'194'304)
+                __chunk = 8;
             else
                 __chunk = 4;
         }
