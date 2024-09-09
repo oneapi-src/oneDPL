@@ -1,8 +1,7 @@
 Get Started with the |onedpl_long|
 ##################################
 
-|onedpl_long| (|onedpl_short|) works with the
-`Intel® oneAPI DPC++/C++ Compiler <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
+|onedpl_long| (|onedpl_short|) works with the |dpcpp_gsg_2|_
 to provide high-productivity APIs to developers, which can minimize SYCL*
 programming efforts across devices for high performance parallel applications.
 
@@ -14,8 +13,7 @@ programming efforts across devices for high performance parallel applications.
 
 
 For general information about |onedpl_short|, visit the `oneDPL GitHub* repository <https://github.com/oneapi-src/oneDPL>`_,
-or visit the `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
-and the `Intel® oneAPI DPC++ Library main page <https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html>`_.
+or visit the |onedpl_main|_ and the `Intel® oneAPI DPC++ Library main page <https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html>`_.
 
 Quick Start
 ===========
@@ -48,7 +46,7 @@ CMake Support
 -------------
 `CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application. |onedpl_short| can be added to your project via CMake. 
 
-A simple example for Linux is provided below. For more detailed usage and options including details specific to Windows, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+A simple example for Linux is provided below. For more detailed usage and options including details specific to Windows, please look to the |cmake_support_page|_.
 
 Simple Example CMake File
 *************************
@@ -203,7 +201,7 @@ Find More
 
    * - Resource Link
      - Description
-   * - `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
+   * - |onedpl_main|_
      - Refer to the |onedpl_short| guide for  more in depth information.
    * - `System Requirements <https://www.intel.com/content/www/us/en/developer/articles/system-requirements/intel-oneapi-dpcpp-system-requirements.html>`_
      - Check system requirements before you install |onedpl_short|.
@@ -211,7 +209,7 @@ Find More
      - Check the release notes to learn about updates in the latest release.
    * - `oneDPL Samples <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_
      - Learn how to use |onedpl_short| with samples.
-   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/current/adding-oneapi-components-to-yocto-project-builds.html>`_
+   * - |yocto_layers|_
      - Add oneAPI components to a Yocto project build using the meta-intel layers.
    * - `oneAPI Samples Catalog <https://oneapi-src.github.io/oneAPI-samples/>`_
      - Explore the complete list of oneAPI code samples in the oneAPI Samples Catalog (GitHub*). These samples were designed to help you develop, offload, and optimize multiarchitecture applications targeting CPUs, GPUs, and FPGAs.

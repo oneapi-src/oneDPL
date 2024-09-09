@@ -1,0 +1,36 @@
+CMake Support
+
+.. |cmake_support_page| replace:: CMake Support Page
+.. _cmake_support_page: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-2/use-cmake-with-the-compiler.html
+
+DevGuide Introduction
+
+.. |dpcpp_gsg| replace:: Get Started with the Intel® oneAPI DPC++/C++ Compiler
+.. _dpcpp_gsg: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-2/overview.html
+
+Get Started Introduction
+
+.. |dpcpp_gsg_2| replace:: Intel® oneAPI DPC++/C++ Compiler
+.. _dpcpp_gsg_2: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-2/overview.html
+
+.. |onedpl_main| replace:: Intel® oneAPI DPC++ Library Guide
+.. _onedpl_main: https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/2022-6/overview.html
+
+.. |yocto_layers| replace:: Layers for Yocto* Project
+.. _yocto_layers: https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/2024-0/adding-oneapi-components-to-yocto-project-builds.html
+
+Macros
+
+.. |vector| replace:: vector page in the Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference
+.. _vector: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-2/vector.html
+
+Execution Policies
+
+.. |unroll_pragma| replace:: unroll Pragma
+.. _unroll_pragma: https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2024-2/unroll-pragma.html
+
+.. |loop_analysis| replace:: Loop Analysis
+.. _loop_analysis: https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2024-2/loop-analysis.html
+
+.. |fpga_hdbk| replace:: Intel® oneAPI FPGA Handbook
+.. _fpga_hdbk: https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2024-2/intel-oneapi-fpga-handbook.html
