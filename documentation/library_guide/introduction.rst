@@ -65,14 +65,13 @@ Follow the steps below to build your code with |onedpl_short|:
    <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
    for details.
 #. Set the environment variables for |onedpl_short| and |onetbb_short|.
-#. To avoid naming device policy objects explicitly, add the ``-fsycl-unnamed-lambda`` option.
 
-Below is an example of a command line used to compile code that contains
-|onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
+Below is an example of a command line used to compile code that contains |onedpl_short| parallel algorithms
+on Linux* (depending on the code, parameters within [] could be unnecessary):
 
 .. code:: cpp
 
-  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
+  icpx [-fsycl] [-fiopenmp] program.cpp [-ltbb] -o program
 
 Useful Information
 ==================
