@@ -137,19 +137,6 @@ namespace TestUtils
     // This lead to an error on devices where the double type is not supported.
     static constexpr float infinity_val = INFINITY;
 
-    template <typename _FncTest>
-    void
-    invoke_test_if(::std::true_type, _FncTest __fncTest)
-    {
-        __fncTest();
-    }
-
-    template <typename _FncTest>
-    void
-    invoke_test_if(::std::false_type, _FncTest)
-    {
-    }
-
     // Run test in Kernel as single task
     template <typename TFncDoubleHasSupportInRuntime, typename TFncDoubleHasntSupportInRuntime>
     void
