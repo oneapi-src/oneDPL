@@ -34,9 +34,6 @@
 // When such an issue is fixed, we must replace the usage of these "Latest" macros with the appropriate version number
 // before updating to the newest version in this section.
 
-// According to https://gcc.gnu.org/develop.html#timeline use last known _GLIBCXX_ to check the version of libstdc++
-#define _PSTL_TEST_LATEST_GLIBCXX 20240801
-
 #define _PSTL_TEST_LATEST_INTEL_LLVM_COMPILER 20250100
 
 #define _PSTL_TEST_LATEST_MSVC_STL_VERSION 143
