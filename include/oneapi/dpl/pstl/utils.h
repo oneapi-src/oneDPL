@@ -784,12 +784,6 @@ union __lazy_ctor_storage
     }
 };
 
-// Helpers to distinguish between std::sort and std::ranges::sort calls on a backend level
-// It is used to select a correct swap method:
-// std::swap for std::sort and std::ranges::swap for std::ranges::sort
-struct __ranges_sort_policy{};
-struct __classic_sort_policy{};
-
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
