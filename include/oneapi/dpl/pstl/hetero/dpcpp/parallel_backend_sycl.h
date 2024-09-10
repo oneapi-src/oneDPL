@@ -254,7 +254,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             constexpr std::uint16_t __iters_per_work_item =
                 std::max(std::size_t{1}, __bytes_per_work_item / sizeof(_ValueType));
             std::size_t __num_groups =
-                std::max(__work_group_size,
+                std::max(std::size_t{1},
                          oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item)));
             std::size_t __num_items = __num_groups * __work_group_size;
             // TODO: optimize for small data sizes that do not saturate the device with this scheme
