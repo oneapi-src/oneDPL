@@ -77,6 +77,15 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
+// This macro is intended to be used for specifying a subgroup size as a SYCL kernel attribute for SPIR-V targets
+// only. For non-SPIR-V targets, it will be empty. This macro should only be used in device code and may lead
+// to incorrect behavior if used on the host.
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE) _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE)
+#else
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE)
+#endif
+
 // The unified future supporting USM memory and buffers is only supported after DPCPP 2023.1
 // but not by 2023.2.
 #if (_ONEDPL_LIBSYCL_VERSION >= 60100 && _ONEDPL_LIBSYCL_VERSION != 60200)
