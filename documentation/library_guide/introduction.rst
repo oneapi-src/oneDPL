@@ -72,7 +72,7 @@ Follow the steps below to build your code with |onedpl_short|:
 Below is an example of a command line used to compile code that contains |onedpl_short| parallel algorithms
 on Linux* (depending on the code, parameters within [] could be unnecessary):
 
-.. code:: cpp
+.. code::
 
   icpx [-fsycl] [-fiopenmp] program.cpp [-ltbb] -o program
 
@@ -80,7 +80,7 @@ You may also use `the -fsycl-pstl-offload option
 <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/fsycl-pstl-offload.html>`_
 of |dpcpp_cpp| powered by |onedpl_short| to build the standard C++ code for execution on a SYCL device:
 
-.. code:: cpp
+.. code::
 
   icpx -fsycl -fsycl-pstl-offload=gpu program.cpp -o program
 

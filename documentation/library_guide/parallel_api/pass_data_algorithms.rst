@@ -12,7 +12,7 @@ input with the C++ standard aligned execution policies.
 
 When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
-* ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions
+* ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions for a SYCL buffer
 * Unified shared memory (USM) pointers
 * ``std::vector`` with or without a USM allocator
 
