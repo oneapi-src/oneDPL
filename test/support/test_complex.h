@@ -105,7 +105,11 @@ run_test()
 //         // ...
 //     }
 #define IF_DOUBLE_SUPPORT(...)                                                                        \
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { __VA_ARGS__; });
+    if constexpr (HasDoubleSupportInRuntime{})                                                        \
+    {                                                                                                 \
+        auto __fnc = []() { __VA_ARGS__; };                                                           \
+        __fnc();                                                                                      \
+    }
 #define IF_DOUBLE_SUPPORT_L(...)                                                                      \
     TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), __VA_ARGS__);
 
