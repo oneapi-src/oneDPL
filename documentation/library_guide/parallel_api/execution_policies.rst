@@ -4,27 +4,31 @@ Execution Policies
 Accroding to `the oneAPI specification
 <https://uxlfoundation.github.io/oneAPI-spec/spec/elements/oneDPL/source/index.html>`_,
 |onedpl_long| (|onedpl_short|) provides execution policies semantically aligned with the C++ standard,
-also referred to as *host execution policies*, and the *device execution policies* to run
-data parallel computations on heterogeneous systems.
+also referred to as *standard aligned* or *host execution policies*, and the *device execution policies*
+to run data parallel computations on heterogeneous systems.
 
-For any of |onedpl_short| parallel algorithms, pass one of the execution policy objects as the first
-argument in a call to specify the desired execution behavior. The policies have the following meaning:
+The execution policies are defined in the ``oneapi::dpl::execution`` namespace and provided
+in the ``oneapi/dpl/execution`` header. The policies have the following meaning:
 
 ================================= ==============================
 Execution Policy Value            Description
 ================================= ==============================
-``seq``                           Sequential execution.
+``seq``                           The standard aligned policy for sequential execution.
 --------------------------------- ------------------------------
-``unseq``                         Unsequenced SIMD execution. This policy requires that
-                                  all functions provided are SIMD-safe.
+``unseq``                         The standard aligned policy for unsequenced SIMD execution.
+                                  This policy requires user-provided functions to be SIMD-safe.
 --------------------------------- ------------------------------
-``par``                           Parallel execution by multiple threads.
+``par``                           The standard aligned policy for parallel execution by multiple threads.
 --------------------------------- ------------------------------
-``par_unseq``                     Combined effect of ``unseq`` and ``par``.
+``par_unseq``                     The standard aligned policy with the combined effect of ``unseq`` and ``par``.
 --------------------------------- ------------------------------
-``dpcpp_default``                 Massive parallel execution on SYCL devices.
+``device_policy``                 The class template to create device policies for data parallel execution.
 --------------------------------- ------------------------------
-``dpcpp_fpga``                    Massive parallel execution on SYCL FPGA devices.
+``dpcpp_default``                 The device policy for data parallel execution on the default SYCL device.
+--------------------------------- ------------------------------
+``fpga_policy``                   The class template to create policies for execution on FPGA devices.
+--------------------------------- ------------------------------
+``dpcpp_fpga``                    The device policy for data parallel execution on a SYCL FPGA device.
 ================================= ==============================
 
 The implementation is based on Parallel STL from the
@@ -49,8 +53,8 @@ Follow these steps to add Parallel API to your application:
    - ``#include <oneapi/dpl/numeric>``
    - ``#include <oneapi/dpl/memory>``
 
-#. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
-   namespace, to a parallel algorithm.
+#. Pass a |onedpl_short| execution policy object as the first argument to a parallel algorithm
+   to specify the desired execution behavior.
 
 #. If you use the C++ standard aligned execution policies:
 
