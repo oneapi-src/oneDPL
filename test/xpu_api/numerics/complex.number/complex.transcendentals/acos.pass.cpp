@@ -54,12 +54,12 @@ void test_edges()
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL_GLIB_CXX      // testcases[45]
+#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL               // testcases[45]
             assert(is_about(r.real(), pi/2));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL_GLIB_CXX
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL_GLIB_CXX      // testcases[147]
+#endif
+#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL               // testcases[147]
             assert(std::isinf(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL_GLIB_CXX
+#endif
             assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
         }
         else if (std::isfinite(testcases[i].real()) && testcases[i].real() != 0 && std::isnan(testcases[i].imag()))
