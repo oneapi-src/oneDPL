@@ -40,7 +40,9 @@ void test_edges()
         {
             assert(r.real() == 1.0);
             assert(r.imag() == 0);
+#if !_PSTL_ICC_TEST_COMPLEX_EXP_BROKEN_TEST_EDGES
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
+#endif
         }
         else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
