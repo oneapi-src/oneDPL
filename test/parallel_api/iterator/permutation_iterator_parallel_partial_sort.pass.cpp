@@ -21,7 +21,7 @@
 // Requirements: only for random_access_iterator
 DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
 {
-    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_partial_sort)
+    DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_partial_sort, 1.0f, 1.0f)
 
     template <typename TIterator, typename Size>
     void generate_data(TIterator itBegin, TIterator itEnd, Size n)

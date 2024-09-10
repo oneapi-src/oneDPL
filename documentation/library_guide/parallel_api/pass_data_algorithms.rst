@@ -17,7 +17,7 @@ When using a host execution policy, you can use one of the following ways to pas
 
 When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
-* ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
+* ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers
 * ``std::vector`` with or without a USM allocator
 * The random access standard factories and adapters on top of the factories, std::vector with USM allocator, std::ranges::subrange, and std::span on top of the USM pointers.

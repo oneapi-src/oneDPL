@@ -326,13 +326,13 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
                   "Only binary operators with known identity values are supported");
 
     assert("This device does not support 64-bit atomics" &&
-           (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
+           (sizeof(_Type) < 8 || __queue.get_device().has(sycl::aspect::atomic64)));
 
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(__n);
 
     // Perform a single-work group scan if the input is small
-    if (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<_Type>(__queue, __n, __n_uniform))
+    if (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<_Type>(__queue, __n, __n_uniform, /*limit=*/16384))
     {
         return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
             oneapi::dpl::__internal::__device_backend_tag{},

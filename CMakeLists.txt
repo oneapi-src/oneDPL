@@ -31,7 +31,7 @@ option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation" OFF)
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 cmake_dependent_option(ONEDPL_TEST_WIN_ICX_FIXES "Enable icx workarounds for Windows" ON "CMAKE_HOST_WIN32;NOT _onedpl_is_subproject" OFF)
 
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/internal/version_impl.h
     _onedpl_version_info
     LIMIT 1024)
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_ver_major "${_onedpl_version_info}")
@@ -373,30 +373,6 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
         target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
         target_link_libraries(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
-    else()
-        # TODO: remove this "manual" -fsycl-pstl-offload suboption substitution and replace with FATAL_ERROR
-        # message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${FSYCL_PSTL_OFFLOAD_OPTION}")
-        message(STATUS "Adding manual ${FSYCL_PSTL_OFFLOAD_OPTION} compiler options")
-        if (_ONEDPL_PSTL_OFFLOAD STREQUAL default)
-            set(PSTL_OFFLOAD_MACRO_VALUE 1)
-        elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL cpu)
-            set(PSTL_OFFLOAD_MACRO_VALUE 2)
-        elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL gpu)
-            set(PSTL_OFFLOAD_MACRO_VALUE 3)
-        else()
-            message(FATAL_ERROR "Unknown value of _ONEDPL_PSTL_OFFLOAD = ${_ONEDPL_PSTL_OFFLOAD}")
-        endif()
-
-        target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
-        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=${PSTL_OFFLOAD_MACRO_VALUE}")
-    endif()
-
-    add_subdirectory(src)
-
-    # TODO remove explicit linkage with libpstloffload
-    if (NOT _fsycl_pstl_offload_option)
-        add_dependencies(oneDPL pstloffload)
-        target_link_libraries(oneDPL INTERFACE pstloffload)
     endif()
 endif()
 

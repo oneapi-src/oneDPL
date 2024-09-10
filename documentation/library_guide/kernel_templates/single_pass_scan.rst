@@ -7,7 +7,8 @@ inclusive_scan Function Template
 
 The ``inclusive_scan`` function computes the inclusive prefix sum using a given binary operation.
 The function implements a single-pass algorithm, where each input element is read exactly once from
-global memory and each output element is written to exactly once in global memory.
+global memory and each output element is written to exactly once in global memory. This function
+is an implementation of the Decoupled Look-back [#fnote1]_ scan algorithm.
 
 The algorithm is designed to be compatible with a variety of devices that provide at least parallel
 forward progress guarantees between work-groups, due to cross-work-group communication. Additionally, it
@@ -77,7 +78,7 @@ Parameters
 
   Current limitations:
 
-  - The function will internally block until the issued kernels have completed execution.
+  - The function is intended to be asynchronous, but in some cases, the function will not return until the algorithm fully completes.
     Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
   - The SYCL device associated with the provided queue must support 64-bit atomic operations if the element type is 64-bits.
   - There must be a known identity value for the provided combination of the element type and the binary operation. That is, ``sycl::has_known_identity_v`` must evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
@@ -146,9 +147,10 @@ Memory Requirements
 
 The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`__)
-for intermediate data storage. For the algorithm to operate correctly, there must be enough memory
-on the device. It throws a ``std::bad_alloc`` exception if there is not enough global device memory. The behavior is undefined if there is not enough local memory. The amount of memory that is required
-depends on input data and configuration parameters, as described below.
+for intermediate data storage. For the algorithm to operate correctly, there must be enough memory on the device.
+If there is not enough global device memory, a ``std::bad_alloc`` exception is thrown.
+The behavior is undefined if there is not enough local memory.
+The amount of memory that is required depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
 --------------------------
@@ -191,7 +193,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 - Generally, utilizing all available
   compute cores is key for better performance. To allow sufficient work to satisfy all
-  X\ :sup:`e`-cores [#fnote1]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
+  X\ :sup:`e`-cores [#fnote2]_ on a GPU, use ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
 
 - On devices with multiple tiles, it may prove beneficial to experiment with different tile hierarchies as described
   in `Options for using a GPU Tile Hierarchy <https://www.intel.com/content/www/us/en/developer/articles/technical/flattening-gpu-tile-hierarchy.html>`_.
@@ -202,7 +204,8 @@ The initial configuration may be selected according to these high-level guidelin
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
    Make sure that :ref:`Memory requirements <scan-memory-requirements>` are satisfied.
 
-.. [#fnote1] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
+.. [#fnote1] Merrill, D., Garland, M.: Single-pass Parallel Prefix Scan with Decoupled Look-back. Technical Report NVR-2016-002, NVIDIA (2016)
+.. [#fnote2] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
    <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
    Check the number of cores in the device specification, such as `Intel® Data Center GPU Max specification
    <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.

@@ -59,6 +59,8 @@
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
+#define _ONEDPL_SYCL_SUB_GROUP_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
+
 // Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
 // SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
 #ifndef _ONEDPL_DETECT_SPIRV_COMPILATION // Check if overridden for testing
@@ -129,7 +131,6 @@ using __maximum = sycl::maximum<_T>;
 
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
-
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T>
 using __plus = sycl::ONEAPI::plus<_T>;
@@ -140,6 +141,12 @@ using __maximum = sycl::ONEAPI::maximum<_T>;
 template <typename _T>
 using __minimum = sycl::ONEAPI::minimum<_T>;
 #endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
+
+#if _ONEDPL_SYCL_SUB_GROUP_PRESENT
+using __sub_group = sycl::sub_group;
+#else
+using __sub_group = sycl::ONEAPI::sub_group;
+#endif
 
 template <typename _Buffer>
 constexpr auto

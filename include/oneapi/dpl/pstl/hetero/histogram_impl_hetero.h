@@ -113,9 +113,7 @@ __make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_Rando
 }
 
 template <typename _Name>
-struct __hist_fill_zeros_wrapper
-{
-};
+struct __hist_fill_zeros_wrapper;
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
           typename _BinHash, typename _RandomAccessIterator2>
@@ -159,7 +157,7 @@ __pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rando
 
             __parallel_histogram(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
                                  __input_buf.all_view(), ::std::move(__bins), __binhash_manager)
-                .wait();
+                .__deferrable_wait();
         }
         else
         {

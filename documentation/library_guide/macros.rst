@@ -27,6 +27,23 @@ Macro                             Description
 ``_PSTL_VERSION_PATCH``           ``_PSTL_VERSION % 10``: The patch number.
 ================================= ==============================
 
+Feature Macros
+==============
+Use these macros to test presence of specific |onedpl_short| functionality.
+
+================================== ===============================================
+Macro                              Macro values and the functionality
+================================== ===============================================
+``ONEDPL_HAS_RANDOM_NUMBERS``      Pseudo-random number generators and distributions.
+
+                                   * ``202409L`` - added support of comparison and I/O stream operators and an experimental Philox engine
+---------------------------------- -----------------------------------------------
+``ONEDPL_HAS_RANGE_ALGORITHMS``    Parallel range algorithms.
+
+                                   * ``202409L`` - for_each, transform, find, find_if, find_if_not, any_of, all_of, none_of, adjacent_find, search, search_n,
+                                     count, count_if, equal, is_sorted, sort, stable_sort, min_element, max_element, copy, copy_if, merge
+================================== ===============================================
+
 Additional Macros
 ==================
 Use these macros to control aspects of |onedpl_short| usage. You can set them in your program code
@@ -94,11 +111,17 @@ Macro                              Description
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
                                    or evaluates to non-zero, predefined policies objects can be used.
                                    When the macro is set to 0, predefined policies objects and make functions
-                                   without arguments, when ``make_device_policy()``,
-                                   ``make_fpga_policy()``, are not available.
+                                   without arguments (``make_device_policy()`` and ``make_fpga_policy()``) are not available.
 ---------------------------------- ------------------------------
 ``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with
                                    device policies to be deferred. (Disabled by default.)
+
+                                   When the macro evaluates to non-zero, a call to a oneDPL algorithm with
+                                   a device policy might return before the computation completes on the device.
+
+                                   .. Warning:: Before accessing data produced or modified by the call, waiting
+                                      for completion of all tasks in the corresponding SYCL queue is required;
+                                      otherwise, the program behavior is undefined.
 ---------------------------------- ------------------------------
 ``ONEDPL_FPGA_DEVICE``             Use this macro to build your code containing |onedpl_short| parallel
                                    algorithms for FPGA devices. (Disabled by default.)

@@ -16,21 +16,8 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#ifndef _PSTL_VERSION
-#    define _PSTL_VERSION 11000
-#    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
-#    define _PSTL_VERSION_MINOR ((_PSTL_VERSION % 1000) / 10)
-#    define _PSTL_VERSION_PATCH (_PSTL_VERSION % 10)
-#endif
-
-#define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 6
-#define ONEDPL_VERSION_PATCH 0
-
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
-#    include <version>
-#    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
-#endif
+#include "../internal/version_impl.h"
+// The version header also defines a few configuration macros used in this file
 
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
@@ -317,6 +304,12 @@
 #define _ONEDPL_CAN_USE_STD_TUPLE_PROXY_ITERATOR                                                                       \
     (!_ONEDPL_CPP20_CONCEPTS_PRESENT ||                                                                                \
      (_ONEDPL_CPP23_RANGES_ZIP_PRESENT && _ONEDPL_CPP23_TUPLE_LIKE_COMMON_REFERENCE_PRESENT))
+
+#if _ONEDPL_CPP20_CONCEPTS_PRESENT
+#    define _ONEDPL_CPP20_REQUIRES(req) requires(req)
+#else
+#    define _ONEDPL_CPP20_REQUIRES(req)
+#endif
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 

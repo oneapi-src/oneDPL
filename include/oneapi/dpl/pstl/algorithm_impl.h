@@ -104,7 +104,7 @@ __for_each_n_it_serial(_ForwardIterator __first, _Size __n, _Function __f)
 //------------------------------------------------------------------------
 template <class _ForwardIterator, class _Function>
 void
-__brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, /*vector=*/::std::false_type) noexcept
+__brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, /*vector=*/::std::false_type)
 {
     ::std::for_each(__first, __last, __f);
 }
@@ -112,7 +112,7 @@ __brick_walk1(_ForwardIterator __first, _ForwardIterator __last, _Function __f, 
 template <class _RandomAccessIterator, class _Function>
 void
 __brick_walk1(_RandomAccessIterator __first, _RandomAccessIterator __last, _Function __f,
-              /*vector=*/::std::true_type) noexcept
+              /*vector=*/::std::true_type)
 {
     __unseq_backend::__simd_walk_1(__first, __last - __first, __f);
 }
@@ -137,7 +137,7 @@ __brick_walk1(_DifferenceType __n, _Function __f, ::std::true_type) noexcept
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
-__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f) noexcept
+__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     static_assert(__is_serial_tag_v<_Tag>);
 
@@ -212,7 +212,7 @@ __brick_walk1_n(_ForwardIterator __first, _Size __n, _Function __f, /*_IsVectorT
 template <class _RandomAccessIterator, class _DifferenceType, class _Function>
 _RandomAccessIterator
 __brick_walk1_n(_RandomAccessIterator __first, _DifferenceType __n, _Function __f,
-                /*vectorTag=*/::std::true_type) noexcept
+                /*vectorTag=*/::std::true_type)
 {
     return __unseq_backend::__simd_walk_1(__first, __n, __f);
 }
@@ -756,8 +756,9 @@ __find_subrange(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _
     while (__first != __last && (__global_last - __first >= __n2))
     {
         // find position of *s_first in [first, last) (it can be start of subsequence)
-        __first = __internal::__brick_find_if(
-            __first, __last, __equal_value_by_pred<_ValueType, _BinaryPredicate&>(*__s_first, __pred), __is_vector);
+        auto __u_pred =
+            [__pred, __s_first](auto&& __val) mutable { return __pred(std::forward<decltype(__val)>(__val), *__s_first); };
+        __first = __internal::__brick_find_if(__first, __last, __u_pred, __is_vector);
 
         // if position that was found previously is the start of subsequence
         // then we can exit the loop (b_first == true) or keep the position
@@ -804,7 +805,8 @@ __find_subrange(_RandomAccessIterator __first, _RandomAccessIterator __last, _Ra
         return __last;
     }
 
-    auto __unary_pred = __equal_value_by_pred<_Tp, _BinaryPredicate&>(__value, __pred);
+    auto __unary_pred =
+        [__pred, &__value](auto&& __val) mutable { return __pred(std::forward<decltype(__val)>(__val), __value); };
     while (__first != __last && (static_cast<_Size>(__global_last - __first) >= __count))
     {
         __first = __internal::__brick_find_if(__first, __last, __unary_pred, __is_vector);
@@ -1021,9 +1023,9 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 {
     if (static_cast<_Size>(__last - __first) == __count)
     {
-        const bool __result =
-            !__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                          [&__value, &__pred](const _Tp& __val) { return !__pred(__val, __value); });
+        const bool __result = !__internal::__pattern_any_of(__tag, std::forward<_ExecutionPolicy>(__exec), __first,
+            __last, [&__value, __pred](auto&& __val) mutable { return !__pred(std::forward<decltype(__val)>(__val),
+            __value); });
         return __result ? __first : __last;
     }
     else
@@ -2392,10 +2394,10 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
 // sort
 //------------------------------------------------------------------------
 
-template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsMoveConstructible>
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
-               _IsMoveConstructible) noexcept
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
+               _Compare __comp) noexcept
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
@@ -2405,8 +2407,7 @@ __pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomA
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
 __pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
-               _RandomAccessIterator __last, _Compare __comp,
-               /*is_move_constructible=*/::std::true_type)
+               _RandomAccessIterator __last, _Compare __comp)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
@@ -2466,11 +2467,9 @@ __pattern_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
-    ::std::sort(__beg, __end, __cmp_f);
+    std::sort(__beg, __end, __cmp_f);
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
@@ -2479,23 +2478,55 @@ void
 __pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp)
 {
-    static_assert(
-        ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator1>::value_type> &&
-            ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator2>::value_type>,
-        "The keys and values should be move constructible in case of parallel execution.");
-
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
-        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
-    };
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
 
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
-            [](auto __first, auto __last, auto __cmp) { ::std::sort(__first, __last, __cmp); }, __end - __beg);
+            [](auto __first, auto __last, auto __cmp) { std::sort(__first, __last, __cmp); }, __end - __beg);
+    });
+}
+
+//------------------------------------------------------------------------
+// stable_sort_by_key
+//------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+          typename _Compare>
+void
+__pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first,
+                             _Compare __comp) noexcept
+{
+    static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
+
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
+
+    std::stable_sort(__beg, __end, __cmp_f);
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
+          typename _RandomAccessIterator2, typename _Compare>
+void
+__pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp)
+{
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(std::get<0>(__a), std::get<0>(__b)); };
+
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    __internal::__except_handler([&]() {
+        __par_backend::__parallel_stable_sort(
+            __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
+            [](auto __first, auto __last, auto __cmp) { std::stable_sort(__first, __last, __cmp); }, __end - __beg);
     });
 }
 

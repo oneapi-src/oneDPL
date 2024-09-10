@@ -36,6 +36,9 @@
 #include <sstream>
 #include <vector>
 #include <tuple>
+#include <random>
+#include <limits>
+#include <cassert>
 
 #include "utils_const.h"
 #include "iterator_utils.h"
@@ -777,6 +780,37 @@ struct UserBinaryPredicate
     }
 };
 
+template <typename T>
+struct MatrixPoint
+{
+    T m;
+    T n;
+    MatrixPoint() = default;
+    MatrixPoint(T m, T n = {}) : m(m), n(n) {}
+    bool
+    operator==(const MatrixPoint& other) const
+    {
+        return m == other.m && n == other.n;
+    }
+    bool
+    operator!=(const MatrixPoint& other) const
+    {
+        return !(*this == other);
+    }
+    MatrixPoint
+    operator+(const MatrixPoint& other) const
+    {
+        return MatrixPoint(m + other.m, n + other.n);
+    }
+};
+
+template <typename T>
+std::ostream&
+operator<<(std::ostream& os, MatrixPoint<T> matrix_point)
+{
+    return os << "(" << matrix_point.m << ", " << matrix_point.n << ")";
+}
+
 template <typename _Tp>
 struct MaxFunctor
 {
@@ -787,20 +821,18 @@ struct MaxFunctor
     }
 };
 
-// TODO: Investigate why we cannot call ::std::abs on complex
-// types with the CUDA backend.
 template <typename _Tp>
-struct MaxFunctor<::std::complex<_Tp>>
+struct MaxFunctor<MatrixPoint<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    sum(const MatrixPoint<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return __x.m + __x.n;
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    MatrixPoint<_Tp>
+    operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (complex_abs(__x) < complex_abs(__y)) ? __y : __x;
+        return (sum(__x) < sum(__y)) ? __y : __x;
     }
 };
 
@@ -809,17 +841,17 @@ struct MaxAbsFunctor;
 
 // A modification of the functor we use in reduce_by_segment
 template <typename _Tp>
-struct MaxAbsFunctor<::std::complex<_Tp>>
+struct MaxAbsFunctor<MatrixPoint<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    abs_sum(const MatrixPoint<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return std::sqrt(__x.m * __x.m + __x.n * __x.n);
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    MatrixPoint<_Tp>
+    operator()(const MatrixPoint<_Tp>& __x, const MatrixPoint<_Tp>& __y) const
     {
-        return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+        return (abs_sum(__x) < abs_sum(__y)) ? abs_sum(__y) : abs_sum(__x);
     }
 };
 
@@ -930,6 +962,40 @@ get_new_kernel_params(KernelParams)
 }
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
+template <typename T>
+typename std::enable_if_t<std::is_arithmetic_v<T>>
+generate_arithmetic_data(T* input, std::size_t size, std::uint32_t seed)
+{
+    std::default_random_engine gen{seed};
+    // The values beyond the threshold (75%) are duplicates of the values within the threshold
+    std::size_t unique_threshold = 75 * size / 100;
+    if constexpr (std::is_integral_v<T>)
+    {
+        // no uniform_int_distribution for chars
+        using GenT = std::conditional_t<sizeof(T) < sizeof(short), int, T>;
+        std::uniform_int_distribution<GenT> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        std::generate(input, input + unique_threshold, [&] { return T(dist(gen)); });
+    }
+    else
+    {
+        // log2 - exp2 transformation allows generating floating point values,
+        // which distribution resembles uniform distribution of their bit representation
+        // This is useful for checking different cases of radix sort
+        std::uniform_real_distribution<T> dist_real(std::numeric_limits<T>::min(), log2(std::numeric_limits<T>::max()));
+        std::uniform_int_distribution<int> dist_binary(0, 1);
+        auto randomly_signed_real = [&dist_real, &dist_binary, &gen]()
+        {
+            auto v = exp2(dist_real(gen));
+            return dist_binary(gen) == 0 ? v : -v;
+        };
+        std::generate(input, input + unique_threshold, [&] { return randomly_signed_real(); });
+    }
+    assert(unique_threshold >= size/2 && unique_threshold < size);
+    for (uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
+    {
+        input[j] = input[i];
+    }
+}
 } /* namespace TestUtils */
 
 #endif // _UTILS_H

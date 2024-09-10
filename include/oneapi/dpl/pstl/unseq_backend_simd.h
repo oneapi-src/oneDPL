@@ -34,7 +34,7 @@ const ::std::size_t __lane_size = 64;
 
 template <class _Iterator, class _DifferenceType, class _Function>
 _Iterator
-__simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f) noexcept
+__simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f)
 {
     _ONEDPL_PRAGMA_SIMD
     for (_DifferenceType __i = 0; __i < __n; ++__i)
@@ -661,17 +661,14 @@ __simd_min_element(_ForwardIterator __first, _Size __n, _Compare __comp) noexcep
             : __min_val(val), __min_ind(0), __min_comp(const_cast<_Compare*>(comp))
         {
         }
-        _ComplexType(const _ComplexType& __obj)
-            : __min_val(__obj.__min_val), __min_ind(__obj.__min_ind), __min_comp(__obj.__min_comp)
-        {
-        }
+        _ComplexType(const _ComplexType& __obj) = default;
 
         _ONEDPL_PRAGMA_DECLARE_SIMD
         void
         operator()(const _ComplexType& __obj)
         {
-            if (!(*__min_comp)(__min_val, __obj.__min_val) &&
-                ((*__min_comp)(__obj.__min_val, __min_val) || __obj.__min_ind - __min_ind < 0))
+            if (!std::invoke(*__min_comp, __min_val, __obj.__min_val) &&
+                (std::invoke(*__min_comp, __obj.__min_val, __min_val) || __obj.__min_ind - __min_ind < 0))
             {
                 __min_val = __obj.__min_val;
                 __min_ind = __obj.__min_ind;
@@ -725,11 +722,7 @@ __simd_minmax_element(_ForwardIterator __first, _Size __n, _Compare __comp) noex
               __minmax_comp(const_cast<_Compare*>(comp))
         {
         }
-        _ComplexType(const _ComplexType& __obj)
-            : __min_val(__obj.__min_val), __max_val(__obj.__max_val), __min_ind(__obj.__min_ind),
-              __max_ind(__obj.__max_ind), __minmax_comp(__obj.__minmax_comp)
-        {
-        }
+        _ComplexType(const _ComplexType& __obj) = default;
 
         _ONEDPL_PRAGMA_DECLARE_SIMD
         void
@@ -830,11 +823,11 @@ __simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _Forwa
     // Otherwise, vice versa.
     if (__n1 < __n2)
     {
+        auto __u_pred =
+            [__pred, __first](auto&& __val) mutable { return __pred(std::forward<decltype(__val)>(__val), *__first); };
         for (; __first != __last; ++__first)
         {
-            if (__unseq_backend::__simd_or(
-                    __s_first, __n2,
-                    __internal::__equal_value_by_pred<decltype(*__first), _BinaryPredicate&>(*__first, __pred)))
+            if (__unseq_backend::__simd_or(__s_first, __n2, __u_pred))
             {
                 return __first;
             }

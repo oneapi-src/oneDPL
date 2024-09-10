@@ -56,15 +56,15 @@ __pattern_any_of(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIte
 
 template <class _ForwardIterator, class _Function>
 void __brick_walk1(_ForwardIterator, _ForwardIterator, _Function,
-                   /*vector=*/::std::false_type) noexcept;
+                   /*vector=*/::std::false_type);
 
 template <class _RandomAccessIterator, class _Function>
 void __brick_walk1(_RandomAccessIterator, _RandomAccessIterator, _Function,
-                   /*vector=*/::std::true_type) noexcept;
+                   /*vector=*/::std::true_type);
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
 void
-__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function) noexcept;
+__pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
@@ -93,7 +93,7 @@ _ForwardIterator __brick_walk1_n(_ForwardIterator, _Size, _Function,
 
 template <class _RandomAccessIterator, class _DifferenceType, class _Function>
 _RandomAccessIterator __brick_walk1_n(_RandomAccessIterator, _DifferenceType, _Function,
-                                      /*vectorTag=*/::std::true_type) noexcept;
+                                      /*vectorTag=*/::std::true_type);
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
 _ForwardIterator
@@ -741,15 +741,13 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomA
 // sort
 //------------------------------------------------------------------------
 
-template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsMoveConstructible>
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-               _IsMoveConstructible) noexcept;
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare) noexcept;
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 void
-__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-               /*is_move_constructible=*/::std::true_type);
+__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare);
 
 //------------------------------------------------------------------------
 // stable_sort
@@ -768,7 +766,7 @@ __pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAcce
 // sort_by_key
 //------------------------------------------------------------------------
 
-template <class _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare>
 void
 __pattern_sort_by_key(_Tag, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2,
@@ -779,6 +777,22 @@ template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessI
 void
 __pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
                       _RandomAccessIterator2, _Compare);
+
+//------------------------------------------------------------------------
+// stable_sort_by_key
+//------------------------------------------------------------------------
+
+template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+          typename _Compare>
+void
+__pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                             _RandomAccessIterator2, _Compare) noexcept;
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
+          typename _RandomAccessIterator2, typename _Compare>
+void
+__pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                             _RandomAccessIterator1, _RandomAccessIterator2, _Compare);
 
 //------------------------------------------------------------------------
 // partial_sort
@@ -803,10 +817,11 @@ _RandomAccessIterator
 __pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
                             _RandomAccessIterator, _Compare) noexcept;
 
-template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
-_RandomAccessIterator
-__pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
-                            _RandomAccessIterator, _Compare) noexcept;
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Compare>
+_RandomAccessIterator2
+__pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                            _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator2, _Compare);
 
 //------------------------------------------------------------------------
 // adjacent_find
