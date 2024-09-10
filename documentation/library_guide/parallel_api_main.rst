@@ -36,7 +36,8 @@ required ranges, and experimental asynchronous algorithms.
 
    parallel_api/execution_policies
    parallel_api/iterators
-   parallel_api/async_api
-   parallel_api/range_based_api
+   parallel_api/parallel_range_algorithms
    parallel_api/additional_algorithms
    parallel_api/pass_data_algorithms
+   parallel_api/async_api
+   parallel_api/range_based_api
