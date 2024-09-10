@@ -76,6 +76,18 @@ on Linux* (depending on the code, parameters within [] could be unnecessary):
 
   icpx [-fsycl] [-fiopenmp] program.cpp [-ltbb] -o program
 
+You may also use `the -fsycl-pstl-offload option
+<https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/fsycl-pstl-offload.html>`_
+of |dpcpp_cpp| powered by |onedpl_short| to build the standard C++ code for execution on a SYCL device:
+
+.. code:: cpp
+
+  icpx -fsycl -fsycl-pstl-offload=gpu program.cpp -o program
+
+This option redirects C++ parallel algorithms invoked with the ``std::execution::par_unseq`` policy
+to |onedpl_short| algortihms. It does not change the behavior of the |onedpl_short| execution policies and algorithms
+that are directly used in the code.
+
 Useful Information
 ==================
 
@@ -93,7 +105,6 @@ Difference with Standard C++ Parallel Algorithms
 * The following algorithms require additional O(n) memory space for parallel execution:
   ``copy_if``, ``inplace_merge``, ``partial_sort``, ``partial_sort_copy``, ``partition_copy``,
   ``remove``, ``remove_if``, ``rotate``, ``sort``, ``stable_sort``, ``unique``, ``unique_copy``.
-
 
 Restrictions
 ************
@@ -113,10 +124,9 @@ When called with device execution policies, |onedpl_short| algorithms apply the 
 Known Limitations
 *****************
 
-* When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
-  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
-  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
-  in accordance with the ``-fsycl-pstl-offload`` option value.
+* The ``oneapi::dpl::execution::par_unseq`` policy is affected by ``-fsycl-pstl-offload`` option of |dpcpp_cpp|
+  when |onedpl_short| substitutes this policy for the ``std::execution::par_unseq`` policy
+  missing in a standard C++ library, particularly in ``libstdc++`` version 8 and in ``libc++``.
 * For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``,
   it is required that the provided input and destination iterators are equality comparable.
@@ -127,8 +137,8 @@ Known Limitations
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   unsequenced execution policies when building a program with GCC 10 and using ``-O0`` option.
-* Compiling ``reduce`` and ``transform_reduce`` algorithms with the Intel DPC++ Compiler, versions 2021 and older,
-  may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
+* Compiling ``reduce`` and ``transform_reduce`` algorithms with |dpcpp_cpp| versions 2021 and older,
+  may result in a runtime error. To fix this issue, use |dpcpp_cpp| version 2022 or newer.
 * When compiling on Windows, add the option ``/EHsc`` to the compilation command to avoid errors with oneDPL's experimental
   ranges API that uses exceptions.
 * The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
@@ -164,5 +174,3 @@ Known Limitations
 * The algorithms that destroy data: ``destroy`` and ``destroy_n`` should be called with a host policy for data
   that was initialized on the host, and should be called with a device policy for data that was initialized
   on the device. Otherwise, the result is undefined.
-
-.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
