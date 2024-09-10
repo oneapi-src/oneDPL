@@ -124,7 +124,10 @@ run_test()
         __fnc();                                                                                      \
     }
 #define IF_LONG_DOUBLE_SUPPORT_L(...)                                                                 \
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), __VA_ARGS__);
+    if constexpr (HasLongDoubleSupportInCompiletime{})                                                \
+    {                                                                                                 \
+        __VA_ARGS__;                                                                                  \
+    }
 
 namespace TestUtils
 {
