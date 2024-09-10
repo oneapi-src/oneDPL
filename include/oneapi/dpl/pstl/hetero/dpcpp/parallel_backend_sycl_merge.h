@@ -47,7 +47,7 @@ namespace __par_backend_hetero
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
 auto
 __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
-                   const _Index __n2, const _Compare& __comp)
+                   const _Index __n2, _Compare __comp)
 {
     //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
     oneapi::dpl::counting_iterator<_Index> __diag_it(0);
@@ -58,7 +58,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, &__comp](const auto& __i_diag, const auto& __value) mutable {
+                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
                                  const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
                                  return __zero_or_one < __value;
                              });
@@ -70,7 +70,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, &__comp](const auto& __i_diag, const auto& __value) mutable {
+                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
                                  const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
                                  return __zero_or_one < __value;
                              });
@@ -84,7 +84,7 @@ template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typen
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
                const _Index __start3, const std::uint16_t __chunk, const _Index __n1, const _Index __n2,
-               const _Compare& __comp)
+               _Compare __comp)
 {
     if (__start1 >= __n1)
     {
@@ -139,8 +139,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3,
-               const _Compare& __comp) const
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
@@ -156,8 +155,6 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         {
             if (__n >= 16'777'216)
                 __chunk = 256;
-            else if (__n > 4'194'304)
-                __chunk = 8;
             else
                 __chunk = 4;
         }
