@@ -22,7 +22,7 @@ page for:
 * Known Issues and Limitations
 * Previous Release Notes
 
-Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv>`_
+Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html>`_
 to use |onedpl_short|.
 
 System Requirements

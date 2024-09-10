@@ -2,7 +2,7 @@ ESIMD-Based Kernel Templates
 ############################
 
 The ESIMD kernel templates are based on `Explicit SIMD SYCL extension
-<https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/explicit-simd-sycl-extension.html>`_
+<https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/explicit-simd-sycl-extension.html>`_
 of Intel® oneAPI DPC++/C++ Compiler.
 This technology only supports Intel GPU devices.
 
