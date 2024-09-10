@@ -117,7 +117,66 @@ void test_edges()
     }
 }
 
-ONEDPL_TEST_NUM_MAIN
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
+int
+run_test();
+int
+main(int, char**)
+{
+#ifdef _MSC_VER
+    std::cout << "_MSC_VER = " << _MSC_VER << std::endl;
+#else
+    std::cout << "_MSC_VER is undefined" << std::endl;
+#endif
+
+#ifdef __cplusplus
+    std::cout << "__cplusplus = " << __cplusplus << std::endl;
+#else
+    std::cout << "__cplusplus is undefined" << std::endl;
+#endif
+
+#ifdef __INTEL_LLVM_COMPILER
+    std::cout << "__INTEL_LLVM_COMPILER = " << __INTEL_LLVM_COMPILER << std::endl;
+#else
+    std::cout << "__INTEL_LLVM_COMPILER is undefined" << std::endl;
+#endif
+
+#ifdef _PSTL_TEST_LATEST_INTEL_LLVM_COMPILER
+    std::cout << "_PSTL_TEST_LATEST_INTEL_LLVM_COMPILER = " << _PSTL_TEST_LATEST_INTEL_LLVM_COMPILER << std::endl;
+#else
+    std::cout << "_PSTL_TEST_LATEST_INTEL_LLVM_COMPILER is undefined" << std::endl;
+#endif
+
+#ifdef __GLIBCXX__
+    std::cout << "__GLIBCXX__ = " << __GLIBCXX__ << std::endl;
+#else
+    std::cout << "__GLIBCXX__ is undefined" << std::endl;
+#endif
+
+#ifdef _PSTL_TEST_LATEST_GLIBCXX
+    std::cout << "_PSTL_TEST_LATEST_GLIBCXX = " << _PSTL_TEST_LATEST_GLIBCXX << std::endl;
+#else
+    std::cout << "_PSTL_TEST_LATEST_GLIBCXX is undefined" << std::endl;
+#endif
+
+    static_assert(!is_fast_math_switched_on(),
+                  "Tests of std::complex are not compatible with -ffast-math compiler option.");
+
+    std::cout << "Run test on host" << std::endl;
+    run_test<::std::true_type, ::std::true_type>();
+
+    std::cout << "Run test in Kernel" << std::endl;
+    using HasDoubleTypeSupportInRuntime = ::std::true_type;
+    using HasntDoubleTypeSupportInRuntime = ::std::false_type;
+    using HasntLongDoubleSupportInCompiletime = ::std::false_type;
+    TestUtils::run_test_in_kernel(
+        [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },
+        [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); });
+    return TestUtils::done();
+}
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>
+int
+run_test()
 {
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
