@@ -118,7 +118,11 @@ run_test()
 
 // We should use this macros to avoid compile-time error in code with long double type in Kernel.
 #define IF_LONG_DOUBLE_SUPPORT(...)                                                                   \
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { __VA_ARGS__; });
+    if constexpr (HasLongDoubleSupportInCompiletime{})                                                \
+    {                                                                                                 \
+        auto __fnc = []() { __VA_ARGS__; };                                                           \
+        __fnc();                                                                                      \
+    }
 #define IF_LONG_DOUBLE_SUPPORT_L(...)                                                                 \
     TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), __VA_ARGS__);
 
