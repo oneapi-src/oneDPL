@@ -74,9 +74,8 @@ on Linux* (depending on the code, parameters within [] could be unnecessary):
 
   icpx [-fsycl] [-fiopenmp] program.cpp [-ltbb] -o program
 
-You may also use `the -fsycl-pstl-offload option
-<https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/fsycl-pstl-offload.html>`_
-of |dpcpp_cpp| powered by |onedpl_short| to build the standard C++ code for execution on a SYCL device:
+You may also use the |pstl_offload_option|_ of |dpcpp_cpp| powered by |onedpl_short|
+to build the standard C++ code for execution on a SYCL device:
 
 .. code::
 
