@@ -53,6 +53,17 @@ inline auto default_selector =
     sycl::default_selector{};
 #    endif
 
+template <typename _Buf>
+auto
+__get_host_access(_Buf&& __buf)
+{
+#    if TEST_LIBSYCL_VERSION >= 60200
+    return std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
+#    else
+    return std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#    endif
+}
+
 class canary_test_name;
 
 int
@@ -63,12 +74,12 @@ test()
     sycl::buffer<int> buf(count);
     q.submit([&](sycl::handler& cgh) {
         sycl::accessor acc(buf, cgh, sycl::write_only);
-        cgh.parallel_for<canary_test_name>(sycl::range</*dim=*/1>(count), [=](sycl::item</*dim=*/1> __item_id) {
-            auto __idx = __item_id.get_linear_id();
-            acc[__idx] = __idx;
+        cgh.parallel_for<canary_test_name>(sycl::range</*dim=*/1>(count), [=](sycl::item</*dim=*/1> item_id) {
+            auto idx = item_id.get_linear_id();
+            acc[idx] = idx;
         });
     });
-    auto host_acc = buf.get_access<sycl::access::mode::read>();
+    auto host_acc = __get_host_access(buf);
     for (int i = 0; i < count; ++i)
     {
         if (host_acc[i] != i)
@@ -86,21 +97,21 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
 #    if _MSC_VER
-    char* pValue;
+    char* env_value = nullptr;
     size_t len;
-    errno_t err = _dupenv_s(&pValue, &len, "_ONEDPL_SKIP_SYCL_CANARY_TEST");
+    errno_t err = _dupenv_s(&env_value, &len, "_ONEDPL_SKIP_SYCL_CANARY_TEST");
     if (err)
     {
         std::cout << "Environment variable gather failed\n";
         return 1;
     }
 #    else  // _MSC_VER
-    const char* pValue = std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST");
+    const char* env_value = std::getenv("_ONEDPL_SKIP_SYCL_CANARY_TEST");
 #    endif // _MSC_VER
-    bool __skip_sycl_canary_test = (pValue != nullptr);
+    bool skip_sycl_canary_test = (env_value != nullptr);
     // This environment variable allows our main CI run to skip this test and not count it toward oneDPL's test
     // statistics, while still allowing non-ci test runs to have this as a environment health indicater.
-    if (!__skip_sycl_canary_test)
+    if (!skip_sycl_canary_test)
     {
         return test();
     }
