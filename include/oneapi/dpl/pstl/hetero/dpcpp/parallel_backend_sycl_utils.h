@@ -826,14 +826,16 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 
 // This exception handler is intended to handle a software workaround by IGC for a hardware bug that
 // causes IGC to throw a sycl::errc::kernel_not_supported exception for certain integrated graphics
-// devices. If a separate synchronous exception is encountered, then throw to the user.
+// devices.
 struct __bypass_sycl_kernel_not_supported
 {
     void
     operator()(const sycl::exception& __e) const
     {
-        if (__e.code() != sycl::errc::kernel_not_supported)
-            throw;
+        // TODO: We are currently just suppressing any synchronous SYCL exception. The best solution
+        // would be to compare __e.code() and sycl::errc::kernel_not_supported and rethrow the encountered exception
+        // if the two do not compare equal. However, the compiler currently returns a generic error code which is not
+        // compliant with the SYCL spec and this approach cannot be used until error code issue is resolved.
     }
 };
 
