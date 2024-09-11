@@ -7,7 +7,7 @@
 .. |dpcpp_cpp_with_gsg_link| replace:: Intel® oneAPI DPC++/C++ Compiler
 .. _dpcpp_cpp_with_gsg_link: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-2/overview.html
 
-.. |dpcpp_cmake_support| replace:: CMake Support Page
+.. |dpcpp_cmake_support| replace:: CMake support documentation for the Intel® oneAPI DPC++/C++ Compiler
 .. _dpcpp_cmake_support: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-2/use-cmake-with-the-compiler.html
 
 .. |vector_pragma| replace:: pragma vector documentation in the Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference

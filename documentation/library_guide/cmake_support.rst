@@ -20,7 +20,7 @@ The minimal supported CMake version for |onedpl_short| is 3.11 on Linux and 3.20
 The supported `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_
 for Linux is `Unix Makefiles <https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html>`_ (default).
 In the Windows environment, the supported generator is `Ninja <https://cmake.org/cmake/help/latest/generator/Ninja.html>`_
-as described in the |dpcpp_cmake_support|_ which may be specified via ``-GNinja``.
+which may be specified via ``-GNinja`` as described in the |dpcpp_cmake_support|_.
 
 |onedpl_short| Backend Options
 ==============================
