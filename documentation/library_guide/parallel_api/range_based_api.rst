@@ -1,15 +1,15 @@
 Experimental Range-Based API
 ############################
 
-The oneapi::dpl::experimental::ranges namespace supports integration with oneDPL ranges
-introducing by oneapi::dpl::experimental::ranges namespace, allowing you to leverage oneDPL parallel algorithms
+The ``oneapi::dpl::experimental::ranges`` namespace supports integration with oneDPL ranges
+introducing by ``oneapi::dpl::experimental::ranges`` namespace, allowing you to leverage oneDPL parallel algorithms
 with the range functionality like the Ranges Library from C++20 standard.
 The functionality is implemented for the device execution policies only and requires C++17.
 
 
 .. Note::
 
-  The use of the oneapi::dpl::experimental::ranges requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
+  The use of the ``oneapi::dpl::experimental::ranges`` requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
 Range Views
 -----------

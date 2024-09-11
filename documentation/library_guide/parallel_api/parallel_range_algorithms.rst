@@ -10,13 +10,13 @@ or another adapted range, into a view with custom behavior.
 to elements at any position in the range. This enables effective workload distribution among multiple threads
 or processing units, which is crucial for achieving high performance in parallel execution.
 
-The oneapi::dpl::ranges namespace supports integration with the Ranges Library coming with the C++20 standard
-and introduced by std::ranges namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm.
+The ``oneapi::dpl::ranges`` namespace supports integration with the Ranges Library coming with the C++20 standard
+and introduced by ``std::ranges`` namespace, allowing you to leverage oneDPL parallel algorithms with the standard ranges paradigm.
 The functionality is implemented for the host and the device execution policies and requires C++20.
 
 .. Note::
 
-  The use of the oneapi::dpl::ranges requires C++20 and the C++ standard libraries coming with GCC 10 (or higher) or Clang 10 (or higher).
+  The use of the ``oneapi::dpl::ranges`` requires C++20 and the C++ standard libraries coming with GCC 10 (or higher) or Clang 10 (or higher).
 
 
 Supported Range Views
@@ -27,7 +27,7 @@ The following C++ standard random access adaptors and factories are supported wi
 * ``std::ranges::views::all``: A range adaptor object that returns a view that includes all elements of its range argument.
 * ``std::ranges::iota_view``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
 * ``std::ranges::single_view``: A view that contains exactly one element of a specified value.
-* ``std::ranges::subrange``: A utility that combines together an iterator and a sentinel into a single object that models a view.
+* ``std::ranges::subrange``: A utility that combines an iterator and a sentinel into a single object that models a view.
 * ``std::ranges::transform_view``: A range adaptor that represents a view of a underlying sequence after applying a transformation to each element.
 * ``std::ranges::reverse_view``: A range adaptor that produces a reversed sequence of elements provided by another view.
 * ``std::ranges::take_view``: A range adaptor that produces a view of the first N elements from another view.
