@@ -124,7 +124,7 @@ Known Limitations
 
 * The ``oneapi::dpl::execution::par_unseq`` policy is affected by ``-fsycl-pstl-offload`` option of |dpcpp_cpp|
   when |onedpl_short| substitutes this policy for the ``std::execution::par_unseq`` policy
-  missing in a standard C++ library, particularly in ``libstdc++`` version 8 and in ``libc++``.
+  missing in a standard C++ library, particularly in libstdc++ version 8 and in libc++.
 * For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``,
   it is required that the provided input and destination iterators are equality comparable.
