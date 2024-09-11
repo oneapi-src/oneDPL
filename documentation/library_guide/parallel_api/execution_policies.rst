@@ -173,7 +173,7 @@ Use it to create customized policy objects or pass directly when invoking an alg
    Specifying the unroll factor for a policy enables loop unrolling in the implementation of
    |onedpl_short| algorithms. The default value is 1.
    To find out how to choose a more precise value, refer to the |unroll_pragma|_
-   and |loop_analysis|_ content in the |fpga_hdbk|_.
+   and |loop_analysis|_ content in the |fpga_handbook|_.
 
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 
