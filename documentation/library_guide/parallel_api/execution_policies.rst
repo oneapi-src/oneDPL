@@ -11,7 +11,7 @@ The execution policies are defined in the ``oneapi::dpl::execution`` namespace a
 in the ``oneapi/dpl/execution`` header. The policies have the following meaning:
 
 ================================= ==============================
-Execution Policy Value            Description
+Execution Policy Value or Type    Description
 ================================= ==============================
 ``seq``                           The standard aligned policy for sequential execution.
 --------------------------------- ------------------------------
