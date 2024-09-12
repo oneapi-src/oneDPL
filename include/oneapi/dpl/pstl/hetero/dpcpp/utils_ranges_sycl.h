@@ -421,7 +421,7 @@ struct __get_sycl_range
     }
 
   private:
-    //We have to keep sycl buffer(s) instance here by sync reasons;
+    // We have to keep sycl buffer(s) instance here by sync reasons;
     std::vector<std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     template <sycl::access::mode _LocalAccMode>
