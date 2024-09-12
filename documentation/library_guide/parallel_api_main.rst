@@ -7,6 +7,9 @@ supports the unsequenced execution policy and the ``shift_left``/``shift_right``
 in C++20. For more details see the `C++ Standard Execution Policies
 <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_.
 
+Extending the capabilities of `range algorithms <https://en.cppreference.com/w/cpp/algorithm/ranges>`_ in C++20,
+the Parallel API provides analogous *parallel range algorithms* that execute according to an execution policy.
+
 |onedpl_long| (|onedpl_short|) provides specific versions of some algorithms, including:
 
 * Segmented reduce
@@ -14,7 +17,6 @@ in C++20. For more details see the `C++ Standard Execution Policies
 * Vectorized search algorithms
 * Sorting of key-value pairs
 * Conditional transform
-* Range-based API versions of the algorithms
 
 Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
 processors and heterogeneity support with a DPC++ based implementation for device execution policies.
