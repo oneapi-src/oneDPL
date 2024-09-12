@@ -13,23 +13,24 @@ the calling code must prevent data races when using algorithms with parallel exe
 
 When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
-* ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions for a SYCL buffer
-* `Unified shared memory (USM)<https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:usm>`_ pointers
-* ``std::vector`` with or without a USM allocator
+* ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions for a `SYCL buffer
+  <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#subsec:buffers>`_;
+* `Unified shared memory (USM) <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:usm>`_ pointers;
+* ``std::vector`` with or without a USM allocator.
 
 For an algorithm to access data, it is important that the used execution policy matches the data storage type.
 The following table shows which execution policies can be used with various data storage types.
 
-================================== =============== =============
-Data Storage                       Device policies Host policies
-================================== =============== =============
-SYCL buffer                        Yes             No
-Device-allocated USM               Yes             No
-Shared and host-allocated USM      Yes             Yes
-std::vector with a USM allocator   Yes             Yes
-std::vector with a host allocator  See below       Yes
-Other host-allocated data          No              Yes
-================================== =============== =============
+====================================== =============== =============
+Data Storage                           Device Policies Host Policies
+====================================== =============== =============
+SYCL buffer                            Yes             No
+Device-allocated USM                   Yes             No
+Shared and host-allocated USM          Yes             Yes
+``std::vector`` with a USM allocator   Yes             Yes
+``std::vector`` with a host allocator  See below       Yes
+Other host-allocated data              No              Yes
+====================================== =============== =============
 
 .. _use-buffer-wrappers:
 

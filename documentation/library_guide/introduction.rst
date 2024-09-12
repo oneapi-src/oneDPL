@@ -135,7 +135,7 @@ Known Limitations
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   unsequenced execution policies when building a program with GCC 10 and using ``-O0`` option.
-* Compiling ``reduce`` and ``transform_reduce`` algorithms with |dpcpp_cpp| versions 2021 and older,
+* Compiling ``reduce`` and ``transform_reduce`` algorithms with |dpcpp_cpp| versions 2021 and older
   may result in a runtime error. To fix this issue, use |dpcpp_cpp| version 2022 or newer.
 * When compiling on Windows, add the option ``/EHsc`` to the compilation command to avoid errors with oneDPL's experimental
   ranges API that uses exceptions.

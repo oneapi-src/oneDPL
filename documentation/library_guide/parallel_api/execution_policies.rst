@@ -10,26 +10,26 @@ to run data parallel computations on heterogeneous systems.
 The execution policies are defined in the ``oneapi::dpl::execution`` namespace and provided
 in the ``oneapi/dpl/execution`` header. The policies have the following meaning:
 
-================================= ==============================
-Execution Policy Value or Type    Description
-================================= ==============================
-``seq``                           The standard aligned policy for sequential execution.
---------------------------------- ------------------------------
-``unseq``                         The standard aligned policy for unsequenced SIMD execution.
-                                  This policy requires user-provided functions to be SIMD-safe.
---------------------------------- ------------------------------
-``par``                           The standard aligned policy for parallel execution by multiple threads.
---------------------------------- ------------------------------
-``par_unseq``                     The standard aligned policy with the combined effect of ``unseq`` and ``par``.
---------------------------------- ------------------------------
-``device_policy``                 The class template to create device policies for data parallel execution.
---------------------------------- ------------------------------
-``dpcpp_default``                 The device policy for data parallel execution on the default SYCL device.
---------------------------------- ------------------------------
-``fpga_policy``                   The class template to create policies for execution on FPGA devices.
---------------------------------- ------------------------------
-``dpcpp_fpga``                    The device policy for data parallel execution on a SYCL FPGA device.
-================================= ==============================
+====================== =====================================================
+Policy Value or Type   Description
+====================== =====================================================
+``seq``                The standard aligned policy for sequential execution.
+---------------------- -----------------------------------------------------
+``unseq``              The standard aligned policy for unsequenced SIMD execution.
+                       This policy requires user-provided functions to be SIMD-safe.
+---------------------- -----------------------------------------------------
+``par``                The standard aligned policy for parallel execution by multiple threads.
+---------------------- -----------------------------------------------------
+``par_unseq``          The standard aligned policy with the combined effect of ``unseq`` and ``par``.
+---------------------- -----------------------------------------------------
+``device_policy``      The class template to create device policies for data parallel execution.
+---------------------- -----------------------------------------------------
+``dpcpp_default``      The device policy for data parallel execution on the default SYCL device.
+---------------------- -----------------------------------------------------
+``fpga_policy``        The class template to create policies for execution on FPGA devices.
+---------------------- -----------------------------------------------------
+``dpcpp_fpga``         The device policy for data parallel execution on a SYCL FPGA device.
+====================== =====================================================
 
 The implementation is based on Parallel STL from the
 `LLVM Project <https://github.com/llvm/llvm-project/tree/main/pstl>`_.
