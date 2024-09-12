@@ -1,14 +1,15 @@
 Pass Data to Algorithms
 #######################
 
-When using the C++ standard aligned execution policies, oneDPL supports data being passed to its algorithms
-as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). According to the standard,
+When using the C++ standard aligned (or *host*) execution policies, oneDPL supports data being passed to its
+algorithms as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). According to the standard,
 the calling code must prevent data races when using algorithms with parallel execution policies.
 
-Note: Implementations of ``std::vector<bool>`` are not required to avoid data races for concurrent modifications
-of vector elements. Some implementations may optimize multiple ``bool`` elements into a bitfield, making it unsafe
-for multithreading. For this reason, it is recommended to avoid ``std::vector<bool>`` for anything but a read-only
-input with the C++ standard aligned execution policies.
+.. note::
+   Implementations of ``std::vector<bool>`` are not required to avoid data races for concurrent modifications
+   of vector elements. Some implementations may optimize multiple ``bool`` elements into a bitfield, making it unsafe
+   for multithreading. For this reason, it is recommended to avoid ``std::vector<bool>`` for anything but a read-only
+   input with the C++ standard aligned execution policies.
 
 When using a device execution policy, you can use one of the following ways to pass data to an algorithm:
 
@@ -23,11 +24,11 @@ The following table shows which execution policies can be used with various data
 Data Storage                       Device policies Host policies
 ================================== =============== =============
 SYCL buffer                        Yes             No
-Device allocated USM               Yes             No
-Shared and host allocated USM      Yes             Yes
+Device-allocated USM               Yes             No
+Shared and host-allocated USM      Yes             Yes
 std::vector with a USM allocator   Yes             Yes
 std::vector with a host allocator  See below       Yes
-Other host allocated data          No              Yes
+Other host-allocated data          No              Yes
 ================================== =============== =============
 
 .. _use-buffer-wrappers:
@@ -119,7 +120,7 @@ The following examples demonstrate two ways to use the parallel algorithms with 
 * Host allocators
 * USM allocators
 
-You can use iterators to host allocated ``std::vector`` data
+You can use iterators to host-allocated ``std::vector`` data
 as shown in the following example:
 
 .. code:: cpp
@@ -136,9 +137,9 @@ as shown in the following example:
     return 0;
   }
 
-When using iterators to host allocated data, a temporary SYCL buffer is created, and the data
+When using iterators to host-allocated data, a temporary SYCL buffer is created, and the data
 is copied to this buffer. After processing on a device is complete, the modified data is copied
-from the temporary buffer back to the host container. While convenient, using host allocated
+from the temporary buffer back to the host container. While convenient, using host-allocated
 data can lead to unintended copying between host and device. We recommend working with SYCL buffers
 or USM memory to reduce data copying between the host and device.
 
@@ -146,7 +147,7 @@ or USM memory to reduce data copying between the host and device.
    For specialized memory algorithms that begin or end the lifetime of data objects, that is,
    ``uninitialized_*`` and ``destroy*`` families of functions, the data to initialize or destroy
    should be accessible on the device without extra copying. Therefore for these algorithms
-   host allocated data storage may not be used with device execution policies.
+   host-allocated data storage may not be used with device execution policies.
 
 You can also use ``std::vector`` with a USM allocator, as shown in the following example:
 

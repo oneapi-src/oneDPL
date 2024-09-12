@@ -7,7 +7,7 @@ as specified in the ISO/IEC 14882:2017 standard (commonly called C++17), as well
 It offers threaded and SIMD execution of these algorithms on Intel® processors implemented on top of OpenMP*
 and |onetbb_short|, as well as data parallel execution on accelerators backed by SYCL* support in |dpcpp_cpp|.
 
-|onedpl_short| provides specific versions of some algorithms, including:
+In addition, |onedpl_short| provides specific variations of some algorithms, including:
 
 * Segmented reduce
 * Segmented scan
