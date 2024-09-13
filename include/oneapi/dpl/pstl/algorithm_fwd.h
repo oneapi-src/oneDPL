@@ -762,6 +762,16 @@ void
 __pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
                       _Compare);
 
+#if _ONEDPL_CPP20_RANGES_PRESENT
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_stable_sort_ranges(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare) noexcept;
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_stable_sort_ranges(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare);
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
+
 //------------------------------------------------------------------------
 // sort_by_key
 //------------------------------------------------------------------------
