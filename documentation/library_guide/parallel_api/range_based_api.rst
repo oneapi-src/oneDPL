@@ -58,16 +58,16 @@ Range-Based Algorithms
 ----------------------
 
 The functions for experimental range based algorithms resemble the standard C++ parallel algorithm overloads
-where all data sequences represented by ranges instead of iterators or iterator pairs. For example,
+where all data sequences represented by ranges instead of iterators or iterator pairs, for example:
 
 .. code:: cpp
 
    template <typename ExecutionPolicy, typename Range1, typename Range2>
    void copy(ExecutionPolicy&& exec, Range1&& source, Range2&& destination);
 
-where ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
+Note that ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
 
-The algorithms listed below are available to use with the ranges. These algorithms are defined in the
+The following algorithms are available to use with the ranges. These algorithms are defined in the
 ``oneapi::dpl::experimental::ranges`` namespace and can only be invoked with device execution policies.
 To use these algorithms, include both ``<oneapi/dpl/ranges>`` and ``<oneapi/dpl/execution>`` header files.
 

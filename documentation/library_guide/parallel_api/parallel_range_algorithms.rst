@@ -21,9 +21,11 @@ Supported Range Views
 ---------------------
 
 `Views <https://en.cppreference.com/w/cpp/ranges/view>`_ are lightweight ranges typically used to describe
-data transformation pipelines. The C++20 standard defines two categories of standard range views: factories
-and adaptors. A range factory generates its data elements on access via an index or an iterator to the range.
-A range adaptor transforms its underlying data range(s) or view(s) into a new view with modified behavior.
+data transformation pipelines. The C++20 standard defines two categories of standard range views, called
+*factories* and *adaptors*:
+
+* A range factory generates its data elements on access via an index or an iterator to the range.
+* A range adaptor transforms its underlying data range(s) or view(s) into a new view with modified behavior.
 
 The following C++ standard random access adaptors and factories can be used with the |onedpl_short|
 parallel range algorithms:
@@ -42,9 +44,15 @@ parallel range algorithms:
 Supported Algorithms
 --------------------
 
-The ``<oneapi/dpl/algorithm>`` header provides the following parallel range algorithms in the
-``namespace oneapi::dpl::ranges``.
-All algorithms support both standard aligned (host) and device execution policies.
+The ``<oneapi/dpl/algorithm>`` header defines the parallel range algorithms in the ``namespace oneapi::dpl::ranges``.
+All algorithms work with both standard aligned (host) and device execution policies.
+
+The ``ONEDPL_HAS_RANGE_ALGORITHMS`` :ref:`feature macro <feature-macros>` may be used to test for presense of
+parallel range algorithms.
+
+.. _range-algorithms-202409L:
+
+If ``ONEDPL_HAS_RANGE_ALGORITHMS`` is defined to ``202409L`` or a greater value, the following algorithms are provided:
 
 * ``for_each``
 * ``transform``
