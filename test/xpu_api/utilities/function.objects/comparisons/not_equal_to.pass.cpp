@@ -36,6 +36,11 @@ class KernelNotEqualToTest;
 void
 kernel_test()
 {
+#ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -61,6 +66,10 @@ kernel_test()
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::not_equal_to");
+
+#ifdef __clang__
+#    pragma clang diagnostic pop
+#endif
 }
 
 int

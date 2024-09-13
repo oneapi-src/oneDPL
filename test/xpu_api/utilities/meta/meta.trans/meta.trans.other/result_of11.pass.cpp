@@ -19,6 +19,11 @@
  */
 #define _SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING
 
+#ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
@@ -204,3 +209,7 @@ main()
 
     return TestUtils::done();
 }
+
+#ifdef __clang__
+#    pragma clang diagnostic pop
+#endif

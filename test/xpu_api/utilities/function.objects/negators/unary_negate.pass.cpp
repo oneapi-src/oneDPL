@@ -21,6 +21,11 @@
  */
 #define _SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
 
+#ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
@@ -66,3 +71,7 @@ main()
 
     return TestUtils::done(TEST_STD_VER == 17);
 }
+
+#ifdef __clang__
+#    pragma clang diagnostic pop
+#endif

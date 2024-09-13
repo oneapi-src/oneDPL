@@ -54,6 +54,10 @@ template <class T>
 void
 kernelTest()
 {
+#ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
     sycl::queue q = TestUtils::get_test_queue();
     q.submit([&](sycl::handler& cgh) {
         cgh.single_task<IteratorTest<T>>([=]() {
@@ -91,6 +95,9 @@ kernelTest()
             }
         });
     });
+#ifdef __clang__
+#    pragma clang diagnostic pop
+#endif
 }
 
 int
