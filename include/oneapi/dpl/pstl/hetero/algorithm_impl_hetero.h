@@ -20,6 +20,7 @@
 #include "../algorithm_fwd.h"
 
 #include "../parallel_backend.h"
+#include "../utils.h"
 #include "utils_hetero.h"
 
 #if _ONEDPL_BACKEND_SYCL
@@ -1482,12 +1483,12 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to
         // be asynchronous for better performance.
 
-        // Use regular sort as partial_sort isn't required to be stable.
-        //__pattern_sort is a blocking call.
-        __pattern_sort(
+        // TODO: consider adding non-stable implementation for partial_sort since it's not required to be stable
+        //__pattern_stable_sort is a blocking call.
+        __pattern_stable_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp);
+            __out_first, __out_end, __comp, /*unused*/ oneapi::dpl::__internal::__leaf_std_sort{});
 
         return __out_end;
     }

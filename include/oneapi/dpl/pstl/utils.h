@@ -788,7 +788,8 @@ union __lazy_ctor_storage
 struct __leaf_std_sort
 {
     template <typename _It, typename _Compare>
-    void operator()(_It __first, _It __last, _Compare __comp) const
+    void
+    operator()(_It __first, _It __last, _Compare __comp) const
     {
         std::sort(__first, __last, __comp);
     }
@@ -797,7 +798,8 @@ struct __leaf_std_sort
 struct __leaf_std_stable_sort
 {
     template <typename _It, typename _Compare>
-    void operator()(_It __first, _It __last, _Compare __comp) const
+    void
+    operator()(_It __first, _It __last, _Compare __comp) const
     {
         std::stable_sort(__first, __last, __comp);
     }
@@ -809,7 +811,8 @@ struct __leaf_std_stable_sort
 struct __leaf_std_ranges_stable_sort
 {
     template <typename _It, typename _Compare>
-    void operator()(_It __first, _It __last, _Compare __comp) const
+    void
+    operator()(_It __first, _It __last, _Compare __comp) const
     {
         std::ranges::stable_sort(__first, __last, __comp);
     }
