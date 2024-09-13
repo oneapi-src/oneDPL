@@ -27,8 +27,7 @@ zip, transform, complete permutation operations on other iterators, and include 
 The function object classes provide minimum, maximum, and identity operations
 that may be passed to algorithms such as reduce or transform.
 
-|onedpl_short| also includes an experimental implementation of range-based algorithms with their
-required ranges, and experimental asynchronous algorithms.
+|onedpl_short| also includes an experimental implementation of asynchronous algorithms.
 
 .. toctree::
    :maxdepth: 2

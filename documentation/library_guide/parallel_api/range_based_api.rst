@@ -1,54 +1,75 @@
 Experimental Range-Based API
 ############################
 
-The ``oneapi::dpl::experimental::ranges`` namespace supports integration with oneDPL ranges
-introducing by ``oneapi::dpl::experimental::ranges`` namespace, allowing you to leverage oneDPL parallel algorithms
-with the range functionality like the Ranges Library from C++20 standard.
-The functionality is implemented for the device execution policies only and requires C++17.
-
+The ``oneapi/dpl/ranges`` header file contains experimental classes and functions that implement
+the functionality similar to what is provided by the C++20 Ranges Library, yet only requires C++17.
+This allows you to combine |onedpl_short| data parallel execution capabilities with some aspects
+of modern range-based API. The functionality is only implemented for the device execution policies.
 
 .. Note::
+   The use of the experimental range-based API requires the C++ standard libraries
+   coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
-  The use of the ``oneapi::dpl::experimental::ranges`` requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
+.. Warning::
+   This experimental functionality will be gradually substituted by the
+   :doc:`parallel range algorithms <parallel_range_algorithms>` and eventually discontinued.
 
 Range Views
 -----------
 
-The following viewable ranges are declared in the ``oneapi::dpl::experimental::ranges`` namespace.
-Only the ranges shown below and ``sycl::buffer`` can be passed to the experimental range-based algorithms.
-
 .. _viewable-ranges:
 
-* ``views::iota``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
-* ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
-* ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
-* ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
-* ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
-* ``views::subrange``: A utility that represents a view of unified shared memory (USM) data range defined by a two USM pointers.
+The following viewable ranges are defined in the ``oneapi::dpl::experimental::ranges`` namespace:
+
+* ``views::iota``: A range factory that generates a sequence of elements by repeatedly incrementing an initial value.
+* ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` elements
+  for reading and writing on a device.
+* ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` elements
+  for reading on a device.
+* ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` elements
+  for writing on a device.
+* ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` elements
+  for reading and writing on the host.
+* ``views::subrange``: A utility that represents a view of unified shared memory (USM) data range
+  defined by two USM pointers.
 * ``views::zip``: A custom range adaptor that produces one ``zip_view`` from other several views.
-* ``views::transform``: A range adaptor that represents a view of a underlying sequence after applying a transformation to each element.
+* ``views::transform``: A range adaptor that represents a view of an underlying sequence after applying
+  a transformation to each element.
 * ``views::reverse``: A range adaptor that produces a reversed sequence of elements provided by another view.
 * ``views::take``: A range adaptor that produces a view of the first N elements from another view.
 * ``views::drop``: A range adaptor that produces a view excluding the first N elements from another view.
 
-A ``sycl::buffer`` wrapped with ``all_view`` can be used as the range.
+Only these ranges, ``sycl::buffer``, and their combinations can be passed to the experimental range-based algorithms.
 
-|onedpl_short| considers ``iota_view`` and ``all_view`` as base ranges.
-The range adaptors may be combined into a pipeline with a ``base`` range at the beginning. For example:
+A ``sycl::buffer`` wrapped with ``views::all`` and similar utilities, ``views::subrange`` over USM, and ``views::iota``
+are considered *base ranges*. The range adaptors may be combined into a pipeline with a base range at the beginning.
+For example:
 
 .. code:: cpp
 
     sycl::buffer<int> buf(data, sycl::range<1>(10));
-    auto range_1 = iota_view(0, 10) | views::reverse;
-    auto range_2 = all_view(buf) | views::reverse;
+    auto range_1 = views::iota(0, 10) | views::reverse;
+    auto range_2 = views::all(buf) | views::take(10);
 
-For the range, based on the ``all_view`` factory, data access is permitted on a device only. ``size()`` and ``empty()`` methods are allowed 
-to be called on both host and device.
+For ranges based on a SYCL buffer, data access is only permitted on a device, while ``size()`` and ``empty()``
+methods are allowed to be called on both host and device.
 
 Range-Based Algorithms
 ----------------------
 
-The following algorithms are available to use with the ranges:
+The functions for experimental range based algorithms resemble the standard C++ parallel algorithm overloads
+where all data sequences represented by ranges instead of iterators or iterator pairs. For example,
+
+.. code:: cpp
+
+   template <typename ExecutionPolicy, typename Range1, typename Range2>
+   void copy(ExecutionPolicy&& exec, Range1&& source, Range2&& destination);
+
+where ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
+
+The algorithms listed below are available to use with the ranges. These algorithms are defined in the
+``oneapi::dpl::experimental::ranges`` namespace and can only be invoked with device execution policies.
+To use these algorithms, include both ``<oneapi/dpl/ranges>`` and ``<oneapi/dpl/execution>`` header files.
 
 * ``adjacent_find``
 * ``all_of``
@@ -98,32 +119,19 @@ The following algorithms are available to use with the ranges:
 * ``unique``
 * ``unique_copy``
 
-The signature example of the range-based algorithms looks like:
-
-.. code:: cpp
-
-   template <typename ExecutionPolicy, typename Range1, typename Range2>
-   void copy(ExecutionPolicy&& exec, Range1&& source, Range2&& destination);
-
-where ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
-
-These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` namespace and implemented only for device execution policies.
-To make these algorithms available, the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
-Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).
-
 Usage Example
 -------------
 
 .. code:: cpp
 
-    using namespace oneapi::dpl::experimental::ranges;
+    namespace rangexp = oneapi::dpl::experimental::ranges;
 
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
-        auto view = all_view(A) | views::reverse;
-        auto range_res = all_view<int, sycl::access::mode::write>(B);
+        auto view = rangexp::views::all(A) | rangexp::views::reverse;
+        auto range_res = rangexp::views::all<int, sycl::access::mode::write>(B);
 
-        copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
+        rangexp::copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
     }

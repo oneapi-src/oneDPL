@@ -21,17 +21,20 @@ Supported Range Views
 ---------------------
 
 `Views <https://en.cppreference.com/w/cpp/ranges/view>`_ are lightweight ranges typically used to describe
-data transformation pipelines. The C++20 standard defines two categories of standard range views: factories and adaptors.
-A range factory generates its data elements on access via an index or an iterator to the range.
-A range adaptor is a utility that transforms its underlying data range(s) or view(s) into a new view with modified behavior.
+data transformation pipelines. The C++20 standard defines two categories of standard range views: factories
+and adaptors. A range factory generates its data elements on access via an index or an iterator to the range.
+A range adaptor transforms its underlying data range(s) or view(s) into a new view with modified behavior.
 
-The following C++ standard random access adaptors and factories can be used with the |onedpl_short| parallel range algorithms:
+The following C++ standard random access adaptors and factories can be used with the |onedpl_short|
+parallel range algorithms:
 
 * ``std::ranges::views::all``: A range adaptor that returns a view that includes all elements of a range.
 * ``std::ranges::subrange``: A utility that produces a view from an iterator and a sentinel or from a range.
-* ``std::ranges::iota_view``: A range factory that generates a sequence of elements by repeatedly incrementing an initial value.
+* ``std::ranges::iota_view``: A range factory that generates a sequence of elements by repeatedly incrementing
+  an initial value.
 * ``std::ranges::single_view``: A view that contains exactly one element of a specified value.
-* ``std::ranges::transform_view``: A range adaptor that produces a view that applies a transformation to each element of another view.
+* ``std::ranges::transform_view``: A range adaptor that produces a view that applies a transformation to each element
+  of another view.
 * ``std::ranges::reverse_view``: A range adaptor that produces a reversed sequence of elements provided by another view.
 * ``std::ranges::take_view``: A range adaptor that produces a view of the first N elements from another view.
 * ``std::ranges::drop_view``: A range adaptor that produces a view excluding the first N elements from another view.
@@ -39,7 +42,8 @@ The following C++ standard random access adaptors and factories can be used with
 Supported Algorithms
 --------------------
 
-The ``<oneapi/dpl/algorithm>`` header provides the following parallel range algorithms in the ``namespace oneapi::dpl::ranges``.
+The ``<oneapi/dpl/algorithm>`` header provides the following parallel range algorithms in the
+``namespace oneapi::dpl::ranges``.
 All algorithms support both standard aligned (host) and device execution policies.
 
 * ``for_each``
