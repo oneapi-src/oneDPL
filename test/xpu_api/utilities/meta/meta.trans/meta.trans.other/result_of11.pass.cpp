@@ -13,6 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+/*
+  Warning  'result_of<char F::*(F &)>' is deprecated: warning STL4014: std::result_of and std::result_of_t are deprecated in C++17.
+  They are superseded by std::invoke_result and std::invoke_result_t. You can define _SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning.
+ */
+#define _SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING
+
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

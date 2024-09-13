@@ -13,6 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+/*
+ 1) Warning 'first_argument_type' is deprecated: warning STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
+    You can define _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning.
+ 2) Warning 'second_argument_type' is deprecated: warning STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
+    You can define _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning.
+ */
+#define _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
+
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>

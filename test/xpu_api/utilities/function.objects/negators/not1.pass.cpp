@@ -13,6 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+/*
+  Warning  'not1<std::logical_not<int>>' is deprecated: warning STL4008: std::not1(), std::not2(), std::unary_negate, and std::binary_negate are deprecated in C++17. They are superseded by std::not_fn().
+  You can define _SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning.
+ */
+#define _SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
+
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
