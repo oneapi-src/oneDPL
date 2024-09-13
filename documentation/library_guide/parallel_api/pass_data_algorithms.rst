@@ -1,7 +1,7 @@
 Pass Data to Algorithms
 #######################
 
-When using the C++ standard aligned (or *host*) execution policies, oneDPL supports data being passed to its
+When using the C++ standard aligned (or *host*) execution policies, |onedpl_short| supports data being passed to its
 algorithms as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). According to the standard,
 the calling code must prevent data races when using algorithms with parallel execution policies.
 

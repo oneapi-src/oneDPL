@@ -4,21 +4,21 @@ Execution Policies
 According to `the oneAPI specification
 <https://uxlfoundation.github.io/oneAPI-spec/spec/elements/oneDPL/source/index.html>`_,
 |onedpl_long| (|onedpl_short|) provides execution policies semantically aligned with the C++ standard,
-also referred to as *standard aligned* or *host execution policies*, and the *device execution policies*
+referred to as *standard aligned* or *host execution policies*, as well as *device execution policies*
 to run data parallel computations on heterogeneous systems.
 
 The execution policies are defined in the ``oneapi::dpl::execution`` namespace and provided
 in the ``oneapi/dpl/execution`` header. The policies have the following meaning:
 
 ====================== =====================================================
-Policy Value or Type   Description
+Policy Name / Type     Description
 ====================== =====================================================
 ``seq``                The standard aligned policy for sequential execution.
 ---------------------- -----------------------------------------------------
-``unseq``              The standard aligned policy for unsequenced SIMD execution.
+``unseq``              The standard aligned policy for possible unsequenced SIMD execution.
                        This policy requires user-provided functions to be SIMD-safe.
 ---------------------- -----------------------------------------------------
-``par``                The standard aligned policy for parallel execution by multiple threads.
+``par``                The standard aligned policy for possible parallel execution by multiple threads.
 ---------------------- -----------------------------------------------------
 ``par_unseq``          The standard aligned policy with the combined effect of ``unseq`` and ``par``.
 ---------------------- -----------------------------------------------------
@@ -54,7 +54,7 @@ Follow these steps to add Parallel API to your application:
    - ``#include <oneapi/dpl/memory>``
 
 #. Pass a |onedpl_short| execution policy object as the first argument to a parallel algorithm
-   to specify the desired execution behavior.
+   to indicate the desired execution behavior.
 
 #. If you use the C++ standard aligned execution policies:
 
