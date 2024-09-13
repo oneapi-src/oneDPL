@@ -706,8 +706,9 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __keys_first, __values_first);
 
-    oneapi::dpl::__internal::__pattern_sort_by_key(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                   __keys_first, __keys_last, __values_first, __comp);
+    oneapi::dpl::__internal::__pattern_stable_sort_by_key(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                   __keys_first, __keys_last, __values_first, __comp,
+                                                   oneapi::dpl::__internal::__leaf_std_sort{});
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
@@ -730,7 +731,8 @@ stable_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_firs
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __keys_first, __values_first);
 
     oneapi::dpl::__internal::__pattern_stable_sort_by_key(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          __keys_first, __keys_last, __values_first, __comp);
+                                                          __keys_first, __keys_last, __values_first, __comp,
+                                                          oneapi::dpl::__internal::__leaf_std_stable_sort{});
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
