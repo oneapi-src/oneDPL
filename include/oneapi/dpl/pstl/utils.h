@@ -23,6 +23,7 @@
 #include <utility>
 #include <climits>
 #include <iterator>
+#include <algorithm>
 #include <functional>
 #include <type_traits>
 
