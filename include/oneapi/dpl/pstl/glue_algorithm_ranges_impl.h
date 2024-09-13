@@ -421,8 +421,8 @@ struct __stable_sort_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
-        return oneapi::dpl::__internal::__ranges::__pattern_stable_sort_ranges(__dispatch_tag,
-            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+        return oneapi::dpl::__internal::__ranges::__pattern_stable_sort_ranges(
+            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
     }
 }; //__stable_sort_fn
 }  //__internal
@@ -1045,7 +1045,7 @@ sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
     const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     oneapi::dpl::__internal::__ranges::__pattern_stable_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                      views::all(::std::forward<_Range>(__rng)), __comp, __proj);
+                                                             views::all(::std::forward<_Range>(__rng)), __comp, __proj);
 }
 
 template <typename _ExecutionPolicy, typename _Range>

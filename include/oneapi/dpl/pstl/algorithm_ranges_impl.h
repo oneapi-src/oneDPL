@@ -27,7 +27,7 @@
 #include "algorithm_fwd.h"
 #include "execution_impl.h"
 
-#include "utils.h" // __internal::__leaf_std_ranges_stable_sort
+#include "utils.h"
 
 namespace oneapi
 {
@@ -347,15 +347,17 @@ __pattern_stable_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _C
     // Call stable_sort pattern since __pattern_sort_ranges is shared between sort and stable_sort
     // TODO: add a separate pattern for ranges::sort for better performance
     oneapi::dpl::__internal::__pattern_stable_sort(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r), std::ranges::begin(__r) + std::ranges::size(__r), __comp_2,
-        oneapi::dpl::__internal::__leaf_std_ranges_stable_sort{});
+                                                   std::ranges::begin(__r),
+                                                   std::ranges::begin(__r) + std::ranges::size(__r), __comp_2,
+                                                   oneapi::dpl::__internal::__leaf_std_ranges_stable_sort{});
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }
 
 template <typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
 auto
-__pattern_stable_sort_ranges(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
+__pattern_stable_sort_ranges(__serial_tag</*IsVector*/ std::false_type>, _ExecutionPolicy&& __exec, _R&& __r,
+                             _Comp __comp, _Proj __proj)
 {
     return std::ranges::stable_sort(std::forward<_R>(__r), __comp, __proj);
 }

@@ -2428,8 +2428,8 @@ template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterat
           typename _Compare, typename _LeafSort>
 void
 __pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
-                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first,
-                             _Compare __comp, _LeafSort __leaf_sort) noexcept
+                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
+                             _LeafSort __leaf_sort) noexcept
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
