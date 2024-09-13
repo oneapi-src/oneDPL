@@ -784,6 +784,38 @@ union __lazy_ctor_storage
     }
 };
 
+struct __leaf_std_sort
+{
+    template <typename _It, typename _Compare>
+    void operator()(_It __first, _It __last, _Compare __comp) const
+    {
+        std::sort(__first, __last, __comp);
+    }
+};
+
+struct __leaf_std_stable_sort
+{
+    template <typename _It, typename _Compare>
+    void operator()(_It __first, _It __last, _Compare __comp) const
+    {
+        std::stable_sort(__first, __last, __comp);
+    }
+};
+
+// Add separate patterns for std::ranges::sort due to std::indirectly_swappable requirement,
+// which implies the use of std::ranges::iter_swap, which can be customized externally
+#if _ONEDPL_CPP20_RANGES_PRESENT
+struct __leaf_std_ranges_stable_sort
+{
+    template <typename _It, typename _Compare>
+    void operator()(_It __first, _It __last, _Compare __comp) const
+    {
+        std::ranges::stable_sort(__first, __last, __comp);
+    }
+};
+#endif // _ONEDPL_CPP20_RANGES_PRESENT
+
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

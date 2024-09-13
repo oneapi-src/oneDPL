@@ -1241,23 +1241,10 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         .__deferrable_wait();
 }
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-void
-__pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-               _Compare __comp)
-{
-    __stable_sort_with_projection(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-                                  oneapi::dpl::identity{});
-}
-
-//------------------------------------------------------------------------
-// stable_sort
-//------------------------------------------------------------------------
-
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _LeafSort>
 void
 __pattern_stable_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-                      _Compare __comp)
+                      _Compare __comp, _LeafSort)
 {
     __stable_sort_with_projection(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
                                   oneapi::dpl::identity{});
