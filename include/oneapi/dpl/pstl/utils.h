@@ -816,7 +816,6 @@ struct __leaf_std_ranges_stable_sort
 };
 #endif // _ONEDPL_CPP20_RANGES_PRESENT
 
-
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
