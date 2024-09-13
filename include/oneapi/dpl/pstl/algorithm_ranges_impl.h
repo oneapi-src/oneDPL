@@ -27,6 +27,8 @@
 #include "algorithm_fwd.h"
 #include "execution_impl.h"
 
+#include "utils.h" // __internal::__leaf_std_ranges_stable_sort
+
 namespace oneapi
 {
 namespace dpl
@@ -331,7 +333,7 @@ __pattern_is_sorted(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// pattern_sort
+// pattern_stable_sort_ranges
 //---------------------------------------------------------------------------------------------------------------------
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp>
