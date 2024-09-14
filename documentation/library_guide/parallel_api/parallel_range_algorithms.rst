@@ -47,7 +47,7 @@ Supported Algorithms
 The ``<oneapi/dpl/algorithm>`` header defines the parallel range algorithms in the ``namespace oneapi::dpl::ranges``.
 All algorithms work with both standard aligned (host) and device execution policies.
 
-The ``ONEDPL_HAS_RANGE_ALGORITHMS`` :ref:`feature macro <feature-macros>` may be used to test for presense of
+The ``ONEDPL_HAS_RANGE_ALGORITHMS`` :ref:`feature macro <feature-macros>` may be used to test for presence of
 parallel range algorithms.
 
 .. _range-algorithms-202409L:

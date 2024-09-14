@@ -1,7 +1,7 @@
 Experimental Range-Based API
 ############################
 
-The ``oneapi/dpl/ranges`` header file contains experimental classes and functions that implement
+The ``<oneapi/dpl/ranges>`` header file contains experimental classes and functions that implement
 the functionality similar to what is provided by the C++20 Ranges Library, yet only requires C++17.
 This allows you to combine |onedpl_short| data parallel execution capabilities with some aspects
 of modern range-based API. The functionality is only implemented for the device execution policies.

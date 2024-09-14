@@ -8,7 +8,7 @@ referred to as *standard aligned* or *host execution policies*, as well as *devi
 to run data parallel computations on heterogeneous systems.
 
 The execution policies are defined in the ``oneapi::dpl::execution`` namespace and provided
-in the ``oneapi/dpl/execution`` header. The policies have the following meaning:
+in the ``<oneapi/dpl/execution>`` header. The policies have the following meaning:
 
 ====================== =====================================================
 Policy Name / Type     Description
