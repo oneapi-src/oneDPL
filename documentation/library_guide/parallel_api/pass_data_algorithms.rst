@@ -85,9 +85,9 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
 Use Unified Shared Memory
 -------------------------
 
-If you have USM-allocated memory, pass the pointers to the start and past the end
-of the sequence to a parallel algorithm. Make sure that the execution policy and
-the USM-allocated memory were created for the same queue. For example:
+If you have USM-allocated data, pass the pointers to the start and past the end
+of the data sequence to a parallel algorithm. Make sure that the execution policy and
+the USM allocation use the same SYCL queue. For example:
 
 .. code:: cpp
 
@@ -146,7 +146,7 @@ from the temporary buffer back to the host container.
    with device execution policies is not supported.
 
 While convenient, using host-allocated data can lead to unintended copying between the host and the device.
-We recommend working with SYCL buffers or USM memory to reduce data copying.
+We recommend working with SYCL buffers or USM to reduce data copying.
 
 .. note::
    For specialized memory algorithms that begin or end the lifetime of data objects, that is,
@@ -154,7 +154,8 @@ We recommend working with SYCL buffers or USM memory to reduce data copying.
    should be accessible on the device without extra copying. Therefore for these algorithms
    host-allocated data storage may not be used with device execution policies.
 
-You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the following example:
+You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the following example.
+Make sure that the allocator and the execution policy use the same SYCL queue:
 
 .. code:: cpp
 
@@ -179,8 +180,6 @@ You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the
   */
     return 0;
   }
-
-Make sure that the execution policy and the USM-allocated memory were created for the same queue.
 
 For ``std::vector`` with a USM allocator we recommend to use ``std::vector::data()`` in
 combination with ``std::vector::size()`` as shown in the example above, rather than iterators to
