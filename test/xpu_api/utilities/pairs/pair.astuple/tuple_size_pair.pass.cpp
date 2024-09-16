@@ -62,7 +62,7 @@ kernel_test()
                 ret_access[0] &= (dpl::tuple_size<P1>::value == 2);
                 ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 

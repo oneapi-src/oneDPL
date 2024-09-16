@@ -29,13 +29,13 @@ test_is_standard_layout()
 #if TEST_STD_VER < 20
     static_assert(dpl::is_standard_layout<volatile T>::value);
     static_assert(dpl::is_standard_layout<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
     static_assert(dpl::is_standard_layout_v<T>);
     static_assert(dpl::is_standard_layout_v<const T>);
 #if TEST_STD_VER < 20
     static_assert(dpl::is_standard_layout_v<volatile T>);
     static_assert(dpl::is_standard_layout_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 template <class T>
@@ -47,13 +47,13 @@ test_is_not_standard_layout()
 #if TEST_STD_VER < 20
     static_assert(!dpl::is_standard_layout<volatile T>::value);
     static_assert(!dpl::is_standard_layout<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
     static_assert(!dpl::is_standard_layout_v<T>);
     static_assert(!dpl::is_standard_layout_v<const T>);
 #if TEST_STD_VER < 20
     static_assert(!dpl::is_standard_layout_v<volatile T>);
     static_assert(!dpl::is_standard_layout_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 template <class T1, class T2>

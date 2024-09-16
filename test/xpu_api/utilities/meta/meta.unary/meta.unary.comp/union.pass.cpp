@@ -42,7 +42,7 @@ test_union()
 #if TEST_STD_VER < 20
     test_union_imp<volatile T>();
     test_union_imp<const volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 union Union

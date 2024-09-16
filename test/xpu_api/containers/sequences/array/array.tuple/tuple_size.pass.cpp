@@ -44,7 +44,7 @@ test()
         typedef dpl::array<T const volatile, N> C;
         static_assert(dpl::tuple_size<C>::value == N);
     }
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 int

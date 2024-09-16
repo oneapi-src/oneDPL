@@ -75,7 +75,7 @@ main()
 
     EXPECT_TRUE(ret, "Wrong result of work with dpl::add_cv");
     bProcessed = true;
-#endif
+#endif // TEST_STD_VER < 20
 
     return TestUtils::done(bProcessed);
 }

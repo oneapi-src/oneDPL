@@ -42,7 +42,7 @@ kernelTest()
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<It::pointer, const volatile A*>::value);
             static_assert(dpl::is_same<It::reference, const volatile A&>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(dpl::is_same<It::iterator_category, dpl::random_access_iterator_tag>::value);
         });
     });

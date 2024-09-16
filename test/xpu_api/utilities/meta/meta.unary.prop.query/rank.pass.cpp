@@ -32,14 +32,14 @@ test_rank(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::rank<volatile T>::value == A);
             static_assert(dpl::rank<const volatile T>::value == A);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::rank_v<T> == A);
             static_assert(dpl::rank_v<const T> == A);
 #if TEST_STD_VER < 20
             static_assert(dpl::rank_v<volatile T> == A);
             static_assert(dpl::rank_v<const volatile T> == A);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }

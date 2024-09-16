@@ -44,13 +44,13 @@ test_has_not_nothrow_move_constructor(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(!dpl::is_nothrow_move_constructible<volatile T>::value);
             static_assert(!dpl::is_nothrow_move_constructible<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(!dpl::is_nothrow_move_constructible_v<T>);
             static_assert(!dpl::is_nothrow_move_constructible_v<const T>);
 #if TEST_STD_VER < 20
             static_assert(!dpl::is_nothrow_move_constructible_v<volatile T>);
             static_assert(!dpl::is_nothrow_move_constructible_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }

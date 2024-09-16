@@ -75,7 +75,7 @@ test()
         static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
         static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 int

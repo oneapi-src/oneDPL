@@ -47,7 +47,7 @@ test_function(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
     test_function_imp<volatile T>(deviceQueue);
     test_function_imp<const volatile T>(deviceQueue);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 void

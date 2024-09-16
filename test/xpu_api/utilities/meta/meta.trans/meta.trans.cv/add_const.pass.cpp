@@ -41,7 +41,7 @@ test_add_const()
 #if TEST_STD_VER < 20
     test_add_const_imp<volatile T, volatile const T>();
     test_add_const_imp<const volatile T, const volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 bool

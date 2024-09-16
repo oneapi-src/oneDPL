@@ -129,7 +129,7 @@ test_bullet_two()
     static_assert(dpl::is_same<std::common_type<int const>::type, int>::value);
 #if TEST_STD_VER < 20
     static_assert(dpl::is_same<std::common_type<int volatile[]>::type, int volatile*>::value);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 // (3.4)
@@ -188,7 +188,7 @@ kernel_test1(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<volatile int>::type, int>::value);
             static_assert(dpl::is_same<std::common_type<const volatile int>::type, int>::value);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::is_same<std::common_type<int, int>::type, int>::value);
             static_assert(dpl::is_same<std::common_type<int, const int>::type, int>::value);
@@ -198,7 +198,7 @@ kernel_test1(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<long, volatile int>::type, long>::value);
             static_assert(dpl::is_same<std::common_type<volatile long, int>::type, long>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<const long, const int>::type, long>::value);
 
             static_assert(dpl::is_same<std::common_type<short, char>::type, int>::value);
@@ -212,14 +212,14 @@ kernel_test1(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<volatile void>::type, void>::value);
             static_assert(dpl::is_same<std::common_type<const volatile void>::type, void>::value);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::is_same<std::common_type<void, const void>::type, void>::value);
             static_assert(dpl::is_same<std::common_type<const void, void>::type, void>::value);
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<void, volatile void>::type, void>::value);
             static_assert(dpl::is_same<std::common_type<volatile void, void>::type, void>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<const void, const void>::type, void>::value);
 
             static_assert(dpl::is_same<std::common_type<int, S<int>>::type, S<int>>::value);
@@ -238,7 +238,7 @@ kernel_test1(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<std::common_type<volatile int>::type, int>::value);
             static_assert(dpl::is_same<std::common_type<const volatile int>::type, int>::value);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::is_same<std::common_type<int, int>::type, int>::value);
             static_assert(dpl::is_same<std::common_type<const int, int>::type, int>::value);

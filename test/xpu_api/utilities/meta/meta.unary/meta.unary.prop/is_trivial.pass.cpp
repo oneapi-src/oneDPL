@@ -29,13 +29,13 @@ test_is_trivial()
 #if TEST_STD_VER < 20
     static_assert(dpl::is_trivial<volatile T>::value);
     static_assert(dpl::is_trivial<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
     static_assert(dpl::is_trivial_v<T>);
     static_assert(dpl::is_trivial_v<const T>);
 #if TEST_STD_VER < 20
     static_assert(dpl::is_trivial_v<volatile T>);
     static_assert(dpl::is_trivial_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 template <class T>
@@ -47,13 +47,13 @@ test_is_not_trivial()
 #if TEST_STD_VER < 20
     static_assert(!dpl::is_trivial<volatile T>::value);
     static_assert(!dpl::is_trivial<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
     static_assert(!dpl::is_trivial_v<T>);
     static_assert(!dpl::is_trivial_v<const T>);
 #if TEST_STD_VER < 20
     static_assert(!dpl::is_trivial_v<volatile T>);
     static_assert(!dpl::is_trivial_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 struct A
@@ -74,7 +74,7 @@ kernel_test()
     test_is_not_trivial<int&>();
 #if TEST_STD_VER < 20
     test_is_not_trivial<volatile int&>();
-#endif
+#endif // TEST_STD_VER < 20
     test_is_not_trivial<B>();
     return true;
 }

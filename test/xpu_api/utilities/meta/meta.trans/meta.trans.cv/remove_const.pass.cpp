@@ -37,7 +37,7 @@ test_remove_const()
 #if TEST_STD_VER < 20
     test_remove_const_imp<volatile T, volatile T>();
     test_remove_const_imp<const volatile T, volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 bool

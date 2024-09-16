@@ -37,7 +37,7 @@ kernel_test()
 #if TEST_STD_VER < 20
         static_assert(tuple_size<volatile array_type>::value == 5);
         static_assert(tuple_size<const volatile array_type>::value == 5);
-#endif
+#endif // TEST_STD_VER < 20
     }
 
     {
@@ -48,7 +48,7 @@ kernel_test()
 #if TEST_STD_VER < 20
         static_assert(tuple_size<volatile array_type>::value == 0);
         static_assert(tuple_size<const volatile array_type>::value == 0);
-#endif
+#endif // TEST_STD_VER < 20
     }
     return true;
 }

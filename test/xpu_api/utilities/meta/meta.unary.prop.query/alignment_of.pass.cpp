@@ -37,14 +37,14 @@ test_alignment_of(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::alignment_of<volatile T>::value == A);
             static_assert(dpl::alignment_of<const volatile T>::value == A);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::alignment_of_v<T> == A);
             static_assert(dpl::alignment_of_v<const T> == A);
 #if TEST_STD_VER < 20
             static_assert(dpl::alignment_of_v<volatile T> == A);
             static_assert(dpl::alignment_of_v<const volatile T> == A);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }

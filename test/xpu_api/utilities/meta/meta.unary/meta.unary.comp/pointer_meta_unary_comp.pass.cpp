@@ -42,7 +42,7 @@ test_pointer()
 #if TEST_STD_VER < 20
     test_pointer_imp<volatile T>();
     test_pointer_imp<const volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 bool

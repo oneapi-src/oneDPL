@@ -48,7 +48,7 @@ kernel_test()
 #if TEST_STD_VER < 20
             static_assert(dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
                                        int (C::*)(float*) const volatile>::value);
-#endif
+#endif // TEST_STD_VER < 20
             // Runtime check...
 
             ret_access[0] = dpl::is_same<dpl::reference_wrapper<C>::type, C>::value;
@@ -61,7 +61,7 @@ kernel_test()
 #if TEST_STD_VER < 20
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
                                           int (C::*)(float*) const volatile>::value;
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 

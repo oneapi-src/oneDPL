@@ -38,7 +38,7 @@ test(T expected)
 #if TEST_STD_VER < 20
     assert(dpl::numeric_limits<volatile T>::infinity() == expected);
     assert(dpl::numeric_limits<const volatile T>::infinity() == expected);
-#endif
+#endif // TEST_STD_VER < 20
 
 #ifdef __clang__
 #pragma clang diagnostic pop

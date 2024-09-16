@@ -32,14 +32,14 @@ test_extent(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::extent<volatile T>::value == A);
             static_assert(dpl::extent<const volatile T>::value == A);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::extent_v<T> == A);
             static_assert(dpl::extent_v<const T> == A);
 #if TEST_STD_VER < 20
             static_assert(dpl::extent_v<volatile T> == A);
             static_assert(dpl::extent_v<const volatile T> == A);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }
@@ -55,14 +55,14 @@ test_extent1(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::extent<volatile T, 1>::value == A);
             static_assert(dpl::extent<const volatile T, 1>::value == A);
-#endif
+#endif // TEST_STD_VER < 20
 
             static_assert(dpl::extent_v<T, 1> == A);
             static_assert(dpl::extent_v<const T, 1> == A);
 #if TEST_STD_VER < 20
             static_assert(dpl::extent_v<volatile T, 1> == A);
             static_assert(dpl::extent_v<const volatile T, 1> == A);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }

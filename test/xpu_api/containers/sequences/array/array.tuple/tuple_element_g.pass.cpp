@@ -48,7 +48,7 @@ kernel_test()
     static_assert(is_same<tuple_element<0, const volatile array_type>::type, const volatile int>::value);
     static_assert(is_same<tuple_element<1, const volatile array_type>::type, const volatile int>::value);
     static_assert(is_same<tuple_element<2, const volatile array_type>::type, const volatile int>::value);
-#endif
+#endif // TEST_STD_VER < 20
 
     return true;
 }

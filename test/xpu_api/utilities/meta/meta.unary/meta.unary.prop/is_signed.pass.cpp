@@ -32,13 +32,13 @@ test_is_signed(sycl::queue deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(dpl::is_signed<volatile T>::value);
             static_assert(dpl::is_signed<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(dpl::is_signed_v<T>);
             static_assert(dpl::is_signed_v<const T>);
 #if TEST_STD_VER < 20
             static_assert(dpl::is_signed_v<volatile T>);
             static_assert(dpl::is_signed_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }
@@ -54,13 +54,13 @@ test_is_not_signed(sycl::queue& deviceQueue)
 #if TEST_STD_VER < 20
             static_assert(!dpl::is_signed<volatile T>::value);
             static_assert(!dpl::is_signed<const volatile T>::value);
-#endif
+#endif // TEST_STD_VER < 20
             static_assert(!dpl::is_signed_v<T>);
             static_assert(!dpl::is_signed_v<const T>);
 #if TEST_STD_VER < 20
             static_assert(!dpl::is_signed_v<volatile T>);
             static_assert(!dpl::is_signed_v<const volatile T>);
-#endif
+#endif // TEST_STD_VER < 20
         });
     });
 }

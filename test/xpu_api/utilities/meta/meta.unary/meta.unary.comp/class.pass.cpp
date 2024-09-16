@@ -42,7 +42,7 @@ test_class()
 #if TEST_STD_VER < 20
     test_class_imp<volatile T>();
     test_class_imp<const volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 struct Class

@@ -42,7 +42,7 @@ test_array()
 #if TEST_STD_VER < 20
     test_array_imp<volatile T>();
     test_array_imp<const volatile T>();
-#endif
+#endif // TEST_STD_VER < 20
 }
 
 typedef char array[3];
