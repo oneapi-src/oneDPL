@@ -131,7 +131,7 @@ Usage Example
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
         auto view = rangexp::views::all(A) | rangexp::views::reverse;
-        auto range_res = rangexp::views::all<int, sycl::access::mode::write>(B);
+        auto range_res = rangexp::views::all_write(B);
 
         rangexp::copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
     }

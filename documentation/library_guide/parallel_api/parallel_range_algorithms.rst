@@ -84,16 +84,18 @@ Usage Example for Parallel Range Algorithms
 
     {        
         std::vector<int> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        std::vector<int> vec_out(vec_in.size());
+        std::vector<int> vec_out{vec_in.size()};
 
         auto view_in = std::ranges::views::all(vec_in) | std::ranges::views::reverse;
         oneapi::dpl::ranges::copy(oneapi::dpl::execution::par, view_in, vec_out);
     }
     {
         using usm_shared_allocator = sycl::usm_allocator<int, sycl::usm::alloc::shared>;
+        // Allocate for the queue used by the execution policy
+        usm_shared_allocator alloc{oneapi::dpl::execution::dpcpp_default.queue()};
 
-        std::vector<int, usm_shared_allocator> vec_in = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        std::vector<int, usm_shared_allocator> vec_out(vec_in.size());
+        std::vector<int, usm_shared_allocator> vec_in{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, alloc};
+        std::vector<int, usm_shared_allocator> vec_out{vec_in.size(), alloc};
 
         auto view_in = std::ranges::subrange(vec_in.begin(), vec_in.end()) | std::ranges::views::reverse;
         oneapi::dpl::ranges::copy(oneapi::dpl::execution::dpcpp_default, view_in, std::span(vec_out));
