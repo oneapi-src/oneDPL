@@ -30,8 +30,10 @@ data transformation pipelines. The C++20 standard defines two categories of stan
 The following C++ standard random access adaptors and factories can be used with the |onedpl_short|
 parallel range algorithms:
 
-* ``std::ranges::views::all``: A range adaptor that returns a view that includes all elements of a range.
+* ``std::ranges::views::all``: A range adaptor that returns a view that includes all elements of a range
+  (only with standard-aligned execution policies).
 * ``std::ranges::subrange``: A utility that produces a view from an iterator and a sentinel or from a range.
+* ``std::span``: A view to a contiguous data sequence. 
 * ``std::ranges::iota_view``: A range factory that generates a sequence of elements by repeatedly incrementing
   an initial value.
 * ``std::ranges::single_view``: A view that contains exactly one element of a specified value.
