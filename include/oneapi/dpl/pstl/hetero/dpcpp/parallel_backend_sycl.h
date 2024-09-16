@@ -236,56 +236,48 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
         auto __event = __exec.queue().submit([&__rngs..., &__brick, &__exec, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+            // Limit the work-group size to 512 which has empirically yielded the best results.
+            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
+            __work_group_size = std::min(__work_group_size, static_cast<std::size_t>(__count));
 
             // Processing 512 bytes per sub-group has shown the best performance on target architectures.
             // Grab the value type of the first range to estimate the optimal iters per work item.
             using _ValueType =
                 oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
 
-            constexpr std::uint16_t __max_bytes_per_sub_group = 512;
-            constexpr std::uint16_t __predicted_sub_group_size = 32;
-            constexpr std::uint16_t __bytes_per_work_item = __max_bytes_per_sub_group / __predicted_sub_group_size;
-            // If the _ValueType > 128 bytes (unlikely), then perform a single iteration per work item.
-            constexpr std::uint16_t __iters_per_work_item =
-                std::max(std::size_t{1}, __bytes_per_work_item / sizeof(_ValueType));
+            constexpr std::size_t __bytes_per_work_item = 16;
+            constexpr std::size_t __max_iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
+            auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+            std::size_t __elems_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
+            // For small data sizes, distribute the work evenly among compute units.
+            std::size_t __iters_per_work_item = std::min(__elems_per_compute_unit, __max_iters_per_work_item);
             std::size_t __num_groups =
-                std::max(std::size_t{1},
-                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item)));
+                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             std::size_t __num_items = __num_groups * __work_group_size;
-            // TODO: optimize for small data sizes that do not saturate the device with this scheme
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __ndi) {
-                    __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
-                    std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
-                    std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
-                    std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
-                    std::size_t __work_group_id = __ndi.get_group().get_group_linear_id();
-
-                    std::size_t __sub_group_start_idx = __iters_per_work_item * (__work_group_id * __work_group_size +
-                                                                                 __sub_group_size * __sub_group_id);
-                    bool __is_full_sub_group =
-                        __sub_group_start_idx + __iters_per_work_item * __sub_group_size <= __count;
-                    std::size_t __idx = __sub_group_start_idx + __sub_group_local_id;
-                    if (__is_full_sub_group)
+                    auto [__idx, __stride, __is_full] = __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
+                    // TODO: Investigate using a vectorized approach similar to reduce.
+                    // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
+                    // performance regressions for out-of-place (e.g. std::copy).
+                    if (__is_full)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (std::uint32_t i = 0; i < __iters_per_work_item; ++i)
+                        for (std::uint16_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
                             __brick(__idx, __rngs...);
-                            __idx += __sub_group_size;
+                            __idx += __stride;
                         }
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (std::uint32_t i = 0; i < __iters_per_work_item; ++i)
+                        for (std::uint16_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
                             if (__idx < __count)
                             {
                                 __brick(__idx, __rngs...);
-                                __idx += __sub_group_size;
+                                __idx += __stride;
                             }
                         }
                     }
