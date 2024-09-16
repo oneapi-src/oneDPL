@@ -76,7 +76,7 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
     auto buf_begin = oneapi::dpl::begin(buf);
     auto buf_end   = oneapi::dpl::end(buf);
 
-    std::sort(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end);
+    oneapi::dpl::sort(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end);
     return 0;
   }
 
@@ -102,7 +102,7 @@ the USM-allocated memory were created for the same queue. For example:
     int* d_head = sycl::malloc_shared<int>(n, q);
     std::generate(d_head, d_head + n, std::minstd_rand{});
 
-    std::sort(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n);
+    oneapi::dpl::sort(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n);
 
     sycl::free(d_head, q);
     return 0;
@@ -133,7 +133,7 @@ You can use iterators to host-allocated ``std::vector`` data, as shown in the fo
     std::vector<int> vec( 1000 );
     std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
-    std::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end());
+    oneapi::dpl::sort(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end());
     return 0;
   }
 
@@ -167,11 +167,11 @@ You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the
     std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
     // Recommended to use USM pointers:
-    std::sort(policy, vec.data(), vec.data() + vec.size());
-/*
+    oneapi::dpl::sort(policy, vec.data(), vec.data() + vec.size());
+  /*
     // Iterators for USM allocators might require extra copying - not a recommended method
-    std::sort(policy, vec.begin(), vec.end());
-*/
+    oneapi::dpl::sort(policy, vec.begin(), vec.end());
+  */
     return 0;
   }
 
@@ -187,7 +187,7 @@ Retrieving USM pointers from ``std::vector`` as shown guarantees no unintended c
 Use Range Views
 ---------------
 
-For :doc:`parallel range algorithms <parallel_range_algorithms>' with device execution policies,
+For :doc:`parallel range algorithms <parallel_range_algorithms>` with device execution policies,
 place the data in USM or a USM-allocated ``std::vector``, and pass it to an algorithm
 via a device-copyable range or view object such as ``std::ranges::subrange`` or ``std::span``.
 
@@ -203,6 +203,9 @@ data transformation pipelines that also can be used with parallel range algorith
   #include <oneapi/dpl/algorithm>
   #include <random>
   #include <vector>
+  #include <span>
+  #include <ranges>
+  #include <functional>
   #include <sycl/sycl.hpp>
 
   int main(){
@@ -217,7 +220,7 @@ data transformation pipelines that also can be used with parallel range algorith
     std::vector<int, decltype(alloc)> vec(n, alloc);
 
     oneapi::dpl::ranges::copy(policy,
-        std::ranges::subrange(d_head, d_head + n) | std::views::transform(std::negate),
+        std::ranges::subrange(d_head, d_head + n) | std::views::transform(std::negate{}),
         std::span(vec));
 
     oneapi::dpl::ranges::sort(policy, std::span(vec));
