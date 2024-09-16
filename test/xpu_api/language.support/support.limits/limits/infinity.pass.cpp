@@ -73,8 +73,16 @@ ONEDPL_TEST_NUM_MAIN
 #endif
     float zero = 0;
     test<float>(1.f/zero);
-    IF_DOUBLE_SUPPORT_L([&zero]() { test<double>(1. / zero); })
-    IF_LONG_DOUBLE_SUPPORT_L([&zero]() { test<long double>(1. / zero); })
+    if constexpr (HasDoubleSupportInRuntime{})
+    {
+        auto fnc = [&zero] { test<double>(1. / zero); };
+        fnc();
+    }
+    if constexpr (HasLongDoubleSupportInCompiletime{})
+    {
+        auto fnc = [&zero] { test<long double>(1. / zero); };
+        fnc();
+    }
 
   return 0;
 }
