@@ -85,10 +85,11 @@ This option redirects C++ parallel algorithms invoked with the ``std::execution:
 to |onedpl_short| algorithms. It does not change the behavior of the |onedpl_short| algorithms and
 execution policies that are directly used in the code.
 
-:: _library-restrictions:
-
 Useful Information
 ==================
+
+.. _library-restrictions:
+
 
 Difference with Standard C++ Parallel Algorithms
 ************************************************

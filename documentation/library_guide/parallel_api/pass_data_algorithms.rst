@@ -168,9 +168,10 @@ You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the
 
     // Recommended to use USM pointers:
     std::sort(policy, vec.data(), vec.data() + vec.size());
-
+/*
     // Iterators for USM allocators might require extra copying - not a recommended method
     std::sort(policy, vec.begin(), vec.end());
+*/
     return 0;
   }
 
@@ -225,5 +226,5 @@ data transformation pipelines that also can be used with parallel range algorith
     return 0;
   }
 
-:: _`SYCL buffer`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#subsec:buffers
-:: _`unified shared memory`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:usm
+.. _`SYCL buffer`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#subsec:buffers
+.. _`unified shared memory`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:usm
