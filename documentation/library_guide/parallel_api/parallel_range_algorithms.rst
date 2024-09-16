@@ -43,6 +43,9 @@ parallel range algorithms:
 * ``std::ranges::take_view``: A range adaptor that produces a view of the first N elements from another view.
 * ``std::ranges::drop_view``: A range adaptor that produces a view excluding the first N elements from another view.
 
+Visit :doc:`pass_data_algorithms` for more information, especially on the :ref:`use of range views <use-range-views>`
+with device execution policies.
+
 Supported Algorithms
 --------------------
 

@@ -139,9 +139,14 @@ You can use iterators to host-allocated ``std::vector`` data, as shown in the fo
 
 When using iterators to host-allocated data, a temporary SYCL buffer is created, and the data
 is copied to this buffer. After processing on a device is complete, the modified data is copied
-from the temporary buffer back to the host container. While convenient, using host-allocated
-data can lead to unintended copying between host and device. We recommend working with SYCL buffers
-or USM memory to reduce data copying between the host and device.
+from the temporary buffer back to the host container.
+
+.. note::
+   For parallel range algorithms, the use of host-allocated ``std::vector`` data
+   with device execution policies is not supported.
+
+While convenient, using host-allocated data can lead to unintended copying between the host and the device.
+We recommend working with SYCL buffers or USM memory to reduce data copying.
 
 .. note::
    For specialized memory algorithms that begin or end the lifetime of data objects, that is,
@@ -183,6 +188,8 @@ combination with ``std::vector::size()`` as shown in the example above, rather t
 be possible for |onedpl_short| to detect that iterators are pointing to USM-allocated data. In that
 case the data will be treated as if it were host-allocated, with an extra copy made to a SYCL buffer.
 Retrieving USM pointers from ``std::vector`` as shown guarantees no unintended copying.
+
+.. _use-range-views:
 
 Use Range Views
 ---------------
