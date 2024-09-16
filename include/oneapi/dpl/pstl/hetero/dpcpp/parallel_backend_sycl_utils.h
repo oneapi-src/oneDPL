@@ -912,24 +912,24 @@ __stride_recommender(const NdItem& __ndi, std::size_t __count, std::size_t __ite
 {
     if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
     {
-        __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
-        std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
-        std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
-        std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
-        std::size_t __work_group_id = __ndi.get_group().get_group_linear_id();
+        const __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
+        const std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
+        const std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
+        const std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
+        const std::size_t __work_group_id = __ndi.get_group().get_group_linear_id();
 
-        std::size_t __sub_group_start_idx = __iters_per_work_item * (__work_group_id * __work_group_size +
+        const std::size_t __sub_group_start_idx = __iters_per_work_item * (__work_group_id * __work_group_size +
                                                                      __sub_group_size * __sub_group_id);
-        bool __is_full_sub_group =
+        const bool __is_full_sub_group =
             __sub_group_start_idx + __iters_per_work_item * __sub_group_size <= __count;
-        std::size_t __work_item_idx = __sub_group_start_idx + __sub_group_local_id;
+        const std::size_t __work_item_idx = __sub_group_start_idx + __sub_group_local_id;
         return std::make_tuple(__work_item_idx, __sub_group_size, __is_full_sub_group);
     }
     else
     {
-        std::size_t __work_group_start_idx = __ndi.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item;
-        std::size_t __work_item_idx = __work_group_start_idx + __ndi.get_local_linear_id();
-        bool __is_full_work_group =
+        const std::size_t __work_group_start_idx = __ndi.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item;
+        const std::size_t __work_item_idx = __work_group_start_idx + __ndi.get_local_linear_id();
+        const bool __is_full_work_group =
             __work_group_start_idx + __iters_per_work_item * __work_group_size <= __count;
         return std::make_tuple(__work_item_idx, __work_group_size, __is_full_work_group);
     }
