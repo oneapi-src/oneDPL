@@ -241,20 +241,20 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
             __work_group_size = std::min(__work_group_size, static_cast<std::size_t>(__count));
 
-            // Processing 512 bytes per sub-group has shown the best performance on target architectures.
-            // Grab the value type of the first range to estimate the optimal iters per work item.
             using _ValueType =
                 oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
 
-            constexpr std::size_t __bytes_per_work_item = 16;
-            constexpr std::size_t __max_iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
-            auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-            std::size_t __elems_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
+            // Process up to 16 bytes per work-item. This results in 512 bytes loaded input range per size 32 sub-group which
+            // has yielded best performance on target architectures. For larger data types, load a single element.
+            constexpr std::uint8_t __bytes_per_work_item = 16;
+            constexpr std::uint8_t __max_iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
+            const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+            const std::size_t __iters_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
             // For small data sizes, distribute the work evenly among compute units.
-            std::size_t __iters_per_work_item = std::min(__elems_per_compute_unit, __max_iters_per_work_item);
-            std::size_t __num_groups =
+            const std::uint8_t __iters_per_work_item = std::min(__iters_per_compute_unit, static_cast<std::size_t>(__max_iters_per_work_item));
+            const std::size_t __num_groups =
                          oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
-            std::size_t __num_items = __num_groups * __work_group_size;
+            const std::size_t __num_items = __num_groups * __work_group_size;
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __ndi) {
@@ -264,7 +264,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                     // performance regressions for out-of-place (e.g. std::copy).
                     if (__is_full)
                     {
-                        for (std::uint16_t __i = 0; __i < __iters_per_work_item; ++__i)
+                        for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
                             __brick(__idx, __rngs...);
                             __idx += __stride;
@@ -272,7 +272,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                     }
                     else
                     {
-                        for (std::uint16_t __i = 0; __i < __iters_per_work_item; ++__i)
+                        for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
                             if (__idx < __count)
                             {
