@@ -115,15 +115,16 @@ upper_bound_impl(_Tag tag, Policy&& policy, InputIterator1 start, InputIterator1
 template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
 OutputIterator
-binary_search_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+binary_search_impl(_Tag tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
-    return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                      return ::std::binary_search(start, end, val, comp);
-                                  });
+    return oneapi::dpl::__internal::__pattern_walk2(
+        tag, std::forward<Policy>(policy), value_start, value_end, result,
+        oneapi::dpl::__internal::__transform_functor{[=](typename std::iterator_traits<InputIterator2>::reference val) {
+            return std::binary_search(start, end, val, comp);
+        }});
 }
 
 #if _ONEDPL_BACKEND_SYCL
