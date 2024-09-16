@@ -30,13 +30,17 @@ test_is_member_pointer(sycl::queue& deviceQueue)
         cgh.single_task<KernelTest>([=]() {
             static_assert(dpl::is_member_pointer<T>::value);
             static_assert(dpl::is_member_pointer<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_member_pointer<volatile T>::value);
             static_assert(dpl::is_member_pointer<const volatile T>::value);
+#endif
 
             static_assert(dpl::is_member_pointer_v<T>);
             static_assert(dpl::is_member_pointer_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_member_pointer_v<volatile T>);
             static_assert(dpl::is_member_pointer_v<const volatile T>);
+#endif
         });
     });
 }
@@ -49,13 +53,17 @@ test_is_not_member_pointer(sycl::queue& deviceQueue)
         cgh.single_task<KernelTest>([=]() {
             static_assert(!dpl::is_member_pointer<T>::value);
             static_assert(!dpl::is_member_pointer<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_member_pointer<volatile T>::value);
             static_assert(!dpl::is_member_pointer<const volatile T>::value);
+#endif
 
             static_assert(!dpl::is_member_pointer_v<T>);
             static_assert(!dpl::is_member_pointer_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_member_pointer_v<volatile T>);
             static_assert(!dpl::is_member_pointer_v<const volatile T>);
+#endif
         });
     });
 }

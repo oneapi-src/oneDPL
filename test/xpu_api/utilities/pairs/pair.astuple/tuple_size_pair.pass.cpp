@@ -47,6 +47,7 @@ kernel_test()
                 ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
 
+#if TEST_STD_VER < 20
             {
                 typedef dpl::pair<int, short> volatile P1;
                 static_assert(dpl::tuple_size<P1>::value == 2);
@@ -61,6 +62,7 @@ kernel_test()
                 ret_access[0] &= (dpl::tuple_size<P1>::value == 2);
                 ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
+#endif
         });
     });
 

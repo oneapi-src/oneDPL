@@ -37,10 +37,12 @@ test(T expected)
     assert(dpl::numeric_limits<T>::is_bounded);
     assert(dpl::numeric_limits<const T>::max() == expected);
     assert(dpl::numeric_limits<const T>::is_bounded);
+#if TEST_STD_VER < 20
     assert(dpl::numeric_limits<volatile T>::max() == expected);
     assert(dpl::numeric_limits<volatile T>::is_bounded);
     assert(dpl::numeric_limits<const volatile T>::max() == expected);
     assert(dpl::numeric_limits<const volatile T>::is_bounded);
+#endif
 }
 
 ONEDPL_TEST_NUM_MAIN

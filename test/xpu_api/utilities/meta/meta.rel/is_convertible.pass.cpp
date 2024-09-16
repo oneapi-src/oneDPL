@@ -146,17 +146,23 @@ kernel_test()
 
     static_assert(!dpl::is_convertible<Array, Array&>::value);
     static_assert(dpl::is_convertible<Array, const Array&>::value);
+#if TEST_STD_VER < 20
     static_assert(!dpl::is_convertible<Array, const volatile Array&>::value);
+#endif
 
     static_assert(!dpl::is_convertible<const Array, Array&>::value);
     static_assert(dpl::is_convertible<const Array, const Array&>::value);
+#if TEST_STD_VER < 20
     static_assert(!dpl::is_convertible<Array, volatile Array&>::value);
     static_assert(!dpl::is_convertible<Array, const volatile Array&>::value);
+    #endif
 
     static_assert(dpl::is_convertible<Array, Array&&>::value);
     static_assert(dpl::is_convertible<Array, const Array&&>::value);
+#if TEST_STD_VER < 20
     static_assert(dpl::is_convertible<Array, volatile Array&&>::value);
     static_assert(dpl::is_convertible<Array, const volatile Array&&>::value);
+#endif
     static_assert(dpl::is_convertible<const Array, const Array&&>::value);
     static_assert(!dpl::is_convertible<Array&, Array&&>::value);
     static_assert(!dpl::is_convertible<Array&&, Array&>::value);
@@ -167,7 +173,9 @@ kernel_test()
     static_assert(dpl::is_convertible<Array, char*>::value);
     static_assert(dpl::is_convertible<Array, const char*>::value);
     static_assert(dpl::is_convertible<Array, char* const>::value);
+#if TEST_STD_VER < 20
     static_assert(dpl::is_convertible<Array, char* const volatile>::value);
+#endif
 
     static_assert(!dpl::is_convertible<const Array, char*>::value);
     static_assert(dpl::is_convertible<const Array, const char*>::value);
@@ -251,12 +259,14 @@ kernel_test()
     // NonCopyable
     static_assert(dpl::is_convertible<NonCopyable&, NonCopyable&>::value);
     static_assert(dpl::is_convertible<NonCopyable&, const NonCopyable&>::value);
+#if TEST_STD_VER < 20
     static_assert(dpl::is_convertible<NonCopyable&, const volatile NonCopyable&>::value);
     static_assert(dpl::is_convertible<NonCopyable&, volatile NonCopyable&>::value);
     static_assert(dpl::is_convertible<const NonCopyable&, const NonCopyable&>::value);
     static_assert(dpl::is_convertible<const NonCopyable&, const volatile NonCopyable&>::value);
     static_assert(dpl::is_convertible<volatile NonCopyable&, const volatile NonCopyable&>::value);
     static_assert(dpl::is_convertible<const volatile NonCopyable&, const volatile NonCopyable&>::value);
+#endif
     static_assert(!dpl::is_convertible<const NonCopyable&, NonCopyable&>::value);
     // This test requires Access control SFINAE which we only have in C++11 or when
     // we are using the compiler builtin for is_convertible.

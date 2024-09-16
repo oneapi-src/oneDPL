@@ -25,6 +25,7 @@
 #include <oneapi/dpl/cstddef>
 
 #include "support/utils.h"
+#include "support/test_macros.h"
 
 struct A
 {
@@ -38,8 +39,10 @@ kernelTest()
         cgh.single_task<class IteratorTest>([=]() {
             typedef dpl::iterator_traits<volatile A*> It;
             static_assert(dpl::is_same<It::difference_type, dpl::ptrdiff_t>::value);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_same<It::pointer, volatile A*>::value);
             static_assert(dpl::is_same<It::reference, volatile A&>::value);
+#endif
             static_assert(dpl::is_same<It::iterator_category, dpl::random_access_iterator_tag>::value);
         });
     });

@@ -108,8 +108,10 @@ kernel_test()
             static_assert(dpl::is_same<dpl::reference_wrapper<void (*)()>::result_type, void>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (*)(float*)>::result_type, int*>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::result_type, int*>::value);
+#if TEST_STD_VER < 20
             static_assert(
                 dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::result_type, int>::value);
+#endif
             static_assert(dpl::is_same<dpl::reference_wrapper<C()>::result_type, C>::value);
             static_assert(has_result_type<dpl::reference_wrapper<functor3>>::value);
             static_assert(!has_result_type<dpl::reference_wrapper<functor4>>::value);

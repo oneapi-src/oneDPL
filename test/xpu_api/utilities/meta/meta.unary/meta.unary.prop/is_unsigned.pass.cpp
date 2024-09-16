@@ -26,12 +26,16 @@ test_is_unsigned()
 {
     static_assert(dpl::is_unsigned<T>::value);
     static_assert(dpl::is_unsigned<const T>::value);
+#if TEST_STD_VER < 20
     static_assert(dpl::is_unsigned<volatile T>::value);
     static_assert(dpl::is_unsigned<const volatile T>::value);
+#endif
     static_assert(dpl::is_unsigned_v<T>);
     static_assert(dpl::is_unsigned_v<const T>);
+#if TEST_STD_VER < 20
     static_assert(dpl::is_unsigned_v<volatile T>);
     static_assert(dpl::is_unsigned_v<const volatile T>);
+#endif
 }
 
 template <class T>
@@ -40,12 +44,16 @@ test_is_not_unsigned()
 {
     static_assert(!dpl::is_unsigned<T>::value);
     static_assert(!dpl::is_unsigned<const T>::value);
+#if TEST_STD_VER < 20
     static_assert(!dpl::is_unsigned<volatile T>::value);
     static_assert(!dpl::is_unsigned<const volatile T>::value);
+#endif
     static_assert(!dpl::is_unsigned_v<T>);
     static_assert(!dpl::is_unsigned_v<const T>);
+#if TEST_STD_VER < 20
     static_assert(!dpl::is_unsigned_v<volatile T>);
     static_assert(!dpl::is_unsigned_v<const volatile T>);
+#endif
 }
 
 struct Class

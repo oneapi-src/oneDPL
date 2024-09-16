@@ -29,12 +29,16 @@ test_is_destructible(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(dpl::is_destructible<T>::value);
             static_assert(dpl::is_destructible<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_destructible<volatile T>::value);
             static_assert(dpl::is_destructible<const volatile T>::value);
+#endif
             static_assert(dpl::is_destructible_v<T>);
             static_assert(dpl::is_destructible_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_destructible_v<volatile T>);
             static_assert(dpl::is_destructible_v<const volatile T>);
+#endif
         });
     });
 }
@@ -47,12 +51,16 @@ test_is_not_destructible(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(!dpl::is_destructible<T>::value);
             static_assert(!dpl::is_destructible<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_destructible<volatile T>::value);
             static_assert(!dpl::is_destructible<const volatile T>::value);
+#endif
             static_assert(!dpl::is_destructible_v<T>);
             static_assert(!dpl::is_destructible_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_destructible_v<volatile T>);
             static_assert(!dpl::is_destructible_v<const volatile T>);
+#endif
         });
     });
 }

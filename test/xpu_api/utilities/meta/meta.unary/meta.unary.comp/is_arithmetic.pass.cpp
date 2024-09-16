@@ -30,13 +30,17 @@ test_is_arithmetic(sycl::queue& deviceQueue)
         cgh.single_task<KernelTest>([=]() {
             static_assert(dpl::is_arithmetic<T>::value);
             static_assert(dpl::is_arithmetic<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_arithmetic<volatile T>::value);
             static_assert(dpl::is_arithmetic<const volatile T>::value);
+#endif
 
             static_assert(dpl::is_arithmetic_v<T>);
             static_assert(dpl::is_arithmetic_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_arithmetic_v<volatile T>);
             static_assert(dpl::is_arithmetic_v<const volatile T>);
+#endif
         });
     });
 }
@@ -49,13 +53,17 @@ test_is_not_arithmetic(sycl::queue& deviceQueue)
         cgh.single_task<KernelTest>([=]() {
             static_assert(!dpl::is_arithmetic<T>::value);
             static_assert(!dpl::is_arithmetic<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_arithmetic<volatile T>::value);
             static_assert(!dpl::is_arithmetic<const volatile T>::value);
+#endif
 
             static_assert(!dpl::is_arithmetic_v<T>);
             static_assert(!dpl::is_arithmetic_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_arithmetic_v<volatile T>);
             static_assert(!dpl::is_arithmetic_v<const volatile T>);
+#endif
         });
     });
 }

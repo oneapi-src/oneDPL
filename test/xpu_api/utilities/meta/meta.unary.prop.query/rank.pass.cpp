@@ -29,13 +29,17 @@ test_rank(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(dpl::rank<T>::value == A);
             static_assert(dpl::rank<const T>::value == A);
+#if TEST_STD_VER < 20
             static_assert(dpl::rank<volatile T>::value == A);
             static_assert(dpl::rank<const volatile T>::value == A);
+#endif
 
             static_assert(dpl::rank_v<T> == A);
             static_assert(dpl::rank_v<const T> == A);
+#if TEST_STD_VER < 20
             static_assert(dpl::rank_v<volatile T> == A);
             static_assert(dpl::rank_v<const volatile T> == A);
+#endif
         });
     });
 }

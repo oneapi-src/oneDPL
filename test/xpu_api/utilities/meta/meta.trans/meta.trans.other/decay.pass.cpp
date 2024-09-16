@@ -33,13 +33,17 @@ kernel_test()
 {
     test_decay<void, void>();
     test_decay<int, int>();
+#if TEST_STD_VER < 20
     test_decay<const volatile int, int>();
+#endif
     test_decay<int*, int*>();
     test_decay<int[3], int*>();
     test_decay<const int[3], const int*>();
     test_decay<void(), void (*)()>();
     test_decay<int(int) const, int(int) const>();
+#if TEST_STD_VER < 20
     test_decay<int(int) volatile, int(int) volatile>();
+#endif
     test_decay<int(int)&, int(int)&>();
     test_decay<int(int)&&, int(int) &&>();
 

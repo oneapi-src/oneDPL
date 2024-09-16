@@ -29,12 +29,16 @@ test_is_default_constructible(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(dpl::is_default_constructible<T>::value);
             static_assert(dpl::is_default_constructible<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_default_constructible<volatile T>::value);
             static_assert(dpl::is_default_constructible<const volatile T>::value);
+#endif
             static_assert(dpl::is_default_constructible_v<T>);
             static_assert(dpl::is_default_constructible_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(dpl::is_default_constructible_v<volatile T>);
             static_assert(dpl::is_default_constructible_v<const volatile T>);
+#endif
         });
     });
 }
@@ -47,12 +51,16 @@ test_is_not_default_constructible(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(!dpl::is_default_constructible<T>::value);
             static_assert(!dpl::is_default_constructible<const T>::value);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_default_constructible<volatile T>::value);
             static_assert(!dpl::is_default_constructible<const volatile T>::value);
+#endif
             static_assert(!dpl::is_default_constructible_v<T>);
             static_assert(!dpl::is_default_constructible_v<const T>);
+#if TEST_STD_VER < 20
             static_assert(!dpl::is_default_constructible_v<volatile T>);
             static_assert(!dpl::is_default_constructible_v<const volatile T>);
+#endif
         });
     });
 }

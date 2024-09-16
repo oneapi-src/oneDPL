@@ -38,8 +38,10 @@ test_add_const()
 {
     test_add_const_imp<T, const T>();
     test_add_const_imp<const T, const T>();
+#if TEST_STD_VER < 20
     test_add_const_imp<volatile T, volatile const T>();
     test_add_const_imp<const volatile T, const volatile T>();
+#endif
 }
 
 bool

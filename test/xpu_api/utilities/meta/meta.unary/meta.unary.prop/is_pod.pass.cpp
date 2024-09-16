@@ -22,7 +22,6 @@
 #include "support/utils_invoke.h"
 
 #if TEST_STD_VER < 20
-
 template <class T>
 void
 test_is_pod(sycl::queue& deviceQueue)
@@ -82,7 +81,7 @@ kernel_test()
         test_is_pod<double>(deviceQueue);
     }
 }
-#endif
+#endif // TEST_STD_VER < 20
 
 int
 main()
@@ -91,7 +90,7 @@ main()
 #if TEST_STD_VER < 20
     kernel_test();
     __processed = true;
-#endif
+#endif // TEST_STD_VER < 20
 
     return TestUtils::done(__processed);
 }

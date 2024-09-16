@@ -131,8 +131,10 @@ kernel_test1(sycl::queue& deviceQueue)
 
             test_is_not_constructible<void>();
             test_is_not_constructible<const void>(); // LWG 2738
+#if TEST_STD_VER < 20
             test_is_not_constructible<volatile void>();
             test_is_not_constructible<const volatile void>();
+#endif
             test_is_not_constructible<int&>();
             test_is_constructible<int, S>();
             test_is_not_constructible<int&, S>();

@@ -39,8 +39,10 @@ test_integral()
 {
     test_integral_imp<T>();
     test_integral_imp<const T>();
+#if TEST_STD_VER < 20
     test_integral_imp<volatile T>();
     test_integral_imp<const volatile T>();
+#endif
 }
 
 bool
