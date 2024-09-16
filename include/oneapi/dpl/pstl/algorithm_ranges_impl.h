@@ -27,7 +27,7 @@
 #include "algorithm_fwd.h"
 #include "execution_impl.h"
 
-#include "utils.h"
+#    include "utils.h"
 
 namespace oneapi
 {
@@ -346,8 +346,7 @@ __pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __c
         std::forward<decltype(__val1)>(__val1)), std::invoke(__proj, std::forward<decltype(__val2)>(__val2)));};
     // Use stable sort as a leaf since __pattern_sort_ranges is shared between sort and stable_sort
     // TODO: add a separate pattern for ranges::sort for better performance
-    oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec),
-                                            std::ranges::begin(__r),
+    oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
                                             std::ranges::begin(__r) + std::ranges::size(__r), __comp_2,
                                             oneapi::dpl::__internal::__leaf_std_ranges_stable_sort{});
 
