@@ -242,20 +242,16 @@ void test_isinf()
 
     if constexpr (HasDoubleSupportInRuntime{})
     {
-        auto fnc = []()
-        {
-            typedef decltype(dpl::isinf((double)0)) DoubleRetType;
+        typedef decltype(dpl::isinf((double)0)) DoubleRetType;
 #if !defined(__linux__) || defined(__clang__)
-            static_assert((std::is_same_v<DoubleRetType, bool>));
+        static_assert((std::is_same_v<DoubleRetType, bool>));
 #else
-            // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
-            // all C++ dialects. The test should tolerate this when libc++ can't work
-            // around it.
-            // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
-            static_assert((std::is_same_v<DoubleRetType, bool> || std::is_same_v<DoubleRetType, int>));
+        // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
+        // all C++ dialects. The test should tolerate this when libc++ can't work
+        // around it.
+        // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
+        static_assert((std::is_same_v<DoubleRetType, bool> || std::is_same_v<DoubleRetType, int>));
 #endif
-        };
-        fnc();
     }
 
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same_v<decltype(dpl::isinf((long double)0)), bool>)))
@@ -332,20 +328,16 @@ void test_isnan()
 
     if constexpr (HasDoubleSupportInRuntime{})
     {
-        auto fnc = []()
-        {
-            typedef decltype(dpl::isnan((double)0)) DoubleRetType;
+        typedef decltype(dpl::isnan((double)0)) DoubleRetType;
 #if !defined(__linux__) || defined(__clang__)
-            static_assert((std::is_same_v<DoubleRetType, bool>));
+        static_assert((std::is_same_v<DoubleRetType, bool>));
 #else
-            // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
-            // all C++ dialects. The test should tolerate this when libc++ can't work
-            // around it.
-            // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
-            static_assert((std::is_same_v<DoubleRetType, bool> || std::is_same_v<DoubleRetType, int>));
+        // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
+        // all C++ dialects. The test should tolerate this when libc++ can't work
+        // around it.
+        // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
+        static_assert((std::is_same_v<DoubleRetType, bool> || std::is_same_v<DoubleRetType, int>));
 #endif
-        };
-        fnc();
     }
 
     static_assert((std::is_same_v<decltype(dpl::isnan(0)), bool>));

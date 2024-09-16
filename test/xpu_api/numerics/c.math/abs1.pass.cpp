@@ -69,13 +69,14 @@ ONEDPL_TEST_NUM_MAIN
 
     if constexpr (HasLongDoubleSupportInCompiletime{})
     {
+        // This lambda required to avoid compile errors like
+        // test<long double>' requires 128 bit size 'long double' type support, but target 'spir64-unknown-unknown' does not support it
         auto fnc1 = []() { test_abs<long double, long double>(); };
         fnc1();
     };
     if constexpr (HasDoubleSupportInRuntime{})
     {
-        auto fnc2 = []() { test_abs<double, double>(); };
-        fnc2();
+        test_abs<double, double>();
     };
 
     test_abs<float, float>();
