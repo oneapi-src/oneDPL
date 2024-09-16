@@ -34,10 +34,8 @@ test_remove_const()
 {
     test_remove_const_imp<T, T>();
     test_remove_const_imp<const T, T>();
-#if TEST_STD_VER < 20
     test_remove_const_imp<volatile T, volatile T>();
     test_remove_const_imp<const volatile T, volatile T>();
-#endif // TEST_STD_VER < 20
 }
 
 bool

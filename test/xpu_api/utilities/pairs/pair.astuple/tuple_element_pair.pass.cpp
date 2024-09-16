@@ -49,7 +49,6 @@ test()
         result &= (dpl::is_same<typename std::tuple_element<0, P>::type, const T1>::value);
         result &= (dpl::is_same<typename std::tuple_element<1, P>::type, const T2>::value);
     }
-#if TEST_STD_VER < 20
     {
         typedef dpl::pair<T1, T2> volatile P;
         static_assert(dpl::is_same<typename std::tuple_element<0, P>::type, volatile T1>::value);
@@ -72,7 +71,6 @@ test()
         result &= (dpl::is_same<typename std::tuple_element<0, P>::type, const volatile T1>::value);
         result &= (dpl::is_same<typename std::tuple_element<1, P>::type, const volatile T2>::value);
     }
-#endif // TEST_STD_VER < 20
 
     return result;
 }

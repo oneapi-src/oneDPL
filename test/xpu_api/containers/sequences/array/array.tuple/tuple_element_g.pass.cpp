@@ -19,7 +19,6 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
-#include "support/test_macros.h"
 
 bool
 kernel_test()
@@ -40,7 +39,6 @@ kernel_test()
     static_assert(is_same<tuple_element<1, const array_type>::type, const int>::value);
     static_assert(is_same<tuple_element<2, const array_type>::type, const int>::value);
 
-#if TEST_STD_VER < 20
     static_assert(is_same<tuple_element<0, volatile array_type>::type, volatile int>::value);
     static_assert(is_same<tuple_element<1, volatile array_type>::type, volatile int>::value);
     static_assert(is_same<tuple_element<2, volatile array_type>::type, volatile int>::value == true);
@@ -48,8 +46,6 @@ kernel_test()
     static_assert(is_same<tuple_element<0, const volatile array_type>::type, const volatile int>::value);
     static_assert(is_same<tuple_element<1, const volatile array_type>::type, const volatile int>::value);
     static_assert(is_same<tuple_element<2, const volatile array_type>::type, const volatile int>::value);
-#endif // TEST_STD_VER < 20
-
     return true;
 }
 

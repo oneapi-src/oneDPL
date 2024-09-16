@@ -22,7 +22,6 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
-#include "support/test_macros.h"
 
 class KernelTest1;
 
@@ -52,7 +51,6 @@ test()
         static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
         static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
-#if TEST_STD_VER < 20
     {
         typedef T volatile Exp;
         typedef dpl::array<T, 3> volatile C;
@@ -75,7 +73,6 @@ test()
         static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
         static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
-#endif // TEST_STD_VER < 20
 }
 
 int

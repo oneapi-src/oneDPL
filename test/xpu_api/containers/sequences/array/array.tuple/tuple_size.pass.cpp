@@ -21,7 +21,6 @@
 #include <oneapi/dpl/array>
 
 #include "support/utils.h"
-#include "support/test_macros.h"
 
 template <class T, std::size_t N>
 void
@@ -35,7 +34,6 @@ test()
         typedef dpl::array<T const, N> C;
         static_assert(dpl::tuple_size<C>::value == N);
     }
-#if TEST_STD_VER < 20
     {
         typedef dpl::array<T volatile, N> C;
         static_assert(dpl::tuple_size<C>::value == N);
@@ -44,7 +42,6 @@ test()
         typedef dpl::array<T const volatile, N> C;
         static_assert(dpl::tuple_size<C>::value == N);
     }
-#endif // TEST_STD_VER < 20
 }
 
 int

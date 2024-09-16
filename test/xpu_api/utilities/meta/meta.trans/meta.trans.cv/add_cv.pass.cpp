@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_STD_VER < 20
 template <class T, class U>
 void
 test_add_cv_imp()
@@ -54,14 +53,10 @@ kernel_test()
 }
 
 class KernelTest;
-#endif // TEST_STD_VER < 20
 
 int
 main()
 {
-    bool bProcessed = false;
-
-#if TEST_STD_VER < 20
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -74,8 +69,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with dpl::add_cv");
-    bProcessed = true;
-#endif // TEST_STD_VER < 20
 
-    return TestUtils::done(bProcessed);
+    return TestUtils::done();
 }

@@ -39,10 +39,8 @@ test_pointer()
 {
     test_pointer_imp<T>();
     test_pointer_imp<const T>();
-#if TEST_STD_VER < 20
     test_pointer_imp<volatile T>();
     test_pointer_imp<const volatile T>();
-#endif // TEST_STD_VER < 20
 }
 
 bool

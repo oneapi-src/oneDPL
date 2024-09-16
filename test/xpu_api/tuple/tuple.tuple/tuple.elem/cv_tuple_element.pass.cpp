@@ -30,17 +30,13 @@ kernel_test1(sycl::queue& deviceQueue)
             {
                 using tuple_type = dpl::tuple<float, short, int>;
                 static_assert(dpl::is_same_v<std::tuple_element<0, const tuple_type>::type, const float>);
-#if TEST_STD_VER < 20
                 static_assert(dpl::is_same_v<std::tuple_element<1, volatile tuple_type>::type, volatile short>);
                 static_assert(
                     dpl::is_same_v<std::tuple_element<2, const volatile tuple_type>::type, const volatile int>);
-#endif // TEST_STD_VER < 20
 
                 static_assert(dpl::is_same_v<std::tuple_element_t<0, const tuple_type>, const float>);
-#if TEST_STD_VER < 20
                 static_assert(dpl::is_same_v<std::tuple_element_t<1, volatile tuple_type>, volatile short>);
                 static_assert(dpl::is_same_v<std::tuple_element_t<2, const volatile tuple_type>, const volatile int>);
-#endif // TEST_STD_VER < 20
             }
         });
     });

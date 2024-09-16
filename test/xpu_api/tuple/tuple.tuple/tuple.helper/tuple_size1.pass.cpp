@@ -34,17 +34,13 @@ kernel_test()
         cgh.single_task<KernelName>([=]() {
             static_assert(dpl::tuple_size<T>::value == N);
             static_assert(dpl::tuple_size<const T>::value == N);
-#if TEST_STD_VER < 20
             static_assert(dpl::tuple_size<volatile T>::value == N);
             static_assert(dpl::tuple_size<const volatile T>::value == N);
-#endif // TEST_STD_VER < 20
 
             static_assert(std::tuple_size_v<T> == N);
             static_assert(std::tuple_size_v<const T> == N);
-#if TEST_STD_VER < 20
             static_assert(std::tuple_size_v<volatile T> == N);
             static_assert(std::tuple_size_v<const volatile T> == N);
-#endif // TEST_STD_VER < 20
         });
     });
 }

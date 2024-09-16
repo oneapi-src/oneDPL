@@ -39,10 +39,8 @@ test_void()
 {
     test_void_imp<T>();
     test_void_imp<const T>();
-#if TEST_STD_VER < 20
     test_void_imp<volatile T>();
     test_void_imp<const volatile T>();
-#endif // TEST_STD_VER < 20
 }
 
 bool

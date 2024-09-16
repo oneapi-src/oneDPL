@@ -26,16 +26,12 @@ test_is_volatile()
 {
     static_assert(!dpl::is_volatile<T>::value);
     static_assert(!dpl::is_volatile<const T>::value);
-#if TEST_STD_VER < 20
     static_assert(dpl::is_volatile<volatile T>::value);
     static_assert(dpl::is_volatile<const volatile T>::value);
-#endif // TEST_STD_VER < 20
     static_assert(!dpl::is_volatile_v<T>);
     static_assert(!dpl::is_volatile_v<const T>);
-#if TEST_STD_VER < 20
     static_assert(dpl::is_volatile_v<volatile T>);
     static_assert(dpl::is_volatile_v<const volatile T>);
-#endif // TEST_STD_VER < 20
 }
 
 struct A; // incomplete
@@ -54,9 +50,7 @@ kernel_test()
     test_is_volatile<A>();
 
     static_assert(!dpl::is_volatile<int&>::value);
-#if TEST_STD_VER < 20
     static_assert(!dpl::is_volatile<volatile int&>::value);
-#endif // TEST_STD_VER < 20
     return true;
 }
 

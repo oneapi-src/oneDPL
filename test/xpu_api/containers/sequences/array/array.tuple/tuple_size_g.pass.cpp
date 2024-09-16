@@ -19,7 +19,6 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
-#include "support/test_macros.h"
 
 bool
 kernel_test()
@@ -34,10 +33,8 @@ kernel_test()
         typedef array<int, len> array_type;
         static_assert(tuple_size<array_type>::value == 5);
         static_assert(tuple_size<const array_type>::value == 5);
-#if TEST_STD_VER < 20
         static_assert(tuple_size<volatile array_type>::value == 5);
         static_assert(tuple_size<const volatile array_type>::value == 5);
-#endif // TEST_STD_VER < 20
     }
 
     {
@@ -45,10 +42,8 @@ kernel_test()
         typedef array<float, len> array_type;
         static_assert(tuple_size<array_type>::value == 0);
         static_assert(tuple_size<const array_type>::value == 0);
-#if TEST_STD_VER < 20
         static_assert(tuple_size<volatile array_type>::value == 0);
         static_assert(tuple_size<const volatile array_type>::value == 0);
-#endif // TEST_STD_VER < 20
     }
     return true;
 }

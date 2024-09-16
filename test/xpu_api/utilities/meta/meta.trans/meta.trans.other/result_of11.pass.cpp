@@ -85,45 +85,33 @@ kernel_test()
         typedef char F::*PMD;
         test_result_of_imp<PMD(F&), char&>();
         test_result_of_imp<PMD(F const&), char const&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(F volatile&), char volatile&>();
         test_result_of_imp<PMD(F const volatile&), char const volatile&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(F &&), char&&>();
         test_result_of_imp<PMD(F const&&), char const&&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(F volatile &&), char volatile&&>();
         test_result_of_imp<PMD(F const volatile&&), char const volatile&&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(F), char&&>();
         test_result_of_imp<PMD(F const), char&&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(F volatile), char&&>();
         test_result_of_imp<PMD(F const volatile), char&&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(FD&), char&>();
         test_result_of_imp<PMD(FD const&), char const&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(FD volatile&), char volatile&>();
         test_result_of_imp<PMD(FD const volatile&), char const volatile&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(FD &&), char&&>();
         test_result_of_imp<PMD(FD const&&), char const&&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(FD volatile &&), char volatile&&>();
         test_result_of_imp<PMD(FD const volatile&&), char const volatile&&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(FD), char&&>();
         test_result_of_imp<PMD(FD const), char&&>();
-#if TEST_STD_VER < 20
         test_result_of_imp<PMD(FD volatile), char&&>();
         test_result_of_imp<PMD(FD const volatile), char&&>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<PMD(dpl::reference_wrapper<F>), char&>();
         test_result_of_imp<PMD(dpl::reference_wrapper<F const>), const char&>();
@@ -137,39 +125,29 @@ kernel_test()
         test_result_of_imp<int (F::*(F&))() const volatile&, int>();
         test_result_of_imp<int (F::*(F const&))() const&, int>();
         test_result_of_imp<int (F::*(F const&))() const volatile&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F volatile&))() volatile&, int>();
         test_result_of_imp<int (F::*(F volatile&))() const volatile&, int>();
         test_result_of_imp<int (F::*(F const volatile&))() const volatile&, int>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<int (F::*(F &&))()&&, int>();
         test_result_of_imp<int (F::*(F &&))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F &&))() volatile&&, int>();
         test_result_of_imp<int (F::*(F &&))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F const&&))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F const&&))() const volatile&&, int>();
         test_result_of_imp<int (F::*(F volatile &&))() volatile&&, int>();
         test_result_of_imp<int (F::*(F volatile &&))() const volatile&&, int>();
         test_result_of_imp<int (F::*(F const volatile&&))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<int (F::*(F))()&&, int>();
         test_result_of_imp<int (F::*(F))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F))() volatile&&, int>();
         test_result_of_imp<int (F::*(F))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F const))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(F const))() const volatile&&, int>();
         test_result_of_imp<int (F::*(F volatile))() volatile&&, int>();
         test_result_of_imp<int (F::*(F volatile))() const volatile&&, int>();
         test_result_of_imp<int (F::*(F const volatile))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
     }
     {
         test_result_of_imp<int (F::*(FD&))()&, int>();
@@ -178,29 +156,22 @@ kernel_test()
         test_result_of_imp<int (F::*(FD&))() const volatile&, int>();
         test_result_of_imp<int (F::*(FD const&))() const&, int>();
         test_result_of_imp<int (F::*(FD const&))() const volatile&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(FD volatile&))() volatile&, int>();
         test_result_of_imp<int (F::*(FD volatile&))() const volatile&, int>();
         test_result_of_imp<int (F::*(FD const volatile&))() const volatile&, int>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<int (F::*(FD &&))()&&, int>();
         test_result_of_imp<int (F::*(FD &&))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(FD &&))() volatile&&, int>();
         test_result_of_imp<int (F::*(FD &&))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
         test_result_of_imp<int (F::*(FD const&&))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(FD const&&))() const volatile&&, int>();
         test_result_of_imp<int (F::*(FD volatile &&))() volatile&&, int>();
         test_result_of_imp<int (F::*(FD volatile &&))() const volatile&&, int>();
         test_result_of_imp<int (F::*(FD const volatile&&))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
 
         test_result_of_imp<int (F::*(FD))()&&, int>();
         test_result_of_imp<int (F::*(FD))() const&&, int>();
-#if TEST_STD_VER < 20
         test_result_of_imp<int (F::*(FD))() volatile&&, int>();
         test_result_of_imp<int (F::*(FD))() const volatile&&, int>();
         test_result_of_imp<int (F::*(FD const))() const&&, int>();
@@ -208,7 +179,6 @@ kernel_test()
         test_result_of_imp<int (F::*(FD volatile))() volatile&&, int>();
         test_result_of_imp<int (F::*(FD volatile))() const volatile&&, int>();
         test_result_of_imp<int (F::*(FD const volatile))() const volatile&&, int>();
-#endif // TEST_STD_VER < 20
     }
     {
         test_result_of_imp<int (F::*(dpl::reference_wrapper<F>))(), int>();

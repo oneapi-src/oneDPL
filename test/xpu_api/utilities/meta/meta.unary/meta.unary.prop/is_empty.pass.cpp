@@ -36,16 +36,12 @@ test_is_empty(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(dpl::is_empty<T>::value);
             static_assert(dpl::is_empty<const T>::value);
-#if TEST_STD_VER < 20
             static_assert(dpl::is_empty<volatile T>::value);
             static_assert(dpl::is_empty<const volatile T>::value);
-#endif // TEST_STD_VER < 20
             static_assert(dpl::is_empty_v<T>);
             static_assert(dpl::is_empty_v<const T>);
-#if TEST_STD_VER < 20
             static_assert(dpl::is_empty_v<volatile T>);
             static_assert(dpl::is_empty_v<const volatile T>);
-#endif // TEST_STD_VER < 20
         });
     });
 }
@@ -58,16 +54,12 @@ test_is_not_empty(sycl::queue& deviceQueue)
         cgh.single_task<T>([=]() {
             static_assert(!dpl::is_empty<T>::value);
             static_assert(!dpl::is_empty<const T>::value);
-#if TEST_STD_VER < 20
             static_assert(!dpl::is_empty<volatile T>::value);
             static_assert(!dpl::is_empty<const volatile T>::value);
-#endif // TEST_STD_VER < 20
             static_assert(!dpl::is_empty_v<T>);
             static_assert(!dpl::is_empty_v<const T>);
-#if TEST_STD_VER < 20
             static_assert(!dpl::is_empty_v<volatile T>);
             static_assert(!dpl::is_empty_v<const volatile T>);
-#endif // TEST_STD_VER < 20
         });
     });
 }

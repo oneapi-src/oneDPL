@@ -36,10 +36,8 @@ test_imp(std::true_type)
 
     assert(dpl::isnan(dpl::numeric_limits<T>::quiet_NaN()));
     assert(dpl::isnan(dpl::numeric_limits<const T>::quiet_NaN()));
-#if TEST_STD_VER < 20
     assert(dpl::isnan(dpl::numeric_limits<volatile T>::quiet_NaN()));
     assert(dpl::isnan(dpl::numeric_limits<const volatile T>::quiet_NaN()));
-#endif // TEST_STD_VER < 20
 
 #ifdef __clang__
 #pragma clang diagnostic pop

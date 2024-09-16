@@ -44,10 +44,8 @@ test_floating_point(sycl::queue& deviceQueue)
 {
     test_floating_point_imp<T>(deviceQueue);
     test_floating_point_imp<const T>(deviceQueue);
-#if TEST_STD_VER < 20
     test_floating_point_imp<volatile T>(deviceQueue);
     test_floating_point_imp<const volatile T>(deviceQueue);
-#endif // TEST_STD_VER < 20
 }
 
 void

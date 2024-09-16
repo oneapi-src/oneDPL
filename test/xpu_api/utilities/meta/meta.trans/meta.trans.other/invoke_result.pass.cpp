@@ -43,12 +43,10 @@ struct S
     operator()(char, int&);
     double const&
     operator()(char, int&) const;
-#if TEST_STD_VER < 20
     double volatile&
     operator()(char, int&) volatile;
     double const volatile&
     operator()(char, int&) const volatile;
-#endif // TEST_STD_VER < 20
 };
 
 struct SD : public S
@@ -156,10 +154,8 @@ kernel_test()
         {
             test_result_of<KernelTest2, S&(unsigned char, int&), double>(deviceQueue);
             test_result_of<KernelTest3, S const&(unsigned char, int&), double const&>(deviceQueue);
-#if TEST_STD_VER < 20
             test_result_of<KernelTest4, S volatile&(unsigned char, int&), double volatile&>(deviceQueue);
             test_result_of<KernelTest5, S const volatile&(unsigned char, int&), double const volatile&>(deviceQueue);
-#endif // TEST_STD_VER < 20
         }
     }
     { // pointer to member data
@@ -169,12 +165,10 @@ kernel_test()
         test_result_of<KernelTest8, PMD(S* const), char&>(deviceQueue);
         test_result_of<KernelTest9, PMD(const S&), const char&>(deviceQueue);
         test_result_of<KernelTest10, PMD(const S*), const char&>(deviceQueue);
-#if TEST_STD_VER < 20
         test_result_of<KernelTest11, PMD(volatile S&), volatile char&>(deviceQueue);
         test_result_of<KernelTest12, PMD(volatile S*), volatile char&>(deviceQueue);
         test_result_of<KernelTest13, PMD(const volatile S&), const volatile char&>(deviceQueue);
         test_result_of<KernelTest14, PMD(const volatile S*), const volatile char&>(deviceQueue);
-#endif // TEST_STD_VER < 20
         test_result_of<KernelTest15, PMD(SD&), char&>(deviceQueue);
         test_result_of<KernelTest16, PMD(SD const&), const char&>(deviceQueue);
         test_result_of<KernelTest17, PMD(SD*), char&>(deviceQueue);

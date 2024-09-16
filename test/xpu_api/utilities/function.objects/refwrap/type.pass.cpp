@@ -19,7 +19,6 @@
 #include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
-#include "support/test_macros.h"
 
 class C
 {
@@ -45,10 +44,8 @@ kernel_test()
             static_assert(dpl::is_same<dpl::reference_wrapper<void (*)()>::type, void (*)()>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (*)(float*)>::type, int* (*)(float*)>::value);
             static_assert(dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::type, int* (C::*)(float*)>::value);
-#if TEST_STD_VER < 20
             static_assert(dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
                                        int (C::*)(float*) const volatile>::value);
-#endif // TEST_STD_VER < 20
             // Runtime check...
 
             ret_access[0] = dpl::is_same<dpl::reference_wrapper<C>::type, C>::value;
@@ -58,10 +55,8 @@ kernel_test()
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int* (*)(float*)>::type, int* (*)(float*)>::value;
             ret_access[0] &=
                 dpl::is_same<dpl::reference_wrapper<int* (C::*)(float*)>::type, int* (C::*)(float*)>::value;
-#if TEST_STD_VER < 20
             ret_access[0] &= dpl::is_same<dpl::reference_wrapper<int (C::*)(float*) const volatile>::type,
                                           int (C::*)(float*) const volatile>::value;
-#endif // TEST_STD_VER < 20
         });
     });
 

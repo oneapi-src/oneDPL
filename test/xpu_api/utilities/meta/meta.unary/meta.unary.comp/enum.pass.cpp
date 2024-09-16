@@ -39,10 +39,8 @@ test_enum()
 {
     test_enum_imp<T>();
     test_enum_imp<const T>();
-#if TEST_STD_VER < 20
     test_enum_imp<volatile T>();
     test_enum_imp<const volatile T>();
-#endif // TEST_STD_VER < 20
 }
 
 enum Enum
