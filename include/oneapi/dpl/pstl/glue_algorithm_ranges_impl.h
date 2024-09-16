@@ -421,8 +421,8 @@ struct __stable_sort_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Comp __comp = {}, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
-        return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(
-            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
+        return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj);
     }
 }; //__stable_sort_fn
 }  //__internal
