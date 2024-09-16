@@ -15,7 +15,7 @@ Shared and host-allocated USM                    Yes                        Yes
 Other host-allocated data                        No                         Yes
 ================================================ ========================== =============
 
-When using the C++ standard aligned (or *host*) execution policies, |onedpl_short| supports data being passed
+When using the standard-aligned (or *host*) execution policies, |onedpl_short| supports data being passed
 to its algorithms as specified in the C++ standard (C++17 for algorithms working with iterators,
 C++20 for parallel range algorithms), with :ref:`known restrictions and limitations <library-restrictions>`.
 
@@ -26,7 +26,7 @@ with parallel execution policies.
    Implementations of ``std::vector<bool>`` are not required to avoid data races for concurrent modifications
    of vector elements. Some implementations may optimize multiple ``bool`` elements into a bitfield, making it unsafe
    for multithreading. For this reason, it is recommended to avoid ``std::vector<bool>`` for anything but a read-only
-   input with the C++ standard aligned execution policies.
+   input with the standard-aligned execution policies.
 
 The following subsections describe proper ways to pass data to an algorithm invoked with a device execution policy.
 
