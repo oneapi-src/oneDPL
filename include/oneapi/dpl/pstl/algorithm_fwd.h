@@ -743,29 +743,29 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomA
 
 template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _LeafSort>
 void
-__pattern_stable_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-                      _LeafSort) noexcept;
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
+               _LeafSort) noexcept;
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _LeafSort>
 void
-__pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
-                      _Compare, _LeafSort);
+__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+               _Compare, _LeafSort);
 
 //------------------------------------------------------------------------
-// stable_sort_by_key
+// sort_by_key
 //------------------------------------------------------------------------
 
 template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare, typename _LeafSort>
 void
-__pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
-                             _RandomAccessIterator2, _Compare, _LeafSort) noexcept;
+__pattern_sort_by_key(_Tag, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                      _RandomAccessIterator2, _Compare, _LeafSort) noexcept;
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
           typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 void
-__pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
-                             _RandomAccessIterator1, _RandomAccessIterator2, _Compare, _LeafSort);
+__pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                      _RandomAccessIterator1, _RandomAccessIterator2, _Compare, _LeafSort);
 
 //------------------------------------------------------------------------
 // partial_sort

@@ -1244,8 +1244,8 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _LeafSort>
 void
-__pattern_stable_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-                      _Compare __comp, _LeafSort)
+__pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+               _Compare __comp, _LeafSort)
 {
     __stable_sort_with_projection(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
                                   oneapi::dpl::identity{});
@@ -1258,8 +1258,8 @@ __pattern_stable_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare,
           typename _LeafSort>
 void
-__pattern_stable_sort_by_key(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __keys_first,
-                             _Iterator1 __keys_last, _Iterator2 __values_first, _Compare __comp, _LeafSort)
+__pattern_sort_by_key(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __keys_first,
+                      _Iterator1 __keys_last, _Iterator2 __values_first, _Compare __comp, _LeafSort)
 {
     static_assert(std::is_move_constructible_v<typename std::iterator_traits<_Iterator1>::value_type> &&
                       std::is_move_constructible_v<typename std::iterator_traits<_Iterator2>::value_type>,
@@ -1484,8 +1484,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // be asynchronous for better performance.
 
         // TODO: consider adding non-stable implementation for partial_sort since it's not required to be stable
-        //__pattern_stable_sort is a blocking call.
-        __pattern_stable_sort(
+        //__pattern_sort is a blocking call.
+        __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
             __out_first, __out_end, __comp, /*unused*/ oneapi::dpl::__internal::__leaf_std_sort{});

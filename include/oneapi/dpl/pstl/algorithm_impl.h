@@ -2390,13 +2390,13 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
 }
 
 //------------------------------------------------------------------------
-// stable_sort
+// sort
 //------------------------------------------------------------------------
 
 template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _LeafSort>
 void
-__pattern_stable_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
-                      _Compare __comp, _LeafSort __leaf_sort) noexcept
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
+               _LeafSort __leaf_sort) noexcept
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
@@ -2405,8 +2405,8 @@ __pattern_stable_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _LeafSort>
 void
-__pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
-                      _RandomAccessIterator __last, _Compare __comp, _LeafSort __leaf_sort)
+__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+               _RandomAccessIterator __last, _Compare __comp, _LeafSort __leaf_sort)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
@@ -2421,15 +2421,15 @@ __pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
 }
 
 //------------------------------------------------------------------------
-// stable_sort_by_key
+// sort_by_key
 //------------------------------------------------------------------------
 
 template <typename _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare, typename _LeafSort>
 void
-__pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
-                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
-                             _LeafSort __leaf_sort) noexcept
+__pattern_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                      _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
+                      _LeafSort __leaf_sort) noexcept
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
@@ -2443,9 +2443,9 @@ __pattern_stable_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessItera
 template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
           typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 void
-__pattern_stable_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
-                             _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
-                             _LeafSort __leaf_sort)
+__pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                      _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
+                      _LeafSort __leaf_sort)
 {
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
