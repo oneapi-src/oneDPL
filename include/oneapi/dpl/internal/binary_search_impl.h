@@ -88,11 +88,12 @@ lower_bound_impl(_Tag tag, Policy&& policy, InputIterator1 start, InputIterator1
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
+    using _ValueType = typename std::iterator_traits<InputIterator2>::value_type;
+
     return oneapi::dpl::__internal::__pattern_walk2(
         tag, std::forward<Policy>(policy), value_start, value_end, result,
-        oneapi::dpl::__internal::__transform_functor{[=](typename std::iterator_traits<InputIterator2>::reference val) {
-            return std::lower_bound(start, end, val, comp) - start;
-        }});
+        oneapi::dpl::__internal::__transform_functor{
+            [=](const _ValueType& val) { return std::lower_bound(start, end, val, comp) - start; }});
 }
 
 template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -103,11 +104,12 @@ upper_bound_impl(_Tag tag, Policy&& policy, InputIterator1 start, InputIterator1
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
+    using _ValueType = typename std::iterator_traits<InputIterator2>::value_type;
+
     return oneapi::dpl::__internal::__pattern_walk2(
         tag, std::forward<Policy>(policy), value_start, value_end, result,
-        oneapi::dpl::__internal::__transform_functor{[=](typename std::iterator_traits<InputIterator2>::reference val) {
-            return std::upper_bound(start, end, val, comp) - start;
-        }});
+        oneapi::dpl::__internal::__transform_functor{
+            [=](const _ValueType& val) { return std::upper_bound(start, end, val, comp) - start; }});
 }
 
 template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -118,11 +120,12 @@ binary_search_impl(_Tag tag, Policy&& policy, InputIterator1 start, InputIterato
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
+    using _ValueType = typename std::iterator_traits<InputIterator2>::value_type;
+
     return oneapi::dpl::__internal::__pattern_walk2(
         tag, std::forward<Policy>(policy), value_start, value_end, result,
-        oneapi::dpl::__internal::__transform_functor{[=](typename std::iterator_traits<InputIterator2>::reference val) {
-            return std::binary_search(start, end, val, comp);
-        }});
+        oneapi::dpl::__internal::__transform_functor{
+            [=](const _ValueType& val) { return std::binary_search(start, end, val, comp); }});
 }
 
 #if _ONEDPL_BACKEND_SYCL
