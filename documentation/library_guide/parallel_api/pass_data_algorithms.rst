@@ -137,7 +137,7 @@ You can use iterators to an ordinary ``std::vector`` with data in host memory, a
   }
 
 In this case a temporary SYCL buffer is created, the data is copied to this buffer, and it is processed
-according to the algorithm semantucs. After processing on a device is complete, the modified data is copied
+according to the algorithm semantics. After processing on a device is complete, the modified data is copied
 from the temporary buffer back to the host container.
 
 .. note::
