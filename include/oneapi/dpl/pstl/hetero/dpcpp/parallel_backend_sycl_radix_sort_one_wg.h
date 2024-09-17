@@ -164,9 +164,12 @@ struct __subgroup_radix_sort
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
                 __cgh.parallel_for<_Name...>(
-                    __range,
-                    ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(__req_sub_group_size)]] {
-                        union __storage { _ValT __v[__block_size]; __storage(){} } __values;
+                    __range, ([=](sycl::nd_item<1> __it) [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(16)]] {
+                        union __storage
+                        {
+                            _ValT __v[__block_size];
+                            __storage() {}
+                        } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
