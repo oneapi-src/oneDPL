@@ -103,6 +103,25 @@ expect(bool expected, bool condition, const char* file, std::int32_t line, const
 // Do not change signature to const T&.
 // Function must be able to detect const differences between expected and actual.
 template <typename T1, typename T2>
+bool
+is_equal_val(const T1& val1, const T2& val2)
+{
+    using T = std::common_type_t<T1, T2>;
+
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        const auto eps = std::numeric_limits<T>::epsilon();
+        return std::fabs(T(val1) - T(val2)) < eps;
+    }
+    else
+    {
+        return T(val1) == T(val2);
+    }
+}
+
+// Do not change signature to const T&.
+// Function must be able to detect const differences between expected and actual.
+template <typename T1, typename T2>
 void
 expect_equal_val(const T1& expected, const T2& actual, const char* file, std::int32_t line, const char* message)
 {
