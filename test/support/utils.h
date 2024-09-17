@@ -177,7 +177,7 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
     size_t error_count = 0;
     for (size_t k = 0; k < n && error_count < 10; ++k, ++expected_first, ++actual_first)
     {
-        if (!(*expected_first == *actual_first))
+        if (!is_equal_val(*expected_first, *actual_first))
         {
             ::std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k;
