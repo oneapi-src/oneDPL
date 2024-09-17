@@ -9,14 +9,14 @@ These templates are available in the ``oneapi::dpl::experimental::kt::gpu::esimd
 * :doc:`radix_sort <esimd/radix_sort>`
 * :doc:`radix_sort_by_key <esimd/radix_sort_by_key>`
 
-.. toctree::
-   :maxdepth: 2
-   :titlesonly:
-   :glob:
-   :hidden:
+..
+    .. toctree::
+       :maxdepth: 2
+       :titlesonly:
+       :hidden:
 
-   esimd/radix_sort
-   esimd/radix_sort_by_key
+       esimd/radix_sort
+       esimd/radix_sort_by_key
 
 -------------------
 System Requirements

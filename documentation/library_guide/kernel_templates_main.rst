@@ -17,12 +17,12 @@ The primary API namespace is ``oneapi::dpl::experimental::kt``, and nested names
 * :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Algorithms implemented with the Explicit SIMD SYCL extension.
 * :doc:`Inclusive scan algorithm <kernel_templates/single_pass_scan>`. Inclusive scan kernel template algorithm using a single-pass approach.
 
-.. toctree::
-   :maxdepth: 2
-   :titlesonly:
-   :glob:
-   :hidden:
+..
+    .. toctree::
+       :maxdepth: 2
+       :titlesonly:
+       :hidden:
 
-   kernel_templates/kernel_configuration
-   kernel_templates/esimd_main
-   kernel_templates/single_pass_scan
+       kernel_templates/kernel_configuration
+       kernel_templates/esimd_main
+       kernel_templates/single_pass_scan

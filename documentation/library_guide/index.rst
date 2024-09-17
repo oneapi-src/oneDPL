@@ -10,6 +10,7 @@ For general information, refer to the `oneDPL GitHub* repository
 
 .. toctree::
    :maxdepth: 2
+   :titlesonly:
    :caption: Get Started
 
    introduction/release_notes.rst
@@ -17,6 +18,7 @@ For general information, refer to the `oneDPL GitHub* repository
 
 .. toctree::
    :maxdepth: 2
+   :titlesonly:
    :caption: Library Guide
 
    introduction
