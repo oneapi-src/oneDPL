@@ -24,11 +24,16 @@ For general information, refer to the `oneDPL GitHub* repository
    introduction
    parallel_api_main
    api_for_sycl_kernels_main
-   dynamic_selection_api_main
-   kernel_templates_main
    macros
    cmake_support
    oneDPL_2022.0_changes
+
+.. toctree::
+   :maxdepth: 2
+   :titlesonly:
+   :caption: Experimental APIs
+   dynamic_selection_api_main
+   kernel_templates_main
 
 .. toctree::
    :hidden:
