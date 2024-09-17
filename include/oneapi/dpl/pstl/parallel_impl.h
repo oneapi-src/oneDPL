@@ -46,26 +46,28 @@ __parallel_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Index __f
     constexpr auto __comp = ::std::conditional_t<_IsFirst::value, __pstl_less, __pstl_greater>{};
 
     ::std::atomic<_DifferenceType> __extremum(__initial_dist);
-    // TODO: find out what is better here: parallel_for or parallel_reduce
-    __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                  [__comp, __f, __first, &__extremum](_Index __i, _Index __j) {
-                                      // See "Reducing Contention Through Priority Updates", PPoPP '13, for discussion of
-                                      // why using a shared variable scales fairly well in this situation.
-                                      if (__comp(__i - __first, __extremum))
-                                      {
-                                          _Index __res = __f(__i, __j);
-                                          // If not '__last' returned then we found what we want so put this to extremum
-                                          if (__res != __j)
+    __internal::__except_handler([&]() {
+        // TODO: find out what is better here: parallel_for or parallel_reduce
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                      [__comp, __f, __first, &__extremum](_Index __i, _Index __j) {
+                                          // See "Reducing Contention Through Priority Updates", PPoPP '13, for discussion of
+                                          // why using a shared variable scales fairly well in this situation.
+                                          if (__comp(__i - __first, __extremum))
                                           {
-                                              const _DifferenceType __k = __res - __first;
-                                              for (_DifferenceType __old = __extremum; __comp(__k, __old);
-                                                   __old = __extremum)
+                                              _Index __res = __f(__i, __j);
+                                              // If not '__last' returned then we found what we want so put this to extremum
+                                              if (__res != __j)
                                               {
-                                                  __extremum.compare_exchange_weak(__old, __k);
+                                                  const _DifferenceType __k = __res - __first;
+                                                  for (_DifferenceType __old = __extremum; __comp(__k, __old);
+                                                       __old = __extremum)
+                                                  {
+                                                      __extremum.compare_exchange_weak(__old, __k);
+                                                  }
                                               }
                                           }
-                                      }
-                                  });
+                                      });
+    });
     return __extremum != __initial_dist ? __first + __extremum : __last;
 }
 
