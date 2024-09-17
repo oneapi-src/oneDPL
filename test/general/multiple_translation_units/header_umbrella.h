@@ -43,7 +43,11 @@
 #include <oneapi/dpl/memory>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/optional>
-#include <oneapi/dpl/random>
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#   include <oneapi/dpl/random>
+#endif
+
 #include <oneapi/dpl/ranges>
 #include <oneapi/dpl/ratio>
 #include <oneapi/dpl/tuple>
