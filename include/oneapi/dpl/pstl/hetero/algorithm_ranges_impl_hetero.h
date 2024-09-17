@@ -55,10 +55,12 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-                                                          ::std::forward<_Ranges>(__rngs)...)
-            .__deferrable_wait();
+        oneapi::dpl::__internal::__except_handler([&]() {
+            oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                              unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                              __n, ::std::forward<_Ranges>(__rngs)...)
+                .__deferrable_wait();
+        });
     }
 }
 
@@ -619,13 +621,15 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     {
         // For a sequence of size 1, we can just copy the only element to the result.
         using _CopyBrick = oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            _BackendTag{},
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_wrapper>(
-                std::forward<_ExecutionPolicy>(__exec)),
-            unseq_backend::walk_n<_ExecutionPolicy, _CopyBrick>{_CopyBrick{}}, __n, std::forward<_Range1>(__rng),
-            std::forward<_Range2>(__result))
-            .get();
+        oneapi::dpl::__internal::__except_handler([&]() {
+            return oneapi::dpl::__par_backend_hetero::__parallel_for(
+                       _BackendTag{},
+                       oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_wrapper>(
+                           std::forward<_ExecutionPolicy>(__exec)),
+                       unseq_backend::walk_n<_ExecutionPolicy, _CopyBrick>{_CopyBrick{}}, __n,
+                       std::forward<_Range1>(__rng), std::forward<_Range2>(__result))
+                .get();
+        });
 
         return 1;
     }
@@ -984,13 +988,16 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
-    oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
-        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
-                                                __intermediate_result_end),
-        ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
-        .wait();
+    oneapi::dpl::__internal::__except_handler([&]() {
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
+            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n),
+            __intermediate_result_end,
+            oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
+                                                    __intermediate_result_end),
+            ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
+            .wait();
+    });
 
     // Round 2: final reduction to get result for each segment of equal adjacent keys
     // create views over adjacent keys
@@ -1025,16 +1032,18 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
-    oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{},
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
-            __binary_op, __intermediate_result_end),
-        __result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
-        experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
-        .__deferrable_wait();
+    oneapi::dpl::__internal::__except_handler([&]() {
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{},
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
+                __binary_op, __intermediate_result_end),
+            __result_end,
+            oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
+            experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
+            .__deferrable_wait();
+    });
 
     return __result_end;
 }
