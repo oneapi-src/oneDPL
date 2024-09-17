@@ -141,7 +141,7 @@ according to the algorithm semantics. After processing on a device is complete, 
 from the temporary buffer back to the host container.
 
 .. note::
-   For parallel range algorithms, the use of ordinary ``std::vector``s with device execution policies is not supported.
+   For parallel range algorithms with device execution policies the use of ordinary ``std::vector``\s is not supported.
 
 While convenient, direct use of an ordinary ``std::vector`` can lead to unintended copying between the host
 and the device. We recommend working with SYCL buffers or with USM to reduce data copying.
