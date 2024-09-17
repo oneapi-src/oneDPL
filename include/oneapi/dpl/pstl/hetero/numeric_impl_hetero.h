@@ -265,11 +265,9 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
         using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
 
-        oneapi::dpl::__internal::__except_handler([&]() {
-            oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, __exec, _Function{__fn}, __n,
-                                                              __buf1.all_view(), __buf2.all_view())
-                .__deferrable_wait();
-        });
+        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, __exec, _Function{__fn}, __n,
+                                                          __buf1.all_view(), __buf2.all_view())
+            .__deferrable_wait();
     }
 
     return __d_last;
