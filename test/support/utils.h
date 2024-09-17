@@ -151,7 +151,7 @@ expect_equal(const R1& expected, const R2& actual, const char* file, std::int32_
     size_t error_count = 0;
     for (size_t k = 0; k < n && error_count < 10; ++k)
     {
-        if (!(expected[k] == actual[k]))
+        if (!is_equal_val(expected[k], actual[k]))
         {
             ::std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k << " expected "
