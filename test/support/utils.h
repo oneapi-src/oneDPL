@@ -125,20 +125,9 @@ template <typename T1, typename T2>
 void
 expect_equal_val(const T1& expected, const T2& actual, const char* file, std::int32_t line, const char* message)
 {
-    using T = std::common_type_t<T1, T2>;
-
-    bool __is_error = false;
-    if constexpr (std::is_floating_point_v<T>)
+    if (!is_equal_val(expected, actual))
     {
-        const auto eps = std::numeric_limits<T>::epsilon();
-        __is_error = std::fabs(T(expected) - T(actual)) >= eps;
-    }
-    else
-        __is_error = !(T(expected) == T(actual));
-
-    if (__is_error)
-    {
-        ::std::stringstream outstr;
+        std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected " << expected << " got "
                << actual;
         issue_error_message(outstr);
