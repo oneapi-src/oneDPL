@@ -11,8 +11,8 @@ Data Storage                                     Device Policies            Host
 Device-allocated `unified shared memory`_ (USM)  Yes                        No
 Shared and host-allocated USM                    Yes                        Yes
 ``std::vector`` with ``sycl::usm_allocator``     Yes                        Yes
-``std::vector`` with a host allocator            See :ref:`use-std-vector`  Yes
-Other host-allocated data                        No                         Yes
+``std::vector`` with an ordinary allocator       See :ref:`use-std-vector`  Yes
+Other data in host memory                        No                         Yes
 ================================================ ========================== =============
 
 When using the standard-aligned (or *host*) execution policies, |onedpl_short| supports data being passed
@@ -37,7 +37,7 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
 allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that provides the following API:
+a `SYCL buffer`_ and return an object of an unspecified type that provides the following API:
 
 * It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with
   ``operator==`` and ``operator!=``.
@@ -71,7 +71,6 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
     std::vector<int> vec(1000);
     std::generate(vec.begin(), vec.end(), std::minstd_rand{});
 
-    //create a buffer from host memory
     sycl::buffer<int> buf{ vec.data(), vec.size() };
     auto buf_begin = oneapi::dpl::begin(buf);
     auto buf_end   = oneapi::dpl::end(buf);
@@ -120,7 +119,7 @@ algorithm execution and that the result is available to the subsequent operation
 Use std::vector
 ---------------
 
-You can use iterators to host-allocated ``std::vector`` data, as shown in the following example:
+You can use iterators to an ordinary ``std::vector`` with data in host memory, as shown in the following example:
 
 .. code:: cpp
 
@@ -137,22 +136,21 @@ You can use iterators to host-allocated ``std::vector`` data, as shown in the fo
     return 0;
   }
 
-When using iterators to host-allocated data, a temporary SYCL buffer is created, and the data
-is copied to this buffer. After processing on a device is complete, the modified data is copied
+In this case a temporary SYCL buffer is created, the data is copied to this buffer, and it is processed
+according to the algorithm semantucs. After processing on a device is complete, the modified data is copied
 from the temporary buffer back to the host container.
 
 .. note::
-   For parallel range algorithms, the use of host-allocated ``std::vector`` data
-   with device execution policies is not supported.
+   For parallel range algorithms, the use of ordinary ``std::vector``s with device execution policies is not supported.
 
-While convenient, using host-allocated data can lead to unintended copying between the host and the device.
-We recommend working with SYCL buffers or USM to reduce data copying.
+While convenient, direct use of an ordinary ``std::vector`` can lead to unintended copying between the host
+and the device. We recommend working with SYCL buffers or with USM to reduce data copying.
 
 .. note::
    For specialized memory algorithms that begin or end the lifetime of data objects, that is,
    ``uninitialized_*`` and ``destroy*`` families of functions, the data to initialize or destroy
-   should be accessible on the device without extra copying. Therefore for these algorithms
-   host-allocated data storage may not be used with device execution policies.
+   should be accessible on the device without extra copying. Therefore these algorithms may not use
+   data storage on the host with device execution policies.
 
 You can also use ``std::vector`` with a ``sycl::usm_allocator``, as shown in the following example.
 Make sure that the allocator and the execution policy use the same SYCL queue:
@@ -185,7 +183,7 @@ For ``std::vector`` with a USM allocator we recommend to use ``std::vector::data
 combination with ``std::vector::size()`` as shown in the example above, rather than iterators to
 ``std::vector``. That is because for some implementations of the C++ Standard Library it might not
 be possible for |onedpl_short| to detect that iterators are pointing to USM-allocated data. In that
-case the data will be treated as if it were host-allocated, with an extra copy made to a SYCL buffer.
+case the data will be treated as if it were in host memory, with an extra copy made to a SYCL buffer.
 Retrieving USM pointers from ``std::vector`` as shown guarantees no unintended copying.
 
 .. _use-range-views:

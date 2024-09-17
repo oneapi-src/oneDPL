@@ -197,8 +197,8 @@ The code below assumes you have added ``using namespace oneapi::dpl::execution;`
 Error Handling with Device Execution Policies
 =============================================
 
-The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
-runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
+The SYCL error handling model supports two types of errors. Synchronous errors cause the SYCL API functions
+to throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
 associated with a SYCL queue.
 
 For algorithms executed with device policies, handling all errors, synchronous or asynchronous, is a
