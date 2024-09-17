@@ -5,7 +5,7 @@ C++20 introduces the `Ranges library <https://en.cppreference.com/w/cpp/ranges>`
 `range algorithms <https://en.cppreference.com/w/cpp/algorithm/ranges>`_ as a modern paradigm for expressing
 generic operations on data sequences.
 
-|onedpl_long| (|onedpl_short|) extends it with *parallel range algorithms* which can be used with the standard range
+|onedpl_long| (|onedpl_short|) extends it with *parallel range algorithms*, which can be used with the standard range
 classes to leverage |onedpl_short| ability of parallel execution on both the host computer and data parallel devices.
 
 oneDPL only supports random access ranges, because they allow simultaneous constant-time access to elements
@@ -52,7 +52,7 @@ Supported Algorithms
 The ``<oneapi/dpl/algorithm>`` header defines the parallel range algorithms in the ``namespace oneapi::dpl::ranges``.
 All algorithms work with both standard-aligned (host) and device execution policies.
 
-The ``ONEDPL_HAS_RANGE_ALGORITHMS`` :ref:`feature macro <feature-macros>` may be used to test for presence of
+The ``ONEDPL_HAS_RANGE_ALGORITHMS`` :ref:`feature macro <feature-macros>` may be used to test for the presence of
 parallel range algorithms.
 
 .. _range-algorithms-202409L:
