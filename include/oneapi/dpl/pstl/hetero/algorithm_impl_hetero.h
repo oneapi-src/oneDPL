@@ -28,6 +28,9 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
+#include <cstddef> // std::nullptr_t
+#include <utility> // std::forward
+
 namespace oneapi
 {
 namespace dpl
