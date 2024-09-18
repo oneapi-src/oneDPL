@@ -725,7 +725,9 @@ class __future : private std::tuple<_Args...>
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
     __future(const __future&) = delete;
-    
+    __future&
+    operator=(const __future&) = delete;
+
     auto
     event() const
     {
