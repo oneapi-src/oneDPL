@@ -832,6 +832,9 @@ template <typename NdItem>
 std::tuple<std::size_t, std::size_t, bool>
 __stride_recommender(const NdItem& __ndi, std::size_t __count, std::size_t __iters_per_work_item, std::size_t __work_group_size)
 {
+    // The below overheads are non-trivial for small data-sizes so avoid if possible.
+    if (__iters_per_work_item == 1)
+        return std::make_tuple(__ndi.get_global_linear_id(), 0, __ndi.get_global_linear_id() < __count);
     if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
     {
         const __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
