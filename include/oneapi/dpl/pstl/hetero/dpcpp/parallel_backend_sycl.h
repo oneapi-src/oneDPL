@@ -252,7 +252,6 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             const std::size_t __iters_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
             // For small data sizes, distribute the work evenly among compute units.
             const std::uint8_t __iters_per_work_item = std::min(__iters_per_compute_unit, static_cast<std::size_t>(__max_iters_per_work_item));
-            const bool __can_unroll_loop = __max_iters_per_work_item == __iters_per_work_item;
             const std::size_t __num_groups =
                          oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             const std::size_t __num_items = __num_groups * __work_group_size;
@@ -263,16 +262,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                     // TODO: Investigate using a vectorized approach similar to reduce.
                     // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
                     // performance regressions for out-of-place (e.g. std::copy).
-                    if (__is_full && __can_unroll_loop)
-                    {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (std::uint8_t __i = 0; __i < __max_iters_per_work_item; ++__i)
-                        {
-                            __brick(__idx, __rngs...);
-                            __idx += __stride;
-                        }
-                    }
-                    else if (__is_full)
+                    if (__is_full)
                     {
                         for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
