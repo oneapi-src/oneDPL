@@ -1241,7 +1241,8 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         .__deferrable_wait();
 }
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _LeafSort = void>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare,
+          typename _LeafSort = void>
 void
 __pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                _Compare __comp, _LeafSort)
