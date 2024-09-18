@@ -28,7 +28,7 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
-#include <utility> // std::forward
+#include <utility>   // std::forward
 #include <algorithm> // std::sort
 
 namespace oneapi
