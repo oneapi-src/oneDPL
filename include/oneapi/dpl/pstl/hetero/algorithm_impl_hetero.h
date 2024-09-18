@@ -1244,7 +1244,7 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         .__deferrable_wait();
 }
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _LeafSort>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _LeafSort = void>
 void
 __pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                _Compare __comp, _LeafSort)
@@ -1258,7 +1258,7 @@ __pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iter
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare,
-          typename _LeafSort>
+          typename _LeafSort = void>
 void
 __pattern_sort_by_key(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __keys_first,
                       _Iterator1 __keys_last, _Iterator2 __values_first, _Compare __comp, _LeafSort)
@@ -1490,8 +1490,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp,
-            /*unused*/ [](auto&&... __args) { std::stable_sort(std::forward<declltype(__args)>(__args)...); });
+            __out_first, __out_end, __comp);
 
         return __out_end;
     }
