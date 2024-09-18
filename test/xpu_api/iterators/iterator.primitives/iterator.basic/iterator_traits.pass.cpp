@@ -33,7 +33,7 @@
   value_type, difference_type, pointer, and reference. Note that value_type is required to be non-const, even for constant iterators.
   You can define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning.
  */
-#define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
+// #define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 
 #include "support/test_config.h"
 
