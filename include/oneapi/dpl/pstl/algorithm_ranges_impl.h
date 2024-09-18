@@ -27,8 +27,6 @@
 #include "algorithm_fwd.h"
 #include "execution_impl.h"
 
-#    include "utils.h"
-
 namespace oneapi
 {
 namespace dpl
