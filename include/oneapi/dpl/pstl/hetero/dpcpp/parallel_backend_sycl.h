@@ -247,13 +247,13 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             // Process up to 16 bytes per work-item. This results in 512 bytes loaded input range per size 32 sub-group which
             // has yielded best performance on target architectures. For larger data types, load a single element.
             constexpr std::uint8_t __bytes_per_work_item = 16;
-            constexpr std::uint8_t __max_iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
+            constexpr std::uint8_t __max_iters_per_work_item = 4; //oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
             const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
             const std::size_t __iters_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
             // For small data sizes, distribute the work evenly among compute units.
             const std::uint8_t __iters_per_work_item = std::min(__iters_per_compute_unit, static_cast<std::size_t>(__max_iters_per_work_item));
             const std::size_t __num_groups =
-                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
+                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * 4));
             const std::size_t __num_items = __num_groups * __work_group_size;
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
@@ -264,10 +264,10 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                     // performance regressions for out-of-place (e.g. std::copy).
                     if (__is_full)
                     {
-                        for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
+                        #pragma unroll
+                        for (std::uint8_t __i = 0; __i < 4; ++__i)
                         {
-                            __brick(__idx, __rngs...);
-                            __idx += __stride;
+                            __brick(__idx + __i, __rngs...);
                         }
                     }
                     else

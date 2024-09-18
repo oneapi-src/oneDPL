@@ -837,17 +837,18 @@ __stride_recommender(const NdItem& __ndi, std::size_t __count, std::size_t __ite
         return std::make_tuple(__ndi.get_global_linear_id(), 0, __ndi.get_global_linear_id() < __count);
     if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
     {
+        constexpr uint8_t __vec_size = 4;
         const __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
         const std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
         const std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
         const std::uint32_t __sub_group_local_id = __sub_group.get_local_linear_id();
         const std::size_t __work_group_id = __ndi.get_group().get_group_linear_id();
 
-        const std::size_t __sub_group_start_idx = __iters_per_work_item * (__work_group_id * __work_group_size +
-                                                                     __sub_group_size * __sub_group_id);
+        const std::size_t __sub_group_start_idx = __vec_size * (__work_group_id * __work_group_size +
+                                                                __sub_group_size * __sub_group_id);
         const bool __is_full_sub_group =
-            __sub_group_start_idx + __iters_per_work_item * __sub_group_size <= __count;
-        const std::size_t __work_item_idx = __sub_group_start_idx + __sub_group_local_id;
+            __sub_group_start_idx + __vec_size * __sub_group_size <= __count;
+        const std::size_t __work_item_idx = __sub_group_start_idx + __vec_size * __sub_group_local_id;
         return std::make_tuple(__work_item_idx, __sub_group_size, __is_full_sub_group);
     }
     else
