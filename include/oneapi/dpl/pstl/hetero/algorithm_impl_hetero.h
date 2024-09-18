@@ -20,7 +20,6 @@
 #include "../algorithm_fwd.h"
 
 #include "../parallel_backend.h"
-#include "../utils.h"
 #include "utils_hetero.h"
 
 #if _ONEDPL_BACKEND_SYCL
@@ -28,6 +27,9 @@
 #    include "dpcpp/parallel_backend_sycl_utils.h"
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
+
+#include <utility> // std::forward
+#include <algorithm> // std::sort
 
 namespace oneapi
 {
@@ -1488,7 +1490,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __pattern_sort(
             __tag,
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __out_first, __out_end, __comp, /*unused*/ oneapi::dpl::__internal::__leaf_std_sort{});
+            __out_first, __out_end, __comp,
+            /*unused*/ [](auto&&... __args) { std::stable_sort(std::forward<declltype(__args)>(__args)...); });
 
         return __out_end;
     }

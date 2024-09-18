@@ -348,7 +348,7 @@ __pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __c
     // TODO: add a separate pattern for ranges::sort for better performance
     oneapi::dpl::__internal::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec), std::ranges::begin(__r),
                                             std::ranges::begin(__r) + std::ranges::size(__r), __comp_2,
-                                            oneapi::dpl::__internal::__leaf_std_ranges_stable_sort{});
+                                            std::ranges::stable_sort);
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }

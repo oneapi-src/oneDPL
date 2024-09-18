@@ -17,6 +17,7 @@
 #define _ONEDPL_GLUE_ALGORITHM_IMPL_H
 
 #include <functional>
+#include <algorithm> // std::sort, std::stable_sort
 
 #include "execution_defs.h"
 
@@ -665,7 +666,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                            __comp, oneapi::dpl::__internal::__leaf_std_sort{});
+                                            __comp, [](auto&&... __args) { std::stable_sort(std::forward<decltype(__args)>(__args)...); });
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
@@ -685,7 +686,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     oneapi::dpl::__internal::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                            __comp, oneapi::dpl::__internal::__leaf_std_stable_sort{});
+                                            __comp, [](auto&&... __args) { std::stable_sort(std::forward<decltype(__args)>(__args)...); });
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
@@ -708,7 +709,7 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
 
     oneapi::dpl::__internal::__pattern_sort_by_key(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                    __keys_first, __keys_last, __values_first, __comp,
-                                                   oneapi::dpl::__internal::__leaf_std_sort{});
+                                                   [](auto&&... __args) { std::sort(std::forward<decltype(__args)>(__args)...); });
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
@@ -732,7 +733,7 @@ stable_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_firs
 
     oneapi::dpl::__internal::__pattern_sort_by_key(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                    __keys_first, __keys_last, __values_first, __comp,
-                                                   oneapi::dpl::__internal::__leaf_std_stable_sort{});
+                                                   [](auto&&... __args) { std::stable_sort(std::forward<decltype(__args)>(__args)...); });
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
