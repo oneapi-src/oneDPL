@@ -28,9 +28,6 @@
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
 
-#include <utility>   // std::forward
-#include <algorithm> // std::sort
-
 namespace oneapi
 {
 namespace dpl
@@ -1485,7 +1482,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         // runtime makes a dependency graph. In that case the call of __pattern_walk2 could be changed to
         // be asynchronous for better performance.
 
-        // TODO: consider adding non-stable implementation for partial_sort since it's not required to be stable
+        // Use regular sort as partial_sort isn't required to be stable.
         //__pattern_sort is a blocking call.
         __pattern_sort(
             __tag,

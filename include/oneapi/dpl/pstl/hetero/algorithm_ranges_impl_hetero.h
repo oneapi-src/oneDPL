@@ -763,7 +763,7 @@ auto
 __pattern_sort_ranges(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj)
 {
     oneapi::dpl::__internal::__ranges::__pattern_sort(__tag, std::forward<_ExecutionPolicy>(__exec),
-                                                      oneapi::dpl::__ranges::views::all(__r), __comp, __proj);
+        oneapi::dpl::__ranges::views::all(__r), __comp, __proj);
 
     return std::ranges::borrowed_iterator_t<_R>(std::ranges::begin(__r) + std::ranges::size(__r));
 }
