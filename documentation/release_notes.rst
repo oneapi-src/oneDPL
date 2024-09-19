@@ -73,9 +73,9 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls is undefined.
-- ``sort``, ``stable_sort``, ``sort_by_key``, ``partial_sort_copy`` algorithms may work incorrectly or cause
-  a segmentation fault when used a DPC++ execution policy for CPU device, and built
-  on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+- ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``, ``partial_sort_copy`` algorithms
+  may work incorrectly or cause a segmentation fault when used a DPC++ execution policy for CPU device,
+  and built on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
   To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
 - Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
