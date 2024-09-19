@@ -107,6 +107,9 @@ Distribution                   Description
 ``cauchy_distribution``        Produces real values according to the Cauchy distribution
 ============================== ============================================================================
 
+.. note::
+  ``bernoulli_distribution``, ``geometric_distribution``, and ``uniform_int_distribution`` cannot be used on GPU devices that don't support FP64 precision because they use this data type inside the implementation.
+
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
 
