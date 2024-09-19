@@ -20,7 +20,7 @@ For general information, refer to the `oneDPL GitHub* repository
    :maxdepth: 2
    :titlesonly:
    :includehidden:
-   :caption: Library Core Guide
+   :caption: Core Functionality
 
    introduction
    parallel_api_main
@@ -33,7 +33,7 @@ For general information, refer to the `oneDPL GitHub* repository
    :maxdepth: 1
    :titlesonly:
    :includehidden:
-   :caption: Technology Preview Guide
+   :caption: Technology Preview
 
    parallel_api/async_api
    dynamic_selection_api_main
