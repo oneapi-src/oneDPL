@@ -19,6 +19,7 @@ For general information, refer to the `oneDPL GitHub* repository
 .. toctree::
    :maxdepth: 2
    :titlesonly:
+   :includehidden:
    :caption: Library Core Guide
 
    introduction
@@ -31,6 +32,7 @@ For general information, refer to the `oneDPL GitHub* repository
 .. toctree::
    :maxdepth: 2
    :titlesonly:
+   :includehidden:
    :caption: Technology Preview Guide
 
    parallel_api/async_api
