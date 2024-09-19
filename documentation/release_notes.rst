@@ -18,11 +18,11 @@ New Features
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``, and ``lexicographical_compare`` algorithms with device policies. 
 - Improved performance of ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if'', ``partition``, ``partition_copy``, ``stable_partition``, ``unique``, and ``unique_copy`` algorithms on GPU devices.
 - Improved performance of ``adjacent_find``, ``all_of``, ``any_of``, ``equal``, ``find``, ``find_if``, ``find_end``, ``find_first_of``, ``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``, ``none_of``, ``search``, and ``search_n`` algorithms on GPU devices.
-
 - Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key``  algorithms on GPU devices when using Merge sort [#fnote1]_.
 - Added ``stable_sort_by_key`` algorithm in `namespace oneapi::dpl`. 
 - In `namespace oneapi::dpl::ranges` added the range-based versions of the following algorithms: ``all_of``, ``any_of``, ``none_of``, ``for_each``, ``find``, ``find_if``, ``find_if_not``, ``adjacent_find``, ``search``, ``search_n``,
-``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``, ``copy_if``, ``min_element``, ``max_element``
+``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``, ``copy_if``, ``min_element``, ``max_element``.
+- Added support for operators ==, !=, << and >> for RNG engines and distributions.
 - Added experimental support for the philox RNG engine in `namespace oneapi::dpl::experimental`.
 
 Fixed Issues
