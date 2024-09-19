@@ -42,9 +42,9 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
+    return oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                             __n, __buf.all_view());
 }
 
 template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,

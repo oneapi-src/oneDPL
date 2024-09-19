@@ -269,8 +269,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
                 });
         });
 
-        return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy2, _Tp>>{std::move(__reduce_event),
-                                                                                           std::move(__scratch_container)};
+        return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy2, _Tp>>{
+            std::move(__reduce_event), std::move(__scratch_container)};
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 

@@ -721,10 +721,7 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event&& __e)
-        : __my_event(std::move(__e))
-    {
-    }
+    __future(_Event&& __e) : __my_event(std::move(__e)) {}
     __future(_Event&& __e, const std::tuple<_Args...>& __data)
         : std::tuple<_Args...>(__data), __my_event(std::move(__e))
     {
