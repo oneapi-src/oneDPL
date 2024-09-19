@@ -721,12 +721,16 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event __e, _Args... __args)
-        : std::tuple<_Args...>(std::forward<_Args>(__args)...), __my_event(std::move(__e))
+    __future(_Event&& __e)
+        : __my_event(std::move(__e))
     {
     }
-    __future(_Event __e, std::tuple<_Args...> __t)
-        : std::tuple<_Args...>(std::move(__t)), __my_event(std::move(__e))
+    __future(_Event&& __e, const std::tuple<_Args...>& __data)
+        : std::tuple<_Args...>(__data), __my_event(std::move(__e))
+    {
+    }
+    __future(_Event&& __e, std::tuple<_Args...>&& __data)
+        : std::tuple<_Args...>(std::move(__data)), __my_event(std::move(__e))
     {
     }
 
@@ -781,9 +785,9 @@ class __future : private std::tuple<_Args...>
     static __future<_OtherEvent, _AddArgs..., _OtherArgs...>
     __make_future(__future<_OtherEvent, _OtherArgs...>&& __f, _AddArgs... __add_args)
     {
-        return {std::move(__f.__my_event),
-                std::tuple_cat(std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...),
-                               static_cast<std::tuple<_OtherArgs...>&&>(__f))};
+        return __future<_OtherEvent, _AddArgs..., _OtherArgs...>{
+            std::move(__f.__my_event), std::tuple_cat(std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...),
+                                                      static_cast<std::tuple<_OtherArgs...>&&>(__f))};
     }
 };
 
