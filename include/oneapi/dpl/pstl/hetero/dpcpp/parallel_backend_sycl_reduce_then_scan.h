@@ -863,7 +863,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
             __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
         }
     }
-    return __future(__event, __result_and_scratch);
+    return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, typename _InitType::__value_type>>{
+        std::move(__event), std::move(__result_and_scratch)};
 }
 
 } // namespace __par_backend_hetero
