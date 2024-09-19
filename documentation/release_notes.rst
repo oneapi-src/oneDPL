@@ -22,7 +22,7 @@ New Features
 ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``search``, ``search_n`` ``stable_partition``,
 ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy`` algorithms with device
 policies. 
-- Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key``  algorithms on GPU devices when using Merge
+- Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key`` algorithms on GPU devices when using Merge
 sort [#fnote1]_.
 - Added ``stable_sort_by_key`` algorithm in `namespace oneapi::dpl`. 
 - In `namespace oneapi::dpl::ranges` added the range-based versions of the following algorithms: ``all_of``, ``any_of``,
