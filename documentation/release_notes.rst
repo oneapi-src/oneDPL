@@ -69,9 +69,10 @@ following algorithms with -O0 optimization: ``exclusive_scan``, ``inclusive_scan
 - The value type of the input sequence should be convertible to the type of the initial element for the following
 algorithms with DPC++ execution policies: ``transform_inclusive_scan``, ``transform_exclusive_scan``,
 ``inclusive_scan``, and ``exclusive_scan``.
-- The following algorithms when called with DPC++ execution policies may apply the user-provided predicate or equality
-operator for calls with no user predicate ~2N times: ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if``,
-``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``.
+- The complexity of the following algorithms with DPC++ execution policies may exceed the number of applications of the
+user-provided predicate or equality operator compared to the C++ standard requirements: ``copy_if``, ``remove``,
+``remove_copy``, ``remove_copy_if``, ``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``. In all cases,
+the predicate or equality operator is applied ``O(n)`` times.
 - The ``adjacent_find``, ``all_of``, ``any_of``, ``equal``, ``find``, ``find_if``, ``find_end``, ``find_first_of``,
 ``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``,
 ``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a DPC++ execution
