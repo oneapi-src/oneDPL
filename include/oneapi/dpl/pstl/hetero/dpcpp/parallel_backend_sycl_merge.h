@@ -137,7 +137,7 @@ template <typename _IdType, typename... _Name>
 struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    auto
+    __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         const _IdType __n1 = __rng1.size();
