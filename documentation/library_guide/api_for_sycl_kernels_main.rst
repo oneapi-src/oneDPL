@@ -10,12 +10,11 @@ API for the SYCL* Kernels
 * :doc:`Utility Function Object Classes <api_for_sycl_kernels/utility_function_object_classes>`. Various
   utilities in addition to C++ standard functionality.
 
-..
-    .. toctree::
-       :maxdepth: 2
-       :titlesonly:
-       :hidden:
+.. toctree::
+   :maxdepth: 2
+   :titlesonly:
+   :hidden:
 
-       api_for_sycl_kernels/random
-       api_for_sycl_kernels/tested_standard_cpp_api
-       api_for_sycl_kernels/utility_function_object_classes
+   api_for_sycl_kernels/tested_standard_cpp_api
+   api_for_sycl_kernels/random
+   api_for_sycl_kernels/utility_function_object_classes
