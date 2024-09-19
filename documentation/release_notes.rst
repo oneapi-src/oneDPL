@@ -63,7 +63,7 @@ Include ``<oneapi/dpl/random>`` first as a workaround.
 - Incorrect results may occur when using oneapi::dpl::experimental::philox_engine algorithm with no predefined template
 parameters with `word_size` values other than 64 and 32.
 - Incorrect results or a synchronous SYCL exception may be observed with DPC++ execution policies when compiling the
-following algorithms with -O0 optimization: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+following algorithms with -O0: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
 ``transform_inclusive_scan``, ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if'``, ``remove_if``,
 ``partition``, ``partition_copy``, ``stable_partition``, ``unique``, ``unique_copy``, and ``sort``.
 - The value type of the input sequence should be convertible to the type of the initial element for the following
