@@ -40,7 +40,7 @@ enabled.
 are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
 and instead add any explicit type conversions of their arguments as required.
 - ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in the
-``oneapi::dpl::experimental::kt::gpu::esimd`` now throw ``std::bad_alloc`` if they fail to allocate global memory.
+  ``oneapi::dpl::experimental::kt::gpu::esimd`` now throw ``std::bad_alloc`` if they fail to allocate global memory.
 - Fixed a potential hanging occurring with ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in
   the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. 
 - Fixed documentation for ``sort_by_key`` algorithm, which used to be mistakenly described as stable, despite being
