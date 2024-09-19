@@ -777,13 +777,14 @@ class __future : private std::tuple<_Args...>
 
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
     //where a future is created.
-    template <typename _T>
-    auto
-    __make_future(_T __t) const
+    template <typename _OtherEvent, typename... _OtherArgs, typename... _AddArgs>
+    static __future<_OtherEvent, _AddArgs..., _OtherArgs...>
+    __make_future(__future<_OtherEvent, _OtherArgs...>&& __f, _AddArgs... __add_args)
     {
-        auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
-        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
+        auto new_vals = std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...);
+        auto new_tuple = std::tuple_cat(std::move(new_vals), static_cast<std::tuple<_OtherArgs...>&&>(__f));
+
+        return {std::move(__f.__my_event), std::move(new_tuple)};
     }
 };
 
