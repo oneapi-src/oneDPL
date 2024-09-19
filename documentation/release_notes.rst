@@ -10,8 +10,6 @@ creating efficient heterogeneous applications.
 
 New in 2022.7.0
 ===============
-News
-------------
 
 New Features
 ------------
