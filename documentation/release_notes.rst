@@ -37,8 +37,8 @@ Fixed Issues
 - Fixed a build error with ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` in combination with MSVC STL and with C++20
 enabled.
 - Fixed an issue with ``histogram`` algorithm, reordering template parameters to match function parameter order. Users
-are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
-and instead add any explicit type conversions of their arguments as required.
+  are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
+  and instead add any explicit type conversions of their arguments as required.
 - ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in the
   ``oneapi::dpl::experimental::kt::gpu::esimd`` now throw ``std::bad_alloc`` if they fail to allocate global memory.
 - Fixed a potential hanging occurring with ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in
