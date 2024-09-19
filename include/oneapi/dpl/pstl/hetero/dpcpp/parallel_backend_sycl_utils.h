@@ -781,10 +781,9 @@ class __future : private std::tuple<_Args...>
     static __future<_OtherEvent, _AddArgs..., _OtherArgs...>
     __make_future(__future<_OtherEvent, _OtherArgs...>&& __f, _AddArgs... __add_args)
     {
-        auto new_vals = std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...);
-        auto new_tuple = std::tuple_cat(std::move(new_vals), static_cast<std::tuple<_OtherArgs...>&&>(__f));
-
-        return {std::move(__f.__my_event), std::move(new_tuple)};
+        return {std::move(__f.__my_event),
+                std::tuple_cat(std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...),
+                               static_cast<std::tuple<_OtherArgs...>&&>(__f))};
     }
 };
 
