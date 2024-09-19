@@ -36,7 +36,6 @@ For general information, refer to the `oneDPL GitHub* repository
    :caption: Technology Preview Guide
 
    parallel_api/async_api
-   parallel_api/range_based_api
    dynamic_selection_api_main
    kernel_templates_main
 

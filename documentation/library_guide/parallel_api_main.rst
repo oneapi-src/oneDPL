@@ -35,3 +35,4 @@ that may be passed to algorithms such as reduce or transform.
    parallel_api/additional_algorithms
    parallel_api/pass_data_algorithms
    parallel_api/iterators
+   parallel_api/range_based_api
