@@ -1,5 +1,5 @@
-API for the SYCL* Kernels
-#########################
+API for SYCL* Kernels
+#####################
 
 |onedpl_long| (|onedpl_short|) includes the following APIs for SYCL* kernels:
 

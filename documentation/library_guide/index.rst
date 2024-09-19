@@ -30,7 +30,7 @@ For general information, refer to the `oneDPL GitHub* repository
    oneDPL_2022.0_changes
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :titlesonly:
    :includehidden:
    :caption: Technology Preview Guide
