@@ -14,19 +14,19 @@ New in 2022.7.0
 New Features
 ------------
 - Improved performance of the ``adjacent_find``, ``all_of``, ``any_of``, ``copy_if``, ``exclusive_scan``, ``equal``,
-``find``, ``find_if``, ``find_end``, ``find_first_of``, ``find_if_not``, ``inclusive_scan``, ``includes``, ``is_heap``,
-``is_heap_until``, ``is_partitioned``, ``is_sorted``, ``is_sorted_until``, ``lexicographical_compare``, ``max_element``,
-``min_element``, ``minmax_element``, ``mismatch``, ``none_of``, ``partition``, ``partition_copy``, ``reduce``,
-``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``search``, ``search_n`` ``stable_partition``,
-``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy`` algorithms with device
-policies. 
+  ``find``, ``find_if``, ``find_end``, ``find_first_of``, ``find_if_not``, ``inclusive_scan``, ``includes``,
+  ``is_heap``, ``is_heap_until``, ``is_partitioned``, ``is_sorted``, ``is_sorted_until``, ``lexicographical_compare``,
+  ``max_element``, ``min_element``, ``minmax_element``, ``mismatch``, ``none_of``, ``partition``, ``partition_copy``,
+  ``reduce``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``search``, ``search_n``,
+  ``stable_partition``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``
+  algorithms with device policies. 
 - Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key`` algorithms on GPU devices when using Merge
-sort [#fnote1]_.
+  sort [#fnote1]_.
 - Added ``stable_sort_by_key`` algorithm in `namespace oneapi::dpl`. 
 - In `namespace oneapi::dpl::ranges` added the range-based versions of the following algorithms: ``all_of``, ``any_of``,
-``none_of``, ``for_each``, ``find``, ``find_if``, ``find_if_not``, ``adjacent_find``, ``search``, ``search_n``,
-``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``,
-``copy_if``, ``min_element``, ``max_element``.
+  ``none_of``, ``for_each``, ``find``, ``find_if``, ``find_if_not``, ``adjacent_find``, ``search``, ``search_n``,
+  ``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``,
+  ``copy_if``, ``min_element``, ``max_element``.
 - Added support for operators ==, !=, << and >> for RNG engines and distributions.
 - Added experimental support for the philox RNG engine in `namespace oneapi::dpl::experimental`.
 
@@ -35,7 +35,7 @@ Fixed Issues
 - Fixed unused variable and unused type warnings.
 - Fixed memory leaks fix when using ``sort`` and ``stable_sort`` algorithms with the oneTBB backend.
 - Fixed a build error with ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` in combination with MSVC STL and with C++20
-enabled.
+  enabled.
 - Fixed an issue with ``histogram`` algorithm, reordering template parameters to match function parameter order. Users
   are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
   and instead add any explicit type conversions of their arguments as required.
@@ -57,27 +57,27 @@ New in This Release
 ^^^^^^^^^^^^^^^^^^^
 - When compiled with -O0 and executed on GPU devices ``histogram`` algorithms may provide incorrect results.
 - Inclusion of ``<oneapi/dpl/dynamic_selection>`` prior to ``<oneapi/dpl/random>`` may result in compilation errors.
-Include ``<oneapi/dpl/random>`` first as a workaround.
+  Include ``<oneapi/dpl/random>`` first as a workaround.
 - Incorrect results may occur when using oneapi::dpl::experimental::philox_engine algorithm with no predefined template
-parameters with `word_size` values other than 64 and 32.
+  parameters with `word_size` values other than 64 and 32.
 - Incorrect results or a synchronous SYCL exception may be observed with DPC++ execution policies when compiling the
-following algorithms with -O0: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
-``transform_inclusive_scan``, ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if'``, ``remove_if``,
-``partition``, ``partition_copy``, ``stable_partition``, ``unique``, ``unique_copy``, and ``sort``.
+  following algorithms with -O0: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if'``, ``remove_if``,
+  ``partition``, ``partition_copy``, ``stable_partition``, ``unique``, ``unique_copy``, and ``sort``.
 - The value type of the input sequence should be convertible to the type of the initial element for the following
-algorithms with DPC++ execution policies: ``transform_inclusive_scan``, ``transform_exclusive_scan``,
-``inclusive_scan``, and ``exclusive_scan``.
+  algorithms with DPC++ execution policies: ``transform_inclusive_scan``, ``transform_exclusive_scan``,
+  ``inclusive_scan``, and ``exclusive_scan``.
 - The complexity of the following algorithms with DPC++ execution policies may exceed the number of applications of the
-user-provided predicate or equality operator compared to the C++ standard requirements: ``copy_if``, ``remove``,
-``remove_copy``, ``remove_copy_if``, ``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``. In all cases,
-the predicate or equality operator is applied ``O(n)`` times.
+  user-provided predicate or equality operator compared to the C++ standard requirements: ``copy_if``, ``remove``,
+  ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``. In all cases,
+  the predicate or equality operator is applied ``O(n)`` times.
 - The ``adjacent_find``, ``all_of``, ``any_of``, ``equal``, ``find``, ``find_if``, ``find_end``, ``find_first_of``,
-``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``,
-``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a DPC++ execution
-policy for CPU device, and built on Linux with Intel® oneAPI DPC++/C++ Compiler 2025.0.0 and -O0 -g compiler options.
+  ``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``,
+  ``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a DPC++ execution
+  policy for CPU device, and built on Linux with Intel® oneAPI DPC++/C++ Compiler 2025.0.0 and -O0 -g compiler options.
 - ``sort``, ``stable_sort`` algorithms residing in ``oneapi::dpl::ranges`` namespace internally work with ``std::swap``
-instead of ``std::ranges::iter_swap`` for swapping elements. That is, customizations targeting
-``std::ranges::iter_swap`` will not be respected.
+  instead of ``std::ranges::iter_swap`` for swapping elements. That is, customizations targeting
+  ``std::ranges::iter_swap`` will not be respected.
 
 
 
