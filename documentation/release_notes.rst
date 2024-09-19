@@ -52,6 +52,7 @@ execution policies in the future. If stability is required, use ``stable_sort_by
 devices.
 - Allow passing iterators to C++20 random access ranges as algorithm arguments.
 - Fix issues caused by initialization of SYCL queues in predefined execution policies.
+- The declarations of ``dpcpp_default`` and ``dpcpp_fpga`` execution policies have been updated to be ``const`` objects.
 
 Known Issues and Limitations
 ----------------------------
