@@ -39,10 +39,10 @@ Fixed Issues
 - Fixed an issue with ``histogram`` algorithm, reordering template parameters to match function parameter order. Users
   are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
   and instead add any explicit type conversions of their arguments as required.
-- ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in the
-  ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace now throw ``std::bad_alloc`` if they fail to allocate global memory.
-- Fixed a potential hang occurring with ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in
-  the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. 
+- ``gpu::esimd::radix_sort`` and ``gpu::esimd::radix_sort_by_key`` kernel templates now throw ``std::bad_alloc``
+  if they fail to allocate global memory.
+- Fixed a potential hang occurring with ``gpu::esimd::radix_sort`` and
+  ``gpu::esimd::radix_sort_by_key`` kernel templates . 
 - Fixed documentation for ``sort_by_key`` algorithm, which used to be mistakenly described as stable, despite being
   unstable for host execution policies (``seq``, ``unseq``, ``par``, ``par_unseq``). It may become unstable for device
   execution policies in the future. If stability is required, use ``stable_sort_by_key`` instead. 
