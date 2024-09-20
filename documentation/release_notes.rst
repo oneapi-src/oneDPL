@@ -22,7 +22,7 @@ New Features
   algorithms with device policies. 
 - Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key`` algorithms with device policies when using Merge
   sort [#fnote1]_.
-- Added ``stable_sort_by_key`` algorithm in `namespace oneapi::dpl`. 
+- Added ``stable_sort_by_key`` algorithm in ``namespace oneapi::dpl``. 
 - Added parallel range algorithms in ``namespace oneapi::dpl::ranges``: ``all_of``, ``any_of``,
   ``none_of``, ``for_each``, ``find``, ``find_if``, ``find_if_not``, ``adjacent_find``, ``search``, ``search_n``,
   ``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``,
