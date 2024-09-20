@@ -346,7 +346,7 @@ __pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, 
 {
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    oneapi::dpl::__internal::__brick_walk1(
+    __brick_walk1(
         __n, [&__pack, __first, __f](_Size __idx) { __pack.__apply_func(__f, __first + __idx, __idx); },
         ::std::true_type{});
 
@@ -360,7 +360,7 @@ __pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, 
 {
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    oneapi::dpl::__internal::__brick_walk1(
+    __brick_walk1(
         __n,
         [&__pack, __first, __f, __stride](_Size __idx) { __pack.__apply_func(__f, __first + __idx * __stride, __idx); },
         ::std::true_type{});
@@ -405,7 +405,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
                        const auto __subseq_start = __first + __i;
                        const auto __length = __j - __i;
 
-                       oneapi::dpl::__internal::__brick_walk1(
+                       __brick_walk1(
                            __length,
                            [&__value, __f, __i, __subseq_start](_Size __idx) {
                                __value.__apply_func(__f, __subseq_start + __idx, __i + __idx);
@@ -441,7 +441,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
                        const auto __subseq_start = __first + __i * __stride;
                        const auto __length = __j - __i;
 
-                       oneapi::dpl::__internal::__brick_walk1(
+                       __brick_walk1(
                            __length,
                            [&__value, __f, __i, __subseq_start, __stride](_Size __idx) {
                                __value.__apply_func(__f, __subseq_start + __idx * __stride, __i + __idx);
