@@ -28,7 +28,7 @@ New Features
   ``transform``, ``sort``, ``stable_sort``, ``is_sorted``, ``merge``, ``count``, ``count_if``, ``equal``, ``copy``,
   ``copy_if``, ``min_element``, ``max_element``.
 - Added support for operators ==, !=, << and >> for RNG engines and distributions.
-- Added experimental support for the philox RNG engine in `namespace oneapi::dpl::experimental`.
+- Added experimental support for the Philox RNG engine in ``namespace oneapi::dpl::experimental``.
 - Added the ``<oneapi/dpl/version>`` header containing oneDPL version macros and new feature testing macros.
 Fixed Issues
 ------------
