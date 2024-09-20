@@ -262,24 +262,29 @@ struct __parallel_for_large_submitter;
 template <typename... _Name, typename... _Ranges>
 struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>, _Ranges...>
 {
-    static constexpr std::uint8_t __bytes_per_work_item = 16;
     // Flatten the range as std::tuple value types in the range are likely coming from separate ranges in a zip
     // iterator.
     using _FlattenedRangesTuple = typename oneapi::dpl::__internal::__flatten_std_or_internal_tuple<
         std::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>>::type;
     using _MinValueType = typename oneapi::dpl::__internal::__min_tuple_type<_FlattenedRangesTuple>::type;
     // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
-    // flattened ranges. This allows us to launch enough work per item to saturate device memory.
+    // flattened ranges. This allows us to launch enough work per item to saturate the device's memory
+    // bandwidth. This heuristic errs on the side of launching more work per item than what is needed to
+    // achieve full bandwidth utilization for algorithms that have multiple ranges as this has shown the
+    // best general performance.
+    static constexpr std::uint8_t __bytes_per_work_item = 16;
     static constexpr std::uint8_t __iters_per_work_item =
         oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_MinValueType));
+    // Limit the work-group size to 512 which has empirically yielded the best results across different architectures.
+    static constexpr std::uint16_t __max_work_group_size = 512;
 
-    // Once there is enough work to launch a group on each compute unit with our __iters_per_item,
+    // Once there is enough work to launch a group on each compute unit with our chosen __iters_per_item,
     // then we should start using this code path.
     template <typename _ExecutionPolicy>
     static std::size_t
     __estimate_best_start_size(const _ExecutionPolicy& __exec)
     {
-        std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
+        std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
         const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
         return __work_group_size * __iters_per_work_item * __max_cu;
     }
@@ -294,10 +299,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-            // Limit the work-group size to 512 which has empirically yielded the best results.
-            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
-
-            // TODO: Better handle this heuristic for the case where the input is a zip iterator
+            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
             const std::size_t __num_groups =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             const std::size_t __num_items = __num_groups * __work_group_size;
@@ -368,7 +370,7 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+// Please see the comment for __parallel_for_small_submitter for optional kernel name explanation
 template <typename _CustomName, typename _PropagateScanName>
 struct __parallel_scan_submitter;
 
@@ -2271,7 +2273,7 @@ struct __partial_merge_kernel
     }
 };
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+// Please see the comment for __parallel_for_small_submitter for optional kernel name explanation
 template <typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_partial_sort_submitter;
 
