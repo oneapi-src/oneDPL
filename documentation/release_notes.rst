@@ -41,7 +41,7 @@ Fixed Issues
   and instead add any explicit type conversions of their arguments as required.
 - ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in the
   ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace now throw ``std::bad_alloc`` if they fail to allocate global memory.
-- Fixed a potential hanging occurring with ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in
+- Fixed a potential hang occurring with ``radix_sort`` and ``radix_sort_by_key`` kernel templates residing in
   the ``oneapi::dpl::experimental::kt::gpu::esimd`` namespace. 
 - Fixed documentation for ``sort_by_key`` algorithm, which used to be mistakenly described as stable, despite being
   unstable for host execution policies (``seq``, ``unseq``, ``par``, ``par_unseq``). It may become unstable for device
