@@ -784,6 +784,26 @@ union __lazy_ctor_storage
     }
 };
 
+// Utility that returns the smallest type in tuple.
+template <typename _Tuple>
+class __min_tuple_type;
+
+template <typename _T>
+class __min_tuple_type<std::tuple<_T>>
+{
+  public:
+    using type = _T;
+};
+
+template <typename _T, typename... _Ts>
+class __min_tuple_type<std::tuple<_T, _Ts...>>
+{
+    using __min_type_ts = typename __min_tuple_type<std::tuple<_Ts...>>::type;
+
+  public:
+    using type = std::conditional_t<(sizeof(_T) < sizeof(__min_type_ts)), _T, __min_type_ts>;
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
