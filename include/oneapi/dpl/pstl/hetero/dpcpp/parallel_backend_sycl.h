@@ -214,6 +214,12 @@ class __scan_single_wg_dynamic_kernel;
 template <typename... Name>
 class __scan_copy_single_wg_kernel;
 
+template <typename... Name>
+class __parallel_for_small_kernel;
+
+template <typename... Name>
+class __parallel_for_large_kernel;
+
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -222,10 +228,35 @@ class __scan_copy_single_wg_kernel;
 // as the parameter pack that can be empty (for unnamed kernels) or contain exactly one
 // type (for explicitly specified name by the user)
 template <typename _KernelName>
-struct __parallel_for_submitter;
+struct __parallel_for_small_submitter;
 
 template <typename... _Name>
-struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
+struct __parallel_for_small_submitter<__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
+    {
+        assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+            //get an access to data under SYCL buffer:
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+            __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
+                auto __idx = __item_id.get_linear_id();
+                __brick(__idx, __rngs...);
+            });
+        });
+        return __future(__event);
+    }
+};
+
+template <typename _KernelName>
+struct __parallel_for_large_submitter;
+
+template <typename... _Name>
+struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
@@ -244,14 +275,13 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             using _ValueType =
                 oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
 
-            // Process up to 16 bytes per work-item. This results in 512 bytes loaded input range per size 32 sub-group which
-            // has yielded best performance on target architectures. For larger data types, load a single element.
+            // Process up to 16 bytes per work-item per input range. This value has been the empirically determined minimum
+            // number of bytes for a single input range to saturate HW bandwidth on target architecures.
             constexpr std::uint8_t __bytes_per_work_item = 16;
-            constexpr std::uint8_t __max_iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
-            const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-            const std::size_t __iters_per_compute_unit = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __max_cu * __work_group_size);
-            // For small data sizes, distribute the work evenly among compute units.
-            const std::uint8_t __iters_per_work_item = std::min(__iters_per_compute_unit, static_cast<std::size_t>(__max_iters_per_work_item));
+            // TODO: Better handle this heuristic for the case where the input is a zip iterator
+            constexpr std::uint8_t __iters_per_work_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
+
             const std::size_t __num_groups =
                          oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             const std::size_t __num_items = __num_groups * __work_group_size;
@@ -264,6 +294,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                     // performance regressions for out-of-place (e.g. std::copy).
                     if (__is_full)
                     {
+                        _ONEDPL_PRAGMA_UNROLL
                         for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
                         {
                             __brick(__idx, __rngs...);
@@ -295,10 +326,23 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
                _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
+    using _ForKernelSmall =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_small_kernel<_CustomName>>;
+    using _ForKernelLarge =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_large_kernel<_CustomName>>;
 
-    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                  ::std::forward<_Ranges>(__rngs)...);
+    // Compile two kernels: one for small-to-medium inputs and a second for large. This avoids runtime checks within a single
+    // kernel that worsen performance for small cases.
+    if (__count <= 262144)
+    {
+        return __parallel_for_small_submitter<_ForKernelSmall>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                            std::forward<_Ranges>(__rngs)...);
+    }
+    else
+    {
+        return __parallel_for_large_submitter<_ForKernelLarge>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                                 std::forward<_Ranges>(__rngs)...);
+    }
 }
 
 //------------------------------------------------------------------------
