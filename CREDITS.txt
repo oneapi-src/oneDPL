@@ -21,4 +21,4 @@ D: Implemented a prototype of ESIMD-based radix sort, which was adapted into one
 
 N: Mikołaj Komar
 W: https://github.com/Xewar313
-D: Fixed an issue with compilation that occurred when including the library multiple times in a single executable.
+D: Fixed One Definition Rule violation.
