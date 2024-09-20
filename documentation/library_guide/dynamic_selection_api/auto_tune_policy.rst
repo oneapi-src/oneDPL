@@ -177,9 +177,9 @@ Constructors
 
 .. Note::
 
-   When initializing the ``auto_tune_policy`` with SYCL queues, constructed with the
-   ``sycl::property::queue::enable_profiling property``, using the timing data leads to a more accurate
-   determination of the best-performing device.
+   When initializing the ``auto_tune_policy`` with SYCL queues, constructing the queues with the
+   ``sycl::property::queue::enable_profiling`` property allows a more accurate determination of the
+   best-performing device to be made.
 
 Deferred Initialization
 -----------------------
@@ -201,9 +201,9 @@ to select or submit.
 
 .. Note::
 
-   When initializing the ``auto_tune_policy`` with SYCL queues, constructed with the
-   ``sycl::property::queue::enable_profiling property``, using the timing data leads to a more accurate
-   determination of the best-performing device.
+   When initializing the ``auto_tune_policy`` with SYCL queues, constructing the queues with the
+   ``sycl::property::queue::enable_profiling`` property allows a more accurate determination of the
+   best-performing device to be made.
 
 Queries
 -------
