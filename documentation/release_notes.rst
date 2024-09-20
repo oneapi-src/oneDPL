@@ -75,9 +75,6 @@ New in This Release
   ``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``,
   ``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a DPC++ execution
   policy for CPU device, and built on Linux with Intel® oneAPI DPC++/C++ Compiler 2025.0.0 and -O0 -g compiler options.
-- ``sort``, ``stable_sort`` algorithms residing in ``oneapi::dpl::ranges`` namespace internally work with ``std::swap``
-  instead of ``std::ranges::iter_swap`` for swapping elements. That is, customizations targeting
-  ``std::ranges::iter_swap`` will not be respected.
 
 
 
