@@ -58,7 +58,7 @@ New in This Release
 - When compiled with -O0 and executed on GPU devices ``histogram`` algorithms may provide incorrect results.
 - Inclusion of ``<oneapi/dpl/dynamic_selection>`` prior to ``<oneapi/dpl/random>`` may result in compilation errors.
   Include ``<oneapi/dpl/random>`` first as a workaround.
-- Incorrect results may occur when using oneapi::dpl::experimental::philox_engine algorithm with no predefined template
+- Incorrect results may occur when using the ``oneapi::dpl::experimental::philox_engine`` algorithm with no predefined template
   parameters with `word_size` values other than 64 and 32.
 - Incorrect results or a synchronous SYCL exception may be observed with DPC++ execution policies when compiling the
   following algorithms with -O0: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
