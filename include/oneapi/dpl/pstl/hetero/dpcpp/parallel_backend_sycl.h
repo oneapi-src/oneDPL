@@ -256,13 +256,35 @@ struct __parallel_for_small_submitter<__internal::__optional_kernel_name<_Name..
     }
 };
 
-template <typename _KernelName>
+template <typename _KernelName, typename... _Ranges>
 struct __parallel_for_large_submitter;
 
-template <typename... _Name>
-struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>>
+template <typename... _Name, typename... _Ranges>
+struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>, _Ranges...>
 {
-    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    static constexpr std::uint8_t __bytes_per_work_item = 16;
+    // Flatten the range as std::tuple value types in the range are likely coming from separate ranges in a zip
+    // iterator.
+    using _FlattenedRangesTuple = typename oneapi::dpl::__internal::__flatten_std_or_internal_tuple<
+        std::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>>::type;
+    using _MinValueType = typename oneapi::dpl::__internal::__min_tuple_type<_FlattenedRangesTuple>::type;
+    // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
+    // flattened ranges. This allows us to launch enough work per item to saturate device memory.
+    static constexpr std::uint8_t __iters_per_work_item =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_MinValueType));
+
+    // Once there is enough work to launch a group on each compute unit with our __iters_per_item,
+    // then we should start using this code path.
+    template <typename _ExecutionPolicy>
+    static std::size_t
+    __estimate_best_start_size(const _ExecutionPolicy& __exec)
+    {
+        std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
+        const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        return __work_group_size * __iters_per_work_item * __max_cu;
+    }
+
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
@@ -274,25 +296,16 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
 
             // Limit the work-group size to 512 which has empirically yielded the best results.
             std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 512);
-            __work_group_size = std::min(__work_group_size, static_cast<std::size_t>(__count));
 
-            using _ValueType =
-                oneapi::dpl::__internal::__value_t<std::decay_t<std::tuple_element_t<0, std::tuple<_Ranges...>>>>;
-
-            // Process up to 16 bytes per work-item per input range. This value has been the empirically determined minimum
-            // number of bytes for a single input range to saturate HW bandwidth on target architecures.
-            constexpr std::uint8_t __bytes_per_work_item = 16;
             // TODO: Better handle this heuristic for the case where the input is a zip iterator
-            constexpr std::uint8_t __iters_per_work_item =
-                oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_ValueType));
-
             const std::size_t __num_groups =
-                         oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
+                oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             const std::size_t __num_items = __num_groups * __work_group_size;
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __ndi) {
-                    auto [__idx, __stride, __is_full] = __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
+                    auto [__idx, __stride, __is_full] =
+                        __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
                     // TODO: Investigate using a vectorized approach similar to reduce.
                     // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
                     // performance regressions for out-of-place (e.g. std::copy).
@@ -335,17 +348,19 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
     using _ForKernelLarge =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_large_kernel<_CustomName>>;
 
+    using __small_submitter = __parallel_for_small_submitter<_ForKernelSmall>;
+    using __large_submitter = __parallel_for_large_submitter<_ForKernelLarge, _Ranges...>;
     // Compile two kernels: one for small-to-medium inputs and a second for large. This avoids runtime checks within a single
     // kernel that worsen performance for small cases.
-    if (__count <= 262144)
+    if (__count < __large_submitter::__estimate_best_start_size(__exec))
     {
-        return __parallel_for_small_submitter<_ForKernelSmall>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                            std::forward<_Ranges>(__rngs)...);
+        return __small_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                   std::forward<_Ranges>(__rngs)...);
     }
     else
     {
-        return __parallel_for_large_submitter<_ForKernelLarge>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                                 std::forward<_Ranges>(__rngs)...);
+        return __large_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                   std::forward<_Ranges>(__rngs)...);
     }
 }
 
