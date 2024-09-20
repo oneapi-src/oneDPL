@@ -11,7 +11,7 @@ Both in-place and out-of-place overloads are provided. Out-of-place overloads do
 
 .. note::
    the ``radix_sort_by_key`` is currently available only for Intel® Data Center GPU Max Series,
-   and requires Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
+   and requires Intel® oneAPI DPC++/C++ Compiler 2023.2 or newer.
 
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
