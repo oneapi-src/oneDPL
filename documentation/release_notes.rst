@@ -48,7 +48,7 @@ Fixed Issues
 - Fixed documentation for ``sort_by_key`` algorithm, which used to be mistakenly described as stable, despite being
   possibly unstable for some execution policies. If stability is required, use ``stable_sort_by_key`` instead. 
 - Fixed an error when calling ``sort`` with device execution policies on CUDA devices.
-- Allow passing iterators to C++20 random access ranges as algorithm arguments.
+- Allow passing C++20 random access iterators to oneDPL algorithms.
 - Fixed issues caused by initialization of SYCL queues in the predefined device execution policies.
   These policies have been updated to be immutable (``const``) objects.
 
