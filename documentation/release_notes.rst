@@ -43,7 +43,7 @@ Fixed Issues
 - ``gpu::esimd::radix_sort`` and ``gpu::esimd::radix_sort_by_key`` kernel templates now throw ``std::bad_alloc``
   if they fail to allocate global memory.
 - Fixed a potential hang occurring with ``gpu::esimd::radix_sort`` and
-  ``gpu::esimd::radix_sort_by_key`` kernel templates . 
+  ``gpu::esimd::radix_sort_by_key`` kernel templates. 
 - Fixed documentation for ``sort_by_key`` algorithm, which used to be mistakenly described as stable, despite being
   possibly unstable for some execution policies. If stability is required, use ``stable_sort_by_key`` instead. 
 - Fixed an error when calling ``sort`` with device execution policies on CUDA devices.
