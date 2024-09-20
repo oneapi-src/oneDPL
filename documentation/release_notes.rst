@@ -36,9 +36,9 @@ Fixed Issues
 - Fixed memory leaks when using ``sort`` and ``stable_sort`` algorithms with the oneTBB backend.
 - Fixed a build error for ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions used with
   the Microsoft* Visual C++ standard library and with C++20.
-- Fixed an issue with ``histogram`` algorithm, reordering template parameters to match function parameter order. Users
-  are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
-  and instead add any explicit type conversions of their arguments as required.
+- Reordered template parameters of the ``histogram`` algorithm to match its function parameter order.
+  For affected ``histogram`` calls we recommend to remove explicit specification of template parameters
+  and instead add explicit type conversions of the function arguments as necessary.
 - ``gpu::esimd::radix_sort`` and ``gpu::esimd::radix_sort_by_key`` kernel templates now throw ``std::bad_alloc``
   if they fail to allocate global memory.
 - Fixed a potential hang occurring with ``gpu::esimd::radix_sort`` and
