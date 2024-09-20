@@ -167,10 +167,9 @@ __pattern_walk1(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcc
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     __internal::__except_handler([&]() {
-        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      [__f](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                          __brick_walk1(__i, __j, __f, _IsVector{});
-                                      });
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__f](_RandomAccessIterator __i, _RandomAccessIterator __j) { __brick_walk1(__i, __j, __f, _IsVector{}); });
     });
 }
 
@@ -2339,8 +2338,7 @@ __pattern_partition_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
 {
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
-    return __brick_partition_copy(__first, __last, __out_true, __out_false, __pred,
-                                              typename _Tag::__is_vector{});
+    return __brick_partition_copy(__first, __last, __out_true, __out_false, __pred, typename _Tag::__is_vector{});
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
@@ -2986,9 +2984,8 @@ __pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcc
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first,
             __comp,
             [](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
-               _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3, _Compare __comp) {
-                return __brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, _IsVector{});
-            });
+               _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3,
+               _Compare __comp) { return __brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, _IsVector{}); });
         return __d_first + (__last1 - __first1) + (__last2 - __first2);
     });
 }
