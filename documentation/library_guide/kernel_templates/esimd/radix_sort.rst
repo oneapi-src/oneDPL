@@ -9,6 +9,10 @@ The ``radix_sort`` function sorts data using the radix sort algorithm.
 The sorting is stable, preserving the relative order of elements with equal keys.
 Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequence.
 
+.. note::
+   the ``radix_sort`` is currently available only for Intel® Data Center GPU Max Series,
+   and requires Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
+
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort`` function is provided below:
