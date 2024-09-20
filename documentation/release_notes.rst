@@ -48,8 +48,8 @@ Fixed Issues
   execution policies in the future. If stability is required, use ``stable_sort_by_key`` instead. 
 - Fixed an error when calling ``sort`` with DPC++ execution policies on CUDA devices.
 - Allow passing iterators to C++20 random access ranges as algorithm arguments.
-- Fix issues caused by initialization of SYCL queues in predefined execution policies.
-- The declarations of ``dpcpp_default`` and ``dpcpp_fpga`` execution policies have been updated to be ``const`` objects.
+- Fixed issues caused by initialization of SYCL queues in the predefined device execution policies.
+  These policies have been updated to be immutable (``const``) objects.
 
 Known Issues and Limitations
 ----------------------------
