@@ -228,7 +228,7 @@ template <typename... _Name>
 struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    __future<sycl::event>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
@@ -249,7 +249,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-__future<sycl::event>
+auto
 __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
                _Ranges&&... __rngs)
 {
@@ -275,7 +275,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
               typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-    __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, typename _InitType::__value_type>>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
@@ -557,7 +557,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 {
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
               typename _UnaryOp, typename _Assign>
-    __future<sycl::event, __result_and_scratch_storage<_Policy, _Size>>
+    auto
     operator()(_Policy&& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
                _BinaryOperation __bin_op, _UnaryOp __unary_op, _Assign __assign)
     {
@@ -652,7 +652,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
-__future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, typename _InitType::__value_type>>
+auto
 __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                        _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
                                        _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
@@ -746,7 +746,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-__future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, typename _InitType::__value_type>>
+auto
 __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
                                _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
                                _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
@@ -1812,7 +1812,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
                                          __internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-    __future<sycl::event>
+    auto
     operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;

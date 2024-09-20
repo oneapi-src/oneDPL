@@ -56,7 +56,7 @@ template <typename... _Name>
 struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    __future<sycl::event>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -80,7 +80,7 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
 };
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-__future<sycl::event>
+auto
 __parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
                _Ranges&&... __rngs)
 {
