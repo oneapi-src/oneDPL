@@ -9,8 +9,6 @@ The ``radix_sort_by_key`` function sorts keys using the radix sort algorithm, ap
 The sorting is stable, preserving the relative order of elements with equal keys.
 Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequences.
 
-
-
 The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort_by_key`` function is provided below:
