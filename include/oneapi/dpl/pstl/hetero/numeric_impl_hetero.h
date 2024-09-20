@@ -175,9 +175,8 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
             .wait();
 
         // Move data from temporary buffer into results
-        oneapi::dpl::__internal::__pattern_walk2_brick(
-            __tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
-            oneapi::dpl::__internal::__brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+        oneapi::dpl::__internal::__pattern_walk2_brick(__tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
+                                                       __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     }
@@ -247,7 +246,7 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
             ::std::forward<_ExecutionPolicy>(__exec));
 
         __internal::__pattern_walk2_brick(__tag, __wrapped_policy, __first, __last, __d_first,
-                                          __internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+                                          __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
     }
     else
 #endif
