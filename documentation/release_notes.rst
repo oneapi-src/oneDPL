@@ -83,10 +83,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 
 - ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
   when used with an FPGA policy.
-- When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
-  option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
-  containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
-  environment to avoid the issue.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows. 
 - For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
