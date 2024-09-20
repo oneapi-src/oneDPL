@@ -31,6 +31,7 @@ New Features
 - Added support for operators ==, !=, << and >> for RNG engines and distributions.
 - Added experimental support for the Philox RNG engine in ``namespace oneapi::dpl::experimental``.
 - Added the ``<oneapi/dpl/version>`` header containing oneDPL version macros and new feature testing macros.
+
 Fixed Issues
 ------------
 - Fixed unused variable and unused type warnings.
@@ -55,28 +56,26 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- When compiled with -O0 and called with device policies ``histogram`` algorithms may provide incorrect results.
+- ``histogram`` may provide incorrect results with device policies in a program built with -O0 option.
 - Inclusion of ``<oneapi/dpl/dynamic_selection>`` prior to ``<oneapi/dpl/random>`` may result in compilation errors.
   Include ``<oneapi/dpl/random>`` first as a workaround.
-- Incorrect results may occur when using the ``oneapi::dpl::experimental::philox_engine`` algorithm with no predefined template
-  parameters with `word_size` values other than 64 and 32.
-- Incorrect results or a synchronous SYCL exception may be observed with DPC++ execution policies when compiling the
-  following algorithms with -O0: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+- Incorrect results may occur when using ``oneapi::dpl::experimental::philox_engine`` with no predefined template
+  parameters and with `word_size` values other than 64 and 32.
+- Incorrect results or a synchronous SYCL exception may be observed with the following algorithms built
+  with -O0 option and executed on a GPU device: ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan``, ``copy_if``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``,
   ``partition``, ``partition_copy``, ``stable_partition``, ``unique``, ``unique_copy``, and ``sort``.
 - The value type of the input sequence should be convertible to the type of the initial element for the following
-  algorithms with DPC++ execution policies: ``transform_inclusive_scan``, ``transform_exclusive_scan``,
+  algorithms with device execution policies: ``transform_inclusive_scan``, ``transform_exclusive_scan``,
   ``inclusive_scan``, and ``exclusive_scan``.
-- The complexity of the following algorithms with DPC++ execution policies may exceed the number of applications of the
-  user-provided predicate or equality operator compared to the C++ standard requirements: ``copy_if``, ``remove``,
-  ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``. In all cases,
+- The following algorithms with device execution policies may exceed the C++ standard requirements on the number
+  of applications of user-provided predicates or equality operators: ``copy_if``, ``remove``, ``remove_copy``,
+  ``remove_copy_if``, ``remove_if``, ``partition_copy``, ``unique``, and ``unique_copy``. In all cases,
   the predicate or equality operator is applied ``O(n)`` times.
 - The ``adjacent_find``, ``all_of``, ``any_of``, ``equal``, ``find``, ``find_if``, ``find_end``, ``find_first_of``,
   ``find_if_not``, ``includes``, ``is_heap``, ``is_heap_until``, ``is_sorted``, ``is_sorted_until``, ``mismatch``,
-  ``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a DPC++ execution
-  policy for CPU device, and built on Linux with Intel® oneAPI DPC++/C++ Compiler 2025.0.0 and -O0 -g compiler options.
-
-
+  ``none_of``, ``search``, and ``search_n`` algorithms may cause a segmentation fault when used with a device execution
+  policy on a CPU device, and built on Linux with Intel® oneAPI DPC++/C++ Compiler 2025.0.0 and -O0 -g compiler options.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
@@ -84,10 +83,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 
 - ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
   when used with an FPGA policy.
-- When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
-  libstdc++ version 8 or libc++, ``oneapi::dpl::execution::par_unseq`` offloads
-  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
-  in accordance with the ``-fsycl-pstl-offload`` option value.
 - When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
   option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
   containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
@@ -99,7 +94,7 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls is undefined.
 - ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``, ``partial_sort_copy`` algorithms
-  may work incorrectly or cause a segmentation fault when used a DPC++ execution policy for CPU device,
+  may work incorrectly or cause a segmentation fault when used a device execution policy on a CPU device,
   and built on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
   To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
 - Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
@@ -109,9 +104,8 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
 - Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
   with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
-  and called with device policies.
-  For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION`` macro to ``1`` before
-  including oneDPL header files.
+  and executed on a GPU device. For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION``
+  macro to ``1`` before including oneDPL header files.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
   in the Microsoft* Visual C++ standard library.
