@@ -34,8 +34,8 @@ Fixed Issues
 ------------
 - Fixed unused variable and unused type warnings.
 - Fixed memory leaks when using ``sort`` and ``stable_sort`` algorithms with the oneTBB backend.
-- Fixed a build error with ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` in combination with MSVC STL and with C++20
-  enabled.
+- Fixed a build error for ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions used with
+  the Microsoft* Visual C++ standard library and with C++20.
 - Fixed an issue with ``histogram`` algorithm, reordering template parameters to match function parameter order. Users
   are encouraged to remove explicit specification of template parameters where they may exist from their histogram calls
   and instead add any explicit type conversions of their arguments as required.
