@@ -20,7 +20,7 @@ New Features
   ``reduce``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``search``, ``search_n``,
   ``stable_partition``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``
   algorithms with device policies. 
-- Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key`` algorithms on GPU devices when using Merge
+- Improved performance of ``sort``, ``stable_sort`` and ``sort_by_key`` algorithms with device policies when using Merge
   sort [#fnote1]_.
 - Added ``stable_sort_by_key`` algorithm in `namespace oneapi::dpl`. 
 - In `namespace oneapi::dpl::ranges` added the range-based versions of the following algorithms: ``all_of``, ``any_of``,
@@ -54,7 +54,7 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- When compiled with -O0 and executed on GPU devices ``histogram`` algorithms may provide incorrect results.
+- When compiled with -O0 and called with device policies ``histogram`` algorithms may provide incorrect results.
 - Inclusion of ``<oneapi/dpl/dynamic_selection>`` prior to ``<oneapi/dpl/random>`` may result in compilation errors.
   Include ``<oneapi/dpl/random>`` first as a workaround.
 - Incorrect results may occur when using the ``oneapi::dpl::experimental::philox_engine`` algorithm with no predefined template
@@ -108,7 +108,7 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
 - Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
   with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
-  and executed on GPU devices.
+  and called with device policies.
   For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION`` macro to ``1`` before
   including oneDPL header files.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
