@@ -108,8 +108,7 @@ Usage Example for Parallel Range Algorithms
 
 Implementation Notes
 --------------------
-The ``sort`` and ``stable_sort`` algorithms provided use ``std::swap`` internally instead of 
-``std::ranges::iter_swap`` for swapping elements, as the C++ standard suggests but does not explicitly require.
+The ``sort`` and ``stable_sort`` algorithms use ``std::swap`` and not ``std::ranges::iter_swap`` for swapping elements.
 As a result, customizations targeting ``std::ranges::iter_swap`` will not be respected.
 
 .. rubric:: See also:
