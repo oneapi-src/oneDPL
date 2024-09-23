@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PARALLEL_FOR_H
-#define _ONEDPL_PARALLEL_FOR_H
+#ifndef _ONEDPL_OMP_PARALLEL_FOR_H
+#define _ONEDPL_OMP_PARALLEL_FOR_H
 
 #include <cstddef>
 
@@ -69,4 +69,4 @@ __parallel_for(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_PARALLEL_FOR_H
+#endif // _ONEDPL_OMP_PARALLEL_FOR_H

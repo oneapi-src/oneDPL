@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PARALLEL_FOR_EACH_H
-#define _ONEDPL_PARALLEL_FOR_EACH_H
+#ifndef _ONEDPL_OMP_PARALLEL_FOR_EACH_H
+#define _ONEDPL_OMP_PARALLEL_FOR_EACH_H
 
 #include "util.h"
 
@@ -65,4 +65,4 @@ __parallel_for_each(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_PARALLEL_FOR_EACH_H
+#endif // _ONEDPL_OMP_PARALLEL_FOR_EACH_H

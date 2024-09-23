@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PARALLEL_TRANSFORM_REDUCE_H
-#define _ONEDPL_PARALLEL_TRANSFORM_REDUCE_H
+#ifndef _ONEDPL_OMP_PARALLEL_TRANSFORM_REDUCE_H
+#define _ONEDPL_OMP_PARALLEL_TRANSFORM_REDUCE_H
 
 #include "util.h"
 
@@ -116,4 +116,4 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__omp_backend_tag, _Executi
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_PARALLEL_TRANSFORM_REDUCE_H
+#endif // _ONEDPL_OMP_PARALLEL_TRANSFORM_REDUCE_H
