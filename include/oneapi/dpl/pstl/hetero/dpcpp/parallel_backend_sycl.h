@@ -284,7 +284,8 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     static std::size_t
     __estimate_best_start_size(const _ExecutionPolicy& __exec)
     {
-        std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
+        const std::size_t __work_group_size =
+            oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
         const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
         return __work_group_size * __iters_per_work_item * __max_cu;
     }
@@ -298,8 +299,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
         auto __event = __exec.queue().submit([&__rngs..., &__brick, &__exec, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-
-            std::size_t __work_group_size =
+            const std::size_t __work_group_size =
                 oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
             const std::size_t __num_groups =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
@@ -307,12 +307,13 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __ndi) {
-                    auto [__idx, __stride, __is_full] =
-                        __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
                     // TODO: Investigate adding a vectorized path similar to reduce.
                     // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
                     // performance regressions for out-of-place (e.g. std::copy) where the compiler was unable to
-                    // vectorize our code.
+                    // vectorize our code. Vectorization may also improve performance of for-algorithms over small data
+                    // types.
+                    auto [__idx, __group_start_idx, __stride, __is_full] =
+                        __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
                     if (__is_full)
                     {
                         _ONEDPL_PRAGMA_UNROLL
@@ -324,13 +325,19 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
                     }
                     else
                     {
-                        for (std::uint8_t __i = 0; __i < __iters_per_work_item; ++__i)
+                        // Recompute iters per item and manually unroll last loop iteration to remove most branching.
+                        if (__group_start_idx >= __count)
+                            return;
+                        const std::uint8_t __adjusted_iters_per_work_item =
+                            oneapi::dpl::__internal::__dpl_ceiling_div(__count - __group_start_idx, __stride);
+                        for (std::uint8_t __i = 0; __i < __adjusted_iters_per_work_item - 1; ++__i)
                         {
-                            if (__idx < __count)
-                            {
-                                __brick(__idx, __rngs...);
-                                __idx += __stride;
-                            }
+                            __brick(__idx, __rngs...);
+                            __idx += __stride;
+                        }
+                        if (__idx < __count)
+                        {
+                            __brick(__idx, __rngs...);
                         }
                     }
                 });
