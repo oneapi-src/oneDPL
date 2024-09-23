@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_OMP_PARALLEL_TRANSFORM_SCAN_H
-#define _ONEDPL_INTERNAL_OMP_PARALLEL_TRANSFORM_SCAN_H
+#ifndef _ONEDPL_OMP_PARALLEL_TRANSFORM_SCAN_H
+#define _ONEDPL_OMP_PARALLEL_TRANSFORM_SCAN_H
 
 #include "util.h"
 
@@ -37,4 +37,4 @@ __parallel_transform_scan(oneapi::dpl::__internal::__omp_backend_tag, _Execution
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_INTERNAL_OMP_PARALLEL_TRANSFORM_SCAN_H
+#endif // _ONEDPL_OMP_PARALLEL_TRANSFORM_SCAN_H

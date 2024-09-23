@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
-#define _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
+#ifndef _ONEDPL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
+#define _ONEDPL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
 
 #include "util.h"
 
@@ -37,4 +37,4 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
+#endif // _ONEDPL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H

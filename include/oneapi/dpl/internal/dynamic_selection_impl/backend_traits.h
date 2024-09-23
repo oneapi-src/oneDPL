@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_BACKEND_TRAITS_H
-#define _ONEDPL_INTERNAL_BACKEND_TRAITS_H
+#ifndef _ONEDPL_BACKEND_TRAITS_H
+#define _ONEDPL_BACKEND_TRAITS_H
 
 #include <utility>
 #include <type_traits>
@@ -52,4 +52,4 @@ inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /*_ONEDPL_INTERNAL_BACKEND_TRAITS_H*/
+#endif /*_ONEDPL_BACKEND_TRAITS_H*/

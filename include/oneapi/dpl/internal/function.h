@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_FUNCTION_H
-#define _ONEDPL_INTERNAL_FUNCTION_H
+#ifndef _ONEDPL_FUNCTION_H
+#define _ONEDPL_FUNCTION_H
 
 #include <utility>
 #if _ONEDPL_BACKEND_SYCL
@@ -156,4 +156,4 @@ class transform_if_stencil_fun
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_INTERNAL_FUNCTION_H
+#endif // _ONEDPL_FUNCTION_H

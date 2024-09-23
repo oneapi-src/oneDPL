@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_OMP_UTIL_H
-#define _ONEDPL_INTERNAL_OMP_UTIL_H
+#ifndef _ONEDPL_OMP_UTIL_H
+#define _ONEDPL_OMP_UTIL_H
 
 #include <algorithm>
 #include <atomic>
@@ -157,4 +157,4 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 } // namespace dpl
 } // namespace oneapi
 
-#endif // _ONEDPL_INTERNAL_OMP_UTIL_H
+#endif // _ONEDPL_OMP_UTIL_H

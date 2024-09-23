@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_OMP_PARALLEL_MERGE_H
-#define _ONEDPL_INTERNAL_OMP_PARALLEL_MERGE_H
+#ifndef _ONEDPL_OMP_PARALLEL_MERGE_H
+#define _ONEDPL_OMP_PARALLEL_MERGE_H
 
 #include "util.h"
 
@@ -102,4 +102,4 @@ __parallel_merge(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&& 
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_INTERNAL_OMP_PARALLEL_MERGE_H
+#endif // _ONEDPL_OMP_PARALLEL_MERGE_H

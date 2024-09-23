@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
-#define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
+#ifndef _ONEDPL_DYNAMIC_SELECTION_TRAITS_H
+#define _ONEDPL_DYNAMIC_SELECTION_TRAITS_H
 
 #include <utility>
 #include <cstdint>
@@ -304,4 +304,4 @@ inline constexpr bool report_value_v = report_value<S, Info, ValueType>::value;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H*/
+#endif /*_ONEDPL_DYNAMIC_SELECTION_TRAITS_H*/
