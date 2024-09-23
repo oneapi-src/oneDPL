@@ -225,15 +225,15 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
     }
 };
 
-template <typename _GlobalSortName>
+template <typename _IndexT, typename _GlobalSortName>
 struct __merge_sort_global_submitter;
 
-template <typename... _GlobalSortName>
-struct __merge_sort_global_submitter<__internal::__optional_kernel_name<_GlobalSortName...>>
+template <typename _IndexT, typename... _GlobalSortName>
+struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
 {
-    template <typename _Range, typename _Compare, typename _IndexT, typename _TempBuf>
+    template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
     auto
-    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _IndexT __leaf,
+    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf,
                _TempBuf& __temp_buf, bool& __data_in_temp, sycl::event __event_chain) const
     {
         __data_in_temp = false;
@@ -350,8 +350,8 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
     bool __data_in_temp;
-    __event_chain = __merge_sort_global_submitter<_GlobalSortKernel>()(__q, __rng, __comp, __leaf_sorter.__process_size,
-                                                                       __temp_buf, __data_in_temp, __event_chain);
+    __event_chain = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
+        __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __data_in_temp, __event_chain);
 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
