@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_OMP_PARALLEL_STABLE_SORT_H
-#define _ONEDPL_OMP_PARALLEL_STABLE_SORT_H
+#ifndef _ONEDPL_PARALLEL_STABLE_SORT_H
+#define _ONEDPL_PARALLEL_STABLE_SORT_H
 
 #include "util.h"
 #include "parallel_merge.h"
@@ -166,4 +166,4 @@ __parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPol
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_OMP_PARALLEL_STABLE_SORT_H
+#endif // _ONEDPL_PARALLEL_STABLE_SORT_H

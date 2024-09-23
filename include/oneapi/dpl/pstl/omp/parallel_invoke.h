@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_OMP_PARALLEL_INVOKE_H
-#define _ONEDPL_OMP_PARALLEL_INVOKE_H
+#ifndef _ONEDPL_PARALLEL_INVOKE_H
+#define _ONEDPL_PARALLEL_INVOKE_H
 
 #include "util.h"
 
@@ -55,4 +55,4 @@ __parallel_invoke(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_OMP_PARALLEL_INVOKE_H
+#endif // _ONEDPL_PARALLEL_INVOKE_H
