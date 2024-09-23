@@ -270,8 +270,8 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
     // flattened ranges. This allows us to launch enough work per item to saturate the device's memory
     // bandwidth. This heuristic errs on the side of launching more work per item than what is needed to
-    // achieve full bandwidth utilization for algorithms that have multiple ranges as this has shown the
-    // best general performance.
+    // achieve full bandwidth utilization. 16 bytes per input range per work item has been found as a good
+    // value across the different for-based algorithms.
     static constexpr std::uint8_t __bytes_per_work_item = 16;
     static constexpr std::uint8_t __iters_per_work_item =
         oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_MinValueType));
@@ -309,9 +309,10 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
                 [=](sycl::nd_item</*dim=*/1> __ndi) {
                     auto [__idx, __stride, __is_full] =
                         __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
-                    // TODO: Investigate using a vectorized approach similar to reduce.
+                    // TODO: Investigate adding a vectorized path similar to reduce.
                     // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
-                    // performance regressions for out-of-place (e.g. std::copy).
+                    // performance regressions for out-of-place (e.g. std::copy) where the compiler was unable to
+                    // vectorize our code.
                     if (__is_full)
                     {
                         _ONEDPL_PRAGMA_UNROLL
