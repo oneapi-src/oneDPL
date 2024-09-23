@@ -215,8 +215,8 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
         return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __storage_acc = __leaf_sorter.create_storage_accessor(__cgh);
-            const std::uint32_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), 
-                                                                                        __leaf_sorter.__process_size);
+            const std::uint32_t __wg_count =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), __leaf_sorter.__process_size);
             const sycl::nd_range<1> __nd_range(sycl::range<1>(__wg_count * __leaf_sorter.__workgroup_size),
                                                sycl::range<1>(__leaf_sorter.__workgroup_size));
             __cgh.parallel_for<_LeafSortName...>(
@@ -233,8 +233,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 {
     template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
     auto
-    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf,
-               _TempBuf& __temp_buf, bool& __data_in_temp, sycl::event __event_chain) const
+    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf, _TempBuf& __temp_buf,
+               bool& __data_in_temp, sycl::event __event_chain) const
     {
         __data_in_temp = false;
         const _IndexT __n = __rng.size();
@@ -306,10 +306,11 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp_buf.template get_access<access_mode::read>(__cgh);
             // We cannot use __cgh.copy here because of zip_iterator usage
-            __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__rng.size()), [=](sycl::item</*dim=*/1> __item_id) {
-                const std::uint64_t __idx = __item_id.get_linear_id();
-                __rng[__idx] = __temp_acc[__idx];
-            });
+            __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__rng.size()),
+                                                 [=](sycl::item</*dim=*/1> __item_id) {
+                                                     const std::uint64_t __idx = __item_id.get_linear_id();
+                                                     __rng[__idx] = __temp_acc[__idx];
+                                                 });
         });
         return __event_chain;
     }
@@ -331,15 +332,16 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
 
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _LeafSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __sort_leaf_kernel<_CustomName>>;
+    using _LeafSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
     using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __sort_global_kernel<_CustomName, _IndexT>>;
-    using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __sort_copy_back_kernel<_CustomName>>;
+    using _CopyBackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
     assert(__rng.size() > 1);
-    assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 && "Leaf size must be a power of 2");
+    assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
+           "Leaf size must be a power of 2");
 
     auto __q = __exec.queue();
 
@@ -411,8 +413,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     __wg_size = oneapi::dpl::__internal::__dpl_bit_floor(__wg_size);
 
     _Leaf __leaf(__rng, __comp, __data_per_workitem, __wg_size);
-    return __merge_sort<_IndexT>(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __comp,
-                                 __leaf);
+    return __merge_sort<_IndexT>(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __comp, __leaf);
 };
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
