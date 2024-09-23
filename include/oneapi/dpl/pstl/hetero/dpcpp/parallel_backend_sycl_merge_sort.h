@@ -95,6 +95,8 @@ struct __group_merge_path_sorter
 
         const std::uint32_t __id = __item.get_local_linear_id() * __data_per_workitem;
 
+        auto __storage_acc_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc);
+
         bool __data_in_temp = false;
         std::uint32_t __next_sorted = __sorted * 2;
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
@@ -111,8 +113,8 @@ struct __group_merge_path_sorter
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
-            auto __in_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc) + __data_in_temp * __sorted_final;
-            auto __out_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc) + (!__data_in_temp) * __sorted_final;
+            auto __in_ptr = __storage_acc_ptr + __data_in_temp * __sorted_final;
+            auto __out_ptr = __storage_acc_ptr + (!__data_in_temp) * __sorted_final;
             auto __in_ptr1 = __in_ptr + __start1;
             auto __in_ptr2 = __in_ptr + __start2;
 
