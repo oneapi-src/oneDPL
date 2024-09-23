@@ -108,7 +108,7 @@ Distribution                   Description
 ============================== ============================================================================
 
 .. note::
-  ``bernoulli_distribution``, ``geometric_distribution``, and ``uniform_int_distribution`` cannot be used on GPU devices that don't support FP64 precision because they use this data type inside the implementation.
+  ``bernoulli_distribution``, ``geometric_distribution``, and ``uniform_int_distribution`` can only be used on devices with FP64 support as they rely on double precision in their implementation.
 
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
