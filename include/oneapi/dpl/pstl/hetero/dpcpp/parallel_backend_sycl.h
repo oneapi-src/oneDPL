@@ -825,6 +825,58 @@ struct __gen_unique_mask
     _BinaryPredicate __pred;
 };
 
+template <typename _IsOpDifference, typename _Compare>
+struct __gen_set_mask
+{
+    template <typename _InRng>
+    bool
+    operator()(const _InRng& __in_rng, std::size_t __id) const
+    {
+        using ::std::get;
+        auto __set_a = get<0>(__in_rng.tuple()); // first sequence
+        auto __set_b = get<1>(__in_rng.tuple()); // second sequence
+
+
+        std::size_t __nb = __set_b.size();
+
+        auto __id_c = __id;
+        const auto __id_a = __id;
+        auto __val_a = __set_a[__id_a];
+
+        auto __res = __internal::__pstl_lower_bound(__set_b, std::size_t{0}, __nb, __val_a, __comp);
+
+        bool bres = _IsOpDifference::value; //initialization in true in case of difference operation; false - intersection.
+        if (__res == __nb || __comp(__val_a, __set_b[__res]))
+        {
+            // there is no __val_a in __set_b, so __set_b in the difference {__a}/{__b};
+        }
+        else
+        {
+            auto __val_b = __b[__res];
+
+            //Difference operation logic: if number of duplication in __a on left side from __id > total number of
+            //duplication in __b than a mask is 1
+
+            //Intersection operation logic: if number of duplication in __a on left side from __id <= total number of
+            //duplication in __b than a mask is 1
+
+            const _Size1 __count_a_left =
+                __id_a - __internal::__pstl_left_bound(__set_a, 0, __id_a, __val_a, __comp) + 1;
+
+            const _Size2 __count_b = __internal::__pstl_right_bound(__set_b, __res, __nb, __val_b, __comp) - __res +
+                                     __res -
+                                     __internal::__pstl_left_bound(__set_b, 0, __res, __val_b, __comp);
+
+            if constexpr (_IsOpDifference::value)
+                bres = __count_a_left > __count_b; /*difference*/
+            else
+                bres = __count_a_left <= __count_b; /*intersection*/
+        }
+        return bres;
+    }
+    _Compare __comp;
+};
+
 template <typename _GenMask>
 struct __gen_count_mask
 {
@@ -1194,6 +1246,104 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         return __parallel_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
                                     std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n,
                                     _CreateOp{__pred}, _CopyOp{_ReduceOp{}, __assign});
+    }
+}
+
+
+auto
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
+          typename _IsOpDifference>
+__parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                          _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp, _IsOpDifference)
+{
+    // fill in reduce then scan impl
+    using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_set_mask<_IsOpDifference, _Compare>;
+    using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
+
+    using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
+    using _ReduceOp = std::plus<_Size>;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>;
+    using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_first_set_from_zeroth_ele;
+
+    
+    return __parallel_transform_reduce_then_scan(
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2)),
+        std::forward<_Range3>(__result), _GenReduceInput{_GenMask{__comp}}}, _ReduceOp{}, _GenScanInput{},
+        _ScanInputTransform{}, _WriteOp{}, oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+        /*_Inclusive=*/std::true_type{}, /*__is_unique_pattern=*/std::false_type);
+}
+
+
+auto
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
+          typename _IsOpDifference>
+__parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                    _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp,
+                    _IsOpDifference __is_op_difference)
+{
+    using _Size1 = oneapi::dpl::__internal::__difference_t<_Range1>;
+    using _Size2 = oneapi::dpl::__internal::__difference_t<_Range2>;
+
+    _Size1 __n1 = __rng1.size();
+    _Size2 __n2 = __rng2.size();
+
+    //Algo is based on the recommended approach of set_intersection algo for GPU: binary search + scan (copying by mask).
+    using _ReduceOp = ::std::plus<_Size1>;
+    using _Assigner = unseq_backend::__scan_assigner;
+    using _NoAssign = unseq_backend::__scan_no_assign;
+    using _MaskAssigner = unseq_backend::__mask_assigner<2>;
+    using _InitType = unseq_backend::__no_init_value<_Size1>;
+    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+
+    _ReduceOp __reduce_op;
+    _Assigner __assign_op;
+    _DataAcc __get_data_op;
+    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 2>
+        __copy_by_mask_op;
+    unseq_backend::__brick_set_op<_ExecutionPolicy, _Compare, _Size1, _Size2, _IsOpDifference> __create_mask_op{
+        __comp, __n1, __n2};
+
+    // temporary buffer to store boolean mask
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
+
+    return __par_backend_hetero::__parallel_transform_scan_base(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            oneapi::dpl::__ranges::make_zip_view(
+                __buf1.all_view(), __buf2.all_view(),
+                oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                    __mask_buf.get_buffer())),
+            __buf3.all_view(), __reduce_op, _InitType{},
+            // local scan
+            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+                                  _MaskAssigner, decltype(__create_mask_op), _InitType>{
+                __reduce_op, __get_data_op, __assign_op, _MaskAssigner{}, __create_mask_op},
+            // scan between groups
+            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+                                  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
+                                                                  __get_data_op},
+            // global scan
+            __copy_by_mask_op);
+}
+
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
+          typename _IsOpDifference>
+auto
+__parallel_set_op(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                          _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp, _IsOpDifference __is_op_difference)
+    oneapi::dpl::__internal::__difference_t<_Range1> __n = __rng.size();
+    if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
+    {
+        return __parallel_set_reduce_then_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                                                std::forward<_Range1>(__rng), std::forward<_Range2>(__rng2),
+                                                std::forward<_Range3>(__result), __compare, __is_op_difference);
+    }
+    else
+    {
+        return __parallel_set_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                                   std::forward<_Range2>(__rng2), std::forward<_Range3>(__result), __compare,
+                                   __is_op_difference);
     }
 }
 
