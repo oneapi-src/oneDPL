@@ -295,7 +295,8 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-            std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
+            std::size_t __work_group_size =
+                oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
             const std::size_t __num_groups =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__count, (__work_group_size * __iters_per_work_item));
             const std::size_t __num_items = __num_groups * __work_group_size;

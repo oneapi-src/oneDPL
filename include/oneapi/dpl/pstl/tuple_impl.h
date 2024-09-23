@@ -793,12 +793,11 @@ struct __decay_with_tuple_specialization<::std::tuple<_Args...>>
 template <typename... _Args>
 using __decay_with_tuple_specialization_t = typename __decay_with_tuple_specialization<_Args...>::type;
 
-
 // Flatten nested std::tuple or oneapi::dpl::__internal::tuple types into a single std::tuple.
 template <typename _T>
 struct __flatten_std_or_internal_tuple
 {
-	using type = std::tuple<_T>;
+    using type = std::tuple<_T>;
 };
 
 template <typename... _Ts>
