@@ -232,13 +232,12 @@ template <typename _IndexT, typename... _GlobalSortName>
 struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
 {
     template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
-    auto
-    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf, _TempBuf& __temp_buf,
+    sycl::event
+    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
                bool& __data_in_temp, sycl::event __event_chain) const
     {
-        __data_in_temp = false;
         const _IndexT __n = __rng.size();
-        _IndexT __n_sorted = __leaf;
+        _IndexT __n_sorted = __leaf_size;
         const bool __is_cpu = __q.get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
@@ -246,7 +245,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
-        const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf);
+        const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event_chain = __q.submit([&, __event_chain, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
@@ -298,7 +297,7 @@ template <typename... _CopyBackName>
 struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _Range, typename _TempBuf>
-    auto
+    sycl::event
     operator()(sycl::queue& __q, _Range& __rng, _TempBuf& __temp_buf, sycl::event __event_chain) const
     {
         __event_chain = __q.submit([&, __event_chain](sycl::handler& __cgh) {
@@ -351,7 +350,7 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
-    bool __data_in_temp;
+    bool __data_in_temp = false;
     __event_chain = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
         __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __data_in_temp, __event_chain);
 
