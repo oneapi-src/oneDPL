@@ -57,23 +57,27 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __q = __i_elem;                         //diagonal index
         const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
         auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+            __n_diag == 0
+                ? __diag_it + __n_diag
+                : std::lower_bound(__diag_it, __diag_it + __n_diag, /*value to find*/ true,
+                                   [&__rng2, &__rng1, __q, __comp](const _Index __i_diag, const _Index __value) mutable {
+                                       const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                                       return __zero_or_one < __value;
+                                   });
         return std::make_pair(*__res, __q - *__res);
     }
     else
     {
         const _Index __q = __i_elem - __n2;                         //diagonal index
         const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+        auto __res = 
+            __n_diag == 0
+                ? __diag_it + __n_diag
+                : std::lower_bound(__diag_it, __diag_it + __n_diag, /*value to find*/ true,
+                                   [&__rng2, &__rng1, __n2, __q, __comp](const _Index __i_diag, const _Index __value) mutable {
+                                       const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                                       return __zero_or_one < __value;
+                                   });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
 }
