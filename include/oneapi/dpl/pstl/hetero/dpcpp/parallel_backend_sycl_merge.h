@@ -78,13 +78,21 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
     }
 }
 
+template <typename _T, typename _TSource = std::decay_t<_T>>
+using _ConstReferenceOrValue = std::conditional_t<sizeof(_TSource) <= sizeof(std::uint32_t), const _TSource,
+                                                  const std::reference_wrapper<_TSource>>;
+
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
-               const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
+               const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2,
+               const _Compare& __comp)
 {
+    using _ConstReferenceOrValueFromRng1 = _ConstReferenceOrValue<decltype(__rng1[0])>;
+    using _ConstReferenceOrValueFromRng2 = _ConstReferenceOrValue<decltype(__rng2[0])>;
+
     if (__start1 >= __n1)
     {
         //copying a residual of the second seq
@@ -103,8 +111,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     {
         for (std::uint8_t __i = 0; __i < __chunk && __start1 < __n1 && __start2 < __n2; ++__i)
         {
-            const auto& __val1 = __rng1[__start1];
-            const auto& __val2 = __rng2[__start2];
+            _ConstReferenceOrValueFromRng1 __val1 = __rng1[__start1]; // const auto& __val1
+            _ConstReferenceOrValueFromRng2 __val2 = __rng2[__start2]; // const auto& __val2
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
