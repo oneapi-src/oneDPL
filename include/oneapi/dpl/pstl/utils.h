@@ -138,9 +138,10 @@ struct __compare
 
     template <typename _Xp, typename _Yp>
     bool
-    operator()(const _Xp& __x, const _Yp& __y) const
+    operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return std::invoke(__comp, std::invoke(__proj, __x), std::invoke(__proj, __y));
+        return std::invoke(__comp, std::invoke(__proj, std::forward<_Xp>(__x)),
+                           std::invoke(__proj, std::forward<_Yp>(__y)));
     }
 };
 
