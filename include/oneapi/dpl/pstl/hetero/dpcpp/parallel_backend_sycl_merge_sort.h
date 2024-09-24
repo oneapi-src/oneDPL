@@ -202,7 +202,7 @@ struct __leaf_sorter
     _GroupSorter __group_sorter;
 };
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+// Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
 template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_sort_submitter;
 
