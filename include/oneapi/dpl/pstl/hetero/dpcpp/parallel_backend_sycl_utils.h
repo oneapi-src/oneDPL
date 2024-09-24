@@ -906,9 +906,8 @@ __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
 //
 // SPIR-V compilation targets show best performance with a stride of the sub-group size.
 // Other compilation targets perform best with a work-group size stride.
-template <typename _NdItem>
 std::tuple<std::size_t, std::size_t, bool>
-__stride_recommender(const _NdItem& __item, std::size_t __count, std::size_t __iters_per_work_item,
+__stride_recommender(const sycl::nd_item<1>& __item, std::size_t __count, std::size_t __iters_per_work_item,
                      std::size_t __work_group_size)
 {
     if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
