@@ -40,22 +40,39 @@ struct __subgroup_bubble_sorter
     void
     sort(const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start, std::uint32_t __end) const
     {
-        bool __changed = true;
+        using _IndexType = std::make_signed_t<decltype(__end)>;
 
-        for (std::uint32_t i = __start; i < __end && __changed; ++i)
+        _IndexType __n = __end - __start;
+
+        switch (__n)
         {
-            __changed = false;
-
-            for (std::uint32_t j = __start + 1; j < __start + __end - i; ++j)
+        case 0:
+        case 1:
+            break;
+        case 2:
             {
-                auto& __first_item = __storage_acc[j - 1];
-                auto& __second_item = __storage_acc[j];
+                auto& __first_item = __storage_acc[__start];
+                auto& __second_item = __storage_acc[__start + 1];
                 if (__comp(__second_item, __first_item))
-                {
                     std::swap(__first_item, __second_item);
-                    __changed = true;
-                }
             }
+            break;
+        default:
+            do
+            {
+                _IndexType __new_n = 0;
+                for (_IndexType __i = 1; __i < __n; ++__i)
+                {
+                    auto& __first_item = __storage_acc[__start + __i - 1];
+                    auto& __second_item = __storage_acc[__start + __i];
+                    if (__comp(__second_item, __first_item))
+                    {
+                        std::swap(__first_item, __second_item);
+                        __new_n = __i;
+                    }
+                }
+                __n = __new_n;
+            } while (__n > 1);
         }
     }
 };
