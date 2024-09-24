@@ -352,16 +352,25 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
 
     using __small_submitter = __parallel_for_small_submitter<_ForKernelSmall>;
     using __large_submitter = __parallel_for_large_submitter<_ForKernelLarge, _Ranges...>;
-    // Compile two kernels: one for small-to-medium inputs and a second for large. This avoids runtime checks within a single
-    // kernel that worsen performance for small cases.
-    if (__count < __large_submitter::__estimate_best_start_size(__exec))
+    // Compile two kernels: one for small-to-medium inputs and a second for large. This avoids runtime checks within a
+    // single kernel that worsen performance for small cases. If the number of iterations of the large submitter is 1,
+    // then only compile the basic kernel as the two versions are effectively the same.
+    if constexpr (__large_submitter::__iters_per_work_item > 1)
     {
-        return __small_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                   std::forward<_Ranges>(__rngs)...);
+        if (__count < __large_submitter::__estimate_best_start_size(__exec))
+        {
+            return __small_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                       std::forward<_Ranges>(__rngs)...);
+        }
+        else
+        {
+            return __large_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                       std::forward<_Ranges>(__rngs)...);
+        }
     }
     else
     {
-        return __large_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+        return __small_submitter()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
                                    std::forward<_Ranges>(__rngs)...);
     }
 }
