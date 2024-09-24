@@ -302,14 +302,14 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             const std::size_t __num_items = __num_groups * __work_group_size;
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_items), sycl::range<1>(__work_group_size)),
-                [=](sycl::nd_item</*dim=*/1> __ndi) {
+                [=](sycl::nd_item</*dim=*/1> __item) {
                     // TODO: Investigate adding a vectorized path similar to reduce.
                     // Initial investigation showed benefits for in-place for-based algorithms (e.g. std::for_each) but
                     // performance regressions for out-of-place (e.g. std::copy) where the compiler was unable to
                     // vectorize our code. Vectorization may also improve performance of for-algorithms over small data
                     // types.
                     auto [__idx, __group_start_idx, __stride, __is_full] =
-                        __stride_recommender(__ndi, __count, __iters_per_work_item, __work_group_size);
+                        __stride_recommender(__item, __count, __iters_per_work_item, __work_group_size);
                     if (__is_full)
                     {
                         _ONEDPL_PRAGMA_UNROLL
