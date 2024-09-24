@@ -40,16 +40,20 @@ struct __subgroup_bubble_sorter
     void
     sort(const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start, std::uint32_t __end) const
     {
-        for (std::uint32_t i = __start; i < __end; ++i)
+        bool __changed = true;
+
+        for (std::uint32_t i = __start; i < __end && __changed; ++i)
         {
+            __changed = false;
+
             for (std::uint32_t j = __start + 1; j < __start + __end - i; ++j)
             {
                 auto& __first_item = __storage_acc[j - 1];
                 auto& __second_item = __storage_acc[j];
                 if (__comp(__second_item, __first_item))
                 {
-                    using std::swap;
-                    swap(__first_item, __second_item);
+                    std::swap(__first_item, __second_item);
+                    __changed = true;
                 }
             }
         }
