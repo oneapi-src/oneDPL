@@ -839,7 +839,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 //
 // SPIR-V compilation targets show best performance with a stride of the sub-group size.
 // Other compilation targets perform best with a work-group size stride.
-std::tuple<std::size_t, std::size_t, bool>
+inline std::tuple<std::size_t, std::size_t, bool>
 __stride_recommender(const sycl::nd_item<1>& __item, std::size_t __count, std::size_t __iters_per_work_item,
                      std::size_t __work_group_size)
 {
