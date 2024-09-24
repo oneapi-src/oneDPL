@@ -266,7 +266,8 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     // iterator.
     using _FlattenedRangesTuple = typename oneapi::dpl::__internal::__flatten_std_or_internal_tuple<
         std::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>>::type;
-    using _MinValueType = typename oneapi::dpl::__internal::__min_tuple_type<_FlattenedRangesTuple>::type;
+    static constexpr std::size_t __min_type_size =
+        oneapi::dpl::__internal::__min_tuple_type_size_v<_FlattenedRangesTuple>;
     // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
     // flattened ranges. This allows us to launch enough work per item to saturate the device's memory
     // bandwidth. This heuristic errs on the side of launching more work per item than what is needed to
@@ -274,7 +275,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     // value across the different for-based algorithms.
     static constexpr std::uint8_t __bytes_per_work_item = 16;
     static constexpr std::uint8_t __iters_per_work_item =
-        oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, sizeof(_MinValueType));
+        oneapi::dpl::__internal::__dpl_ceiling_div(__bytes_per_work_item, __min_type_size);
     // Limit the work-group size to 512 which has empirically yielded the best results across different architectures.
     static constexpr std::uint16_t __max_work_group_size = 512;
 
