@@ -1913,7 +1913,7 @@ __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_t
                        _Range&& __rng, _Compare, _Proj __proj)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __proj);
 }
 #endif
 
@@ -1925,7 +1925,7 @@ auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
                        _Range&& __rng, _Compare __comp, _Proj __proj)
 {
-    return __parallel_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+    return __parallel_sort_impl(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng),
                                 oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
 }
 
