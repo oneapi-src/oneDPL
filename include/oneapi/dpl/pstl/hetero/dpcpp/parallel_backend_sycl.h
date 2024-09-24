@@ -308,7 +308,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
                     // performance regressions for out-of-place (e.g. std::copy) where the compiler was unable to
                     // vectorize our code. Vectorization may also improve performance of for-algorithms over small data
                     // types.
-                    auto [__idx, __group_start_idx, __stride, __is_full] =
+                    auto [__idx, __stride, __is_full] =
                         __stride_recommender(__item, __count, __iters_per_work_item, __work_group_size);
                     if (__is_full)
                     {
@@ -319,21 +319,15 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
                             __idx += __stride;
                         }
                     }
-                    else
+                    // If we are not full, then take this branch only if there is work to process.
+                    else if (__idx < __count)
                     {
-                        // Recompute iters per item and manually unroll last loop iteration to remove most branching.
-                        if (__group_start_idx >= __count)
-                            return;
                         const std::uint8_t __adjusted_iters_per_work_item =
-                            oneapi::dpl::__internal::__dpl_ceiling_div(__count - __group_start_idx, __stride);
-                        for (std::uint8_t __i = 0; __i < __adjusted_iters_per_work_item - 1; ++__i)
+                            oneapi::dpl::__internal::__dpl_ceiling_div(__count - __idx, __stride);
+                        for (std::uint8_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
                         {
                             __brick(__idx, __rngs...);
                             __idx += __stride;
-                        }
-                        if (__idx < __count)
-                        {
-                            __brick(__idx, __rngs...);
                         }
                     }
                 });
