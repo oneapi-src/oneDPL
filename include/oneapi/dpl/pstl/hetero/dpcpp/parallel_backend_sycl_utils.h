@@ -840,7 +840,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 // SPIR-V compilation targets show best performance with a stride of the sub-group size.
 // Other compilation targets perform best with a work-group size stride.
 template <typename _NdItem>
-std::tuple<std::size_t, std::size_t, std::size_t, bool>
+std::tuple<std::size_t, std::size_t, bool>
 __stride_recommender(const _NdItem& __item, std::size_t __count, std::size_t __iters_per_work_item,
                      std::size_t __work_group_size)
 {
@@ -856,7 +856,7 @@ __stride_recommender(const _NdItem& __item, std::size_t __count, std::size_t __i
             __iters_per_work_item * (__work_group_id * __work_group_size + __sub_group_size * __sub_group_id);
         const bool __is_full_sub_group = __sub_group_start_idx + __iters_per_work_item * __sub_group_size <= __count;
         const std::size_t __work_item_idx = __sub_group_start_idx + __sub_group_local_id;
-        return std::make_tuple(__work_item_idx, __sub_group_start_idx, __sub_group_size, __is_full_sub_group);
+        return std::make_tuple(__work_item_idx, __sub_group_size, __is_full_sub_group);
     }
     else
     {
@@ -864,7 +864,7 @@ __stride_recommender(const _NdItem& __item, std::size_t __count, std::size_t __i
             __item.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item;
         const std::size_t __work_item_idx = __work_group_start_idx + __item.get_local_linear_id();
         const bool __is_full_work_group = __work_group_start_idx + __iters_per_work_item * __work_group_size <= __count;
-        return std::make_tuple(__work_item_idx, __work_group_start_idx, __work_group_size, __is_full_work_group);
+        return std::make_tuple(__work_item_idx, __work_group_size, __is_full_work_group);
     }
 }
 
