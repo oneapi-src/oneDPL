@@ -379,7 +379,7 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
 
-// Please see the comment for __parallel_for_small_submitter for optional kernel name explanation
+// Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
 template <typename _CustomName, typename _PropagateScanName>
 struct __parallel_scan_submitter;
 
@@ -2282,7 +2282,7 @@ struct __partial_merge_kernel
     }
 };
 
-// Please see the comment for __parallel_for_small_submitter for optional kernel name explanation
+// Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
 template <typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_partial_sort_submitter;
 
