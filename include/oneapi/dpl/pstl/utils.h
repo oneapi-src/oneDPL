@@ -784,25 +784,28 @@ union __lazy_ctor_storage
     }
 };
 
-// Utility that returns the smallest type in tuple.
+// Utility that returns the smallest type size in a tuple.
 template <typename _Tuple>
-class __min_tuple_type;
+class __min_tuple_type_size;
 
 template <typename _T>
-class __min_tuple_type<std::tuple<_T>>
+class __min_tuple_type_size<std::tuple<_T>>
 {
   public:
-    using type = _T;
+    static constexpr std::size_t value = sizeof(_T);
 };
 
 template <typename _T, typename... _Ts>
-class __min_tuple_type<std::tuple<_T, _Ts...>>
+class __min_tuple_type_size<std::tuple<_T, _Ts...>>
 {
-    using __min_type_ts = typename __min_tuple_type<std::tuple<_Ts...>>::type;
+    static constexpr std::size_t __min_type_value_ts = __min_tuple_type_size<std::tuple<_Ts...>>::value;
 
   public:
-    using type = std::conditional_t<(sizeof(_T) < sizeof(__min_type_ts)), _T, __min_type_ts>;
+    static constexpr std::size_t value = std::min(sizeof(_T), __min_type_value_ts);
 };
+
+template <typename _Tuple>
+inline constexpr std::size_t __min_tuple_type_size_v = __min_tuple_type_size<_Tuple>::value;
 
 } // namespace __internal
 } // namespace dpl
