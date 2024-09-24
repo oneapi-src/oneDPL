@@ -1230,8 +1230,8 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 //------------------------------------------------------------------------
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _Proj>
 void
-__stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-                              _Compare __comp, _Proj __proj)
+__parallel_stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first,
+                                       _Iterator __last, _Compare __comp, _Proj __proj)
 {
     if (__last - __first < 2)
         return;
@@ -1239,7 +1239,7 @@ __stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __par_backend_hetero::__parallel_stable_sort(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+    __par_backend_hetero::__parallel_stable_sort(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
                                                  __buf.all_view(), __comp, __proj)
         .__deferrable_wait();
 }
@@ -1250,8 +1250,8 @@ void
 __pattern_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                _Compare __comp, _LeafSort = {})
 {
-    __stable_sort_with_projection(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-                                  oneapi::dpl::identity{});
+    __parallel_stable_sort_with_projection(__tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+                                           oneapi::dpl::identity{});
 }
 
 //------------------------------------------------------------------------
@@ -1270,8 +1270,8 @@ __pattern_sort_by_key(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    __stable_sort_with_projection(__tag, std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
-                                  [](const auto& __a) { return std::get<0>(__a); });
+    __parallel_stable_sort_with_projection(__tag, std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
+                                           [](const auto& __a) { return std::get<0>(__a); });
 }
 
 //------------------------------------------------------------------------
