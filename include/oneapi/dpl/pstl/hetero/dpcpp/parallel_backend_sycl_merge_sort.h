@@ -118,10 +118,11 @@ struct __group_merge_path_sorter
             auto __in_ptr1 = __in_ptr + __start1;
             auto __in_ptr2 = __in_ptr + __start2;
 
-            const auto __start = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
+            const auto[__rng1_start_idx, __rng2_start_idx] = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
-            __serial_merge(__in_ptr1, __in_ptr2, __out_ptr, __start.first, __start.second, __id, __data_per_workitem,
-                           __n1, __n2, __comp);
+            __serial_merge(__in_ptr1, __in_ptr2, __out_ptr,
+                           __rng1_start_idx, __rng2_start_idx, __id,
+                           __data_per_workitem, __n1, __n2, __comp);
             __dpl_sycl::__group_barrier(__item);
 
             __sorted = __next_sorted;
@@ -298,18 +299,20 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                             const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst, __offset);
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
 
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
-                                           __chunk, __n1, __n2, __comp);
+                            const auto[__rng1_start_idx, __rng2_start_idx] = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/,
+                                           __rng1_start_idx, __rng2_start_idx,
+                                           __i_elem, __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
                             const oneapi::dpl::__ranges::drop_view_simple __rng1(__rng, __offset);
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
 
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
-                                           __chunk, __n1, __n2, __comp);
+                            const auto[__rng1_start_idx, __rng2_start_idx] = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/,
+                                           __rng1_start_idx, __rng2_start_idx,
+                                           __i_elem, __chunk, __n1, __n2, __comp);
                         }
                     });
             });
