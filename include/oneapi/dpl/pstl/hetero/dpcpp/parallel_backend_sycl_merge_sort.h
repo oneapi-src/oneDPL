@@ -54,7 +54,10 @@ struct __subgroup_bubble_sorter
                 auto& __first_item = __storage_acc[__start];
                 auto& __second_item = __storage_acc[__start + 1];
                 if (__comp(__second_item, __first_item))
-                    std::swap(__first_item, __second_item);
+                {
+                    using std::swap;
+                    swap(__first_item, __second_item);
+                }
             }
             break;
         default:
@@ -67,7 +70,8 @@ struct __subgroup_bubble_sorter
                     auto& __second_item = __storage_acc[__start + __i];
                     if (__comp(__second_item, __first_item))
                     {
-                        std::swap(__first_item, __second_item);
+                        using std::swap;
+                        swap(__first_item, __second_item);
                         __new_n = __i;
                     }
                 }
