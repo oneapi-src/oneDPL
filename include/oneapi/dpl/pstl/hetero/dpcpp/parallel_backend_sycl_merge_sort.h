@@ -44,10 +44,10 @@ struct __subgroup_bubble_sorter
 
         switch (__n)
         {
-        case 0:
-        case 1:
+        case 0:             // The case when __end == __start       no source data means no sorting required
+        case 1:             // The case when __end == __start + 1   one source data item means no sorting required
             break;
-        case 2:
+        case 2:             // The case when __end == __start + 2   two source data items required only one comparison (and swap) without any loops and etc.
             {
                 auto& __first_item = __storage_acc[__start];
                 auto& __second_item = __storage_acc[__start + 1];
@@ -58,7 +58,7 @@ struct __subgroup_bubble_sorter
                 }
             }
             break;
-        default:
+        default:            // The case when __end > __start + 2    three or more source data items require full bubble sort
             do
             {
                 std::uint32_t __new_n = 0;
