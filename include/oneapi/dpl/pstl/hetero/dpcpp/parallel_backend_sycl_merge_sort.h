@@ -40,9 +40,7 @@ struct __subgroup_bubble_sorter
     void
     sort(const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start, std::uint32_t __end) const
     {
-        using _IndexType = std::make_signed_t<decltype(__end)>;
-
-        _IndexType __n = __end - __start;
+        std::uint32_t __n = __end - __start;
 
         switch (__n)
         {
@@ -63,8 +61,8 @@ struct __subgroup_bubble_sorter
         default:
             do
             {
-                _IndexType __new_n = 0;
-                for (_IndexType __i = 1; __i < __n; ++__i)
+                std::uint32_t __new_n = 0;
+                for (std::uint32_t __i = 1; __i < __n; ++__i)
                 {
                     auto& __first_item = __storage_acc[__start + __i - 1];
                     auto& __second_item = __storage_acc[__start + __i];
