@@ -252,16 +252,16 @@ struct __parallel_for_small_submitter<__internal::__optional_kernel_name<_Name..
     }
 };
 
-template <typename _KernelName, typename... _Ranges>
+template <typename _KernelName, typename... _RangeTypes>
 struct __parallel_for_large_submitter;
 
-template <typename... _Name, typename... _Ranges>
-struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>, _Ranges...>
+template <typename... _Name, typename... _RangeTypes>
+struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>, _RangeTypes...>
 {
     // Flatten the range as std::tuple value types in the range are likely coming from separate ranges in a zip
     // iterator.
     using _FlattenedRangesTuple = typename oneapi::dpl::__internal::__flatten_std_or_internal_tuple<
-        std::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>>::type;
+        std::tuple<oneapi::dpl::__internal::__value_t<_RangeTypes>...>>::type;
     static constexpr std::size_t __min_type_size =
         oneapi::dpl::__internal::__min_tuple_type_size_v<_FlattenedRangesTuple>;
     // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
@@ -320,7 +320,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
         return __work_group_size * __iters_per_work_item * __max_cu;
     }
 
-    template <typename _ExecutionPolicy, typename _Fp, typename _Index>
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
