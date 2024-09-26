@@ -351,10 +351,10 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
             __seg_reduce_wg_kernel,
 #endif
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                auto __identity = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
+                constexpr __val_type __identity = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
                 // TODO: Remove this initialization to the identity when possible. We load real data to __loc_partials
-                // in the first loop below but this initialization to the identity works around an IGC register
-                // filling bug.
+                // in the first loop below but this initialization of the first element to the identity works around an
+                // IGC register filling bug.
                 std::array<__val_type, __vals_per_item> __loc_partials = {__identity};
 
                 auto __group = __item.get_group();
