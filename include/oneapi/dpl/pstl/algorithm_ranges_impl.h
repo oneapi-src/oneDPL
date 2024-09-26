@@ -336,7 +336,8 @@ __pattern_is_sorted(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Comp, typename _LeafSort>
 auto
-__pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj, _LeafSort __leaf_sort)
+__pattern_sort_ranges(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Comp __comp, _Proj __proj,
+                      _LeafSort __leaf_sort)
 {
     static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
 

@@ -22,6 +22,7 @@
 #    include <functional>
 #    include <type_traits>
 #    include <iterator>
+#    include <algorithm> //to use std::ranges::sort, std::ranges::stable_sort
 #endif
 
 #include "execution_defs.h"
