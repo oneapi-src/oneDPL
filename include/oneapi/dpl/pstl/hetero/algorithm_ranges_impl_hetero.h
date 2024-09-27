@@ -913,6 +913,12 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
                             _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
                             _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
+    oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment(_BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__keys),
+                                 std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys),
+                                 std::forward<_Range4>(__out_values), __binary_pred, __binary_op)
+        .wait();
+    return 1;
+    #if 0
     // The algorithm reduces values in __values where the
     // associated keys for the values are equal to the adjacent key.
     //
@@ -1043,6 +1049,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         .__deferrable_wait();
 
     return __result_end;
+    #endif
 }
 
 } // namespace __ranges
