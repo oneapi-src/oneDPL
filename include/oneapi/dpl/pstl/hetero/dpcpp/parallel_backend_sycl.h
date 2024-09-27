@@ -832,10 +832,10 @@ struct __gen_set_mask
     bool
     operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        using ::std::get;
-        auto __set_a = get<0>(__in_rng.tuple()); // first sequence
-        auto __set_b = get<1>(__in_rng.tuple()); // second sequence
-
+        // First we must extract invididual sequences from zip iterator because they may not have the same length,
+        // dereferencing is dangerous
+        auto __set_a = std::get<0>(__in_rng.tuple()); // first sequence
+        auto __set_b = std::get<1>(__in_rng.tuple()); // second sequence
 
         std::size_t __nb = __set_b.size();
 
@@ -901,6 +901,27 @@ struct __gen_expand_count_mask
         //  the values of zipped input types rather than their references.
         using _ElementType = oneapi::dpl::__internal::__value_t<_InRng>;
         _ElementType ele = __in_rng[__id];
+        bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
+        return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
+    }
+    _GenMask __gen_mask;
+};
+
+template <typename _GenMask>
+struct __gen_expand_set_mask
+{
+    template <typename _InRng, typename _SizeType>
+    auto
+    operator()(_InRng&& __in_rng, _SizeType __id) const
+    {
+        // First we must extract the first sequence from zip iterator because they may not have the same length,
+        // dereferencing is dangerous
+        auto __set_a = get<0>(__in_rng.tuple()); // first sequence
+        // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
+        //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
+        //  the values of zipped input types rather than their references.
+        using _ElementType = oneapi::dpl::__internal::__value_t<decltype(__set_a)>;
+        _ElementType ele = __set_a[__id];
         bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
@@ -1262,8 +1283,8 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
 
     using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
     using _ReduceOp = std::plus<_Size>;
-    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMask>;
-    using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_first_set_from_zeroth_ele;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_set_count_mask<_GenMask>;
+    using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_zeroth_element;
 
     
     return __parallel_transform_reduce_then_scan(
