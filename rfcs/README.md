@@ -64,8 +64,8 @@ into the `rfcs/proposed/range_algorithms_bitonic_sort` directory.
 Put other files referenced by the `README.md` file, such as figures, into the same directory.
 The "RFC" label can be used to mark PRs containing RFC/design proposals.
 
-The RFC approval process generally follows the guidelines in the [UXL Foundation Operational Procedures]
-(https://github.com/uxlfoundation/uxl_operational_procedures/blob/release/Process_Documents/Organization_Operational_Process.md#review--approval-process),
+The RFC approval process generally follows the guidelines in the [UXL Foundation Operational Procedures](
+https://github.com/uxlfoundation/uxl_operational_procedures/blob/release/Process_Documents/Organization_Operational_Process.md#review--approval-process).
 Once at least two maintainers approve the PR, it is merged into the main branch
 as an RFC proposed for implementation.
 
