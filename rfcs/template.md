@@ -2,28 +2,28 @@
 
 ## Introduction
 
-Short description of the idea proposed with explained motivation. 
+Replace the text in this section with a short description of the proposed idea.
 
-The motivation could be:
+Explain the motivation for a proposal, such as:
 - Improved users experience for API changes and extensions. Code snippets to
   showcase the benefits would be nice here.
-- Performance improvements with the data, if available.
+- Performance improvements.
 - Improved engineering practices.
 
-Introduction may also include any additional information that sheds light on
-the proposal, such as history of the matter, links to relevant issues and
+The introduction may also include any additional information that sheds light on
+the proposal, such as the history of the matter, links to relevant issues and
 discussions, etc.
 
 ## Proposal
 
-A full and detailed description of the proposal with highlighted consequences.
+Replace the text in this section with a full and detailed description of the proposal
+with highlighted consequences.
 
 Depending on the kind of the proposal, the description should cover:
 
 - New use cases supported by the extension.
-- The expected performance benefit for a modification. 
-- The interface of extensions including class definitions or function 
-declarations.
+- The expected performance benefit for a modification, supported with the data, if available.
+- The interface of extensions including class definitions or function declarations.
 
 A proposal should clearly outline the alternatives that were considered, 
 along with their pros and cons. Each alternative should be clearly separated 
@@ -34,23 +34,23 @@ Pay close attention to the following aspects of the library:
   so if any of those interfaces are to be broken, the RFC needs to state that
   explicitly.
 - Performance implications, as performance is one of the main goals of the library.
-- Changes to the build system. While the library's primary building system is
-  CMake, there are some frameworks that may build the library directly from the sources.
-- Dependencies and support matrix: does the proposal bring any new
+- Dependencies and supported platforms: does the proposal bring any new
   dependencies or affect the supported configurations?
 
-Some other common subsections here are:
+Include short explanation and links to the related proposals, if any.
+Sub-proposals could be organized as separate standalone RFCs, but this is
+not mandatory. If the related change is insignificant or doesn't make any sense
+without the original proposal, describe it in the main RFC.
+
+Some other common subsections could be:
 - Discussion: some people like to list all the options first (as separate
   subsections), and then have a dedicated section with the discussion.
-- List of the proposed API and examples of its usage.
+- Synopsis: the list of the proposed API.
+- Usage examples.
 - Testing aspects.
-- Short explanation and links to the related sub-proposals, if any. Such
-  sub-proposals could be organized as separate standalone RFCs, but this is
-  not mandatory. If the change is insignificant or doesn't make any sense
-  without the original proposal, you can have it in the RFC.
 - Execution plan (next steps), if approved.
 
 ## Open Questions
 
-For new proposals (i.e., those in the `rfcs/proposed` directory), list any
-open questions.
+List any questions that are not sufficiently elaborated in the proposal,
+need more discussion or prototyping experience, etc.
