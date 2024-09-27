@@ -721,8 +721,28 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
-    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+
+    using FutureType = __future<_Event, _Args...>;
+    using _DataTuple = std::tuple<_Args...>;
+
+    template <typename _EventParam>
+    __future(_EventParam&& __e) : __my_event(std::forward<_EventParam>(__e))
+    {
+    }
+
+    template <typename _EventParam, typename _DataTupleParam>
+    __future(_EventParam&& __e, _DataTupleParam&& __data)
+        : std::tuple<_Args...>(std::forward<_DataTupleParam>(__data)), __my_event(std::forward<_EventParam>(__e))
+    {
+    }
+
+    __future(const FutureType&) = delete;
+    __future(FutureType&&) = default;
+
+    FutureType&
+    operator=(const FutureType&) = delete;
+    FutureType&
+    operator=(FutureType&&) = default;
 
     auto
     event() const
@@ -776,6 +796,12 @@ class __future : private std::tuple<_Args...>
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
+
+template <typename _TData>
+inline __make_future(sycl::event&& __event, _TData&& __data)
+{
+    return __future<sycl::event, _TData>(std::move(__event), std::forward<_TData>(__data));
+}
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
