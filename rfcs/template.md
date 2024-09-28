@@ -5,7 +5,7 @@
 Replace the text in this section with a short description of the proposed idea.
 
 Explain the motivation for a proposal, such as:
-- Improved users experience for API changes and extensions. Code snippets to
+- Improved user experience for API changes and extensions. Code snippets to
   showcase the benefits would be nice here.
 - Performance improvements.
 - Improved engineering practices.
@@ -23,18 +23,19 @@ Depending on the kind of the proposal, the description should cover:
 
 - New use cases supported by the extension.
 - The expected performance benefit for a modification, supported with the data, if available.
-- The interface of extensions including class definitions or function declarations.
+- The API of extensions such as class definitions and function declarations.
 
 A proposal should clearly outline the alternatives that were considered, 
 along with their pros and cons. Each alternative should be clearly separated 
-to make discussions easier to follow.
+to make discussions easier to follow. Or, if you prefer, list all the alternatives
+first (perhaps as subsections), and then have a dedicated section with the discussion.
 
 Pay close attention to the following aspects of the library:
 - API and ABI backward compatibility. The library follows semantic versioning
   so if any of those interfaces are to be broken, the RFC needs to state that
   explicitly.
 - Performance implications, as performance is one of the main goals of the library.
-- Dependencies and supported platforms: does the proposal bring any new
+- Dependencies and supported platforms. Does the proposal bring any new
   dependencies or affect the supported configurations?
 
 Include short explanation and links to the related proposals, if any.
@@ -43,9 +44,6 @@ not mandatory. If the related change is insignificant or doesn't make any sense
 without the original proposal, describe it in the main RFC.
 
 Some other common subsections could be:
-- Discussion: some people like to list all the options first (as separate
-  subsections), and then have a dedicated section with the discussion.
-- Synopsis: the list of the proposed API.
 - Usage examples.
 - Testing aspects.
 - Execution plan (next steps), if approved.

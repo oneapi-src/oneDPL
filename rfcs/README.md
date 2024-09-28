@@ -2,11 +2,11 @@
 
 The Request for Comments (RFC) process intends to:
 
-- Propose and discuss ideas for the library evolution
-- Communicate anticipated library-wide changes
-- Collect feedback before implementation
-- Increase transparency in decision-making 
-- Align different teams involved in the library development
+- Propose and discuss ideas for the library evolution.
+- Communicate anticipated library-wide changes.
+- Collect feedback before implementation.
+- Increase transparency in decision-making.
+- Align different teams involved in the library development.
 
 Most modifications or new features will naturally start as a part of a 
 GitHub issue or discussion. Small changes do not require a formal RFC. 
@@ -29,7 +29,7 @@ in a subdirectory under an `rfcs/<state>` directory. The possible states are:
 4. Archived
 
 The `rfcs/proposed` directory contains RFCs for approved proposals
-that yet need to be implemented. These documents describe the overall design
+that need to be implemented. These documents describe the overall design
 and API for the proposed functionality.
 
 The `rfcs/experimental` directory contains RFCs for experimental library features.
@@ -66,7 +66,7 @@ The "RFC" label can be used to mark PRs containing RFC/design proposals.
 
 The RFC approval process generally follows the guidelines in the [UXL Foundation Operational Procedures](
 https://github.com/uxlfoundation/uxl_operational_procedures/blob/release/Process_Documents/Organization_Operational_Process.md#review--approval-process).
-Once at least two maintainers approve the PR, it is merged into the main branch
+Once two or more maintainers approve the PR, it is merged into the main branch
 as an RFC proposed for implementation.
 
 As the RFC moves to different states, use new PRs to update the RFC document
