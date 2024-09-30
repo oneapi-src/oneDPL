@@ -836,6 +836,7 @@ struct __gen_set_mask
         // dereferencing is dangerous
         auto __set_a = std::get<0>(__in_rng.tuple()); // first sequence
         auto __set_b = std::get<1>(__in_rng.tuple()); // second sequence
+        auto __set_mask = std::get<2>(__in_rng.tuple()); // mask sequence
 
         std::size_t __nb = __set_b.size();
 
@@ -872,9 +873,23 @@ struct __gen_set_mask
             else
                 bres = __count_a_left <= __count_b; /*intersection*/
         }
+        __set_mask[__id] = bres;
         return bres;
     }
     _Compare __comp;
+};
+
+struct __gen_set_cached_mask
+{
+    template <typename _InRng>
+    bool
+    operator()(const _InRng& __in_rng, std::size_t __id) const
+    {
+        // First we must extract invididual sequences from zip iterator because they may not have the same length,
+        // dereferencing is dangerous
+        auto __set_mask = std::get<2>(__in_rng.tuple()); // mask sequence
+        return __set_mask[__id];
+    }
 };
 
 template <typename _GenMask>
@@ -1278,21 +1293,26 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
                           _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp, _IsOpDifference)
 {
     // fill in reduce then scan impl
-    using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_set_mask<_IsOpDifference, _Compare>;
+    using _GenMaskReduce = oneapi::dpl::__par_backend_hetero::__gen_set_mask<_IsOpDifference, _Compare>;
+    using _GenMaskScan = oneapi::dpl::__par_backend_hetero::__gen_set_cached_mask;
     using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, oneapi::dpl::__internal::__pstl_assign>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range3>;
 
-    using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
+    using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMaskReduce>;
     using _ReduceOp = std::plus<_Size>;
-    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_set_mask<_GenMask>;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_set_mask<_GenMaskScan>;
     using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_zeroth_element;
 
-    
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __rng1.size());
+
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2)),
-        std::forward<_Range3>(__result), _GenReduceInput{_GenMask{__comp}}, _ReduceOp{}, _GenScanInput{_GenMask{__comp}},
-        _ScanInputTransform{}, _WriteOp{}, oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+        oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                    __mask_buf.get_buffer())),
+        std::forward<_Range3>(__result), _GenReduceInput{_GenMaskReduce{__comp}}, _ReduceOp{},
+        _GenScanInput{_GenMaskScan{}}, _ScanInputTransform{}, _WriteOp{},
+        oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
         /*_Inclusive=*/std::true_type{}, /*__is_unique_pattern=*/std::false_type{});
 }
 
