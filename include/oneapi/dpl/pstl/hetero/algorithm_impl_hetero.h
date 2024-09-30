@@ -1688,7 +1688,7 @@ __pattern_rotate_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Bid
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _OutputIterator, typename _Compare, typename _IsOpDifference>
 _OutputIterator
-__pattern_hetero_set_op(__hetero_tag<_BackendTag> __backend_tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+__pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                         _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
                         _OutputIterator __result, _Compare __comp, _IsOpDifference __is_op_difference)
 {

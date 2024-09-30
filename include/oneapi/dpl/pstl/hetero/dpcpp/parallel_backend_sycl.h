@@ -840,9 +840,7 @@ struct __gen_set_mask
 
         std::size_t __nb = __set_b.size();
 
-        auto __id_c = __id;
-        const auto __id_a = __id;
-        auto __val_a = __set_a[__id_a];
+        auto __val_a = __set_a[__id];
 
         auto __res = oneapi::dpl::__internal::__pstl_lower_bound(__set_b, std::size_t{0}, __nb, __val_a, __comp);
 
@@ -850,21 +848,20 @@ struct __gen_set_mask
             _IsOpDifference::value; //initialization in true in case of difference operation; false - intersection.
         if (__res == __nb || __comp(__val_a, __set_b[__res]))
         {
-            // there is no __val_a in __set_b, so __set_b in the difference {__a}/{__b};
+            // there is no __val_a in __set_b, so __set_b in the difference {__set_a}/{__set_b};
         }
         else
         {
             auto __val_b = __set_b[__res];
 
-            //Difference operation logic: if number of duplication in __a on left side from __id > total number of
-            //duplication in __b than a mask is 1
+            //Difference operation logic: if number of duplication in __set_a on left side from __id > total number of
+            //duplication in __set_b than a mask is 1
 
-            //Intersection operation logic: if number of duplication in __a on left side from __id <= total number of
-            //duplication in __b than a mask is 1
+            //Intersection operation logic: if number of duplication in __set_a on left side from __id <= total number of
+            //duplication in __set_b than a mask is 1
 
             const std::size_t __count_a_left =
-                __id_a - oneapi::dpl::__internal::__pstl_left_bound(__set_a, std::size_t{0}, __id_a, __val_a, __comp) +
-                1;
+                __id - oneapi::dpl::__internal::__pstl_left_bound(__set_a, std::size_t{0}, __id, __val_a, __comp) + 1;
 
             const std::size_t __count_b =
                 oneapi::dpl::__internal::__pstl_right_bound(__set_b, __res, __nb, __val_b, __comp) - __res + __res -
@@ -888,7 +885,7 @@ struct __extract_range_from_zip
     auto
     operator()(const _InRng& __in_rng) const
     {
-        return std::get<I>(__in_rng.tuple()); 
+        return std::get<I>(__in_rng.tuple());
     }
 };
 
