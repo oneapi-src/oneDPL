@@ -267,7 +267,8 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 };
 
 template <typename _Predicate, typename _RangeTransform>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_mask, _Predicate, _RangeTransform)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_mask, _Predicate,
+                                                       _RangeTransform)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Predicate>
 {
 };
