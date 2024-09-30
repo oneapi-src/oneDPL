@@ -832,7 +832,7 @@ struct __gen_set_mask
     bool
     operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        // First we must extract invididual sequences from zip iterator because they may not have the same length,
+        // First we must extract individual sequences from zip iterator because they may not have the same length,
         // dereferencing is dangerous
         auto __set_a = std::get<0>(__in_rng.tuple());    // first sequence
         auto __set_b = std::get<1>(__in_rng.tuple());    // second sequence
