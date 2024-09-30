@@ -798,14 +798,14 @@ struct __simple_write_to_id
     }
 };
 
-template <typename _Predicate>
+template <typename _Predicate, typename _RangeTransform = oneapi::dpl::__internal::__no_op>
 struct __gen_mask
 {
     template <typename _InRng>
     bool
-    operator()(const _InRng& __in_rng, std::size_t __id) const
+    operator()(_InRng&& __in_rng, std::size_t __id) const
     {
-        return __pred(__in_rng[__id]);
+        return __pred((_RangeTransform{}(std::forward<_InRng>(__in_rng)))[__id]);
     }
     _Predicate __pred;
 };
@@ -879,16 +879,14 @@ struct __gen_set_mask
     _Compare __comp;
 };
 
-struct __gen_set_cached_mask
+template <std::size_t I>
+struct __extract_range_from_zip
 {
     template <typename _InRng>
-    bool
-    operator()(const _InRng& __in_rng, std::size_t __id) const
+    auto
+    operator()(const _InRng& __in_rng) const
     {
-        // First we must extract invididual sequences from zip iterator because they may not have the same length,
-        // dereferencing is dangerous
-        auto __set_mask = std::get<2>(__in_rng.tuple()); // mask sequence
-        return __set_mask[__id];
+        return std::get<I>(__in_rng.tuple()); 
     }
 };
 
@@ -904,39 +902,19 @@ struct __gen_count_mask
     _GenMask __gen_mask;
 };
 
-template <typename _GenMask>
+template <typename _GenMask, typename _RangeTransform = oneapi::dpl::__internal::__no_op>
 struct __gen_expand_count_mask
 {
     template <typename _InRng, typename _SizeType>
     auto
     operator()(_InRng&& __in_rng, _SizeType __id) const
     {
+        auto __transformed_input = _RangeTransform{}(__in_rng);
         // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
         //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
         //  the values of zipped input types rather than their references.
-        using _ElementType = oneapi::dpl::__internal::__value_t<_InRng>;
-        _ElementType ele = __in_rng[__id];
-        bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
-        return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
-    }
-    _GenMask __gen_mask;
-};
-
-template <typename _GenMask>
-struct __gen_expand_set_mask
-{
-    template <typename _InRng, typename _SizeType>
-    auto
-    operator()(_InRng&& __in_rng, _SizeType __id) const
-    {
-        // First we must extract the first sequence from zip iterator because they may not have the same length,
-        // dereferencing is dangerous
-        auto __set_a = std::get<0>(__in_rng.tuple()); // first sequence
-        // Explicitly creating this element type is necessary to avoid modifying the input data when _InRng is a
-        //  zip_iterator which will return a tuple of references when dereferenced. With this explicit type, we copy
-        //  the values of zipped input types rather than their references.
-        using _ElementType = oneapi::dpl::__internal::__value_t<decltype(__set_a)>;
-        _ElementType ele = __set_a[__id];
+        using _ElementType = oneapi::dpl::__internal::__value_t<decltype(__transformed_input)>;
+        _ElementType ele = __transformed_input[__id];
         bool mask = __gen_mask(std::forward<_InRng>(__in_rng), __id);
         return std::tuple(mask ? _SizeType{1} : _SizeType{0}, mask, ele);
     }
@@ -1294,13 +1272,14 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
 {
     // fill in reduce then scan impl
     using _GenMaskReduce = oneapi::dpl::__par_backend_hetero::__gen_set_mask<_IsOpDifference, _Compare>;
-    using _GenMaskScan = oneapi::dpl::__par_backend_hetero::__gen_set_cached_mask;
+    using _GenMaskScan = oneapi::dpl::__par_backend_hetero::__gen_mask<oneapi::dpl::__internal::__no_op,
+                                            oneapi::dpl::__par_backend_hetero::__extract_range_from_zip<2>>;
     using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, oneapi::dpl::__internal::__pstl_assign>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range3>;
 
     using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMaskReduce>;
     using _ReduceOp = std::plus<_Size>;
-    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_set_mask<_GenMaskScan>;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMaskScan, oneapi::dpl::__par_backend_hetero::__extract_range_from_zip<0>>;
     using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_zeroth_element;
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __rng1.size());
