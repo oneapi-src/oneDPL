@@ -273,11 +273,11 @@ struct __parallel_scan_submitter;
 template <typename _CustomName, typename... _PropagateScanName>
 struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
-              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
+              typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
-               _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
+               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
         using _Type = typename _InitType::__value_type;
         using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -738,11 +738,11 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     }
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 auto
 __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                               _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
+                               _Range1&& __in_rng, _Range2&& __out_rng, _InitType __init,
                                _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -752,7 +752,7 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
-        __binary_op, __init, __local_scan, __group_scan, __global_scan);
+        __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _Type>
@@ -961,7 +961,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
 
     return __parallel_transform_scan_base(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
-        std::forward<_Range2>(__out_rng), __binary_op, __init,
+        std::forward<_Range2>(__out_rng), __init,
         // local scan
         unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
                               _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
@@ -1067,7 +1067,7 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
         oneapi::dpl::__ranges::zip_view(
             __in_rng, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                           __mask_buf.get_buffer())),
-        ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
+        ::std::forward<_OutRng>(__out_rng), _InitType{},
         // local scan
         unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                               _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,

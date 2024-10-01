@@ -972,7 +972,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     // TODO: replace wgroup size with segment size based on platform specifics.
     auto __intermediate_result_end = __ranges::__pattern_copy_if(
         __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key1_wrapper>(__exec), __view1, __view2,
-        [__n, __binary_pred, __wgroup_size](const auto& __a) {
+        [__binary_pred, __wgroup_size](const auto& __a) {
             // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
             // for (i-1), but we still need to get its key value as it is the start of a segment
             const auto index = ::std::get<0>(__a);

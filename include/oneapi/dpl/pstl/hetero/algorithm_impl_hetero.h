@@ -1733,7 +1733,7 @@ __pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _F
                 __buf1.all_view(), __buf2.all_view(),
                 oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                     __mask_buf.get_buffer())),
-            __buf3.all_view(), __reduce_op, _InitType{},
+            __buf3.all_view(), _InitType{},
             // local scan
             unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                                   _MaskAssigner, decltype(__create_mask_op), _InitType>{
