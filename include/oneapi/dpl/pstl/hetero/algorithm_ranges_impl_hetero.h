@@ -978,7 +978,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
             const auto index = std::get<0>(__a);
             if (index == 0)
                 return true;
-            return index % __wgroup_size == 0                                 // segment size
+            return index % __wgroup_size == 0                             // segment size
                    || !__binary_pred(std::get<1>(__a), std::get<2>(__a)); // key comparison
         },
         unseq_backend::__brick_assign_key_position{});
