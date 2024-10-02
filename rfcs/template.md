@@ -40,7 +40,7 @@ Pay close attention to the following aspects of the library:
 
 Include short explanation and links to the related proposals, if any.
 Sub-proposals could be organized as separate standalone RFCs, but this is
-not mandatory. If the related change is insignificant or doesn't make any sense
+not mandatory. If the related change is insignificant or does not make any sense
 without the original proposal, describe it in the main RFC.
 
 Some other common subsections could be:
