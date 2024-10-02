@@ -23,6 +23,7 @@
 #include "../../iterator_impl.h"
 #include "sycl_iterator.h"
 #include "sycl_defs.h"
+#include "execution_sycl_defs.h"
 
 namespace oneapi
 {
