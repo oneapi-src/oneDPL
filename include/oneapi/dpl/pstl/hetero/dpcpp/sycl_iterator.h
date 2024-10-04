@@ -219,13 +219,11 @@ begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT)
 }
 
 template <typename T, typename Allocator, typename ModeTagT>
-__internal::sycl_iterator<
-    __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
+__internal::sycl_iterator<__internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
 begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT, __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<
-        __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
-        Allocator>{buf, 0};
+    return __internal::sycl_iterator<__internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
+                                     Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator>
@@ -245,13 +243,11 @@ end(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT)
 }
 
 template <typename T, typename Allocator, typename ModeTagT>
-__internal::sycl_iterator<
-    __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
+__internal::sycl_iterator<__internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
 end(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT, __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<
-        __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
-        Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<__internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
+                                     Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator>
