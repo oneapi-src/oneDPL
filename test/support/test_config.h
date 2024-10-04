@@ -89,12 +89,15 @@
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable test when the DPC++ backend is available
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
-     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
+#if defined(__INTEL_LLVM_COMPILER) && (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#   define TEST_SYCL_ENABLED_FOR_INTEL_LLVM 1
+#endif
+#if __has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>) &&                                                 \
+    (TEST_SYCL_ENABLED_FOR_INTEL_LLVM || !defined(__INTEL_LLVM_COMPILER)) &&                                           \
     (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
-#define TEST_DPCPP_BACKEND_PRESENT 1
+#   define TEST_DPCPP_BACKEND_PRESENT 1
 #else
-#define TEST_DPCPP_BACKEND_PRESENT 0
+#   define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
