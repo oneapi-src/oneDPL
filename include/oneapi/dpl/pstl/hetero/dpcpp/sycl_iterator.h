@@ -132,42 +132,32 @@ struct sycl_iterator
 };
 
 // map access_mode tag to access_mode value
-template <typename _ModTagT, typename _NoInitT = void>
+// TODO: consider removing the logic for discard_read_write and discard_write which are deprecated in SYCL 2020
+template <typename _ModeTagT, typename _NoInitT = void>
 struct __access_mode_resolver
 {
 };
 
-template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::read_only)>, void>
+template <typename _NoInitT>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::read_only)>, _NoInitT>
 {
     static constexpr access_mode __mode = access_mode::read;
 };
 
-template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, void>
+template <typename _NoInitT>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, _NoInitT>
 {
-    static constexpr access_mode __value = access_mode::write;
+    static constexpr access_mode __value = std::is_same_v<_NoInitT, void> ? access_mode::write :
+                                                                            access_mode::discard_write;
 };
 
-template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, void>
+template <typename _NoInitT>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, _NoInitT>
 {
-    static constexpr access_mode __value = access_mode::read_write;
+    static constexpr access_mode __value = std::is_same_v<_NoInitT, void> ? access_mode::read_write :
+                                                                            access_mode::discard_read_write;
 };
 
-// map access_mode if property::noinit present
-// TODO: remove since discard_read_write and discard_write are deprecated in SYCL 2020
-template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, __dpl_sycl::__no_init>
-{
-    static constexpr access_mode __value = access_mode::discard_write;
-};
-
-template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, __dpl_sycl::__no_init>
-{
-    static constexpr access_mode __value = access_mode::discard_read_write;
-};
 
 template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
