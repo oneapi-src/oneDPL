@@ -147,17 +147,16 @@ struct __access_mode_resolver<std::decay_t<decltype(sycl::read_only)>, _NoInitT>
 template <typename _NoInitT>
 struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, _NoInitT>
 {
-    static constexpr access_mode __value = std::is_same_v<_NoInitT, void> ? access_mode::write :
-                                                                            access_mode::discard_write;
+    static constexpr access_mode __value =
+        std::is_same_v<_NoInitT, void> ? access_mode::write : access_mode::discard_write;
 };
 
 template <typename _NoInitT>
 struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, _NoInitT>
 {
-    static constexpr access_mode __value = std::is_same_v<_NoInitT, void> ? access_mode::read_write :
-                                                                            access_mode::discard_read_write;
+    static constexpr access_mode __value =
+        std::is_same_v<_NoInitT, void> ? access_mode::read_write : access_mode::discard_read_write;
 };
-
 
 template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
 using __default_alloc_vec_iter = typename std::vector<ValueType>::iterator;
