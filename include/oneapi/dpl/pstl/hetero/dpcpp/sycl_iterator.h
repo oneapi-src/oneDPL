@@ -131,47 +131,42 @@ struct sycl_iterator
     }
 };
 
-// mode converter when property::noinit present
-template <access_mode __mode>
-struct __access_mode_converter
-{
-    static constexpr access_mode __value = __mode;
-};
-
-template <>
-struct __access_mode_converter<access_mode::read_write>
-{
-    static constexpr access_mode __value = access_mode::discard_read_write;
-};
-
-template <>
-struct __access_mode_converter<access_mode::write>
-{
-    static constexpr access_mode __value = access_mode::discard_write;
-};
-
 // map access_mode tag to access_mode value
-template <typename T>
+template <typename _ModTagT, typename _NoInitT = void>
 struct __access_mode_resolver
 {
 };
 
 template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::read_only)>>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::read_only)>, void>
 {
     static constexpr access_mode __mode = access_mode::read;
 };
 
 template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, void>
 {
     static constexpr access_mode __value = access_mode::write;
 };
 
 template <>
-struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, void>
 {
     static constexpr access_mode __value = access_mode::read_write;
+};
+
+// map access_mode if property::noinit present
+// TODO: remove since discard_read_write and discard_write are deprecated in SYCL 2020
+template <>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::write_only)>, __dpl_sycl::__no_init>
+{
+    static constexpr access_mode __value = access_mode::discard_write;
+};
+
+template <>
+struct __access_mode_resolver<std::decay_t<decltype(sycl::read_write)>, __dpl_sycl::__no_init>
+{
+    static constexpr access_mode __value = access_mode::discard_read_write;
 };
 
 template <typename Iter, typename ValueType = std::decay_t<typename std::iterator_traits<Iter>::value_type>>
@@ -225,11 +220,11 @@ begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT)
 
 template <typename T, typename Allocator, typename ModeTagT>
 __internal::sycl_iterator<
-    __internal::__access_mode_converter<__internal::__access_mode_resolver<ModeTagT>::__value>::__value, T, Allocator>
+    __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
 begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT, __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<
-        __internal::__access_mode_converter<__internal::__access_mode_resolver<ModeTagT>::__value>::__value, T,
+        __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
         Allocator>{buf, 0};
 }
 
@@ -251,11 +246,11 @@ end(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT)
 
 template <typename T, typename Allocator, typename ModeTagT>
 __internal::sycl_iterator<
-    __internal::__access_mode_converter<__internal::__access_mode_resolver<ModeTagT>::__value>::__value, T, Allocator>
+    __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T, Allocator>
 end(sycl::buffer<T, /*dim=*/1, Allocator> buf, ModeTagT, __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<
-        __internal::__access_mode_converter<__internal::__access_mode_resolver<ModeTagT>::__value>::__value, T,
+        __internal::__access_mode_resolver<ModeTagT, __dpl_sycl::__no_init>::__value, T,
         Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
