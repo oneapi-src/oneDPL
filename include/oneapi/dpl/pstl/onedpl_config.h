@@ -54,9 +54,15 @@
         but OpenMP headers are not found or the compiler does not support OpenMP"
 #endif
 
-#if (defined(SYCL_LANGUAGE_VERSION) || defined(CL_SYCL_LANGUAGE_VERSION)) &&                                           \
-    (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-#    define _ONEDPL_SYCL_AVAILABLE 1
+#if defined(__INTEL_LLVM_COMPILER) && (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#   define _ONEDPL_SYCL_ENABLED_FOR_INTEL_LLVM 1
+#endif
+#if (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
+// Intel(R) oneAPI DPC++/C++ Compiler is known to provide SYCL_LANGUAGE_VERSION with certain compiler options,
+// while other implementations may require inclusion of sycl/sycl.hpp, which is not desired in onedpl_config.h
+#    if _ONEDPL_SYCL_ENABLED_FOR_INTEL_LLVM || !defined(__INTEL_LLVM_COMPILER)
+#        define _ONEDPL_SYCL_AVAILABLE 1
+#    endif
 #endif
 #if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
 #    error "Device execution policies are enabled, \
