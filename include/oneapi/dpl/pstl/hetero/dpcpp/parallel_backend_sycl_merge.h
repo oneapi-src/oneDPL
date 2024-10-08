@@ -86,55 +86,98 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
     }
 }
 
+template <typename _Rng, typename _Index>
+const auto&
+__get_rng_item_val(const _Rng& __rng, const _Index __idx, _Index& __idx_saved)
+{
+    __idx_saved = __idx;
+    return __rng[__idx];
+}
+
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
-void
+std::pair<_Index, _Index>
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
-               const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
+               _Index __start3, const std::uint8_t __chunk, _Index __n1, _Index __n2, _Compare __comp,
+               const std::pair<_Index, _Index>& __sub_window_offset = {0, 0})
 {
+    // The actual value in the result will depends on what data was copied to the output array.
+    std::pair<_Index, _Index> result{__n1, __n2};
+
+    assert(__n1 >= __sub_window_offset.first);
+    assert(__n2 >= __sub_window_offset.second);
+
+    __n1 -= __sub_window_offset.first;
+    __n2 -= __sub_window_offset.second;
+
+    __start3 += __sub_window_offset.first + __sub_window_offset.second;
+
     if (__start1 >= __n1)
     {
         //copying a residual of the second seq
         const _Index __n = std::min<_Index>(__n2 - __start2, __chunk);
         for (std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng2[__start2 + __i];
+        {
+            __rng3[__start3 + __i] =
+                __get_rng_item_val(__rng2, __start2 + __i + __sub_window_offset.second, result.second);
+        }
     }
     else if (__start2 >= __n2)
     {
         //copying a residual of the first seq
         const _Index __n = std::min<_Index>(__n1 - __start1, __chunk);
         for (std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng1[__start1 + __i];
+        {
+            __rng3[__start3 + __i] =
+                __get_rng_item_val(__rng1, __start1 + __i + __sub_window_offset.first, result.first);
+        }
     }
     else
     {
         for (std::uint8_t __i = 0; __i < __chunk && __start1 < __n1 && __start2 < __n2; ++__i)
         {
-            const auto& __val1 = __rng1[__start1];
-            const auto& __val2 = __rng2[__start2];
+            const auto& __val1 = __rng1[__start1 + __sub_window_offset.first];
+            const auto& __val2 = __rng2[__start2 + __sub_window_offset.second];
+
             if (__comp(__val2, __val1))
             {
+                result.second = __start2 + __sub_window_offset.second;
                 __rng3[__start3 + __i] = __val2;
+
+                // Pair operation fot the next ++__start2 inside if condition
+                ++result.second;
                 if (++__start2 == __n2)
                 {
                     //copying a residual of the first seq
                     for (++__i; __i < __chunk && __start1 < __n1; ++__i, ++__start1)
-                        __rng3[__start3 + __i] = __rng1[__start1];
+                    {
+                        __rng3[__start3 + __i] =
+                            __get_rng_item_val(__rng1, __start1 + __sub_window_offset.first, result.first);
+                    }
                 }
             }
             else
             {
+                result.first = __start1 + __sub_window_offset.first;
                 __rng3[__start3 + __i] = __val1;
+
+                // Pair operation fot the next ++__start1 inside if condition
+                ++result.first;
                 if (++__start1 == __n1)
                 {
                     //copying a residual of the second seq
                     for (++__i; __i < __chunk && __start2 < __n2; ++__i, ++__start2)
-                        __rng3[__start3 + __i] = __rng2[__start2];
+                    {
+                        __rng3[__start3 + __i] =
+                            __get_rng_item_val(__rng2, __start2 + __sub_window_offset.second, result.second);
+                    }
                 }
             }
         }
     }
+
+    return result;
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
