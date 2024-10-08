@@ -721,8 +721,19 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
-    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+    __future(_Event&& __e) : __my_event(std::move(__e)) {}
+    __future(_Event&& __e, const std::tuple<_Args...>& __data)
+        : std::tuple<_Args...>(__data), __my_event(std::move(__e))
+    {
+    }
+    __future(_Event&& __e, std::tuple<_Args...>&& __data)
+        : std::tuple<_Args...>(std::move(__data)), __my_event(std::move(__e))
+    {
+    }
+
+    __future(const __future&) = delete;
+    __future&
+    operator=(const __future&) = delete;
 
     auto
     event() const
@@ -767,13 +778,13 @@ class __future : private std::tuple<_Args...>
 
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
     //where a future is created.
-    template <typename _T>
-    auto
-    __make_future(_T __t) const
+    template <typename _OtherEvent, typename... _OtherArgs, typename... _AddArgs>
+    static __future<_OtherEvent, _AddArgs..., _OtherArgs...>
+    __make_future(__future<_OtherEvent, _OtherArgs...>&& __f, _AddArgs... __add_args)
     {
-        auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
-        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
+        return __future<_OtherEvent, _AddArgs..., _OtherArgs...>{
+            std::move(__f.__my_event), std::tuple_cat(std::tuple<_AddArgs...>(std::forward<_AddArgs>(__add_args)...),
+                                                      static_cast<std::tuple<_OtherArgs...>&&>(__f))};
     }
 };
 

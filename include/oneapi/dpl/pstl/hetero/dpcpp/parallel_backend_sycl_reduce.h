@@ -154,7 +154,8 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
                 });
         });
 
-        return __future(__reduce_event, __scratch_container);
+        return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, _Tp>>{
+            std::move(__reduce_event), std::move(__scratch_container)};
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -238,7 +239,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
     auto
     operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, sycl::event& __reduce_event,
                const _Size __n, const _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
-               _InitType __init, const __result_and_scratch_storage<_ExecutionPolicy2, _Tp>& __scratch_container) const
+               _InitType __init, __result_and_scratch_storage<_ExecutionPolicy2, _Tp>& __scratch_container) const
     {
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
         auto __transform_pattern =
@@ -268,7 +269,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
                 });
         });
 
-        return __future(__reduce_event, __scratch_container);
+        return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy2, _Tp>>{
+            std::move(__reduce_event), std::move(__scratch_container)};
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
@@ -300,7 +302,7 @@ __parallel_transform_reduce_mid_impl(oneapi::dpl::__internal::__device_backend_t
     // __n_groups preliminary results from the device kernel.
     return __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative, _VecSize,
                                                                    _ReduceWorkGroupKernel>()(
-        __backend_tag, std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n_groups, __work_group_size,
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::move(__reduce_event), __n_groups, __work_group_size,
         __iters_per_work_item_work_group_kernel, __reduce_op, __init, __scratch_container);
 }
 
@@ -418,7 +420,8 @@ struct __parallel_transform_reduce_impl
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
-        return __future(__reduce_event, __scratch_container);
+        return __future<sycl::event, __result_and_scratch_storage<_ExecutionPolicy, _Tp>>{
+            std::move(__reduce_event), std::move(__scratch_container)};
     }
 }; // struct __parallel_transform_reduce_impl
 

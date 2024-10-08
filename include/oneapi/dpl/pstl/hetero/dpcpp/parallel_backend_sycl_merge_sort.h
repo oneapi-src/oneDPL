@@ -303,7 +303,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             });
         }
 
-        return __future(__event1);
+        return __future<sycl::event>(std::move(__event1));
     }
 };
 

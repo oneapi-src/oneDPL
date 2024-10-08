@@ -42,10 +42,9 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
-    return __future_obj;
+    return oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                             __n, __buf.all_view());
 }
 
 template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
@@ -69,7 +68,8 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
-    return __future.__make_future(__first2 + __n);
+    using _f_type = decltype(__future);
+    return _f_type::__make_future(std::move(__future), __first2 + __n);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
@@ -96,7 +96,8 @@ __pattern_walk3_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                           __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
-    return __future.__make_future(__first3 + __n);
+    using _f_type = decltype(__future);
+    return _f_type::__make_future(std::move(__future), __first3 + __n);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
@@ -201,10 +202,12 @@ __pattern_transform_scan_base_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result, __result + __n);
 
-    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op,
         __init, __binary_op, _Inclusive{});
-    return __res.__make_future(__result + __n);
+
+    using _f_type = decltype(__future);
+    return _f_type::__make_future(std::move(__future), __result + __n);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
