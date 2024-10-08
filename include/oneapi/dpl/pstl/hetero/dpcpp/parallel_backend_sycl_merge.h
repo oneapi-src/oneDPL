@@ -45,10 +45,18 @@ namespace __par_backend_hetero
 //   |             ---->
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-auto
-__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
-                   const _Index __n2, _Compare __comp)
+std::pair<_Index, _Index>
+__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, _Index __n1, _Index __n2,
+                   _Compare __comp, const std::pair<_Index, _Index>& __sub_window_offset = {0, 0})
 {
+    assert(__n1 >= __sub_window_offset.first);
+    assert(__n2 >= __sub_window_offset.second);
+
+    __n1 -= __sub_window_offset.first;
+    __n2 -= __sub_window_offset.second;
+
+    std::pair<_Index, _Index> result{0, 0};
+
     //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
     oneapi::dpl::counting_iterator<_Index> __diag_it(0);
 
@@ -58,8 +66,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                             [&__rng2, &__rng1, __q, __comp, __sub_window_offset](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1 + __sub_window_offset.second], __rng1[__i_diag + __sub_window_offset.first]);
                                  return __zero_or_one < __value;
                              });
         return std::make_pair(*__res, __q - *__res);
@@ -70,8 +78,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
         auto __res =
             std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                             [&__rng2, &__rng1, __n2, __q, __comp, __sub_window_offset](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1 + __sub_window_offset.second], __rng1[__q + __i_diag + __sub_window_offset.first]);
                                  return __zero_or_one < __value;
                              });
         return std::make_pair(__q + *__res, __n2 - *__res);
