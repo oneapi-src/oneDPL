@@ -32,9 +32,22 @@ struct test_merge
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                OutputIterator out_first, OutputIterator out_last)
     {
+        using _T = typename std::iterator_traits<InputIterator1>::value_type;
+
         using namespace std;
         const auto res = merge(exec, first1, last1, first2, last2, out_first);
         EXPECT_TRUE(res == out_last, "wrong return result from merge");
+        if (!is_sorted(out_first, res))
+        {
+            const auto n1 = std::distance(first1, last1);
+            const auto n2 = std::distance(first2, last2);
+            const auto n3 = std::distance(out_first, out_last);
+
+            std::vector<_T> expected;
+            std::merge(first1, last1, first2, last2, std::back_inserter(expected));
+
+            EXPECT_EQ_N(expected.begin(), out_first, n1 + n2, "wrong return result from merge #1");
+        }
         EXPECT_TRUE(is_sorted(out_first, res), "wrong result from merge");
     }
 
