@@ -33,6 +33,35 @@ namespace oneapi
 namespace dpl
 {
 
+// [reduce]
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
+reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
+       _BinaryOperation __binary_op)
+{
+    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
+                            oneapi::dpl::__internal::__no_op());
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
+reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init)
+{
+    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_Tp>(),
+                            oneapi::dpl::__internal::__no_op());
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      typename ::std::iterator_traits<_ForwardIterator>::value_type>
+reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
+{
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _ValueType{},
+                            ::std::plus<_ValueType>(), oneapi::dpl::__internal::__no_op());
+}
+
 // [transform.reduce]
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp>
@@ -71,35 +100,6 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIt
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                __first, __last, __init, __binary_op, __unary_op);
-}
-
-// [reduce]
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
-reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
-       _BinaryOperation __binary_op)
-{
-    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
-                            oneapi::dpl::__internal::__no_op());
-}
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
-reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init)
-{
-    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_Tp>(),
-                            oneapi::dpl::__internal::__no_op());
-}
-
-template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      typename ::std::iterator_traits<_ForwardIterator>::value_type>
-reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
-{
-    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
-    return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _ValueType{},
-                            ::std::plus<_ValueType>(), oneapi::dpl::__internal::__no_op());
 }
 
 // [exclusive.scan]
