@@ -36,7 +36,7 @@ using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
-#include "zip_iterator.h"
+#include "zip_iterator_funcs.h"
 
 using namespace oneapi::dpl::execution;
 

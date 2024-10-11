@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- zip_iterator.h ---------------------------------------------===//
+//===-- zip_iterator_funcs.h ---------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ZIP_ITERATOR_H
-#define _ZIP_ITERATOR_H
+#ifndef _ZIP_ITERATOR_FUNCS_H
+#define _ZIP_ITERATOR_FUNCS_H
 
 struct TupleNoOp
 {
