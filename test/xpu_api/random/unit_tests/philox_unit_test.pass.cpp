@@ -338,42 +338,60 @@ template <typename Engine>
 int
 discard_overflow_test()
 {
+    int ret_sts = 0;
+
     using T = typename Engine::result_type;
     using scalar_type = typename Engine::scalar_type;
 
-    Engine engine1;
-    std::array<T, Engine::word_count> counter;
+    // Iterate throug the counter's position being overflown 
+    for(int overflown_position = 0; overflown_position < Engine::word_count-1; ++overflown_position) {
+        Engine engine1;
+        std::array<T, Engine::word_count> counter = {0};
 
-    for (int i = 0; i < Engine::word_count; i++)
-    {
-        counter[i] = 0;
+        // Overflow of a counter's element. Correspondance is the following:
+        // 0 1 2 3 overflow position
+        // 1 2 3 0 set-up counter position in engine
+        // 2 1 0 3 raw_counter_position
+        int raw_counter_position = (Engine::word_count - overflown_position - 2) % Engine::word_count;
+        counter[raw_counter_position] = 1;
+
+        engine1.set_counter(counter);
+
+        Engine engine2;
+
+        // To reduce the execution time pre-set counter to almost-overflown state
+        std::array<T, Engine::word_count> counter2 = { 0 };
+        for(int i = Engine::word_count-overflown_position-1; i < Engine::word_count-1; ++i) {
+            counter2[i] = std::numeric_limits<unsigned long long>::max();
+        }
+
+        engine2.set_counter(counter2);
+
+
+        for (int i = 0; i < Engine::word_count; i++)
+        {
+            engine2();
+        }
+        for (int i = 0; i < Engine::word_count; i++)
+        {
+            //engine2.discard(std::numeric_limits<unsigned long long>::max());
+            engine2.discard(engine2.max());
+        }
+
+        if (engine1() == engine2())
+        {
+            ret_sts = 0;
+        }
+        else
+        {
+            std::cout << " failed" << std::endl;
+            ret_sts = 1;
+            break;
+        }
     }
 
-    // overflow of the 0th counter element
-    counter[2] = 1;
-
-    engine1.set_counter(counter);
-
-    Engine engine2;
-
-    for (int i = 0; i < Engine::word_count; i++)
-    {
-        engine2();
-    }
-    for (int i = 0; i < Engine::word_count; i++)
-    {
-        engine2.discard(std::numeric_limits<unsigned long long>::max() &
-                        (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - Engine::word_size)));
-    }
-
-    if (engine1() == engine2())
-    {
+    if(!ret_sts)
         std::cout << " passed" << std::endl;
-        return 0;
-    }
-    else
-    {
-        std::cout << " failed" << std::endl;
-        return 1;
-    }
+
+    return ret_sts;
 }
