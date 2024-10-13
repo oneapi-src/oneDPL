@@ -213,7 +213,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
-    auto
+    __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -304,7 +304,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             });
         }
 
-        return __future(__event1);
+        return __event1;
     }
 };
 
