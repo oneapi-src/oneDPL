@@ -115,7 +115,7 @@ void
 test_merge_by_type(Generator1 generator1, Generator2 generator2)
 {
     using namespace std;
-    size_t max_size = 100000;
+    size_t max_size = 17'000'000;   //100000;
     Sequence<T> in1(max_size, generator1);
     Sequence<T> in2(max_size / 2, generator2);
     Sequence<T> out(in1.size() + in2.size());
@@ -124,7 +124,7 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
 
     size_t start_size = 0;
 #if TEST_DPCPP_BACKEND_PRESENT
-    start_size = 2;
+    start_size = 100'000; //10'000; //2;
 #endif
 
     for (size_t size = start_size; size <= max_size; size = size <= 16 ? size + 1 : size_t(3.1415 * size)) {
