@@ -864,7 +864,7 @@ struct __gen_set_mask
                 __id - oneapi::dpl::__internal::__pstl_left_bound(__set_a, std::size_t{0}, __id, __val_a, __comp) + 1;
 
             const std::size_t __count_b =
-                oneapi::dpl::__internal::__pstl_right_bound(__set_b, __res, __nb, __val_b, __comp) - __res + __res -
+                oneapi::dpl::__internal::__pstl_right_bound(__set_b, __res, __nb, __val_b, __comp) -
                 oneapi::dpl::__internal::__pstl_left_bound(__set_b, std::size_t{0}, __res, __val_b, __comp);
 
             if constexpr (_IsOpDifference::value)
