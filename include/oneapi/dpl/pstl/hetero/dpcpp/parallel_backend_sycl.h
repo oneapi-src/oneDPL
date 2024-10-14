@@ -738,12 +738,12 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     }
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType, typename _LocalScan,
+          typename _GroupScan, typename _GlobalScan>
 auto
 __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                               _Range1&& __in_rng, _Range2&& __out_rng, _InitType __init,
-                               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+                               _Range1&& __in_rng, _Range2&& __out_rng, _InitType __init, _LocalScan __local_scan,
+                               _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
@@ -1275,16 +1275,14 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
     using _GenMaskReduce = oneapi::dpl::__par_backend_hetero::__gen_set_mask<_IsOpDifference, _Compare>;
     using _MaskRangeTransform = oneapi::dpl::__par_backend_hetero::__extract_range_from_zip<2>;
     using _MaskPredicate = oneapi::dpl::__internal::__no_op;
-    using _GenMaskScan =
-        oneapi::dpl::__par_backend_hetero::__gen_mask<_MaskPredicate, _MaskRangeTransform>;
+    using _GenMaskScan = oneapi::dpl::__par_backend_hetero::__gen_mask<_MaskPredicate, _MaskRangeTransform>;
     using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, oneapi::dpl::__internal::__pstl_assign>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range3>;
     using _ScanRangeTransform = oneapi::dpl::__par_backend_hetero::__extract_range_from_zip<0>;
 
     using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMaskReduce>;
     using _ReduceOp = std::plus<_Size>;
-    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<
-        _GenMaskScan, _ScanRangeTransform>;
+    using _GenScanInput = oneapi::dpl::__par_backend_hetero::__gen_expand_count_mask<_GenMaskScan, _ScanRangeTransform>;
     using _ScanInputTransform = oneapi::dpl::__par_backend_hetero::__get_zeroth_element;
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, std::int32_t> __mask_buf(__exec, __rng1.size());
@@ -1296,8 +1294,8 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
             oneapi::dpl::__ranges::all_view<std::int32_t, __par_backend_hetero::access_mode::read_write>(
                 __mask_buf.get_buffer())),
         std::forward<_Range3>(__result), _GenReduceInput{_GenMaskReduce{__comp}}, _ReduceOp{},
-        _GenScanInput{_GenMaskScan{_MaskPredicate{}, _MaskRangeTransform{}}, _ScanRangeTransform{}}, _ScanInputTransform{}, _WriteOp{},
-        oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
+        _GenScanInput{_GenMaskScan{_MaskPredicate{}, _MaskRangeTransform{}}, _ScanRangeTransform{}},
+        _ScanInputTransform{}, _WriteOp{}, oneapi::dpl::unseq_backend::__no_init_value<_Size>{},
         /*_Inclusive=*/std::true_type{}, /*__is_unique_pattern=*/std::false_type{});
 }
 
@@ -1345,9 +1343,8 @@ __parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
                               _MaskAssigner, decltype(__create_mask_op), _InitType>{
             __reduce_op, __get_data_op, __assign_op, _MaskAssigner{}, __create_mask_op},
         // scan between groups
-        unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                              _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                              __get_data_op},
+        unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign, _Assigner,
+                              _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op, __get_data_op},
         // global scan
         __copy_by_mask_op);
 }
