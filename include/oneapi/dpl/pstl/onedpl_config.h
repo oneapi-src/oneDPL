@@ -54,19 +54,33 @@
         but OpenMP headers are not found or the compiler does not support OpenMP"
 #endif
 
-#if defined(__INTEL_LLVM_COMPILER) && (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
-#   define _ONEDPL_SYCL_ENABLED_FOR_INTEL_LLVM 1
-#endif
+// Preliminary check SYCL availability
 #if (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-// Intel(R) oneAPI DPC++/C++ Compiler is known to provide SYCL_LANGUAGE_VERSION with certain compiler options,
-// while other implementations may require inclusion of sycl/sycl.hpp, which is not desired in onedpl_config.h
-#    if _ONEDPL_SYCL_ENABLED_FOR_INTEL_LLVM || !defined(__INTEL_LLVM_COMPILER)
-#        define _ONEDPL_SYCL_AVAILABLE 1
-#    endif
+#    define _ONEDPL_SYCL_HEADER_PRESENT 1
 #endif
-#if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
+#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#    define _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT 1
+#endif
+#if _ONEDPL_SYCL_HEADER_PRESENT && _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
+#    define _ONEDPL_SYCL_AVAILABLE 1
+#endif
+// Intel(R) oneAPI DPC++/C++ Compiler provides SYCL_LANGUAGE_VERSION without sycl.hpp inclusion
+#if _ONEDPL_SYCL_HEADER_PRESENT && !_ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT && !defined(__INTEL_LLVM_COMPILER)
+#    define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
+#endif
+
+// If DPCPP backend is explicitly requested and SYCL is (possibly) available, enable it
+#if ONEDPL_USE_DPCPP_BACKEND && (_ONEDPL_SYCL_AVAILABLE || _ONEDPL_SYCL_POSSIBLY_AVAILABLE)
+#    define _ONEDPL_BACKEND_SYCL 1
+#endif
+// If DPCPP backend is explicitly requested and SYCL is definitely not available, throw an error
+#if ONEDPL_USE_DPCPP_BACKEND && !(_ONEDPL_SYCL_AVAILABLE || _ONEDPL_SYCL_POSSIBLY_AVAILABLE)
 #    error "Device execution policies are enabled, \
         but SYCL* headers are not found or the compiler does not support SYCL"
+#endif
+// If DPCPP backend is not requested explicitly and SYCL is definitely available, enable it
+#if !defined(ONEDPL_USE_DPCPP_BACKEND) && _ONEDPL_SYCL_AVAILABLE
+#    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
 // Check the user-defined macro for warnings
@@ -257,10 +271,6 @@
 // have to provide our own implementation if legacy libstdc++ is in use.
 #define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
     (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
-
-#if ONEDPL_USE_DPCPP_BACKEND || (!defined(ONEDPL_USE_DPCPP_BACKEND) && _ONEDPL_SYCL_AVAILABLE)
-#    define _ONEDPL_BACKEND_SYCL 1
-#endif
 
 // if SYCL policy switch on then let's switch hetero policy macro on
 #if _ONEDPL_BACKEND_SYCL

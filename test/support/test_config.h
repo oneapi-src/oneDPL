@@ -88,16 +88,28 @@
 
 #define _PSTL_SYCL_TEST_USM 1
 
-// Enable test when the DPC++ backend is available
-#if defined(__INTEL_LLVM_COMPILER) && (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
-#   define TEST_SYCL_ENABLED_FOR_INTEL_LLVM 1
+// If DPCPP is requested, enable its testing
+#if ONEDPL_USE_DPCPP_BACKEND
+#    define TEST_DPCPP_BACKEND_PRESENT 1
 #endif
-#if __has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>) &&                                                 \
-    (TEST_SYCL_ENABLED_FOR_INTEL_LLVM || !defined(__INTEL_LLVM_COMPILER)) &&                                           \
-    (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
-#   define TEST_DPCPP_BACKEND_PRESENT 1
-#else
-#   define TEST_DPCPP_BACKEND_PRESENT 0
+
+// If DPCPP backend is not explicitly requested, repeat oneDPL behavior
+// which enables DPCPP backend when SYCL is definitely available
+#if (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
+#    define TEST_SYCL_HEADER_PRESENT 1
+#endif
+#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#    define TEST_SYCL_LANGUAGE_VERSION_PRESENT 1
+#endif
+#if TEST_SYCL_HEADER_PRESENT && TEST_SYCL_LANGUAGE_VERSION_PRESENT
+#    define TEST_SYCL_AVAILABLE 1
+#endif
+#if !defined(ONEDPL_USE_DPCPP_BACKEND) && TEST_SYCL_AVAILABLE
+#    define TEST_DPCPP_BACKEND_PRESENT 1
+#endif
+
+#if !defined(TEST_DPCPP_BACKEND_PRESENT)
+#    define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
