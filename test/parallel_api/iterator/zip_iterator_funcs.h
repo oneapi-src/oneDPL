@@ -16,6 +16,8 @@
 #ifndef _ZIP_ITERATOR_FUNCS_H
 #define _ZIP_ITERATOR_FUNCS_H
 
+#include <oneapi/dpl/iterator>
+
 struct TupleNoOp
 {
     template <typename T>
@@ -33,7 +35,6 @@ struct TupleNoOp
     }
 };
 
-using ::std::get;
 template <typename Predicate, int KeyIndex>
 struct TuplePredicate
 {
@@ -41,9 +42,9 @@ struct TuplePredicate
 
     template <typename... Args>
     auto
-    operator()(const Args&... args) const -> decltype(pred(get<KeyIndex>(args)...))
+    operator()(const Args&... args) const -> decltype(pred(std::get<KeyIndex>(args)...))
     {
-        return pred(get<KeyIndex>(args)...);
+        return pred(std::get<KeyIndex>(args)...);
     }
 };
 

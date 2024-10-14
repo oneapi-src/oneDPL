@@ -13,12 +13,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "zip_iterator_funcs.h"
 #include "support/test_config.h"
 #include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#   include "support/utils_sycl.h"
+#endif
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(numeric)
+#include _PSTL_TEST_HEADER(iterator)
 
 #if !defined(_PSTL_TEST_INCLUSIVE_SCAN) && \
     !defined(_PSTL_TEST_UNIQUE) && \
@@ -35,9 +41,6 @@
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include "support/utils_sycl.h"
-#include "zip_iterator_funcs.h"
-
 using namespace oneapi::dpl::execution;
 
 DEFINE_TEST(test_transform_inclusive_scan)
