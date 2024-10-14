@@ -844,8 +844,8 @@ struct __gen_set_mask
 
         auto __res = oneapi::dpl::__internal::__pstl_lower_bound(__set_b, std::size_t{0}, __nb, __val_a, __comp);
 
-        bool bres =
-            _IsOpDifference::value; //initialization in true in case of difference operation; false - intersection.
+        constexpr bool bres =
+            _IsOpDifference::value; //initialization is true in case of difference operation; false - intersection.
         if (__res == __nb || __comp(__val_a, __set_b[__res]))
         {
             // there is no __val_a in __set_b, so __set_b in the difference {__set_a}/{__set_b};
@@ -855,10 +855,10 @@ struct __gen_set_mask
             auto __val_b = __set_b[__res];
 
             //Difference operation logic: if number of duplication in __set_a on left side from __id > total number of
-            //duplication in __set_b than a mask is 1
+            //duplication in __set_b then a mask is 1
 
             //Intersection operation logic: if number of duplication in __set_a on left side from __id <= total number of
-            //duplication in __set_b than a mask is 1
+            //duplication in __set_b then a mask is 1
 
             const std::size_t __count_a_left =
                 __id - oneapi::dpl::__internal::__pstl_left_bound(__set_a, std::size_t{0}, __id, __val_a, __comp) + 1;
