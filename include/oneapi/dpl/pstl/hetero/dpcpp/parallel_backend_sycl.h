@@ -775,9 +775,9 @@ __group_scan_fits_in_slm(const sycl::queue& __queue, std::size_t __n, std::size_
 template <typename _UnaryOp>
 struct __gen_transform_input
 {
-    template <typename _InRng, typename _OutRng>
+    template <typename _InRng>
     auto
-    operator()(std::size_t __id, const _InRng& __in_rng, _OutRng&) const
+    operator()(const _InRng& __in_rng, std::size_t __id) const
     {
         // We explicitly convert __in_rng[__id] to the value type of _InRng to properly handle the case where we
         // process zip_iterator input where the reference type is a tuple of a references. This prevents the caller
@@ -790,9 +790,9 @@ struct __gen_transform_input
 
 struct __simple_write_to_id
 {
-    template <typename _ValueType, typename _InRng, typename _OutRng>
+    template <typename _InRng, typename _OutRng, typename _ValueType>
     void
-    operator()(std::size_t __id, const _ValueType& __v, _InRng&, _OutRng& __out_rng) const
+    operator()(const _InRng&, _OutRng& __out_rng, std::size_t __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
@@ -806,9 +806,9 @@ struct __simple_write_to_id
 template <typename _Predicate, typename _RangeTransform = oneapi::dpl::__internal::__no_op>
 struct __gen_mask
 {
-    template <typename _InRng, typename _OutRng>
+    template <typename _InRng>
     bool
-    operator()(std::size_t __id, const _InRng& __in_rng, _OutRng&) const
+    operator()(const _InRng& __in_rng, std::size_t __id) const
     {
         return __pred((__rng_transform(std::forward<_InRng>(__in_rng)))[__id]);
     }
@@ -939,9 +939,9 @@ struct __get_zeroth_element
 template <std::int32_t __offset, typename _Assign>
 struct __write_to_id_if
 {
-    template <typename _OutRng, typename _SizeType, typename _ValueType>
+    template <typename _InRng, typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(_OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
+    operator()(const _InRng&, _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
@@ -957,9 +957,9 @@ struct __write_to_id_if
 template <typename _Assign>
 struct __write_to_id_if_else
 {
-    template <typename _OutRng, typename _SizeType, typename _ValueType>
+    template <typename _InRng, typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(_OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
+    operator()(const _InRng&, _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
@@ -1014,9 +1014,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             _GenInput __gen_transform{__unary_op};
 
             return __parallel_transform_reduce_then_scan(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
-                _WriteOp{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{}, __n,
-                std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng));
+                __backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng),
+                std::forward<_Range2>(__out_rng), __gen_transform, __binary_op, __gen_transform, _ScanInputTransform{},
+                _WriteOp{}, __init, _Inclusive{}, /*_IsUniquePattern=*/std::false_type{});
         }
     }
 
@@ -1187,7 +1187,6 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
                                     _CopyOp{_ReduceOp{}, _Assign{}});
     }
 }
-
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
 auto
@@ -1196,7 +1195,9 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
                             _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
     auto __n = __keys.size();
-    auto __gen_reduce_input = [=](std::size_t __idx, const auto& __in_keys, const auto& __in_vals, const auto&, const auto&) {
+    auto __gen_reduce_input = [=](const auto& __in_rng, std::size_t __idx) {
+        auto&& __in_keys = std::get<0>(__in_rng.tuple());
+        auto&& __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
         if (__idx == 0)
             return oneapi::dpl::__internal::make_tuple(size_t{0}, _ValueType{__in_vals[__idx]});
@@ -1215,8 +1216,11 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
     };
     auto __gen_scan_input = __gen_reduce_input;
     auto __scan_input_transform = oneapi::dpl::__internal::__no_op{};
-    auto __write_out = [=](std::size_t __idx, const auto& __tup, const auto& __in_keys, const auto&, auto& __out_keys, auto& __out_values) {
-        // Will be present in L1 cache
+    auto __write_out = [=](auto& __in_rng, auto& __out_rng, std::size_t __idx, const auto& __tup) {
+        auto&& __in_keys = std::get<0>(__in_rng.tuple());
+        auto&& __out_keys = std::get<0>(__out_rng.tuple());
+        auto&& __out_vals = std::get<1>(__out_rng.tuple());
+        // Assuming this will be present in L1 cache
         if (__idx == __n - 1 || !__binary_pred(__in_keys[__idx], __in_keys[__idx + 1]))
         {
             __out_keys[std::get<0>(__tup)] = __in_keys[__idx];
@@ -1225,9 +1229,12 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
     };
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
     return __parallel_transform_reduce_then_scan(
-                __backend_tag, std::forward<_ExecutionPolicy>(__exec), __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_input_transform,
-                __write_out, oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{}, /*Inclusive*/std::true_type{}, /*_IsUniquePattern=*/std::false_type{}, __n,
-                std::forward<_Range1>(__keys), std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values));
+                __backend_tag, std::forward<_ExecutionPolicy>(__exec),
+                oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
+                oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
+                __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_input_transform,
+                __write_out, oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{}, /*Inclusive*/std::true_type{}, /*_IsUniquePattern=*/std::false_type{}
+                );
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate>
