@@ -25,12 +25,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_FOR_EACH) && \
-    !defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
-#define _PSTL_TEST_FOR_EACH
-#define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -119,14 +113,10 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_for_each<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
     PRINT_DEBUG("test_for_each_structured_binding");
     test1buffer<alloc_type, test_for_each_structured_binding<ValueType>>();
-#endif
 }
 #endif
 

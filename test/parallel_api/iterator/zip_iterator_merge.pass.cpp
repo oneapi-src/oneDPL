@@ -25,10 +25,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_MERGE)
-#define _PSTL_TEST_MERGE
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -115,10 +111,8 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_MERGE)
     PRINT_DEBUG("test_merge");
     test3buffers<alloc_type, test_merge<ValueType>>(2);
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

@@ -26,18 +26,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY) && \
-    !defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY) && \
-    !defined(_PSTL_TEST_MIN_ELEMENT) && \
-    !defined(_PSTL_TEST_COUNT_IF) && \
-    !defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPARE)
-#define _PSTL_TEST_TRANSFORM_REDUCE_UNARY
-#define _PSTL_TEST_TRANSFORM_REDUCE_BINARY
-#define _PSTL_TEST_MIN_ELEMENT
-#define _PSTL_TEST_COUNT_IF
-#define _PSTL_TEST_LEXICOGRAPHICAL_COMPARE
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -255,26 +243,16 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY)
     PRINT_DEBUG("test_transform_reduce_unary");
     test1buffer<alloc_type, test_transform_reduce_unary<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY)
     PRINT_DEBUG("test_transform_reduce_binary");
     test2buffers<alloc_type, test_transform_reduce_binary<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_MIN_ELEMENT)
     PRINT_DEBUG("test_min_element");
     test1buffer<alloc_type, test_min_element<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_COUNT_IF)
     PRINT_DEBUG("test_count_if");
     test1buffer<alloc_type, test_count_if<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE)
     PRINT_DEBUG("test_lexicographical_compare");
     test2buffers<alloc_type, test_lexicographical_compare<ValueType>>();
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

@@ -25,12 +25,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_EQUAL) && \
-    !defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
-#define _PSTL_TEST_EQUAL
-#define _PSTL_TEST_EQUAL_STRUCTURED_BINDING
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -85,7 +79,6 @@ DEFINE_TEST(test_equal)
     }
 };
 
-#if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
 DEFINE_TEST(test_equal_structured_binding)
 {
     DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding, 1.0f, 1.0f)
@@ -146,21 +139,16 @@ DEFINE_TEST(test_equal_structured_binding)
         EXPECT_TRUE(!is_equal, "wrong effect from equal(tuple with use of structured binding) 2");
     }
 };
-#endif // _PSTL_TEST_EQUAL_STRUCTURED_BINDING
 
 template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_EQUAL)
     PRINT_DEBUG("test_equal");
     test2buffers<alloc_type, test_equal<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
     PRINT_DEBUG("test_equal_structured_binding");
     test2buffers<alloc_type, test_equal_structured_binding<ValueType>>();
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

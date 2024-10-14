@@ -26,18 +26,6 @@
 #include _PSTL_TEST_HEADER(numeric)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_INCLUSIVE_SCAN) && \
-    !defined(_PSTL_TEST_UNIQUE) && \
-    !defined(_PSTL_TEST_UNIQUE_COPY) && \
-    !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM) && \
-    !defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
-#define _PSTL_TEST_INCLUSIVE_SCAN
-#define _PSTL_TEST_UNIQUE
-#define _PSTL_TEST_UNIQUE_COPY
-#define _PSTL_TEST_COUNTING_ZIP_TRANSFORM
-#define _PSTL_TEST_COUNTING_ZIP_DISCARD
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -290,26 +278,16 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_INCLUSIVE_SCAN)
     PRINT_DEBUG("test_inclusive_scan");
     test2buffers<alloc_type, test_transform_inclusive_scan<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_UNIQUE)
     PRINT_DEBUG("test_unique");
     test1buffer<alloc_type, test_unique<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_UNIQUE_COPY)
     PRINT_DEBUG("test_unique_copy");
     test2buffers<alloc_type, test_unique_copy<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
     PRINT_DEBUG("test_counting_zip_transform");
     test2buffers<alloc_type, test_counting_zip_transform<ValueType>>();
-#endif
-#if defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
     PRINT_DEBUG("test_counting_zip_discard");
     test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

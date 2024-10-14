@@ -25,10 +25,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_FIND_IF)
-#define _PSTL_TEST_FIND_IF
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -96,10 +92,8 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-#if defined(_PSTL_TEST_FIND_IF)
     PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_find_if<ValueType>>();
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

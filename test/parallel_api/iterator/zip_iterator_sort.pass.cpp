@@ -25,10 +25,6 @@
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
-#if !defined(_PSTL_TEST_STABLE_SORT)
-#define _PSTL_TEST_STABLE_SORT 
-#endif
-
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -80,12 +76,10 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-// sorting with zip iterator does not meet limits of RAM usage on FPGA.
-// TODO: try to investigate and reduce RAM consumption
-#if defined(_PSTL_TEST_STABLE_SORT) && !ONEDPL_FPGA_DEVICE
+    // sorting with zip iterator does not meet limits of RAM usage on FPGA.
+    // TODO: try to investigate and reduce RAM consumption
     PRINT_DEBUG("test_stable_sort");
     test2buffers<alloc_type, test_stable_sort<ValueType>>();
-#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
