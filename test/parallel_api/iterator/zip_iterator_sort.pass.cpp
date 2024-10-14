@@ -76,8 +76,6 @@ void
 test_usm_and_buffer()
 {
     using ValueType = std::int32_t;
-    // sorting with zip iterator does not meet limits of RAM usage on FPGA.
-    // TODO: try to investigate and reduce RAM consumption
     PRINT_DEBUG("test_stable_sort");
     test2buffers<alloc_type, test_stable_sort<ValueType>>();
 }
