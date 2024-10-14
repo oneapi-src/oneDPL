@@ -1330,18 +1330,18 @@ __parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
 
     return __par_backend_hetero::__parallel_transform_scan_base(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(
             std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                 __mask_buf.get_buffer())),
-        std::forward<_Range3>(__result), __reduce_op, _InitType{},
+        std::forward<_Range3>(__result), _InitType{},
         // local scan
-        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+        unseq_backend::__scan</*inclusive*/ std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                               _MaskAssigner, decltype(__create_mask_op), _InitType>{
             __reduce_op, __get_data_op, __assign_op, _MaskAssigner{}, __create_mask_op},
         // scan between groups
-        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+        unseq_backend::__scan</*inclusive=*/std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
                               _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
                                                               __get_data_op},
         // global scan
