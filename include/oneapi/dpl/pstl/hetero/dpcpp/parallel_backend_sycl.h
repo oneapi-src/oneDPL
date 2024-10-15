@@ -870,7 +870,7 @@ struct __gen_mask
 {
     template <typename _InRng>
     bool
-    operator()(const _InRng& __in_rng, std::size_t __id) const
+    operator()(_InRng&& __in_rng, std::size_t __id) const
     {
         return __pred((__rng_transform(std::forward<_InRng>(__in_rng)))[__id]);
     }
