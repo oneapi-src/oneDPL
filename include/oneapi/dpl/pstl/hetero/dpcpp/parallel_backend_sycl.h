@@ -32,6 +32,7 @@
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
+#include "utils_hetero.h" // __create_mask_unique_copy
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
