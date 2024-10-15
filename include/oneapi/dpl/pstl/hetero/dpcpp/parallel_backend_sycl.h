@@ -1199,7 +1199,7 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
         auto&& __in_keys = std::get<0>(__in_rng.tuple());
         auto&& __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
-        if (__idx == 0 || __binary_pred(__in_keys[__idx], __in_keys[__idx - 1]))
+        if (__idx == 0 || __binary_pred(__in_keys[__idx - 1], __in_keys[__idx]))
             return oneapi::dpl::__internal::make_tuple(size_t{0}, _ValueType{__in_vals[__idx]});
         return oneapi::dpl::__internal::make_tuple(size_t{1}, _ValueType{__in_vals[__idx]});
     };
@@ -1218,10 +1218,16 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
         auto&& __in_keys = std::get<0>(__in_rng.tuple());
         auto&& __out_keys = std::get<0>(__out_rng.tuple());
         auto&& __out_vals = std::get<1>(__out_rng.tuple());
-        // Assuming this will be present in L1 cache
-        if (__idx == __n - 1 || !__binary_pred(__in_keys[__idx], __in_keys[__idx + 1]))
+        // TODO: substantial improvement expected with special handling in kernel
+        // The first key must be output to __out_keys[__idx] for a segment, so when we encounter a segment end we
+        // must output the current segment's value and the next segment's key.
+        if (__idx == 0)
+            __out_keys[0] = __in_keys[0];
+        if (__idx == __n - 1)
+            __out_values[std::get<0>(__tup)] = std::get<1>(__tup);
+        else if (!__binary_pred(__in_keys[__idx], __in_keys[__idx + 1]))
         {
-            __out_keys[std::get<0>(__tup)] = __in_keys[__idx];
+            __out_keys[std::get<0>(__tup) + 1] = __in_keys[__idx + 1];
             __out_values[std::get<0>(__tup)] = std::get<1>(__tup);
         }
     };
