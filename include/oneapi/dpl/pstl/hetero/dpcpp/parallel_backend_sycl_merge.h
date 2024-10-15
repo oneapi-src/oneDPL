@@ -32,6 +32,30 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
+template <typename _Iterator, typename _Value, typename _Compare>
+_Iterator
+__find_start_point_lower_bound(_Iterator __first, _Iterator __last, const _Value __value, _Compare __comp)
+{
+    auto __n = __last - __first;
+    auto __cur = __n;
+    _Iterator __it;
+
+    while (__n > 0)
+    {
+        __it = __first;
+        __cur = __n / 2;
+        __it += __cur;
+        if (__comp(*__it, __value))
+        {
+            __n -= __cur + 1, __first = ++__it;
+        }
+        else
+            __n = __cur;
+    }
+
+    return __first;
+}
+
 //Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
 //to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
 //     0   1  1  2   3
@@ -56,24 +80,24 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
     {
         const _Index __q = __i_elem;                         //diagonal index
         const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+        auto __res = __find_start_point_lower_bound(
+            __diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+            [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                return __zero_or_one < __value;
+            });
         return std::make_pair(*__res, __q - *__res);
     }
     else
     {
         const _Index __q = __i_elem - __n2;                         //diagonal index
         const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+        auto __res = __find_start_point_lower_bound(
+            __diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+            [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                return __zero_or_one < __value;
+            });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
 }
