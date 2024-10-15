@@ -236,6 +236,9 @@ namespace oneapi::dpl::__par_backend_hetero
 template <typename _UnaryOp>
 struct __gen_transform_input;
 
+template <typename _BinaryPred>
+struct __gen_red_by_seg_input;
+
 template <typename _Predicate>
 struct __gen_mask;
 
@@ -254,8 +257,14 @@ struct __write_to_id_if;
 template <typename _Assign>
 struct __write_to_id_if_else;
 
+template <typename _BinaryPred>
+struct __write_red_by_seg;
+
 template <typename _ExecutionPolicy, typename _Pred>
 struct __early_exit_find_or;
+
+template <typename _BinaryOp>
+struct __red_by_seg_op;
 
 } // namespace oneapi::dpl::__par_backend_hetero
 
@@ -263,6 +272,13 @@ template <typename _UnaryOp>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_transform_input,
                                                        _UnaryOp)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_UnaryOp>
+{
+};
+
+template <typename _BinaryPred>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_red_by_seg_input,
+                                                       _BinaryPred)>
+    : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryPred>
 {
 };
 
@@ -305,10 +321,23 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 {
 };
 
+template <typename _BinaryPred>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__write_red_by_seg,
+                                                       _BinaryPred)>
+    : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryPred>
+{
+};
+
 template <typename _ExecutionPolicy, typename _Pred>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__early_exit_find_or,
                                                        _ExecutionPolicy, _Pred)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Pred>
+{
+};
+
+template <typename _BinaryOp>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__red_by_seg_op, _BinaryOp)>
+    : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryOp>
 {
 };
 
