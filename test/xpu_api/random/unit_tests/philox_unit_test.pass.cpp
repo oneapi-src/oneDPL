@@ -373,7 +373,7 @@ discard_overflow_test()
         Engine engine1;
         std::array<T, Engine::word_count> counter = {0};
 
-        // Overflow of a counter's element. Correspondence is the following:
+        // Overflow of a counter's element. The correspondence is the following:
         // 0 1 2 3 overflow position
         // 1 2 3 0 set-up counter position in engine
         // 2 1 0 3 raw_counter_position
@@ -398,7 +398,6 @@ discard_overflow_test()
             engine2();
         }
 
-        int num_iteratoions = sizeof(unsigned long long) / Engine::word_size;
         for (int i = 0; i < Engine::word_count; i++)
         {
             engine2.discard(engine2.max());
