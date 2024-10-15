@@ -308,7 +308,8 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
 #endif
             sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
                 // find borders of a region with a specific bucket id
-                sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                // sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                auto __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
                 // TODO: consider another approach with use of local memory
                 __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
                                                    _CountT(0), __dpl_sycl::__plus<_CountT>{});

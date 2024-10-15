@@ -494,17 +494,17 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
 #endif
 
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    if constexpr (__can_use_subgroup_load_store)
-                    {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc_ptr + __idx, __val);
-                        }
-                    }
-                    else
+                    // if constexpr (__can_use_subgroup_load_store)
+                    // {
+                    //     _ONEDPL_PRAGMA_UNROLL
+                    //     for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    //     {
+                    //         auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                    //         auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
+                    //         __subgroup.store(__lacc_ptr + __idx, __val);
+                    //     }
+                    // }
+                    // else
                     {
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
@@ -515,17 +515,17 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
                                                               __lacc_ptr, __bin_op, __init);
 
-                    if constexpr (__can_use_subgroup_load_store)
-                    {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __subgroup.load(__lacc_ptr + __idx);
-                            __subgroup.store(__out_rng.begin() + __idx, __val);
-                        }
-                    }
-                    else
+                    // if constexpr (__can_use_subgroup_load_store)
+                    // {
+                    //     _ONEDPL_PRAGMA_UNROLL
+                    //     for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    //     {
+                    //         auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                    //         auto __val = __subgroup.load(__lacc_ptr + __idx);
+                    //         __subgroup.store(__out_rng.begin() + __idx, __val);
+                    //     }
+                    // }
+                    // else
                     {
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
@@ -598,17 +598,17 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    if constexpr (__can_use_subgroup_load_store)
-                    {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc_ptr + __idx, __val);
-                        }
-                    }
-                    else
+                    // if constexpr (__can_use_subgroup_load_store)
+                    // {
+                    //     _ONEDPL_PRAGMA_UNROLL
+                    //     for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    //     {
+                    //         auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                    //         uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
+                    //         __subgroup.store(__lacc_ptr + __idx, __val);
+                    //     }
+                    // }
+                    // else
                     {
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {

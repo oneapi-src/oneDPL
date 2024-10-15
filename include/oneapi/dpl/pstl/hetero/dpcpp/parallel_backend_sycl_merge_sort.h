@@ -73,7 +73,8 @@ struct __group_merge_path_sorter
         std::uint32_t __next_sorted = __sorted * 2;
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
-        std::int16_t __iters = sycl::ctz(__sorted_final) - sycl::ctz(__sorted);
+        // std::int16_t __iters = sycl::ctz(__sorted_final) - sycl::ctz(__sorted);
+        std::int16_t __iters = std::ceil(std::log2(__sorted_final)) - std::ceil(std::log2(__sorted));
         for (std::int16_t __i = 0; __i < __iters; ++__i)
         {
             const std::uint32_t __id_local = __id % __next_sorted;
@@ -247,7 +248,8 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
-        const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf);
+        // const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf);
+        const std::int64_t __n_iter = std::ceil(std::log2(__n_power2)) - std::ceil(std::log2(__leaf));
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event1 = __exec.queue().submit([&, __event1, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
