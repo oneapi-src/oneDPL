@@ -435,10 +435,12 @@ auto
 __get_accessor_ptr(const _Acc& __acc)
 {
 #if (_ONEDPL_LIBSYCL_VERSION >= 70000) || (_ONEDPL_LIBSYCL_VERSION == 0)
-    return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
-#else
-    // return __acc.get_pointer();
+    // return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
+    // error: no member named 'get_multi_ptr' in 'hipsycl::sycl::accessor<unsigned short, 1, hipsycl::sycl::access_mode::read_write, hipsycl::sycl::target::local, hipsycl::sycl::accessor_variant::false_t>'
     return __acc.begin();
+
+#else
+    return __acc.get_pointer();
 #endif
 }
 
