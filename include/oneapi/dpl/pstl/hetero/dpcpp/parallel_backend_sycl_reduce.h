@@ -25,7 +25,6 @@
 #include "execution_sycl_defs.h"
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
-
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 namespace oneapi
