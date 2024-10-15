@@ -367,13 +367,13 @@ discard_overflow_test()
     using T = typename Engine::result_type;
     using scalar_type = typename Engine::scalar_type;
 
-    // Iterate throug the counter's position being overflown
+    // Iterate through the counter's position being overflown
     for (int overflown_position = 0; overflown_position < Engine::word_count - 1; ++overflown_position)
     {
         Engine engine1;
         std::array<T, Engine::word_count> counter = {0};
 
-        // Overflow of a counter's element. Correspondance is the following:
+        // Overflow of a counter's element. Correspondence is the following:
         // 0 1 2 3 overflow position
         // 1 2 3 0 set-up counter position in engine
         // 2 1 0 3 raw_counter_position
