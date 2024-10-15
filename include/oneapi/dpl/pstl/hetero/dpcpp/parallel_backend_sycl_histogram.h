@@ -29,7 +29,7 @@
 #include "../../histogram_binhash_utils.h"
 #include "../../utils.h"
 
-#include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+// #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 namespace oneapi
 {
