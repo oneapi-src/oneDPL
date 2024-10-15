@@ -259,9 +259,8 @@ class philox_engine
             }
 
             // select high chunk and shift for addition with the next counter chunk
-            // __z should be added only once for 64-bit word_size
             __ctr_inc = (word_size == std::numeric_limits<unsigned long long>::digits)
-                            ? 0
+                            ? 0 // should be added only once for 64-bit word_size
                             : (__ctr_inc & (~in_mask)) >> word_size;
         }
     }

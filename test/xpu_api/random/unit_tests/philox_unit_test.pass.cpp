@@ -162,7 +162,7 @@ main()
     std::cout << "void counter_management_test() [Engine = philox4x64_w25]";
     err += counter_management_test<philox4x64_w25>();
     std::cout << "void counter_management_test() [Engine = philox4x64_w49]";
-    err += counter_management_test<philox4x64_w49>(); 
+    err += counter_management_test<philox4x64_w49>();
 
     return TestUtils::done();
 }
@@ -367,10 +367,11 @@ discard_overflow_test()
     using T = typename Engine::result_type;
     using scalar_type = typename Engine::scalar_type;
 
-    // Iterate throug the counter's position being overflown 
-    for(int overflown_position = 0; overflown_position < Engine::word_count - 1; ++overflown_position) {
+    // Iterate throug the counter's position being overflown
+    for (int overflown_position = 0; overflown_position < Engine::word_count - 1; ++overflown_position)
+    {
         Engine engine1;
-        std::array<T, Engine::word_count> counter = { 0 };
+        std::array<T, Engine::word_count> counter = {0};
 
         // Overflow of a counter's element. Correspondance is the following:
         // 0 1 2 3 overflow position
@@ -384,20 +385,20 @@ discard_overflow_test()
         Engine engine2;
 
         // To reduce the execution time pre-set counter to almost-overflown state
-        std::array<T, Engine::word_count> counter2 = { 0 };
-        for(int i = Engine::word_count-overflown_position-1; i < Engine::word_count-1; ++i) {
+        std::array<T, Engine::word_count> counter2 = {0};
+        for (int i = Engine::word_count - overflown_position - 1; i < Engine::word_count - 1; ++i)
+        {
             counter2[i] = std::numeric_limits<unsigned long long>::max();
         }
 
         engine2.set_counter(counter2);
-
 
         for (int i = 0; i < Engine::word_count; i++)
         {
             engine2();
         }
 
-        int num_iteratoions = sizeof(unsigned long long)/Engine::word_size;
+        int num_iteratoions = sizeof(unsigned long long) / Engine::word_size;
         for (int i = 0; i < Engine::word_count; i++)
         {
             engine2.discard(engine2.max());
@@ -415,7 +416,7 @@ discard_overflow_test()
         }
     }
 
-    if(!ret_sts)
+    if (!ret_sts)
         std::cout << " passed" << std::endl;
 
     return ret_sts;
@@ -429,12 +430,13 @@ counter_management_test()
     Engine testedEngine;
     Engine referenceEngine;
 
-    // set the counter which value is 2-chunk bitsize 
+    // set the counter which value is 2-chunk bitsize
     unsigned long long increment = ((unsigned long long)testedEngine.max() << Engine::word_size) | testedEngine.max();
     unsigned long long counter_increment = increment / 4;
 
-    std::array<T, Engine::word_count> expected_counter = { 0 };
-    for(int i = Engine::word_count -1 ; i >= 0 ; i--) {
+    std::array<T, Engine::word_count> expected_counter = {0};
+    for (int i = Engine::word_count - 1; i >= 0; i--)
+    {
         expected_counter[i] = counter_increment;
         counter_increment >>= Engine::word_size;
     }
@@ -448,7 +450,6 @@ counter_management_test()
     if (testedEngine() == referenceEngine())
     {
         std::cout << " passed" << std::endl;
-        
     }
     else
     {
