@@ -619,6 +619,7 @@ struct __result_and_scratch_storage
 #endif
     }
 
+    // TODO should we use sycl::read_write as template param?
     auto
     __get_result_acc(sycl::handler& __cgh) const
     {
@@ -633,6 +634,7 @@ struct __result_and_scratch_storage
 #endif
     }
 
+    // TODO should we use sycl::read_write as template param?
     auto
     __get_scratch_acc(sycl::handler& __cgh) const
     {
