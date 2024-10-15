@@ -1199,11 +1199,9 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
         auto&& __in_keys = std::get<0>(__in_rng.tuple());
         auto&& __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
-        if (__idx == 0)
+        if (__idx == 0 || __binary_pred(__in_keys[__idx], __in_keys[__idx - 1]))
             return oneapi::dpl::__internal::make_tuple(size_t{0}, _ValueType{__in_vals[__idx]});
-        if (!__binary_pred(__in_keys[__idx], __in_keys[__idx - 1]))
-            return oneapi::dpl::__internal::make_tuple(size_t{1}, _ValueType{__in_vals[__idx]});
-        return oneapi::dpl::__internal::make_tuple(size_t{0}, _ValueType{__in_vals[__idx]});
+        return oneapi::dpl::__internal::make_tuple(size_t{1}, _ValueType{__in_vals[__idx]});
     };
     auto __reduce_op = [=](const auto& __lhs_tup,  const auto& __rhs_tup) {
         if (std::get<0>(__rhs_tup) == 0)
@@ -1233,8 +1231,8 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
                 oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
                 oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
                 __gen_reduce_input, __reduce_op, __gen_scan_input, __scan_input_transform,
-                __write_out, oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{}, /*Inclusive*/std::true_type{}, /*_IsUniquePattern=*/std::false_type{}
-                );
+                __write_out, oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{},
+                /*Inclusive*/std::true_type{}, /*_IsUniquePattern=*/std::false_type{});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate>
