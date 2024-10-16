@@ -209,6 +209,10 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // TODO required special implementation for two corner cases when *__rng1.rbegin() <= *__rng2.begin()
         // or *__rng2.rbegin() <= *__rng1.begin() : in these cases we should simple copy source data into __rng3
 
+        // Returns the maximum number of work-items that this device is capable of executing in a work-group.
+        // The minimum value specified in the __wg_size_limit
+        const std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)4096);                            // ==1'024          ==1'024           == 1'024
+
         ////////////////////////////////
         // Detect SLM size
 
@@ -220,20 +224,23 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
 
         ////////////////////////////////
         // Eval sub-window size processing by work-group
-        const std::size_t __window_items_count_h = std::min(__wg_src_pairs, __n1); // Horizontal size                                               //                  == 8'192          == 8'192
-        const std::size_t __window_items_count_v = std::min(__wg_src_pairs, __n2); // Vertical size                                                 //                  == 8'192          == 8'192
+        std::size_t __window_items_count_h = std::min(__wg_src_pairs, __n1); // Horizontal size                                               //                  == 8'192          == 8'192
+        std::size_t __window_items_count_v = std::min(__wg_src_pairs, __n2); // Vertical size                                                 //                  == 8'192          == 8'192
+        if (__window_items_count_h * __window_items_count_v >= __max_wgroup_size)
+        {
+            const auto __k = oneapi::dpl::__internal::__dpl_ceiling_div(__window_items_count_h * __window_items_count_v, __max_wgroup_size);
+            __window_items_count_h = oneapi::dpl::__internal::__dpl_ceiling_div(__window_items_count_h, __k);
+            __window_items_count_v = oneapi::dpl::__internal::__dpl_ceiling_div(__window_items_count_v, __k);
+        }
+        assert(__window_items_count_h * __window_items_count_v < __max_wgroup_size);
 
         ////////////////////////////////
         // Eval diagonal's distance: each work-group processing one sub-window
 
-        // Returns the maximum number of work-items that this device is capable of executing in a work-group.
-        // The minimum value specified in the __wg_size_limit
-        const std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)4096);                                // ==1'024          ==1'024           == 1'024
-                   
         // Empirical number of values to process per work-item
         const std::size_t __diagonals_interval_min = __exec.queue().get_device().is_cpu() ? 128 : 4;
         const std::size_t __diagonals_interval = std::max(__diagonals_interval_min,
-                                                  oneapi::dpl::__internal::__dpl_ceiling_div(__window_items_count_h, __wgroup_size));               // ==8              ==8
+                                                  oneapi::dpl::__internal::__dpl_ceiling_div(__window_items_count_h, __max_wgroup_size));           // ==8              ==8
 
         ////////////////////////////////
         // Calculate the sub-window amount
@@ -257,6 +264,19 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // 1. Find split points on the diagonals
         // 2. Merge by split points
 
+        constexpr int _Dims2 = 2;           // Number of dimensions in nd-range: 2
+        constexpr int _Dim_H = 0;           // Horizontal dimension index in nd-range
+        constexpr int _Dim_V = 1;           // Vertical dimension index in nd-range
+
+        // Global size: full size of source data __rng1 by horizontal and __rng2 by vertical
+        const sycl::range<_Dims2> __global_range{__sub_window_count_h * __window_items_count_h,
+                                                 __sub_window_count_v * __window_items_count_v};
+        // Local (group) size: sub-window size by horizontal and vertical
+        const sycl::range<_Dims2> __local_range{__window_items_count_h, __window_items_count_v};
+        assert(__local_range.size() <= __max_wgroup_size);
+
+        const sycl::nd_range<_Dims2> __merge_matrix_nd_range{__global_range, __local_range};
+
         // Run Kernel 1: find split points at the diagonals
         auto __event_find_split_points = __exec.queue().submit([&](sycl::handler& __cgh) {
 
@@ -268,16 +288,11 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
             auto __split_points_acc = __split_points.__get_scratch_acc(__cgh);
             auto __split_points_ptr = __split_points_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__split_points_acc);
 
-            constexpr int _Dims2 = 2;           // Number of dimensions in nd-range: 2
-            constexpr int _Dim_H = 0;           // Horizontal dimension index in nd-range
-            constexpr int _Dim_V = 1;           // Vertical dimension index in nd-range
-            const sycl::nd_range<_Dims2> __merge_matrix_nd_range{
-                sycl::range<_Dims2>{__sub_window_count_h, __sub_window_count_v},        // Global size: full size of source data __rng1 by horizontal and __rng2 by vertical
-                sycl::range<_Dims2>{__window_items_count_h, __window_items_count_v}};   // Local (group) size: sub-window size by horizontal and vertical
-
             __cgh.parallel_for<_FindSplitPointsKernel>(
                 __merge_matrix_nd_range,
                 [=](sycl::nd_item<_Dims2> __nd_item) {
+
+#if 0
 
                     // Return the constituent element of the global id representing the work-item’s position in the nd-range in the given Dimension.
                     const auto __global_id_h = __nd_item.get_global_id(_Dim_H);
@@ -356,6 +371,7 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                             }
                         }
                     }
+#endif
                 });
         });
 
