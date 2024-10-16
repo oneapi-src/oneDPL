@@ -115,6 +115,9 @@ main()
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+    // Test that the policy is not decayed
+    static_assert(!is_execution_policy_v<execution::sequenced_policy&&>, "wrong result for is_execution_policy_v<sequenced_policy>");
+
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
 
