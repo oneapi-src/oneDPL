@@ -216,7 +216,7 @@ main()
     }
     catch (const std::exception& exc)
     {
-        // Provided range is out of integer limits. Pass `-fno-sycl-id-queries-fit-in-int' to disable range check.
+        // placeholder accessor must be bound by calling handler::require() before it can be used.
         auto what = exc.what();
         what = what;
     }
