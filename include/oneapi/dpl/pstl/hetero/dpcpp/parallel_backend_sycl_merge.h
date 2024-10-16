@@ -256,15 +256,14 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         const std::size_t __wg_src_pairs = oneapi::dpl::__internal::__dpl_ceiling_div(__max_slm_size, sizeof(_ValueType1) + sizeof(_ValueType2));
 
         // Calculate the local range
-        const std::size_t __local_size_x = std::min(std::min(std::max(__n1, __n2), __max_wgroup_size), __wg_src_pairs);
-        const std::size_t __local_size_y = 1;
+        const std::size_t __local_size = std::min(std::min(std::max(__n1, __n2), __max_wgroup_size), __wg_src_pairs);
 
         // Calculate global range size
-        const auto [__global_size_x, __global_size_y] = __eval_global_range_size(__exec, __n1, __n2, __local_size_x/*, __local_size_y*/);
+        const auto [__global_size_x, __global_size_y] = __eval_global_range_size(__exec, __n1, __n2, __local_size);
 
         // Define nd-ranges
         const sycl::range<_Dims2>    __global_range         {__global_size_x, __global_size_y};
-        const sycl::range<_Dims2>    __local_range          {__local_size_x,  __local_size_y };
+        const sycl::range<_Dims2>    __local_range          {__local_size,    1              };
         const sycl::nd_range<_Dims2> __merge_matrix_nd_range{__global_range,  __local_range  };
 
         ////////////////////////////////
@@ -293,13 +292,11 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // Run Kernel 1: find split points at the diagonals
         auto __event_find_split_points = __exec.queue().submit([&](sycl::handler& __cgh) {
 
-            assert(__local_size_y == 1);
-            const auto __cashed_items_count_h = __local_size_x + 1;   // The number of items of __rng1 to cash in SLM
-            const auto __cashed_items_count_v = __local_size_x + 1;   // The number of items of __rng2 to cash in SLM
+            const auto __cashed_items_count = __local_size + 1;     // The number of items of __rng1 and __rng2 to cash in SLM
 
             // Cash the portion of source processing data for the current work-group in SLM
-            __dpl_sycl::__local_accessor<_ValueType1> __loc_acc_rng1_h(__cashed_items_count_h, __cgh);      // Cashed data from __rng1
-            __dpl_sycl::__local_accessor<_ValueType2> __loc_acc_rng2_v(__cashed_items_count_v, __cgh);      // Cashed data from __rng2
+            __dpl_sycl::__local_accessor<_ValueType1> __loc_acc_rng1_h(__cashed_items_count, __cgh);      // Cashed data from __rng1
+            __dpl_sycl::__local_accessor<_ValueType2> __loc_acc_rng2_v(__cashed_items_count, __cgh);      // Cashed data from __rng2
 
             // Get access to the split points
             auto __split_points_acc = __split_points.__get_scratch_acc(__cgh);
@@ -309,28 +306,21 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                 __merge_matrix_nd_range,
                 [=](sycl::nd_item<_Dims2> __nd_item) {
 
-#if 0
                     // Return the number of work-groups for Dimension in the iteration space.
                     const auto __work_groups_amount_h = __nd_item.get_group_range(_Dim_H);
                     const auto __work_groups_amount_v = __nd_item.get_group_range(_Dim_V);
 
                     // Return the constituent element of the global id representing the work-item’s position in the nd-range in the given Dimension.
-                    const auto __global_id_h = __nd_item.get_global_id(_Dim_H);
-                    const auto __global_id_v = __nd_item.get_global_id(_Dim_V);
-                    // Return the constituent element of the local id representing the work-item’s position within the current work-group in the given Dimension.
-                    const auto __local_id_h = __nd_item.get_local_id(_Dim_H);
-                    const auto __local_id_v = __nd_item.get_local_id(_Dim_V);
-                    assert(__local_id_v == 0);
+                    const auto __global_id = __nd_item.get_global_id(_Dim_H);
 
-                    const auto __current_diagonal_global_offset = __global_id_h + __global_id_v;
+                    // Return the constituent element of the local id representing the work-item’s position within the current work-group in the given Dimension.
+                    const auto __local_id = __nd_item.get_local_id(_Dim_H);
+                    assert(__nd_item.get_local_id(_Dim_V) == 1);
 
                     // 1. Load data into SLM, if we are on first row or first column
-                    const bool __is_first_row = __local_id_v == 0;
-                    const bool __is_first_col = __local_id_h == 0;
-                    if (__is_first_row || __is_first_col)
                     {
                         //          Work-items in the current work-group: 'L' - load data; '.' - doing nothing.
-                        //          0 1 2 3 4 5 6 7 8 9 .....  <-- __local_id_h     
+                        //          0 1 2 3 4 5 6 7 8 9 .....  <-- __local_id
                         //        0 L . . . . . . . . .                             load: __rng1[0], __rng2[0]
                         //        1 . L . . . . . . . .                             load: __rng1[1], __rng2[1]
                         //        2 . . L . . . . . . .                             load: __rng1[2], __rng2[2]
@@ -343,24 +333,13 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                         //                            L                             load: __rng1[9]
                         //      ...
                         //        ^
-                        // __local_id_v
-                        if (__is_first_row)
-                            if (__local_id_h < __local_size_x && __global_id_h < __n1)
-                                __loc_acc_rng1_h[__local_id_h] = __rng1[__global_id_h];
-
-                        if (__is_first_col)
-                            if (__local_id_v < __local_size_y && __global_id_v < __n2)
-                                __loc_acc_rng2_v[__local_id_v] = __rng2[__global_id_v];                             
+                        // __local_id
 
                         // Load the extra elements on the right and on the bottom side of the current sub-window
-                        if (__is_first_row && __is_first_col)
-                        {
-                            assert(!"Looks like incorrect usage of __work_groups_amount_h and __work_groups_amount_v");
-                            if (__global_id_h + __work_groups_amount_h < __n1)
-                                __loc_acc_rng1_h[__work_groups_amount_h] = __rng1[__global_id_h + __work_groups_amount_h];
-                            if (__global_id_v + __work_groups_amount_v < __n2)
-                                __loc_acc_rng2_v[__work_groups_amount_v] = __rng2[__global_id_v + __work_groups_amount_v];
-                        }
+                        if (__local_id + 1 == __local_size && __global_id + 1 < __n1)
+                            __loc_acc_rng1_h[__local_id + 1] = __rng1[__global_id + 1];
+                        if (__local_id + 1 == __local_size && __global_id + 1 < __n2)
+                            __loc_acc_rng2_v[__local_id + 1] = __rng2[__global_id + 1];
                     }
 
                     // 2. Barrier to wait for all work-items in the current work-group to load data into SLM
@@ -377,6 +356,8 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                     //      ...
                     //        ^
                     // __local_id_v
+#if 0
+                    const auto __current_diagonal_global_offset = __global_id_h + __global_id_v;
                     if (__current_diagonal_global_offset % __diagonals_interval == 0)
                     {
                         // 3.1 Add init point
