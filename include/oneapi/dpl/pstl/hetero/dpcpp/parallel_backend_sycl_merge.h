@@ -272,8 +272,8 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
             constexpr int _Dim_H = 0;           // Horizontal dimension index in nd-range
             constexpr int _Dim_V = 1;           // Vertical dimension index in nd-range
             const sycl::nd_range<_Dims2> __merge_matrix_nd_range{
-                sycl::range<_Dims2>{__n1, __n2},                                    // Global size: full size of source data __rng1 by horizontal and __rng2 by vertical
-                sycl::range<_Dims2>{__sub_window_count_h, __sub_window_count_v}};   // Local (group) size: sub-window size by horizontal and vertical
+                sycl::range<_Dims2>{__sub_window_count_h, __sub_window_count_v},        // Global size: full size of source data __rng1 by horizontal and __rng2 by vertical
+                sycl::range<_Dims2>{__window_items_count_h, __window_items_count_v}};   // Local (group) size: sub-window size by horizontal and vertical
 
             __cgh.parallel_for<_FindSplitPointsKernel>(
                 __merge_matrix_nd_range,
