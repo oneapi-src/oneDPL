@@ -83,25 +83,5 @@ main()
 #endif // Devices available are CPU and GPU
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
-    return TestUtils::done(bProcessed);/*
-    sycl::queue q {sycl::device(sycl::cpu_selector_v){sycl::device(sycl::cpu_selector_v)};
-
-  if (!q.get_device().has(sycl::aspect::ext_oneapi_queue_profiling_tag)) {
-    std::cout << "Cannot time kernels without enabling profiling on queue\n";
-   // return;
-  }
-
-  // commands submitted here are not timed
-
-  sycl::event start = syclex::submit_profiling_tag(q);
-  //sycl::parallel_for(q, {N}, [=](auto i) {});
-  //sycl::parallel_for(q, {N}, [=](auto i) {});
-  sycl::event end = syclex::submit_profiling_tag(q);
-
-  q.wait();
-
-  uint64_t elapsed =
-    end.get_profiling_info<sycl::info::event_profiling::command_start>() -
-    start.get_profiling_info<sycl::info::event_profiling::command_end>();
-  std::cout << "Execution time: " << elapsed << " (nanoseconds)\n";*/
+    return TestUtils::done(bProcessed);
 }
