@@ -184,6 +184,42 @@ class _find_split_points_kernel;
 template <typename _IdType, typename... _Name>
 struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
+  private:
+
+    // Define the global range
+    static constexpr int _Dims2 = 2; // Number of global dimensions in nd-range: 2
+    static constexpr int _Dim_H = 0; // Horizontal dimension index in nd-range
+    static constexpr int _Dim_V = 1; // Vertical dimension index in nd-range
+
+    // Calculate global range size based on available full amount of work-items on each dimension level for the current device
+    template <typename _ExecutionPolicy>
+    auto
+    __eval_global_range_size(_ExecutionPolicy& __exec, const std::size_t __n1, const std::size_t __n2,
+                             const std::size_t __local_size_x) const
+    {
+        const std::size_t __local_size_y = __local_size_x;
+
+        const std::size_t __max_work_item_size_h = oneapi::dpl::__internal::__max_work_item_sizes<_Dims2>(__exec)[_Dim_H];
+        const std::size_t __max_work_item_size_v = oneapi::dpl::__internal::__max_work_item_sizes<_Dims2>(__exec)[_Dim_V];
+        assert(__local_size_x <= __max_work_item_size_h);
+        assert(__local_size_y <= __max_work_item_size_v);
+
+        const std::size_t __global_size_x_fit_into_n1 = oneapi::dpl::__internal::__dpl_ceiling_div(__n1, __local_size_x);
+        const std::size_t __global_size_x_fit_into_max_wi_h = __max_work_item_size_h / __local_size_x;
+        const std::size_t __global_size_x_fit_into_n2 = oneapi::dpl::__internal::__dpl_ceiling_div(__n2, __local_size_y);
+        const std::size_t __global_size_x_fit_into_max_wi_v = __max_work_item_size_v / __local_size_y;
+
+        const std::size_t __global_size_x = std::min(__global_size_x_fit_into_n1, __global_size_x_fit_into_max_wi_h) * __local_size_x;
+        assert(__global_size_x <= __max_work_item_size_h);
+
+        const std::size_t __global_size_y = std::min(__global_size_x_fit_into_n2, __global_size_x_fit_into_max_wi_v) * __local_size_y;
+        assert(__global_size_y <= __max_work_item_size_v);
+
+        return std::make_tuple(__global_size_x, __global_size_y);
+    }
+
+  public:
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
@@ -219,35 +255,17 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // The size of the data type in bytes
         const std::size_t __wg_src_pairs = oneapi::dpl::__internal::__dpl_ceiling_div(__max_slm_size, sizeof(_ValueType1) + sizeof(_ValueType2));
 
-        // Define the global range
-        constexpr int _Dims2 = 2;           // Number of dimensions in nd-range: 2
-        constexpr int _Dim_H = 0;           // Horizontal dimension index in nd-range
-        constexpr int _Dim_V = 1;           // Vertical dimension index in nd-range
-
         // Calculate the local range
-        std::size_t __local_size_x = std::min(std::min(__n1, __max_wgroup_size), __wg_src_pairs);
-        std::size_t __local_size_y = std::min(std::min(__n2, __max_wgroup_size), __wg_src_pairs);
-
-        if (__local_size_x * __local_size_y >= __max_wgroup_size)
-        {
-            // TODO probably required some better way to define the biggest available local size
-            const auto __k = oneapi::dpl::__internal::__dpl_ceiling_div(__local_size_x * __local_size_y, __max_wgroup_size);
-            __local_size_x = __local_size_x / (std::sqrt(__k) * 1.1);
-            __local_size_y = __max_wgroup_size / __local_size_x;
-
-            assert(__local_size_x * __local_size_y <= __max_wgroup_size);
-        }
+        const std::size_t __local_size_x = std::min(std::min(std::max(__n1, __n2), __max_wgroup_size), __wg_src_pairs);
+        const std::size_t __local_size_y = 1;
 
         // Calculate global range size
-        const std::size_t __global_size_x = oneapi::dpl::__internal::__dpl_ceiling_div(__n1, __local_size_x) * __local_size_x;
-        const std::size_t __global_size_y = oneapi::dpl::__internal::__dpl_ceiling_div(__n2, __local_size_y) * __local_size_y;
+        const auto [__global_size_x, __global_size_y] = __eval_global_range_size(__exec, __n1, __n2, __local_size_x/*, __local_size_y*/);
 
         // Define nd-ranges
-        const sycl::range<_Dims2> __global_range{__global_size_x, __global_size_y};
-        const sycl::range<_Dims2> __local_range {__local_size_x,  __local_size_y };
-        assert(__local_range.size() <= __max_wgroup_size);
-
-        const sycl::nd_range<_Dims2> __merge_matrix_nd_range{__global_range, __local_range};
+        const sycl::range<_Dims2>    __global_range         {__global_size_x, __global_size_y};
+        const sycl::range<_Dims2>    __local_range          {__local_size_x,  __local_size_y };
+        const sycl::nd_range<_Dims2> __merge_matrix_nd_range{__global_range,  __local_range  };
 
         ////////////////////////////////
         // Eval diagonal's distance: each work-group processing one sub-window
@@ -275,9 +293,13 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // Run Kernel 1: find split points at the diagonals
         auto __event_find_split_points = __exec.queue().submit([&](sycl::handler& __cgh) {
 
+            assert(__local_size_y == 1);
+            const auto __cashed_items_count_h = __local_size_x + 1;   // The number of items of __rng1 to cash in SLM
+            const auto __cashed_items_count_v = __local_size_x + 1;   // The number of items of __rng2 to cash in SLM
+
             // Cash the portion of source processing data for the current work-group in SLM
-            __dpl_sycl::__local_accessor<_ValueType1> __loc_acc_rng1_h(__local_size_x + 1, __cgh);      // Cashed data from __rng1
-            __dpl_sycl::__local_accessor<_ValueType2> __loc_acc_rng2_v(__local_size_y + 1, __cgh);      // Cashed data from __rng2
+            __dpl_sycl::__local_accessor<_ValueType1> __loc_acc_rng1_h(__cashed_items_count_h, __cgh);      // Cashed data from __rng1
+            __dpl_sycl::__local_accessor<_ValueType2> __loc_acc_rng2_v(__cashed_items_count_v, __cgh);      // Cashed data from __rng2
 
             // Get access to the split points
             auto __split_points_acc = __split_points.__get_scratch_acc(__cgh);
@@ -287,6 +309,7 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                 __merge_matrix_nd_range,
                 [=](sycl::nd_item<_Dims2> __nd_item) {
 
+#if 0
                     // Return the number of work-groups for Dimension in the iteration space.
                     const auto __work_groups_amount_h = __nd_item.get_group_range(_Dim_H);
                     const auto __work_groups_amount_v = __nd_item.get_group_range(_Dim_V);
@@ -297,6 +320,7 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                     // Return the constituent element of the local id representing the work-item’s position within the current work-group in the given Dimension.
                     const auto __local_id_h = __nd_item.get_local_id(_Dim_H);
                     const auto __local_id_v = __nd_item.get_local_id(_Dim_V);
+                    assert(__local_id_v == 0);
 
                     const auto __current_diagonal_global_offset = __global_id_h + __global_id_v;
 
@@ -306,12 +330,17 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                     if (__is_first_row || __is_first_col)
                     {
                         //          Work-items in the current work-group: 'L' - load data; '.' - doing nothing.
-                        //          0 1 2 3 4 5 6 7 8 9 .....  <-- __local_id_h
-                        //        0 L L L L L L L L L L 
-                        //        1 L . . . . . . . . .
-                        //        2 L . . . . . . . . .
-                        //        3 L . . . . . . . . .
-                        //        4 L . . . . . . . . .
+                        //          0 1 2 3 4 5 6 7 8 9 .....  <-- __local_id_h     
+                        //        0 L . . . . . . . . .                             load: __rng1[0], __rng2[0]
+                        //        1 . L . . . . . . . .                             load: __rng1[1], __rng2[1]
+                        //        2 . . L . . . . . . .                             load: __rng1[2], __rng2[2]
+                        //        3 . . . L . . . . . .                             load: __rng1[3], __rng2[3]
+                        //        4 . . . . L . . . . .                             load: __rng1[4], __rng2[4]
+                        //                    L                                     load: __rng1[5]
+                        //                      L                                   load: __rng1[6]
+                        //                        L                                 load: __rng1[7]
+                        //                          L                               load: __rng1[8]
+                        //                            L                             load: __rng1[9]
                         //      ...
                         //        ^
                         // __local_id_v
@@ -369,6 +398,7 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                             }
                         }
                     }
+#endif
                 });
         });
 
