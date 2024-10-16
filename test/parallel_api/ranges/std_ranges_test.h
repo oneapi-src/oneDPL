@@ -143,6 +143,7 @@ bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
 {
+    const int max_n = 10;
     template<typename Policy>
     std::enable_if_t<std::is_same_v<Policy, std::true_type>>
     operator()(Policy, auto algo, auto& checker, auto... args)
@@ -157,28 +158,24 @@ struct test
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
-        constexpr int max_n = 10;
-        DataType data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        DataType expected[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        Container cont_in(exec, max_n, [](auto i) { return i;});
+        Container cont_exp(exec, max_n, [](auto i) { return i;});
 
-        auto expected_view = tr_in(std::ranges::subrange(expected, expected + max_n));
+        auto expected_view = tr_in(std::views::all(cont_exp()));
         auto expected_res = checker(expected_view, args...);
-        {
-            Container cont(exec, std::ranges::begin(data), max_n);
-            typename Container::type& A = cont();
 
-            auto res = algo(exec, tr_in(A), args...);
-
-            //check result
-            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), args...))>, "Wrong return type");
-
-            auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr_in(A).begin());
-            EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
-                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
-        }
+        typename Container::type& A = cont_in();
+        auto res = algo(exec, tr_in(A), args...);
 
         //check result
-        EXPECT_EQ_N(expected, data, max_n, (std::string("wrong effect algo with ranges: ")
+        static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), args...))>, "Wrong return type");
+
+        auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr_in(A).begin());
+        EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
+                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
+
+        //check result
+        EXPECT_EQ_N(cont_exp().begin(), cont_in().begin(), max_n, (std::string("wrong effect algo with ranges: ")
             + typeid(Algo).name() + typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
     }
 
@@ -371,12 +368,29 @@ struct host_subrange_impl
 {
     using type = ViewType;
     ViewType view;
+    T* mem = NULL;
+
+    std::allocator<T> alloc;
 
     template<typename Policy>
     host_subrange_impl(Policy&&, T* data, int n): view(data, data + n) {}
+
+    template<typename Policy, typename DataGen>
+    host_subrange_impl(Policy&&, int n, DataGen gen)
+    {
+        mem = alloc.allocate(n);
+        view = ViewType(mem, mem + n);
+        for(int i = 0; i < n; ++i)
+            view[i] = gen(i);
+    }
     ViewType& operator()()
     {
         return view;
+    }
+    ~host_subrange_impl()
+    {
+        if(mem)
+            alloc.deallocate(mem, view.size());
     }
 };
 
@@ -397,13 +411,21 @@ struct host_vector
 
     template<typename Policy>
     host_vector(Policy&&, T* data, int n): vec(data, data + n), p(data) {}
+    
+    template<typename Policy, typename DataGen>
+    host_vector(Policy&&, int n, DataGen gen): vec(n) 
+    {
+        for(int i = 0; i < n; ++i)
+            vec[i] = gen(i);
+    }
     type& operator()()
     {
         return vec;
     }
     ~host_vector()
     {
-        std::copy_n(vec.begin(), vec.size(), p);
+        if(p)
+            std::copy_n(vec.begin(), vec.size(), p);
     }
 };
 
@@ -422,13 +444,20 @@ struct usm_vector
     {
         assert(vec.size() == n);
     }
+    template<typename Policy, typename DataGen>
+    usm_vector(Policy&& exec, int n, DataGen gen): vec(n, shared_allocator(exec.queue()))
+    {
+        for(int i = 0; i < n; ++i)
+            vec[i] = gen(i);
+    }
     type& operator()()
     {
         return vec;
     }
     ~usm_vector()
     {
-        std::copy_n(vec.begin(), vec.size(), p);
+        if(p)
+            std::copy_n(vec.begin(), vec.size(), p);
     }
 };
 
@@ -449,6 +478,14 @@ struct usm_subrange_impl
         view = ViewType(mem, mem + n);
         std::copy_n(data, n, view.data());
     }
+    template<typename Policy, typename DataGen>
+    usm_subrange_impl(Policy&& exec, int n, DataGen gen): alloc(exec.queue())
+    {
+        auto mem = alloc.allocate(n);
+        view = ViewType(mem, mem + n);
+        for(int i = 0; i < n; ++i)
+            view[i] = gen(i);
+    }
 
     ViewType& operator()()
     {
@@ -457,7 +494,8 @@ struct usm_subrange_impl
 
     ~usm_subrange_impl()
     {
-        std::copy_n(view.data(), view.size(), p);
+        if(p)
+            std::copy_n(view.data(), view.size(), p);
         alloc.deallocate(view.data(), view.size());
     }
 };
@@ -475,6 +513,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
 struct test_range_algo
 {
+    const int max_n = 10;
     void operator()(auto algo, auto& checker, auto... args)
     {
 
@@ -483,13 +522,13 @@ struct test_range_algo
         auto span_view = [](auto&& v) { return std::span(v); };
 #endif
 
-        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
-        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
-        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
-        test<T, host_subrange<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_subrange<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 #if TEST_CPP20_SPAN_PRESENT
-        test<T, host_vector<T>, mode>{}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
-        test<T, host_span<T>, mode>{}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
+        test<T, host_span<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -500,11 +539,11 @@ struct test_range_algo
             if constexpr(!std::disjunction_v<std::is_member_pointer<decltype(args)>...>)
 #endif
             {
-                test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
-                test<T, usm_subrange<T>, mode>{}(dpcpp_policy<call_id + 30>(), algo, checker, std::identity{}, std::identity{}, args...);
+                test<T, usm_vector<T>, mode>{max_n}(dpcpp_policy<call_id + 10>(), algo, checker, subrange_view, subrange_view, args...);
+                test<T, usm_subrange<T>, mode>{max_n}(dpcpp_policy<call_id + 30>(), algo, checker, std::identity{}, std::identity{}, args...);
 #if TEST_CPP20_SPAN_PRESENT
-                test<T, usm_vector<T>, mode>{}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
-                test<T, usm_span<T>, mode>{}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
+                test<T, usm_vector<T>, mode>{max_n}(dpcpp_policy<call_id + 20>(), algo, checker, span_view, subrange_view, args...);
+                test<T, usm_span<T>, mode>{max_n}(dpcpp_policy<call_id + 40>(), algo, checker, std::identity{}, std::identity{}, args...);
 #endif
             }
         }
