@@ -67,6 +67,14 @@ __max_work_group_size(const _ExecutionPolicy& __policy, std::size_t __wg_size_li
     return std::min(__wg_size, __wg_size_limit);
 }
 
+// TODO Required to re-implement with template specialization for different dimensions
+template <int Dims, typename _ExecutionPolicy>
+auto
+__max_work_item_sizes(const _ExecutionPolicy& __policy)
+{
+    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_item_sizes<Dims>>();
+}
+
 template <typename _ExecutionPolicy, typename _Size>
 _Size
 __slm_adjusted_work_group_size(const _ExecutionPolicy& __policy, _Size __local_mem_per_wi, _Size __wg_size = 0)
