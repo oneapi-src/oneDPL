@@ -48,23 +48,23 @@ void test_policy_instance(const Policy& policy)
 std::int32_t
 main()
 {
-    using namespace oneapi::dpl::execution;
-    static_assert(is_execution_policy<sequenced_policy>::value, "wrong result for is_execution_policy<sequenced_policy>");
-    static_assert(is_execution_policy<unsequenced_policy>::value, "wrong result for is_execution_policy<unsequenced_policy>");
-    static_assert(is_execution_policy<parallel_policy>::value, "wrong result for is_execution_policy<parallel_policy>");
-    static_assert(is_execution_policy<parallel_unsequenced_policy>::value, "wrong result for is_execution_policy<parallel_unsequenced_policy>");
-    static_assert(is_execution_policy_v<sequenced_policy>, "wrong result for is_execution_policy_v<sequenced_policy>");
-    static_assert(is_execution_policy_v<unsequenced_policy>, "wrong result for is_execution_policy_v<unsequenced_policy>");
-    static_assert(is_execution_policy_v<parallel_policy>, "wrong result for is_execution_policy_v<parallel_policy>");
-    static_assert(is_execution_policy_v<parallel_unsequenced_policy>, "wrong result for is_execution_policy_v<parallel_unsequenced_policy>");
+    using namespace oneapi::dpl;
+    static_assert(is_execution_policy<execution::sequenced_policy>::value, "wrong result for is_execution_policy<sequenced_policy>");
+    static_assert(is_execution_policy<execution::unsequenced_policy>::value, "wrong result for is_execution_policy<unsequenced_policy>");
+    static_assert(is_execution_policy<execution::parallel_policy>::value, "wrong result for is_execution_policy<parallel_policy>");
+    static_assert(is_execution_policy<execution::parallel_unsequenced_policy>::value, "wrong result for is_execution_policy<parallel_unsequenced_policy>");
+    static_assert(is_execution_policy_v<execution::sequenced_policy>, "wrong result for is_execution_policy_v<sequenced_policy>");
+    static_assert(is_execution_policy_v<execution::unsequenced_policy>, "wrong result for is_execution_policy_v<unsequenced_policy>");
+    static_assert(is_execution_policy_v<execution::parallel_policy>, "wrong result for is_execution_policy_v<parallel_policy>");
+    static_assert(is_execution_policy_v<execution::parallel_unsequenced_policy>, "wrong result for is_execution_policy_v<parallel_unsequenced_policy>");
 
 #if TEST_DPCPP_BACKEND_PRESENT
     auto q = sycl::queue{TestUtils::default_selector};
 
-    static_assert(is_execution_policy<device_policy<class Kernel_0>>::value, "wrong result for is_execution_policy<device_policy>");
-    static_assert(is_execution_policy_v<device_policy<class Kernel_0>>, "wrong result for is_execution_policy_v<device_policy>");
+    static_assert(is_execution_policy<execution::device_policy<class Kernel_0>>::value, "wrong result for is_execution_policy<device_policy>");
+    static_assert(is_execution_policy_v<execution::device_policy<class Kernel_0>>, "wrong result for is_execution_policy_v<device_policy>");
 
-    test_policy_instance(dpcpp_default);
+    test_policy_instance(execution::dpcpp_default);
 
     // make_device_policy
     test_policy_instance(TestUtils::make_device_policy<class Kernel_11>(q));
@@ -77,40 +77,40 @@ main()
 #endif
     test_policy_instance(TestUtils::make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(TestUtils::make_device_policy<class Kernel_14>(sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
-    test_policy_instance(TestUtils::make_device_policy<class Kernel_15>(dpcpp_default));
+    test_policy_instance(TestUtils::make_device_policy<class Kernel_15>(execution::dpcpp_default));
     // Special case: required to call make_device_policy directly from oneapi::dpl::execution namespace
     test_policy_instance(oneapi::dpl::execution::make_device_policy<class Kernel_16>());
 
     // device_policy
-    EXPECT_TRUE(device_policy<class Kernel_1>(q).queue() == q, "wrong result for queue()");
-    test_policy_instance(device_policy<class Kernel_21>(q));
-    test_policy_instance(device_policy<class Kernel_22>(sycl::device{TestUtils::default_selector}));
-    test_policy_instance(device_policy<class Kernel_23>(dpcpp_default));
-    test_policy_instance(device_policy<class Kernel_24>(sycl::queue(dpcpp_default))); // conversion to sycl::queue
-    test_policy_instance(device_policy<>{});
+    EXPECT_TRUE(execution::device_policy<class Kernel_1>(q).queue() == q, "wrong result for queue()");
+    test_policy_instance(execution::device_policy<class Kernel_21>(q));
+    test_policy_instance(execution::device_policy<class Kernel_22>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(execution::device_policy<class Kernel_23>(execution::dpcpp_default));
+    test_policy_instance(execution::device_policy<class Kernel_24>(sycl::queue(execution::dpcpp_default))); // conversion to sycl::queue
+    test_policy_instance(execution::device_policy<>{});
     class Kernel_25;
-    static_assert(std::is_same_v<device_policy<Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (device_policy)");
+    static_assert(std::is_same_v<execution::device_policy<Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (device_policy)");
 
 #if ONEDPL_FPGA_DEVICE
-    static_assert(is_execution_policy<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>::value, "wrong result for is_execution_policy<fpga_policy>");
-    static_assert(is_execution_policy_v<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>, "wrong result for is_execution_policy_v<fpga_policy>");
+    static_assert(is_execution_policy<execution::fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>::value, "wrong result for is_execution_policy<fpga_policy>");
+    static_assert(is_execution_policy_v<execution::fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>, "wrong result for is_execution_policy_v<fpga_policy>");
     test_policy_instance(dpcpp_fpga);
 
     // make_fpga_policy
     test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 1, class Kernel_31>(sycl::queue{TestUtils::default_selector}));
     test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 2, class Kernel_32>(sycl::device{TestUtils::default_selector}));
-    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 4, class Kernel_33>(dpcpp_fpga));
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 4, class Kernel_33>(execution::dpcpp_fpga));
     // Special case: required to call make_fpga_policy directly from oneapi::dpl::execution namespace
     test_policy_instance(oneapi::dpl::execution::make_fpga_policy</*unroll_factor =*/ 8, class Kernel_34>());
     test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 16, class Kernel_35>(sycl::queue{TestUtils::default_selector}));
 
     // fpga_policy
-    test_policy_instance(fpga_policy</*unroll_factor =*/ 1, class Kernel_41>(sycl::queue{TestUtils::default_selector}));
-    test_policy_instance(fpga_policy</*unroll_factor =*/ 2, class Kernel_42>(sycl::device{TestUtils::default_selector}));
-    test_policy_instance(fpga_policy</*unroll_factor =*/ 4, class Kernel_43>(dpcpp_fpga));
-    test_policy_instance(fpga_policy</*unroll_factor =*/ 8, class Kernel_44>{});
-    static_assert(std::is_same_v<fpga_policy</*unroll_factor =*/ 8, Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (fpga_policy)");
-    static_assert(fpga_policy</*unroll_factor =*/ 16, class Kernel_45>::unroll_factor == 16, "wrong unroll_factor");
+    test_policy_instance(execution::fpga_policy</*unroll_factor =*/ 1, class Kernel_41>(sycl::queue{TestUtils::default_selector}));
+    test_policy_instance(execution::fpga_policy</*unroll_factor =*/ 2, class Kernel_42>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(execution::fpga_policy</*unroll_factor =*/ 4, class Kernel_43>(execution::dpcpp_fpga));
+    test_policy_instance(execution::fpga_policy</*unroll_factor =*/ 8, class Kernel_44>{});
+    static_assert(std::is_same_v<execution::fpga_policy</*unroll_factor =*/ 8, Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (fpga_policy)");
+    static_assert(execution::fpga_policy</*unroll_factor =*/ 16, class Kernel_45>::unroll_factor == 16, "wrong unroll_factor");
 #endif // ONEDPL_FPGA_DEVICE
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
