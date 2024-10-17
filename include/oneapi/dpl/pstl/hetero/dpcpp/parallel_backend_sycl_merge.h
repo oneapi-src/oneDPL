@@ -129,7 +129,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     }
 }
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+// Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
 template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
 
