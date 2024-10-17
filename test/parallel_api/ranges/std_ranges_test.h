@@ -175,7 +175,8 @@ struct test
                 typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
 
         //check result
-        EXPECT_EQ_N(cont_exp().begin(), cont_in().begin(), max_n, (std::string("wrong effect algo with ranges: ")
+        auto n = std::ranges::size(expected_view);
+        EXPECT_EQ_N(cont_exp().begin(), cont_in().begin(), n, (std::string("wrong effect algo with ranges: ")
             + typeid(Algo).name() + typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
     }
 
@@ -213,7 +214,8 @@ private:
         EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
 
         //check result
-        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        auto n = std::ranges::size(out_view);
+        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
 public:
@@ -296,7 +298,8 @@ private:
             typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
 
         //check result
-        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        auto n = std::ranges::size(expected_view);
+        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
 public:
