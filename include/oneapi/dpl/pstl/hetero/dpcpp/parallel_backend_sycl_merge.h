@@ -46,9 +46,15 @@ namespace __par_backend_hetero
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
 auto
-__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
-                   const _Index __n2, _Compare __comp)
+__find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Index __rng1_to,
+                      const _Rng2& __rng2, const _Index __rng2_from, const _Index __rng2_to,
+                      const _Index __i_elem,
+                      const _Index __n1, const _Index __n2,
+                      _Compare __comp)
 {
+    assert(__rng1_from <= __rng1_to);
+    assert(__rng2_from <= __rng2_to);
+
     //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
     oneapi::dpl::counting_iterator<_Index> __diag_it(0);
 
@@ -76,7 +82,15 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
                              });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
-    }
+}
+
+template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
+auto
+__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
+                   const _Index __n2, _Compare __comp)
+{
+    return __find_start_point_in(__rng1, 0, __rng1.size(), __rng2, 0, __rng2.size(), __i_elem, __n1, __n2, __comp);
+}
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
