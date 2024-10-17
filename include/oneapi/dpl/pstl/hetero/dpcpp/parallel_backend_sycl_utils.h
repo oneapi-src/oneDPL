@@ -478,12 +478,11 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-template <typename _T>
+template <typename _T, sycl::access_mode _AccessMode = sycl::access_mode::read_write>
 struct __usm_or_buffer_accessor
 {
   private:
-    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
-                                        sycl::access::placeholder::false_t>;
+    using __accessor_t = sycl::accessor<_T, 1, _AccessMode, __dpl_sycl::__target_device, sycl::access::placeholder::false_t>;
     __accessor_t __acc;
     _T* __ptr = nullptr;
     bool __usm = false;
@@ -492,11 +491,12 @@ struct __usm_or_buffer_accessor
   public:
     // Buffer accessor
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, __get_access_mode_tag(), __dpl_sycl::__no_init{}))
     {
     }
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __offset(__acc_offset)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, __get_access_mode_tag(), __dpl_sycl::__no_init{})),
+          __offset(__acc_offset)
     {
     }
 
@@ -512,6 +512,23 @@ struct __usm_or_buffer_accessor
     {
         return __usm ? __ptr + __offset : &__acc[__offset];
     }
+
+ private:
+
+     static auto __get_access_mode_tag()
+     {
+         if constexpr (_AccessMode == sycl::access::mode::read)
+             return sycl::read;
+
+         else if constexpr (_AccessMode == sycl::access::mode::write)
+             return sycl::write;
+
+         else if constexpr (_AccessMode == sycl::access::mode::read_write)
+             return sycl::read_write;
+
+         else
+             static_assert(false, "Unknown _AccessMode state");
+     }
 };
 
 template <typename _ExecutionPolicy, typename _T>
