@@ -39,6 +39,10 @@ int counter_overflow_test();
 template <typename Engine>
 int discard_overflow_test();
 
+template <typename Engine>
+int
+counter_management_test();
+
 using philox4x32_w5 = ex::philox_engine<std::uint_fast32_t, 5, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
 using philox4x32_w15 = ex::philox_engine<std::uint_fast32_t, 15, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
 using philox4x32_w18 = ex::philox_engine<std::uint_fast32_t, 18, 4, 10, 0xCD9E8D57, 0x9E3779B9, 0xD2511F53, 0xBB67AE85>;
@@ -139,6 +143,26 @@ main()
     err += discard_overflow_test<philox4x64_w25>();
     std::cout << "void discard_overflow_test() [Engine = philox4x64_w49]";
     err += discard_overflow_test<philox4x64_w49>();
+
+    std::cout << "void counter_management_test() [Engine = philox4x32_w5]";
+    err += counter_management_test<philox4x32_w5>();
+    std::cout << "void counter_management_test() [Engine = philox4x32_w15]";
+    err += counter_management_test<philox4x32_w15>();
+    std::cout << "void counter_management_test() [Engine = philox4x32_w18]";
+    err += counter_management_test<philox4x32_w18>();
+    std::cout << "void counter_management_test() [Engine = philox4x32_w30]";
+    err += counter_management_test<philox4x32_w30>();
+
+    std::cout << "void counter_management_test() [Engine = philox4x64_w5]";
+    err += counter_management_test<philox4x64_w5>();
+    std::cout << "void counter_management_test() [Engine = philox4x64_w15]";
+    err += counter_management_test<philox4x64_w15>();
+    std::cout << "void counter_management_test() [Engine = philox4x64_w18]";
+    err += counter_management_test<philox4x64_w18>();
+    std::cout << "void counter_management_test() [Engine = philox4x64_w25]";
+    err += counter_management_test<philox4x64_w25>();
+    std::cout << "void counter_management_test() [Engine = philox4x64_w49]";
+    err += counter_management_test<philox4x64_w49>();
 
     return TestUtils::done();
 }
@@ -338,42 +362,99 @@ template <typename Engine>
 int
 discard_overflow_test()
 {
+    int ret_sts = 0;
+
     using T = typename Engine::result_type;
     using scalar_type = typename Engine::scalar_type;
 
-    Engine engine1;
-    std::array<T, Engine::word_count> counter;
-
-    for (int i = 0; i < Engine::word_count; i++)
+    // Iterate through the counter's position being overflown
+    for (int overflown_position = 0; overflown_position < Engine::word_count - 1; ++overflown_position)
     {
-        counter[i] = 0;
+        Engine engine1;
+        std::array<T, Engine::word_count> counter = {0};
+
+        // Overflow of a counter's element. The correspondence is the following:
+        // 0 1 2 3 overflow position
+        // 1 2 3 0 set-up counter position in engine
+        // 2 1 0 3 raw_counter_position
+        int raw_counter_position = (Engine::word_count - overflown_position - 2) % Engine::word_count;
+        counter[raw_counter_position] = 1;
+
+        engine1.set_counter(counter);
+
+        Engine engine2;
+
+        // To reduce the execution time pre-set counter to almost-overflown state
+        std::array<T, Engine::word_count> counter2 = {0};
+        for (int i = Engine::word_count - overflown_position - 1; i < Engine::word_count - 1; ++i)
+        {
+            counter2[i] = std::numeric_limits<unsigned long long>::max();
+        }
+
+        engine2.set_counter(counter2);
+
+        for (int i = 0; i < Engine::word_count; i++)
+        {
+            engine2();
+        }
+
+        for (int i = 0; i < Engine::word_count; i++)
+        {
+            engine2.discard(engine2.max());
+        }
+
+        if (engine1() == engine2())
+        {
+            ret_sts = 0;
+        }
+        else
+        {
+            std::cout << " failed" << std::endl;
+            ret_sts = 1;
+            break;
+        }
     }
 
-    // overflow of the 0th counter element
-    counter[2] = 1;
+    if (!ret_sts)
+        std::cout << " passed" << std::endl;
 
-    engine1.set_counter(counter);
+    return ret_sts;
+}
 
-    Engine engine2;
+template <typename Engine>
+int
+counter_management_test()
+{
+    using T = typename Engine::result_type;
+    Engine testedEngine;
+    Engine referenceEngine;
 
-    for (int i = 0; i < Engine::word_count; i++)
+    // set the counter which value is 2-chunk bitsize
+    unsigned long long increment = ((unsigned long long)testedEngine.max() << Engine::word_size) | testedEngine.max();
+    unsigned long long counter_increment = increment / 4;
+
+    std::array<T, Engine::word_count> expected_counter = {0};
+    for (int i = Engine::word_count - 1; i >= 0; i--)
     {
-        engine2();
+        expected_counter[i] = counter_increment;
+        counter_increment >>= Engine::word_size;
     }
-    for (int i = 0; i < Engine::word_count; i++)
-    {
-        engine2.discard(std::numeric_limits<unsigned long long>::max() &
-                        (~scalar_type(0) >> (std::numeric_limits<scalar_type>::digits - Engine::word_size)));
-    }
+    referenceEngine.set_counter(expected_counter);
+    referenceEngine();
+    referenceEngine();
+    referenceEngine();
 
-    if (engine1() == engine2())
+    testedEngine.discard(increment);
+
+    if (testedEngine() == referenceEngine())
     {
         std::cout << " passed" << std::endl;
-        return 0;
     }
     else
     {
         std::cout << " failed" << std::endl;
         return 1;
     }
+
+    return 0;
 }
