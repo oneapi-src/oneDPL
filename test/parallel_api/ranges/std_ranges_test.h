@@ -209,7 +209,6 @@ private:
         auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
         EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
 
-        //auto bres_out = ret_out_val(expected_res, expected) == ret_out_val(res, B.begin());
         auto bres_out = ret_out_val(expected_res, out_view.begin()) == ret_out_val(res, tr_out(B).begin());
         EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
 
@@ -242,28 +241,23 @@ public:
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
-        constexpr int max_n = 10;
-        DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        DataType data_in2[max_n] = {0, 0, 2, 3, 4, 5, 0, 0, 0, 0};
+        Container cont_in1(exec, max_n, [](auto i) { return i;});
+        Container cont_in2(exec, max_n, [](auto i) { return i % 5 ? i : 0;});
 
-        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + max_n));
-        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + max_n));
+        auto src_view1 = tr_in(std::views::all(cont_in1()));
+        auto src_view2 = tr_in(std::views::all(cont_in2()));
         auto expected_res = checker(src_view1, src_view2, args...);
-        {
-            Container cont_in1(exec, data_in1, max_n);
-            Container cont_in2(exec, data_in2, max_n);
 
-            typename Container::type& A = cont_in1();
-            typename Container::type& B = cont_in2();
+        typename Container::type& A = cont_in1();
+        typename Container::type& B = cont_in2();
 
-            auto res = algo(exec, tr_in(A), tr_in(B), args...);
+        auto res = algo(exec, tr_in(A), tr_in(B), args...);
 
-            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), args...))>, "Wrong return type");
+        static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), args...))>, "Wrong return type");
 
-            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
-            EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
-                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
-        }
+        auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
+        EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
+            typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
     }
 
 private:
