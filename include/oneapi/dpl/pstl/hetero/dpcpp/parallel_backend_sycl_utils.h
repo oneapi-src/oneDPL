@@ -608,6 +608,18 @@ struct __result_and_scratch_storage
         }
     }
 
+    inline std::size_t
+    __get_result_n() const
+    {
+        return __result_n;
+    }
+
+    inline std::size_t
+    __get_scratch_n() const
+    {
+        return __scratch_n;
+    }
+
     template <typename _Acc>
     static auto
     __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, std::size_t __scratch_n = 0)
