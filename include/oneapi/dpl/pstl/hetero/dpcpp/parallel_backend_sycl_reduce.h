@@ -141,7 +141,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            auto __res_acc = __scratch_container.__get_result_acc(__cgh);
+            auto __res_acc = __scratch_container.__get_result_acc<sycl::access_mode::write>(__cgh);
             std::size_t __local_mem_size = __reduce_pattern.local_mem_req(__work_group_size);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__local_mem_size), __cgh);
             __cgh.parallel_for<_Name...>(
@@ -208,7 +208,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, _Commutative, _V
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             std::size_t __local_mem_size = __reduce_pattern.local_mem_req(__work_group_size);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__local_mem_size), __cgh);
-            auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
+            auto __temp_acc = __scratch_container.__get_scratch_acc<sycl::access_mode::write>(__cgh);
             __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
@@ -253,8 +253,10 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
         __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
 
+            // TODO what is correct access mode here for __get_scratch_acc call?
+            // Is default sycl::access_mode::read_write is ok?
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
-            auto __res_acc = __scratch_container.__get_result_acc(__cgh);
+            auto __res_acc = __scratch_container.__get_result_acc<sycl::access_mode::write>(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 
             __cgh.parallel_for<_KernelName...>(
@@ -358,7 +360,11 @@ struct __parallel_transform_reduce_impl
             __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n,
                                                     __n_groups](sycl::handler& __cgh) {
                 __cgh.depends_on(__reduce_event);
+                // TODO what is correct access mode here for __get_scratch_acc call?
+                // Is default sycl::access_mode::read_write is ok?
                 auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
+                // TODO what is correct access mode here for __get_result_acc call?
+                // Is default sycl::access_mode::read_write is ok?
                 auto __res_acc = __scratch_container.__get_result_acc(__cgh);
 
                 // get an access to data under SYCL buffer
@@ -377,7 +383,8 @@ struct __parallel_transform_reduce_impl
                     [=](sycl::nd_item<1> __item_id) {
                         auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                         auto __res_ptr =
-                            __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__res_acc, 2 * __n_groups);
+                            __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr<sycl::access_mode::write>(
+                                __res_acc, 2 * __n_groups);
                         auto __local_idx = __item_id.get_local_id(0);
                         auto __group_idx = __item_id.get_group(0);
                         // 1. Initialization (transform part). Fill local memory
