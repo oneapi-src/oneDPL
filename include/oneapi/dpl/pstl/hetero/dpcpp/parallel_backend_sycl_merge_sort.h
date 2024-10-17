@@ -18,7 +18,7 @@
 
 #include <limits>      // std::numeric_limits
 #include <cassert>     // assert
-#include <utility>     // std::swap
+#include <utility>     // std::swap, std::pair
 #include <cstdint>     // std::uint32_t, ...
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
@@ -232,15 +232,16 @@ template <typename _IndexT, typename... _GlobalSortName>
 struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
 {
     template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
-    sycl::event
+    std::pair<sycl::event, bool>
     operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
-               bool& __data_in_temp, sycl::event __event_chain) const
+               sycl::event __event_chain) const
     {
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
         const bool __is_cpu = __q.get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+        bool __data_in_temp = false;
 
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
@@ -286,7 +287,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
-        return __event_chain;
+        return {__event_chain, __data_in_temp};
     }
 };
 
@@ -345,21 +346,20 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     sycl::queue __q = __exec.queue();
 
     // 1. Perform sorting of the leaves of the merge sort tree
-    sycl::event __event_chain = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
+    sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
 
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
-    bool __data_in_temp = false;
-    __event_chain = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
-        __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __data_in_temp, __event_chain);
+    auto [__event_sort, __data_in_temp] = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
+        __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
-        __event_chain = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_chain);
+        __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_sort);
     }
-    return __future(__event_chain);
+    return __future(__event_sort);
 }
 
 template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
