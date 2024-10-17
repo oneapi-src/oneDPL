@@ -22,7 +22,9 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    test_range_algo<0>{}(dpl_ranges::count, std::ranges::count, 4);
+    const std::size_t big_sz = 1<<25; //32M
+
+    test_range_algo<0>{big_sz}(dpl_ranges::count, std::ranges::count, 4);
     test_range_algo<1>{}(dpl_ranges::count, std::ranges::count, 4, proj);
     test_range_algo<2, P2>{}(dpl_ranges::count, std::ranges::count, 4, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::count, std::ranges::count, 4, &P2::proj);
