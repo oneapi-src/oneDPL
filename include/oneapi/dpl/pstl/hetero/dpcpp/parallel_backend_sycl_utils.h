@@ -643,13 +643,14 @@ struct __result_and_scratch_storage
 #endif
     }
 
+    template <sycl::access_mode _AccessMode = sycl::access_mode::read_write>
     auto
     __get_scratch_acc(sycl::handler& __cgh) const
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host || __supports_USM_device)
-            return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
-        return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get());
+        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get());
 #else
         return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
 #endif
