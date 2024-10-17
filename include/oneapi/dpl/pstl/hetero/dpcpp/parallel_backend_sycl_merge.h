@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ï»¿// -*- C++ -*-
 //===-- parallel_backend_sycl_merge.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
@@ -205,14 +205,12 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         assert(__local_size_y <= __max_work_item_size_v);
 
         const std::size_t __global_size_x_fit_into_n1 = oneapi::dpl::__internal::__dpl_ceiling_div(__n1, __local_size_x);
-        const std::size_t __global_size_x_fit_into_max_wi_h = __max_work_item_size_h / __local_size_x;
         const std::size_t __global_size_x_fit_into_n2 = oneapi::dpl::__internal::__dpl_ceiling_div(__n2, __local_size_y);
-        const std::size_t __global_size_x_fit_into_max_wi_v = __max_work_item_size_v / __local_size_y;
 
-        const std::size_t __global_size_x = std::min(__global_size_x_fit_into_n1, __global_size_x_fit_into_max_wi_h) * __local_size_x;
+        const std::size_t __global_size_x = __global_size_x_fit_into_n1 * __local_size_x;
         assert(__global_size_x <= __max_work_item_size_h);
 
-        const std::size_t __global_size_y = std::min(__global_size_x_fit_into_n2, __global_size_x_fit_into_max_wi_v) * __local_size_y;
+        const std::size_t __global_size_y = __global_size_x_fit_into_n2 * __local_size_y;
         assert(__global_size_y <= __max_work_item_size_v);
 
         return std::make_tuple(__global_size_x, __global_size_y);
@@ -231,9 +229,9 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         using _ValueType1 = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
         using _ValueType2 = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
 
-        assert(__n1 > 0);
-        assert(__n2 > 0);
-        assert(__n > 0);        // TODO should we remove this assert?
+        assert(__n1 > 0);                                                                   // 17'000'000
+        assert(__n2 > 0);                                                                   //  8'500'000
+        assert(__n > 0);        // TODO should we remove this assert?                       // 25'500'000
 
         // Build Kernel name for split points Kernel
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -277,8 +275,10 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
         // Calculate full diagonal count for all data size
         const std::size_t __diagonals_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __diagonals_interval);
 
-        // Create storage for split points (in the best case - in device memory to avoid copy data to host)
+        // Define the type for describing split point
         using __split_point_t = std::pair<_IdType, _IdType>;
+
+        // Create storage for split points (in the best case - in device memory to avoid copy data to host)
         using __split_points_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __split_point_t>;
         __split_points_scratch_storage_t __split_points(__exec,
                                                         0,                      // The amount of result items
@@ -310,10 +310,10 @@ struct __parallel_merge_submitter_large<_IdType, __internal::__optional_kernel_n
                     const auto __work_groups_amount_h = __nd_item.get_group_range(_Dim_H);
                     const auto __work_groups_amount_v = __nd_item.get_group_range(_Dim_V);
 
-                    // Return the constituent element of the global id representing the work-item’s position in the nd-range in the given Dimension.
+                    // Return the constituent element of the global id representing the work-items position in the nd-range in the given Dimension.
                     const auto __global_id = __nd_item.get_global_id(_Dim_H);
 
-                    // Return the constituent element of the local id representing the work-item’s position within the current work-group in the given Dimension.
+                    // Return the constituent element of the local id representing the work-items position within the current work-group in the given Dimension.
                     const auto __local_id = __nd_item.get_local_id(_Dim_H);
                     assert(__nd_item.get_local_id(_Dim_V) == 1);
 
