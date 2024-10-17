@@ -257,11 +257,11 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 __cgh.parallel_for<_GlobalSortName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IndexT __i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto __i_elem_local = __i_elem % (__n_sorted * 2);
+                        const _IndexT __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        const auto __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
-                        const auto __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
-                        const auto __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
+                        const _IndexT __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
+                        const _IndexT __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
+                        const _IndexT __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
                         if (__data_in_temp)
                         {
@@ -307,7 +307,7 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
             // We cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__rng.size()),
                                                  [=](sycl::item</*dim=*/1> __item_id) {
-                                                     const std::uint64_t __idx = __item_id.get_linear_id();
+                                                     const std::size_t __idx = __item_id.get_linear_id();
                                                      __rng[__idx] = __temp_acc[__idx];
                                                  });
         });
@@ -342,10 +342,10 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
            "Leaf size must be a power of 2");
 
-    auto __q = __exec.queue();
+    sycl::queue __q = __exec.queue();
 
     // 1. Perform sorting of the leaves of the merge sort tree
-    auto __event_chain = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
+    sycl::event __event_chain = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
 
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
@@ -370,7 +370,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
 
     const std::size_t __n = __rng.size();
-    auto __device = __exec.queue().get_device();
+    sycl::device __device = __exec.queue().get_device();
 
     const std::size_t __max_wg_size = __device.template get_info<sycl::info::device::max_work_group_size>();
 
