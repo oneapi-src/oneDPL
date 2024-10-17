@@ -187,37 +187,34 @@ private:
     {
         static_assert(mode == data_in_out || mode == data_in_out_lim);
 
-        constexpr int max_n = 10;
-        DataType data_in[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        DataType data_out[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        DataType expected[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        Container cont_in(exec, n_in, [](auto i) { return i;});
+        Container cont_out(exec, n_out, [](auto i) { return 0;});
+        Container cont_exp(exec, n_out, [](auto i) { return 0;});
 
         assert(n_in <= max_n);
         assert(n_out <= max_n);
 
-        auto src_view = tr_in(std::ranges::subrange(data_in, data_in + n_in));
-        auto expected_res = checker(src_view, std::ranges::subrange(expected, expected + n_out), args...);
-        {
-            Container cont_in(exec, data_in, n_in);
-            Container cont_out(exec, data_out, n_out);
+        auto src_view = tr_in(std::views::all(cont_in()));
+        auto out_view = tr_out(std::views::all(cont_exp()));
+        auto expected_res = checker(src_view, out_view, args...);
 
-            typename Container::type& A = cont_in();
-            typename Container::type& B = cont_out();
+        typename Container::type& A = cont_in();
+        typename Container::type& B = cont_out();
 
-            auto res = algo(exec, tr_in(A), tr_out(B), args...);
-
-            //check result
-            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), B, args...))>, "Wrong return type");
-
-            auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
-            EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
-
-            auto bres_out = ret_out_val(expected_res, expected) == ret_out_val(res, B.begin());
-            EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
-        }
+        auto res = algo(exec, tr_in(A), tr_out(B), args...);
 
         //check result
-        EXPECT_EQ_N(expected, data_out, n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_out(B), args...))>, "Wrong return type");
+
+        auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
+        EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
+
+        //auto bres_out = ret_out_val(expected_res, expected) == ret_out_val(res, B.begin());
+        auto bres_out = ret_out_val(expected_res, out_view.begin()) == ret_out_val(res, tr_out(B).begin());
+        EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
+
+        //check result
+        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
 public:
@@ -225,7 +222,7 @@ public:
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
-        const int r_size = 10;
+        const int r_size = max_n;
         process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
     }
 
@@ -233,7 +230,7 @@ public:
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
-        const int r_size = 10;
+        const int r_size = max_n;
         process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
 
         //test case size of input range is less than size of output and viceversa
