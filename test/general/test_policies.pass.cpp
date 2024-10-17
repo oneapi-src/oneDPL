@@ -46,7 +46,7 @@ void test_policy_instance(const Policy& policy)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 template<typename Policy>
-void assert_is_execution_policy()
+constexpr void assert_is_execution_policy()
 {
     static_assert(oneapi::dpl::is_execution_policy<Policy>::value, "wrong result for oneapi::dpl::is_execution_policy");
     static_assert(oneapi::dpl::is_execution_policy_v<Policy>, "wrong result for oneapi::dpl::is_execution_policy_v");
