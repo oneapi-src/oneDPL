@@ -267,39 +267,36 @@ private:
     {
         static_assert(mode == data_in_in_out || mode == data_in_in_out_lim);
 
-        constexpr int max_n = 10;
-        DataType data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        DataType data_in2[max_n] = {0, 0, 2, 3, 4, 5, 6, 6, 6, 6};
-        constexpr int max_n_out = max_n*2;
-        DataType data_out[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //TODO: size
-        DataType expected[max_n_out] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        Container cont_in1(exec, n_in1, [](auto i) { return i;});
+        Container cont_in2(exec, n_in2, [](auto i) { return i/3;});
+
+        const int max_n_out = max_n*2;
+        Container cont_out(exec, max_n_out, [](auto i) { return 0;});
+        Container cont_exp(exec, max_n_out, [](auto i) { return 0;});
 
         assert(n_in1 <= max_n);
         assert(n_in2 <= max_n);
         assert(n_out <= max_n_out);
         
-        auto src_view1 = tr_in(std::ranges::subrange(data_in1, data_in1 + n_in1));
-        auto src_view2 = tr_in(std::ranges::subrange(data_in2, data_in2 + n_in2));
-        auto expected_res = checker(src_view1, src_view2, std::ranges::subrange(expected, expected + n_out), args...);
-        {
-            Container cont_in1(exec, data_in1, n_in1);
-            Container cont_in2(exec, data_in2, n_in2);
-            Container cont_out(exec, data_out, n_out);
+        auto src_view1 = tr_in(std::views::all(cont_in1()));
+        auto src_view2 = tr_in(std::views::all(cont_in2()));
+        auto expected_view = tr_in(std::views::all(cont_exp()));
+        auto expected_res = checker(src_view1, src_view2, expected_view, args...);
 
-            typename Container::type& A = cont_in1();
-            typename Container::type& B = cont_in2();
-            typename Container::type& C = cont_out();
+        typename Container::type& A = cont_in1();
+        typename Container::type& B = cont_in2();
+        typename Container::type& C = cont_out();
 
-            auto res = algo(exec, tr_in(A), tr_in(B), tr_out(C), args...);
+        auto res = algo(exec, tr_in(A), tr_in(B), tr_out(C), args...);
 
-            static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), C, args...))>, "Wrong return type");
+        static_assert(std::is_same_v<decltype(res), decltype(checker(tr_in(A), tr_in(B), tr_out(C), args...))>, "Wrong return type");
 
-            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
-            EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
-                typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
-        }
+        auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr_in(A).begin());
+        EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
+            typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
+
         //check result
-        EXPECT_EQ_N(expected, data_out, n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+        EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n_out, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
 public:
@@ -307,7 +304,7 @@ public:
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
-        const int r_size = 10;
+        const int r_size = max_n;
         process_data_in_in_out(r_size, r_size, r_size*2, std::forward<Policy>(exec), algo, checker, args...);
     }
 
@@ -315,7 +312,7 @@ public:
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
-        const int r_size = 10;
+        const int r_size = max_n;
         process_data_in_in_out(r_size, r_size, r_size, exec, algo, checker, args...);
         process_data_in_in_out(r_size/2, r_size, r_size, exec, algo, checker, args...);
         process_data_in_in_out(r_size, r_size/2, r_size, exec, algo, checker, args...);
