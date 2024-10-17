@@ -108,19 +108,12 @@ __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_s
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
 
-// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
-
 template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
     return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
-#else
-    return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
-#endif
 }
 
 template <typename _ExecutionPolicy>
@@ -130,7 +123,6 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
     const sycl::device& __device = __policy.queue().get_device();
     [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
     const ::std::uint32_t __sg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
             __device
 #    if _ONEDPL_LIBSYCL_VERSION < 60000
@@ -138,9 +130,6 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
             sycl::range<3> { __wg_size, 1, 1 }
 #    endif
         );
-#else
-        __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
-            __device, sycl::range<3>{__wg_size, 1, 1});
 #endif
     return __sg_size;
 }
@@ -267,7 +256,6 @@ class __kernel_compiler
     static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
     template <typename _Exec>
     static auto
     __compile(_Exec&& __exec)
@@ -290,18 +278,6 @@ class __kernel_compiler
     {
         return __kernel_array_type{__kernel_bundle.get_kernel(__kernel_ids[_Ip])...};
     }
-#else
-    template <typename _Exec>
-    static auto
-    __compile(_Exec&& __exec)
-    {
-        sycl::program __program(__exec.queue().get_context());
-
-        using __return_type = std::conditional_t<(__kernel_count > 1), __kernel_array_type, sycl::kernel>;
-        return __return_type{
-            (__program.build_with_kernel_type<_KernelNames>(), __program.get_kernel<_KernelNames>())...};
-    }
-#endif
 };
 
 #if _ONEDPL_DEBUG_SYCL
