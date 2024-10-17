@@ -298,10 +298,11 @@ struct __parallel_reduce_then_scan_reduce_submitter<__sub_group_size, __max_inpu
             __dpl_sycl::__local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng);
-            auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
+            auto __temp_acc = __scratch_container.__get_scratch_acc<sycl::access_mode::write>(__cgh);
             __cgh.parallel_for<_KernelName...>(
                     __nd_range, [=, *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
-                _InitValueType* __temp_ptr = _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+                _InitValueType* __temp_ptr =
+                    _TmpStorageAcc::__get_usm_or_buffer_accessor_ptr<sycl::access_mode::write>(__temp_acc);
                 std::size_t __group_id = __ndi.get_group(0);
                 __dpl_sycl::__sub_group __sub_group = __ndi.get_sub_group();
                 std::uint32_t __sub_group_id = __sub_group.get_group_linear_id();
@@ -453,7 +454,7 @@ struct __parallel_reduce_then_scan_scan_submitter<
             __dpl_sycl::__local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local + 1, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng, __out_rng);
-            auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
+            auto __temp_acc = __scratch_container.__get_scratch_acc<sycl::access_mode::read_write>(__cgh);
             auto __res_acc = __scratch_container.__get_result_acc<sycl::access_mode::write>(__cgh);
 
             __cgh.parallel_for<_KernelName...>(

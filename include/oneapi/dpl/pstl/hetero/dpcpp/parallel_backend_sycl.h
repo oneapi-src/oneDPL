@@ -319,6 +319,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // 1. Local scan on each workgroup
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
+            // TODO what is correct access mode here for __get_scratch_acc call?
+            // Is default sycl::access_mode::read_write is ok?
             auto __temp_acc = __result_and_scratch.__get_scratch_acc(__cgh);
             __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -340,6 +342,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             auto __iters_per_single_wg = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __wgroup_size);
             __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__submit_event);
+                // TODO what is correct access mode here for __get_scratch_acc call?
+                // Is default sycl::access_mode::read_write is ok?
                 auto __temp_acc = __result_and_scratch.__get_scratch_acc(__cgh);
                 __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -362,6 +366,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__submit_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
+            // TODO what is correct access mode here for __get_scratch_acc call?
+            // Is default sycl::access_mode::read_write is ok?
             auto __temp_acc = __result_and_scratch.__get_scratch_acc(__cgh);
             // TODO what is right access mode here?
             // sycl::access_mode::read_write is used by default.
