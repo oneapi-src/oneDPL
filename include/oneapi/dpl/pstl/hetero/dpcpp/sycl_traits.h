@@ -409,8 +409,8 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backen
 };
 
 template <typename _ExecutionPolicy, typename _Pred>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::single_match_pred,
-                                                       _ExecutionPolicy, _Pred)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::single_match_pred, _ExecutionPolicy,
+                                                       _Pred)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Pred>
 {
 };
