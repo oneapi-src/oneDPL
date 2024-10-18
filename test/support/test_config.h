@@ -88,13 +88,16 @@
 
 #define _PSTL_SYCL_TEST_USM 1
 
-// Enable test when the DPC++ backend is available
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
-     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
-    (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
-#define TEST_DPCPP_BACKEND_PRESENT 1
+// If DPCPP is requested, enable its testing
+#if ONEDPL_USE_DPCPP_BACKEND
+#    define TEST_DPCPP_BACKEND_PRESENT 1
+#elif !defined(ONEDPL_USE_DPCPP_BACKEND)
+#    define TEST_DPCPP_BACKEND_PRESENT 0
 #else
-#define TEST_DPCPP_BACKEND_PRESENT 0
+// Hack: delayed expansion based on _ONEDPL_HETERO_BACKEND, defined in oneDPL
+// TODO: avoid the hack by moving TEST_DPCPP_BACKEND_PRESENT into separate header and including after oneDPL headers
+//       this will require to update all tests to include the new header
+#    define TEST_DPCPP_BACKEND_PRESENT (_ONEDPL_HETERO_BACKEND)
 #endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
