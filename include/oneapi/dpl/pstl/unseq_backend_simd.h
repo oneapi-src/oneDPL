@@ -302,6 +302,52 @@ __simd_copy_if(_InputIterator __first, _DifferenceType __n, _OutputIterator __re
     return __result + __cnt;
 }
 
+//const _Size __block_size = __lane_size / sizeof(_Tp);
+template <typename _InputIt, typename _DiffTypeIn, typename _OutputIt, typename _DiffTypeOut, typename _UnaryPredicate>
+std::pair<_DiffTypeIn, _OutputIt>
+__simd_copy_if(_InputIt __first, _DiffTypeIn __n, _OutputIt __result, _DiffTypeOut __m, _UnaryPredicate __pred) noexcept
+{
+    _DiffTypeIn __i = 0;
+    _DiffTypeOut __cnt = 0;
+    if(__m >= __n)
+    {
+        _ONEDPL_PRAGMA_SIMD
+        for (__i = 0; __i < __n; ++__i)
+        {
+            _ONEDPL_PRAGMA_SIMD_ORDERED_MONOTONIC(__cnt : 1)
+            if (__pred(__first[__i]))
+            {
+                __result[__cnt] = __first[__i];
+                ++__cnt;
+            }
+        }
+    }
+    else // __m < __n
+    {
+        _ONEDPL_PRAGMA_SIMD
+        for (__i = 0; __i < __m; ++__i)
+        {
+            _ONEDPL_PRAGMA_SIMD_ORDERED_MONOTONIC(__cnt : 1)
+            if (__pred(__first[__i]))
+            {
+                __result[__cnt] = __first[__i];
+                ++__cnt;
+            }
+        }
+
+        //process the remaining (__n - __m) elements
+        for (__i = __m; __i < __n && __cnt < __m; ++__i)
+        {
+            if (__pred(__first[__i]))
+            {
+                __result[__cnt] = __first[__i];
+                ++__cnt;
+            }
+        }
+    }
+    return {__i, __cnt};
+}
+
 template <class _InputIterator, class _DifferenceType, class _BinaryPredicate>
 _DifferenceType
 __simd_calc_mask_2(_InputIterator __first, _DifferenceType __n, bool* __mask, _BinaryPredicate __pred) noexcept
@@ -326,6 +372,24 @@ __simd_calc_mask_1(_InputIterator __first, _DifferenceType __n, bool* __mask, _U
     _ONEDPL_PRAGMA_SIMD_REDUCTION(+ : __count)
     for (_DifferenceType __i = 0; __i < __n; ++__i)
     {
+        __mask[__i] = __pred(__first[__i]);
+        __count += __mask[__i];
+    }
+    return __count;
+}
+
+template <typename _InputIterator, typename _DifferenceType, typename _Bound, typename _UnaryPredicate>
+_DifferenceType
+__simd_calc_mask_1(_InputIterator __first, _DifferenceType __n, _Bound __m, bool* __mask, _UnaryPredicate __pred) noexcept
+{
+    _DifferenceType __count = 0;
+
+    _ONEDPL_PRAGMA_SIMD_EARLYEXIT_REDUCTION(+ : __count)
+    for (_DifferenceType __i = 0; __i < __n; ++__i)
+    {
+        if(__count >= __m)
+            break;
+
         __mask[__i] = __pred(__first[__i]);
         __count += __mask[__i];
     }
