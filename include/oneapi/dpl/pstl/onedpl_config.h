@@ -16,25 +16,11 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#include "../internal/version_impl.h"
 // The version header also defines a few configuration macros used in this file
+#include "../internal/version_impl.h"
 
-#if defined(ONEDPL_FPGA_DEVICE)
-#    undef _ONEDPL_FPGA_DEVICE
-#    define _ONEDPL_FPGA_DEVICE ONEDPL_FPGA_DEVICE
-#endif
-
-#if defined(ONEDPL_FPGA_EMULATOR)
-#    undef _ONEDPL_FPGA_EMU
-#    define _ONEDPL_FPGA_EMU ONEDPL_FPGA_EMULATOR
-#endif
-
-#if defined(ONEDPL_USE_PREDEFINED_POLICIES)
-#    undef _ONEDPL_PREDEFINED_POLICIES
-#    define _ONEDPL_PREDEFINED_POLICIES ONEDPL_USE_PREDEFINED_POLICIES
-#elif !defined(_ONEDPL_PREDEFINED_POLICIES)
-#    define _ONEDPL_PREDEFINED_POLICIES 1
-#endif
+// Check availability of the heterogenous backends, configure if available
+#include "oneapi/dpl/pstl/hetero_backend_config.h"
 
 // Check availability of parallel backends
 #if __has_include(<tbb/tbb.h>)
@@ -52,35 +38,6 @@
 #if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
 #    error "Parallel execution policies with OpenMP* support are enabled, \
         but OpenMP headers are not found or the compiler does not support OpenMP"
-#endif
-
-// Preliminary check SYCL availability
-#if (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-#    define _ONEDPL_SYCL_HEADER_PRESENT 1
-#endif
-#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-#    define _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT 1
-#endif
-#if _ONEDPL_SYCL_HEADER_PRESENT && _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
-#    define _ONEDPL_SYCL_AVAILABLE 1
-#endif
-// Intel(R) oneAPI DPC++/C++ Compiler provides SYCL_LANGUAGE_VERSION without sycl.hpp inclusion
-#if _ONEDPL_SYCL_HEADER_PRESENT && !_ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT && !defined(__INTEL_LLVM_COMPILER)
-#    define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
-#endif
-
-// If DPCPP backend is explicitly requested and SYCL is (possibly) available, enable it
-#if ONEDPL_USE_DPCPP_BACKEND && (_ONEDPL_SYCL_AVAILABLE || _ONEDPL_SYCL_POSSIBLY_AVAILABLE)
-#    define _ONEDPL_BACKEND_SYCL 1
-#endif
-// If DPCPP backend is explicitly requested and SYCL is definitely not available, throw an error
-#if ONEDPL_USE_DPCPP_BACKEND && !(_ONEDPL_SYCL_AVAILABLE || _ONEDPL_SYCL_POSSIBLY_AVAILABLE)
-#    error "Device execution policies are enabled, \
-        but SYCL* headers are not found or the compiler does not support SYCL"
-#endif
-// If DPCPP backend is not requested explicitly and SYCL is definitely available, enable it
-#if !defined(ONEDPL_USE_DPCPP_BACKEND) && _ONEDPL_SYCL_AVAILABLE
-#    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
 // Check the user-defined macro for warnings
@@ -272,33 +229,6 @@
 #define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
     (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
 
-// if SYCL policy switch on then let's switch hetero policy macro on
-#if _ONEDPL_BACKEND_SYCL
-#    if _ONEDPL_HETERO_BACKEND
-#        undef _ONEDPL_HETERO_BACKEND
-#    endif
-#    define _ONEDPL_HETERO_BACKEND 1
-// Include sycl specific options
-// FPGA doesn't support sub-groups
-#    if !(_ONEDPL_FPGA_DEVICE)
-#        define _USE_SUB_GROUPS 1
-#        define _USE_GROUP_ALGOS 1
-#    endif
-
-#    define _USE_RADIX_SORT (_USE_SUB_GROUPS && _USE_GROUP_ALGOS)
-
-// Compilation of a kernel is requiried to obtain valid work_group_size
-// when target devices are CPU or FPGA emulator. Since CPU and GPU devices
-// cannot be distinguished during compilation, the macro is enabled by default.
-#    if !defined(_ONEDPL_COMPILE_KERNEL)
-#        define _ONEDPL_COMPILE_KERNEL 1
-#    endif
-#endif
-
-#if !defined(ONEDPL_ALLOW_DEFERRED_WAITING)
-#    define ONEDPL_ALLOW_DEFERRED_WAITING 0
-#endif
-
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
@@ -326,8 +256,6 @@
 #else
 #    define _ONEDPL_CPP20_REQUIRES(req)
 #endif
-
-#define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
