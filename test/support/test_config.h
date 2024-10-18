@@ -91,25 +91,13 @@
 // If DPCPP is requested, enable its testing
 #if ONEDPL_USE_DPCPP_BACKEND
 #    define TEST_DPCPP_BACKEND_PRESENT 1
-#endif
-
-// If DPCPP backend is not explicitly requested, repeat oneDPL behavior
-// which enables DPCPP backend when SYCL is definitely available
-#if (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-#    define TEST_SYCL_HEADER_PRESENT 1
-#endif
-#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-#    define TEST_SYCL_LANGUAGE_VERSION_PRESENT 1
-#endif
-#if TEST_SYCL_HEADER_PRESENT && TEST_SYCL_LANGUAGE_VERSION_PRESENT
-#    define TEST_SYCL_AVAILABLE 1
-#endif
-#if !defined(ONEDPL_USE_DPCPP_BACKEND) && TEST_SYCL_AVAILABLE
-#    define TEST_DPCPP_BACKEND_PRESENT 1
-#endif
-
-#if !defined(TEST_DPCPP_BACKEND_PRESENT)
+#elif !defined(ONEDPL_USE_DPCPP_BACKEND)
 #    define TEST_DPCPP_BACKEND_PRESENT 0
+#else
+// Hack: delayed expansion based on _ONEDPL_HETERO_BACKEND, defined in oneDPL
+// TODO: avoid the hack by moving TEST_DPCPP_BACKEND_PRESENT into separate header and including after oneDPL headers
+//       this will require to update all tests to include the new header
+#    define TEST_DPCPP_BACKEND_PRESENT (_ONEDPL_HETERO_BACKEND)
 #endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
