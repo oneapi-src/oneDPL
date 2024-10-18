@@ -33,8 +33,6 @@ main()
         return ret_type{res.in, res.out};
     };
 
-    const std::size_t big_sz = 1<<25; //32M
-
     test_range_algo<0, int, data_in_out>{big_sz}(dpl_ranges::copy_if,  copy_if_checker, pred);
     test_range_algo<1, int, data_in_out>{}(dpl_ranges::copy_if,  copy_if_checker, pred, proj);
     test_range_algo<2, P2, data_in_out>{}(dpl_ranges::copy_if,  copy_if_checker, pred, &P2::x);

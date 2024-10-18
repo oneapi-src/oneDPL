@@ -32,9 +32,13 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 #include <type_traits>
 #include <string>
 #include <ranges>
+#include <algorithm>
+#include <memory>
 
 namespace test_std_ranges
 {
+
+inline constexpr std::size_t big_sz = 1<<25+10; //32M
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>

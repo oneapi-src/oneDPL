@@ -22,8 +22,6 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    const std::size_t big_sz = 1<<25; //32M
-
     test_range_algo<0>{big_sz}(dpl_ranges::find, std::ranges::find, 4);  //found case
     test_range_algo<1>{}(dpl_ranges::find, std::ranges::find, -1); //not found case
     test_range_algo<2>{}(dpl_ranges::find, std::ranges::find, 4, proj);
