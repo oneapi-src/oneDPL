@@ -173,7 +173,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                                                                            __binary_op, __sub_group_carry);
         if constexpr (__capture_output)
         {
-            __write_op(__in_rng, __out_rng, __start_id, __v);
+            __write_op(__out_rng, __start_id, __v);
         }
 
         if (__is_full_block)
@@ -187,7 +187,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
                 if constexpr (__capture_output)
                 {
-                    __write_op(__in_rng, __out_rng, __start_id + __j * __sub_group_size, __v);
+                    __write_op(__out_rng, __start_id + __j * __sub_group_size, __v);
                 }
             }
         }
@@ -202,7 +202,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
                 if constexpr (__capture_output)
                 {
-                    __write_op(__in_rng, __out_rng, __start_id + __j * __sub_group_size, __v);
+                    __write_op(__out_rng, __start_id + __j * __sub_group_size, __v);
                 }
             }
         }
@@ -225,7 +225,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                 if constexpr (__capture_output)
                 {
                     if (__start_id < __n)
-                        __write_op(__in_rng, __out_rng, __start_id, __v);
+                        __write_op(__out_rng, __start_id, __v);
                 }
             }
             else
@@ -235,7 +235,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                     __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
                 if constexpr (__capture_output)
                 {
-                    __write_op(__in_rng, __out_rng, __start_id, __v);
+                    __write_op(__out_rng, __start_id, __v);
                 }
 
                 for (std::uint32_t __j = 1; __j < __iters - 1; __j++)
@@ -246,7 +246,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                         __sub_group, __scan_input_transform(__v), __binary_op, __sub_group_carry);
                     if constexpr (__capture_output)
                     {
-                        __write_op(__in_rng, __out_rng, __local_id, __v);
+                        __write_op(__out_rng, __local_id, __v);
                     }
                 }
 
@@ -259,7 +259,7 @@ __scan_through_elements_helper(const __dpl_sycl::__sub_group& __sub_group, _GenI
                 if constexpr (__capture_output)
                 {
                     if (__offset < __n)
-                        __write_op(__in_rng, __out_rng, __offset, __v);
+                        __write_op(__out_rng, __offset, __v);
                 }
             }
         }
