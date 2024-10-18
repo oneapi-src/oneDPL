@@ -919,7 +919,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     // whether or not to use reduce-then-scan here.
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
-        auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment(
+        auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
             _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__keys),
             std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values),
             __binary_pred, __binary_op);

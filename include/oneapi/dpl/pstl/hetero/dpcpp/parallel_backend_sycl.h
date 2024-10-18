@@ -789,7 +789,7 @@ struct __gen_transform_input
 };
 
 template <typename _BinaryPred>
-struct __gen_red_by_seg_input
+struct __gen_red_by_seg_reduce_input
 {
     template <typename _InRng>
     auto
@@ -798,11 +798,33 @@ struct __gen_red_by_seg_input
         auto&& __in_keys = std::get<0>(__in_rng.tuple());
         auto&& __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
-        if (__id == 0 || __binary_pred(__in_keys[__id - 1], __in_keys[__id]))
-            return oneapi::dpl::__internal::make_tuple(size_t{0}, _ValueType{__in_vals[__id]});
-        return oneapi::dpl::__internal::make_tuple(size_t{1}, _ValueType{__in_vals[__id]});
+        std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
+        return oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]});
     }
     _BinaryPred __binary_pred;
+    std::size_t __n;
+};
+
+template <typename _BinaryPred>
+struct __gen_red_by_seg_scan_input
+{
+    template <typename _InRng>
+    auto
+    operator()(const _InRng& __in_rng, std::size_t __id) const
+    {
+        auto&& __in_keys = std::get<0>(__in_rng.tuple());
+        auto&& __in_vals = std::get<1>(__in_rng.tuple());
+        using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
+        // Each beginning segment is marked with a flag to know when to stop reduce lower indexed inputs
+        std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
+        // Each last element in a segment is marked with an output flag to store its reduction in the write phase
+        bool __output_mask = __id == __n - 1 || !__binary_pred(__in_keys[__id], __in_keys[__id + 1]);
+        const auto __candidate_key = __id < __n - 1 ? __in_keys[__id + 1] : __in_keys[__id];
+        return oneapi::dpl::__internal::make_tuple(oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+                                                   __output_mask, __candidate_key);
+    }
+    _BinaryPred __binary_pred;
+    std::size_t __n;
 };
 
 template <typename _BinaryOp>
@@ -828,22 +850,26 @@ struct __write_red_by_seg
 {
     template <typename _InRng, typename _OutRng, typename _Tup>
     void
-    operator()(_InRng& __in_rng, _OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
+    operator()(const _InRng& __in_rng, _OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
     {
+        using std::get;
         auto&& __in_keys = std::get<0>(__in_rng.tuple());
         auto&& __out_keys = std::get<0>(__out_rng.tuple());
         auto&& __out_values = std::get<1>(__out_rng.tuple());
-        // TODO: substantial improvement expected with special handling in kernel
-        // The first key must be output to __out_keys[__id] for a segment, so when we encounter a segment end we
-        // must output the current segment's value and the next segment's key.
+        // TODO: substantial improvement expected with special handling in kernel of first and last sub-groups.
+        // The first key must be output to __out_keys for a segment, so when we encounter a segment end we
+        // must output the current segment's value and the next segment's key. For index zero we must special handle
+        // and write the first key from the current index. 
         if (__id == 0)
-            __out_keys[0] = __in_keys[0];
+            __out_keys[0] = __in_keys[0]; 
+        // We are at the end of the input so there is no key to output for the next segment
         if (__id == __n - 1)
-            __out_values[std::get<0>(__tup)] = std::get<1>(__tup);
-        else if (!__binary_pred(__in_keys[__id], __in_keys[__id + 1]))
+            __out_values[get<0>(get<0>(__tup))] = get<1>(get<0>(__tup));
+        // Update the current segment's output value and the next segment's key value
+        else if (get<1>(__tup))
         {
-            __out_keys[std::get<0>(__tup) + 1] = __in_keys[__id + 1];
-            __out_values[std::get<0>(__tup)] = std::get<1>(__tup);
+            __out_keys[get<0>(get<0>(__tup)) + 1] = get<2>(__tup);
+            __out_values[get<0>(get<0>(__tup))] = get<1>(get<0>(__tup));
         }
     }
     _BinaryPred __binary_pred;
@@ -1253,14 +1279,14 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
           typename _BinaryPredicate, typename _BinaryOperator>
 auto
-__parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                             _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
-                             _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+__parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
+                                              _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
+                                              _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
-    using _GenReduceInput = __gen_red_by_seg_input<_BinaryPredicate>;
+    using _GenReduceInput = __gen_red_by_seg_reduce_input<_BinaryPredicate>;
     using _ReduceOp = __red_by_seg_op<_BinaryOperator>;
-    using _GenScanInput = _GenReduceInput;
-    using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
+    using _GenScanInput = __gen_red_by_seg_scan_input<_BinaryPredicate>;
+    using _ScanInputTransform = __get_zeroth_element;
     using _WriteOp = __write_red_by_seg<_BinaryPredicate>;
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
     std::size_t __n = __keys.size();
@@ -1268,7 +1294,7 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag __bac
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
         oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
-        _GenReduceInput{__binary_pred}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred}, _ScanInputTransform{},
+        _GenReduceInput{__binary_pred, __n}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred, __n}, _ScanInputTransform{},
         _WriteOp{__binary_pred, __n},
         oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{},
         /*Inclusive*/ std::true_type{}, /*_IsUniquePattern=*/std::false_type{});
