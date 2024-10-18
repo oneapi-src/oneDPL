@@ -28,6 +28,7 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#include <optional>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -795,8 +796,8 @@ struct __gen_red_by_seg_reduce_input
     auto
     operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        auto&& __in_keys = std::get<0>(__in_rng.tuple());
-        auto&& __in_vals = std::get<1>(__in_rng.tuple());
+        auto __in_keys = std::get<0>(__in_rng.tuple());
+        auto __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
         std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
         return oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]});
@@ -821,15 +822,19 @@ struct __gen_red_by_seg_scan_input
         auto __in_keys = std::get<0>(__in_rng.tuple());
         auto __in_vals = std::get<1>(__in_rng.tuple());
         using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__in_keys)>;
+        using _OptKeyType = std::optional<_KeyType>;
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
+        _OptKeyType __first_key;
+        if (__id == 0)
+            __first_key = _OptKeyType{__in_keys[0]};
         std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
         if (__id == __n - 1)
             return oneapi::dpl::__internal::make_tuple(
                 oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true,
-                _KeyType{__in_keys[__id]}); // __in_keys[__id] is an unused placeholder
+                _KeyType{__in_keys[__id]}, __first_key); // __in_keys[__id] is an unused placeholder
         return oneapi::dpl::__internal::make_tuple(
             oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
-            !__binary_pred(__in_keys[__id], __in_keys[__id + 1]), _KeyType{__in_keys[__id + 1]});
+            !__binary_pred(__in_keys[__id], __in_keys[__id + 1]), _KeyType{__in_keys[__id + 1]}, __first_key);
     }
     _BinaryPred __binary_pred;
     std::size_t __n;
@@ -858,12 +863,11 @@ struct __red_by_seg_op
 template <typename _BinaryPred>
 struct __write_red_by_seg
 {
-    template <typename _InRng, typename _OutRng, typename _Tup>
+    template <typename _OutRng, typename _Tup>
     void
-    operator()(const _InRng& __in_rng, _OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
+    operator()(_OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
     {
         using std::get;
-        auto __in_keys = get<0>(__in_rng.tuple());
         auto __out_keys = get<0>(__out_rng.tuple());
         auto __out_values = get<1>(__out_rng.tuple());
         using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__out_keys)>;
@@ -875,7 +879,7 @@ struct __write_red_by_seg
         const std::size_t __out_idx = get<0>(get<0>(__tup));
 
         if (__id == 0)
-            __out_keys[0] = __in_keys[0];
+            __out_keys[0] = *get<3>(__tup);
         if (__is_seg_end)
         {
             __out_values[__out_idx] = __cur_segment_value;
@@ -889,9 +893,9 @@ struct __write_red_by_seg
 
 struct __simple_write_to_id
 {
-    template <typename _InRng, typename _OutRng, typename _ValueType>
+    template <typename _OutRng, typename _ValueType>
     void
-    operator()(const _InRng&, _OutRng& __out_rng, std::size_t __id, const _ValueType& __v) const
+    operator()(_OutRng& __out_rng, std::size_t __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
@@ -1038,9 +1042,9 @@ struct __get_zeroth_element
 template <std::int32_t __offset, typename _Assign>
 struct __write_to_id_if
 {
-    template <typename _InRng, typename _OutRng, typename _SizeType, typename _ValueType>
+    template <typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(const _InRng&, _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
+    operator()(_OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         // Use of an explicit cast to our internal tuple type is required to resolve conversion issues between our
         // internal tuple and std::tuple. If the underlying type is not a tuple, then the type will just be passed through.
@@ -1056,9 +1060,9 @@ struct __write_to_id_if
 template <typename _Assign>
 struct __write_to_id_if_else
 {
-    template <typename _InRng, typename _OutRng, typename _SizeType, typename _ValueType>
+    template <typename _OutRng, typename _SizeType, typename _ValueType>
     void
-    operator()(const _InRng&, _OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
+    operator()(_OutRng& __out_rng, _SizeType __id, const _ValueType& __v) const
     {
         using _ConvertedTupleType =
             typename oneapi::dpl::__internal::__get_tuple_type<std::decay_t<decltype(std::get<2>(__v))>,
