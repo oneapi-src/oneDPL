@@ -808,20 +808,28 @@ struct __gen_red_by_seg_reduce_input
 template <typename _BinaryPred>
 struct __gen_red_by_seg_scan_input
 {
+    // Returns the following tuple:
+    // ((new_seg_mask: size_t, value: ValueType), output_value: bool, candidate_key: KeyType)
+    // new_seg_mask : 1 for a start of a new segment, 0 otherwise
+    // value        : Current element's value for reduction
+    // output_value : Whether this work-item should write an output
+    // candidate_key: The key of the next segment to write if output_value is true.
     template <typename _InRng>
     auto
     operator()(const _InRng& __in_rng, std::size_t __id) const
     {
-        auto&& __in_keys = std::get<0>(__in_rng.tuple());
-        auto&& __in_vals = std::get<1>(__in_rng.tuple());
+        auto __in_keys = std::get<0>(__in_rng.tuple());
+        auto __in_vals = std::get<1>(__in_rng.tuple());
+        using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__in_keys)>;
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
-        // Each beginning segment is marked with a flag to know when to stop reduce lower indexed inputs
         std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
-        // Each last element in a segment is marked with an output flag to store its reduction in the write phase
-        bool __output_mask = __id == __n - 1 || !__binary_pred(__in_keys[__id], __in_keys[__id + 1]);
-        const auto __candidate_key = __id < __n - 1 ? __in_keys[__id + 1] : __in_keys[__id];
-        return oneapi::dpl::__internal::make_tuple(oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
-                                                   __output_mask, __candidate_key);
+        if (__id == __n - 1)
+            return oneapi::dpl::__internal::make_tuple(
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true,
+                _KeyType{__in_keys[__id]}); // __in_keys[__id] is an unused placeholder
+        return oneapi::dpl::__internal::make_tuple(
+            oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+            !__binary_pred(__in_keys[__id], __in_keys[__id + 1]), _KeyType{__in_keys[__id + 1]});
     }
     _BinaryPred __binary_pred;
     std::size_t __n;
@@ -834,13 +842,15 @@ struct __red_by_seg_op
     auto
     operator()(const _Tup1& __lhs_tup, const _Tup2& __rhs_tup) const
     {
+        using std::get;
+        // The left-hand side has processed elements from the same segment, so update the reduction value.
         if (std::get<0>(__rhs_tup) == 0)
         {
-            return oneapi::dpl::__internal::make_tuple(std::get<0>(__lhs_tup),
-                                                       __binary_op(std::get<1>(__lhs_tup), std::get<1>(__rhs_tup)));
+            return oneapi::dpl::__internal::make_tuple(get<0>(__lhs_tup),
+                                                       __binary_op(get<1>(__lhs_tup), get<1>(__rhs_tup)));
         }
-        return oneapi::dpl::__internal::make_tuple(std::get<0>(__lhs_tup) + std::get<0>(__rhs_tup),
-                                                   std::get<1>(__rhs_tup));
+        // We are looking at elements from a previous segment so just update the output index.
+        return oneapi::dpl::__internal::make_tuple(get<0>(__lhs_tup) + get<0>(__rhs_tup), get<1>(__rhs_tup));
     }
     _BinaryOp __binary_op;
 };
@@ -853,23 +863,24 @@ struct __write_red_by_seg
     operator()(const _InRng& __in_rng, _OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
     {
         using std::get;
-        auto&& __in_keys = std::get<0>(__in_rng.tuple());
-        auto&& __out_keys = std::get<0>(__out_rng.tuple());
-        auto&& __out_values = std::get<1>(__out_rng.tuple());
-        // TODO: substantial improvement expected with special handling in kernel of first and last sub-groups.
-        // The first key must be output to __out_keys for a segment, so when we encounter a segment end we
-        // must output the current segment's value and the next segment's key. For index zero we must special handle
-        // and write the first key from the current index. 
+        auto __in_keys = get<0>(__in_rng.tuple());
+        auto __out_keys = get<0>(__out_rng.tuple());
+        auto __out_values = get<1>(__out_rng.tuple());
+        using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__out_keys)>;
+        using _ValType = oneapi::dpl::__internal::__value_t<decltype(__out_values)>;
+
+        const _KeyType& __next_segment_key = get<2>(__tup);
+        const _ValType& __cur_segment_value = get<1>(get<0>(__tup));
+        const bool __is_seg_end = get<1>(__tup);
+        const std::size_t __out_idx = get<0>(get<0>(__tup));
+
         if (__id == 0)
-            __out_keys[0] = __in_keys[0]; 
-        // We are at the end of the input so there is no key to output for the next segment
-        if (__id == __n - 1)
-            __out_values[get<0>(get<0>(__tup))] = get<1>(get<0>(__tup));
-        // Update the current segment's output value and the next segment's key value
-        else if (get<1>(__tup))
+            __out_keys[0] = __in_keys[0];
+        if (__is_seg_end)
         {
-            __out_keys[get<0>(get<0>(__tup)) + 1] = get<2>(__tup);
-            __out_values[get<0>(get<0>(__tup))] = get<1>(get<0>(__tup));
+            __out_values[__out_idx] = __cur_segment_value;
+            if (__id != __n - 1)
+                __out_keys[__out_idx + 1] = __next_segment_key;
         }
     }
     _BinaryPred __binary_pred;
