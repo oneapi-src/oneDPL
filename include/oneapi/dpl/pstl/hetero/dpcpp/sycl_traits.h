@@ -237,7 +237,10 @@ template <typename _UnaryOp>
 struct __gen_transform_input;
 
 template <typename _BinaryPred>
-struct __gen_red_by_seg_input;
+struct __gen_red_by_seg_reduce_input;
+
+template <typename _BinaryPred>
+struct __gen_red_by_seg_scan_input;
 
 template <typename _Predicate>
 struct __gen_mask;
@@ -276,7 +279,14 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backen
 };
 
 template <typename _BinaryPred>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_red_by_seg_input,
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_red_by_seg_reduce_input,
+                                                       _BinaryPred)>
+    : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryPred>
+{
+};
+
+template <typename _BinaryPred>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__par_backend_hetero::__gen_red_by_seg_scan_input,
                                                        _BinaryPred)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryPred>
 {
