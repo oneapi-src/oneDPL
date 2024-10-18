@@ -45,7 +45,7 @@ namespace __par_backend_hetero
 //   |             ---->
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-auto
+std::pair<_Index, _Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Index __rng1_to,
                       const _Rng2& __rng2, const _Index __rng2_from, const _Index __rng2_to,
                       const _Index __i_elem,
@@ -57,36 +57,66 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Inde
 
     if (__i_elem < __n2) //a condition to specify upper or lower part of the merge matrix to be processed
     {
-        const _Index __q = __i_elem;                         //diagonal index
-        const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+        const _Index __q = __i_elem;                    // diagonal index
+        const _Index __n_diag = std::min(__q, __n1);    // diagonal size
+
+        auto __res = std::lower_bound(
+            __diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+            [&__rng2, &__rng1, __rng1_from, __rng1_to, __rng2_from, __rng2_to, __q, __comp]
+            (const auto& __i_diag, const auto& __value) mutable
+            {
+                const auto __idx_rng_1 = __q - __i_diag;
+                const auto __idx_rng_2 = __q - __i_diag - 1;
+                if (__rng1_from <= __idx_rng_1 && __idx_rng_1 < __rng1_to &&
+                    __rng2_from <= __idx_rng_2 && __idx_rng_2 < __rng2_to)
+                {
+                    const auto __zero_or_one =
+                        __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
+                    return __zero_or_one < __value;
+                }
+                else
+                {
+                    return false;
+                }
+            });
         return std::make_pair(*__res, __q - *__res);
     }
     else
     {
-        const _Index __q = __i_elem - __n2;                         //diagonal index
-        const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
-                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                                 return __zero_or_one < __value;
-                             });
+        const _Index __q = __i_elem - __n2;                     // diagonal index
+        const _Index __n_diag = std::min(__n1 - __q, __n2);     // diagonal size
+
+        auto __res = std::lower_bound(
+            __diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+            [&__rng2, &__rng1, __rng1_from, __rng1_to, __rng2_from, __rng2_to, __q, __n1, __n2, __comp]
+            (const auto& __i_diag, const auto& __value) mutable
+            {
+                const auto __idx_rng_1 = __q + __i_diag;
+                const auto __idx_rng_2 = __n2 - __i_diag - 1;
+                if (__rng1_from <= __idx_rng_1 && __idx_rng_1 < __rng1_to &&
+                    __rng2_from <= __idx_rng_2 && __idx_rng_2 < __rng2_to)
+                {
+                    const auto __zero_or_one =
+                        __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
+                    return __zero_or_one < __value;
+                }
+                else
+                {
+                    return false;
+                }
+            });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
 }
 
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-auto
+std::pair<_Index, _Index>
 __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
                    const _Index __n2, _Compare __comp)
 {
-    return __find_start_point_in(__rng1, 0, __rng1.size(), __rng2, 0, __rng2.size(), __i_elem, __n1, __n2, __comp);
+    return __find_start_point_in(__rng1, (_Index)0, (_Index)__rng1.size(),
+                                 __rng2, (_Index)0, (_Index)__rng2.size(),
+                                 __i_elem, __n1, __n2, __comp);
 }
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
@@ -428,10 +458,217 @@ struct __parallel_merge_submitter_large_V0<_IdType, __internal::__optional_kerne
 };
 
 template <typename _IdType, typename... _Name>
-struct __parallel_merge_submitter_V1<_IdType, __internal::__optional_kernel_name<_Name...>>
+struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
+  protected:
+
+    // Define the type for describing split point
+    using __split_point_t = std::pair<_IdType, _IdType>;
+
+    template <typename _ExecutionPolicy>
+    using __split_points_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __split_point_t>;
+
+    template <typename _ExecutionPolicy>
+    using __future_split_points_t = __future<sycl::event, __split_points_scratch_storage_t<_ExecutionPolicy>>;
+
+    // Get defaults diagonal interval
+    template <typename _ExecutionPolicy>
+    std::uint16_t
+    __get_default_diagonal_interval() const
+    {
+        // Empirical number of values to process per work-item
+        //const std::uint8_t __diagonals_interval = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        constexpr std::uint16_t __diagonals_interval = 1000;
+
+        return __diagonals_interval;
+    }
+
+    // Calculate and return split points
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Compare>
+    __future_split_points_t<_ExecutionPolicy>
+    __calculate_split_points(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Compare __comp) const
+    {
+        const _IdType __n1 = __rng1.size();
+        const _IdType __n2 = __rng2.size();
+        const _IdType __n = __n1 + __n2;        // == 25'500'000
+
+        const auto __main_diag_offset = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2);                             // 12'750'000
+        const auto __nearest_to_main_diagonal_offset = oneapi::dpl::__internal::__dpl_bit_floor(__main_diag_offset);    //  8'388'608
+        const auto __iterations = 2 * sycl::ctz(__nearest_to_main_diagonal_offset);                                     //         23
+
+        const auto __diagonals_interval = __get_default_diagonal_interval<_ExecutionPolicy>();                          //  1'000
+        const auto __diagonals_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __diagonals_interval);           // 25'500
+        const auto __half_of_diagonals_count = oneapi::dpl::__internal::__dpl_ceiling_div(__diagonals_count, 2);        // 12'750
+
+        // In result storage we save iteration (diagonal no devisor) number
+        __split_points_scratch_storage_t<_ExecutionPolicy> __split_points(__exec, 1, __diagonals_count);
+
+        // Build Kernel name for split points Kernel
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+        using _FindSplitPointsKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _find_split_points_kernel, _CustomName, _Range1, _Range2, _IdType, _Compare>;
+
+        using __iteration_t = unsigned int;
+
+        // The multiplicity of the processing diagonal number (aka __linear_id)
+        __iteration_t __iteration_state = __half_of_diagonals_count;
+        // The flag to indicate that the data is initialized
+        __iteration_t __data_initialized = 0;
+
+        using __itertations_atomic_t = __dpl_sycl::__atomic_ref<__iteration_t, sycl::access::address_space::global_space>;
+
+        sycl::event __event;
+        {   // for sycl::buffer scope
+            const sycl::range</*dim=*/1> __range_1(1);
+            sycl::buffer<__iteration_t, 1> __iteration_state_buffer (&__iteration_state,  __range_1);
+            sycl::buffer<__iteration_t, 1> __data_initialized_buffer(&__data_initialized, __range_1);
+
+            __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
+
+                // Get access to iterations number
+                auto __result_acc = __split_points.__get_result_acc(__cgh);
+                auto __result_ptr = __split_points.__get_usm_or_buffer_accessor_ptr(__result_acc);
+
+                // Get access to the split points
+                auto __split_points_acc = __split_points.__get_scratch_acc(__cgh);
+                auto __split_points_ptr = __split_points.__get_usm_or_buffer_accessor_ptr(__split_points_acc);
+
+                auto __iteration_state_buffer_acc  = __iteration_state_buffer.get_access<sycl::access::mode::read_write>(__cgh);
+                auto __data_initialized_buffer_acc = __data_initialized_buffer.get_access<sycl::access::mode::read_write>(__cgh);
+
+                __cgh.parallel_for<_FindSplitPointsKernel>(
+                    sycl::range</*dim=*/1>(__diagonals_count),
+                    [=](sycl::item</*dim=*/1> __item_id) {
+
+                        const auto __linear_id = __item_id.get_linear_id();
+
+                        __itertations_atomic_t __iteration_ref       (__iteration_state_buffer_acc [0]);
+                        __itertations_atomic_t __data_initialized_ref(__data_initialized_buffer_acc[0]);
+
+                        // Common data initialization
+                        if (__linear_id == 0 && __data_initialized_ref.load() == 0)
+                        {
+                            __split_points_ptr[0] = std::pair{0, 0};
+                            __split_points_ptr[__diagonals_count - 1] = std::pair{__n1, __n2};
+
+                            __data_initialized_ref.store(1);
+                        }
+                        else
+                        {
+                            while (__data_initialized_ref.load() == 0)
+                            {
+                                // Do nothing
+                            }
+                        }
+
+                        const __iteration_t __iteration_ref_loaded = __iteration_ref.load();
+
+                        // The number of the processing diagonal is a multiple of the iteration number
+                        // We did not process this diagonal in the previous iterations
+                        if (0 < __linear_id && __linear_id % __iteration_ref_loaded == 0/*
+                            && __linear_id * 2 % __iteration_ref_loaded != 0*/)
+                        {
+                            const _IdType __diagonal_offset = __linear_id * __diagonals_interval;
+
+                            __split_point_t __split_point;
+                            if (__item_id % __half_of_diagonals_count == 0)
+                            {
+                                __split_point = __find_start_point(__rng1, __rng2, __diagonal_offset, __n1, __n2, __comp);
+                            }
+                            else
+                            {
+                                const _IdType __rng1_from = __item_id < __half_of_diagonals_count ? 0 : __split_points_ptr[__half_of_diagonals_count].first;
+                                const _IdType __rng1_to   = __item_id < __half_of_diagonals_count ? __split_points_ptr[__half_of_diagonals_count].first : __n1;
+                                const _IdType __rng2_from = __item_id < __half_of_diagonals_count ? 0 : __split_points_ptr[__half_of_diagonals_count].second;
+                                const _IdType __rng2_to   = __item_id < __half_of_diagonals_count ? __split_points_ptr[__half_of_diagonals_count].second : __n2;
+
+                                __split_point = __find_start_point_in(__rng1, __rng1_from, __rng1_to,
+                                                                        __rng2, __rng2_from, __rng2_to,
+                                                                        __diagonal_offset,
+                                                                        __n1, __n2,
+                                                                        __comp);
+                            }
+
+                            __split_points_ptr[__linear_id] = __split_point;
+                        }
+
+                        if (__linear_id > 0)
+                        {
+                            // We are waiting for the first work-item to change the iteration number.
+                            while (__iteration_ref.load() == __iteration_ref_loaded)
+                            {
+                                // Do nothing.
+                            }
+                        }
+                        else
+                        {
+                            __iteration_ref.store(__iteration_ref_loaded / 2);
+                        }
+                    });
+            });
+        }   // for sycl::buffer scope
+
+        return __future(__event, __split_points);
+    }
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare, typename _F>
+    __future<sycl::event>
+    __merge_data(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3& __rng3, _Compare __comp,
+                 _F __future_split_points) const
+    {
+        const _IdType __n1 = __rng1.size();
+        const _IdType __n2 = __rng2.size();
+
+        auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+
+            // We should wait for the first kernel to finish
+            __cgh.depends_on(__future_split_points.event());
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
+
+            // Get access to the split points
+            const auto& __split_points = std::get<0>(__future_split_points.get_tuple());
+            auto __split_points_acc = __split_points.__get_scratch_acc(__cgh);
+            auto __split_points_ptr = __split_points.__get_usm_or_buffer_accessor_ptr(__split_points_acc);
+
+            // Get count of split_points
+            const std::size_t __diagonals_count = __split_points.__get_scratch_n();
+
+            __cgh.parallel_for<_Name...>(
+                sycl::range</*dim=*/1>(__diagonals_count),
+                [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const auto __linear_id = __item_id.get_linear_id();
+
+                    const __split_point_t __sp_current = __split_points_ptr[__linear_id];
+
+                    std::uint8_t __chunk = 0;
+                    if (__linear_id + 1 < __diagonals_count)
+                    {
+                        const __split_point_t __sp_next = __split_points_ptr[__linear_id + 1];
+                        __chunk = __sp_next.first + __sp_next.second - (__sp_current.first + __sp_current.second);
+                    }
+                    else
+                    {
+                        // TODO how to define correct __chunk value here?
+                    }
+
+                    // Run merge from current splitting point
+                    __serial_merge(__rng1, __rng2, __rng3,
+                                   __sp_current.first, __sp_current.second,
+                                   __sp_current.first + __sp_current.second,
+                                   __chunk, __n1, __n2, __comp);
+                });
+        });
+
+        return __future(__event);
+    }
+
+public:
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    auto
+    __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         const _IdType __n1 = __rng1.size();
@@ -442,25 +679,13 @@ struct __parallel_merge_submitter_V1<_IdType, __internal::__optional_kernel_name
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        // Empirical number of values to process per work-item
-        //const std::uint8_t __diagonals_interval = __exec.queue().get_device().is_cpu() ? 128 : 4;
-        const std::uint8_t __diagonals_interval = 10;
+        // Run Kernel1: find split points
+        auto __future_split_points = __calculate_split_points(__exec, __rng1, __rng2, __comp);
 
-        // Number of diagonals to process
-        const _IdType __diagonals_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __diagonals_interval);
+        // Run Kernel 2: merge by split points
+        auto __future_merge = __merge_data(__exec, __rng1, __rng2, __rng3, __comp, __future_split_points);
 
-        auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            __cgh.parallel_for<_Name...>(
-                sycl::range</*dim=*/1>(__diagonals_count), [=](sycl::item</*dim=*/1> __item_id) {
-                    const _IdType __diagonal_offset = __item_id.get_linear_id() * __diagonals_interval;
-                    const auto __start = __find_start_point(__rng1, __rng2, __diagonal_offset, __n1, __n2, __comp);
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __diagonal_offset,
-                                   __diagonals_interval, __n1, __n2, __comp);
-                });
-        });
-
-        return __future(__event);
+        return __future(__future_merge);
     }
 };
 
@@ -468,8 +693,8 @@ template <typename... _Name>
 class __merge_kernel_name;
 
 template <typename _IdType, typename... _Name>
-using __parallel_merge_submitter_large = __parallel_merge_submitter_large_V0<_IdType, ..._Name>;
-//using __parallel_merge_submitter_large = __parallel_merge_submitter_large_V0<_IdType, ..._Name>;
+using __parallel_merge_submitter_large = __parallel_merge_submitter_large_V1<_IdType, _Name...>;
+//using __parallel_merge_submitter_large = __parallel_merge_submitter_large_V0<_IdType, _Name...>;
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
@@ -511,7 +736,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             using _WiIndex = std::uint32_t;
             using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large_V0<_WiIndex, _MergeKernel>()(
+            return __parallel_merge_submitter_large<_WiIndex, _MergeKernel>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
@@ -520,7 +745,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             using _WiIndex = std::uint64_t;
             using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large_V0<_WiIndex, _MergeKernel>()(
+            return __parallel_merge_submitter_large<_WiIndex, _MergeKernel>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
