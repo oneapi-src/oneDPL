@@ -743,8 +743,11 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
-    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+
+    using _tuple_t = std::tuple<_Args...>;
+
+    __future(_Event __e, _Args... __args) : _tuple_t(__args...), __my_event(__e) {}
+    __future(_Event __e, _tuple_t __t) : _tuple_t(__t), __my_event(__e) {}
 
     auto
     event() const
@@ -787,6 +790,13 @@ class __future : private std::tuple<_Args...>
             wait();
     }
 
+    // TODO I don't understood how to avoid this and use existing methods
+    const _tuple_t&
+    get_tuple() const
+    {
+        return static_cast<const _tuple_t&>(*this);
+    }
+
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
     //where a future is created.
     template <typename _T>
@@ -794,7 +804,7 @@ class __future : private std::tuple<_Args...>
     __make_future(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
+        auto new_tuple = std::tuple_cat(new_val, static_cast<_tuple_t>(*this));
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
