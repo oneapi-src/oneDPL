@@ -274,7 +274,7 @@
 #    define _ONEDPL_STD_RANGES_ALGO_CPP_FUN 0
 #endif
 
-// Check availability of the heterogenous backends, configure if available
+// Check availability of the heterogeneous backends, configure if available
 #include "oneapi/dpl/pstl/hetero_backend_config.h"
 
 #endif // _ONEDPL_CONFIG_H

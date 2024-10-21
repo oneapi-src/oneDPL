@@ -41,7 +41,7 @@
 #endif
 
 // Try checking SYCL_LANGUAGE_VERSION after sycl.hpp inclusion if SYCL availability has not been proven yet
-// Include SYCL headers for relyable configurations only, the set can be extended in the future
+// Include SYCL headers for reliable configurations only, the set can be extended in the future
 #if defined(__ADAPTIVECPP__)
 #    define _ONEDPL_SAFE_TO_INCLUDE_SYCL 1
 #else
