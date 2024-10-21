@@ -37,7 +37,7 @@
 #    if _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
 #        define _ONEDPL_SYCL_AVAILABLE 1
 // DPC++/C++ Compiler pre-defines SYCL_LANGUAGE_VERSION with -fsycl option
-#    elif _ONEDPL_DPCPP_COMPILER
+#    elif !_ONEDPL_DPCPP_COMPILER
 // Other implementations might define the macro in the SYCL header
 #        define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
 #    endif

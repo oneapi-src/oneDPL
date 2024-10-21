@@ -91,13 +91,13 @@
 // If DPCPP is requested, enable its testing
 #if ONEDPL_USE_DPCPP_BACKEND
 #    define TEST_DPCPP_BACKEND_PRESENT 1
-#elif !defined(ONEDPL_USE_DPCPP_BACKEND)
-#    define TEST_DPCPP_BACKEND_PRESENT 0
-#else
 // Hack: delayed expansion based on _ONEDPL_HETERO_BACKEND, defined in oneDPL
 // TODO: avoid the hack by moving TEST_DPCPP_BACKEND_PRESENT into separate header and including after oneDPL headers
 //       this will require to update all tests to include the new header
+#elif !defined(ONEDPL_USE_DPCPP_BACKEND)
 #    define TEST_DPCPP_BACKEND_PRESENT (_ONEDPL_HETERO_BACKEND)
+#else
+#    define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
