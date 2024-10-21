@@ -515,7 +515,7 @@ struct __usm_or_buffer_accessor
 
  private:
 
-     static auto __get_access_mode_tag()
+     static constexpr auto __get_access_mode_tag()
      {
          if constexpr (_AccessMode == sycl::access::mode::read)
              return sycl::read;
