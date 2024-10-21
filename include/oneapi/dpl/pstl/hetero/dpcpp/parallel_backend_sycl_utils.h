@@ -652,7 +652,7 @@ struct __result_and_scratch_storage
             return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get());
         return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get());
 #else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __dpl_sycl::__no_init{});
 #endif
     }
 
