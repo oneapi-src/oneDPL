@@ -18,6 +18,14 @@
 #ifndef _ONEDPL_HETERO_BACKEND_CONFIG
 #define _ONEDPL_HETERO_BACKEND_CONFIG
 
+// Detect both Intel(R) oneAPI DPC++/C++ Compiler and oneAPI DPC++ compiler
+// Rely on an extension attribute, which is present in both compilers
+#if __has_cpp_attribute(intel::kernel_args_restrict)
+#    define _ONEDPL_DPCPP_COMPILER 1
+#else
+#    define _ONEDPL_DPCPP_COMPILER 0
+#endif
+
 // --------------------------------------------------------------------------------------------------------------------
 // Enablement of heterogeneous backends
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,8 +36,8 @@
 #if _ONEDPL_SYCL_HEADER_PRESENT
 #    if _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
 #        define _ONEDPL_SYCL_AVAILABLE 1
-// Intel(R) oneAPI DPC++/C++ Compiler pre-defines SYCL_LANGUAGE_VERSION with -fsycl option
-#    elif !defined(__INTEL_LLVM_COMPILER)
+// DPC++/C++ Compiler pre-defines SYCL_LANGUAGE_VERSION with -fsycl option
+#    elif _ONEDPL_DPCPP_COMPILER
 // Other implementations might define the macro in the SYCL header
 #        define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
 #    endif
