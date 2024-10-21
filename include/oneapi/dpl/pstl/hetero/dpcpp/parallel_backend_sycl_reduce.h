@@ -363,9 +363,7 @@ struct __parallel_transform_reduce_impl
                 // TODO what is correct access mode here for __get_scratch_acc call?
                 // Is default sycl::access_mode::read_write is ok?
                 auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
-                // TODO what is correct access mode here for __get_result_acc call?
-                // Is default sycl::access_mode::read_write is ok?
-                auto __res_acc = __scratch_container.__get_result_acc(__cgh);
+                auto __res_acc = __scratch_container.__get_result_acc<sycl::access_mode::write>(__cgh);
 
                 // get an access to data under SYCL buffer
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
