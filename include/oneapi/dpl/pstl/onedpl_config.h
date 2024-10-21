@@ -19,9 +19,6 @@
 // The version header also defines a few configuration macros used in this file
 #include "../internal/version_impl.h"
 
-// Check availability of the heterogenous backends, configure if available
-#include "oneapi/dpl/pstl/hetero_backend_config.h"
-
 // Check availability of parallel backends
 #if __has_include(<tbb/tbb.h>)
 #    define _ONEDPL_TBB_AVAILABLE 1
@@ -276,5 +273,8 @@
 #else
 #    define _ONEDPL_STD_RANGES_ALGO_CPP_FUN 0
 #endif
+
+// Check availability of the heterogenous backends, configure if available
+#include "oneapi/dpl/pstl/hetero_backend_config.h"
 
 #endif // _ONEDPL_CONFIG_H
