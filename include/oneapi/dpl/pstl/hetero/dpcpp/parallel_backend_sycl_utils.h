@@ -491,18 +491,23 @@ struct __usm_or_buffer_accessor
 
   public:
     // Buffer accessor
-    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
-        : __acc(*__sycl_buf, __cgh, __dpl_sycl::__no_init{})
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf,
+                             const sycl::property_list& __prop_list)
+        : __acc(*__sycl_buf, __cgh, __prop_list)
     {
     }
-    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
-        : __acc(*__sycl_buf, __cgh, __dpl_sycl::__no_init{}), __offset(__acc_offset)
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset,
+                             const sycl::property_list& __prop_list)
+        : __acc(*__sycl_buf, __cgh, __prop_list), __offset(__acc_offset)
     {
     }
 
     // USM pointer
-    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
-    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset)
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, const sycl::property_list&)
+        : __ptr(__usm_buf), __usm(true)
+    {
+    }
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset, const sycl::property_list&)
         : __ptr(__usm_buf), __usm(true), __offset(__ptr_offset)
     {
     }
@@ -613,29 +618,29 @@ struct __result_and_scratch_storage
 
     template <sycl::access_mode _AccessMode = sycl::access_mode::read_write>
     auto
-    __get_result_acc(sycl::handler& __cgh) const
+    __get_result_acc(sycl::handler& __cgh, const sycl::property_list& __prop_list = {}) const
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host && __supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __result_buf.get());
+            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __result_buf.get(), __prop_list);
         else if (__supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __scratch_n);
-        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __scratch_n);
+            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __scratch_n, __prop_list);
+        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __scratch_n, __prop_list);
 #else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __dpl_sycl::__no_init{});
+        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __prop_list);
 #endif
     }
 
     template <sycl::access_mode _AccessMode = sycl::access_mode::read_write>
     auto
-    __get_scratch_acc(sycl::handler& __cgh) const
+    __get_scratch_acc(sycl::handler& __cgh, const sycl::property_list& __prop_list = {}) const
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host || __supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get());
-        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get());
+            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __prop_list);
+        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __prop_list);
 #else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __dpl_sycl::__no_init{});
+        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __prop_list);
 #endif
     }
 
