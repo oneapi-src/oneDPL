@@ -369,9 +369,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             // TODO what is correct access mode here for __get_scratch_acc call?
             // Is default sycl::access_mode::read_write is ok?
             auto __temp_acc = __result_and_scratch.__get_scratch_acc(__cgh);
-            // TODO what is right access mode here?
-            // sycl::access_mode::read_write is used by default.
-            auto __res_acc = __result_and_scratch.__get_result_acc(__cgh);
+            auto __res_acc = __result_and_scratch.__get_result_acc<sycl::access_mode::write>(__cgh);
             __cgh.parallel_for<_PropagateScanName...>(sycl::range<1>(__n_groups * __size_per_wg), [=](auto __item) {
                 auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr =
