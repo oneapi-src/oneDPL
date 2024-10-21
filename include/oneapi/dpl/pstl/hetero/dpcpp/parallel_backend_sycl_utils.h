@@ -478,7 +478,7 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-template <typename _T, sycl::access_mode _AccessMode = sycl::access_mode::read_write>
+template <typename _T, sycl::access_mode _AccessMode>
 struct __usm_or_buffer_accessor
 {
   private:
