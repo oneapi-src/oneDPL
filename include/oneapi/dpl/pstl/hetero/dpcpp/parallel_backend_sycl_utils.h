@@ -492,11 +492,11 @@ struct __usm_or_buffer_accessor
   public:
     // Buffer accessor
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, __get_access_mode_tag(), __dpl_sycl::__no_init{}))
+        : __acc(*__sycl_buf, __cgh, __dpl_sycl::__no_init{})
     {
     }
     __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, __get_access_mode_tag(), __dpl_sycl::__no_init{})),
+        : __acc(*__sycl_buf, __cgh, __dpl_sycl::__no_init{}),
           __offset(__acc_offset)
     {
     }
@@ -512,23 +512,6 @@ struct __usm_or_buffer_accessor
     __get_pointer() const // should be cached within a kernel
     {
         return __usm ? __ptr + __offset : &__acc[__offset];
-    }
-
-  private:
-    static constexpr auto
-    __get_access_mode_tag()
-    {
-        if constexpr (_AccessMode == sycl::access::mode::read)
-            return sycl::read_only;
-
-        else if constexpr (_AccessMode == sycl::access::mode::write)
-            return sycl::write_only;
-
-        else if constexpr (_AccessMode == sycl::access::mode::read_write)
-            return sycl::read_write;
-
-        else
-            static_assert(false, "Unknown _AccessMode state");
     }
 };
 
