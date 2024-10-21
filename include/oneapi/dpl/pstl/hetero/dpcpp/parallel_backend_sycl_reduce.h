@@ -253,8 +253,6 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
         __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
 
-            // TODO what is correct access mode here for __get_scratch_acc call?
-            // Is default sycl::access_mode::read_write is ok?
             auto __temp_acc = __scratch_container.__get_scratch_acc<sycl::access_mode::read>(__cgh);
             auto __res_acc = __scratch_container.__get_result_acc<sycl::access_mode::write>(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
