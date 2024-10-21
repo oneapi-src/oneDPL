@@ -26,13 +26,13 @@
 #define _ONEDPL_SYCL_HEADER_PRESENT (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
 #define _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT (SYCL_LANGUAGE_VERSION || CL_SYCL_LANGUAGE_VERSION)
 #if _ONEDPL_SYCL_HEADER_PRESENT
-#  if _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
-#    define _ONEDPL_SYCL_AVAILABLE 1
+#    if _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
+#        define _ONEDPL_SYCL_AVAILABLE 1
 // Intel(R) oneAPI DPC++/C++ Compiler pre-defines SYCL_LANGUAGE_VERSION with -fsycl option
-#  elif !defined(__INTEL_LLVM_COMPILER)
+#    elif !defined(__INTEL_LLVM_COMPILER)
 // Other implementations might define the macro in the SYCL header
-#    define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
-#  endif
+#        define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
+#    endif
 #endif
 
 // If DPCPP backend is not explicitly turned off and SYCL is definitely available, enable it
@@ -49,9 +49,9 @@
 #endif
 #if defined(_ONEDPL_SYCL_POSSIBLY_AVAILABLE) && _ONEDPL_SAFE_TO_INCLUDE_SYCL
 #    if __has_include(<sycl/sycl.hpp>)
-#       include <sycl/sycl.hpp>
+#        include <sycl/sycl.hpp>
 #    else
-#       include <CL/sycl.hpp>
+#        include <CL/sycl.hpp>
 #    endif
 #    if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #        define _ONEDPL_BACKEND_SYCL 1
