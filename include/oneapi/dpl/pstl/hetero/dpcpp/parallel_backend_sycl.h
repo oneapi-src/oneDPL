@@ -319,9 +319,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // 1. Local scan on each workgroup
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
-            // TODO what is correct access mode here for __get_scratch_acc call?
-            // Is default sycl::access_mode::read_write is ok?
-            auto __temp_acc = __result_and_scratch.__get_scratch_acc(__cgh);
+            auto __temp_acc = __result_and_scratch.__get_scratch_acc<sycl::access_mode::write>(__cgh);
             __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
