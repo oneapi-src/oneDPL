@@ -627,7 +627,7 @@ struct __result_and_scratch_storage
             return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __scratch_n, __prop_list);
         return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __scratch_n, __prop_list);
 #else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __prop_list);
+        return sycl::accessor<_T, 1, _AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
     }
 
@@ -640,7 +640,7 @@ struct __result_and_scratch_storage
             return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __prop_list);
         return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __prop_list);
 #else
-        return sycl::accessor(*__sycl_buf.get(), __cgh, _AccessMode, __prop_list);
+        return sycl::accessor<_T, 1, _AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
     }
 
