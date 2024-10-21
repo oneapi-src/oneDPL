@@ -482,7 +482,8 @@ template <typename _T, sycl::access_mode _AccessMode>
 struct __usm_or_buffer_accessor
 {
   private:
-    using __accessor_t = sycl::accessor<_T, 1, _AccessMode, __dpl_sycl::__target_device, sycl::access::placeholder::false_t>;
+    using __accessor_t =
+        sycl::accessor<_T, 1, _AccessMode, __dpl_sycl::__target_device, sycl::access::placeholder::false_t>;
     __accessor_t __acc;
     _T* __ptr = nullptr;
     bool __usm = false;
@@ -513,22 +514,22 @@ struct __usm_or_buffer_accessor
         return __usm ? __ptr + __offset : &__acc[__offset];
     }
 
- private:
+  private:
+    static constexpr auto
+    __get_access_mode_tag()
+    {
+        if constexpr (_AccessMode == sycl::access::mode::read)
+            return sycl::read;
 
-     static constexpr auto __get_access_mode_tag()
-     {
-         if constexpr (_AccessMode == sycl::access::mode::read)
-             return sycl::read;
+        else if constexpr (_AccessMode == sycl::access::mode::write)
+            return sycl::write;
 
-         else if constexpr (_AccessMode == sycl::access::mode::write)
-             return sycl::write;
+        else if constexpr (_AccessMode == sycl::access::mode::read_write)
+            return sycl::read_write;
 
-         else if constexpr (_AccessMode == sycl::access::mode::read_write)
-             return sycl::read_write;
-
-         else
-             static_assert(false, "Unknown _AccessMode state");
-     }
+        else
+            static_assert(false, "Unknown _AccessMode state");
+    }
 };
 
 template <typename _ExecutionPolicy, typename _T>
