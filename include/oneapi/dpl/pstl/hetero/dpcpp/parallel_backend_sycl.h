@@ -28,7 +28,6 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
-#include <optional>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -810,11 +809,12 @@ template <typename _BinaryPred>
 struct __gen_red_by_seg_scan_input
 {
     // Returns the following tuple:
-    // ((new_seg_mask: size_t, value: ValueType), output_value: bool, candidate_key: KeyType)
-    // new_seg_mask : 1 for a start of a new segment, 0 otherwise
-    // value        : Current element's value for reduction
-    // output_value : Whether this work-item should write an output
-    // candidate_key: The key of the next segment to write if output_value is true.
+    // ((new_seg_mask, value), output_value, next_key, current_key)
+    // size_t new_seg_mask : 1 for a start of a new segment, 0 otherwise
+    // ValueType value     : Current element's value for reduction
+    // bool output_value   : Whether this work-item should write an output (end of segment)
+    // KeyType next_key    : The key of the next segment to write if output_value is true
+    // KeyType current_key : The current element's key. This is only ever used by work-item 0 to write the first key
     template <typename _InRng>
     auto
     operator()(const _InRng& __in_rng, std::size_t __id) const
@@ -822,21 +822,37 @@ struct __gen_red_by_seg_scan_input
         auto __in_keys = std::get<0>(__in_rng.tuple());
         auto __in_vals = std::get<1>(__in_rng.tuple());
         using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__in_keys)>;
-        using _OptKeyType = std::optional<_KeyType>;
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
-        _OptKeyType __first_key;
-        if (__id == 0)
-            __first_key = _OptKeyType{__in_keys[0]};
-        std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
-        if (__id == __n - 1)
+        const _KeyType& __current_key = __in_keys[__id];
+        // Ordering the most common condition first has yielded the best results.
+        if (__id > 0 && __id < __n - 1)
+        {
+            const _KeyType& __prev_key = __in_keys[__id - 1];
+            const _KeyType& __next_key = __in_keys[__id + 1];
+            std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
+            return oneapi::dpl::__internal::make_tuple(
+                    oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+                    !__binary_pred(__current_key, __next_key),
+                    __next_key, __current_key);
+        }
+        else if (__id == __n - 1)
+        {
+            const _KeyType& __prev_key = __in_keys[__id - 1];
+            std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
             return oneapi::dpl::__internal::make_tuple(
                 oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true,
-                _KeyType{__in_keys[__id]}, __first_key); // __in_keys[__id] is an unused placeholder
-        return oneapi::dpl::__internal::make_tuple(
-            oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
-            !__binary_pred(__in_keys[__id], __in_keys[__id + 1]), _KeyType{__in_keys[__id + 1]}, __first_key);
+                __current_key, __current_key); // Passing __current_key as the next key for the last element is a placeholder
+        }
+        else
+        {
+            const _KeyType& __next_key = __in_keys[__id + 1];
+            return oneapi::dpl::__internal::make_tuple(
+                oneapi::dpl::__internal::make_tuple(std::size_t{0}, _ValueType{__in_vals[__id]}),
+                !__binary_pred(__current_key, __next_key), __next_key, __current_key);
+        }
     }
     _BinaryPred __binary_pred;
+    // For correctness of the function call operator, __n must be greater than 1.
     std::size_t __n;
 };
 
@@ -879,7 +895,7 @@ struct __write_red_by_seg
         const std::size_t __out_idx = get<0>(get<0>(__tup));
 
         if (__id == 0)
-            __out_keys[0] = *get<3>(__tup);
+            __out_keys[0] = get<3>(__tup);
         if (__is_seg_end)
         {
             __out_values[__out_idx] = __cur_segment_value;
@@ -1305,6 +1321,8 @@ __parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_
     using _WriteOp = __write_red_by_seg<_BinaryPredicate>;
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
     std::size_t __n = __keys.size();
+    // __gen_red_by_seg_scan_input requires that __n > 1
+    assert(__n > 1);
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
