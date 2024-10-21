@@ -519,10 +519,10 @@ struct __usm_or_buffer_accessor
     __get_access_mode_tag()
     {
         if constexpr (_AccessMode == sycl::access::mode::read)
-            return sycl::read;
+            return sycl::read_only;
 
         else if constexpr (_AccessMode == sycl::access::mode::write)
-            return sycl::write;
+            return sycl::write_only;
 
         else if constexpr (_AccessMode == sycl::access::mode::read_write)
             return sycl::read_write;
