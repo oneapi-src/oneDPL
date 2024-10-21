@@ -913,22 +913,6 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
                             _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
                             _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
-#if _ONEDPL_BACKEND_SYCL
-    // We would normally dispatch to the parallel implementation which would make the decision to invoke
-    // reduce-then-scan. However, since the fallback is implemented at the ranges level we must choose
-    // whether or not to use reduce-then-scan here.
-    if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
-    {
-        auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
-            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__keys),
-            std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values),
-            __binary_pred, __binary_op);
-        __res.wait();
-        // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
-        // past-the-end iterator pair of segmented reduction.
-        return std::get<0>(__res.get()) + 1;
-    }
-#endif
     // The algorithm reduces values in __values where the
     // associated keys for the values are equal to the adjacent key.
     //
@@ -960,6 +944,22 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         return 1;
     }
 
+#if _ONEDPL_BACKEND_SYCL
+    // We would normally dispatch to the parallel implementation which would make the decision to invoke
+    // reduce-then-scan. However, since the fallback is implemented at the ranges level we must choose
+    // whether or not to use reduce-then-scan here.
+    if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
+    {
+        auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
+            _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__keys),
+            std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values),
+            __binary_pred, __binary_op);
+        __res.wait();
+        // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
+        // past-the-end iterator pair of segmented reduction.
+        return std::get<0>(__res.get()) + 1;
+    }
+#endif
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
