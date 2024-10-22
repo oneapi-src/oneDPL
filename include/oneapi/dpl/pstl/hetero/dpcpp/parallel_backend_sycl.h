@@ -831,17 +831,16 @@ struct __gen_red_by_seg_scan_input
             const _KeyType& __next_key = __in_keys[__id + 1];
             std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
             return oneapi::dpl::__internal::make_tuple(
-                    oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
-                    !__binary_pred(__current_key, __next_key),
-                    __next_key, __current_key);
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+                !__binary_pred(__current_key, __next_key), __next_key, __current_key);
         }
         else if (__id == __n - 1)
         {
             const _KeyType& __prev_key = __in_keys[__id - 1];
             std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
             return oneapi::dpl::__internal::make_tuple(
-                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true,
-                __current_key, __current_key); // Passing __current_key as the next key for the last element is a placeholder
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true, __current_key,
+                __current_key); // Passing __current_key as the next key for the last element is a placeholder
         }
         else
         {
@@ -889,18 +888,19 @@ struct __write_red_by_seg
         using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__out_keys)>;
         using _ValType = oneapi::dpl::__internal::__value_t<decltype(__out_values)>;
 
-        const _KeyType& __next_segment_key = get<2>(__tup);
-        const _ValType& __cur_segment_value = get<1>(get<0>(__tup));
+        const _KeyType& __next_key = get<2>(__tup);
+        const _KeyType& __current_key = get<3>(__tup);
+        const _ValType& __current_value = get<1>(get<0>(__tup));
         const bool __is_seg_end = get<1>(__tup);
         const std::size_t __out_idx = get<0>(get<0>(__tup));
 
         if (__id == 0)
-            __out_keys[0] = get<3>(__tup);
+            __out_keys[0] = __current_key;
         if (__is_seg_end)
         {
-            __out_values[__out_idx] = __cur_segment_value;
+            __out_values[__out_idx] = __current_value;
             if (__id != __n - 1)
-                __out_keys[__out_idx + 1] = __next_segment_key;
+                __out_keys[__out_idx + 1] = __next_key;
         }
     }
     _BinaryPred __binary_pred;
