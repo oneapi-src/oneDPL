@@ -478,13 +478,12 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-template <typename _T, sycl::access_mode _AccessMode>
+template <typename _Accessor>
 struct __usm_or_buffer_accessor
 {
   private:
-    using __accessor_t =
-        sycl::accessor<_T, 1, _AccessMode, __dpl_sycl::__target_device, sycl::access::placeholder::false_t>;
-    __accessor_t __acc;
+    using _T = std::decay_t<typename _Accessor::value_type>;
+    _Accessor __acc;
     _T* __ptr = nullptr;
     bool __usm = false;
     size_t __offset = 0;
@@ -626,10 +625,11 @@ struct __result_and_scratch_storage
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host && __supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __result_buf.get(), __prop_list);
+            return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __result_buf.get(), __prop_list);
         else if (__supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __scratch_n, __prop_list);
-        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __scratch_n, __prop_list);
+            return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __scratch_buf.get(), __scratch_n,
+                                                                       __prop_list);
+        return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __sycl_buf.get(), __scratch_n, __prop_list);
 #else
         return __accessor_t<_AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
@@ -641,8 +641,8 @@ struct __result_and_scratch_storage
     {
 #if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         if (__use_USM_host || __supports_USM_device)
-            return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __prop_list);
-        return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __prop_list);
+            return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __scratch_buf.get(), __prop_list);
+        return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __sycl_buf.get(), __prop_list);
 #else
         return __accessor_t<_AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
