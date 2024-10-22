@@ -3,10 +3,11 @@
 ## Introduction
 
 oneDPL algorithms with device execution policies are developed on top of SYCL, and since the early
-days there was some demand for the algorithms to preserve the ability of SYCL to compute
+days there was some demand for the algorithms to preserve the SYCL ability of computing
 asynchronously to the main program running on the host CPU. However the C++ standard semantics for
-parallel algorithms does not assume asynchronous execution, as the calling thread can only return
-when the algorithm finishes (for details, see [algorithms.parallel.exec] section of the C++ standard).
+parallel algorithms, which oneDPL follows, does not assume asynchronous execution, as the calling
+thread can only return when the algorithm finishes (for details, see [algorithms.parallel.exec]
+section of the C++ standard).
 
 To address this demand, experimental [asynchronous algorithms](https://oneapi-src.github.io/oneDPL/parallel_api/async_api.html)
 have been added. These functions do not block the calling thread but instead return a *future* that
@@ -15,21 +16,21 @@ accept a list of `sycl::event` objects as *input dependencies* (though the imple
 advanced beyond immediate wait on these events). The `wait_for_all` function waits for completion
 of a given list of events or futures.
 
-Later an experimental functionality for [dynamic selection](https://oneapi-src.github.io/oneDPL/dynamic_selection_api_main.html)
+Later the experimental functionality for [dynamic selection](https://oneapi-src.github.io/oneDPL/dynamic_selection_api_main.html)
 of an execution device has been added. The `submit` function there executes a user-specified
-function and allows that function to start asynchronous work and return a *waitable* object
-to synchronize later with. There is a function to wait for such an object as well.
+function object, which can start asynchronous work and return a *waitable* object
+to synchronize later with. There is a `wait` function to wait for such an object as well.
 
-For these experimental APIs to get solid and go to production, there is a clear need for a single
+For these experimental APIs to get solid and go into production, there is a clear need for a single
 consistent approach to asynchronous execution. Defining that is the goal of this RFC proposal.
 
 ## The use cases
 
 In the practical use of the oneDPL asynchronous APIs as well as similar APIs of other libraries
 (such as Thrust) we observed several typical patterns, pseudocode examples of which follow.
-In these examples, `foo-async` represents a call that starts some asynchronous work, such as
-oneDPL `for_each_async` and `submit` functions, and `sync-with` indicates a synchronization point
-with previously started asynchronous work.
+In these examples, `foo-async` represents a call such as oneDPL `for_each_async` and `submit`
+functions that start some asynchronous work, and `sync-with` indicates a synchronization
+point with previously started asynchronous work.
 
 ### 1. Synchronize with a single call
 
@@ -74,13 +75,13 @@ asynchronous calls are not expected to return a synchronization object; it is ex
 the synchronization is done once with all the work in the queue.
 
 It is important to mention that work queues are usually provided by the "core" heterogeneous
-programming model such as CUDA or SYCL, and it is common for a program to "share" a queue
-for several libraries as well as custom-written kernels.
+programming model such as CUDA or SYCL, and it is common for a program to use one queue
+with several libraries as well as custom-written kernels.
 
 ### 3. Fork and join
 
-We observed programs using asynchronous algorithms in a very common *fork-join* parallel pattern
-for processing some big work in parallel on several execution devices.
+We also observed programs using asynchronous algorithms in a very common *fork-join* parallel
+pattern for processing some big work in parallel on several execution devices.
 
 ```
 work-queue qs[] = {/*initialize all the queues*/};
