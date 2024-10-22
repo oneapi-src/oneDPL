@@ -38,7 +38,7 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 namespace test_std_ranges
 {
 
-inline constexpr std::size_t big_sz = 1<<25+10; //32M
+inline constexpr std::size_t big_sz = (1<<25) + 10; //32M
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -200,8 +200,8 @@ private:
         assert(n_out <= max_n);
 
         auto src_view = tr_in(std::views::all(cont_in()));
-        auto out_view = tr_out(std::views::all(cont_exp()));
-        auto expected_res = checker(src_view, out_view, args...);
+        auto exp_view = tr_out(std::views::all(cont_exp()));
+        auto expected_res = checker(src_view, exp_view, args...);
 
         typename Container::type& A = cont_in();
         typename Container::type& B = cont_out();
@@ -214,11 +214,11 @@ private:
         auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr_in(A).begin());
         EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
 
-        auto bres_out = ret_out_val(expected_res, out_view.begin()) == ret_out_val(res, tr_out(B).begin());
+        auto bres_out = ret_out_val(expected_res, exp_view.begin()) == ret_out_val(res, tr_out(B).begin());
         EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
 
         //check result
-        auto n = std::ranges::size(out_view);
+        auto n = std::ranges::size(exp_view);
         EXPECT_EQ_N(cont_exp().begin(), cont_out().begin(), n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
     }
 
@@ -286,7 +286,7 @@ private:
         
         auto src_view1 = tr_in(std::views::all(cont_in1()));
         auto src_view2 = tr_in(std::views::all(cont_in2()));
-        auto expected_view = tr_in(std::views::all(cont_exp()));
+        auto expected_view = tr_out(std::views::all(cont_exp()));
         auto expected_res = checker(src_view1, src_view2, expected_view, args...);
 
         typename Container::type& A = cont_in1();
@@ -361,6 +361,8 @@ private:
 template<typename T, typename ViewType>
 struct host_subrange_impl
 {
+    static_assert(std::is_trivially_copyable_v<T>);
+
     using type = ViewType;
     ViewType view;
     T* mem = NULL;
@@ -459,6 +461,8 @@ struct usm_vector
 template<typename T, typename ViewType>
 struct usm_subrange_impl
 {
+    static_assert(std::is_trivially_copyable_v<T>);
+
     using shared_allocator = sycl::usm_allocator<T, sycl::usm::alloc::shared>;
     using type = ViewType;
 
