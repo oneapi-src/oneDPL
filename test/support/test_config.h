@@ -95,7 +95,7 @@
 // If SYCL is available, and DPCPP backend is not explicitly turned off, enable its testing
 #if TEST_SYCL_AVAILABLE && !defined(ONEDPL_USE_DPCPP_BACKEND)
 #    define TEST_DPCPP_BACKEND_PRESENT 1
-// If DPCPP backend was explicitly requested, enable its testing, even if SYCL availability has not been proved
+// If DPCPP backend was explicitly requested, enable its testing, even if SYCL availability has not been proven
 // this can be used to force DPCPP backend testing for environments where SYCL_LANGUAGE_VERSION is not predefined
 #elif ONEDPL_USE_DPCPP_BACKEND
 #    define TEST_DPCPP_BACKEND_PRESENT 1
