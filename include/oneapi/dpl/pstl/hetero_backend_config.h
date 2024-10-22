@@ -44,11 +44,6 @@
 #    endif
 #endif
 
-// If DPCPP backend is not explicitly turned off and SYCL is definitely available, enable it
-#if (ONEDPL_USE_DPCPP_BACKEND || !defined(ONEDPL_USE_DPCPP_BACKEND)) && _ONEDPL_SYCL_AVAILABLE
-#    define _ONEDPL_BACKEND_SYCL 1
-#endif
-
 // Include SYCL headers for "possible" case with reliable configurations only
 // Even if the headers are available, their inclusion may be dangerous if the compiler does not support SYCL
 #if defined(__ADAPTIVECPP__)
@@ -65,7 +60,7 @@
 #        include <CL/sycl.hpp>
 #    endif
 #    if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-#        define _ONEDPL_BACKEND_SYCL 1
+#        define _ONEDPL_SYCL_AVAILABLE 1
 #    endif
 #endif // _ONEDPL_SYCL_POSSIBLY_AVAILABLE
 
@@ -73,6 +68,11 @@
 #if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
 #    error "Device execution policies are enabled, \
         but SYCL* headers are not found or the SYCL implementation does not define SYCL_LANGUAGE_VERSION macro"
+#endif
+
+// If DPCPP backend is not explicitly turned off and SYCL is available, enable it
+#if (ONEDPL_USE_DPCPP_BACKEND || !defined(ONEDPL_USE_DPCPP_BACKEND)) && _ONEDPL_SYCL_AVAILABLE
+#    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
 // If at least one heterogeneous backend is available, enable them
