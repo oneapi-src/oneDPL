@@ -525,6 +525,10 @@ struct __result_and_scratch_storage
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
 
+    template <sycl::access_mode _AccessMode>
+    using __accessor_t =
+        sycl::accessor<_T, 1, _AccessMode, __dpl_sycl::__target_device, sycl::access::placeholder::false_t>;
+
     _ExecutionPolicy __exec;
     std::shared_ptr<_T> __scratch_buf;
     std::shared_ptr<_T> __result_buf;
@@ -627,7 +631,7 @@ struct __result_and_scratch_storage
             return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __scratch_n, __prop_list);
         return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __scratch_n, __prop_list);
 #else
-        return sycl::accessor<_T, 1, _AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
+        return __accessor_t<_AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
     }
 
@@ -640,7 +644,7 @@ struct __result_and_scratch_storage
             return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __scratch_buf.get(), __prop_list);
         return __usm_or_buffer_accessor<_T, _AccessMode>(__cgh, __sycl_buf.get(), __prop_list);
 #else
-        return sycl::accessor<_T, 1, _AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
+        return __accessor_t<_AccessMode>(*__sycl_buf.get(), __cgh, __prop_list);
 #endif
     }
 
