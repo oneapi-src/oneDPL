@@ -41,18 +41,41 @@ struct __subgroup_bubble_sorter
     void
     sort(const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start, std::uint32_t __end) const
     {
-        for (std::uint32_t i = __start; i < __end; ++i)
+        std::uint32_t __n = __end - __start;
+
+        switch (__n)
         {
-            for (std::uint32_t j = __start + 1; j < __start + __end - i; ++j)
+        case 0:             // The case when __end == __start       no source data means no sorting required
+        case 1:             // The case when __end == __start + 1   one source data item means no sorting required
+            break;
+        case 2:             // The case when __end == __start + 2   two source data items required only one comparison (and swap) without any loops and etc.
             {
-                auto& __first_item = __storage_acc[j - 1];
-                auto& __second_item = __storage_acc[j];
+                auto& __first_item = __storage_acc[__start];
+                auto& __second_item = __storage_acc[__start + 1];
                 if (__comp(__second_item, __first_item))
                 {
                     using std::swap;
                     swap(__first_item, __second_item);
                 }
             }
+            break;
+        default:            // The case when __end > __start + 2    three or more source data items require full bubble sort
+            do
+            {
+                std::uint32_t __new_n = 0;
+                for (std::uint32_t __i = 1; __i < __n; ++__i)
+                {
+                    auto& __first_item = __storage_acc[__start + __i - 1];
+                    auto& __second_item = __storage_acc[__start + __i];
+                    if (__comp(__second_item, __first_item))
+                    {
+                        using std::swap;
+                        swap(__first_item, __second_item);
+                        __new_n = __i;
+                    }
+                }
+                __n = __new_n;
+            } while (__n > 1);
         }
     }
 };
