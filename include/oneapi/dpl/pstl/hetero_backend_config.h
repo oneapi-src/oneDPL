@@ -49,14 +49,16 @@
 #    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
-// Try checking SYCL_LANGUAGE_VERSION after sycl.hpp inclusion if SYCL availability has not been proven yet
-// Include SYCL headers for reliable configurations only, the set can be extended in the future
+// Include SYCL headers for "possible" case with reliable configurations only
+// Even if the headers are available, their inclusion may be dangerous if the compiler does not support SYCL
 #if defined(__ADAPTIVECPP__)
 #    define _ONEDPL_SAFE_TO_INCLUDE_SYCL 1
 #else
 #    define _ONEDPL_SAFE_TO_INCLUDE_SYCL 0
 #endif
-#if defined(_ONEDPL_SYCL_POSSIBLY_AVAILABLE) && _ONEDPL_SAFE_TO_INCLUDE_SYCL
+// Try checking SYCL_LANGUAGE_VERSION after sycl.hpp inclusion if SYCL availability has not been proven yet
+// Proceed to inclusion only if it is safe or the backend was explicitly requested
+#if _ONEDPL_SYCL_POSSIBLY_AVAILABLE && (ONEDPL_USE_DPCPP_BACKEND || _ONEDPL_SAFE_TO_INCLUDE_SYCL)
 #    if __has_include(<sycl/sycl.hpp>)
 #        include <sycl/sycl.hpp>
 #    else
@@ -67,10 +69,10 @@
 #    endif
 #endif // _ONEDPL_SYCL_POSSIBLY_AVAILABLE
 
-// If DPCPP backend is explicitly requested and SYCL is definitely not available, throw an error
+// If DPCPP backend is explicitly requested and SYCL is not available, throw an error
 #if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
 #    error "Device execution policies are enabled, \
-        but SYCL* headers are not found or the compiler does not support SYCL"
+        but SYCL* headers are not found or the SYCL implementation does not define SYCL_LANGUAGE_VERSION macro"
 #endif
 
 // If at least one heterogeneous backend is available, enable them
