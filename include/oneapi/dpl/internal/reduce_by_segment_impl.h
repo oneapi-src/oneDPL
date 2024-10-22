@@ -57,9 +57,8 @@
 #include "../pstl/utils_ranges.h"
 #include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../pstl/ranges_defs.h"
-#include "../pstl/glue_algorithm_ranges_impl.h"
+#include "../pstl/hetero/algorithm_ranges_impl_hetero.h"
 #include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
-#include "scan_by_segment_impl.h"
 #endif
 
 namespace oneapi
@@ -169,42 +168,9 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
 
 #if _ONEDPL_BACKEND_SYCL
 
-template <typename... Name>
-class __seg_reduce_count_kernel;
-template <typename... Name>
-class __seg_reduce_offset_kernel;
-template <typename... Name>
-class __seg_reduce_wg_kernel;
-template <typename... Name>
-class __seg_reduce_prefix_kernel;
-
-namespace
-{
-template <typename... _Name>
-using _SegReduceCountPhase = __seg_reduce_count_kernel<_Name...>;
-template <typename... _Name>
-using _SegReduceOffsetPhase = __seg_reduce_offset_kernel<_Name...>;
-template <typename... _Name>
-using _SegReduceWgPhase = __seg_reduce_wg_kernel<_Name...>;
-template <typename... _Name>
-using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
-} // namespace
-
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
-          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__difference_t<_Range3>
-__pattern_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys,
-                            _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
-                            _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
-{
-    return oneapi::dpl::experimental::ranges::reduce_by_segment(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys), ::std::forward<_Range2>(__values),
-        ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
-}
-
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator1, typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-::std::pair<OutputIterator1, OutputIterator2>
+std::pair<OutputIterator1, OutputIterator2>
 reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1,
                        InputIterator1 last1, InputIterator2 first2, OutputIterator1 result1, OutputIterator2 result2,
                        BinaryPred binary_pred, BinaryOperator binary_op)
@@ -218,14 +184,14 @@ reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& pol
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    using _CountType = ::std::uint64_t;
+    using _CountType = std::uint64_t;
 
     namespace __bknd = __par_backend_hetero;
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = std::distance(first1, last1);
 
     if (n == 0)
-        return ::std::make_pair(result1, result2);
+        return std::make_pair(result1, result2);
 
     auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto key_buf = keep_keys(first1, last1);
@@ -236,16 +202,12 @@ reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& pol
     auto keep_value_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator2>();
     auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
-    using has_known_identity =
-        typename unseq_backend::__has_known_identity<BinaryOperator,
-                                                     typename ::std::iterator_traits<InputIterator2>::value_type>::type;
-
     // number of unique keys
-    _CountType __n =
-        __pattern_reduce_by_segment(__tag, ::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-                                    key_output_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op);
+    _CountType __n = oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
+        __tag, std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
+        value_output_buf.all_view(), binary_pred, binary_op);
 
-    return ::std::make_pair(result1 + __n, result2 + __n);
+    return std::make_pair(result1 + __n, result2 + __n);
 }
 #endif
 } // namespace internal
