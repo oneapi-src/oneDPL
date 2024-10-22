@@ -879,14 +879,14 @@ struct __gen_set_mask
     _Compare __comp;
 };
 
-template <std::size_t I>
+template <std::size_t _EleId>
 struct __extract_range_from_zip
 {
     template <typename _InRng>
     auto
     operator()(const _InRng& __in_rng) const
     {
-        return std::get<I>(__in_rng.tuple());
+        return std::get<_EleId>(__in_rng.tuple());
     }
 };
 
@@ -1313,7 +1313,7 @@ __parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
     _Size2 __n2 = __rng2.size();
 
     //Algo is based on the recommended approach of set_intersection algo for GPU: binary search + scan (copying by mask).
-    using _ReduceOp = ::std::plus<_Size1>;
+    using _ReduceOp = std::plus<_Size1>;
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _MaskAssigner = unseq_backend::__mask_assigner<2>;
@@ -1323,7 +1323,7 @@ __parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
     _ReduceOp __reduce_op;
     _Assigner __assign_op;
     _DataAcc __get_data_op;
-    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 2>
+    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ std::true_type, 2>
         __copy_by_mask_op;
     unseq_backend::__brick_set_op<_ExecutionPolicy, _Compare, _Size1, _Size2, _IsOpDifference> __create_mask_op{
         __comp, __n1, __n2};

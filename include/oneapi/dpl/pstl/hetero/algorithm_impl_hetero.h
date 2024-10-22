@@ -1692,7 +1692,7 @@ __pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _F
                         _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
                         _OutputIterator __result, _Compare __comp, _IsOpDifference __is_op_difference)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _Size1;
+    typedef typename std::iterator_traits<_ForwardIterator1>::difference_type _Size1;
 
     const _Size1 __n1 = __last1 - __first1;
 
