@@ -78,11 +78,6 @@
 #        undef _ONEDPL_HETERO_BACKEND
 #    endif
 #    define _ONEDPL_HETERO_BACKEND 1
-#else
-#    if _ONEDPL_HETERO_BACKEND
-#        undef _ONEDPL_HETERO_BACKEND
-#    endif
-#    define _ONEDPL_HETERO_BACKEND 0
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
