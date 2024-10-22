@@ -28,7 +28,10 @@ consistent approach to asynchronous execution. Defining that is the goal of this
 
 In the practical use of the oneDPL asynchronous APIs as well as similar APIs of other libraries
 (such as Thrust) we observed several typical patterns, pseudocode examples of which follow.
-In these examples, `foo-async` represents a call such as oneDPL `for_each_async` and `submit`
+The proposal is aimed primarily at supporting these very patterns. The list can be extended
+if there is enough evidence of demand for other patterns of asynchronous compute.
+
+In the examples, `foo-async` represents a call such as oneDPL `for_each_async` and `submit`
 functions that start some asynchronous work, and `sync-with` indicates a synchronization
 point with previously started asynchronous work.
 
@@ -81,7 +84,7 @@ with several libraries as well as custom-written kernels.
 ### 3. Fork and join
 
 We also observed programs using asynchronous algorithms in a very common *fork-join* parallel
-pattern for processing some big work in parallel on several execution devices.
+pattern for processing some big work in parallel.
 
 ```
 work-queue qs[] = {/*initialize all the queues*/};
@@ -97,9 +100,9 @@ sync-with(jobs);
 ```
 
 For example, [Distributed Ranges](https://github.com/oneapi-src/distributed-ranges) use oneDPL
-asynchronous algorithms in such a way.
+asynchronous algorithms in this way to distribute work across available devices.
 
-## Existing approaches
+## Existing approaches outside oneDPL
 
 ### Thrust
 
@@ -118,10 +121,10 @@ most interest for this discussion. The `std::async` routine runs a given functio
 returning `std::future` to obtain the result later. Essentially, this is the model that both
 oneDPL and Thrust (as well as other libraries) use for their asynchronous APIs.
 
-There is a fair amount of criticism for this model, which mostly points to the lack of support
+There is a fair amount of criticism for this model, which primarily points to the lack of support
 for advanced usage scenarios, including setting graphs of dependent asynchronous tasks.
 Alternative implementations of futures, for example in [stlab](https://stlab.cc/includes/stlab/concurrency/)
-as well as in Thrust, try addressing these shortcomings.
+as well as in Thrust, try addressing some of the shortcomings.
 
 ### C++26 execution control library
 
