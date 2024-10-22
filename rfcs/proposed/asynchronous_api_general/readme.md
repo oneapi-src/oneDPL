@@ -103,7 +103,25 @@ asynchronous algorithms in such a way.
 
 ### Thrust
 
+The Thrust library uses two approaches for its asynchronous algorithms. First, it has a set of
+explicitly asynchronous algorithms that return an event or a future to later synchronize with.
+Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
+can skip non-essential synchronization as the caller will explicitly synchronize with the device
+or stream before accessing the results. Both approaches are implemented for the CUDA backend only.
+More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
+
 ### C++ async & future
+
+The C++ standard provides several ways for a program to use asynchrony, but [`std::future` and
+related APIs](https://en.cppreference.com/w/cpp/header/future), especially `std::async`, are of the
+most interest for this discussion. The `std::async` routine runs a given function asynchronously,
+returning `std::future` to obtain the result later. Essentially, this is the model that both
+oneDPL and Thrust (as well as other libraries) use for their asynchronous APIs.
+
+There is a fair amount of criticism for this model, which mostly points to the lack of support
+for advanced usage scenarios, including setting graphs of dependent asynchronous tasks.
+Alternative implementations of futures, for example in [stlab](https://stlab.cc/includes/stlab/concurrency/)
+as well as in Thrust, try addressing these shortcomings.
 
 ### C++26 execution control library
 
