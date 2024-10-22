@@ -1313,8 +1313,9 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
           typename _BinaryPredicate, typename _BinaryOperator>
 auto
-__parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                                              _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
+__parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
+                                              _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+                                              _Range3&& __out_keys, _Range4&& __out_values,
                                               _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
     using _GenReduceInput = __gen_red_by_seg_reduce_input<_BinaryPredicate>;
@@ -1330,8 +1331,8 @@ __parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
         oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
-        _GenReduceInput{__binary_pred}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred, __n}, _ScanInputTransform{},
-        _WriteOp{__binary_pred, __n},
+        _GenReduceInput{__binary_pred}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred, __n},
+        _ScanInputTransform{}, _WriteOp{__binary_pred, __n},
         oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{},
         /*Inclusive*/ std::true_type{}, /*_IsUniquePattern=*/std::false_type{});
 }
