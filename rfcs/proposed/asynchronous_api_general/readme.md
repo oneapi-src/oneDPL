@@ -128,6 +128,21 @@ as well as in Thrust, try addressing some of the shortcomings.
 
 ### C++26 execution control library
 
+The new [execution control library](https://eel.is/c++draft/exec) in C++ 26, also known as
+[*schedulers/senders/receivers*](https://wg21.link/p2300), is the proposed way to improve
+asynchronous programming with C++, dealing with the limitations of `std::future`. In the essense,
+this library provides a language to build program flow graphs and then run those on chosen execution
+resources.
+
+The stages of creating and executing a graph of computations are separate; the execution can only
+be started explicitly by one of a few dedicated calls. Therefore the approach appears more
+suitable for deferred execution, while eager execution would be at least be more verbose to program.
+
+Some companion proposals, notably for [async_scope](https://wg21.link/p3149) and [system execution
+context](https://wg21.link/p2079), are yet to be accepted to the working draft. The proposal for
+adding [asynchronous parallel algorithms](https://wg21.link/p3300) is at a very early stage and
+is not planned for C++ 26.
+
 ## Proposal
 
 TODO: Replace the text in this section with a full and detailed description of the proposal.
