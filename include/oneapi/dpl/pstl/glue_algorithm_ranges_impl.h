@@ -427,7 +427,7 @@ struct __stable_sort_fn
         return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj,
 #if _ONEDPL_STD_RANGES_ALGO_CPP_FUN
-            [](auto&&... __args) { std::ranges::stable_sort(std::forward<decltype(__args)>(__args)...); }
+            [](auto&&... __args) { return std::ranges::stable_sort(std::forward<decltype(__args)>(__args)...); }
 #else
             std::ranges::stable_sort
 #endif
@@ -453,7 +453,7 @@ struct __sort_fn
         return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj,
 #if _ONEDPL_STD_RANGES_ALGO_CPP_FUN
-            [](auto&&... __args) { std::ranges::sort(std::forward<decltype(__args)>(__args)...); }
+            [](auto&&... __args) { return std::ranges::sort(std::forward<decltype(__args)>(__args)...); }
 #else
             std::ranges::sort
 #endif
