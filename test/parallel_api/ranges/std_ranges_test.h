@@ -361,7 +361,8 @@ private:
 template<typename T, typename ViewType>
 struct host_subrange_impl
 {
-    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_trivially_copyable_v<T>, 
+        "Memory initialization within the class relies on trivially copyability of the type T");
 
     using type = ViewType;
     ViewType view;
@@ -461,7 +462,8 @@ struct usm_vector
 template<typename T, typename ViewType>
 struct usm_subrange_impl
 {
-    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_trivially_copyable_v<T>,
+        "Memory initialization within the class relies on trivially copyability of the type T");
 
     using shared_allocator = sycl::usm_allocator<T, sycl::usm::alloc::shared>;
     using type = ViewType;
