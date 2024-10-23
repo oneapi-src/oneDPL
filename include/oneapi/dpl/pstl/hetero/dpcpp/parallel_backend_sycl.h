@@ -786,6 +786,128 @@ struct __gen_transform_input
     _UnaryOp __unary_op;
 };
 
+template <typename _BinaryPred>
+struct __gen_red_by_seg_reduce_input
+{
+    // Returns the following tuple:
+    // (new_seg_mask, value)
+    // size_t new_seg_mask : 1 for a start of a new segment, 0 otherwise
+    // ValueType value     : Current element's value for reduction
+    template <typename _InRng>
+    auto
+    operator()(const _InRng& __in_rng, std::size_t __id) const
+    {
+        const auto __in_keys = std::get<0>(__in_rng.tuple());
+        const auto __in_vals = std::get<1>(__in_rng.tuple());
+        using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
+        const std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
+        return oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]});
+    }
+    _BinaryPred __binary_pred;
+};
+
+template <typename _BinaryPred>
+struct __gen_red_by_seg_scan_input
+{
+    // Returns the following tuple:
+    // ((new_seg_mask, value), output_value, next_key, current_key)
+    // size_t new_seg_mask : 1 for a start of a new segment, 0 otherwise
+    // ValueType value     : Current element's value for reduction
+    // bool output_value   : Whether this work-item should write an output (end of segment)
+    // KeyType next_key    : The key of the next segment to write if output_value is true
+    // KeyType current_key : The current element's key. This is only ever used by work-item 0 to write the first key
+    template <typename _InRng>
+    auto
+    operator()(const _InRng& __in_rng, std::size_t __id) const
+    {
+        const auto __in_keys = std::get<0>(__in_rng.tuple());
+        const auto __in_vals = std::get<1>(__in_rng.tuple());
+        using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__in_keys)>;
+        using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
+        const _KeyType& __current_key = __in_keys[__id];
+        // Ordering the most common condition first has yielded the best results.
+        if (__id > 0 && __id < __n - 1)
+        {
+            const _KeyType& __prev_key = __in_keys[__id - 1];
+            const _KeyType& __next_key = __in_keys[__id + 1];
+            const std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
+            return oneapi::dpl::__internal::make_tuple(
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+                !__binary_pred(__current_key, __next_key), __next_key, __current_key);
+        }
+        else if (__id == __n - 1)
+        {
+            const _KeyType& __prev_key = __in_keys[__id - 1];
+            const std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
+            return oneapi::dpl::__internal::make_tuple(
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true, __current_key,
+                __current_key); // Passing __current_key as the next key for the last element is a placeholder
+        }
+        else
+        {
+            const _KeyType& __next_key = __in_keys[__id + 1];
+            return oneapi::dpl::__internal::make_tuple(
+                oneapi::dpl::__internal::make_tuple(std::size_t{0}, _ValueType{__in_vals[__id]}),
+                !__binary_pred(__current_key, __next_key), __next_key, __current_key);
+        }
+    }
+    _BinaryPred __binary_pred;
+    // For correctness of the function call operator, __n must be greater than 1.
+    std::size_t __n;
+};
+
+template <typename _BinaryOp>
+struct __red_by_seg_op
+{
+    template <typename _Tup1, typename _Tup2>
+    auto
+    operator()(const _Tup1& __lhs_tup, const _Tup2& __rhs_tup) const
+    {
+        using std::get;
+        // The left-hand side has processed elements from the same segment, so update the reduction value.
+        if (std::get<0>(__rhs_tup) == 0)
+        {
+            return oneapi::dpl::__internal::make_tuple(get<0>(__lhs_tup),
+                                                       __binary_op(get<1>(__lhs_tup), get<1>(__rhs_tup)));
+        }
+        // We are looking at elements from a previous segment so just update the output index.
+        return oneapi::dpl::__internal::make_tuple(get<0>(__lhs_tup) + get<0>(__rhs_tup), get<1>(__rhs_tup));
+    }
+    _BinaryOp __binary_op;
+};
+
+template <typename _BinaryPred>
+struct __write_red_by_seg
+{
+    template <typename _OutRng, typename _Tup>
+    void
+    operator()(_OutRng& __out_rng, std::size_t __id, const _Tup& __tup) const
+    {
+        using std::get;
+        auto __out_keys = get<0>(__out_rng.tuple());
+        auto __out_values = get<1>(__out_rng.tuple());
+        using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__out_keys)>;
+        using _ValType = oneapi::dpl::__internal::__value_t<decltype(__out_values)>;
+
+        const _KeyType& __next_key = get<2>(__tup);
+        const _KeyType& __current_key = get<3>(__tup);
+        const _ValType& __current_value = get<1>(get<0>(__tup));
+        const bool __is_seg_end = get<1>(__tup);
+        const std::size_t __out_idx = get<0>(get<0>(__tup));
+
+        if (__id == 0)
+            __out_keys[0] = __current_key;
+        if (__is_seg_end)
+        {
+            __out_values[__out_idx] = __current_value;
+            if (__id != __n - 1)
+                __out_keys[__out_idx + 1] = __next_key;
+        }
+    }
+    _BinaryPred __binary_pred;
+    std::size_t __n;
+};
+
 struct __simple_write_to_id
 {
     template <typename _OutRng, typename _ValueType>
@@ -1117,6 +1239,33 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
                                     _CreateOp{oneapi::dpl::__internal::__not_pred<_BinaryPredicate>{__pred}},
                                     _CopyOp{_ReduceOp{}, _Assign{}});
     }
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
+          typename _BinaryPredicate, typename _BinaryOperator>
+auto
+__parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag,
+                                              _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+                                              _Range3&& __out_keys, _Range4&& __out_values,
+                                              _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+{
+    using _GenReduceInput = __gen_red_by_seg_reduce_input<_BinaryPredicate>;
+    using _ReduceOp = __red_by_seg_op<_BinaryOperator>;
+    using _GenScanInput = __gen_red_by_seg_scan_input<_BinaryPredicate>;
+    using _ScanInputTransform = __get_zeroth_element;
+    using _WriteOp = __write_red_by_seg<_BinaryPredicate>;
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
+    std::size_t __n = __keys.size();
+    // __gen_red_by_seg_scan_input requires that __n > 1
+    assert(__n > 1);
+    return __parallel_transform_reduce_then_scan(
+        __backend_tag, std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
+        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
+        _GenReduceInput{__binary_pred}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred, __n},
+        _ScanInputTransform{}, _WriteOp{__binary_pred, __n},
+        oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{},
+        /*Inclusive*/ std::true_type{}, /*_IsUniquePattern=*/std::false_type{});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate>
