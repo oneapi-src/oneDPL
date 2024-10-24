@@ -333,4 +333,11 @@
 #    define _ONEDPL_STD_RANGES_ALGO_CPP_FUN 0
 #endif
 
+#if _ONEDPL_STD_RANGES_ALGO_CPP_FUN
+#   define _ONEDPL_ALGO(std_algo_name) \
+[](auto&&... __args) { return std_algo_name(std::forward<decltype(__args)>(__args)...); }
+#else
+#   define _ONEDPL_ALGO(std_algo_name)  std_algo_name
+#endif
+
 #endif // _ONEDPL_CONFIG_H
