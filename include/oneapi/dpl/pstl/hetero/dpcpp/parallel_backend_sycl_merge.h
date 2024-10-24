@@ -68,19 +68,14 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Inde
             [&__rng2, &__rng1, __rng1_from, __rng1_to, __rng2_from, __rng2_to, __q, __comp]
             (const auto& __i_diag, const auto& __value) mutable
             {
-                const auto __idx_rng_1 = __q - __i_diag;
-                const auto __idx_rng_2 = __q - __i_diag - 1;
-                if (__rng1_from <= __idx_rng_1 && __idx_rng_1 < __rng1_to &&
-                    __rng2_from <= __idx_rng_2 && __idx_rng_2 < __rng2_to)
-                {
-                    const auto __zero_or_one =
-                        __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
+                auto __idx_rng_1 = __q - __i_diag;
+                auto __idx_rng_2 = __q - __i_diag - 1;
+
+                __idx_rng_1 = std::max(__rng1_from, std::min(__idx_rng_1, __rng1_to - 1));
+                __idx_rng_2 = std::max(__rng2_from, std::min(__idx_rng_2, __rng2_to - 1));
+
+                const auto __zero_or_one = __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
                     return __zero_or_one < __value;
-                }
-                else
-                {
-                    return false;
-                }
             });
         return std::make_pair(*__res, __q - *__res);
     }
@@ -94,19 +89,14 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Inde
             [&__rng2, &__rng1, __rng1_from, __rng1_to, __rng2_from, __rng2_to, __q, __n1, __n2, __comp]
             (const auto& __i_diag, const auto& __value) mutable
             {
-                const auto __idx_rng_1 = __q + __i_diag;
-                const auto __idx_rng_2 = __n2 - __i_diag - 1;
-                if (__rng1_from <= __idx_rng_1 && __idx_rng_1 < __rng1_to &&
-                    __rng2_from <= __idx_rng_2 && __idx_rng_2 < __rng2_to)
-                {
-                    const auto __zero_or_one =
-                        __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
+                auto __idx_rng_1 = __q + __i_diag;
+                auto __idx_rng_2 = __n2 - __i_diag - 1;
+
+                __idx_rng_1 = std::max(__rng1_from, std::min(__idx_rng_1, __rng1_to - 1));
+                __idx_rng_2 = std::max(__rng2_from, std::min(__idx_rng_2, __rng2_to - 1));
+
+                const auto __zero_or_one = __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
                     return __zero_or_one < __value;
-                }
-                else
-                {
-                    return false;
-                }
             });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
