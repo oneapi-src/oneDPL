@@ -117,25 +117,25 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
-               const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
+               const _Index __start3, const _Index __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
 {
     if (__start1 >= __n1)
     {
         //copying a residual of the second seq
         const _Index __n = std::min<_Index>(__n2 - __start2, __chunk);
-        for (std::uint8_t __i = 0; __i < __n; ++__i)
+        for (_Index __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng2[__start2 + __i];
     }
     else if (__start2 >= __n2)
     {
         //copying a residual of the first seq
         const _Index __n = std::min<_Index>(__n1 - __start1, __chunk);
-        for (std::uint8_t __i = 0; __i < __n; ++__i)
+        for (_Index __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng1[__start1 + __i];
     }
     else
     {
-        for (std::uint8_t __i = 0; __i < __chunk && __start1 < __n1 && __start2 < __n2; ++__i)
+        for (_Index __i = 0; __i < __chunk && __start1 < __n1 && __start2 < __n2; ++__i)
         {
             const auto& __val1 = __rng1[__start1];
             const auto& __val2 = __rng2[__start2];
