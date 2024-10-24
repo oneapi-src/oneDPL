@@ -169,7 +169,7 @@ struct test
         auto expected_res = checker(expected_view, args...);
 
         typename Container::type& A = cont_in();
-        auto r_in = tr_in(A);
+        decltype(auto) r_in = tr_in(A);
         auto res = algo(exec, r_in, args...);
 
         //check result
