@@ -32,6 +32,42 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
+// TODO remove debug code - __find_start_point_prev_impl
+template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
+auto
+__find_start_point_prev_impl(
+    const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
+    const _Index __n2, _Compare __comp)
+{
+    //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
+    oneapi::dpl::counting_iterator<_Index> __diag_it(0);
+
+    if (__i_elem < __n2) //a condition to specify upper or lower part of the merge matrix to be processed
+    {
+        const _Index __q = __i_elem;                         //diagonal index
+        const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
+        auto __res =
+            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
+                                 return __zero_or_one < __value;
+                             });
+        return std::make_pair(*__res, __q - *__res);
+    }
+    else
+    {
+        const _Index __q = __i_elem - __n2;                         //diagonal index
+        const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
+        auto __res =
+            std::lower_bound(__diag_it, __diag_it + __n_diag, 1 /*value to find*/,
+                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable {
+                                 const auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
+                                 return __zero_or_one < __value;
+                             });
+        return std::make_pair(__q + *__res, __n2 - *__res);
+    }
+}
+
 //Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
 //to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
 //     0   1  1  2   3
@@ -75,7 +111,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Inde
                 __idx_rng_2 = std::max(__rng2_from, std::min(__idx_rng_2, __rng2_to - 1));
 
                 const auto __zero_or_one = __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
-                    return __zero_or_one < __value;
+                return __zero_or_one < __value;
             });
         return std::make_pair(*__res, __q - *__res);
     }
@@ -96,7 +132,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, const _Inde
                 __idx_rng_2 = std::max(__rng2_from, std::min(__idx_rng_2, __rng2_to - 1));
 
                 const auto __zero_or_one = __comp(__rng2[__idx_rng_2], __rng1[__idx_rng_1]);
-                    return __zero_or_one < __value;
+                return __zero_or_one < __value;
             });
         return std::make_pair(__q + *__res, __n2 - *__res);
     }
@@ -471,14 +507,12 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
     // Get defaults diagonal interval
     template <typename _ExecutionPolicy>
-    std::uint16_t
+    _IdType
     __get_default_diagonal_interval() const
     {
         // Empirical number of values to process per work-item
-        //const std::uint8_t __diagonals_interval = __exec.queue().get_device().is_cpu() ? 128 : 4;
-        constexpr std::uint16_t __diagonals_interval = 1000;
-
-        return __diagonals_interval;
+        //return __exec.queue().get_device().is_cpu() ? 128 : 4;
+        return 1000;
     }
 
     struct _diagonals_engine
@@ -507,44 +541,43 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
             return result;
         }
 
-        // Return split diagonal level: [1, ..., __split_amount]
-        // If it's not split diagonal, return 0
-        _IdType
-        __get_split_diagonal_level(std::size_t __diagonal_idx) const
+        bool
+        __is_split_diagonal(std::size_t __diagonal_idx) const
         {
-            if (__diagonal_idx == 0)
-                return 0;
-
-            for (_IdType __i = __split_amount; __i >= 1; --__i)
-            {
-                if (__diagonal_idx % __split_diagonals_step(__i) == 0 &&
-                    (__i > 1 && __diagonal_idx % __split_diagonals_step(__i - 1) != 0 || __i == 0))
-                {
-                    return __i;
-                }
-            }
-
-            return 0;
+            return __diagonal_idx % __split_diagonals_step(__split_amount) == 0;
         }
 
-        std::pair<_IdType, _IdType>
+        __split_point_t
         __get_upper_split_diagonals(_IdType __split_diagonal_level, std::size_t __diagonal_idx) const
         {
             assert(__split_diagonal_level >= 1);
             assert(__split_diagonal_level <= __split_amount);
 
             if (__split_diagonal_level == 1)
-                return std::pair{0, __diagonals_count - 1};
+                return __split_point_t{0, __diagonals_count - 1};
 
             const _IdType __step = __split_diagonals_step(__split_diagonal_level - 1);
             for (_IdType __idx = 0; __idx < __diagonals_count; __idx += __step)
             {
                 if (__idx < __diagonal_idx && __diagonal_idx < __idx + __step)
-                    return std::pair{__idx, std::min(__idx + __step, __diagonals_count - 1)};
+                    return __split_point_t{__idx, std::min(__idx + __step, __diagonals_count - 1)};
+            }
+
+            return __split_point_t{0, 0};
+        }
+
+        __split_point_t
+        __get_upper_split_diagonals(std::size_t __diagonal_idx) const
+        {
+            const _IdType __step = __split_diagonals_step(__split_amount);
+            for (_IdType __idx = 0; __idx < __diagonals_count; __idx += __step)
+            {
+                if (__idx < __diagonal_idx && __diagonal_idx < __idx + __step)
+                    return __split_point_t{__idx, std::min(__idx + __step, __diagonals_count - 1)};
             }
 
             assert("Nothing found - it's an error");
-            return std::pair{0, 0};
+            return __split_point_t{0, 0};
         }
     };
 
@@ -557,7 +590,7 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;        // == 25'500'000
 
-        const auto __diagonals_interval = __get_default_diagonal_interval<_ExecutionPolicy>();                          //  1'000
+        const _IdType __diagonals_interval = __get_default_diagonal_interval<_ExecutionPolicy>();
         const auto __diagonals_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __diagonals_interval);           // 25'500
 
         // Build Kernel name for split points Kernel
@@ -628,7 +661,7 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
                         const _IdType __split_diagonals_step_this_level = __diag_eng.__split_diagonals_step(__split_diagonal_level_local);
                         const _IdType __split_diagonal_idx = __split_diagonals_step_this_level + __linear_id * __split_diagonals_step_upper_level;
 
-                        const std::pair<_IdType, _IdType> __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level_local, __split_diagonal_idx);
+                        const __split_point_t __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level_local, __split_diagonal_idx);
                         assert(0 <= __pair.first && __pair.first < __diagonals_count);
                         assert(0 <= __pair.second && __pair.second < __diagonals_count);
                         const __split_point_t __sp_top_left     = __split_points_ptr[__pair.first];
@@ -636,17 +669,14 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
                         const _IdType __i_elem = __split_diagonal_idx * __diagonals_interval_local;
                         const __split_point_t __split_point = __find_start_point_in(
-                            __rng1, /* __rng1_from */ __sp_top_left.first,  /* __rng1_to */ __sp_bottom_right.first,
-                            __rng2, /* __rng2_from */ __sp_top_left.second, /* __rng1_to */ __sp_bottom_right.second,
+                            __rng1, /* __rng1_from */ __sp_top_left.first,  /* __rng1_to */ __sp_bottom_right.first  + 1,
+                            __rng2, /* __rng2_from */ __sp_top_left.second, /* __rng1_to */ __sp_bottom_right.second + 1,
                             __i_elem,
                             __n1, __n2, __comp);
 
                         __split_points_ptr[__split_diagonal_idx] = __split_point;
                     });
             });
-
-            // TODO don't forget to remove this wait() call
-            __event_split_diagonal.wait();
         }
 
         sycl::event __event_all_diagonals = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -667,14 +697,15 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
                     _diagonals_engine __diag_eng{__diagonals_interval, __diagonals_count, __split_amount};
 
-                    const _IdType __split_diagonal_level = __diag_eng.__get_split_diagonal_level(__linear_id);
-
                     // Skip split diagonals - they are already calculated earlier
-                    if (__split_diagonal_level == 0)
+                    if (!__diag_eng.__is_split_diagonal(__linear_id))
                     {
-                        const std::pair<_IdType, _IdType> __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level, __linear_id);
-                        assert(0 <= __pair.first && __pair.first < __diagonals_count);
-                        assert(0 <= __pair.second && __pair.second < __diagonals_count);
+                        // TODO remove debug code
+                        const auto __diagonals_count_local = __diagonals_count;
+
+                        __split_point_t __pair = __diag_eng.__get_upper_split_diagonals(__linear_id);
+                        assert(0 <= __pair.first && __pair.first < __diagonals_count_local);
+                        assert(0 <= __pair.second && __pair.second < __diagonals_count_local);
 
                         const __split_point_t __sp_top_left     = __split_points_ptr[__pair.first];
                         const __split_point_t __sp_bottom_right = __split_points_ptr[__pair.second];
@@ -705,6 +736,8 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
 
+        const _IdType __diagonals_interval = __get_default_diagonal_interval<_ExecutionPolicy>();
+
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
 
             // We should wait for the first kernel to finish
@@ -726,25 +759,20 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
                     const auto __linear_id = __item_id.get_linear_id();
 
-                    const __split_point_t __sp_current = __split_points_ptr[__linear_id];
+                    const _IdType __diagonal_offset = __item_id.get_linear_id() * __diagonals_interval;
 
-                    std::uint8_t __chunk = 0;
-                    if (__linear_id + 1 < __diagonals_count)
+                    const __split_point_t __start = __split_points_ptr[__linear_id];
+
+                    // TODO remove debug code
                     {
-                        const __split_point_t __sp_next = __split_points_ptr[__linear_id + 1];
-                        __chunk = __sp_next.first + __sp_next.second - (__sp_current.first + __sp_current.second);
-                    }
-                    else
-                    {
-                        const __split_point_t __sp_next{__n1, __n2};
-                        __chunk = __sp_next.first + __sp_next.second - (__sp_current.first + __sp_current.second);
+                        const auto __start_tmp = __find_start_point_prev_impl(__rng1, __rng2, __diagonal_offset, __n1, __n2, __comp);
+                        assert(__start_tmp == __start);
                     }
 
                     // Run merge from current splitting point
                     __serial_merge(__rng1, __rng2, __rng3,
-                                   __sp_current.first, __sp_current.second,
-                                   __sp_current.first + __sp_current.second,
-                                   __chunk, __n1, __n2, __comp);
+                                   __start.first, __start.second,
+                                   __diagonal_offset, __diagonals_interval, __n1, __n2, __comp);
                 });
         });
 
@@ -756,11 +784,8 @@ public:
     __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
-        const _IdType __n1 = __rng1.size();
-        const _IdType __n2 = __rng2.size();
-        const _IdType __n = __n1 + __n2;
-
-        assert(__n1 > 0 || __n2 > 0);
+        assert(__rng1.size() > 0);
+        assert(__rng2.size() > 0);
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
