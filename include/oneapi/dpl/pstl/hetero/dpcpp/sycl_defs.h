@@ -45,21 +45,33 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_NO_INIT_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_KERNEL_BUNDLE_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
-#define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
-#define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_LIBSYCL_VERSION >= 60200)
-#define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
-    (_ONEDPL_LIBSYCL_VERSION < 70100) && (_ONEDPL_LIBSYCL_VERSION != 0)
+#if _ONEDPL_LIBSYCL_VERSION
+#   define _ONEDPL_NO_INIT_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#   define _ONEDPL_KERNEL_BUNDLE_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#   define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#   define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#   define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#   define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
+#   define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
+#   define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_LIBSYCL_VERSION >= 60200)
+#   define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
+        (_ONEDPL_LIBSYCL_VERSION < 70100) && (_ONEDPL_LIBSYCL_VERSION != 0)
+#else
+#    define _ONEDPL_NO_INIT_PRESENT 1
+#    define _ONEDPL_KERNEL_BUNDLE_PRESENT 0
+#    define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT 1
+#    define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT 1
+#    define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT 1
+#    define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT 1
+#    define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT 0
+#    define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED 1
+#    define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN 0
+#endif
 
 // TODO: determine which compiler configurations provide subgroup load/store
-#define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
+#define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT 0
 
-#define _ONEDPL_SYCL_SUB_GROUP_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_SYCL_SUB_GROUP_PRESENT ((_ONEDPL_LIBSYCL_VERSION == 0) || (_ONEDPL_LIBSYCL_VERSION >= 50700))
 
 // Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
 // SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
@@ -71,7 +83,7 @@
 #    endif
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
-#if _ONEDPL_LIBSYCL_VERSION >= 50300
+#if (_ONEDPL_LIBSYCL_VERSION == 0) || (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #else
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
@@ -152,7 +164,7 @@ template <typename _Buffer>
 constexpr auto
 __get_buffer_size(const _Buffer& __buffer)
 {
-#if _ONEDPL_LIBSYCL_VERSION >= 50300
+#if (_ONEDPL_LIBSYCL_VERSION == 0) || (_ONEDPL_LIBSYCL_VERSION >= 50300)
     return __buffer.size();
 #else
     return __buffer.get_count();
@@ -360,21 +372,21 @@ inline auto __fpga_selector()
 #endif // _ONEDPL_FPGA_DEVICE
 
 using __target =
-#if _ONEDPL_LIBSYCL_VERSION >= 50400
+#if (_ONEDPL_LIBSYCL_VERSION >= 50400) || (_ONEDPL_LIBSYCL_VERSION == 0)
     sycl::target;
 #else
     sycl::access::target;
 #endif
 
 constexpr __target __target_device =
-#if _ONEDPL_LIBSYCL_VERSION >= 50400
+#if (_ONEDPL_LIBSYCL_VERSION >= 50400) || (_ONEDPL_LIBSYCL_VERSION == 0)
     __target::device;
 #else
     __target::global_buffer;
 #endif
 
 constexpr __target __host_target =
-#if _ONEDPL_LIBSYCL_VERSION >= 60200
+#if (_ONEDPL_LIBSYCL_VERSION >= 60200) || (_ONEDPL_LIBSYCL_VERSION == 0)
     __target::host_task;
 #else
     __target::host_buffer;
@@ -382,7 +394,7 @@ constexpr __target __host_target =
 
 template <typename _DataT>
 using __buffer_allocator =
-#if _ONEDPL_LIBSYCL_VERSION >= 60000
+#if (_ONEDPL_LIBSYCL_VERSION >= 60000) || (_ONEDPL_LIBSYCL_VERSION == 0)
     sycl::buffer_allocator<_DataT>;
 #else
     sycl::buffer_allocator;
@@ -401,7 +413,7 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 
 template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
-#if _ONEDPL_LIBSYCL_VERSION >= 60000
+#if (_ONEDPL_LIBSYCL_VERSION >= 60000) || (_ONEDPL_LIBSYCL_VERSION == 0)
     sycl::local_accessor<_DataT, _Dimensions>;
 #else
     sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
@@ -411,7 +423,7 @@ template <typename _Buf>
 auto
 __get_host_access(_Buf&& __buf)
 {
-#if _ONEDPL_LIBSYCL_VERSION >= 60200
+#if (_ONEDPL_LIBSYCL_VERSION >= 60200) || (_ONEDPL_LIBSYCL_VERSION == 0)
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
 #else
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
@@ -422,10 +434,13 @@ template <typename _Acc>
 auto
 __get_accessor_ptr(const _Acc& __acc)
 {
-#if _ONEDPL_LIBSYCL_VERSION >= 70000
-    return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
+#if (_ONEDPL_LIBSYCL_VERSION >= 70000) || (_ONEDPL_LIBSYCL_VERSION == 0)
+    //error: no member named 'get_multi_ptr' in 'hipsycl::sycl::accessor<unsigned short, 1, hipsycl::sycl::access_mode::read_write, hipsycl::sycl::target::local, hipsycl::sycl::accessor_variant::false_t>'
+    // return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
+    return __acc.begin();
 #else
-    return __acc.get_pointer();
+    // return __acc.get_pointer();
+    return __acc.begin();
 #endif
 }
 
