@@ -180,7 +180,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
     target_compile_definitions(oneDPL INTERFACE
         $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
-        $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
+        $<$<CONFIG:Debug>:PSTL_USE_DEBUG=1>
         $<$<BOOL:${SET_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
         $<$<BOOL:${SET_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
         )
@@ -340,7 +340,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
             target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
         endif()
         target_compile_definitions(oneDPL INTERFACE
-            $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
+            $<$<CONFIG:Debug>:PSTL_USE_DEBUG=1>
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
             ONEDPL_USE_OPENMP_BACKEND=1
