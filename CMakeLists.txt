@@ -340,6 +340,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
             target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
         endif()
         target_compile_definitions(oneDPL INTERFACE
+            $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
             ONEDPL_USE_OPENMP_BACKEND=1
