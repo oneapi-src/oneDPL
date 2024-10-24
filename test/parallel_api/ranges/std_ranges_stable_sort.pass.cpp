@@ -22,12 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto sort_stable_checker = 
-#if _ONEDPL_STD_RANGES_ALGO_CPP_FUN
-            [](auto&&... __args) { return std::ranges::stable_sort(std::forward<decltype(__args)>(__args)...); };
-#else
-            std::ranges::stable_sort;
-#endif
+    auto sort_stable_checker = _ONEDPL_ALGO(std::ranges::stable_sort);
 
     test_range_algo<0>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
     test_range_algo<1>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{});

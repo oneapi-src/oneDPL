@@ -21,12 +21,8 @@ main()
 #if _ENABLE_STD_RANGES_TESTING
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
-    auto sort_checker = 
-#if _ONEDPL_STD_RANGES_ALGO_CPP_FUN
-            [](auto&&... __args) { return std::ranges::sort(std::forward<decltype(__args)>(__args)...); };
-#else
-            std::ranges::sort;
-#endif
+
+    auto sort_checker = _ONEDPL_ALGO(std::ranges::sort);
 
     test_range_algo<0>{big_sz}(dpl_ranges::sort, sort_checker);
     test_range_algo<1>{}(dpl_ranges::sort, sort_checker, std::ranges::less{});
