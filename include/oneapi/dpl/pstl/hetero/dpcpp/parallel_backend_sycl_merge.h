@@ -226,6 +226,9 @@ template <typename... _Name>
 class __merge_kernel_name_large;
 
 template <typename... _Name>
+class _find_split_points_kernel_on_base_diagonals;
+
+template <typename... _Name>
 class _find_split_points_kernel;
 
 template <typename _IdType, typename... _Name>
@@ -492,26 +495,16 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
     {
         const _IdType __diagonals_interval;             // Interval between diagonals
         const _IdType __diagonals_count;                // Full amount of the diagonals
-        const _IdType __split_amount = 3;               // The amount of splitting by diagonals (may be 2, 3, 4 and etc).
+        const _IdType __split_amount/* = 3*/;           // The amount of splitting by diagonals (may be 2, 3, 4 and etc).
                                                         // 3 is good enough: each 1/2, 1/4, 1/8
 
-        _diagonals_engine(_IdType __diagonals_interval, _IdType __diagonals_count)
-            : __diagonals_interval(__diagonals_interval), __diagonals_count(__diagonals_count)
+        _diagonals_engine(_IdType __diagonals_interval, _IdType __diagonals_count, _IdType __split_amount)
+            : __diagonals_interval(__diagonals_interval), __diagonals_count(__diagonals_count),
+              __split_amount(__split_amount)
         {
-        }
-
-        // Get full amount of split diagonals
-        _IdType __get_amount_of_split_diagonals() const
-        {
-            _IdType result = (1 << __split_amount) - 1;
-            return result;
-        }
-
-        // Get amount of split diagonals for specified splitting level
-        _IdType __get_amount_of_split_diagonals(_IdType __split_level) const
-        {
-            _IdType result = (1 << __split_level) - 1;
-            return result;
+            assert(__diagonals_interval > 0);
+            assert(__diagonals_count > 0);
+            assert(__split_amount > 0);
         }
 
         // Get step for split diagonals of specified splitting level
@@ -524,48 +517,24 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
             return result;
         }
 
-        bool
-        __is_split_diagonal(std::size_t __diagonal_idx) const
-        {
-            // Lest think that the first and the last diagonals aren't splitting diagonals
-            if (__diagonal_idx == 0 || __diagonal_idx == __diagonals_count - 1)
-                return false;
-
-            for (_IdType __i = __split_amount; __i >= 1; --__i)
-            {
-                if (__diagonal_idx % __split_diagonals_step(__i) == 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        // Return split diagonal level: [1, ..., __split_amount)
+        // Return split diagonal level: [1, ..., __split_amount]
         // If it's not split diagonal, return 0
         _IdType
         __get_split_diagonal_level(std::size_t __diagonal_idx) const
         {
-            if (!__is_split_diagonal(__diagonal_idx))
+            if (__diagonal_idx == 0)
                 return 0;
 
-            for (_IdType __i = __split_amount; __i > 1; --__i)
-            {                                                                           // __diagonal_idx == 6376
-                const auto __rem = __diagonal_idx % __split_diagonals_step(__i);
-                if (__rem == 0)
+            for (_IdType __i = __split_amount; __i >= 1; --__i)
+            {
+                if (__diagonal_idx % __split_diagonals_step(__i) == 0 &&
+                    (__i > 1 && __diagonal_idx % __split_diagonals_step(__i - 1) != 0 || __i == 0))
                 {
-                    const auto __rem_prev = __diagonal_idx % __split_diagonals_step(__i - 1);
-                    if (__rem_prev != 0)
-                    {
-                        return __i;
-                    }
+                    return __i;
                 }
-
-                //if (__diagonal_idx % __split_diagonals_step(__i) == 0 &&                // __split_diagonals_step(3) == 6'375
-                //    __diagonal_idx % __split_diagonals_step(__i - 1) != 0)              // __split_diagonals_step(2) == 3'188
-                //    return __i;
             }
 
-            return 1;
+            return 0;
         }
 
         std::pair<_IdType, _IdType>
@@ -603,6 +572,9 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
         // Build Kernel name for split points Kernel
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+        using _FindSplitPointsKernelOnBaseDiagonals =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+                _find_split_points_kernel_on_base_diagonals, _CustomName, _Range1, _Range2, _IdType, _Compare>;
         using _FindSplitPointsKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             _find_split_points_kernel, _CustomName, _Range1, _Range2, _IdType, _Compare>;
 
@@ -619,14 +591,14 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
 
         using __itertations_atomic_t = __dpl_sycl::__atomic_ref<__iteration_t, sycl::access::address_space::global_space>;
 
-        sycl::event __event;
-        {   // for sycl::buffer scope
-            const sycl::range</*dim=*/1> __range_1(1);
+        sycl::event __event_split_diagonal;
 
-            sycl::buffer<__iteration_t, 1> __processed_split_diagonals_buffer(&__processed_split_diagonals_counter, __range_1);
-            sycl::buffer<__iteration_t, 1> __data_initialized_buffer(&__data_initialized, __range_1);
+        constexpr _IdType __split_amount = 3;
+        for (_IdType __split_diagonal_level = 1; __split_diagonal_level <= __split_amount; ++__split_diagonal_level)
+        {
+            __event_split_diagonal = __exec.queue().submit([&](sycl::handler& __cgh) {
 
-            __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+                __cgh.depends_on(__event_split_diagonal);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
 
@@ -634,61 +606,91 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
                 auto __split_points_acc = __split_points.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
                 auto __split_points_ptr = __split_points.__get_usm_or_buffer_accessor_ptr(__split_points_acc);
 
-                // Get access to data initialization flag
-                auto __data_initialized_buffer_acc = __data_initialized_buffer.get_access<sycl::access::mode::read_write>(__cgh);
+                const size_t __base_diagonals_count = 1 << (__split_diagonal_level - 1);
 
-                // Get access to 
-                auto __processed_split_diagonals_buffer_acc = __processed_split_diagonals_buffer.get_access<sycl::access::mode::read_write>(__cgh);
-
-                __cgh.parallel_for<_FindSplitPointsKernel>(
-                    sycl::range</*dim=*/1>(__diagonals_count),
+                __cgh.parallel_for<_FindSplitPointsKernelOnBaseDiagonals>(
+                    sycl::range</*dim=*/1>(__base_diagonals_count),
                     [=](sycl::item</*dim=*/1> __item_id) {
 
                         const auto __linear_id = __item_id.get_linear_id();
 
-                        __itertations_atomic_t __data_initialized_ref         (__data_initialized_buffer_acc         [0]);
-                        __itertations_atomic_t __processed_split_diagonals_ref(__processed_split_diagonals_buffer_acc[0]);
-
-                        // Common data initialization
-                        if (__linear_id == 0)
+                        // Initialize split points
+                        if (__base_diagonals_count == 1)
                         {
                             __split_points_ptr[0] = std::pair{0, 0};
                             __split_points_ptr[__diagonals_count - 1] = std::pair{__n1, __n2};
-
-                            __data_initialized_ref.store(1);
-                        }
-                        else
-                        {
-                            while (__data_initialized_ref.load() < 1)
-                            {
-                                // Do nothing
-                            }
                         }
 
-                        // Nothing to calculate for the first diagonal
-                        if (__linear_id == 0)
-                            return;
+                        // TODO don't forget to remove local variable
+                        auto __diagonals_interval_local = __diagonals_interval;
+                        // TODO don't forget to remove local variable
+                        auto __diagonals_count_local = __diagonals_count;
+                        // TODO don't forget to remove local variable
+                        auto __split_amount_local = __split_amount;
+                        _diagonals_engine __diag_eng{__diagonals_interval_local, __diagonals_count_local, __split_amount_local};
 
-                        _diagonals_engine __diag_eng{__diagonals_interval, __diagonals_count};
+                        // TODO don't forget to remove local variable
+                        auto __split_diagonal_level_local = __split_diagonal_level;
+                        const _IdType __split_diagonals_step_upper_level =
+                            __split_diagonal_level_local > 1
+                                ? __diag_eng.__split_diagonals_step(__split_diagonal_level_local - 1)
+                                : 0;
+                        const _IdType __split_diagonals_step_this_level = __diag_eng.__split_diagonals_step(__split_diagonal_level_local);
+                        const _IdType __split_diagonal_idx = __split_diagonals_step_this_level + __linear_id * __split_diagonals_step_upper_level;
 
-                        const _IdType __split_diagonal_level = __diag_eng.__get_split_diagonal_level(__linear_id);
-
-                        // Waiting while upper split diagonals will be processed
-                        const _IdType __required_amount_of_already_processed_split_diagonals = 
-                            __split_diagonal_level > 0 
-                            ? __diag_eng.__get_amount_of_split_diagonals(__split_diagonal_level - 1)
-                            : __diag_eng.__get_amount_of_split_diagonals();
-
-                        while (__processed_split_diagonals_ref.load() < __required_amount_of_already_processed_split_diagonals)
-                        {
-                            // Do nothing.
-                        }
-
-                        const std::pair<_IdType, _IdType> __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level, __linear_id);
+                        const std::pair<_IdType, _IdType> __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level_local, __split_diagonal_idx);
                         assert(0 <= __pair.first && __pair.first < __diagonals_count);
                         assert(0 <= __pair.second && __pair.second < __diagonals_count);
                         const __split_point_t __sp_top_left     = __split_points_ptr[__pair.first];
                         const __split_point_t __sp_bottom_right = __split_points_ptr[__pair.second];
+
+                        const _IdType __i_elem = __split_diagonal_idx * __diagonals_interval_local;
+                        const __split_point_t __split_point = __find_start_point_in(
+                            __rng1, /* __rng1_from */ __sp_top_left.first,  /* __rng1_to */ __sp_bottom_right.first,
+                            __rng2, /* __rng2_from */ __sp_top_left.second, /* __rng1_to */ __sp_bottom_right.second,
+                            __i_elem,
+                            __n1, __n2, __comp);
+
+                        __split_points_ptr[__split_diagonal_idx] = __split_point;
+                    });
+            });
+
+            // TODO don't forget to remove this wait() call
+            __event_split_diagonal.wait();
+        }
+
+        sycl::event __event_all_diagonals = __exec.queue().submit([&](sycl::handler& __cgh) {
+
+            __cgh.depends_on(__event_split_diagonal);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
+
+            // Get access to the split points
+            auto __split_points_acc = __split_points.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+            auto __split_points_ptr = __split_points.__get_usm_or_buffer_accessor_ptr(__split_points_acc);
+
+            __cgh.parallel_for<_FindSplitPointsKernel>(
+                sycl::range</*dim=*/1>(__diagonals_count),
+                [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const auto __linear_id = __item_id.get_linear_id();
+
+                    _diagonals_engine __diag_eng{__diagonals_interval, __diagonals_count, __split_amount};
+
+                    const _IdType __split_diagonal_level = __diag_eng.__get_split_diagonal_level(__linear_id);
+
+                    // Skip split diagonals - they are already calculated earlier
+                    if (__split_diagonal_level == 0)
+                    {
+                        const std::pair<_IdType, _IdType> __pair = __diag_eng.__get_upper_split_diagonals(__split_diagonal_level, __linear_id);
+                        assert(0 <= __pair.first && __pair.first < __diagonals_count);
+                        assert(0 <= __pair.second && __pair.second < __diagonals_count);
+
+                        const __split_point_t __sp_top_left     = __split_points_ptr[__pair.first];
+                        const __split_point_t __sp_bottom_right = __split_points_ptr[__pair.second];
+
+                        assert(__sp_top_left.first <= __sp_bottom_right.first);
+                        assert(__sp_top_left.second <= __sp_bottom_right.second);
 
                         const _IdType __i_elem = __linear_id * __diagonals_interval;
                         const __split_point_t __split_point = __find_start_point_in(
@@ -698,15 +700,11 @@ struct __parallel_merge_submitter_large_V1<_IdType, __internal::__optional_kerne
                             __n1, __n2, __comp);
 
                         __split_points_ptr[__linear_id] = __split_point;
+                    }
+                });
+        });
 
-                        // Increment the amount of processed diagonals
-                        if (__split_diagonal_level > 0)
-                            __processed_split_diagonals_ref.fetch_add(1);
-                    });
-            });
-        }   // for sycl::buffer scope
-
-        return __future(__event, __split_points);
+        return __future(__event_all_diagonals, __split_points);
     }
 
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare, typename _F>
