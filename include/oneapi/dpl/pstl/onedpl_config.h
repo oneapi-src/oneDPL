@@ -342,18 +342,8 @@
 
 // -- Configure heterogeneous backends --
 
-#if defined(ONEDPL_FPGA_DEVICE)
-#    undef _ONEDPL_FPGA_DEVICE
-#    define _ONEDPL_FPGA_DEVICE ONEDPL_FPGA_DEVICE
-#endif
-
 #if !defined(ONEDPL_ALLOW_DEFERRED_WAITING)
 #    define ONEDPL_ALLOW_DEFERRED_WAITING 0
-#endif
-
-#if defined(ONEDPL_FPGA_EMULATOR)
-#    undef _ONEDPL_FPGA_EMU
-#    define _ONEDPL_FPGA_EMU ONEDPL_FPGA_EMULATOR
 #endif
 
 #if defined(ONEDPL_USE_PREDEFINED_POLICIES)
@@ -363,15 +353,24 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
+#if defined(ONEDPL_FPGA_DEVICE)
+#    undef _ONEDPL_FPGA_DEVICE
+#    define _ONEDPL_FPGA_DEVICE ONEDPL_FPGA_DEVICE
+#endif
+#if defined(ONEDPL_FPGA_EMULATOR)
+#    undef _ONEDPL_FPGA_EMU
+#    define _ONEDPL_FPGA_EMU ONEDPL_FPGA_EMULATOR
+#endif
+
 #if _ONEDPL_BACKEND_SYCL
 // Include sycl specific options
 // FPGA doesn't support sub-groups
 #    if !(_ONEDPL_FPGA_DEVICE)
-#        define _USE_SUB_GROUPS 1
-#        define _USE_GROUP_ALGOS 1
+#        define _ONEDPL_USE_SUB_GROUPS 1
+#        define _ONEDPL_USE_GROUP_ALGOS 1
 #    endif
 
-#    define _USE_RADIX_SORT (_USE_SUB_GROUPS && _USE_GROUP_ALGOS)
+#    define _USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
 
 // Compilation of a kernel is requiried to obtain valid work_group_size
 // when target devices are CPU or FPGA emulator. Since CPU and GPU devices

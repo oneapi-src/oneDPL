@@ -77,7 +77,7 @@ __slm_adjusted_work_group_size(const _ExecutionPolicy& __policy, _Size __local_m
     return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
 }
 
-#if _USE_SUB_GROUPS
+#if _ONEDPL_USE_SUB_GROUPS
 template <typename _ExecutionPolicy>
 ::std::size_t
 __max_sub_group_size(const _ExecutionPolicy& __policy)
