@@ -60,7 +60,7 @@ sync-with(s);
 This pattern is specifically common for *heterogeneous* APIs that offload the execution to
 another compute device such as a GPU. Usually devices are represented by *queues* or *streams*
 where the work can be submitted to. The main program then waits for completion of all work
-previoulsy submitted to a queue.
+previously submitted to a queue.
 
 ```
 work-queue q{/*initialization arguments*/};
@@ -130,7 +130,7 @@ as well as in Thrust, try addressing some of the shortcomings.
 
 The new [execution control library](https://eel.is/c++draft/exec) in C++ 26, also known as
 [*schedulers/senders/receivers*](https://wg21.link/p2300), is the proposed way to improve
-asynchronous programming with C++, dealing with the limitations of `std::future`. In the essense,
+asynchronous programming with C++, dealing with the limitations of `std::future`. In the essence,
 this library provides a language to build program flow graphs and then run those on chosen execution
 resources.
 
