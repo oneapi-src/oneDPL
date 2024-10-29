@@ -28,7 +28,7 @@ consistent approach to asynchronous execution. Defining that is the goal of this
 
 In the practical use of the oneDPL asynchronous APIs as well as similar APIs of other libraries
 (such as Thrust) we observed several typical patterns, pseudocode examples of which follow.
-The proposal is aimed primarily at supporting these very patterns. The list can be extended
+**The proposal is aimed primarily at supporting these very patterns**. The list can be extended
 if there is enough evidence of demand for other patterns of asynchronous compute.
 
 In the examples, `foo-async` represents a call such as oneDPL `for_each_async` and `submit`
@@ -136,12 +136,26 @@ resources.
 
 The stages of creating and executing a graph of computations are separate; the execution can only
 be started explicitly by one of a few dedicated calls. Therefore the approach appears more
-suitable for deferred execution, while eager execution would be at least be more verbose to program.
+suitable for deferred execution, while eager execution would be at least more verbose to code.
 
 Some companion proposals, notably for [async_scope](https://wg21.link/p3149) and [system execution
 context](https://wg21.link/p2079), are yet to be accepted to the working draft. The proposal for
 adding [asynchronous parallel algorithms](https://wg21.link/p3300) is at a very early stage and
 is not planned for C++ 26.
+
+## Design considerations
+
+### Key requirements
+
+### Use of C++26 senders
+
+### Returning a computed value
+
+### Expressing dependencies
+
+### Lifetime of temporary allocations
+
+### Interoperability
 
 ## Proposal
 
@@ -156,3 +170,6 @@ It is expected to have:
 
 TODO: List any questions that are not sufficiently elaborated in the proposal,
 need more discussion or prototyping experience, etc.
+
+- Exception handling
+- Cancellation support to avoid computing what is no more necessary
