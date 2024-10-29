@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- extreme_value_distribution_test.cpp ---------------------------------===//
+//===-- lognormal_distribution_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -11,11 +11,11 @@
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 //
-//===----------------------------------------------------------------------===//
+//===-------------------------------------------------------------------------===//
 //
 // Abstract:
 //
-// Test of extreme_value_distribution - check statistical properties of the distribution
+// Test of lognormal_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -23,13 +23,11 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::extreme_value_distribution<RealType>;
+using Distr = oneapi::dpl::lognormal_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
-int
-main()
-{
+int main() {
 
 #if TEST_UNNAMED_LAMBDAS
 
@@ -38,7 +36,7 @@ main()
     constexpr int nsamples = 100;
     int err = 0;
 
-            // testing sycl::vec<float, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<float, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "sycl::vec<float,1>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
