@@ -10,7 +10,7 @@ Users don't always want to use device policies and accelerators to run their cod
 Another motivation for adding the support is simply to be spec compliant with the oneAPI specification.
 
 ## Design considerations
-For execution policies when calling 1 dpll apis. They also have a number of options for backends which they can select from when using one dpl. It is important that all of these options have some support for histogram.
+For execution policies when calling oneDPL APIs. They also have a number of options for backends which they can select from when using one dpl. It is important that all of these options have some support for histogram.
 We also care about how these perform and how they scale to the number of threads, and we also care about their memory footprint.
 
 In general I believe we can safely assume that the normal case is for the number of elements to be far greater than the number of bins.Also this is a very low computation api which will likely be limited by memory bandwidth. This means  we should
@@ -28,7 +28,7 @@ There are no guidelines here from the standard library as this is an extension A
 ### Code Reuse
 Our goal here is to make something maintainable and to reuse as much as we can which already exists and has been reviewed within oneDPL. With everything else this has to be balanced with performance considerations.
 
-### Vector
+### unseq backend
 As mentioned above histogram looks to be a memory bandwidth dependent algorithm. This means that we are unlikely to get much benefit from vector instructions as they provide assistance mostly in speeding up computation. Vector operations in this case also compound our issue of race conditions multiplying the number of virtual threads by the vector length. The advantage we get from vectorization of the increment operation or the lookup into the output histogram is unlikely to provide much benefit especially when we account for extra memory footprint required or synchronization required to overcome the race conditions which we add from the additional concurrant streams of execution. It may make sense to decline to add vectorized operations within histogram even when they are requested by the user via the execution policy.
 
 ## Existing patterns
@@ -51,7 +51,6 @@ I propose to add a new pattern specific to histogram which goes as follows:
 New machinery that will be required here is the ability to query how many threads will be used and also the machinery to check what thread the current execution is using. Ideally these can be generic wrappers around the specific back ends which would allow a unified implementation for all host backends.
 
 ## Alternative Option
-
 One alternative way to provide a parallel histogram which would minimize memory footprint would be to use atomic operations to remove the race conditions during accumulation. The user provides the output sequence It won't be a atomic variable. Open MP does provide wrappers around generic memory to provide atomic operations within an open MP parallel section however I do not know of a way to provide this within the tbb back end. We can Alternatively allocate a copy of the histogram as atomic variables and use them however this would require us to add a copy from the atomic copy of the histogram to the output sequence provided by the user. With large enough histogram bin counts relative to the number of threads, atomics may be an attractive solution because contention on the atomics will be relatively low. It also limits the requirement for extra temporary storage. Especially for open MP it may make sense to explore this option and compare performance.
 
 ## Open Questions
