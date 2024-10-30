@@ -1,6 +1,6 @@
 
 // -*- C++ -*-
-//===-- weibull_distribution_test.cpp ---------------------------------===//
+//===-- weibull_distribution_dp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

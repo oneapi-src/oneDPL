@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- extreme_value_distribution_test.cpp ---------------------------------===//
+//===-- extreme_value_distribution_sp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- weibull_distribution_test.cpp ---------------------------------===//
+//===-- weibull_distribution_sp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- lognormal_distribution_test.cpp ---------------------------------------===//
+//===-- lognormal_distribution_dp_tests_set_portion_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

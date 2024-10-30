@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- philox_uniform_real_distribution_test.pass.cpp --------------------===//
+//===-- philox_uniform_real_distribution_dp_test.pass.cpp --------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,12 +15,15 @@
 
 #if TEST_UNNAMED_LAMBDAS
 
-#include "common_for_philox_uniform_real.hpp"
+#include "common_for_distributions.hpp"
 
 /* ------   Tested the statistics of different engines   ------ */
 // n = 2
 using philox2x32 = oneapi::dpl::experimental::philox_engine<std::uint_fast32_t, 32, 2, 10, 0xd256d193, 0x0>;
 using philox2x64 = oneapi::dpl::experimental::philox_engine<std::uint_fast64_t, 64, 2, 10, 0xD2B74407B1CE6E93, 0x0>;
+
+template<typename RealType>
+using Distr = oneapi::dpl::uniform_real_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
@@ -43,25 +46,25 @@ main()
         std::cout << "sycl::vec<double,1>, std::uint_fast32_t ... sycl::vec<std::uint_fast32_t, 16>, philox2x32 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 1>, std::uint_fast32_t, philox2x32>(queue, nsamples);
+        err = tests_set<Distr<sycl::vec<double, 1>>, std::uint_fast32_t, philox2x32>(queue, nsamples);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, nsamples);
-        err += tests_set_portion<sycl::vec<double, 1>, std::uint_fast32_t, philox2x32>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, std::uint_fast32_t, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 100, 2);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, nsamples);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, std::uint_fast32_t, philox2x32>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, std::uint_fast32_t, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 100, 2);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
 
@@ -70,25 +73,25 @@ main()
         std::cout << "sycl::vec<double,1>, std::uint_fast64_t ... sycl::vec<std::uint_fast64_t, 16>, philox2x64 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 1>, std::uint_fast64_t, philox2x64>(queue, nsamples);
+        err = tests_set<Distr<sycl::vec<double, 1>>, std::uint_fast64_t, philox2x64>(queue, nsamples);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, nsamples);
-        err += tests_set<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, nsamples);
-        err += tests_set_portion<sycl::vec<double, 1>, std::uint_fast64_t, philox2x64>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, std::uint_fast64_t, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 100, 1);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 100, 2);
-        err += tests_set_portion<sycl::vec<double, 1>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 100, 2);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, nsamples);
+        err += tests_set<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, nsamples);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, std::uint_fast64_t, philox2x64>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, std::uint_fast64_t, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 100, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 100, 2);
+        err += tests_set_portion<Distr<sycl::vec<double, 1>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 100, 2);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
 
@@ -97,35 +100,35 @@ main()
         std::cout << "sycl::vec<double,8>, std::uint_fast32_t ... sycl::vec<std::uint_fast32_t, 16>, philox2x32 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 8>, std::uint_fast32_t, philox2x32>(queue, 160);
+        err = tests_set<Distr<sycl::vec<double, 8>>, std::uint_fast32_t, philox2x32>(queue, 160);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast32_t, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast32_t, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast32_t, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 9);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast32_t, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast32_t, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast32_t, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 9);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
 
@@ -134,35 +137,35 @@ main()
         std::cout << "sycl::vec<double,8>, std::uint_fast64_t ... sycl::vec<std::uint_fast64_t, 16>, philox2x64 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 8>, std::uint_fast64_t, philox2x64>(queue, 160);
+        err = tests_set<Distr<sycl::vec<double, 8>>, std::uint_fast64_t, philox2x64>(queue, 160);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast64_t, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast64_t, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, std::uint_fast64_t, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 5);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 9);
-        err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 9);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast64_t, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast64_t, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, std::uint_fast64_t, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 5);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 9);
+        err += tests_set_portion<Distr<sycl::vec<double, 8>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 9);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
 
@@ -171,35 +174,35 @@ main()
         std::cout << "sycl::vec<double,16>, std::uint_fast32_t ... sycl::vec<std::uint_fast32_t, 16>, philox2x32 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 16>, std::uint_fast32_t, philox2x32>(queue, 160);
+        err = tests_set<Distr<sycl::vec<double, 16>>, std::uint_fast32_t, philox2x32>(queue, 160);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast32_t, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast32_t, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast32_t, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 17);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast32_t, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast32_t, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast32_t, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 16>, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 8>, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 4>, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 3>, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 2>, philox2x32>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast32_t, 1>, philox2x32>(queue, 160, 17);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
 
@@ -208,35 +211,35 @@ main()
         std::cout << "sycl::vec<double,16>, std::uint_fast64_t ... sycl::vec<std::uint_fast64_t, 16>, philox2x64 type"
                   << std::endl;
         std::cout << "---------------------------------------------------------------------" << std::endl;
-        err = tests_set<sycl::vec<double, 16>, std::uint_fast64_t, philox2x64>(queue, 160);
+        err = tests_set<Distr<sycl::vec<double, 16>>, std::uint_fast64_t, philox2x64>(queue, 160);
 #    if TEST_LONG_RUN
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160);
-        err += tests_set<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast64_t, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast64_t, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, std::uint_fast64_t, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 1);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 140, 7);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 17);
-        err += tests_set_portion<sycl::vec<double, 16>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 17);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160);
+        err += tests_set<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast64_t, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast64_t, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, std::uint_fast64_t, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 1);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 140, 7);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 16>, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 8>, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 4>, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 3>, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 2>, philox2x64>(queue, 160, 17);
+        err += tests_set_portion<Distr<sycl::vec<double, 16>>, sycl::vec<std::uint_fast64_t, 1>, philox2x64>(queue, 160, 17);
 #    endif // TEST_LONG_RUN
         EXPECT_TRUE(!err, "Test FAILED");
     }

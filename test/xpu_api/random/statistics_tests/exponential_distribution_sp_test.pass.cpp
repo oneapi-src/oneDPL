@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution_test.cpp ---------------------------------===//
+//===-- exponential_distribution_sp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

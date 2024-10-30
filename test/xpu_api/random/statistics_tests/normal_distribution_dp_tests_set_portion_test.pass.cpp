@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- normal_distribution_test.cpp ---------------------------------------===//
+//===-- normal_distribution_dp_tests_set_portion_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

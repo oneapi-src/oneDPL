@@ -109,7 +109,7 @@ statistics_check(int nsamples, const std::vector<ScalarRealType>& samples, Scala
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
 
-template <class Distr, class UIntType, class... Args>
+template <class Distr, class UIntType, class Engine = oneapi::dpl::linear_congruential_engine<UIntType, a, c, m>, class... Args>
 int
 test(sycl::queue& queue, int nsamples, Args... params)
 {
@@ -131,7 +131,8 @@ test(sycl::queue& queue, int nsamples, Args... params)
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                Engine engine(seed);
+                engine.discard(offset);
                 Distr distr(params...);
 
                 sycl::vec<Element_type<real_type>, num_elems> res = distr(engine);
@@ -155,7 +156,7 @@ test(sycl::queue& queue, int nsamples, Args... params)
     return err;
 }
 
-template <class Distr, class UIntType, class... Args>
+template <class Distr, class UIntType, class Engine = oneapi::dpl::linear_congruential_engine<UIntType, a, c, m>,  class... Args>
 int
 test_portion(sycl::queue& queue, int nsamples, unsigned int part, Args... params)
 {
@@ -177,7 +178,8 @@ test_portion(sycl::queue& queue, int nsamples, unsigned int part, Args... params
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                Engine engine(seed);
+                engine.discard(offset);
                 Distr distr(params...);
 
                 sycl::vec<Element_type<real_type>, num_elems> res = distr(engine, part);
@@ -237,10 +239,10 @@ tests_set(sycl::queue& queue, int nsamples)
     oneapi::dpl::internal::element_type_t<real_type> b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "extreme_value_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples  = " << nsamples;
-        if(test<Distr, UIntType>(queue, nsamples, a_array[i], b_array[i])) {
+        if (test<Distr, UIntType>(queue, nsamples, a_array[i], b_array[i])) {
             return 1;
         }
     }
@@ -259,7 +261,7 @@ tests_set(sycl::queue& queue, int nsamples)
     oneapi::dpl::internal::element_type_t<real_type> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "lognormal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
         ", nsamples = " << nsamples;
         if (test<Distr, UIntType>(queue, nsamples, mean_array[i], stddev_array[i])) {
@@ -282,7 +284,7 @@ tests_set(sycl::queue& queue, int nsamples)
     oneapi::dpl::internal::element_type_t<real_type> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "normal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
         ", nsamples = " << nsamples;
         if (test<Distr, UIntType>(queue, nsamples, mean_array[i], stddev_array[i])) {
@@ -293,7 +295,7 @@ tests_set(sycl::queue& queue, int nsamples)
     return 0;
 }
 
-template <class Distr, class UIntType>
+template <class Distr, class UIntType, class Engine = oneapi::dpl::linear_congruential_engine<UIntType, a, c, m>>
 std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>, int>
 tests_set(sycl::queue& queue, int nsamples)
 {
@@ -305,10 +307,10 @@ tests_set(sycl::queue& queue, int nsamples)
     oneapi::dpl::internal::element_type_t<real_type> right_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "uniform_real_distribution test<type>, left = " << left_array[i] << ", right = " << right_array[i] <<
         ", nsamples  = " << nsamples;
-        if (test<Distr, UIntType>(queue, nsamples, left_array[i], right_array[i])) {
+        if (test<Distr, UIntType, Engine>(queue, nsamples, left_array[i], right_array[i])) {
             return 1;
         }
     }
@@ -328,7 +330,7 @@ tests_set(sycl::queue& queue, int nsamples)
     oneapi::dpl::internal::element_type_t<real_type> b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples  = " << nsamples;
         if (test<Distr, UIntType>(queue, nsamples, a_array[i], b_array[i])) {
@@ -374,10 +376,10 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     oneapi::dpl::internal::element_type_t<real_type> b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "extreme_value_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples = " << nsamples << ", part = " << part;
-        if(test_portion<Distr, UIntType>(queue, nsamples, part, a_array[i], b_array[i])) {
+        if (test_portion<Distr, UIntType>(queue, nsamples, part, a_array[i], b_array[i])) {
             return 1;
         }
     }
@@ -397,10 +399,10 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     oneapi::dpl::internal::element_type_t<real_type> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "lognormal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
         ", nsamples = " << nsamples << ", part = "<< part;
-        if(test_portion<Distr, UIntType>(queue, nsamples, part, mean_array[i], stddev_array[i])) {
+        if (test_portion<Distr, UIntType>(queue, nsamples, part, mean_array[i], stddev_array[i])) {
             return 1;
         }
     }
@@ -419,17 +421,17 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     oneapi::dpl::internal::element_type_t<real_type> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "normal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
         ", nsamples = " << nsamples << ", part = "<< part;
-        if(test_portion<Distr, UIntType>(queue, nsamples, part, mean_array[i], stddev_array[i])) {
+        if (test_portion<Distr, UIntType>(queue, nsamples, part, mean_array[i], stddev_array[i])) {
             return 1;
         }
     }
     return 0;
 }
 
-template<class Distr, class UIntType>
+template<class Distr, class UIntType, class Engine = oneapi::dpl::linear_congruential_engine<UIntType, a, c, m>>
 std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>, int>
 tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
 {
@@ -441,10 +443,10 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     oneapi::dpl::internal::element_type_t<real_type> right_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "uniform_real_distribution test<type>, left = " << left_array[i] << ", right = " << right_array[i] <<
         ", nsamples = " << nsamples << ", part = " << part;
-        if(test_portion<Distr, UIntType>(queue, nsamples, part, left_array[i], right_array[i])) {
+        if (test_portion<Distr, UIntType, Engine>(queue, nsamples, part, left_array[i], right_array[i])) {
             return 1;
         }
     }
@@ -463,10 +465,10 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     oneapi::dpl::internal::element_type_t<real_type> b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for(int i = 0; i < nparams; ++i) {
+    for (int i = 0; i < nparams; ++i) {
         std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples = " << nsamples << ", part = " << part;
-        if(test_portion<Distr, UIntType>(queue, nsamples, part, a_array[i], b_array[i])) {
+        if (test_portion<Distr, UIntType>(queue, nsamples, part, a_array[i], b_array[i])) {
             return 1;
         }
     }
