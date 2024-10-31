@@ -655,7 +655,7 @@ struct __parallel_radix_sort_iteration
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
             __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
-                                                ::std::decay_t<_TmpBuf>>;
+                                                ::std::decay_t<_TmpBuf>, _Proj>;
         using _RadixLocalScanKernel = __internal::__kernel_name_generator<__local_scan_phase, _CustomName,
                                                                           _ExecutionPolicy, ::std::decay_t<_TmpBuf>>;
         using _RadixReorderPeerKernel =
