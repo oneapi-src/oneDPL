@@ -16,6 +16,7 @@
 // Abstract:
 //
 // Testing of different distributions' methods with integer and double
+// whose implementation uses DP inside
 
 #include "support/utils.h"
 
