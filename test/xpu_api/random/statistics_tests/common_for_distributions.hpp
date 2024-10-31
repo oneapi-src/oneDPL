@@ -59,6 +59,18 @@ statistics_check(int nsamples, const std::vector<ScalarRealType>& samples, Scala
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
 
+template <typename ScalarIntType, typename Distr>
+std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>, int>
+statistics_check(int nsamples, const std::vector<ScalarIntType>& samples, double p)
+{
+    // theoretical moments
+    double tM = (1 - p) / p;
+    double tD = (1 - p) / (p * p);
+    double tQ = (9 - 9 * p + p * p) * (1 - p) / (p * p * p * p);
+
+    return compare_moments(nsamples, samples, tM, tD, tQ);
+}
+
 template<typename ScalarRealType, typename Distr>
 std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::lognormal_distribution<typename Distr::result_type>>, int>
 statistics_check(int nsamples, const std::vector<ScalarRealType>& samples, ScalarRealType mean, ScalarRealType stddev) {
@@ -113,18 +125,18 @@ template <class Distr, class UIntType, class Engine = oneapi::dpl::linear_congru
 int
 test(sycl::queue& queue, int nsamples, Args... params)
 {
-    using real_type = typename Distr::result_type;
+    using Type = typename Distr::result_type;
 
     // memory allocation
-    std::vector<Element_type<real_type>> samples(nsamples);
+    std::vector<Element_type<Type>> samples(nsamples);
 
-    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<real_type>::num_elems == 0
+    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<Type>::num_elems == 0
                                   ? 1
-                                  : oneapi::dpl::internal::type_traits_t<real_type>::num_elems;
+                                  : oneapi::dpl::internal::type_traits_t<Type>::num_elems;
 
     // generation
     {
-        sycl::buffer<Element_type<real_type>, 1> buffer(samples.data(), nsamples);
+        sycl::buffer<Element_type<Type>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
             auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
@@ -135,14 +147,14 @@ test(sycl::queue& queue, int nsamples, Args... params)
                 engine.discard(offset);
                 Distr distr(params...);
 
-                sycl::vec<Element_type<real_type>, num_elems> res = distr(engine);
+                sycl::vec<Element_type<Type>, num_elems> res = distr(engine);
                 res.store(idx.get_linear_id(), acc);
             });
         });
     }
 
     // statistics check
-    int err = statistics_check<Element_type<real_type>, Distr>(nsamples, samples, params...);
+    int err = statistics_check<Element_type<Type>, Distr>(nsamples, samples, params...);
 
     if (err)
     {
@@ -160,18 +172,18 @@ template <class Distr, class UIntType, class Engine = oneapi::dpl::linear_congru
 int
 test_portion(sycl::queue& queue, int nsamples, unsigned int part, Args... params)
 {
-    using real_type = typename Distr::result_type;
+    using Type = typename Distr::result_type;
 
     // memory allocation
-    std::vector<Element_type<real_type>> samples(nsamples);
-    constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<real_type>::num_elems == 0
+    std::vector<Element_type<Type>> samples(nsamples);
+    constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<Type>::num_elems == 0
                                            ? 1
-                                           : oneapi::dpl::internal::type_traits_t<real_type>::num_elems;
+                                           : oneapi::dpl::internal::type_traits_t<Type>::num_elems;
     int n_elems = (part >= num_elems) ? num_elems : part;
 
     // generation
     {
-        sycl::buffer<Element_type<real_type>, 1> buffer(samples.data(), nsamples);
+        sycl::buffer<Element_type<Type>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
             auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
@@ -182,7 +194,7 @@ test_portion(sycl::queue& queue, int nsamples, unsigned int part, Args... params
                 engine.discard(offset);
                 Distr distr(params...);
 
-                sycl::vec<Element_type<real_type>, num_elems> res = distr(engine, part);
+                sycl::vec<Element_type<Type>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
                     acc[offset + i] = res[i];
             });
@@ -191,7 +203,7 @@ test_portion(sycl::queue& queue, int nsamples, unsigned int part, Args... params
     }
 
     // statistics check
-    int err = statistics_check<Element_type<real_type>, Distr>(nsamples, samples, params...);
+    int err = statistics_check<Element_type<Type>, Distr>(nsamples, samples, params...);
 
     if (err)
     {
@@ -243,6 +255,25 @@ tests_set(sycl::queue& queue, int nsamples)
         std::cout << "extreme_value_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples  = " << nsamples;
         if (test<Distr, UIntType>(queue, nsamples, a_array[i], b_array[i])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+template <class Distr, class UIntType>
+std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>, int>
+tests_set(sycl::queue& queue, int nsamples)
+{
+    constexpr int nparams = 2;
+
+    double p_array[nparams] = {0.2, 0.9};
+
+    // Test for all non-zero parameters
+    for (int i = 0; i < nparams; ++i) {
+        std::cout << "geometric_distribution test<type>, p = " << p_array[i]
+                  << ", nsamples  = " << nsamples;
+        if (test<Distr, UIntType>(queue, nsamples, p_array[i])) {
             return 1;
         }
     }
@@ -380,6 +411,28 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
         std::cout << "extreme_value_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples = " << nsamples << ", part = " << part;
         if (test_portion<Distr, UIntType>(queue, nsamples, part, a_array[i], b_array[i])) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+template <class Distr, class UIntType>
+std::enable_if_t<std::is_same_v<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>, int>
+tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
+{
+    using real_type = typename Distr::result_type;
+
+    constexpr int nparams = 2;
+
+    double p_array[nparams] = {0.2, 0.9};
+
+    // Test for all non-zero parameters
+    for (int i = 0; i < nparams; ++i) {
+        std::cout << "geometric_distribution test<type>, p = " << p_array[i] << ", nsamples = " << nsamples
+                  << ", part = " << part;
+        if (test_portion<Distr, UIntType>(queue, nsamples, part, p_array[i])) {
             return 1;
         }
     }
