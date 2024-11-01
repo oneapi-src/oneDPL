@@ -58,6 +58,11 @@ It remains to be seen if atomics are worth their overhead and contention from a 
 ### Selecting Between Algorithms
 It may be the case that multiple aspects may provide an advantage to either algorithm one or two. Which `histogram` API has been called, `n`, the number of output bins, and backend/atomic provider may all impact the performance trade-offs between these two approaches. My intention is to experiment with these and be open to a heuristic to choose one or the other based upon the circumstances if that is what the data suggests is best. The larger the number of output bins, the better atomics should do vs redundant copies of the output.
 
+## Alternative Approaches
+* One could consider some sort of locking approach either which locks mutexes for subsections of the output histogram prior to modifying them. Its possible such an approach could provide a similar approach to atomics, but with different overhead tradeoffs.  It seems quite likely that this would result in more overhead, but it could be worth exploring.
+
+* Another possible approach could be to do something like proposed implementation one, but with some sparse representation of output data. However, I think the general assumptions we can make about the normal case make this less likely to be beneficial. It is quite likely that `n` is much larger than the output histograms, and that a large percentage of the output histogram may be occupied, even when considering dividing the input amongst multiple threads. This could be explored if we find temporary storage is too large for some cases and the atomic approach does not provide a good fallback.
+
 ## Open Questions
 * Would it be worthwhile to add our own implementation of `atomic_ref` for C++17? I believe this would require specializations for each of our supported compilers.
 
