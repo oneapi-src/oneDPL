@@ -66,12 +66,10 @@ It may be the case that multiple aspects may provide an advantage to either algo
 
 
 ## Open Questions
-Would it be worthwhile to add our own implementation of atomic_ref for C++17? I believe this would require specializations for each of our supported compilers.
+* Would it be worthwhile to add our own implementation of atomic_ref for C++17? I believe this would require specializations for each of our supported compilers.
 
-What is the overhead of atomics in general in this case and does the overhead there make them inherently worse than merely having extra copies of the histogram and accumulating?
+* What is the overhead of atomics in general in this case and does the overhead there make them inherently worse than merely having extra copies of the histogram and accumulating?
 
-Is it worthwhile to have separate implementations for tbb and openMP because they may differ in the best performing implementation?
+* Is it worthwhile to have separate implementations for tbb and openMP because they may differ in the best performing implementation? What is the best heuristic for selecting between algorithms (if one is not the clear winner)?
 
-How will vectorized bricks perform, in what situations will it be advatageous to use or not use vector instructions?
-
-What is the best heuristic for selecting between algorithms (if one is not the clear winner)?
+* How will vectorized bricks perform, in what situations will it be advatageous to use or not use vector instructions?
