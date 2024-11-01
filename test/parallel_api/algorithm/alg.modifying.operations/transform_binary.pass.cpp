@@ -98,7 +98,7 @@ template <::std::size_t CallNumber, typename In1, typename In2, typename Out, ty
 void
 test(Predicate pred, _IteratorAdapter adap = {})
 {
-    // Testing is restricted for debug build + OpenMp backend as without optimization the compiler generates
+    // Testing is restricted for debug build + OpenMP backend as without optimization the compiler generates
     // very slow code leading to test timeouts.
     size_t max_n =
 #if PSTL_USE_DEBUG && ONEDPL_USE_OPENMP_BACKEND
