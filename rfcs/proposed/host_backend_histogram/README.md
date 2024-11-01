@@ -55,7 +55,7 @@ To deal with atomics appropriately, we have some limitations. We must either use
 
 It remains to be seen if atomics are worth their overhead and contention from a performance perspective and may depend on the different approaches available.
 
-## Selecting Between Algorithms
+### Selecting Between Algorithms
 It may be the case that multiple aspects may provide an advantage to either algorithm one or two. Which `histogram` API has been called, `n`, the number of output bins, and backend/atomic provider may all impact the performance trade-offs between these two approaches. My intention is to experiment with these and be open to a heuristic to choose one or the other based upon the circumstances if that is what the data suggests is best. The larger the number of output bins, the better atomics should do vs redundant copies of the output.
 
 ## Open Questions
