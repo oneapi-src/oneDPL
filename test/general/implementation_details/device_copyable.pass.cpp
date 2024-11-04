@@ -190,6 +190,11 @@ test_device_copyable()
             oneapi::dpl::__par_backend_hetero::__early_exit_find_or<policy_non_device_copyable, noop_device_copyable>>,
         "__early_exit_find_or is not device copyable with device copyable types");
 
+    static_assert(
+        sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__leaf_sorter<noop_device_copyable,
+                                                                                    noop_device_copyable>>,
+        "__leaf_sorter is not device copyable with device copyable types");
+
     //__not_pred
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::__internal::__not_pred<noop_device_copyable>>,
                   "__not_pred is not device copyable with device copyable types");
@@ -422,6 +427,10 @@ test_non_device_copyable()
         !sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__early_exit_find_or<policy_non_device_copyable,
                                                                                             noop_non_device_copyable>>,
         "__early_exit_find_or is device copyable with non device copyable types");
+
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__leaf_sorter<noop_device_copyable,
+                                                                                               noop_non_device_copyable>>,
+                  "__leaf_sorter is device copyable with non device copyable types");
 
     //__not_pred
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::__internal::__not_pred<noop_non_device_copyable>>,
