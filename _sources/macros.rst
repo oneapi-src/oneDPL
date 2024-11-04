@@ -27,6 +27,24 @@ Macro                             Description
 ``_PSTL_VERSION_PATCH``           ``_PSTL_VERSION % 10``: The patch number.
 ================================= ==============================
 
+.. _feature-macros:
+
+Feature Macros
+==============
+Use these macros to test presence of specific |onedpl_short| functionality.
+
+================================== ===============================================
+Macro                              Macro values and the functionality
+================================== ===============================================
+``ONEDPL_HAS_RANDOM_NUMBERS``      Pseudo-random number generators and distributions.
+
+                                   * ``202409L`` - added support of comparison and I/O stream operators and an experimental Philox engine
+---------------------------------- -----------------------------------------------
+``ONEDPL_HAS_RANGE_ALGORITHMS``    Parallel range algorithms.
+
+                                   * ``202409L`` - see :ref:`available algorithms <range-algorithms-202409L>`.
+================================== ===============================================
+
 Additional Macros
 ==================
 Use these macros to control aspects of |onedpl_short| usage. You can set them in your program code
@@ -38,9 +56,7 @@ Macro                              Description
 ``PSTL_USE_NONTEMPORAL_STORES``    This macro enables the use of ``#pragma vector nontemporal``
                                    for write-only data when algorithms such as ``std::copy``, ``std::fill``, etc.,
                                    are executed with unsequenced policies.
-                                   For further details about the pragma,
-                                   see the `vector page in the Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference
-                                   <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/vector.html>`_.
+                                   For further details about the pragma, see the |vector_pragma|_.
                                    If the macro evaluates to a non-zero value,
                                    the use of ``#pragma vector nontemporal`` is enabled.
                                    By default, the macro is not defined.
@@ -94,11 +110,17 @@ Macro                              Description
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
                                    or evaluates to non-zero, predefined policies objects can be used.
                                    When the macro is set to 0, predefined policies objects and make functions
-                                   without arguments, when ``make_device_policy()``,
-                                   ``make_fpga_policy()``, are not available.
+                                   without arguments (``make_device_policy()`` and ``make_fpga_policy()``) are not available.
 ---------------------------------- ------------------------------
 ``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with
                                    device policies to be deferred. (Disabled by default.)
+
+                                   When the macro evaluates to non-zero, a call to a oneDPL algorithm with
+                                   a device policy might return before the computation completes on the device.
+
+                                   .. Warning:: Before accessing data produced or modified by the call, waiting
+                                      for completion of all tasks in the corresponding SYCL queue is required;
+                                      otherwise, the program behavior is undefined.
 ---------------------------------- ------------------------------
 ``ONEDPL_FPGA_DEVICE``             Use this macro to build your code containing |onedpl_short| parallel
                                    algorithms for FPGA devices. (Disabled by default.)

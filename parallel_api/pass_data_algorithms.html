@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pass Data to Algorithms &#8212; oneDPL Documentation 2022.6.0 documentation</title>
+    <title>Pass Data to Algorithms &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
     <link rel="shortcut icon" href="../_static/favicons.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API for the SYCL* Kernels" href="../api_for_sycl_kernels_main.html" />
+    <link rel="next" title="Iterators" href="iterators.html" />
     <link rel="prev" title="Additional Algorithms" href="additional_algorithms.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
@@ -151,24 +151,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../introduction/release_notes.html">Release Notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/onedpl_gsg.html">Get Started with the oneAPI DPC++ Library</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Library Guide</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Functionality</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../parallel_api_main.html">Parallel API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="execution_policies.html">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="async_api.html">Asynchronous API Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Range-Based API Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="additional_algorithms.html">Additional Algorithms</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Pass Data to Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for the SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/tested_standard_cpp_api.html">Tested Standard C++ APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/utility_function_object_classes.html">Utility Function Object Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technology Preview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="async_api.html">Asynchronous Algorithms</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../dynamic_selection_api_main.html">Dynamic Selection API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../dynamic_selection_api/functions.html">Functions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../dynamic_selection_api/policies.html">Policies</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -184,14 +191,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../kernel_templates/esimd_main.html">ESIMD-Based Kernel Templates</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort_by_key.html">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Notices and Disclaimers</span></p>
 <ul class="nav bd-sidenav">
@@ -392,6 +397,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-oneapi-dpl-begin-and-oneapi-dpl-end-functions">Use oneapi::dpl::begin and oneapi::dpl::end Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-unified-shared-memory">Use Unified Shared Memory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-std-vector">Use std::vector</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-range-views">Use Range Views</a></li>
 </ul>
             </nav>
         </div>
@@ -405,24 +411,65 @@ document.write(`
                   
   <div class="section" id="pass-data-to-algorithms">
 <h1>Pass Data to Algorithms<a class="headerlink" href="#pass-data-to-algorithms" title="Permalink to this headline">#</a></h1>
-<p>When using the C++ standard execution policies, oneDPL supports data being passed to its algorithms as specified
-in the ISO/IEC 14882:2017 standard (commonly called C++17). According to the standard, the calling code
-must prevent data races when using algorithms with parallel execution policies.</p>
-<p>Note: Implementations of <code class="docutils literal notranslate"><span class="pre">std::vector&lt;bool&gt;</span></code> are not required to avoid data races for concurrent modifications
+<p>For an algorithm to access data, it is important that the used execution policy matches the data storage type.
+The following table shows which execution policies can be used with various data storage types.</p>
+<table class="table">
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 30%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Data Storage</p></th>
+<th class="head"><p>Device Policies</p></th>
+<th class="head"><p>Host Policies</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#subsec:buffers">SYCL buffer</a></p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Device-allocated <a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:usm">unified shared memory</a> (USM)</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Shared and host-allocated USM</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with <code class="docutils literal notranslate"><span class="pre">sycl::usm_allocator</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with an ordinary allocator</p></td>
+<td><p>See <a class="reference internal" href="#use-std-vector"><span class="std std-ref">Use std::vector</span></a></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Other data in host memory</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>When using the standard-aligned (or <em>host</em>) execution policies, oneDPL supports data being passed
+to its algorithms as specified in the C++ standard (C++17 for algorithms working with iterators,
+C++20 for parallel range algorithms), with <a class="reference internal" href="../introduction.html#library-restrictions"><span class="std std-ref">known restrictions and limitations</span></a>.</p>
+<p>According to the standard, the calling code must prevent data races when using algorithms
+with parallel execution policies.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of <code class="docutils literal notranslate"><span class="pre">std::vector&lt;bool&gt;</span></code> are not required to avoid data races for concurrent modifications
 of vector elements. Some implementations may optimize multiple <code class="docutils literal notranslate"><span class="pre">bool</span></code> elements into a bitfield, making it unsafe
 for multithreading. For this reason, it is recommended to avoid <code class="docutils literal notranslate"><span class="pre">std::vector&lt;bool&gt;</span></code> for anything but a read-only
-input with the C++ standard execution policies.</p>
-<p>When using a device execution policy, you can use one of the following ways to pass data to an algorithm:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">oneapi:dpl::begin</span></code> and <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::end</span></code> functions</p></li>
-<li><p>Unified shared memory (USM) pointers</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with or without a USM allocator</p></li>
-</ul>
+input with the standard-aligned execution policies.</p>
+</div>
+<p>The following subsections describe proper ways to pass data to an algorithm invoked with a device execution policy.</p>
 <div class="section" id="use-oneapi-dpl-begin-and-oneapi-dpl-end-functions">
 <span id="use-buffer-wrappers"></span><h2>Use oneapi::dpl::begin and oneapi::dpl::end Functions<a class="headerlink" href="#use-oneapi-dpl-begin-and-oneapi-dpl-end-functions" title="Permalink to this headline">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::begin</span></code> and <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::end</span></code> are special helper functions that
 allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that provides the following API:</p>
+a <a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#subsec:buffers">SYCL buffer</a> and return an object of an unspecified type that provides the following API:</p>
 <ul class="simple">
 <li><p>It satisfies <code class="docutils literal notranslate"><span class="pre">CopyConstructible</span></code> and <code class="docutils literal notranslate"><span class="pre">CopyAssignable</span></code> C++ named requirements and comparable with
 <code class="docutils literal notranslate"><span class="pre">operator==</span></code> and <code class="docutils literal notranslate"><span class="pre">operator!=</span></code>.</p></li>
@@ -432,30 +479,30 @@ that satisfies the <code class="docutils literal notranslate"><span class="pre">
 <li><p>It provides the <code class="docutils literal notranslate"><span class="pre">get_buffer</span></code> method, which returns the buffer passed to the <code class="docutils literal notranslate"><span class="pre">begin</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> functions.</p></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">begin</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> functions can take SYCL 2020 deduction tags and <code class="docutils literal notranslate"><span class="pre">sycl::no_init</span></code> as arguments
-to explicitly mention which access mode should be applied to the buffer accessor when submitting a
-SYCL kernel to a device. For example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">first1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">);</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">first2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">first3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span>
+to explicitly control which access mode should be applied to a particular buffer when submitting
+a SYCL kernel to a device:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="p">{</span><span class="cm">/*...*/</span><span class="p">};</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">first_ro</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">first_wo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">first_ni</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The example above allows you to control the access mode for the particular buffer passing to a parallel algorithm.</p>
 <p>To use the functions, add <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/iterator&gt;</span></code> to your code. For example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/iterator&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;random&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
 <span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">minstd_rand</span><span class="p">{});</span>
 
-<span class="w">  </span><span class="c1">//create a buffer from host memory</span>
-<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="p">{</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf_begin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf_end</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">end</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">buf_begin</span><span class="p">,</span><span class="w"> </span><span class="n">buf_end</span><span class="p">);</span>
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">buf_begin</span><span class="p">,</span><span class="w"> </span><span class="n">buf_end</span><span class="p">);</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -463,62 +510,76 @@ SYCL kernel to a device. For example:</p>
 </div>
 <div class="section" id="use-unified-shared-memory">
 <span id="use-usm"></span><h2>Use Unified Shared Memory<a class="headerlink" href="#use-unified-shared-memory" title="Permalink to this headline">#</a></h2>
-<p>If you have USM-allocated memory, pass the pointers to the start and past the end
-of the sequence to a parallel algorithm. Make sure that the execution policy and
-the USM-allocated memory were created for the same queue. For example:</p>
+<p>If you have USM-allocated data, pass the pointers to the start and past the end
+of the data sequence to a parallel algorithm. Make sure that the execution policy and
+the USM allocation use the same SYCL queue. For example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;random&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
 <span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span>
 <span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">;</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
 <span class="w">  </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">minstd_rand</span><span class="p">{});</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">make_device_policy</span><span class="p">(</span><span class="n">q</span><span class="p">),</span><span class="w"> </span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">make_device_policy</span><span class="p">(</span><span class="n">q</span><span class="p">),</span><span class="w"> </span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
 
 <span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use of non-USM pointers is not supported for algorithms with device execution policies.</p>
+</div>
 <p>When using device USM, such as allocated by <code class="docutils literal notranslate"><span class="pre">malloc_device</span></code>, you are responsible for data
 transfers to and from the device to ensure that input data is device accessible during oneDPL
 algorithm execution and that the result is available to the subsequent operations.</p>
 </div>
 <div class="section" id="use-std-vector">
-<h2>Use std::vector<a class="headerlink" href="#use-std-vector" title="Permalink to this headline">#</a></h2>
-<p>The following examples demonstrate two ways to use the parallel algorithms with <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>:</p>
-<ul class="simple">
-<li><p>Host allocators</p></li>
-<li><p>USM allocators</p></li>
-</ul>
-<p>You can use iterators to host allocated <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> data
-as shown in the following example:</p>
+<span id="id1"></span><h2>Use std::vector<a class="headerlink" href="#use-std-vector" title="Permalink to this headline">#</a></h2>
+<p>You can use iterators to an ordinary <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with data in host memory, as shown in the following example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;random&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+
 <span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec</span><span class="p">(</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="p">);</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">minstd_rand</span><span class="p">{});</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>When using iterators to host allocated data, a temporary SYCL buffer is created, and the data
-is copied to this buffer. After processing on a device is complete, the modified data is copied
-from the temporary buffer back to the host container. While convenient, using host allocated
-data can lead to unintended copying between host and device. We recommend working with SYCL buffers
-or USM memory to reduce data copying between the host and device.</p>
-<p>You can also use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with a USM allocator, as shown in the following example:</p>
+<p>In this case a temporary SYCL buffer is created, the data is copied to this buffer, and it is processed
+according to the algorithm semantics. After processing on a device is complete, the modified data is copied
+from the temporary buffer back to the host container.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For parallel range algorithms with device execution policies the use of ordinary <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>s is not supported.</p>
+</div>
+<p>While convenient, direct use of an ordinary <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> can lead to unintended copying between the host
+and the device. We recommend working with SYCL buffers or with USM to reduce data copying.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For specialized memory algorithms that begin or end the lifetime of data objects, that is,
+<code class="docutils literal notranslate"><span class="pre">uninitialized_*</span></code> and <code class="docutils literal notranslate"><span class="pre">destroy*</span></code> families of functions, the data to initialize or destroy
+should be accessible on the device without extra copying. Therefore these algorithms may not use
+data storage on the host with device execution policies.</p>
+</div>
+<p>You can also use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with a <code class="docutils literal notranslate"><span class="pre">sycl::usm_allocator</span></code>, as shown in the following example.
+Make sure that the allocator and the execution policy use the same SYCL queue:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;random&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
 <span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">;</span>
@@ -527,21 +588,64 @@ or USM memory to reduce data copying between the host and device.</p>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">minstd_rand</span><span class="p">{});</span>
 
 <span class="w">  </span><span class="c1">// Recommended to use USM pointers:</span>
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
-
-<span class="w">  </span><span class="c1">// Iterators for USM allocators might require extra copying - not recommended method</span>
-<span class="w">  </span><span class="c1">// std::sort(policy, vec.begin(), vec.end());</span>
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">data</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="cm">/*</span>
+<span class="cm">  // Iterators for USM allocators might require extra copying - not a recommended method</span>
+<span class="cm">  oneapi::dpl::sort(policy, vec.begin(), vec.end());</span>
+<span class="cm">*/</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Make sure that the execution policy and the USM-allocated memory were created for the same queue.</p>
 <p>For <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with a USM allocator we recommend to use <code class="docutils literal notranslate"><span class="pre">std::vector::data()</span></code> in
 combination with <code class="docutils literal notranslate"><span class="pre">std::vector::size()</span></code> as shown in the example above, rather than iterators to
 <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>. That is because for some implementations of the C++ Standard Library it might not
 be possible for oneDPL to detect that iterators are pointing to USM-allocated data. In that
-case the data will be treated as if it were host-allocated, with an extra copy made to a SYCL buffer.
+case the data will be treated as if it were in host memory, with an extra copy made to a SYCL buffer.
 Retrieving USM pointers from <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> as shown guarantees no unintended copying.</p>
+</div>
+<div class="section" id="use-range-views">
+<span id="id2"></span><h2>Use Range Views<a class="headerlink" href="#use-range-views" title="Permalink to this headline">#</a></h2>
+<p>For <a class="reference internal" href="parallel_range_algorithms.html"><span class="doc">parallel range algorithms</span></a> with device execution policies,
+place the data in USM or a USM-allocated <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>, and pass it to an algorithm
+via a device-copyable range or view object such as <code class="docutils literal notranslate"><span class="pre">std::ranges::subrange</span></code> or <code class="docutils literal notranslate"><span class="pre">std::span</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use of <code class="docutils literal notranslate"><span class="pre">std::ranges::views::all</span></code> is not supported for algorithms with device execution policies.</p>
+</div>
+<p>These data ranges as well as supported range adaptors and factories may be combined into
+data transformation pipelines that also can be used with parallel range algorithms. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;random&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;span&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ranges&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;functional&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">policy</span><span class="p">.</span><span class="n">queue</span><span class="p">();</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_host</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">generate</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">minstd_rand</span><span class="p">{});</span>
+
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm_allocator</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm</span><span class="o">::</span><span class="n">alloc</span><span class="o">::</span><span class="n">shared</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alloc</span><span class="p">(</span><span class="n">q</span><span class="p">);</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="k">decltype</span><span class="p">(</span><span class="n">alloc</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">alloc</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">subrange</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">transform</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">negate</span><span class="p">{}),</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">span</span><span class="p">(</span><span class="n">vec</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">span</span><span class="p">(</span><span class="n">vec</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -567,11 +671,11 @@ Retrieving USM pointers from <code class="docutils literal notranslate"><span cl
       </div>
     </a>
     <a class="right-next"
-       href="../api_for_sycl_kernels_main.html"
+       href="iterators.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API for the SYCL* Kernels</p>
+        <p class="prev-next-title">Iterators</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -596,6 +700,7 @@ Retrieving USM pointers from <code class="docutils literal notranslate"><span cl
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-oneapi-dpl-begin-and-oneapi-dpl-end-functions">Use oneapi::dpl::begin and oneapi::dpl::end Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-unified-shared-memory">Use Unified Shared Memory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-std-vector">Use std::vector</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-range-views">Use Range Views</a></li>
 </ul>
   </nav></div>
 

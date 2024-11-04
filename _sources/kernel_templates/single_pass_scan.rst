@@ -78,10 +78,12 @@ Parameters
 
   Current limitations:
 
-  - The function will internally block until the issued kernels have completed execution.
+  - The function is intended to be asynchronous, but in some cases, the function will not return until the algorithm fully completes.
     Although intended in the future to be an asynchronous call, the algorithm is currently synchronous.
   - The SYCL device associated with the provided queue must support 64-bit atomic operations if the element type is 64-bits.
-  - There must be a known identity value for the provided combination of the element type and the binary operation. That is, ``sycl::has_known_identity_v`` must evaluate to true. Such operators are listed in the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
+  - There must be a known identity value for the provided combination of the element type and the binary operation. That is,
+    ``sycl::has_known_identity_v`` must evaluate to true. Such operators are listed in
+    the `SYCL 2020 specification <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities>`_.
 
 Return Value
 ------------
@@ -133,9 +135,7 @@ inclusive_scan Example
       return 0;
    }
 
-**Output:**
-
-.. code:: none
+**Output**::
 
    1 3 4 7 8 10
 
@@ -147,9 +147,10 @@ Memory Requirements
 
 The algorithm uses global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`__)
-for intermediate data storage. For the algorithm to operate correctly, there must be enough memory
-on the device. It throws a ``std::bad_alloc`` exception if there is not enough global device memory. The behavior is undefined if there is not enough local memory. The amount of memory that is required
-depends on input data and configuration parameters, as described below.
+for intermediate data storage. For the algorithm to operate correctly, there must be enough memory on the device.
+If there is not enough global device memory, a ``std::bad_alloc`` exception is thrown.
+The behavior is undefined if there is not enough local memory.
+The amount of memory that is required depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
 --------------------------

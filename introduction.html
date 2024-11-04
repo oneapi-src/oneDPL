@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.6.0 documentation</title>
+    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -151,24 +151,31 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction/release_notes.html">Release Notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction/onedpl_gsg.html">Get Started with the oneAPI DPC++ Library</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Library Guide</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Functionality</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="parallel_api_main.html">Parallel API</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="parallel_api/execution_policies.html">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parallel_api/iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parallel_api/async_api.html">Asynchronous API Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parallel_api/range_based_api.html">Range-Based API Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_api/parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parallel_api/additional_algorithms.html">Additional Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parallel_api/pass_data_algorithms.html">Pass Data to Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_api/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_api/range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="api_for_sycl_kernels_main.html">API for the SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_for_sycl_kernels/random.html">Random Number Generators</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_for_sycl_kernels/tested_standard_cpp_api.html">Tested Standard C++ APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_for_sycl_kernels/random.html">Random Number Generators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_for_sycl_kernels/utility_function_object_classes.html">Utility Function Object Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="macros.html">Macros</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmake_support.html">CMake Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technology Preview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="parallel_api/async_api.html">Asynchronous Algorithms</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="dynamic_selection_api_main.html">Dynamic Selection API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="dynamic_selection_api/functions.html">Functions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="dynamic_selection_api/policies.html">Policies</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -184,14 +191,12 @@
 <li class="toctree-l2"><a class="reference internal" href="kernel_templates/kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="kernel_templates/esimd_main.html">ESIMD-Based Kernel Templates</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kernel_templates/esimd/radix_sort_by_key.html">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="macros.html">Macros</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cmake_support.html">CMake Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Notices and Disclaimers</span></p>
 <ul class="nav bd-sidenav">
@@ -392,12 +397,15 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#before-you-begin">Before You Begin</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-requirements">System Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#develop-and-build-your-code-with-onedpl-short">Develop and Build Your Code with oneDPL</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#useful-information">Useful Information</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-with-standard-c-parallel-algorithms">Difference with Standard C++ Parallel Algorithms</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#restrictions">Restrictions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-your-code-with-onedpl-short">Build Your Code with oneDPL</a></li>
 </ul>
             </nav>
         </div>
@@ -411,13 +419,10 @@ document.write(`
                   
   <div class="section" id="onedpl-long-introduction">
 <h1>oneAPI DPC++ Library Introduction<a class="headerlink" href="#onedpl-long-introduction" title="Permalink to this headline">#</a></h1>
-<p>Parallel API can be used with the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
-Policies</a>
-to enable parallelism on the host.</p>
-<p>The oneAPI DPC++ Library (oneDPL) is implemented in accordance with the <a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/oneDPL/source/index.html">oneDPL
+<p>The oneAPI DPC++ Library (oneDPL) is implemented in accordance with the <a class="reference external" href="https://uxlfoundation.github.io/oneAPI-spec/spec/elements/oneDPL/source/index.html">oneDPL
 Specification</a>.</p>
-<p>To support heterogeneity, oneDPL works with the DPC++ API. More information can be found in the
-<a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/sycl/source/index.html">oneAPI Specification</a>.</p>
+<p>To support heterogeneity, oneDPL uses <a class="reference external" href="https://registry.khronos.org/SYCL/">SYCL</a>.
+More information about SYCL can be found in the <a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html">SYCL Specification</a>.</p>
 <div class="section" id="before-you-begin">
 <h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">#</a></h2>
 <p>Visit the oneDPL <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
@@ -431,13 +436,8 @@ page for:</p>
 <li><p>Known Issues and Limitations</p></li>
 <li><p>Previous Release Notes</p></li>
 </ul>
-<p>Install the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv">Intel® oneAPI Base Toolkit (Base Kit)</a>
+<p>Install the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html">Intel® oneAPI Base Toolkit (Base Kit)</a>
 to use oneDPL.</p>
-<p>All oneDPL header files are in the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl</span></code> directory. To use the oneDPL API,
-include the corresponding header in your source code with the <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/…&gt;</span></code> directive.
-oneDPL introduces the namespace <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> for most its classes and functions.</p>
-<p>To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
-and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </div>
 <div class="section" id="system-requirements">
 <h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">#</a></h2>
@@ -446,31 +446,61 @@ and use the <code class="docutils literal notranslate"><span class="pre">std</sp
 <p>C++17 is the minimal supported version of the C++ standard.
 That means, any use of oneDPL may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.</p>
-<p>To call Parallel API with the C++ standard policies, you need to install the following software:</p>
+<p>To call Parallel API with the C++ standard aligned policies, you need to install the following software:</p>
 <ul class="simple">
 <li><p>A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs</p></li>
-<li><p>Depending on what parallel backend you want to use install either:</p>
+<li><p>Depending on what parallel backend you want to use, install either:</p>
 <ul>
-<li><p>oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) 2019 and later</p></li>
-<li><p>A C++ compiler with support for OpenMP 4.5 (or higher)</p></li>
+<li><p>oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) 2019 and later,</p></li>
+<li><p>A C++ compiler with support for OpenMP 4.5 (or higher).</p></li>
 </ul>
 </li>
 </ul>
-<p>For more information about parallel backends, see <a class="reference internal" href="parallel_api/execution_policies.html"><span class="doc">Execution Policies</span></a></p>
+<p>For more information about parallel backends, see <a class="reference internal" href="parallel_api/execution_policies.html"><span class="doc">Execution Policies</span></a>.</p>
 <p>To use Parallel API with the device execution policies, you need to install the following software:</p>
 <ul class="simple">
-<li><p>A C++ compiler with support for SYCL 2020</p></li>
+<li><p>A C++ compiler with support for SYCL 2020.</p></li>
 </ul>
 </div>
+</div>
+<div class="section" id="develop-and-build-your-code-with-onedpl-short">
+<h2>Develop and Build Your Code with oneDPL<a class="headerlink" href="#develop-and-build-your-code-with-onedpl-short" title="Permalink to this headline">#</a></h2>
+<p>All oneDPL header files are in the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl</span></code> directory. To use the oneDPL API,
+include the corresponding header in your source code with the <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/…&gt;</span></code> directive.
+For better coexistence with the C++ standard library, include oneDPL header files before the standard C++ ones.</p>
+<p>oneDPL introduces the <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">oneapi::dpl</span></code> for its classes and functions. For brevity,
+<code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">dpl</span></code> is defined as an alias to <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> and can be used interchangeably.</p>
+<p>To use <a class="reference internal" href="api_for_sycl_kernels/tested_standard_cpp_api.html"><span class="doc">tested C++ standard APIs</span></a> in SYCL device code,
+include the corresponding C++ standard header files and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
+<p>Follow the steps below to build your code with oneDPL:</p>
+<ol class="arabic simple">
+<li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2025-0/overview.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a> for details.</p></li>
+<li><p>Set the environment variables for oneDPL and oneTBB.</p></li>
+</ol>
+<p>Here is an example of a command line used to compile code that contains oneDPL parallel algorithms
+on Linux* (depending on the code, parameters within [] could be unnecessary):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">icpx</span> <span class="p">[</span><span class="o">-</span><span class="n">fsycl</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">fiopenmp</span><span class="p">]</span> <span class="n">program</span><span class="o">.</span><span class="n">cpp</span> <span class="p">[</span><span class="o">-</span><span class="n">ltbb</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">program</span>
+</pre></div>
+</div>
+<p>You may also use the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2025-0/fsycl-pstl-offload.html"><code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option</a> of Intel® oneAPI DPC++/C++ Compiler powered by oneDPL
+to build the standard C++ code for execution on a SYCL device:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">icpx</span> <span class="o">-</span><span class="n">fsycl</span> <span class="o">-</span><span class="n">fsycl</span><span class="o">-</span><span class="n">pstl</span><span class="o">-</span><span class="n">offload</span><span class="o">=</span><span class="n">gpu</span> <span class="n">program</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span><span class="n">o</span> <span class="n">program</span>
+</pre></div>
+</div>
+<p>This option redirects C++ parallel algorithms invoked with the <code class="docutils literal notranslate"><span class="pre">std::execution::par_unseq</span></code> policy
+to oneDPL algorithms. It does not change the behavior of the oneDPL algorithms and
+execution policies that are directly used in the code.</p>
+</div>
+<div class="section" id="useful-information">
+<h2>Useful Information<a class="headerlink" href="#useful-information" title="Permalink to this headline">#</a></h2>
 <div class="section" id="difference-with-standard-c-parallel-algorithms">
-<h3>Difference with Standard C++ Parallel Algorithms<a class="headerlink" href="#difference-with-standard-c-parallel-algorithms" title="Permalink to this headline">#</a></h3>
+<span id="library-restrictions"></span><h3>Difference with Standard C++ Parallel Algorithms<a class="headerlink" href="#difference-with-standard-c-parallel-algorithms" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>oneDPL execution policies only result in parallel execution if random access iterators are provided,
 the execution will remain serial for other iterator types.</p></li>
 <li><p>Function objects passed in to algorithms executed with device policies must provide <code class="docutils literal notranslate"><span class="pre">const</span></code>-qualified <code class="docutils literal notranslate"><span class="pre">operator()</span></code>.
-<a class="reference external" href="https://registry.khronos.org/SYCL/">The SYCL specification</a> states that writing to such an object during a SYCL
-kernel is undefined behavior.</p></li>
-<li><p>For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
+The <a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html">SYCL specification</a> states that writing to such an object during a SYCL kernel is undefined behavior.</p></li>
+<li><p>For the following algorithms, <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code> and <code class="docutils literal notranslate"><span class="pre">unseq</span></code> policies do not result in SIMD execution:
 <code class="docutils literal notranslate"><span class="pre">includes</span></code>, <code class="docutils literal notranslate"><span class="pre">inplace_merge</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">set_difference</span></code>, <code class="docutils literal notranslate"><span class="pre">set_intersection</span></code>,
 <code class="docutils literal notranslate"><span class="pre">set_symmetric_difference</span></code>, <code class="docutils literal notranslate"><span class="pre">set_union</span></code>, <code class="docutils literal notranslate"><span class="pre">stable_partition</span></code>, <code class="docutils literal notranslate"><span class="pre">unique</span></code>.</p></li>
 <li><p>The following algorithms require additional O(n) memory space for parallel execution:
@@ -480,12 +510,13 @@ kernel is undefined behavior.</p></li>
 </div>
 <div class="section" id="restrictions">
 <h3>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">#</a></h3>
-<p>When called with DPC++ execution policies, oneDPL algorithms apply the same restrictions as
-DPC++ does (see the DPC++ specification and the SYCL specification for details), such as:</p>
+<p>When called with device execution policies, oneDPL algorithms apply the same restrictions as
+DPC++ does (see the Intel® oneAPI DPC++/C++ Compiler documentation and the SYCL specification for details), such as:</p>
 <ul class="simple">
 <li><p>Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.</p></li>
 <li><p>Passing data types, which are not trivially copyable, is only allowed via USM,
 but not via buffers or host-allocated containers.</p></li>
+<li><p>Objects of pointer-to-member types cannot be passed to an algorithm.</p></li>
 <li><p>The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
 that makes it different for the host and the device. Otherwise, the behavior is undefined.</p></li>
 <li><p>When used within SYCL kernels or transferred to/from a device, a container class can only hold objects
@@ -496,10 +527,9 @@ whose type meets SYCL requirements for use in kernels and for data transfer, res
 <div class="section" id="known-limitations">
 <h3>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
-<li><p>When compiled with <code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option of Intel oneAPI DPC++/C++ compiler and with
-<code class="docutils literal notranslate"><span class="pre">libstdc++</span></code> version 8 or <code class="docutils literal notranslate"><span class="pre">libc++</span></code>, <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::par_unseq</span></code> offloads
-standard parallel algorithms to the SYCL device similarly to <code class="docutils literal notranslate"><span class="pre">std::execution::par_unseq</span></code>
-in accordance with the <code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option value.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::par_unseq</span></code> policy is affected by <code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option of Intel® oneAPI DPC++/C++ Compiler
+when oneDPL substitutes this policy for the <code class="docutils literal notranslate"><span class="pre">std::execution::par_unseq</span></code> policy
+missing in a standard C++ library, particularly in libstdc++ version 8 and in libc++.</p></li>
 <li><p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code> and <code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code> to run in-place (that is, with the same data
 used for both input and destination) and with an execution policy of <code class="docutils literal notranslate"><span class="pre">unseq</span></code> or <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code>,
 it is required that the provided input and destination iterators are equality comparable.
@@ -509,21 +539,14 @@ If these conditions are not met, the result of these algorithm calls is undefine
 convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
 in the processed data sequence: <code class="docutils literal notranslate"><span class="pre">std::iterator_traits&lt;IteratorType&gt;::value_type</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code> algorithms may provide wrong results with
-vector execution policies when building a program with GCC 10 and using <code class="docutils literal notranslate"><span class="pre">-O0</span></code> option.</p></li>
-<li><p>Compiling <code class="docutils literal notranslate"><span class="pre">reduce</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_reduce</span></code> algorithms with the Intel DPC++ Compiler, versions 2021 and older,
-may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.</p></li>
+unsequenced execution policies when building a program with GCC 10 and using <code class="docutils literal notranslate"><span class="pre">-O0</span></code> option.</p></li>
+<li><p>Compiling <code class="docutils literal notranslate"><span class="pre">reduce</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_reduce</span></code> algorithms with Intel® oneAPI DPC++/C++ Compiler versions 2021 and older
+may result in a runtime error. To fix this issue, use Intel® oneAPI DPC++/C++ Compiler version 2022 or newer.</p></li>
 <li><p>When compiling on Windows, add the option <code class="docutils literal notranslate"><span class="pre">/EHsc</span></code> to the compilation command to avoid errors with oneDPL’s experimental
 ranges API that uses exceptions.</p></li>
-<li><p>The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
-compilation errors (caused by oneTBB API changes).
-Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
-using C++17 or C++20 and TBB is not found in the environment, even if its use in oneDPL is switched off.
-To overcome these issues, include oneDPL header files before the standard C++ header files,
-or disable parallel algorithms support in the standard library.
-For more information, please see <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html">Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes</a>.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">oneapi;</span></code> directive in a oneDPL program code may result in compilation errors
 with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
-<code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> namespace, or create a namespace alias.</p></li>
+the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> namespace, the shorter <code class="docutils literal notranslate"><span class="pre">dpl</span></code> namespace alias, or create your own alias.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">std::array::at</span></code> member function cannot be used in kernels because it may throw an exception;
 use <code class="docutils literal notranslate"><span class="pre">std::array::operator[]</span></code> instead.</p></li>
 <li><p>Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
@@ -531,12 +554,12 @@ use <code class="docutils literal notranslate"><span class="pre">std::array::ope
 for double precision.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">inclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">exclusive_scan_by_segment</span></code>,
 <code class="docutils literal notranslate"><span class="pre">inclusive_scan_by_segment</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code>,
-when used with C++ standard policies, impose limitations on the initial value type if an
+when used with C++ standard aligned policies, impose limitations on the initial value type if an
 initial value is provided, and on the value type of the input iterator if an initial value is
 not provided.
 Firstly, it must satisfy the <code class="docutils literal notranslate"><span class="pre">DefaultConstructible</span></code> requirements.
 Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reduce_by_segment</span></code>, when used with C++ standard policies, imposes limitations on the value type.
+<li><p><code class="docutils literal notranslate"><span class="pre">reduce_by_segment</span></code>, when used with C++ standard aligned policies, imposes limitations on the value type.
 Firstly, it must satisfy the <code class="docutils literal notranslate"><span class="pre">DefaultConstructible</span></code> requirements.
 Secondly, a default-constructed instance of that type should act as the identity element for the binary reduction function.</p></li>
 <li><p>The initial value type for <code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">inclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">exclusive_scan_by_segment</span></code>,
@@ -546,26 +569,7 @@ Secondly, a default-constructed instance of that type should act as the identity
 the dereferenced value type of the provided iterators should satisfy the <code class="docutils literal notranslate"><span class="pre">DefaultConstructible</span></code> requirements.</p></li>
 <li><p>For <code class="docutils literal notranslate"><span class="pre">remove</span></code>, <code class="docutils literal notranslate"><span class="pre">remove_if</span></code>, <code class="docutils literal notranslate"><span class="pre">unique</span></code> the dereferenced value type of the provided
 iterators should be <code class="docutils literal notranslate"><span class="pre">MoveConstructible</span></code>.</p></li>
-<li><p>The algorithms that process uninitialized storage: <code class="docutils literal notranslate"><span class="pre">uninitialized_copy</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_copy_n</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_fill</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_fill_n</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_fill_n</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_move</span></code>,
-<code class="docutils literal notranslate"><span class="pre">uninitialized_move_n</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_default_construct</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_default_construct_n</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_value_construct</span></code>, <code class="docutils literal notranslate"><span class="pre">uninitialized_value_construct_n</span></code>
-should be called with a device policy when using device data and should be called with a host policy when using host data. Otherwise, the result is undefined.</p></li>
-<li><p>The algorithms that destroy data: <code class="docutils literal notranslate"><span class="pre">destroy</span></code> and <code class="docutils literal notranslate"><span class="pre">destroy_n</span></code> should be called with a host policy when using host data that was initialized on the host, and should be called with a device policy when using device data that was initialized on the device. Otherwise, the result is undefined.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="build-your-code-with-onedpl-short">
-<h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">#</a></h2>
-<p>Follow the steps below to build your code with oneDPL:</p>
-<ol class="arabic simple">
-<li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a>
-for details.</p></li>
-<li><p>Set the environment variables for oneDPL and oneTBB.</p></li>
-<li><p>To avoid naming device policy objects explicitly, add the <code class="docutils literal notranslate"><span class="pre">-fsycl-unnamed-lambda</span></code> option.</p></li>
-</ol>
-<p>Below is an example of a command line used to compile code that contains
-oneDPL parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">fsycl</span><span class="o">-</span><span class="n">unnamed</span><span class="o">-</span><span class="n">lambda</span><span class="p">]</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">ltbb</span><span class="o">|-</span><span class="n">fopenmp</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">test</span>
-</pre></div>
 </div>
 </div>
 </div>
@@ -621,12 +625,15 @@ oneDPL parallel algorithms on Linux* (depending on the code, parameters within [
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#before-you-begin">Before You Begin</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-requirements">System Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#develop-and-build-your-code-with-onedpl-short">Develop and Build Your Code with oneDPL</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#useful-information">Useful Information</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-with-standard-c-parallel-algorithms">Difference with Standard C++ Parallel Algorithms</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#restrictions">Restrictions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-your-code-with-onedpl-short">Build Your Code with oneDPL</a></li>
 </ul>
   </nav></div>
 

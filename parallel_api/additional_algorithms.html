@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Additional Algorithms &#8212; oneDPL Documentation 2022.6.0 documentation</title>
+    <title>Additional Algorithms &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Pass Data to Algorithms" href="pass_data_algorithms.html" />
-    <link rel="prev" title="Range-Based API Algorithms" href="range_based_api.html" />
+    <link rel="prev" title="Parallel Range Algorithms" href="parallel_range_algorithms.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -151,24 +151,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../introduction/release_notes.html">Release Notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/onedpl_gsg.html">Get Started with the oneAPI DPC++ Library</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Library Guide</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Functionality</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../parallel_api_main.html">Parallel API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="execution_policies.html">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="async_api.html">Asynchronous API Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Range-Based API Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Additional Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pass_data_algorithms.html">Pass Data to Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for the SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/tested_standard_cpp_api.html">Tested Standard C++ APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/utility_function_object_classes.html">Utility Function Object Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technology Preview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="async_api.html">Asynchronous Algorithms</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../dynamic_selection_api_main.html">Dynamic Selection API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../dynamic_selection_api/functions.html">Functions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../dynamic_selection_api/policies.html">Policies</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -184,14 +191,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../kernel_templates/esimd_main.html">ESIMD-Based Kernel Templates</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort_by_key.html">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Notices and Disclaimers</span></p>
 <ul class="nav bd-sidenav">
@@ -393,7 +398,7 @@ document.write(`
                   
   <div class="section" id="additional-algorithms">
 <h1>Additional Algorithms<a class="headerlink" href="#additional-algorithms" title="Permalink to this headline">#</a></h1>
-<p>The definitions of the algorithms listed below are available through the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl/algorithm</span></code>
+<p>The definitions of the algorithms listed below are available through the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/algorithm&gt;</span></code>
 header.  All algorithms are implemented in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> namespace.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">reduce_by_segment</span></code>: performs partial reductions on a sequence’s values and keys. Each
@@ -471,11 +476,12 @@ to compare the elements is used. For example:</p>
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sort_by_key</span></code>: performs a stable key-value sort. The algorithm sorts the sequence’s keys according to
-a comparioson operator. If no comparator is provided, then the elements are compared with <code class="docutils literal notranslate"><span class="pre">operator&lt;</span></code>.
-The sequence’s values are permutated according to the sorted sequence’s keys. The prerequisite for correct
-behavior is that the size for both keys sequence and values sequence shall be the same.
-For example:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort_by_key</span></code>: performs a key-value sort.
+The algorithm sorts a sequence of keys using a given comparison function object.
+If it is not provided, the elements are compared with <code class="docutils literal notranslate"><span class="pre">operator&lt;</span></code>.
+A sequence of values is simultaneously permuted according to the sorted order of keys.
+There must be at least as many values as the keys, otherwise the behavior is undefined.</p>
+<p>For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keys</span><span class="p">:</span>   <span class="p">[</span><span class="mi">3</span><span class="p">,</span>    <span class="mi">5</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">0</span><span class="p">]</span>
 <span class="n">values</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">]</span>
 <span class="n">output_keys</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">5</span><span class="p">]</span>
@@ -483,6 +489,16 @@ For example:</p>
 </pre></div>
 </div>
 </li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">sort_by_key</span></code> currently implements a stable sort for device execution policies,
+but may implement an unstable sort in the future.
+Use <code class="docutils literal notranslate"><span class="pre">stable_sort_by_key</span></code> if stability is essential.</p>
+</div>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">stable_sort_by_key</span></code>: performs a key-value sort similar to <code class="docutils literal notranslate"><span class="pre">sort_by_key</span></code>,
+but with the added guarantee of stability.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">transform_if</span></code>: performs a transform on the input sequence(s) elements and stores the result into the
 corresponding position in the output sequence at each position for which the predicate applied to the
 element(s) evaluates to <code class="docutils literal notranslate"><span class="pre">true</span></code>. If the predicate evaluates to <code class="docutils literal notranslate"><span class="pre">false</span></code>, the transform is not applied for
@@ -552,12 +568,12 @@ policies.</p>
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="range_based_api.html"
+       href="parallel_range_algorithms.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Range-Based API Algorithms</p>
+        <p class="prev-next-title">Parallel Range Algorithms</p>
       </div>
     </a>
     <a class="right-next"

@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Experimental Range-Based API &#8212; oneDPL Documentation 2022.7.0 documentation</title>
+    <title>Parallel Range Algorithms &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -41,12 +41,12 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'parallel_api/range_based_api';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'parallel_api/parallel_range_algorithms';</script>
     <link rel="shortcut icon" href="../_static/favicons.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API for SYCL* Kernels" href="../api_for_sycl_kernels_main.html" />
-    <link rel="prev" title="Iterators" href="iterators.html" />
+    <link rel="next" title="Additional Algorithms" href="additional_algorithms.html" />
+    <link rel="prev" title="Execution Policies" href="execution_policies.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -156,11 +156,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../parallel_api_main.html">Parallel API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="execution_policies.html">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Parallel Range Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="additional_algorithms.html">Additional Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pass_data_algorithms.html">Pass Data to Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Experimental Range-Based API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -255,7 +255,7 @@
       
       
       
-      <li><a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api/range_based_api.rst" target="_blank"
+      <li><a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api/parallel_range_algorithms.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -272,7 +272,7 @@
       
       
       
-      <li><a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api/range_based_api.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api/parallel_range_algorithms.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -302,7 +302,7 @@
       
       
       
-      <li><a href="../_sources/parallel_api/range_based_api.rst" target="_blank"
+      <li><a href="../_sources/parallel_api/parallel_range_algorithms.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -384,7 +384,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Experimental Range-Based API</h1>
+    <h1>Parallel Range Algorithms</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -394,9 +394,9 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#range-views">Range Views</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#range-based-algorithms">Range-Based Algorithms</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-example">Usage Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-range-views">Supported Range Views</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-algorithms">Supported Algorithms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-example-for-parallel-range-algorithms">Usage Example for Parallel Range Algorithms</a></li>
 </ul>
             </nav>
         </div>
@@ -408,133 +408,105 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <div class="section" id="experimental-range-based-api">
-<h1>Experimental Range-Based API<a class="headerlink" href="#experimental-range-based-api" title="Permalink to this headline">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/ranges&gt;</span></code> header file contains experimental classes and functions that implement
-the functionality similar to what is provided by the C++20 Ranges Library, yet only requires C++17.
-This allows you to combine oneDPL data parallel execution capabilities with some aspects
-of modern range-based API. The functionality is only implemented for the device execution policies.</p>
+  <div class="section" id="parallel-range-algorithms">
+<h1>Parallel Range Algorithms<a class="headerlink" href="#parallel-range-algorithms" title="Permalink to this headline">#</a></h1>
+<p>C++20 introduces the <a class="reference external" href="https://en.cppreference.com/w/cpp/ranges">Ranges library</a> and
+<a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/ranges">range algorithms</a> as a modern paradigm for expressing
+generic operations on data sequences.</p>
+<p>oneAPI DPC++ Library (oneDPL) extends it with <em>parallel range algorithms</em>, which can be used with the standard range
+classes to leverage oneDPL ability of parallel execution on both the host computer and data parallel devices.</p>
+<p>oneDPL only supports random access ranges, because they allow simultaneous constant-time access to elements
+at any position in the range. This enables efficient workload distribution among multiple threads or processing units,
+which is essential for achieving high performance in parallel execution.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The use of the experimental range-based API requires the C++ standard libraries
-coming with GCC 8.1 (or higher) or Clang 7 (or higher).</p>
+<p>The use of parallel range algorithms requires C++20 and the C++ standard libraries coming with GCC 10 (or higher),
+Clang 16 (or higher) and Microsoft* Visual Studio* 2019 16.10 (or higher).</p>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>This experimental functionality will be gradually substituted by the
-<a class="reference internal" href="parallel_range_algorithms.html"><span class="doc">parallel range algorithms</span></a> and eventually discontinued.</p>
-</div>
-<div class="section" id="range-views">
-<h2>Range Views<a class="headerlink" href="#range-views" title="Permalink to this headline">#</a></h2>
-<p id="viewable-ranges">The following viewable ranges are defined in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::ranges</span></code> namespace:</p>
+<div class="section" id="supported-range-views">
+<h2>Supported Range Views<a class="headerlink" href="#supported-range-views" title="Permalink to this headline">#</a></h2>
+<p><a class="reference external" href="https://en.cppreference.com/w/cpp/ranges/view">Views</a> are lightweight ranges typically used to describe
+data transformation pipelines. The C++20 standard defines two categories of standard range views, called
+<em>factories</em> and <em>adaptors</em>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">views::iota</span></code>: A range factory that generates a sequence of elements by repeatedly incrementing an initial value.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::all</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> elements
-for reading and writing on a device.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::all_read</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> elements
-for reading on a device.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::all_write</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> elements
-for writing on a device.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::host_all</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> elements
-for reading and writing on the host.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::subrange</span></code>: A utility that represents a view of unified shared memory (USM) data range
-defined by two USM pointers.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::zip</span></code>: A custom range adaptor that produces one <code class="docutils literal notranslate"><span class="pre">zip_view</span></code> from other several views.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::transform</span></code>: A range adaptor that represents a view of an underlying sequence after applying
-a transformation to each element.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::reverse</span></code>: A range adaptor that produces a reversed sequence of elements provided by another view.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::take</span></code>: A range adaptor that produces a view of the first N elements from another view.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">views::drop</span></code>: A range adaptor that produces a view excluding the first N elements from another view.</p></li>
+<li><p>A range factory generates its data elements on access via an index or an iterator to the range.</p></li>
+<li><p>A range adaptor transforms its underlying data range(s) or view(s) into a new view with modified behavior.</p></li>
 </ul>
-<p>Only these ranges, <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code>, and their combinations can be passed to the experimental range-based algorithms.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> wrapped with <code class="docutils literal notranslate"><span class="pre">views::all</span></code> and similar utilities, <code class="docutils literal notranslate"><span class="pre">views::subrange</span></code> over USM, and <code class="docutils literal notranslate"><span class="pre">views::iota</span></code>
-are considered <em>base ranges</em>. The range adaptors may be combined into a pipeline with a base range at the beginning.
-For example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">range_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">iota</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">;</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">range_2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">all</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">take</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
-</pre></div>
-</div>
-<p>For ranges based on a SYCL buffer, data access is only permitted on a device, while <code class="docutils literal notranslate"><span class="pre">size()</span></code> and <code class="docutils literal notranslate"><span class="pre">empty()</span></code>
-methods are allowed to be called on both host and device.</p>
-</div>
-<div class="section" id="range-based-algorithms">
-<h2>Range-Based Algorithms<a class="headerlink" href="#range-based-algorithms" title="Permalink to this headline">#</a></h2>
-<p>The functions for experimental range based algorithms resemble the standard C++ parallel algorithm overloads
-where all data sequences represented by ranges instead of iterators or iterator pairs, for example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">ExecutionPolicy</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range2</span><span class="o">&gt;</span>
-<span class="kt">void</span><span class="w"> </span><span class="n">copy</span><span class="p">(</span><span class="n">ExecutionPolicy</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">exec</span><span class="p">,</span><span class="w"> </span><span class="n">Range1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">Range2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">destination</span><span class="p">);</span>
-</pre></div>
-</div>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">source</span></code> is used instead of two iterators to represent the input, and <code class="docutils literal notranslate"><span class="pre">destination</span></code> represents the output.</p>
-<p>The following algorithms are available to use with the ranges. These algorithms are defined in the
-<code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::ranges</span></code> namespace and can only be invoked with device execution policies.
-To use these algorithms, include both <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/ranges&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/execution&gt;</span></code> header files.</p>
+<p>The following C++ standard random access adaptors and factories can be used with the oneDPL
+parallel range algorithms:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">adjacent_find</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">all_of</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">any_of</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">copy_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">count_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">equal</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::views::all</span></code>: A range adaptor that returns a view that includes all elements of a range
+(only with standard-aligned execution policies).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::subrange</span></code>: A utility that produces a view from an iterator and a sentinel or from a range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::span</span></code>: A view to a contiguous data sequence.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::iota_view</span></code>: A range factory that generates a sequence of elements by repeatedly incrementing
+an initial value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::single_view</span></code>: A view that contains exactly one element of a specified value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::transform_view</span></code>: A range adaptor that produces a view that applies a transformation to each element
+of another view.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::reverse_view</span></code>: A range adaptor that produces a reversed sequence of elements provided by another view.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::take_view</span></code>: A range adaptor that produces a view of the first N elements from another view.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::ranges::drop_view</span></code>: A range adaptor that produces a view excluding the first N elements from another view.</p></li>
+</ul>
+<p>Visit <a class="reference internal" href="pass_data_algorithms.html"><span class="doc">Pass Data to Algorithms</span></a> for more information, especially on the <a class="reference internal" href="pass_data_algorithms.html#use-range-views"><span class="std std-ref">use of range views</span></a>
+with device execution policies.</p>
+</div>
+<div class="section" id="supported-algorithms">
+<h2>Supported Algorithms<a class="headerlink" href="#supported-algorithms" title="Permalink to this headline">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/algorithm&gt;</span></code> header defines the parallel range algorithms in the <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">oneapi::dpl::ranges</span></code>.
+All algorithms work with both standard-aligned (host) and device execution policies.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ONEDPL_HAS_RANGE_ALGORITHMS</span></code> <a class="reference internal" href="../macros.html#feature-macros"><span class="std std-ref">feature macro</span></a> may be used to test for the presence of
+parallel range algorithms.</p>
+<p id="range-algorithms-202409l">If <code class="docutils literal notranslate"><span class="pre">ONEDPL_HAS_RANGE_ALGORITHMS</span></code> is defined to <code class="docutils literal notranslate"><span class="pre">202409L</span></code> or a greater value, the following algorithms are provided:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">for_each</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">find</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">find_if</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">find_if_not</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">find_end</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">find_first_of</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">for_each</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">inclusive_scan</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted_until</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_element</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_element</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">minmax_element</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">move</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adjacent_find</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">all_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">any_of</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">none_of</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reduce_by_segment</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">remove</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">remove_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">remove_copy</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">remove_copy_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">replace</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">replace_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">replace_copy</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">replace_copy_if</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reverse</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reverse_copy</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rotate_copy</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">search</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">search_n</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equal</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stable_sort</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">swap_ranges</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transform</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transform_reduce</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unique</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unique_copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_element</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_element</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></li>
 </ul>
 </div>
-<div class="section" id="usage-example">
-<h2>Usage Example<a class="headerlink" href="#usage-example" title="Permalink to this headline">#</a></h2>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">rangexp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">ranges</span><span class="p">;</span>
+<div class="section" id="usage-example-for-parallel-range-algorithms">
+<h2>Usage Example for Parallel Range Algorithms<a class="headerlink" href="#usage-example-for-parallel-range-algorithms" title="Permalink to this headline">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec_out</span><span class="p">{</span><span class="n">vec_in</span><span class="p">.</span><span class="n">size</span><span class="p">()};</span>
 
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">view_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">all</span><span class="p">(</span><span class="n">vec_in</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">;</span>
+<span class="w">    </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">par</span><span class="p">,</span><span class="w"> </span><span class="n">view_in</span><span class="p">,</span><span class="w"> </span><span class="n">vec_out</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="p">{</span>
-<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">A</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">max_n</span><span class="p">));</span>
-<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">B</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">max_n</span><span class="p">));</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">usm_shared_allocator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm_allocator</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm</span><span class="o">::</span><span class="n">alloc</span><span class="o">::</span><span class="n">shared</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">// Allocate for the queue used by the execution policy</span>
+<span class="w">    </span><span class="n">usm_shared_allocator</span><span class="w"> </span><span class="n">alloc</span><span class="p">{</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">.</span><span class="n">queue</span><span class="p">()};</span>
 
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rangexp</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">all</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">rangexp</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">;</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">range_res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rangexp</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">all_write</span><span class="p">(</span><span class="n">B</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">usm_shared_allocator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec_in</span><span class="p">{{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">},</span><span class="w"> </span><span class="n">alloc</span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">usm_shared_allocator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec_out</span><span class="p">{</span><span class="n">vec_in</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span><span class="w"> </span><span class="n">alloc</span><span class="p">};</span>
 
-<span class="w">    </span><span class="n">rangexp</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">view</span><span class="p">,</span><span class="w"> </span><span class="n">range_res</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">view_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">subrange</span><span class="p">(</span><span class="n">vec_in</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec_in</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">;</span>
+<span class="w">    </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">ranges</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">view_in</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">span</span><span class="p">(</span><span class="n">vec_out</span><span class="p">));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p class="rubric">See also:</p>
+<p><a class="reference internal" href="range_based_api.html"><span class="doc">Experimental Range-Based API</span></a></p>
 </div>
 </div>
 
@@ -551,20 +523,20 @@ To use these algorithms, include both <code class="docutils literal notranslate"
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="iterators.html"
+       href="execution_policies.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Iterators</p>
+        <p class="prev-next-title">Execution Policies</p>
       </div>
     </a>
     <a class="right-next"
-       href="../api_for_sycl_kernels_main.html"
+       href="additional_algorithms.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API for SYCL* Kernels</p>
+        <p class="prev-next-title">Additional Algorithms</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -586,9 +558,9 @@ To use these algorithms, include both <code class="docutils literal notranslate"
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#range-views">Range Views</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#range-based-algorithms">Range-Based Algorithms</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-example">Usage Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-range-views">Supported Range Views</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-algorithms">Supported Algorithms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-example-for-parallel-range-algorithms">Usage Example for Parallel Range Algorithms</a></li>
 </ul>
   </nav></div>
 

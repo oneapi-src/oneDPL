@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radix Sort &#8212; oneDPL Documentation 2022.7.0 documentation</title>
+    <title>Radix Sort By Key &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -41,12 +41,12 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'kernel_templates/esimd/radix_sort';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'kernel_templates/esimd/radix_sort_by_key';</script>
     <link rel="shortcut icon" href="../../_static/favicons.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Radix Sort By Key" href="radix_sort_by_key.html" />
-    <link rel="prev" title="ESIMD-Based Kernel Templates" href="../esimd_main.html" />
+    <link rel="next" title="Inclusive Scan" href="../single_pass_scan.html" />
+    <link rel="prev" title="Radix Sort" href="radix_sort.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -190,8 +190,8 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../kernel_templates_main.html">Kernel Templates API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../esimd_main.html">ESIMD-Based Kernel Templates</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Radix Sort</a></li>
-<li class="toctree-l3"><a class="reference internal" href="radix_sort_by_key.html">Radix Sort By Key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../single_pass_scan.html">Inclusive Scan</a></li>
@@ -255,7 +255,7 @@
       
       
       
-      <li><a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/kernel_templates/esimd/radix_sort.rst" target="_blank"
+      <li><a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/kernel_templates/esimd/radix_sort_by_key.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -272,7 +272,7 @@
       
       
       
-      <li><a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fkernel_templates/esimd/radix_sort.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fkernel_templates/esimd/radix_sort_by_key.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -302,7 +302,7 @@
       
       
       
-      <li><a href="../../_sources/kernel_templates/esimd/radix_sort.rst" target="_blank"
+      <li><a href="../../_sources/kernel_templates/esimd/radix_sort_by_key.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -384,7 +384,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Radix Sort</h1>
+    <h1>Radix Sort By Key</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -394,7 +394,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-function-templates">radix_sort Function Templates</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-function-templates">radix_sort_by_key Function Templates</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#template-parameters">Template Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-value">Return Value</a></li>
@@ -422,51 +422,57 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <div class="section" id="radix-sort">
-<h1>Radix Sort<a class="headerlink" href="#radix-sort" title="Permalink to this headline">#</a></h1>
-<div class="section" id="radix-sort-function-templates">
-<h2>radix_sort Function Templates<a class="headerlink" href="#radix-sort-function-templates" title="Permalink to this headline">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> function sorts data using the radix sort algorithm.
+  <div class="section" id="radix-sort-by-key">
+<h1>Radix Sort By Key<a class="headerlink" href="#radix-sort-by-key" title="Permalink to this headline">#</a></h1>
+<div class="section" id="radix-sort-by-key-function-templates">
+<h2>radix_sort_by_key Function Templates<a class="headerlink" href="#radix-sort-by-key-function-templates" title="Permalink to this headline">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> function sorts keys using the radix sort algorithm, applying the same order to the corresponding values.
 The sorting is stable, preserving the relative order of elements with equal keys.
-Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequence.</p>
+Both in-place and out-of-place overloads are provided. Out-of-place overloads do not alter the input sequences.</p>
 <p>The functions implement a Onesweep* <a class="footnote-reference brackets" href="#fnote1" id="id1">1</a> algorithm variant.</p>
-<p>A synopsis of the <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> function is provided below:</p>
+<p>A synopsis of the <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> function is provided below:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// defined in &lt;oneapi/dpl/experimental/kernel_templates&gt;</span>
 
 <span class="k">namespace</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">kt</span><span class="o">::</span><span class="nn">gpu</span><span class="o">::</span><span class="nn">esimd</span><span class="w"> </span><span class="p">{</span>
 
 <span class="c1">// Sort in-place</span>
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator2</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator</span><span class="w"> </span><span class="n">last</span><span class="p">,</span>
-<span class="w">            </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">keys_last</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">Iterator2</span><span class="w"> </span><span class="n">values_first</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
 
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesRng</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Range</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (2)</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysRng</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">ValuesRng</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (2)</span>
 
 
 <span class="c1">// Sort out-of-place</span>
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator1</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">Iterator2</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysIterator1</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesIterator1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysIterator2</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesIterator2</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="n">Iterator1</span><span class="w"> </span><span class="n">last</span><span class="p">,</span>
-<span class="w">            </span><span class="n">Iterator2</span><span class="w"> </span><span class="n">first_out</span><span class="p">,</span><span class="w"> </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (3)</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysIterator1</span><span class="w"> </span><span class="n">keys_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysIterator1</span><span class="w"> </span><span class="n">keys_last</span><span class="p">,</span><span class="w"> </span><span class="n">ValuesIterator1</span><span class="w"> </span><span class="n">values_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysIterator2</span><span class="w"> </span><span class="n">keys_out_first</span><span class="p">,</span><span class="w"> </span><span class="n">ValuesIterator2</span><span class="w"> </span><span class="n">values_out_first</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (3)</span>
 
 <span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">IsAscending</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">RadixBits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Range2</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KernelParam</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesRng1</span><span class="p">,</span>
+<span class="w">          </span><span class="k">typename</span><span class="w"> </span><span class="nc">KeysRng2</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">ValuesRng2</span><span class="o">&gt;</span>
 <span class="n">sycl</span><span class="o">::</span><span class="n">event</span>
-<span class="n">radix_sort</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">Range1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">Range2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r_out</span><span class="p">,</span>
-<span class="w">            </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (4)</span>
+<span class="n">radix_sort_by_key</span><span class="w"> </span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">KeysRng1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">ValuesRng1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KeysRng2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">ValuesRng2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">values_out</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">KernelParam</span><span class="w"> </span><span class="n">param</span><span class="p">);</span><span class="w"> </span><span class="c1">// (4)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> is currently available only for Intel® Data Center GPU Max Series,
+<p>The <code class="docutils literal notranslate"><span class="pre">radix_sort_by_key</span></code> is currently available only for Intel® Data Center GPU Max Series,
 and requires Intel® oneAPI DPC++/C++ Compiler 2023.2 or newer.</p>
 </div>
 <div class="section" id="template-parameters">
@@ -508,10 +514,14 @@ and requires Intel® oneAPI DPC++/C++ Compiler 2023.2 or newer.</p>
 <td><p>The SYCL* queue where kernels are submitted.</p></td>
 </tr>
 <tr class="row-odd"><td><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1),</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code> (2),</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code>, <code class="docutils literal notranslate"><span class="pre">first_out</span></code> (3),</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>, <code class="docutils literal notranslate"><span class="pre">r_out</span></code> (4).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_last</span></code>,
+<code class="docutils literal notranslate"><span class="pre">values_first</span></code> (1),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code> (2),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_last</span></code>,
+<code class="docutils literal notranslate"><span class="pre">values_first</span></code>, <code class="docutils literal notranslate"><span class="pre">keys_out_first</span></code>,
+<code class="docutils literal notranslate"><span class="pre">values_out_first</span></code> (3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code>,
+<code class="docutils literal notranslate"><span class="pre">keys_out</span></code>, <code class="docutils literal notranslate"><span class="pre">values_out</span></code> (4).</p></li>
 </ul>
 </td>
 <td><p>The sequences to apply the algorithm to.
@@ -556,7 +566,7 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 <div class="section" id="in-place-example">
 <h3>In-Place Example<a class="headerlink" href="#in-place-example" title="Permalink to this headline">#</a></h3>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
-<span class="c1">//    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include &amp;&amp; ./radix_sort</span>
+<span class="c1">//    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include &amp;&amp; ./radix_sort_by_key</span>
 
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdint&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
@@ -570,34 +580,49 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 <span class="p">{</span>
 <span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
 <span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector_v</span><span class="p">};</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">*</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="n">values</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
 
 <span class="w">   </span><span class="c1">// initialize</span>
-<span class="w">   </span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;r&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;o&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;s&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;d&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;t&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;e&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
 
 <span class="w">   </span><span class="c1">// sort</span>
-<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort</span><span class="o">&lt;</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">416</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (1)</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort_by_key</span><span class="o">&lt;</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">96</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (2)</span>
 <span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
 
 <span class="w">   </span><span class="c1">// print</span>
-<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
-<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
 
-<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
 <span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Output</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">5</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">2</span> <span class="mi">1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">5</span>
+<span class="n">s</span> <span class="n">o</span> <span class="n">r</span> <span class="n">t</span> <span class="n">e</span> <span class="n">d</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="out-of-place-example">
 <h3>Out-of-Place Example<a class="headerlink" href="#out-of-place-example" title="Permalink to this headline">#</a></h3>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// possible build and run commands:</span>
-<span class="c1">//    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include &amp;&amp; ./radix_sort</span>
+<span class="c1">//    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include &amp;&amp; ./radix_sort_by_key</span>
 
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdint&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
@@ -611,39 +636,65 @@ other than <code class="docutils literal notranslate"><span class="pre">bool</sp
 <span class="p">{</span>
 <span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
 <span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector_v</span><span class="p">};</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">*</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">*</span><span class="w"> </span><span class="n">keys_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="n">values</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="n">values_out</span><span class="p">{</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">)};</span>
+
 
 <span class="w">   </span><span class="c1">// initialize</span>
-<span class="w">   </span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">};</span>
+<span class="w">      </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;r&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;o&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;s&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;d&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;t&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;e&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
 
 <span class="w">   </span><span class="c1">// sort</span>
-<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort</span><span class="o">&lt;</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">416</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (3)</span>
+<span class="w">   </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kt</span><span class="o">::</span><span class="n">gpu</span><span class="o">::</span><span class="n">esimd</span><span class="o">::</span><span class="n">radix_sort_by_key</span><span class="o">&lt;</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="w"> </span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">values_out</span><span class="p">,</span>
+<span class="w">                                                       </span><span class="n">kt</span><span class="o">::</span><span class="n">kernel_param</span><span class="o">&lt;</span><span class="mi">96</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="o">&gt;</span><span class="p">{});</span><span class="w"> </span><span class="c1">// (4)</span>
 <span class="w">   </span><span class="n">e</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
 
 <span class="w">   </span><span class="c1">// print</span>
-<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
-<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
-<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
-<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">keys_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
-<span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_acc</span><span class="p">{</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">k_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
 
-<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
-<span class="w">   </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span>
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_acc</span><span class="p">{</span><span class="n">values</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">v_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">k_out_acc</span><span class="p">{</span><span class="n">keys_out</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">k_out_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">sycl</span><span class="o">::</span><span class="n">host_accessor</span><span class="w"> </span><span class="n">v_out_acc</span><span class="p">{</span><span class="n">values_out</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">};</span>
+<span class="w">      </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">v_out_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
 <span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Output</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">3</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">5</span> <span class="mi">3</span> <span class="mi">3</span>
-<span class="mi">5</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">2</span> <span class="mi">1</span>
+<span class="n">r</span> <span class="n">o</span> <span class="n">s</span> <span class="n">d</span> <span class="n">t</span> <span class="n">e</span>
+
+<span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">5</span>
+<span class="n">s</span> <span class="n">o</span> <span class="n">r</span> <span class="n">t</span> <span class="n">e</span> <span class="n">d</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="memory-requirements">
-<span id="radix-sort-memory-requirements"></span><h2>Memory Requirements<a class="headerlink" href="#memory-requirements" title="Permalink to this headline">#</a></h2>
+<span id="radix-sort-by-key-memory-requirements"></span><h2>Memory Requirements<a class="headerlink" href="#memory-requirements" title="Permalink to this headline">#</a></h2>
 <p>The algorithm uses global and local device memory (see <a class="reference external" href="https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model">SYCL 2020 Specification</a>)
 for intermediate data storage. For the algorithm to operate correctly, there must be enough memory on the device.
 If there is not enough global device memory, a <code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code> exception is thrown.
@@ -654,31 +705,28 @@ The amount of memory that is required depends on input data and configuration pa
 <p>Global memory is used for copying the input sequence(s) and storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:</p>
 <blockquote>
-<div><p>N<sub>keys</sub> + C * N<sub>keys</sub></p>
+<div><p>N<sub>keys</sub> + N<sub>values</sub> + C * N<sub>keys</sub></p>
 </div></blockquote>
-<p>where the sequence with keys takes N<sub>keys</sub> space, and the additional space is C * N<sub>keys</sub>.</p>
+<p>where the sequence with keys takes N<sub>keys</sub> space, the sequence with values takes N<sub>values</sub> space,
+and the additional space is C * N<sub>keys</sub>.</p>
 <p>The value of <cite>C</cite> depends on <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span></code>, <code class="docutils literal notranslate"><span class="pre">param.workgroup_size</span></code>, and <code class="docutils literal notranslate"><span class="pre">RadixBits</span></code>.
 For <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span></code> set to <cite>32</cite>, <code class="docutils literal notranslate"><span class="pre">param.workgroup_size</span></code> to <cite>64</cite>, and <code class="docutils literal notranslate"><span class="pre">RadixBits</span></code> to <cite>8</cite>,
 <cite>C</cite> approximately equals to <cite>1</cite>.
 Incrementing <code class="docutils literal notranslate"><span class="pre">RadixBits</span></code> increases <cite>C</cite> up to twice, while doubling either
 <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span></code> or <code class="docutils literal notranslate"><span class="pre">param.workgroup_size</span></code> leads to a halving of <cite>C</cite>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If the number of elements to sort does not exceed <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span> <span class="pre">*</span> <span class="pre">param.workgroup_size</span></code>,
-<code class="docutils literal notranslate"><span class="pre">radix_sort</span></code> is executed by a single work-group and does not use any global memory.</p>
-</div>
 </div>
 <div class="section" id="local-memory-requirements">
 <h3>Local Memory Requirements<a class="headerlink" href="#local-memory-requirements" title="Permalink to this headline">#</a></h3>
-<p>Local memory is used for reordering keys within a work-group,
+<p>Local memory is used for reordering key-value pairs within a work-group,
 and for storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:</p>
 <blockquote>
-<div><p>N<sub>keys_per_workgroup</sub> + C</p>
+<div><p>N<sub>keys_per_workgroup</sub> + N<sub>values_per_workgroup</sub> + C</p>
 </div></blockquote>
-<p>where N<sub>keys_per_workgroup</sub> is the amount of memory to store keys.
-<cite>C</cite> is some additional space for storing internal data.</p>
+<p>where N<sub>keys_per_workgroup</sub> and N<sub>values_per_workgroup</sub> are the amounts of memory
+to store keys and values, respectively. <cite>C</cite> is some additional space for storing internal data.</p>
 <p>N<sub>keys_per_workgroup</sub> equals to <code class="docutils literal notranslate"><span class="pre">sizeof(key_type)</span> <span class="pre">*</span> <span class="pre">param.data_per_workitem</span> <span class="pre">*</span> <span class="pre">param.workgroup_size</span></code>,
+N<sub>values_per_workgroup</sub> equals to <code class="docutils literal notranslate"><span class="pre">sizeof(value_type)</span> <span class="pre">*</span> <span class="pre">param.data_per_workitem</span> <span class="pre">*</span> <span class="pre">param.workgroup_size</span></code>,
 <cite>C</cite> does not exceed <cite>4KB</cite>.</p>
 </div>
 </div>
@@ -687,10 +735,7 @@ The used amount depends on many parameters; below is an upper bound approximatio
 <p>The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:</p>
 <ul class="simple">
-<li><p>When the number of elements to sort (N) is small (~16K or less) and the algorithm is <code class="docutils literal notranslate"><span class="pre">radix_sort</span></code>,
-generally sorting is done more efficiently by a single work-group.
-Increase the <code class="docutils literal notranslate"><span class="pre">param</span></code> values to make <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">&lt;=</span> <span class="pre">param.data_per_workitem</span> <span class="pre">*</span> <span class="pre">param.workgroup_size</span></code>.</p></li>
-<li><p>When the number of elements to sort <code class="docutils literal notranslate"><span class="pre">N</span></code> is between 16K and 1M, utilizing all available
+<li><p>When the number of elements to sort <code class="docutils literal notranslate"><span class="pre">N</span></code> is less than 1M, utilizing all available
 compute cores is key for better performance. Allow creating enough work chunks to feed all
 X<sup>e</sup>-cores <a class="footnote-reference brackets" href="#fnote2" id="id2">2</a> on a GPU: <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span> <span class="pre">*</span> <span class="pre">param.workgroup_size</span> <span class="pre">≈</span> <span class="pre">N</span> <span class="pre">/</span> <span class="pre">xe_core_count</span></code>.</p></li>
 <li><p>When the number of elements to sort is large (more than ~1M), maximizing the number of elements
@@ -700,7 +745,7 @@ reduces synchronization overheads between work-groups and usually benefits the o
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Avoid setting too large <code class="docutils literal notranslate"><span class="pre">param.data_per_workitem</span></code> and <code class="docutils literal notranslate"><span class="pre">param.workgroup_size</span></code> values.
-Make sure that <a class="reference internal" href="#radix-sort-memory-requirements"><span class="std std-ref">Memory requirements</span></a> are satisfied.</p>
+Make sure that <a class="reference internal" href="#radix-sort-by-key-memory-requirements"><span class="std std-ref">Memory requirements</span></a> are satisfied.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -732,20 +777,20 @@ Check the number of cores in the device specification, such as <a class="referen
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../esimd_main.html"
+       href="radix_sort.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">ESIMD-Based Kernel Templates</p>
+        <p class="prev-next-title">Radix Sort</p>
       </div>
     </a>
     <a class="right-next"
-       href="radix_sort_by_key.html"
+       href="../single_pass_scan.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Radix Sort By Key</p>
+        <p class="prev-next-title">Inclusive Scan</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -767,7 +812,7 @@ Check the number of cores in the device specification, such as <a class="referen
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-function-templates">radix_sort Function Templates</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radix-sort-by-key-function-templates">radix_sort_by_key Function Templates</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#template-parameters">Template Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-value">Return Value</a></li>

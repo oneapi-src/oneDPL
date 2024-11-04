@@ -38,7 +38,7 @@ the profiling phase periodically.
       auto_tune_policy(deferred_initialization_t);
       auto_tune_policy(uint64_t resample_interval_in_milliseconds = 0);
       auto_tune_policy(const std::vector<resource_type>& u,
-                       uint64_t resample_interval_in_milliseconds = 0);  
+                       uint64_t resample_interval_in_milliseconds = 0);
   
       // deferred initializer
       void initialize(uint64_t resample_interval_in_milliseconds = 0);
@@ -127,7 +127,7 @@ The selection algorithm for ``auto_tune_policy`` uses runtime profiling
 to choose the best resource for the given function. A simplified, expository 
 implementation of the selection algorithm follows:
  
-.. code::
+.. code:: cpp
 
   template<typename Function, typename ...Args>
   selection_type auto_tune_policy::select(Function&& f, Args&&...args) {
@@ -142,7 +142,7 @@ implementation of the selection algorithm follows:
         return selection{*this, r, tuner}; 
       }
     } else {
-      throw std::logic_error(“selected called before initialization”);
+      throw std::logic_error("selected called before initialization");
     } 
   }
 
@@ -175,6 +175,12 @@ Constructors
   * - ``auto_tune_policy(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);``
     - Overrides the default set of resources. An optional resampling interval can be provided.
 
+.. Note::
+
+   When initializing the ``auto_tune_policy`` with SYCL queues, constructing the queues with the
+   ``sycl::property::queue::enable_profiling`` property allows a more accurate determination of the
+   best-performing device to be made.
+
 Deferred Initialization
 -----------------------
 
@@ -192,6 +198,12 @@ to select or submit.
     - Initialize to use the default set of resources. An optional resampling interval can be provided.
   * - ``initialize(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);``
     - Overrides the default set of resources. An optional resampling interval can be provided.
+
+.. Note::
+
+   When initializing the ``auto_tune_policy`` with SYCL queues, constructing the queues with the
+   ``sycl::property::queue::enable_profiling`` property allows a more accurate determination of the
+   best-performing device to be made.
 
 Queries
 -------

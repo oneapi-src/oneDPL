@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Execution Policies &#8212; oneDPL Documentation 2022.6.0 documentation</title>
+    <title>Execution Policies &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
     <link rel="shortcut icon" href="../_static/favicons.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Iterators" href="iterators.html" />
+    <link rel="next" title="Parallel Range Algorithms" href="parallel_range_algorithms.html" />
     <link rel="prev" title="Parallel API" href="../parallel_api_main.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
@@ -151,24 +151,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../introduction/release_notes.html">Release Notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/onedpl_gsg.html">Get Started with the oneAPI DPC++ Library</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Library Guide</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Functionality</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../parallel_api_main.html">Parallel API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="async_api.html">Asynchronous API Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Range-Based API Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="additional_algorithms.html">Additional Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pass_data_algorithms.html">Pass Data to Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for the SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/tested_standard_cpp_api.html">Tested Standard C++ APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/random.html">Random Number Generators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api_for_sycl_kernels/utility_function_object_classes.html">Utility Function Object Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technology Preview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="async_api.html">Asynchronous Algorithms</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../dynamic_selection_api_main.html">Dynamic Selection API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../dynamic_selection_api/functions.html">Functions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../dynamic_selection_api/policies.html">Policies</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -184,14 +191,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../kernel_templates/esimd_main.html">ESIMD-Based Kernel Templates</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort_by_key.html">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Notices and Disclaimers</span></p>
 <ul class="nav bd-sidenav">
@@ -389,7 +394,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-c-standard-execution-policies">Use the C++ Standard Execution Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-c-standard-aligned-execution-policies">Use the C++ Standard Aligned Execution Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-device-execution-policies">Use the Device Execution Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage Examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-fpga-policy">Use the FPGA Policy</a></li>
@@ -408,41 +413,47 @@ document.write(`
                   
   <div class="section" id="execution-policies">
 <h1>Execution Policies<a class="headerlink" href="#execution-policies" title="Permalink to this headline">#</a></h1>
-<p>The implementation supports the device execution policies used to run the massive parallel
-computational model for heterogeneous systems. The policies are specified in
-the oneAPI DPC++ Library (oneDPL) section of the <a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/oneDPL/source/parallel_api.html#dpc-execution-policy">oneAPI Specification</a>.</p>
-<p>For any of the implemented algorithms, pass one of the execution policy objects as the first
-argument in a call to specify the desired execution behavior. The policies have
-the following meaning:</p>
+<p>According to <a class="reference external" href="https://uxlfoundation.github.io/oneAPI-spec/spec/elements/oneDPL/source/index.html">the oneAPI specification</a>,
+oneAPI DPC++ Library (oneDPL) provides execution policies semantically aligned with the C++ standard,
+referred to as <em>standard-aligned</em> or <em>host execution policies</em>, as well as <em>device execution policies</em>
+to run data parallel computations on heterogeneous systems.</p>
+<p>The execution policies are defined in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution</span></code> namespace and provided
+in the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/execution&gt;</span></code> header. The policies have the following meaning:</p>
 <table class="table">
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 64%" />
+<col style="width: 22%" />
+<col style="width: 78%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Execution Policy Value</p></th>
+<tr class="row-odd"><th class="head"><p>Policy Name / Type</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seq</span></code></p></td>
-<td><p>Sequential execution.</p></td>
+<td><p>The standard-aligned policy for sequential execution.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">unseq</span></code></p></td>
-<td><p>Unsequenced SIMD execution. This policy requires that
-all functions provided are SIMD-safe.</p></td>
+<td><p>The standard-aligned policy for possible unsequenced SIMD execution.
+This policy requires user-provided functions to be SIMD-safe.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">par</span></code></p></td>
-<td><p>Parallel execution by multiple threads.</p></td>
+<td><p>The standard-aligned policy for possible parallel execution by multiple threads.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">par_unseq</span></code></p></td>
-<td><p>Combined effect of <code class="docutils literal notranslate"><span class="pre">unseq</span></code> and <code class="docutils literal notranslate"><span class="pre">par</span></code>.</p></td>
+<td><p>The standard-aligned policy with the combined effect of <code class="docutils literal notranslate"><span class="pre">unseq</span></code> and <code class="docutils literal notranslate"><span class="pre">par</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dpcpp_default</span></code></p></td>
-<td><p>Massive parallel execution on devices using DPC++.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">device_policy</span></code></p></td>
+<td><p>The class template to create device policies for data parallel execution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dpcpp_default</span></code></p></td>
+<td><p>The device policy for data parallel execution on the default SYCL device.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code></p></td>
+<td><p>The class template to create policies for execution on FPGA devices.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dpcpp_fpga</span></code></p></td>
-<td><p>Massive parallel execution on FPGA devices.</p></td>
+<td><p>The device policy for data parallel execution on a SYCL FPGA device.</p></td>
 </tr>
 </tbody>
 </table>
@@ -450,39 +461,34 @@ all functions provided are SIMD-safe.</p></td>
 <a class="reference external" href="https://github.com/llvm/llvm-project/tree/main/pstl">LLVM Project</a>.</p>
 <p>oneDPL supports two parallel backends for execution with <code class="docutils literal notranslate"><span class="pre">par</span></code> and <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code> policies:</p>
 <ol class="arabic simple">
-<li><p>TBB backend (enabled by default) uses oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) for parallel execution.</p></li>
-<li><p>OpenMP backend uses OpenMP* pragmas for parallel execution. Visit
+<li><p>The TBB backend (enabled by default) uses oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) for parallel execution.</p></li>
+<li><p>The OpenMP backend uses OpenMP* pragmas for parallel execution. Visit
 <a class="reference internal" href="../macros.html"><span class="doc">Macros</span></a> for the information how to enable the OpenMP backend.</p></li>
 </ol>
+<p>OpenMP pragmas are also used for SIMD execution with <code class="docutils literal notranslate"><span class="pre">unseq</span></code> and <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code> policies.</p>
 <p>Follow these steps to add Parallel API to your application:</p>
 <ol class="arabic">
 <li><p>Add <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/execution&gt;</span></code> to your code.
 Then include one or more of the following header files, depending on the algorithms you
 intend to use:</p>
-<ol class="arabic simple">
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/algorithm&gt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/numeric&gt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/memory&gt;</span></code></p></li>
-</ol>
-<p>For better coexistence with the C++ standard library,
-include oneDPL header files before the standard C++ ones.</p>
+</ul>
 </li>
-<li><p>Pass a oneDPL execution policy object, defined in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution</span></code>
-namespace, to a parallel algorithm.</p></li>
-<li><p>Use the C++ standard execution policies:</p>
-<ol class="arabic simple">
-<li><p>Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.</p></li>
-<li><p>Link with the oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) dynamic library for TBB-based parallelism.</p></li>
-</ol>
-</li>
-<li><p>Use the device execution policies:</p>
-<ol class="arabic simple">
-<li><p>Compile the code with options that enable support for SYCL 2020.</p></li>
-</ol>
+<li><p>Pass a oneDPL execution policy object as the first argument to a parallel algorithm
+to indicate the desired execution behavior.</p></li>
+<li><p>If you use the standard-aligned execution policies:</p>
+<ul class="simple">
+<li><p>Compile the code with options that enable OpenMP parallelism and/or SIMD vectorization pragmas.</p></li>
+<li><p>Compile and link with the oneTBB or Intel® TBB library for TBB-based parallelism.</p></li>
+</ul>
+<p>If you use the device execution policies, compile the code with options that enable support for SYCL 2020.</p>
 </li>
 </ol>
-<div class="section" id="use-the-c-standard-execution-policies">
-<h2>Use the C++ Standard Execution Policies<a class="headerlink" href="#use-the-c-standard-execution-policies" title="Permalink to this headline">#</a></h2>
+<div class="section" id="use-the-c-standard-aligned-execution-policies">
+<h2>Use the C++ Standard Aligned Execution Policies<a class="headerlink" href="#use-the-c-standard-aligned-execution-policies" title="Permalink to this headline">#</a></h2>
 <p>Example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span>
@@ -499,10 +505,8 @@ namespace, to a parallel algorithm.</p></li>
 </div>
 <div class="section" id="use-the-device-execution-policies">
 <h2>Use the Device Execution Policies<a class="headerlink" href="#use-the-device-execution-policies" title="Permalink to this headline">#</a></h2>
-<p>The device execution policy specifies where a parallel algorithm runs.
-It encapsulates a SYCL device or queue and allows you to
-set an optional kernel name. Device execution policies can be used with all
-standard C++ algorithms that support execution policies.</p>
+<p>The device execution policy specifies where a oneDPL parallel algorithm runs.
+It encapsulates a SYCL device or queue and allows you to set an optional kernel name.</p>
 <p>To create a policy object, you may use one of the following constructor arguments:</p>
 <ul class="simple">
 <li><p>A SYCL queue</p></li>
@@ -515,8 +519,8 @@ Providing a kernel name for a policy is optional, if your compiler supports impl
 names for SYCL kernel functions. The Intel® oneAPI DPC++/C++ Compiler supports it by default;
 for other compilers it may need to be enabled with compilation options such as
 <code class="docutils literal notranslate"><span class="pre">-fsycl-unnamed-lambda</span></code>. Refer to your compiler documentation for more information.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::dpcpp_default</span></code> object is a predefined object of
-the <code class="docutils literal notranslate"><span class="pre">device_policy</span></code> class. It is created with a default kernel name and a default queue.
+<p>The <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::dpcpp_default</span></code> object is a predefined immutable object of
+the <code class="docutils literal notranslate"><span class="pre">device_policy</span></code> class. It is created with a default kernel name and uses a default queue.
 Use it to construct customized policy objects or pass directly when invoking an algorithm.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">dpcpp_default</span></code> is passed directly to more than one algorithm, you must ensure that the
 compiler you use supports implicit kernel names (see above) and this option is turned on.</p>
@@ -572,16 +576,15 @@ following constructor arguments:</p>
 <p>The default constructor of <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> wraps a SYCL queue created
 for <code class="docutils literal notranslate"><span class="pre">fpga_selector</span></code>, or for <code class="docutils literal notranslate"><span class="pre">fpga_emulator_selector</span></code>
 if the <code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_EMULATOR</span></code> is defined.</p>
-<p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::dpcpp_fpga</span></code> is a predefined object of
+<p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::dpcpp_fpga</span></code> is a predefined immutable object of
 the <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> class created with a default unroll factor and a default kernel name.
 Use it to create customized policy objects or pass directly when invoking an algorithm.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Specifying the unroll factor for a policy enables loop unrolling in the implementation of
-your algorithms. The default value is 1.
-To find out how to choose a more precise value, refer to the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/current/unroll-pragma.html">unroll Pragma</a>
-and <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/current/loop-analysis.html">Loop Analysis</a> content in
-the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2024-0/intel-oneapi-fpga-handbook.html">Intel® oneAPI FPGA Handbook</a>.</p>
+oneDPL algorithms. The default value is 1.
+To find out how to choose a more precise value, refer to the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2025-0/unroll-pragma.html">unroll Pragma</a>
+and <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2025-0/loop-analysis.html">Loop Analysis</a> content in the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/developer-guide/2025-0/intel-oneapi-fpga-handbook.html">Intel® oneAPI FPGA Handbook</a>.</p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">make_fpga_policy</span></code> function templates simplify <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> creation.</p>
 </div>
@@ -598,8 +601,8 @@ the <a class="reference external" href="https://www.intel.com/content/www/us/en/
 </div>
 <div class="section" id="error-handling-with-device-execution-policies">
 <h2>Error Handling with Device Execution Policies<a class="headerlink" href="#error-handling-with-device-execution-policies" title="Permalink to this headline">#</a></h2>
-<p>The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
-runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
+<p>The SYCL error handling model supports two types of errors. Synchronous errors cause the SYCL API functions
+to throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
 associated with a SYCL queue.</p>
 <p>For algorithms executed with device policies, handling all errors, synchronous or asynchronous, is a
 responsibility of the caller. Specifically:</p>
@@ -637,11 +640,11 @@ no error handlers; do not use them if you need to process asynchronous errors.</
       </div>
     </a>
     <a class="right-next"
-       href="iterators.html"
+       href="parallel_range_algorithms.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Iterators</p>
+        <p class="prev-next-title">Parallel Range Algorithms</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -663,7 +666,7 @@ no error handlers; do not use them if you need to process asynchronous errors.</
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-c-standard-execution-policies">Use the C++ Standard Execution Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-c-standard-aligned-execution-policies">Use the C++ Standard Aligned Execution Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-device-execution-policies">Use the Device Execution Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage Examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-fpga-policy">Use the FPGA Policy</a></li>

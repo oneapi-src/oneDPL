@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Random Number Generators &#8212; oneDPL Documentation 2022.6.0 documentation</title>
+    <title>Random Number Generators &#8212; oneDPL Documentation 2022.7.0 documentation</title>
   
   
   
@@ -45,8 +45,8 @@
     <link rel="shortcut icon" href="../_static/favicons.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tested Standard C++ APIs" href="tested_standard_cpp_api.html" />
-    <link rel="prev" title="API for the SYCL* Kernels" href="../api_for_sycl_kernels_main.html" />
+    <link rel="next" title="Utility Function Object Classes" href="utility_function_object_classes.html" />
+    <link rel="prev" title="Tested Standard C++ APIs" href="tested_standard_cpp_api.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -151,24 +151,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../introduction/release_notes.html">Release Notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/onedpl_gsg.html">Get Started with the oneAPI DPC++ Library</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Library Guide</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Core Functionality</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">oneAPI DPC++ Library Introduction</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../parallel_api_main.html">Parallel API</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../parallel_api/execution_policies.html">Execution Policies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../parallel_api/iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../parallel_api/async_api.html">Asynchronous API Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../parallel_api/range_based_api.html">Range-Based API Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parallel_api/parallel_range_algorithms.html">Parallel Range Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../parallel_api/additional_algorithms.html">Additional Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../parallel_api/pass_data_algorithms.html">Pass Data to Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parallel_api/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parallel_api/range_based_api.html">Experimental Range-Based API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for the SYCL* Kernels</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Random Number Generators</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../api_for_sycl_kernels_main.html">API for SYCL* Kernels</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="tested_standard_cpp_api.html">Tested Standard C++ APIs</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Random Number Generators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utility_function_object_classes.html">Utility Function Object Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technology Preview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../parallel_api/async_api.html">Asynchronous Algorithms</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../dynamic_selection_api_main.html">Dynamic Selection API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../dynamic_selection_api/functions.html">Functions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../dynamic_selection_api/policies.html">Policies</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -184,14 +191,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/kernel_configuration.html">Kernel Configuration</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../kernel_templates/esimd_main.html">ESIMD-Based Kernel Templates</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort.html">Radix Sort</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../kernel_templates/esimd/radix_sort_by_key.html">Radix Sort By Key</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../kernel_templates/single_pass_scan.html">Inclusive Scan</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../macros.html">Macros</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cmake_support.html">CMake Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Notices and Disclaimers</span></p>
 <ul class="nav bd-sidenav">
@@ -415,12 +420,12 @@ random number engines into various statistical distributions.</p></li>
 <div class="section" id="random-number-engines">
 <h2>Random Number Engines<a class="headerlink" href="#random-number-engines" title="Permalink to this headline">#</a></h2>
 <p>Random number engines use seed data as an entropy source to generate pseudo-random numbers.
-oneDPL provides several class templates for customized engines, they are defined in the header
-<code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code>.</p>
+oneDPL provides several class templates for customizable engines, defined in the header
+<code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code> under the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::</span></code> namespace.</p>
 <table class="table">
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 78%" />
+<col style="width: 41%" />
+<col style="width: 59%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Engine</p></th>
@@ -437,17 +442,22 @@ oneDPL provides several class templates for customized engines, they are defined
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">discard_block_engine</span></code></p></td>
 <td><p>Implements a discard block adaptor</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">experimental::philox_engine</span></code></p></td>
+<td><p>Implements a Philox algorithm</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="predefined-random-number-engines">
 <h2>Predefined Random Number Engines<a class="headerlink" href="#predefined-random-number-engines" title="Permalink to this headline">#</a></h2>
-<p>Predefined random number engines are instantiations of random number engines class templates.
-The types below are defined in the header <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code> under the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::</span></code> namespace.</p>
+<p>Predefined random number engines are instantiations of the random number engines class templates
+with selected engine parameters.</p>
+<p>The types below are defined in the header <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code> in the same namespaces as their
+respective class templates.</p>
 <table class="table">
 <colgroup>
-<col style="width: 40%" />
-<col style="width: 60%" />
+<col style="width: 10%" />
+<col style="width: 90%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Type</p></th>
@@ -473,14 +483,21 @@ The types below are defined in the header <code class="docutils literal notransl
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ranlux48</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::discard_block_engine&lt;ranlux48_base,</span> <span class="pre">389,</span> <span class="pre">11&gt;</span></code></p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">philox4x32</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::philox_engine&lt;std::uint_fast32_t,</span> <span class="pre">32,</span> <span class="pre">4,</span> <span class="pre">10,</span> <span class="pre">0xCD9E8D57,</span> <span class="pre">0x9E3779B9,</span> <span class="pre">0xD2511F53,</span> <span class="pre">0xBB67AE85&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">philox4x64</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::philox_engine&lt;std::uint_fast64_t,</span> <span class="pre">64,</span> <span class="pre">4,</span> <span class="pre">10,</span> <span class="pre">0xCA5A826395121157,</span> <span class="pre">0x9E3779B97F4A7C15,</span> <span class="pre">0xD2E7470EE14C6C93,</span> <span class="pre">0xBB67AE8584CAA73B&gt;</span></code></p></td>
+</tr>
 </tbody>
 </table>
-<p>The engines described below can efficiently generate vectors of random numbers. These types are
-defined in the header <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code> under the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::</span></code> namespace.</p>
+<p>The following predefined engines can efficiently generate vectors of random numbers.
+They differ from the scalar engines above by using <code class="docutils literal notranslate"><span class="pre">sycl::vec&lt;T,</span> <span class="pre">N&gt;</span></code> as the data type,
+while other engine parameters remain the same.</p>
 <table class="table">
 <colgroup>
-<col style="width: 40%" />
-<col style="width: 60%" />
+<col style="width: 23%" />
+<col style="width: 77%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Type</p></th>
@@ -489,28 +506,44 @@ defined in the header <code class="docutils literal notranslate"><span class="pr
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">minstd_rand0_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::linear_congruential_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">16807,</span> <span class="pre">0,</span> <span class="pre">2147483647&gt;</span></code>
-minstd_rand0 for a vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::linear_congruential_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">16807,</span> <span class="pre">0,</span> <span class="pre">2147483647&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">minstd_rand0</span></code> that generates a vector.</p>
+</td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">minstd_rand_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::linear_congruential_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">48271,</span> <span class="pre">0,</span> <span class="pre">2147483647&gt;</span></code>
-minstd_rand for a vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::linear_congruential_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">48271,</span> <span class="pre">0,</span> <span class="pre">2147483647&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">minstd_rand</span></code> that generates a vector.</p>
+</td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">ranlux24_base_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::subtract_with_carry_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">24,</span> <span class="pre">10,</span> <span class="pre">24&gt;</span></code>
-ranlux24_base for a vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::subtract_with_carry_engine&lt;sycl::vec&lt;std::uint32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">24,</span> <span class="pre">10,</span> <span class="pre">24&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">ranlux24_base</span></code> that generates a vector.</p>
+</td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">ranlux48_base_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::subtract_with_carry_engine&lt;sycl::vec&lt;std::uint64_t,</span> <span class="pre">N&gt;,</span> <span class="pre">48,</span> <span class="pre">5,</span> <span class="pre">12&gt;</span></code>
-ranlux48_base for a vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::subtract_with_carry_engine&lt;sycl::vec&lt;std::uint64_t,</span> <span class="pre">N&gt;,</span> <span class="pre">48,</span> <span class="pre">5,</span> <span class="pre">12&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">ranlux48_base</span></code> that generates a vector.</p>
+</td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">ranlux24_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::discard_block_engine&lt;ranlux24_base_vec&lt;N&gt;,</span> <span class="pre">223,</span> <span class="pre">23&gt;</span></code>
-ranlux24 for a vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::discard_block_engine&lt;ranlux24_base_vec&lt;N&gt;,</span> <span class="pre">223,</span> <span class="pre">23&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">ranlux24</span></code> that generates a vector.</p>
+</td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">ranlux48_vec&lt;N&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::discard_block_engine&lt;ranlux48_base_vec&lt;N&gt;,</span> <span class="pre">389,</span> <span class="pre">11&gt;</span></code>
-ranlux48 for vector generation case</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::discard_block_engine&lt;ranlux48_base_vec&lt;N&gt;,</span> <span class="pre">389,</span> <span class="pre">11&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">ranlux48</span></code> that generates a vector.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">philox4x32_vec&lt;N&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::philox_engine&lt;sycl::vec&lt;std::uint_fast32_t,</span> <span class="pre">N&gt;,</span> <span class="pre">32,</span> <span class="pre">4,</span> <span class="pre">10,</span> <span class="pre">0xCD9E8D57,</span> <span class="pre">0x9E3779B9,</span> <span class="pre">0xD2511F53,</span> <span class="pre">0xBB67AE85&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">philox4x32</span></code> that generates a vector.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">template&lt;std::int32_t</span> <span class="pre">N&gt;</span> <span class="pre">philox4x64_vec&lt;N&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::philox_engine&lt;sycl::vec&lt;std::uint_fast64_t,</span> <span class="pre">N&gt;,</span> <span class="pre">64,</span> <span class="pre">4,</span> <span class="pre">10,</span> <span class="pre">0xCA5A826395121157,</span> <span class="pre">0x9E3779B97F4A7C15,</span> <span class="pre">0xD2E7470EE14C6C93,</span> <span class="pre">0xBB67AE8584CAA73B&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">philox4x64</span></code> that generates a vector.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -522,8 +555,8 @@ resulting output is distributed according to a defined statistical probability d
 are defined in the header <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/random&gt;</span></code> under the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::</span></code> namespace.</p>
 <table class="table">
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 78%" />
+<col style="width: 28%" />
+<col style="width: 72%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Distribution</p></th>
@@ -563,6 +596,10 @@ are defined in the header <code class="docutils literal notranslate"><span class
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">bernoulli_distribution</span></code>, <code class="docutils literal notranslate"><span class="pre">geometric_distribution</span></code>, and <code class="docutils literal notranslate"><span class="pre">uniform_int_distribution</span></code> can only be used on devices with FP64 support as they rely on double precision in their implementation (use <code class="docutils literal notranslate"><span class="pre">sycl::aspect::fp64</span></code> to check if the device supports FP64).</p>
+</div>
 </div>
 <div class="section" id="usage-model-of-onedpl-short-random-number-generation-functionality">
 <h2>Usage Model of oneDPL Random Number Generation Functionality<a class="headerlink" href="#usage-model-of-onedpl-short-random-number-generation-functionality" title="Permalink to this headline">#</a></h2>
@@ -634,20 +671,20 @@ are defined in the header <code class="docutils literal notranslate"><span class
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../api_for_sycl_kernels_main.html"
+       href="tested_standard_cpp_api.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">API for the SYCL* Kernels</p>
+        <p class="prev-next-title">Tested Standard C++ APIs</p>
       </div>
     </a>
     <a class="right-next"
-       href="tested_standard_cpp_api.html"
+       href="utility_function_object_classes.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Tested Standard C++ APIs</p>
+        <p class="prev-next-title">Utility Function Object Classes</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
