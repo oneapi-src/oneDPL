@@ -314,7 +314,7 @@ run_test_on_device()
         if (TestUtils::has_type_support<ValueType>(TestUtils::get_test_queue().get_device()))
         {
             constexpr sycl::usm::alloc allocation_type = use_device_alloc ? sycl::usm::alloc::device : sycl::usm::alloc::shared;
-            test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+            test4buffers<allocation_type, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
         }
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
