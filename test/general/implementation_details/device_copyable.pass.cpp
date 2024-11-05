@@ -190,6 +190,10 @@ test_device_copyable()
             oneapi::dpl::__par_backend_hetero::__early_exit_find_or<policy_non_device_copyable, noop_device_copyable>>,
         "__early_exit_find_or is not device copyable with device copyable types");
 
+    // __leaf_sorter
+    // Note that the use of noop_device_copyable/noop_non_device_copyable is valid in this context because
+    // sycl::is_device_copyable specialization for __leaf_sorter does not require instantiation of
+    // __leaf_sorter with the provided types. See [temp.inst]/1 of C++17 spec for the details.
     static_assert(
         sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__leaf_sorter<noop_device_copyable,
                                                                                     noop_device_copyable>>,
@@ -428,6 +432,7 @@ test_non_device_copyable()
                                                                                             noop_non_device_copyable>>,
         "__early_exit_find_or is device copyable with non device copyable types");
 
+    // __leaf_sorter
     static_assert(!sycl::is_device_copyable_v<oneapi::dpl::__par_backend_hetero::__leaf_sorter<noop_device_copyable,
                                                                                                noop_non_device_copyable>>,
                   "__leaf_sorter is device copyable with non device copyable types");
