@@ -57,7 +57,7 @@
 #include "../pstl/utils_ranges.h"
 #include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../pstl/ranges_defs.h"
-#include "../pstl/hetero/algorithm_ranges_impl_hetero.h"
+#include "../pstl/hetero/algorithm_impl_hetero.h"
 #include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 #endif
 
@@ -193,19 +193,9 @@ reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& pol
     if (n == 0)
         return std::make_pair(result1, result2);
 
-    auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
-    auto key_buf = keep_keys(first1, last1);
-    auto keep_values = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
-    auto value_buf = keep_values(first2, first2 + n);
-    auto keep_key_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator1>();
-    auto key_output_buf = keep_key_outputs(result1, result1 + n);
-    auto keep_value_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator2>();
-    auto value_output_buf = keep_value_outputs(result2, result2 + n);
-
     // number of unique keys
-    _CountType __n = oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
-        __tag, std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
-        value_output_buf.all_view(), binary_pred, binary_op);
+    _CountType __n = oneapi::dpl::__internal::__pattern_reduce_by_segment(
+        __tag, std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred, binary_op);
 
     return std::make_pair(result1 + __n, result2 + __n);
 }
