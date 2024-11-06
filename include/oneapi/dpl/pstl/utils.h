@@ -25,6 +25,7 @@
 #include <iterator>
 #include <functional>
 #include <type_traits>
+#include <algorithm>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -784,28 +785,20 @@ union __lazy_ctor_storage
     }
 };
 
-// Utility that returns the smallest type size in a tuple.
-template <typename _Tuple>
-class __min_tuple_type_size;
-
+// Returns the smallest type within a set of potentially nested template types.
+// E.g. If we consider the type: T = tuple<float, tuple<short, long>, int, double>,
+// then __min_nested_type_size<T>::value returns sizeof(short).
 template <typename _T>
-class __min_tuple_type_size<std::tuple<_T>>
+struct __min_nested_type_size
 {
-  public:
-    static constexpr std::size_t value = sizeof(_T);
+    constexpr static std::size_t value = sizeof(_T);
 };
 
-template <typename _T, typename... _Ts>
-class __min_tuple_type_size<std::tuple<_T, _Ts...>>
+template <template <typename...> typename _WrapperType, typename... _Ts>
+struct __min_nested_type_size<_WrapperType<_Ts...>>
 {
-    static constexpr std::size_t __min_type_value_ts = __min_tuple_type_size<std::tuple<_Ts...>>::value;
-
-  public:
-    static constexpr std::size_t value = std::min(sizeof(_T), __min_type_value_ts);
+    constexpr static std::size_t value = std::min({__min_nested_type_size<_Ts>::value...});
 };
-
-template <typename _Tuple>
-inline constexpr std::size_t __min_tuple_type_size_v = __min_tuple_type_size<_Tuple>::value;
 
 } // namespace __internal
 } // namespace dpl
