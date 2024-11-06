@@ -81,8 +81,9 @@ depending on the use case.
 ### Implementation One (Embarrassingly Parallel)
 This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
 `histogram`.
-1) Determine the number of threads that we will use, perhaps adding some method to do this generically based on the
-    backend.
+
+#### OpenMP:
+1) Determine the number of threads that we will use locally
 2) Create temporary data for the number of threads minus one copy of the histogram output sequence. Thread zero can
    use the user-provided output data.
 3) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
@@ -91,9 +92,15 @@ This method uses temporary storage and a pair of embarrassingly parallel `parall
    histogram into the output histogram sequence. This step is also embarrassingly parallel.
 5) Deallocate temporary storage.
 
-New machinery that will be required here is the ability to query how many threads will be used and also the machinery
-to check what thread the current execution is using within a brick. Ideally, these can be generic wrappers around the
-specific backends which would allow a unified implementation for all host backends.
+#### TBB
+For TBB, we can do something similar, but we can use `enumerable_thread_specific` and its member function, `local()` to
+provide a lazy allocation of thread local management, which does not require querying the number of threads or getting
+the index. This allows us to operate in a compose-able manner while keeping the same conceptual implementation.
+1) Embarassingly parallel accumulation to thread local storage
+2) Embarassingly parallel aggregate to output data
+
+I believe the challenge here may be to properly provide the heuristics to choose between this implementation and the
+other implementation.  However, we should be able to have some reasonable division.
 
 ### Implementation Two (Atomics)
 This method uses atomic operations to remove the race conditions during accumulation. With atomic increments of the
@@ -119,25 +126,25 @@ better atomics should do vs redundant copies of the output.
 
 ## Alternative Approaches
 * One could consider some sort of locking approach which locks mutexes for subsections of the output histogram prior to
-* modifying them. It's possible such an approach could provide a similar approach to atomics, but with different
-* overhead tradeoffs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
+  modifying them. It's possible such an approach could provide a similar approach to atomics, but with different
+  overhead tradeoffs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
 
 * Another possible approach could be to do something like the proposed implementation one, but with some sparse
-* representation of output data. However, I think the general assumptions we can make about the normal case make this
-* less likely to be beneficial. It is quite likely that `n` is much larger than the output histograms, and that a large
-* percentage of the output histogram may be occupied, even when considering dividing the input amongst multiple
-* threads. This could be explored if we find temporary storage is too large for some cases and the atomic approach
-* does not provide a good fallback.
+  representation of output data. However, I think the general assumptions we can make about the normal case make this
+  less likely to be beneficial. It is quite likely that `n` is much larger than the output histograms, and that a large
+  percentage of the output histogram may be occupied, even when considering dividing the input amongst multiple
+  threads. This could be explored if we find temporary storage is too large for some cases and the atomic approach
+  does not provide a good fallback.
 
 ## Open Questions
 * Would it be worthwhile to add our own implementation of `atomic_ref` for C++17? I believe this would require
-* specializations for each of our supported compilers.
+  specializations for each of our supported compilers.
 
 * What is the overhead of atomics in general in this case and does the overhead there make them inherently worse than
-* merely having extra copies of the histogram and accumulating?
+  merely having extra copies of the histogram and accumulating?
 
 * Is it worthwhile to have separate implementations for TBB and OpenMP because they may differ in the best-performing
-* implementation? What is the best heuristic for selecting between algorithms (if one is not the clear winner)?
+  implementation? What is the best heuristic for selecting between algorithms (if one is not the clear winner)?
 
 * How will vectorized bricks perform, and in what situations will it be advantageous to use or not use vector
-* instructions?
+  instructions?
