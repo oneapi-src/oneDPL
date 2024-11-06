@@ -28,6 +28,7 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#include <tuple>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -262,12 +263,8 @@ struct __parallel_for_large_submitter;
 template <typename... _Name, typename... _RangeTypes>
 struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name...>, _RangeTypes...>
 {
-    // Flatten the range as std::tuple value types in the range are likely coming from separate ranges in a zip
-    // iterator.
-    using _FlattenedRangesTuple = typename oneapi::dpl::__internal::__flatten_std_or_internal_tuple<
-        std::tuple<oneapi::dpl::__internal::__value_t<_RangeTypes>...>>::type;
-    static constexpr std::size_t __min_type_size =
-        oneapi::dpl::__internal::__min_tuple_type_size_v<_FlattenedRangesTuple>;
+    static constexpr std::size_t __min_type_size = oneapi::dpl::__internal::__min_nested_type_size<
+        std::tuple<oneapi::dpl::__internal::__value_t<_RangeTypes>...>>::value;
     // __iters_per_work_item is set to 1, 2, 4, 8, or 16 depending on the smallest type in the
     // flattened ranges. This allows us to launch enough work per item to saturate the device's memory
     // bandwidth. This heuristic errs on the side of launching more work per item than what is needed to
