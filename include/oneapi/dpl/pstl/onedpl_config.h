@@ -40,52 +40,25 @@
 
 // -- Check availability of heterogeneous backends --
 
-// Detect both Intel(R) oneAPI DPC++/C++ Compiler and oneAPI DPC++ compiler
-// Rely on an extension attribute, which is present in both compilers
-// A predefined macro cannot be used since oneAPI DPC++/C++ Compiler provides the same set of macros as Clang
-#if __has_cpp_attribute(intel::kernel_args_restrict)
-#    define _ONEDPL_DPCPP_COMPILER 1
-#else
-#    define _ONEDPL_DPCPP_COMPILER 0
-#endif
-
 // Preliminary check SYCL availability
 #define _ONEDPL_SYCL_HEADER_PRESENT (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
 #define _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT (SYCL_LANGUAGE_VERSION || CL_SYCL_LANGUAGE_VERSION)
 #if _ONEDPL_SYCL_HEADER_PRESENT
 #    if _ONEDPL_SYCL_LANGUAGE_VERSION_PRESENT
 #        define _ONEDPL_SYCL_AVAILABLE 1
-// DPC++/C++ Compilers pre-define SYCL_LANGUAGE_VERSION with -fsycl option
-#    elif !_ONEDPL_DPCPP_COMPILER
-// Other implementations might define the macro in the SYCL header
+#    else
 #        define _ONEDPL_SYCL_POSSIBLY_AVAILABLE 1
 #    endif
 #endif
 
-// Include SYCL headers for "possible" case with reliable configurations only
-// Even if the headers are available, their inclusion may be dangerous if the compiler does not support SYCL
-#if defined(__ADAPTIVECPP__)
-#    define _ONEDPL_SAFE_TO_INCLUDE_SYCL 1
-#else
-#    define _ONEDPL_SAFE_TO_INCLUDE_SYCL 0
-#endif
-// Try checking SYCL_LANGUAGE_VERSION after sycl.hpp inclusion if SYCL availability has not been proven yet
-// Proceed to inclusion only if it is safe or the backend was explicitly requested
-#if _ONEDPL_SYCL_POSSIBLY_AVAILABLE && (ONEDPL_USE_DPCPP_BACKEND || _ONEDPL_SAFE_TO_INCLUDE_SYCL)
-#    if __has_include(<sycl/sycl.hpp>)
-#        include <sycl/sycl.hpp>
-#    else
-#        include <CL/sycl.hpp>
-#    endif
-#    if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+// If DPCPP backend is explicitly requested, optimistically assume SYCL availability
+#if ONEDPL_USE_DPCPP_BACKEND
+#    if _ONEDPL_SYCL_POSSIBLY_AVAILABLE
 #        define _ONEDPL_SYCL_AVAILABLE 1
 #    endif
-#endif // _ONEDPL_SYCL_POSSIBLY_AVAILABLE
-
-// If DPCPP backend is explicitly requested and SYCL is not available, throw an error
-#if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
-#    error "Device execution policies are enabled, \
-        but SYCL* headers are not found or the SYCL implementation does not define SYCL_LANGUAGE_VERSION macro"
+#    if !_ONEDPL_SYCL_HEADER_PRESENT
+#        error "Device execution policies are enabled, but SYCL* headers are not found"
+#    endif
 #endif
 
 // If DPCPP backend is not explicitly turned off and SYCL is available, enable it

@@ -26,6 +26,13 @@
 #else
 #    include <CL/sycl.hpp>
 #endif
+
+// If DPCPP backend is explicitly requested and SYCL is not available, issue a warning
+#if !(SYCL_LANGUAGE_VERSION || CL_SYCL_LANGUAGE_VERSION)
+#    error "Device execution policies are enabled, \
+        but SYCL_LANGUAGE_VERSION/CL_SYCL_LANGUAGE_VERSION macros are not defined"
+#endif
+
 #include <memory>
 
 // Combine SYCL runtime library version
