@@ -82,14 +82,14 @@ depending on the use case.
 This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
 `histogram`.
 1) Determine the number of threads that we will use, perhaps adding some method to do this generically based on the
-2) backend.
-3) Create temporary data for the number of threads minus one copy of the histogram output sequence. Thread zero can
-4) use the user-provided output data.
-5) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
-6) its own copy of the output sequence using the temporary storage to remove any race conditions.
-7) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
-8) histogram into the output histogram sequence. This step is also embarrassingly parallel.
-9) Deallocate temporary storage.
+    backend.
+2) Create temporary data for the number of threads minus one copy of the histogram output sequence. Thread zero can
+   use the user-provided output data.
+3) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
+   its own copy of the output sequence using the temporary storage to remove any race conditions.
+4) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
+   histogram into the output histogram sequence. This step is also embarrassingly parallel.
+5) Deallocate temporary storage.
 
 New machinery that will be required here is the ability to query how many threads will be used and also the machinery
 to check what thread the current execution is using within a brick. Ideally, these can be generic wrappers around the
