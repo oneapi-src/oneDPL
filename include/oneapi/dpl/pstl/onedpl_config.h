@@ -40,10 +40,9 @@
 
 // -- Check availability of heterogeneous backends --
 
-#define _ONEDPL_SYCL_HEADER_PRESENT (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-#if _ONEDPL_SYCL_HEADER_PRESENT
 // If DPCPP backend is explicitly requested, optimistically assume SYCL availability;
-// otherwise, make sure that it is definitely available through SYCL_LANGUAGE_VERSION macros
+// otherwise, make sure that it is definitely available additionally checking SYCL_LANGUAGE_VERSION
+#if __has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>)
 #    if SYCL_LANGUAGE_VERSION || CL_SYCL_LANGUAGE_VERSION || ONEDPL_USE_DPCPP_BACKEND
 #        define _ONEDPL_SYCL_AVAILABLE 1
 #    endif
