@@ -120,7 +120,8 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
         _IndexSigned idx2_to = __index_sum - __rng1_from + 1;
         assert(idx2_from <= idx2_to);
 
-        const _IndexSigned idx2_from_diff = idx2_from < (_IndexSigned)__rng2_from ? (_IndexSigned)__rng2_from - idx2_from : 0;
+        const _IndexSigned idx2_from_diff =
+            idx2_from < (_IndexSigned)__rng2_from ? (_IndexSigned)__rng2_from - idx2_from : 0;
         const _IndexSigned idx2_to_diff = idx2_to > (_IndexSigned)__rng2_to ? idx2_to - (_IndexSigned)__rng2_to : 0;
 
         idx1_to -= idx2_from_diff;
@@ -313,16 +314,15 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
         __result_and_scratch_storage_t __result_and_scratch{__exec, 0, __base_diag_count + 1};
 
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
             auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_FindSplitPointsKernelOnMidDiagonal>(
-                sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id)
-                {
+                sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
-                    auto __scratch_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
+                    auto __scratch_ptr =
+                        __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
 
                     if (__global_idx == 0)
                     {
@@ -341,7 +341,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
         });
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
@@ -360,12 +359,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
                     // Check that we fit into size of scratch
                     assert(__scratch_idx + 1 < __base_diag_count + 1);
 
-                    const _split_point_t __sp_left  = __scratch_ptr[__scratch_idx];
+                    const _split_point_t __sp_left = __scratch_ptr[__scratch_idx];
                     const _split_point_t __sp_right = __scratch_ptr[__scratch_idx + 1];
 
-                    __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first,
-                                                    __rng2, __sp_left.second, __sp_right.second,
-                                                    __i_elem, __comp);
+                    __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2, __sp_left.second,
+                                                    __sp_right.second, __i_elem, __comp);
                 }
                 else
                 {
