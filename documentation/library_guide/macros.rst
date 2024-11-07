@@ -107,7 +107,8 @@ Macro                              Description
                                    If the macro is set to a non-zero value, device policies are enabled unconditionally.
                                    Setting the macro to 0 disables device policies.
 
-                                   When device execution policies are disabled, no dependency on SYCL is introduced.
+                                   When device policies are disabled, no SYCL dependency is introduced,
+                                   and their usage will lead to compilation errors.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined device policy objects,
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
