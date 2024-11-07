@@ -44,7 +44,9 @@
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
 
-#if _USE_RADIX_SORT
+#define _ONEDPL_USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
+
+#if _ONEDPL_USE_RADIX_SORT
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
 
@@ -1892,7 +1894,7 @@ template <typename _T, typename _Compare>
 struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
-#if _USE_RADIX_SORT
+#if _ONEDPL_USE_RADIX_SORT
         (::std::is_arithmetic_v<_T> || ::std::is_same_v<sycl::half, _T>) &&
             (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
             __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
@@ -1901,7 +1903,7 @@ struct __is_radix_sort_usable_for_type
 #endif
 };
 
-#if _USE_RADIX_SORT
+#if _ONEDPL_USE_RADIX_SORT
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
     ::std::enable_if_t<

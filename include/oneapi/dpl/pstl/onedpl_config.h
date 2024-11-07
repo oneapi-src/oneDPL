@@ -343,8 +343,6 @@
 #        define _ONEDPL_USE_GROUP_ALGOS 1
 #    endif
 
-#    define _USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
-
 // Compilation of a kernel is requiried to obtain valid work_group_size
 // when target devices are CPU or FPGA emulator. Since CPU and GPU devices
 // cannot be distinguished during compilation, the macro is enabled by default.
