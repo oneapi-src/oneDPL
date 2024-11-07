@@ -99,15 +99,16 @@ Macro                              Description
                                    If all parallel backends are disabled by setting respective macros to 0, algorithms
                                    with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of device execution policies:
+``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of device execution policies.
 
-                                   - Not defined (default): the policies are enabled only if SYCL is present
-                                     (indicated by the presence of SYCL headers and the SYCL_LANGUAGE_VERSION macro);
-                                     otherwise, they are disabled.
-                                   - Set to a non-zero value: the policies are enabled.
-                                   - Set to 0: the policies are disabled.
+                                   When the macro is not defined (default),
+                                   device policies are enabled only if SYCL is present,
+                                   indicated by the definition of ``SYCL_LANGUAGE_VERSION`` macro
+                                   and the availability of SYCL headers; otherwise, device policies are disabled.
+                                   If the macro is set to a non-zero value, device policies are enabled.
+                                   Setting the macro to 0 disables device policies.
 
-                                   When device execution policies are disabled, no dependency on SYCL is introduced.
+                                   When device execuiton policies are disabled, no dependency on SYCL is introduced.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined device policy objects,
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
