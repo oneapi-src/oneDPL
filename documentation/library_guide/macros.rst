@@ -99,12 +99,15 @@ Macro                              Description
                                    If all parallel backends are disabled by setting respective macros to 0, algorithms
                                    with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the device execution policies.
-                                   When the macro is not defined (by default)
-                                   or evaluates to non-zero, device policies are enabled.
-                                   When the macro is set to 0 there is no dependency on
-                                   the |dpcpp_cpp| and runtime libraries.
-                                   Trying to use device policies will lead to compilation errors.
+``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of device execution policies:
+
+                                   - Not defined (default): the policies are enabled only if SYCL is present
+                                     (indicated by the presence of SYCL headers and the SYCL_LANGUAGE_VERSION macro);
+                                     otherwise, they are disabled.
+                                   - Set to a non-zero value: the policies are enabled.
+                                   - Set to 0: the policies are disabled.
+
+                                   When device execution policies are disabled, no dependency on SYCL is introduced.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined device policy objects,
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
