@@ -102,13 +102,12 @@ Macro                              Description
 ``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of device execution policies.
 
                                    When the macro is not defined (default),
-                                   device policies are enabled only if SYCL is present,
-                                   indicated by the definition of ``SYCL_LANGUAGE_VERSION`` macro
-                                   and the availability of SYCL headers; otherwise, device policies are disabled.
-                                   If the macro is set to a non-zero value, device policies are enabled.
+                                   device policies are enabled only if SYCL support is detected, when possible;
+                                   otherwise, they are disabled.
+                                   If the macro is set to a non-zero value, device policies are enabled unconditionally.
                                    Setting the macro to 0 disables device policies.
 
-                                   When device execuiton policies are disabled, no dependency on SYCL is introduced.
+                                   When device execution policies are disabled, no dependency on SYCL is introduced.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined device policy objects,
                                    such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
