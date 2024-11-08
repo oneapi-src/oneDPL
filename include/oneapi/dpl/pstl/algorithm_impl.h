@@ -4319,6 +4319,7 @@ __brick_histogram_atomics(_ForwardIterator __first, _ForwardIterator __last, _Id
         _Size __bin = __func.get_bin(*__first);
         if (__bin >= 0)
         {
+            //TODO: this isnt guaranteed to work by the compiler / standard library, need to specialize
             std::atomic<_HistogramValueT>* __atomic_histogram_bin =
                 reinterpret_cast<std::atomic<_HistogramValueT>*>(std::addressof(*(__histogram_first + __bin)));
             __atomic_histogram_bin->fetch_add(_HistogramValueT{1}, std::memory_order_relaxed);
