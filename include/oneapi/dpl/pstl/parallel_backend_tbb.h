@@ -34,6 +34,7 @@
 #include <tbb/parallel_invoke.h>
 #include <tbb/task_arena.h>
 #include <tbb/tbb_allocator.h>
+#include <tbb/enumerable_thread_specific.h>
 #if TBB_INTERFACE_VERSION > 12000
 #    include <tbb/task.h>
 #endif
@@ -1304,6 +1305,44 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
                     _ForwardIterator __end, _Fp __f)
 {
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
+}
+
+//------------------------------------------------------------------------
+// parallel_histogram
+//------------------------------------------------------------------------
+template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
+          typename _Fp>
+void
+__parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
+                     _RandomAccessIterator1 __last, _Size __num_bins, _RandomAccessIterator2 __histogram_first, _Fp __f)
+{
+    using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator2>::value_type;
+
+    tbb::this_task_arena::isolate([&]() {
+        tbb::enumerable_thread_specific<std::vector<_HistogramValueT>> __thread_local_histogram(__num_bins, _HistogramValueT{0});
+        size_t __n = __last - __first;
+        tbb::parallel_for(tbb::blocked_range<_Size>(0, __n),
+            [&](const tbb::blocked_range<_Size>& __range) {
+                std::vector<_HistogramValueT>& __local_histogram = __thread_local_histogram.local();
+                __f(__first + __range.begin(), __first + __range.end(), __local_histogram.begin());
+            });
+        tbb::parallel_for(tbb::blocked_range<_Size>(0, __num_bins),
+            [&](const tbb::blocked_range<_Size>& __range) {
+                auto __local_histogram = __thread_local_histogram.begin();
+                for (auto __i = __range.begin(); __i != __range.end(); ++__i)
+                {
+                    __histogram_first[__i] = (*__local_histogram)[__i];
+                }
+                ++__local_histogram;
+                for (; __local_histogram != __thread_local_histogram.end(); ++__local_histogram)
+                {
+                    for (auto __i = __range.begin(); __i != __range.end(); ++__i)
+                    {
+                        __histogram_first[__i] += (*__local_histogram)[__i];
+                    }
+                }
+            });
+    });
 }
 
 } // namespace __tbb_backend
