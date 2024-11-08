@@ -294,12 +294,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        using _FindSplitPointsKernelOnMidDiagonal = std::conditional_t<
-            std::is_same_v<_IdType, std::uint32_t>,
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-                _find_split_points_kernel_on_mid_diagonal_uint32_t, _CustomName, _Range1, _Range2, _IdType, _Compare>,
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-                _find_split_points_kernel_on_mid_diagonal_uint64_t, _CustomName, _Range1, _Range2, _IdType, _Compare>>;
+        using _FindSplitPointsOnMidDiagonalKernel =
+            std::conditional_t<std::is_same_v<_IdType, std::uint32_t>,
+                               oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+                                   _find_split_points_kernel_on_mid_diagonal_uint32_t, _CustomName, _ExecutionPolicy,
+                                   _Range1, _Range2, _Range3, _Compare>,
+                               oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+                                   _find_split_points_kernel_on_mid_diagonal_uint64_t, _CustomName, _ExecutionPolicy,
+                                   _Range1, _Range2, _Range3, _Compare>>;
 
         // Empirical number of values to process per work-item
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
@@ -318,7 +320,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
             auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
 
-            __cgh.parallel_for<_FindSplitPointsKernelOnMidDiagonal>(
+            __cgh.parallel_for<_FindSplitPointsOnMidDiagonalKernel>(
                 sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
                     auto __scratch_ptr =
