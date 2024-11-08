@@ -129,6 +129,17 @@ __parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPol
         __f(*__iter);
 }
 
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2, typename _Fp>
+void
+__parallel_histogram(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
+                    _Size __num_bins, _RandomAccessIterator2 __histogram_first, _Fp __f)
+{
+    using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator2>::value_type;
+    ::std::fill(__histogram_first, __histogram_first + __num_bins, _HistogramValueT{0});
+    __f(__first, __last, __histogram_first);
+}
+
+
 } // namespace __serial_backend
 } // namespace dpl
 } // namespace oneapi
