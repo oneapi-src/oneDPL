@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto all_of_checker = _ONEDPL_ALGO(std::ranges::all_of);
+    auto all_of_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::all_of);
 
     test_range_algo<0>{big_sz}(dpl_ranges::all_of,  all_of_checker, pred1);
     test_range_algo<1>{}(dpl_ranges::all_of,  all_of_checker, pred1, proj);

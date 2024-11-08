@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto find_if_not_checker = _ONEDPL_ALGO(std::ranges::find_if_not);
+    auto find_if_not_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::find_if_not);
 
     test_range_algo<0>{big_sz}(dpl_ranges::find_if_not, find_if_not_checker, pred1);
     test_range_algo<1>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, proj);

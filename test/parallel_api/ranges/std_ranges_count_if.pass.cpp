@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto count_if_checker = _ONEDPL_ALGO(std::ranges::count_if);
+    auto count_if_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::count_if);
 
     test_range_algo<0>{big_sz}(dpl_ranges::count_if, count_if_checker, pred);
     test_range_algo<1>{}(dpl_ranges::count_if, count_if_checker, pred, proj);

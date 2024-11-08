@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto adj_find_checker = _ONEDPL_ALGO(std::ranges::adjacent_find);
+    auto adj_find_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::adjacent_find);
 
     test_range_algo<0>{big_sz}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred);
     test_range_algo<1>{}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred, proj);
