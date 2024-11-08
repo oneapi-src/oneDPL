@@ -237,9 +237,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
 template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
 
-template <typename _IdType, typename _CustomName, typename _Name>
-struct __parallel_merge_submitter_large;
-
 template <typename _IdType, typename... _Name>
 struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
@@ -273,14 +270,13 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
     }
 };
 
-template <typename... _Name>
-class _find_split_points_kernel_on_mid_diagonal_uint32_t;
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
+struct __parallel_merge_submitter_large;
 
-template <typename... _Name>
-class _find_split_points_kernel_on_mid_diagonal_uint64_t;
-
-template <typename _IdType, typename _CustomName, typename... _Name>
-struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__optional_kernel_name<_Name...>>
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
+struct __parallel_merge_submitter_large<_IdType, _CustomName,
+                                        __internal::__optional_kernel_name<_DiagonalsKernelName...>,
+                                        __internal::__optional_kernel_name<_MergeKernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -293,15 +289,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
         assert(__n1 > 0 || __n2 > 0);
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-        using _FindSplitPointsOnMidDiagonalKernel =
-            std::conditional_t<std::is_same_v<_IdType, std::uint32_t>,
-                               oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-                                   _find_split_points_kernel_on_mid_diagonal_uint32_t, _CustomName, _ExecutionPolicy,
-                                   _Range1, _Range2, _Range3, _Compare>,
-                               oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-                                   _find_split_points_kernel_on_mid_diagonal_uint64_t, _CustomName, _ExecutionPolicy,
-                                   _Range1, _Range2, _Range3, _Compare>>;
 
         // Empirical number of values to process per work-item
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
@@ -320,7 +307,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
             auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
 
-            __cgh.parallel_for<_FindSplitPointsOnMidDiagonalKernel>(
+            __cgh.parallel_for<_DiagonalsKernelName...>(
                 sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
                     auto __scratch_ptr =
@@ -348,7 +335,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
 
             __cgh.depends_on(__event);
 
-            __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+            __cgh.parallel_for<_MergeKernelName...>(
+                sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 auto __global_idx = __item_id.get_linear_id();
                 const _IdType __i_elem = __global_idx * __chunk;
 
@@ -382,6 +370,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName, __internal::__opti
 
 template <typename... _Name>
 class __merge_kernel_name;
+
+template <typename... _Name>
+class __diagonals_kernel_name;
 
 template <typename... _Name>
 class __merge_kernel_name_large;
@@ -420,18 +411,22 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         if (__n <= std::numeric_limits<std::uint32_t>::max())
         {
             using _WiIndex = std::uint32_t;
-            using _MergeKernelLarge = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                __diagonals_kernel_name<_CustomName, _WiIndex>>;
+            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _MergeKernelLarge>()(
+            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
         else
         {
             using _WiIndex = std::uint64_t;
-            using _MergeKernelLarge = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                __diagonals_kernel_name<_CustomName, _WiIndex>>;
+            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _MergeKernelLarge>()(
+            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
