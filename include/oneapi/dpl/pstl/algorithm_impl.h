@@ -4293,7 +4293,7 @@ __pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalItera
 template <typename _ForwardIterator, typename _IdxHashFunc, typename _RandomAccessIterator, class _IsVector>
 void
 __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
-                 _RandomAccessIterator __histogram_first, _IsVector) noexcept
+                  _RandomAccessIterator __histogram_first, _IsVector) noexcept
 {
     using _Size = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
     for (; __first != __last; ++__first)
@@ -4309,7 +4309,7 @@ __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFun
 template <typename _ForwardIterator, typename _IdxHashFunc, typename _RandomAccessIterator, class _IsVector>
 void
 __brick_histogram_atomics(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
-                 _RandomAccessIterator __histogram_first, _IsVector) noexcept
+                          _RandomAccessIterator __histogram_first, _IsVector) noexcept
 {
     using _Size = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
     using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
@@ -4319,12 +4319,12 @@ __brick_histogram_atomics(_ForwardIterator __first, _ForwardIterator __last, _Id
         _Size __bin = __func.get_bin(*__first);
         if (__bin >= 0)
         {
-            std::atomic<_HistogramValueT>* __atomic_histogram_bin = reinterpret_cast<std::atomic<_HistogramValueT>*>(std::addressof(*(__histogram_first + __bin)));
+            std::atomic<_HistogramValueT>* __atomic_histogram_bin =
+                reinterpret_cast<std::atomic<_HistogramValueT>*>(std::addressof(*(__histogram_first + __bin)));
             __atomic_histogram_bin->fetch_add(_HistogramValueT{1}, std::memory_order_relaxed);
         }
     }
 }
-
 
 template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator>
@@ -4334,15 +4334,17 @@ __pattern_histogram(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _
 {
     using _HistogramValueT = typename std::iterator_traits<_RandomAccessIterator>::value_type;
     static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
-    __pattern_fill(_Tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins, _HistogramValueT{0});
+    __pattern_fill(_Tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
+                   _HistogramValueT{0});
     __brick_histogram(__first, __last, __func, __histogram_first, typename _Tag::__is_vector{});
 }
 
-template <class _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
-          typename _RandomAccessIterator2>
+template <class _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
+          typename _IdxHashFunc, typename _RandomAccessIterator2>
 void
-__pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
+__pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                    _RandomAccessIterator1 __last, _Size __num_bins, _IdxHashFunc __func,
+                    _RandomAccessIterator2 __histogram_first)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
     using _HistogramValueT = typename std::iterator_traits<_RandomAccessIterator2>::value_type;
@@ -4356,24 +4358,28 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
         if (__n > __histogram_threshold)
         {
             //Atomic histogram brick to protect against race conditions
-            __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec),__histogram_first, __histogram_first + __num_bins, _HistogramValueT{0});
+            __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+                           __histogram_first + __num_bins, _HistogramValueT{0});
             __par_backend::__parallel_for(__backend_tag{}, std::forward<_ExecutionPolicy>(__exec), _DiffType{0}, __n,
-                                                [&](_DiffType __i, _DiffType __j) {
-                                                    __brick_histogram_atomics(__first + __i, __first + __j, __func, __histogram_first, _IsVector{});
-                                                });
+                                          [&](_DiffType __i, _DiffType __j) {
+                                              __brick_histogram_atomics(__first + __i, __first + __j, __func,
+                                                                        __histogram_first, _IsVector{});
+                                          });
         }
         else
         {
             //Embarassingly parallel with temporary histogram outputs
-            __par_backend::__parallel_histogram(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                            __num_bins, __histogram_first, [&](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
-                                                __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
-                                            });
+            __par_backend::__parallel_histogram(
+                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __num_bins,
+                __histogram_first, [&](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
+                    __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
+                });
         }
     }
     else
     {
-        __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec),__histogram_first, __histogram_first + __num_bins, _HistogramValueT{0});
+        __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+                       __histogram_first + __num_bins, _HistogramValueT{0});
     }
 }
 

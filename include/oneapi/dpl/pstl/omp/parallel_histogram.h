@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 #ifndef _ONEDPL_INTERNAL_OMP_PARALLEL_HISTOGRAM_H
 #define _ONEDPL_INTERNAL_OMP_PARALLEL_HISTOGRAM_H
 
@@ -102,14 +101,9 @@ __parallel_histogram(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolic
             oneapi::dpl::__omp_backend::__histogram_body(__first, __last, __num_bins, __histogram_first, __f);
         }
     }
-
 }
 
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_HISTOGRAM_H
-
-
-
-
