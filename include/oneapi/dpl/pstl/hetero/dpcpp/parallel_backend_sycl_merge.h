@@ -338,32 +338,33 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
             __cgh.parallel_for<_MergeKernelName...>(
                 sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                auto __global_idx = __item_id.get_linear_id();
-                const _IdType __i_elem = __global_idx * __chunk;
+                    auto __global_idx = __item_id.get_linear_id();
+                    const _IdType __i_elem = __global_idx * __chunk;
 
-                auto __scratch_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
-                auto __scratch_idx = __global_idx / __base_diag_part;
+                    auto __scratch_ptr =
+                        __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
+                    auto __scratch_idx = __global_idx / __base_diag_part;
 
-                _split_point_t __start;
-                if (__global_idx % __base_diag_part != 0)
-                {
-                    // Check that we fit into size of scratch
-                    assert(__scratch_idx + 1 < __base_diag_count + 1);
+                    _split_point_t __start;
+                    if (__global_idx % __base_diag_part != 0)
+                    {
+                        // Check that we fit into size of scratch
+                        assert(__scratch_idx + 1 < __base_diag_count + 1);
 
-                    const _split_point_t __sp_left = __scratch_ptr[__scratch_idx];
-                    const _split_point_t __sp_right = __scratch_ptr[__scratch_idx + 1];
+                        const _split_point_t __sp_left = __scratch_ptr[__scratch_idx];
+                        const _split_point_t __sp_right = __scratch_ptr[__scratch_idx + 1];
 
-                    __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2, __sp_left.second,
-                                                    __sp_right.second, __i_elem, __comp);
-                }
-                else
-                {
-                    __start = __scratch_ptr[__scratch_idx];
-                }
+                        __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
+                                                        __sp_left.second, __sp_right.second, __i_elem, __comp);
+                    }
+                    else
+                    {
+                        __start = __scratch_ptr[__scratch_idx];
+                    }
 
-                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
-                               __comp);
-            });
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                                   __comp);
+                });
         });
         return __future(__event);
     }
