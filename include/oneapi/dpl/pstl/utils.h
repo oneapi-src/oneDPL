@@ -25,6 +25,7 @@
 #include <iterator>
 #include <functional>
 #include <type_traits>
+#include <atomic>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -48,7 +49,7 @@
 #elif defined(_MSC_VER)
 #   define _ONEDPL_ATOMIC_INCREMENT(element_ref) InterlockedAdd(&element_ref, 1);
 #else
-#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) __atomic_fetch_add_n(&element_ref, 1, __ATOMIC_RELAXED);
+#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) __atomic_fetch_add(&element_ref, 1, __ATOMIC_RELAXED);
 #endif
 
 namespace oneapi
