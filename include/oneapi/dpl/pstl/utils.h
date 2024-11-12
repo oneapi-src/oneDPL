@@ -42,6 +42,15 @@
 #    include <cstring> // memcpy
 #endif
 
+#if _ONEDPL_CPP20_ATOMIC_REF_PRESENT
+#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) \
+     std::atomic_ref<std::decay_t<decltype(element_ref)>>{element_ref}.fetch_add(1, std::memory_order_relaxed);
+#elif defined(_MSC_VER)
+#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) InterlockedAdd(&element_ref, 1);
+#else
+#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) __atomic_fetch_add_n(&element_ref, 1, __ATOMIC_RELAXED);
+#endif
+
 namespace oneapi
 {
 namespace dpl

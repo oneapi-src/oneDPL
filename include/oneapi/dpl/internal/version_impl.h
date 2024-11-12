@@ -20,6 +20,7 @@
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
 // Clang 15 and older do not support range adaptors, see https://bugs.llvm.org/show_bug.cgi?id=44833
 #    define _ONEDPL_CPP20_RANGES_PRESENT ((__cpp_lib_ranges >= 201911L) && !(__clang__ && __clang_major__ < 16))
+#    define _ONEDPL_CPP20_ATOMIC_REF_PRESENT (__cpp_lib_atomic_ref >= 201806L)
 #else
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 0
 #    define _ONEDPL_CPP20_RANGES_PRESENT 0
