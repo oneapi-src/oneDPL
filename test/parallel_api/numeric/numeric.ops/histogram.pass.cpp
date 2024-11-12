@@ -34,8 +34,14 @@ struct test_histogram_even_bins
                Size trash)
     {
         const Size bin_size = bin_last - bin_first;
+        std::cout<<"n: "<<n<<" bin_size: "<<bin_size<<std::endl;
+        // for (auto in_iter = in_first; in_iter != in_last; ++in_iter)
+        //     std::cout<<*in_iter<<" ";
+        // std::cout<<std::endl;
         histogram_sequential(in_first, in_last, bin_size, bin_min, bin_max, expected_bin_first);
         auto orr = ::oneapi::dpl::histogram(exec, in_first, in_last, bin_size, bin_min, bin_max, bin_first);
+        // for (auto i = bin_first; i != bin_last; ++i)
+        //     std::cout<<*i<<" "<< expected_bin_first[i - bin_first]<<std::endl;
         EXPECT_TRUE(bin_last == orr, "histogram returned wrong iterator");
         EXPECT_EQ_N(expected_bin_first, bin_first, bin_size, "wrong result from histogram");
         ::std::fill_n(bin_first, bin_size, trash);
@@ -124,6 +130,10 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
             test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }
     }
+    //single large case to hit the atomic case
+    Size n = 1100000;
+    Size bin_size = 1100000;
+    test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
 }
 
 int
