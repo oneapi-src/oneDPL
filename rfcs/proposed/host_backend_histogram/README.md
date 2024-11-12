@@ -9,9 +9,7 @@ for a full definition of the semantics of the histogram APIs. In short, they tak
 classify them into either evenly distributed or user-defined bins via a list of separating values and count the number
 of values in each bin, writing to a user-provided output histogram sequence. Currently, `histogram` is not supported
 with serial, tbb, or openmp backends in our oneDPL implementation. This RFC aims to propose the implementation of
-`histogram` for these host-side backends. The serial implementation is straightforward and is not worth discussing in
-much length here. We will add it, but there is not much to discuss within the RFC, as its implementation will be
-straightforward.
+`histogram` for these host-side backends.
 
 ## Motivations
 Users don't always want to use device policies and accelerators to run their code. It may make more sense in many cases
@@ -56,6 +54,10 @@ not provide much benefit, especially when we account for the extra memory footpr
 required to overcome the race conditions which we add from the additional concurrent streams of execution. It may make
 sense to decline to add vectorized operations within histogram depending on the implementation used, and based on
 performance results.
+
+### Serial Backend
+We plan to support a serial backend for histogram APIs in addition to openMP and TBB. This backend will handle all
+policies types, but always provide a serial unvectorized implementation.
 
 ## Existing Patterns
 
@@ -139,8 +141,6 @@ better atomics should do vs redundant copies of the output.
   does not provide a good fallback.
 
 ## Open Questions
-* Would it be worthwhile to add our own implementation of `atomic_ref` for C++17? I believe this would require
-  specializations for each of our supported compilers.
 
 * What is the overhead of atomics in general in this case and does the overhead there make them inherently worse than
   merely having extra copies of the histogram and accumulating?
