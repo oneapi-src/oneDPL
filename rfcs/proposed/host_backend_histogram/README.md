@@ -97,9 +97,9 @@ This method uses temporary storage and a pair of embarrassingly parallel `parall
 #### TBB
 For TBB, we can do something similar, but we can use `enumerable_thread_specific` and its member function, `local()` to
 provide a lazy allocation of thread local management, which does not require querying the number of threads or getting
-the index. This allows us to operate in a compose-able manner while keeping the same conceptual implementation.
-1) Embarassingly parallel accumulation to thread local storage
-2) Embarassingly parallel aggregate to output data
+the index. This allows us to operate in a composable manner while keeping the same conceptual implementation.
+1) Embarrassingly parallel accumulation to thread local storage
+2) Embarrassingly parallel aggregate to output data
 
 I believe the challenge here may be to properly provide the heuristics to choose between this implementation and the
 other implementation.  However, we should be able to have some reasonable division.
@@ -114,7 +114,7 @@ only provide atomicity for data which is created with atomics in mind. This mean
 copying it to the output data. `C++20` provides `std::atomic_ref<T>` which would allow us to wrap user-provided output
 data in an atomic wrapper, but we cannot assume `C++17` for all users. OpenMP provides atomic
 operations, but that is only available for the OpenMP backend.  The working plan is to implement a macro like
-`_ONEDPL_ATOMIC_INCREMENT(var)` which uses an `std::atomic_ref` if available , and alternatively uses compiler builtins
+`_ONEDPL_ATOMIC_INCREMENT(var)` which uses an `std::atomic_ref` if available, and alternatively uses compiler builtins
 like `InterlockedAdd` or `__atomic_fetch_add_n`.  It needs to be investigated if we need to have any version which
 needs to turn off the atomic implementation, due to lack of support by the compiler (I think this is unlikely).
 
@@ -131,7 +131,7 @@ better atomics should do vs redundant copies of the output.
 ## Alternative Approaches
 * One could consider some sort of locking approach which locks mutexes for subsections of the output histogram prior to
   modifying them. It's possible such an approach could provide a similar approach to atomics, but with different
-  overhead tradeoffs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
+  overhead trade-offs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
 
 * Another possible approach could be to do something like the proposed implementation one, but with some sparse
   representation of output data. However, I think the general assumptions we can make about the normal case make this
