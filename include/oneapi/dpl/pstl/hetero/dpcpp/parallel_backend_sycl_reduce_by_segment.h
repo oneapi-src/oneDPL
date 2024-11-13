@@ -86,12 +86,13 @@ template <typename... _Name>
 using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
 } // namespace
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
-          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
+          typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__difference_t<_Range3>
-__parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __keys,
-									  _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
-									  _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+__parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                      _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+                                      _Range4&& __out_values, _BinaryPredicate __binary_pred,
+                                      _BinaryOperator __binary_op,
                                       /*known_identity=*/std::true_type)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -137,11 +138,10 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
     auto __seg_reduce_prefix_kernel =
         __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(__exec);
     __wgroup_size =
-        std::min({__wgroup_size,
-                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_offset_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_wg_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_prefix_kernel)});
+        std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
+                  oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_offset_kernel),
+                  oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_wg_kernel),
+                  oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_prefix_kernel)});
 #endif
 
     std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
@@ -462,4 +462,3 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
 } // namespace oneapi
 
 #endif
-
