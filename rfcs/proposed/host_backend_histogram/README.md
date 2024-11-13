@@ -112,7 +112,7 @@ To deal with atomics appropriately, we have some limitations. We must either use
 specific to a backend, or custom atomics specific to a compiler. `C++17` provides `std::atomic<T>`, however, this can
 only provide atomicity for data which is created with atomics in mind. This means allocating temporary data and then
 copying it to the output data. `C++20` provides `std::atomic_ref<T>` which would allow us to wrap user-provided output
-data in an atomic wrapper, but we cannot assume `C++17` for all users. OpenMP provides atomic
+data in an atomic wrapper, but we cannot assume `C++20` for all users. OpenMP provides atomic
 operations, but that is only available for the OpenMP backend.  The working plan is to implement a macro like
 `_ONEDPL_ATOMIC_INCREMENT(var)` which uses an `std::atomic_ref` if available, and alternatively uses compiler builtins
 like `InterlockedAdd` or `__atomic_fetch_add_n`.  It needs to be investigated if we need to have any version which
