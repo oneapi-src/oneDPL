@@ -1756,12 +1756,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                    _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _FindOrKernelOneWG =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel_one_wg, _CustomName,
-                                                                               _Brick, _BrickTag, _Ranges...>;
-    using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _BrickTag, _Ranges...>;
 
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
@@ -1784,8 +1778,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         // We shouldn't have any restrictions for _AtomicType type here
         // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
 
+        using _KernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __find_or_kernel_one_wg<_CustomName, _Brick, _BrickTag, _Ranges...>>;
+
         // Single WG implementation
-        __result = __parallel_find_or_impl_one_wg<_FindOrKernelOneWG, __or_tag_check>(
+        __result = __parallel_find_or_impl_one_wg<_KernelName, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
             __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
@@ -1794,8 +1791,11 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         assert("This device does not support 64-bit atomics" &&
                (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
+        using _KernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __find_or_kernel<_CustomName, _Brick, _BrickTag, _Ranges...>>;
+
         // Multiple WG implementation
-        __result = __parallel_find_or_impl_multiple_wgs<_FindOrKernel, __or_tag_check>(
+        __result = __parallel_find_or_impl_multiple_wgs<_KernelName, __or_tag_check>(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
             __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
