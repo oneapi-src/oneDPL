@@ -21,6 +21,7 @@
 #include <cstdint>   // std::uint8_t, ...
 #include <utility>   // std::make_pair, std::forward
 #include <algorithm> // std::min, std::lower_bound
+#include <tuple>     // std::tuple
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
@@ -265,6 +266,240 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
                                __comp);
             });
+        });
+        return __future(__event);
+    }
+};
+
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
+struct __parallel_merge_submitter_large;
+
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
+struct __parallel_merge_submitter_large<_IdType, _CustomName,
+                                        __internal::__optional_kernel_name<_DiagonalsKernelName...>,
+                                        __internal::__optional_kernel_name<_MergeKernelName...>>
+{
+    // Create local accessors for data cache in SLM:
+    //  - one accessor for the first and for the second ranges if _Range1 and _Range2 has the SAME value types;
+    //  - two accessors for the first and for the second ranges if _Range1 and _Range2 has DIFFERENT value types.
+    struct __merge_slm_helper
+    {
+        template <typename _Range1, typename _Range2>
+        static std::size_t
+        get_data_size(_Range1&& __rng1, _Range2&& __rng2)
+        {
+            using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
+            using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+
+            return sizeof(_Range1ValueType) + sizeof(_Range2ValueType);
+        }
+
+        template <typename _Range1, typename _Range2>
+        static constexpr auto
+        create_local_accessors(sycl::handler& __cgh, _Range1&& __rng1, _Range2&& __rng2,
+                               std::size_t __slm_cached_data_size)
+        {
+            using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
+            using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+
+            if constexpr (std::is_same_v<_Range1ValueType, _Range2ValueType>)
+                return std::tuple<__dpl_sycl::__local_accessor<_Range1ValueType>>(
+                    __dpl_sycl::__local_accessor<_Range1ValueType>(2 * __slm_cached_data_size, __cgh));
+            else
+                return std::tuple<__dpl_sycl::__local_accessor<_Range1ValueType>,
+                                  __dpl_sycl::__local_accessor<_Range2ValueType>>(
+                    __dpl_sycl::__local_accessor<_Range1ValueType>(__slm_cached_data_size, __cgh),
+                    __dpl_sycl::__local_accessor<_Range2ValueType>(__slm_cached_data_size, __cgh));
+        }
+
+        template <std::size_t AccessorIdx, typename AccessorsTuple>
+        static auto
+        get_local_accessor(AccessorsTuple& __acc_tuple, std::size_t __offset = 0)
+        {
+            static_assert(std::tuple_size_v<AccessorsTuple> == 1 || std::tuple_size_v<AccessorsTuple> == 2);
+
+            if constexpr (std::tuple_size_v<AccessorsTuple> == 1)
+                return std::pair(std::get<0>(__acc_tuple), __offset);
+
+            else
+                return std::pair(std::get<AccessorIdx>(__acc_tuple), 0);
+        }
+    };
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
+    {
+        const _IdType __n1 = __rng1.size();
+        const _IdType __n2 = __rng2.size();
+        const _IdType __n = __n1 + __n2;
+
+        assert(__n1 > 0 || __n2 > 0);
+
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+
+        // Empirical number of values to process per work-item
+        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        assert(__chunk > 0);
+
+        // Pessimistically only use half of the memory to take into account memory used by compiled kernel
+        const std::size_t __max_slm_size_adj =
+            oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, __merge_slm_helper::get_data_size(__rng1, __rng2));
+
+        // The amount of data must be a multiple of the chunk size.
+        const std::size_t __max_source_data_items_fit_into_slm = __max_slm_size_adj - __max_slm_size_adj % __chunk;
+        assert(__max_source_data_items_fit_into_slm > 0);
+        assert(__max_source_data_items_fit_into_slm % __chunk == 0);
+
+        // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
+        const _IdType __items_in_wg_count = __max_source_data_items_fit_into_slm / __chunk;
+        assert(__items_in_wg_count > 0);
+
+        // The amount of the base diagonals is the amount of the work-groups
+        //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
+        const _IdType __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __max_source_data_items_fit_into_slm);
+
+        // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+        //  - in GLOBAL coordinates
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
+        __base_diagonals_sp_storage_t __base_diagonals_sp_global_storage{__exec, 0, __wg_count + 1};
+
+        // 1. Calculate split points on each base diagonal
+        //    - one work-item processing one base diagonal
+        sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
+
+            __cgh.parallel_for<_DiagonalsKernelName...>(
+                sycl::range</*dim=*/1>(__wg_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const std::size_t __global_idx = __item_id.get_linear_id();
+
+                    _split_point_t<_IdType>* __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                    // Save top-left split point for first/last base diagonals of merge matrix
+                    //  - in GLOBAL coordinates
+                    _split_point_t<_IdType> __sp(__global_idx == 0 ? __zero_split_point<_IdType> : _split_point_t<_IdType>{__n1, __n2});
+
+                    if (0 < __global_idx && __global_idx < __wg_count)
+                    {
+                        const _IdType __i_elem = __global_idx * __items_in_wg_count * __chunk;
+
+                        // Save bottom-right split point for current base diagonal of merge matrix
+                        //  - in GLOBAL coordinates
+                        __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                    }
+
+                    __base_diagonals_sp_global_ptr[__global_idx] = __sp;
+                });
+        });
+
+        // 2. Merge data using split points on each base diagonal
+        //    - one work-item processing one diagonal
+        //    - work-items grouped to process diagonals between two base diagonals (include left base diagonal and exclude right base diagonal)
+        __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+
+            __cgh.depends_on(__event);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+
+            const std::size_t __slm_cached_data_size = __items_in_wg_count * __chunk;
+            auto local_accessors = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
+
+            // Run nd_range parallel_for to process all the data
+            __cgh.parallel_for<_MergeKernelName...>(
+                sycl::nd_range</*dim=*/1>(__wg_count * __items_in_wg_count, __items_in_wg_count),
+                [=](sycl::nd_item</*dim=*/1> __nd_item)
+                {
+                    // Merge matrix diagonal's GLOBAL index
+                    const std::size_t __global_idx = __nd_item.get_global_linear_id();
+
+                    // Merge sub-matrix LOCAL diagonal's index
+                    const std::size_t __local_idx = __nd_item.get_local_id(0);
+
+                    // Merge matrix base diagonal's GLOBAL index
+                    const std::size_t __wg_id = __nd_item.get_group_linear_id();
+
+                    auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                    // Split points on left anr right base diagonals
+                    //  - in GLOBAL coordinates
+                    assert(__wg_id + 1 < __wg_count + 1);
+                    const _split_point_t<_IdType>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__wg_id];
+                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1]; 
+
+                    auto [__local_accessor_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(local_accessors);
+                    auto [__local_accessor_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(local_accessors, (std::size_t)(__sp_base_right_global.first -__sp_base_left_global.first));
+                    auto __rngs_data_in_slm1 = std::addressof(__local_accessor_rng1[0]) + offset_to_slm1;
+                    auto __rngs_data_in_slm2 = std::addressof(__local_accessor_rng2[0]) + offset_to_slm2;
+
+                    // Full amount of work-items may be great then the amount of diagonals in the merge matrix
+                    // so we should skip the redundant work-items
+                    const bool __out_of_data = __global_idx * __chunk >= __n;
+                    if (!__out_of_data)
+                    {
+                        // Load the current part of merging data placed between two base diagonals into SLM
+                        // TODO implement cooperative data load by multiple work-items
+                        assert(__items_in_wg_count > 1);
+                        if (__local_idx == 0)
+                        {
+                            _IdType __slm_idx = 0;
+                            for (_IdType __idx = __sp_base_left_global.first; __idx < __sp_base_right_global.first; ++__idx, ++__slm_idx)
+                            {
+                                assert(__slm_idx < __slm_cached_data_size);
+                                assert(__idx < __n1);
+                                __rngs_data_in_slm1[__slm_idx] = __rng1[__idx];
+                            }
+                        }
+
+                        if (__local_idx == 1 && __items_in_wg_count > 1 || __local_idx == 0)
+                        {
+                            _IdType __slm_idx = 0;
+                            for (_IdType __idx = __sp_base_left_global.second; __idx < __sp_base_right_global.second; ++__idx, ++__slm_idx)
+                            {
+                                assert(__slm_idx < __slm_cached_data_size);
+                                assert(__idx < __n2);
+                                __rngs_data_in_slm2[__slm_idx] = __rng2[__idx];
+                            }
+                        }
+                    }
+
+                    // Wait until all the data is loaded
+                    //  - we shouldn't setup this barrier under any conditions!!!
+                    __dpl_sycl::__group_barrier(__nd_item);
+
+                    if (!__out_of_data)
+                    {
+                        // We are between two base diagonals and need to find the start points in the merge matrix area,
+                        // limited by split points of the left and right base diagonals.
+
+                        // Find split point in LOCAL coordinates
+                        //  - top-left split point is (0, 0);
+                        //  - bottom-right split point describes the size of current area between two base diagonals.
+                        assert(__sp_base_right_global.first >= __sp_base_left_global.first);
+                        assert(__sp_base_right_global.second >= __sp_base_left_global.second);
+                        const _split_point_t<_IdType> __sp_local = __find_start_point(
+                            __rngs_data_in_slm1, __rngs_data_in_slm2,                                   // SLM cached copy of merging data
+                            (_IdType)(__local_idx * __chunk),                                           // __i_elem in LOCAL coordinates because __rngs_data_in_slm1 and __rngs_data_in_slm2 is work-group SLM cached copy of source data
+                            (_IdType)(__sp_base_right_global.first - __sp_base_left_global.first),      // size of rng1
+                            (_IdType)(__sp_base_right_global.second - __sp_base_left_global.second),    // size of rng2
+                            __comp);
+
+                        // Merge data for the current diagonal
+                        //  - we should have here __sp_global in GLOBAL coordinates
+                        __serial_merge(__rngs_data_in_slm1, __rngs_data_in_slm2,                        // SLM cached copy of merging data
+                                       __rng3,                                                          // Destination range
+                                       __sp_local.first,                                                // __start1 in LOCAL coordinates because __rngs_data_in_slm1 is work-group SLM cached copy of source data
+                                       __sp_local.second,                                               // __start2 in LOCAL coordinates because __rngs_data_in_slm2 is work-group SLM cached copy of source data
+                                       (_IdType)(__global_idx * __chunk),                               // __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                                       __chunk,
+                                        __sp_base_right_global.first - __sp_base_left_global.first,     // size of __rngs_data_in_slm1
+                                        __sp_base_right_global.second - __sp_base_left_global.second,   // size of __rngs_data_in_slm2
+                                        __comp);
+                    }
+                });
         });
         return __future(__event);
     }
