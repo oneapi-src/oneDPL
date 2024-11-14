@@ -233,11 +233,11 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _Name>
+template <typename _IdType, typename _MergeKernelName>
 struct __parallel_merge_submitter;
 
-template <typename _IdType, typename... _Name>
-struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
+template <typename _IdType, typename... _MergeKernelName>
+struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_MergeKernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -258,7 +258,8 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+            __cgh.parallel_for<_MergeKernelName...>(
+                sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                     const _split_point_t<_IdType> __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
@@ -283,18 +284,18 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     if (__n <= std::numeric_limits<std::uint32_t>::max())
     {
         using _WiIndex = std::uint32_t;
-        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _MergeKernel>()(
+        return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
     else
     {
         using _WiIndex = std::uint64_t;
-        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _MergeKernel>()(
+        return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
