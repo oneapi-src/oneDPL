@@ -4353,7 +4353,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     _DiffType __n = __last - __first;
     if (__n > 0)
     {
-        if (__n > __histogram_threshold)
+        if (__num_bins > __histogram_threshold)
         {
             //Atomic histogram brick to protect against race conditions
             __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
