@@ -409,7 +409,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
             const std::size_t __slm_cached_data_size = __items_in_wg_count * __chunk;
-            auto local_accessors = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
+            auto loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
 
             // Run nd_range parallel_for to process all the data
             __cgh.parallel_for<_MergeKernelName...>(
@@ -437,11 +437,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const _IdType __wg_data_size_rng1 = __sp_base_right_global.first - __sp_base_left_global.first;
                     const _IdType __wg_data_size_rng2 = __sp_base_right_global.second - __sp_base_left_global.second;
                    
-
-                    auto [__local_accessor_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(local_accessors);
-                    auto [__local_accessor_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(local_accessors, (std::size_t)(__sp_base_right_global.first -__sp_base_left_global.first));
-                    auto __rngs_data_in_slm1 = std::addressof(__local_accessor_rng1[0]) + offset_to_slm1;
-                    auto __rngs_data_in_slm2 = std::addressof(__local_accessor_rng2[0]) + offset_to_slm2;
+                    auto [__loc_acc_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(loc_acc_pack);
+                    auto [__loc_acc_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(loc_acc_pack, __wg_data_size_rng1);
+                    auto __rngs_data_in_slm1 = std::addressof(__loc_acc_rng1[0]) + offset_to_slm1;
+                    auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
 
                     // Full amount of work-items may be great then the amount of diagonals in the merge matrix
                     // so we should skip the redundant work-items
