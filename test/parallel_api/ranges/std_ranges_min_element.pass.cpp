@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto min_element_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::min_element);
+    auto min_element_checker = TEST_PREPARE_CALLABLE(std::ranges::min_element);
 
     test_range_algo<0>{big_sz}(dpl_ranges::min_element, min_element_checker, std::ranges::less{});
 

@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto none_of_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::none_of);
+    auto none_of_checker = TEST_PREPARE_CALLABLE(std::ranges::none_of);
 
     test_range_algo<0>{big_sz}(dpl_ranges::none_of, none_of_checker, pred3);
     test_range_algo<1>{}(dpl_ranges::none_of, none_of_checker, pred2, proj);

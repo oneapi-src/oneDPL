@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto equal_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::equal);
+    auto equal_checker = TEST_PREPARE_CALLABLE(std::ranges::equal);
 
     test_range_algo<0, int, data_in_in>{big_sz}(dpl_ranges::equal, equal_checker, binary_pred);
     test_range_algo<1, int, data_in_in>{}(dpl_ranges::equal, equal_checker, binary_pred, proj, proj);

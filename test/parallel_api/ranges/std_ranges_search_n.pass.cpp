@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto search_n_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::search_n);
+    auto search_n_checker = TEST_PREPARE_CALLABLE(std::ranges::search_n);
 
     test_range_algo<0>{big_sz}(dpl_ranges::search_n, search_n_checker, 1, 5, binary_pred);
     test_range_algo<1>{}(dpl_ranges::search_n, search_n_checker, 3, 5, binary_pred, proj);

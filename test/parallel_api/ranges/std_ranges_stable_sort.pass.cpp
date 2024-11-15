@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto sort_stable_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::stable_sort);
+    auto sort_stable_checker = TEST_PREPARE_CALLABLE(std::ranges::stable_sort);
 
     test_range_algo<0>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
     test_range_algo<1>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{});

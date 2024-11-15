@@ -22,7 +22,7 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto max_element_checker = _ONEDPL_PREPARE_CALLABLE(std::ranges::max_element);
+    auto max_element_checker = TEST_PREPARE_CALLABLE(std::ranges::max_element);
 
     test_range_algo<0>{big_sz}(dpl_ranges::max_element, max_element_checker, std::ranges::less{});
     test_range_algo<1>{}(dpl_ranges::max_element, max_element_checker, std::ranges::less{}, proj);
