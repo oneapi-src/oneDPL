@@ -429,7 +429,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     //  - in GLOBAL coordinates
                     assert(__wg_id + 1 < __wg_count + 1);
                     const _split_point_t<_IdType>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__wg_id];
-                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1]; 
+                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1];
+
+                    assert(__sp_base_right_global.first >= __sp_base_left_global.first);
+                    assert(__sp_base_right_global.second >= __sp_base_left_global.second);
+
+                    const _IdType __wg_data_size_rng1 = __sp_base_right_global.first - __sp_base_left_global.first;
+                    const _IdType __wg_data_size_rng2 = __sp_base_right_global.second - __sp_base_left_global.second;
+                   
 
                     auto [__local_accessor_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(local_accessors);
                     auto [__local_accessor_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(local_accessors, (std::size_t)(__sp_base_right_global.first -__sp_base_left_global.first));
@@ -478,13 +485,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
-                        assert(__sp_base_right_global.first >= __sp_base_left_global.first);
-                        assert(__sp_base_right_global.second >= __sp_base_left_global.second);
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
                             __rngs_data_in_slm1, __rngs_data_in_slm2,                                   // SLM cached copy of merging data
                             (_IdType)(__local_idx * __chunk),                                           // __i_elem in LOCAL coordinates because __rngs_data_in_slm1 and __rngs_data_in_slm2 is work-group SLM cached copy of source data
-                            (_IdType)(__sp_base_right_global.first - __sp_base_left_global.first),      // size of rng1
-                            (_IdType)(__sp_base_right_global.second - __sp_base_left_global.second),    // size of rng2
+                            __wg_data_size_rng1,                                                        // size of rng1
+                            __wg_data_size_rng2,                                                        // size of rng2
                             __comp);
 
                         // Merge data for the current diagonal
@@ -495,8 +500,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                        __sp_local.second,                                               // __start2 in LOCAL coordinates because __rngs_data_in_slm2 is work-group SLM cached copy of source data
                                        (_IdType)(__global_idx * __chunk),                               // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __chunk,
-                                       __sp_base_right_global.first - __sp_base_left_global.first,      // size of __rngs_data_in_slm1
-                                       __sp_base_right_global.second - __sp_base_left_global.second,    // size of __rngs_data_in_slm2
+                                       __wg_data_size_rng1,                                             // size of __rngs_data_in_slm1
+                                       __wg_data_size_rng2,                                             // size of __rngs_data_in_slm2
                                        __comp);
                     }
                 });
