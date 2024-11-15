@@ -329,14 +329,42 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     template <typename _Range, typename _DataType>
     inline static void
     load_data_into_slm(_Range&& __rng, _DataType* __slm,
-                       std::size_t __sp_base_left_global_from, std::size_t __sp_base_left_global_to,
-                       std::size_t __items_in_wg_count, std::size_t __local_id)
+                       std::size_t __idx_global_begin, std::size_t __idx_global_end,
+                       std::size_t __wi_in_one_wg, std::size_t __local_id)
     {
-        const std::size_t __wg_data_size_rng = __sp_base_left_global_to - __sp_base_left_global_from;
+        // How we load data:
+        /*
+           +-------------------+--------------------------------------------------------------+------------+
+           | Source data index |                   Work-items in one work-group               | SLM index  |
+           +-------------------+--------------------------------------------------------------+------------+
+           |                   | wi(0) | wi(1) | wi(2) | wi(3) | ... | wi(__wi_in_one_wg - 1) |            |  <--- __local_id: in which work-item we are
+           +-------------------+-------+-------+-------+-------+-----+------------------------+------------+
+           |  rng[0]           |       |       |       |       |     |                        |            |  
+           |  rng[1]           |   +   |       |       |       |     |                        | slm[0]     |  <--- __idx_global_begin
+           |  rng[2]           |       |   +   |       |       |     |                        | slm[1]     |  
+           |  rng[3]           |       |       |   +   |       |     |                        | slm[2]     |  
+           |  rng[4]           |       |       |       |   +   |     |                        | slm[3]     |  
+           |  .....            |       |       |       |       | +++ |                        | ...        |  
+           |  rng[M + 1]       |       |       |       |       |     |           +            | slm[M]     |  
+           |  rng[M + 2]       |   +   |       |       |       |     |                        | slm[M + 1] |  
+           |  rng[M + 3]       |       |   +   |       |       |     |                        | slm[M + 2] |  
+           |  rng[M + 4]       |       |       |   +   |       |     |                        | slm[M + 3] |
+           |  rng[M + 5]       |       |       |       |   -   |     |                        |            |  <--- __idx_global_end
+           |  .....            |       |       |       |       | --- |                        |            |  
+           |  rng[M + M + 1]   |       |       |       |       |     |           -            |            |  
+           +-------------------+--------------------------------------------------------------+------------+
+                                                   ^
+                                                   |
+                                              __local_id
+           
+            "+" - load one source data item ito SLM
+        */
+
+        const std::size_t __wg_data_size_rng = __idx_global_end - __idx_global_begin;
         if (__wg_data_size_rng > 0)
         {
             // Calculate the size of the current part of merging data per work-item
-            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), __items_in_wg_count);
+            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), __wi_in_one_wg);
             assert(__loading_data_per_wi > 0);
 
             if (__loading_data_per_wi > 1)
@@ -346,8 +374,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                 for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                 {
-                    const std::size_t __rng_idx = __sp_base_left_global_from + __slm_idx;
-                    if (__rng_idx < __sp_base_left_global_to)
+                    const std::size_t __rng_idx = __idx_global_begin + __slm_idx;
+                    if (__rng_idx < __idx_global_end)
                     {
                         assert(__slm_idx < __wg_data_size_rng);
                         assert(__rng_idx < __rng.size());
@@ -357,8 +385,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             }
             else
             {
-                const std::size_t __rng_idx = __sp_base_left_global_from + __local_id;
-                if (__rng_idx < __sp_base_left_global_to)
+                const std::size_t __rng_idx = __idx_global_begin + __local_id;
+                if (__rng_idx < __idx_global_end)
                 {
                     assert(__local_id < __wg_data_size_rng);
                     assert(__rng_idx < __rng.size());
@@ -396,8 +424,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         assert(__max_source_data_items_fit_into_slm % __chunk == 0);
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
-        const std::size_t __items_in_wg_count = __max_source_data_items_fit_into_slm / __chunk;
-        assert(__items_in_wg_count > 0);
+        const std::size_t __wi_in_one_wg = __max_source_data_items_fit_into_slm / __chunk;
+        assert(__wi_in_one_wg > 0);
 
         // The amount of the base diagonals is the amount of the work-groups
         //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
@@ -426,7 +454,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     //  - in GLOBAL coordinates
                     _split_point_t<_IdType> __sp(__linear_id == 0 ? __zero_split_point<std::size_t> : _split_point_t<std::size_t>{__n1, __n2});
                     if (0 < __linear_id && __linear_id < __wg_count)
-                        __sp = __find_start_point(__rng1, __rng2, (_IdType)(__linear_id * __items_in_wg_count * __chunk), __n1, __n2, __comp);
+                        __sp = __find_start_point(__rng1, __rng2, (_IdType)(__linear_id * __wi_in_one_wg * __chunk), __n1, __n2, __comp);
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
@@ -443,14 +471,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
             auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-            const std::size_t __slm_cached_data_size = __items_in_wg_count * __chunk;
+            const std::size_t __slm_cached_data_size = __wi_in_one_wg * __chunk;
             auto loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
 
             // Run nd_range parallel_for to process all the data
             // - each work-group caching source data in SLM and processing diagonals between two base diagonals;
             // - each work-item processing one diagonal.
             __cgh.parallel_for<_MergeKernelName...>(
-                sycl::nd_range</*dim=*/1>(__wg_count * __items_in_wg_count, __items_in_wg_count),
+                sycl::nd_range</*dim=*/1>(__wg_count * __wi_in_one_wg, __wi_in_one_wg),
                 [=](sycl::nd_item</*dim=*/1> __nd_item)
                 {
                     const std::size_t __global_linear_id = __nd_item.get_global_linear_id();    // Merge matrix diagonal's GLOBAL index
@@ -474,8 +502,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + offset_to_slm2;
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
-                    load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_id);
-                    load_data_into_slm(__rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_id);
+                    load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,  __wi_in_one_wg, __local_id);
+                    load_data_into_slm(__rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second, __wi_in_one_wg, __local_id);
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
