@@ -357,8 +357,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             }
             else
             {
-                assert(__loading_data_per_wi == 1);
-
                 const std::size_t __rng_idx = __sp_base_left_global_from + __local_id;
                 if (__rng_idx < __sp_base_left_global_to)
                 {
