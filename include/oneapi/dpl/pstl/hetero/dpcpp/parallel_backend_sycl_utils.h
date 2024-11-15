@@ -86,7 +86,7 @@ __max_sub_group_size(const _ExecutionPolicy& __policy)
     //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty; if so, return 0
     return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
 }
-#endif
+#endif // _ONEDPL_USE_SUB_GROUPS
 
 template <typename _ExecutionPolicy>
 ::std::uint32_t
