@@ -330,7 +330,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     static void
     load_data_into_slm(_Range&& __rng, _DataType* __slm,
                        std::size_t __sp_base_left_global_from, std::size_t __sp_base_left_global_to,
-                       std::size_t __items_in_wg_count, std::size_t __local_idx)
+                       std::size_t __items_in_wg_count, std::size_t __local_id)
     {
         const std::size_t __wg_data_size_rng = __sp_base_left_global_to - __sp_base_left_global_from;
         if (__wg_data_size_rng > 0)
@@ -341,7 +341,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
             if (__loading_data_per_wi > 1)
             {
-                const auto __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                const auto __slm_idx_begin = __local_id * __loading_data_per_wi;
                 const auto __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
 
                 for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
@@ -359,12 +359,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             {
                 assert(__loading_data_per_wi == 1);
 
-                const std::size_t __rng_idx = __sp_base_left_global_from + __local_idx;
+                const std::size_t __rng_idx = __sp_base_left_global_from + __local_id;
                 if (__rng_idx < __sp_base_left_global_to)
                 {
-                    assert(__local_idx < __wg_data_size_rng);
+                    assert(__local_id < __wg_data_size_rng);
                     assert(__rng_idx < __rng.size());
-                    __slm[__local_idx] = __rng[__rng_idx];
+                    __slm[__local_id] = __rng[__rng_idx];
                 }
             }
         }
@@ -420,24 +420,24 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             __cgh.parallel_for<_DiagonalsKernelName...>(
                 sycl::range</*dim=*/1>(__wg_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
 
-                    const std::size_t __global_idx = __item_id.get_linear_id();
+                    const std::size_t __linear_id = __item_id.get_linear_id();
 
                     _split_point_t<_IdType>* __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
                     // Save top-left split point for first/last base diagonals of merge matrix
                     //  - in GLOBAL coordinates
-                    _split_point_t<_IdType> __sp(__global_idx == 0 ? __zero_split_point<_IdType> : _split_point_t<_IdType>{__n1, __n2});
+                    _split_point_t<_IdType> __sp(__linear_id == 0 ? __zero_split_point<std::size_t> : _split_point_t<std::size_t>{__n1, __n2});
 
-                    if (0 < __global_idx && __global_idx < __wg_count)
+                    if (0 < __linear_id && __linear_id < __wg_count)
                     {
-                        const _IdType __i_elem = __global_idx * __items_in_wg_count * __chunk;
+                        const _IdType __i_elem = __linear_id * __items_in_wg_count * __chunk;
 
                         // Save bottom-right split point for current base diagonal of merge matrix
                         //  - in GLOBAL coordinates
                         __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                     }
 
-                    __base_diagonals_sp_global_ptr[__global_idx] = __sp;
+                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
         });
 
@@ -462,20 +462,15 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                 sycl::nd_range</*dim=*/1>(__wg_count * __items_in_wg_count, __items_in_wg_count),
                 [=](sycl::nd_item</*dim=*/1> __nd_item)
                 {
-                    // Merge matrix diagonal's GLOBAL index
-                    const std::size_t __global_idx = __nd_item.get_global_linear_id();
-
-                    // Merge sub-matrix LOCAL diagonal's index
-                    const std::size_t __local_idx = __nd_item.get_local_id(0);
-
-                    // Merge matrix base diagonal's GLOBAL index
-                    const std::size_t __wg_id = __nd_item.get_group_linear_id();
+                    const std::size_t __global_linear_id = __nd_item.get_global_linear_id();    // Merge matrix diagonal's GLOBAL index
+                    const std::size_t __local_id = __nd_item.get_local_id(0);                   // Merge sub-matrix LOCAL diagonal's index
+                    const std::size_t __group_linear_id = __nd_item.get_group_linear_id();      // Merge matrix base diagonal's GLOBAL index
 
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
-                    assert(__wg_id + 1 < __wg_count + 1);
-                    const _split_point_t<_IdType>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__wg_id];
-                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1]; 
+                    assert(__group_linear_id + 1 < __wg_count + 1);
+                    const _split_point_t<std::size_t>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
+                    const _split_point_t<std::size_t>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__group_linear_id + 1]; 
 
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
@@ -489,14 +484,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
 
                     // Cooperative data load from __rng1 to __rngs_data_in_slm1, from __rng2 to __rngs_data_in_slm2
-                    load_data_into_slm(__rng1, __rngs_data_in_slm1, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_idx);
-                    load_data_into_slm(__rng2, __rngs_data_in_slm2, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_idx);
+                    load_data_into_slm(__rng1, __rngs_data_in_slm1, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_id);
+                    load_data_into_slm(__rng2, __rngs_data_in_slm2, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_id);
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
 
                     // Current diagonal inside of the merge matrix?
-                    if (__global_idx * __chunk < __n)
+                    if (__global_linear_id * __chunk < __n)
                     {
                         // We are between two base diagonals and need to find the start points in the merge matrix area,
                         // limited by split points of the left and right base diagonals.
@@ -505,7 +500,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
                             __rngs_data_in_slm1, __rngs_data_in_slm2,                                   // SLM cached copy of merging data
-                            (_IdType)(__local_idx * __chunk),                                           // __i_elem in LOCAL coordinates because __rngs_data_in_slm1 and __rngs_data_in_slm2 is work-group SLM cached copy of source data
+                            (_IdType)(__local_id * __chunk),                                            // __i_elem in LOCAL coordinates because __rngs_data_in_slm1 and __rngs_data_in_slm2 is work-group SLM cached copy of source data
                             __wg_data_size_rng1,                                                        // size of rng1
                             __wg_data_size_rng2,                                                        // size of rng2
                             __comp);
@@ -516,7 +511,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                        __rng3,                                                          // Destination range
                                        __sp_local.first,                                                // __start1 in LOCAL coordinates because __rngs_data_in_slm1 is work-group SLM cached copy of source data
                                        __sp_local.second,                                               // __start2 in LOCAL coordinates because __rngs_data_in_slm2 is work-group SLM cached copy of source data
-                                       (_IdType)(__global_idx * __chunk),                               // __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                                       (_IdType)(__global_linear_id * __chunk),                         // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __chunk,
                                        __wg_data_size_rng1,                                             // size of __rngs_data_in_slm1
                                        __wg_data_size_rng2,                                             // size of __rngs_data_in_slm2
