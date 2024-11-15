@@ -426,7 +426,7 @@ struct __stable_sort_fn
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj,
-            _ONEDPL_PREPARE_CALLABLE(std::ranges::stable_sort)
+            [](auto&&... __args) { return std::ranges::stable_sort(std::forward<decltype(__args)>(__args)...); }
             );
     }
 }; //__stable_sort_fn
@@ -448,7 +448,7 @@ struct __sort_fn
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         return oneapi::dpl::__internal::__ranges::__pattern_sort_ranges(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __comp, __proj,
-            _ONEDPL_PREPARE_CALLABLE(std::ranges::sort)
+            [](auto&&... __args) { return std::ranges::sort(std::forward<decltype(__args)>(__args)...); }
             );
     }
 }; //__sort_fn
