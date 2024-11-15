@@ -26,8 +26,6 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 
-#define USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE 0
-
 namespace oneapi
 {
 namespace dpl
@@ -276,33 +274,6 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
 template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
 struct __parallel_merge_submitter_large;
 
-#if USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-// TODO remove debug code
-template <typename _RngTo, typename _RngFrom, typename _IdType>
-void
-load_data(std::size_t __n1, std::size_t __n2, std::size_t __wg_id, std::size_t __rng_no, std::size_t __local_idx, _RngTo& __rng_to, std::size_t __idx_to, const _RngFrom& __rng_from, std::size_t __idx_from,
-          _IdType                       __wg_data_size_rng, 
-          _IdType                       __items_in_wg_count,
-          const std::size_t             __loading_data_per_wi,
-          const _split_point_t<_IdType> __sp_base_left_global,  
-          const _split_point_t<_IdType> __sp_base_right_global)
-{
-    __rng_to[__idx_to] = __rng_from[__idx_from];
-}
-
-// TODO remove debug code
-template <typename _IdType>
-void
-dump_split_point(_IdType __idx, const _split_point_t<_IdType> __sp)
-{
-    auto first = __sp.first;
-    auto second = __sp.second;
-
-    first = first;
-    second = second;
-}
-#endif
-
 template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
 struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
@@ -499,16 +470,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     // Merge matrix base diagonal's GLOBAL index
                     const std::size_t __wg_id = __nd_item.get_group_linear_id();
-
-#if USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-                    // TODO remove debug code: dump split points
-                    {
-                        if (__wg_id == 0 && __local_idx == 0)
-                            for (std::size_t i = 0; i < __wg_count + 1; ++i)
-                                dump_split_point(i, __base_diagonals_sp_global_ptr[i]);
-                        __dpl_sycl::__group_barrier(__nd_item);
-                    }
-#endif
 
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
