@@ -384,12 +384,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         assert(__max_source_data_items_fit_into_slm % __chunk == 0);
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
-        const _IdType __items_in_wg_count = __max_source_data_items_fit_into_slm / __chunk;
+        const std::size_t __items_in_wg_count = __max_source_data_items_fit_into_slm / __chunk;
         assert(__items_in_wg_count > 0);
 
         // The amount of the base diagonals is the amount of the work-groups
         //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
-        const _IdType __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __max_source_data_items_fit_into_slm);
+        const std::size_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __max_source_data_items_fit_into_slm);
 
         // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         //  - in GLOBAL coordinates
@@ -461,7 +461,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     // TODO remove debug code: dump split points
                     {
                         if (__wg_id == 0 && __local_idx == 0)
-                            for (_IdType i = 0; i < __wg_count + 1; ++i)
+                            for (std::size_t i = 0; i < __wg_count + 1; ++i)
                                 dump_split_point(i, __base_diagonals_sp_global_ptr[i]);
                         __dpl_sycl::__group_barrier(__nd_item);
                     }
@@ -510,7 +510,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                             for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                             {
-                                const _IdType __rng_idx = __sp_base_left_global.first + __slm_idx;
+                                const std::size_t __rng_idx = __sp_base_left_global.first + __slm_idx;
                                 if (__rng_idx < __sp_base_right_global.first)
                                 {
                                     assert(__slm_idx < __wg_data_size_rng1);
@@ -546,7 +546,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                             for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                             {
-                                const _IdType __rng_idx = __sp_base_left_global.second + __slm_idx;
+                                const std::size_t __rng_idx = __sp_base_left_global.second + __slm_idx;
                                 if (__rng_idx < __sp_base_right_global.second)
                                 {
                                     assert(__slm_idx < __wg_data_size_rng2);
@@ -620,27 +620,18 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-    const auto __n = __rng1.size() + __rng2.size();
-    if (false)  //if (__n < 4 * 1'048'576)
+    constexpr std::size_t __starting_size_limit_for_large_submitter = 4 * 1'048'576; // 4 Mb
+
+    const std::size_t __n = __rng1.size() + __rng2.size();
+    if (__n < __starting_size_limit_for_large_submitter)
     {
-        if (__n <= std::numeric_limits<std::uint32_t>::max())
-        {
-            using _WiIndex = std::uint32_t;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __merge_kernel_name<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
-                std::forward<_Range3>(__rng3), __comp);
-        }
-        else
-        {
-            using _WiIndex = std::uint64_t;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __merge_kernel_name<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
-                std::forward<_Range3>(__rng3), __comp);
-        }
+        static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
+
+        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name<_CustomName>>;
+        return __parallel_merge_submitter<std::uint32_t, _MergeKernelName>()(
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+            std::forward<_Range3>(__rng3), __comp);
     }
     else
     {
