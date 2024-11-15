@@ -427,15 +427,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     // Save top-left split point for first/last base diagonals of merge matrix
                     //  - in GLOBAL coordinates
                     _split_point_t<_IdType> __sp(__linear_id == 0 ? __zero_split_point<std::size_t> : _split_point_t<std::size_t>{__n1, __n2});
-
                     if (0 < __linear_id && __linear_id < __wg_count)
-                    {
-                        const _IdType __i_elem = __linear_id * __items_in_wg_count * __chunk;
-
-                        // Save bottom-right split point for current base diagonal of merge matrix
-                        //  - in GLOBAL coordinates
-                        __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    }
+                        __sp = __find_start_point(__rng1, __rng2, (_IdType)(__linear_id * __items_in_wg_count * __chunk), __n1, __n2, __comp);
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
