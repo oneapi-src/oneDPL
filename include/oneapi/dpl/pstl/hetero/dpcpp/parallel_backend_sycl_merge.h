@@ -406,6 +406,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+            auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
             const std::size_t __slm_cached_data_size = __items_in_wg_count * __chunk;
             auto local_accessors = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
@@ -423,8 +424,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     // Merge matrix base diagonal's GLOBAL index
                     const std::size_t __wg_id = __nd_item.get_group_linear_id();
-
-                    auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
