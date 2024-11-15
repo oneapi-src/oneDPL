@@ -327,7 +327,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     };
 
     template <typename _Range, typename _DataType>
-    static void
+    inline static void
     load_data_into_slm(_Range&& __rng, _DataType* __slm,
                        std::size_t __sp_base_left_global_from, std::size_t __sp_base_left_global_to,
                        std::size_t __items_in_wg_count, std::size_t __local_id)
