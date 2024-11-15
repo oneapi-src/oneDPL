@@ -476,7 +476,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         // limited by split points of the left and right base diagonals.
 
                         // Find split point in LOCAL coordinates
-                        //  - top-left split point is (0, 0);
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                         assert(__sp_base_right_global.second >= __sp_base_left_global.second);
@@ -495,9 +494,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                        __sp_local.second,                                               // __start2 in LOCAL coordinates because __rngs_data_in_slm2 is work-group SLM cached copy of source data
                                        (_IdType)(__global_idx * __chunk),                               // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __chunk,
-                                        __sp_base_right_global.first - __sp_base_left_global.first,     // size of __rngs_data_in_slm1
-                                        __sp_base_right_global.second - __sp_base_left_global.second,   // size of __rngs_data_in_slm2
-                                        __comp);
+                                       __sp_base_right_global.first - __sp_base_left_global.first,      // size of __rngs_data_in_slm1
+                                       __sp_base_right_global.second - __sp_base_left_global.second,    // size of __rngs_data_in_slm2
+                                       __comp);
                     }
                 });
         });
