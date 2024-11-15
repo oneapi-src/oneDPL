@@ -467,17 +467,17 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
-                    const _IdType __wg_data_size_rng1 = __sp_base_right_global.first - __sp_base_left_global.first;
-                    const _IdType __wg_data_size_rng2 = __sp_base_right_global.second - __sp_base_left_global.second;
+                    const _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
+                    const _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
 
-                    auto [__loc_acc_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(loc_acc_pack);
-                    auto [__loc_acc_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(loc_acc_pack, __wg_data_size_rng1);
-                    auto __rngs_data_in_slm1 = std::addressof(__loc_acc_rng1[0]) + offset_to_slm1;
-                    auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
+                    auto [__rng1_loc_acc, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(loc_acc_pack);
+                    auto [__rng2_loc_acc, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(loc_acc_pack, __rng1_wg_data_size);
+                    auto __rng1_cache_slm = std::addressof(__rng1_loc_acc[0]) + offset_to_slm1;
+                    auto __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + offset_to_slm2;
 
-                    // Cooperative data load from __rng1 to __rngs_data_in_slm1, from __rng2 to __rngs_data_in_slm2
-                    load_data_into_slm(__rng1, __rngs_data_in_slm1, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_id);
-                    load_data_into_slm(__rng2, __rngs_data_in_slm2, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_id);
+                    // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
+                    load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_id);
+                    load_data_into_slm(__rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_id);
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
@@ -488,22 +488,20 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
-                            __rngs_data_in_slm1, __rngs_data_in_slm2,                                   // SLM cached copy of merging data
-                            (_IdType)(__local_id * __chunk),                                            // __i_elem in LOCAL coordinates because __rngs_data_in_slm1 and __rngs_data_in_slm2 is work-group SLM cached copy of source data
-                            __wg_data_size_rng1,                                                        // size of rng1
-                            __wg_data_size_rng2,                                                        // size of rng2
+                            __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
+                            (_IdType)(__local_id * __chunk),                            // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                            __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
                             __comp);
 
                         // Merge data for the current diagonal
                         //  - we should have here __sp_global in GLOBAL coordinates
-                        __serial_merge(__rngs_data_in_slm1, __rngs_data_in_slm2,                        // SLM cached copy of merging data
-                                       __rng3,                                                          // Destination range
-                                       __sp_local.first,                                                // __start1 in LOCAL coordinates because __rngs_data_in_slm1 is work-group SLM cached copy of source data
-                                       __sp_local.second,                                               // __start2 in LOCAL coordinates because __rngs_data_in_slm2 is work-group SLM cached copy of source data
-                                       (_IdType)(__global_linear_id * __chunk),                         // __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                        __serial_merge(__rng1_cache_slm, __rng2_cache_slm,              // SLM cached copy of merging data
+                                       __rng3,                                          // Destination range
+                                       __sp_local.first,                                // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       __sp_local.second,                               // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       (_IdType)(__global_linear_id * __chunk),         // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __chunk,
-                                       __wg_data_size_rng1,                                             // size of __rngs_data_in_slm1
-                                       __wg_data_size_rng2,                                             // size of __rngs_data_in_slm2
+                                       __rng1_wg_data_size, __rng2_wg_data_size,        // size of rng1 and rng2
                                        __comp);
                     }
                 });
