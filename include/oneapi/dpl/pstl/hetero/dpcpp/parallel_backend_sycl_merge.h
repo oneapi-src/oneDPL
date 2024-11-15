@@ -26,6 +26,8 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 
+#define USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE 0
+
 namespace oneapi
 {
 namespace dpl
@@ -274,6 +276,34 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
 template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
 struct __parallel_merge_submitter_large;
 
+#if USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
+// TODO remove debug code
+template <typename _RngTo, typename _RngFrom, typename _IdType>
+void
+load_data(std::size_t __n1, std::size_t __n2, std::size_t __wg_id, std::size_t __rng_no, std::size_t __local_idx, _RngTo& __rng_to, std::size_t __idx_to, const _RngFrom& __rng_from, std::size_t __idx_from,
+          _IdType                       __wg_data_size_rng, 
+          _IdType                       __items_in_wg_count,
+          std::size_t                   __max_wi_amount_for_data_loading,
+          const std::size_t             __loading_data_per_wi,
+          const _split_point_t<_IdType> __sp_base_left_global,  
+          const _split_point_t<_IdType> __sp_base_right_global)
+{
+    __rng_to[__idx_to] = __rng_from[__idx_from];
+}
+
+// TODO remove debug code
+template <typename _IdType>
+void
+dump_split_point(_IdType __idx, const _split_point_t<_IdType> __sp)
+{
+    auto first = __sp.first;
+    auto second = __sp.second;
+
+    first = first;
+    second = second;
+}
+#endif
+
 template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
 struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
@@ -412,6 +442,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
 
             // Run nd_range parallel_for to process all the data
+            // - each work-group caching source data in SLM and processing diagonals between two base diagonals;
+            // - each work-item processing one diagonal.
             __cgh.parallel_for<_MergeKernelName...>(
                 sycl::nd_range</*dim=*/1>(__wg_count * __items_in_wg_count, __items_in_wg_count),
                 [=](sycl::nd_item</*dim=*/1> __nd_item)
@@ -425,50 +457,112 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     // Merge matrix base diagonal's GLOBAL index
                     const std::size_t __wg_id = __nd_item.get_group_linear_id();
 
+#if USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
+                    // TODO remove debug code: dump split points
+                    {
+                        if (__wg_id == 0 && __local_idx == 0)
+                            for (_IdType i = 0; i < __wg_count + 1; ++i)
+                                dump_split_point(i, __base_diagonals_sp_global_ptr[i]);
+                        __dpl_sycl::__group_barrier(__nd_item);
+                    }
+#endif
+
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
                     assert(__wg_id + 1 < __wg_count + 1);
                     const _split_point_t<_IdType>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__wg_id];
-                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1];
+                    const _split_point_t<_IdType>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__wg_id + 1]; 
 
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
                     const _IdType __wg_data_size_rng1 = __sp_base_right_global.first - __sp_base_left_global.first;
                     const _IdType __wg_data_size_rng2 = __sp_base_right_global.second - __sp_base_left_global.second;
-                   
+
                     auto [__loc_acc_rng1, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(loc_acc_pack);
                     auto [__loc_acc_rng2, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(loc_acc_pack, __wg_data_size_rng1);
                     auto __rngs_data_in_slm1 = std::addressof(__loc_acc_rng1[0]) + offset_to_slm1;
                     auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
 
-                    // Full amount of work-items may be great then the amount of diagonals in the merge matrix
-                    // so we should skip the redundant work-items
-                    const bool __out_of_data = __global_idx * __chunk >= __n;
-                    if (!__out_of_data)
+                    constexpr std::size_t __max_wi_amount_for_data_loading = 16;
+
+                    if (__local_idx < __max_wi_amount_for_data_loading)
                     {
+                        ////////////////////////////////////////////////////////////////////////////////////////
                         // Load the current part of merging data placed between two base diagonals into SLM
-                        // TODO implement cooperative data load by multiple work-items
-                        assert(__items_in_wg_count > 1);
-                        if (__local_idx == 0)
+
+                        // https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2023-0/shared-local-memory.html
+                        // SLM: 64 bytes x 16 banks (granularity: 4 bytes / 32 bits)
+                        // the goal - each WI should write into separate bank
+                        //      -> load from max 16 work-items (defined at __max_wi_amount_for_data_loading)
+                        //      -> it is necessary to ensure sequential writing to adjacent addresses of SLM memory
+
+                        ////////////////////////////////////////////////////////////////////////////////////////
+                        // Cooperative data load from __rng1 to __rngs_data_in_slm1
+                        if (__wg_data_size_rng1 > 0)
                         {
-                            _IdType __slm_idx = 0;
-                            for (_IdType __idx = __sp_base_left_global.first; __idx < __sp_base_right_global.first; ++__idx, ++__slm_idx)
+                            // Calculate the size of the current part of merging data per work-item
+                            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng1, std::min((std::size_t)__items_in_wg_count, __max_wi_amount_for_data_loading));
+
+                            // Calculate the range of SLM indexes of loading data
+                            const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                            const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
+
+                            for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                             {
-                                assert(__slm_idx < __slm_cached_data_size);
-                                assert(__idx < __n1);
-                                __rngs_data_in_slm1[__slm_idx] = __rng1[__idx];
+                                const _IdType __rng_idx = __sp_base_left_global.first + __slm_idx;
+                                if (__rng_idx < __sp_base_right_global.first)
+                                {
+                                    assert(__slm_idx < __wg_data_size_rng1);
+                                    assert(__rng_idx < __n1);
+#if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
+                                    __rngs_data_in_slm1[__slm_idx] = __rng1[__rng_idx];
+#else
+                                    load_data(__n1, __n2, __wg_id, 1, __local_idx, __rngs_data_in_slm1, __slm_idx, __rng1, __rng_idx,
+                                              __wg_data_size_rng2, 
+                                              __items_in_wg_count,
+                                              __max_wi_amount_for_data_loading,
+                                              __loading_data_per_wi,
+                                              __sp_base_left_global,
+                                              __sp_base_right_global);
+#endif
+                                }
                             }
                         }
 
-                        if (__local_idx == 1 && __items_in_wg_count > 1 || __local_idx == 0)
+                        ////////////////////////////////////////////////////////////////////////////////////////
+                        // Cooperative data load from __rng2 to __rngs_data_in_slm2
+                        if (__wg_data_size_rng2 > 0)
                         {
-                            _IdType __slm_idx = 0;
-                            for (_IdType __idx = __sp_base_left_global.second; __idx < __sp_base_right_global.second; ++__idx, ++__slm_idx)
+                            // __loading_data_per_wi = 3, __sp_base_left_global = (521, 247), __sp_base_right_global = (521, 260)
+                            //  -> __wg_data_size_rng2 = 260 - 247 = 13
+                            //  -> __loading_data_per_wi = __dpl_ceiling_div(13, 6) = 3
+                            // Calculate the size of the current part of merging data per work-item
+                            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng2, std::min((std::size_t)__items_in_wg_count, __max_wi_amount_for_data_loading));
+
+                            // Calculate the range of SLM indexes of loading data
+                            const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                            const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
+
+                            for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                             {
-                                assert(__slm_idx < __slm_cached_data_size);
-                                assert(__idx < __n2);
-                                __rngs_data_in_slm2[__slm_idx] = __rng2[__idx];
+                                const _IdType __rng_idx = __sp_base_left_global.second + __slm_idx;
+                                if (__rng_idx < __sp_base_right_global.second)
+                                {
+                                    assert(__slm_idx < __wg_data_size_rng2);
+                                    assert(__rng_idx < __n2);
+#if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
+                                    __rngs_data_in_slm2[__slm_idx] = __rng2[__rng_idx];
+#else
+                                    load_data(__n1, __n2, __wg_id, 2, __local_idx, __rngs_data_in_slm2, __slm_idx, __rng2, __rng_idx,
+                                              __wg_data_size_rng2, 
+                                              __items_in_wg_count,
+                                              __max_wi_amount_for_data_loading,
+                                              __loading_data_per_wi,
+                                              __sp_base_left_global,
+                                              __sp_base_right_global);
+#endif
+                                }
                             }
                         }
                     }
@@ -477,7 +571,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     //  - we shouldn't setup this barrier under any conditions!!!
                     __dpl_sycl::__group_barrier(__nd_item);
 
-                    if (!__out_of_data)
+                    // Current diagonal inside of the merge matrix?
+                    if (__global_idx * __chunk < __n)
                     {
                         // We are between two base diagonals and need to find the start points in the merge matrix area,
                         // limited by split points of the left and right base diagonals.
@@ -526,7 +621,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     const auto __n = __rng1.size() + __rng2.size();
-    if (__n < 4 * 1'048'576)
+    if (false)  //if (__n < 4 * 1'048'576)
     {
         if (__n <= std::numeric_limits<std::uint32_t>::max())
         {
