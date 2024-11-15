@@ -283,7 +283,6 @@ void
 load_data(std::size_t __n1, std::size_t __n2, std::size_t __wg_id, std::size_t __rng_no, std::size_t __local_idx, _RngTo& __rng_to, std::size_t __idx_to, const _RngFrom& __rng_from, std::size_t __idx_from,
           _IdType                       __wg_data_size_rng, 
           _IdType                       __items_in_wg_count,
-          std::size_t                   __max_wi_amount_for_data_loading,
           const std::size_t             __loading_data_per_wi,
           const _split_point_t<_IdType> __sp_base_left_global,  
           const _split_point_t<_IdType> __sp_base_right_global)
@@ -484,85 +483,65 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __rngs_data_in_slm1 = std::addressof(__loc_acc_rng1[0]) + offset_to_slm1;
                     auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
 
-                    constexpr std::size_t __max_wi_amount_for_data_loading = 16;
-
-                    if (__local_idx < __max_wi_amount_for_data_loading)
+                    ////////////////////////////////////////////////////////////////////////////////////////
+                    // Cooperative data load from __rng1 to __rngs_data_in_slm1
+                    if (__wg_data_size_rng1 > 0)
                     {
-                        ////////////////////////////////////////////////////////////////////////////////////////
-                        // Load the current part of merging data placed between two base diagonals into SLM
+                        // Calculate the size of the current part of merging data per work-item
+                        const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng1, __items_in_wg_count);
 
-                        // https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2023-0/shared-local-memory.html
-                        // SLM: 64 bytes x 16 banks (granularity: 4 bytes / 32 bits)
-                        // the goal - each WI should write into separate bank
-                        //      -> load from max 16 work-items (defined at __max_wi_amount_for_data_loading)
-                        //      -> it is necessary to ensure sequential writing to adjacent addresses of SLM memory
+                        // Calculate the range of SLM indexes of loading data
+                        const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                        const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
 
-                        ////////////////////////////////////////////////////////////////////////////////////////
-                        // Cooperative data load from __rng1 to __rngs_data_in_slm1
-                        if (__wg_data_size_rng1 > 0)
+                        for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                         {
-                            // Calculate the size of the current part of merging data per work-item
-                            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng1, std::min((std::size_t)__items_in_wg_count, __max_wi_amount_for_data_loading));
-
-                            // Calculate the range of SLM indexes of loading data
-                            const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
-                            const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
-
-                            for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
+                            const std::size_t __rng_idx = __sp_base_left_global.first + __slm_idx;
+                            if (__rng_idx < __sp_base_right_global.first)
                             {
-                                const std::size_t __rng_idx = __sp_base_left_global.first + __slm_idx;
-                                if (__rng_idx < __sp_base_right_global.first)
-                                {
-                                    assert(__slm_idx < __wg_data_size_rng1);
-                                    assert(__rng_idx < __n1);
+                                assert(__slm_idx < __wg_data_size_rng1);
+                                assert(__rng_idx < __n1);
 #if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-                                    __rngs_data_in_slm1[__slm_idx] = __rng1[__rng_idx];
+                                __rngs_data_in_slm1[__slm_idx] = __rng1[__rng_idx];
 #else
-                                    load_data(__n1, __n2, __wg_id, 1, __local_idx, __rngs_data_in_slm1, __slm_idx, __rng1, __rng_idx,
-                                              __wg_data_size_rng2, 
-                                              __items_in_wg_count,
-                                              __max_wi_amount_for_data_loading,
-                                              __loading_data_per_wi,
-                                              __sp_base_left_global,
-                                              __sp_base_right_global);
+                                load_data(__n1, __n2, __wg_id, 1, __local_idx, __rngs_data_in_slm1, __slm_idx, __rng1, __rng_idx,
+                                            __wg_data_size_rng2, 
+                                            __items_in_wg_count,
+                                            __loading_data_per_wi,
+                                            __sp_base_left_global,
+                                            __sp_base_right_global);
 #endif
-                                }
                             }
                         }
+                    }
 
-                        ////////////////////////////////////////////////////////////////////////////////////////
-                        // Cooperative data load from __rng2 to __rngs_data_in_slm2
-                        if (__wg_data_size_rng2 > 0)
+                    ////////////////////////////////////////////////////////////////////////////////////////
+                    // Cooperative data load from __rng2 to __rngs_data_in_slm2
+                    if (__wg_data_size_rng2 > 0)
+                    {
+                        const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng2, __items_in_wg_count);
+
+                        // Calculate the range of SLM indexes of loading data
+                        const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                        const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
+
+                        for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
                         {
-                            // __loading_data_per_wi = 3, __sp_base_left_global = (521, 247), __sp_base_right_global = (521, 260)
-                            //  -> __wg_data_size_rng2 = 260 - 247 = 13
-                            //  -> __loading_data_per_wi = __dpl_ceiling_div(13, 6) = 3
-                            // Calculate the size of the current part of merging data per work-item
-                            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng2, std::min((std::size_t)__items_in_wg_count, __max_wi_amount_for_data_loading));
-
-                            // Calculate the range of SLM indexes of loading data
-                            const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
-                            const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
-
-                            for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
+                            const std::size_t __rng_idx = __sp_base_left_global.second + __slm_idx;
+                            if (__rng_idx < __sp_base_right_global.second)
                             {
-                                const std::size_t __rng_idx = __sp_base_left_global.second + __slm_idx;
-                                if (__rng_idx < __sp_base_right_global.second)
-                                {
-                                    assert(__slm_idx < __wg_data_size_rng2);
-                                    assert(__rng_idx < __n2);
+                                assert(__slm_idx < __wg_data_size_rng2);
+                                assert(__rng_idx < __n2);
 #if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-                                    __rngs_data_in_slm2[__slm_idx] = __rng2[__rng_idx];
+                                __rngs_data_in_slm2[__slm_idx] = __rng2[__rng_idx];
 #else
-                                    load_data(__n1, __n2, __wg_id, 2, __local_idx, __rngs_data_in_slm2, __slm_idx, __rng2, __rng_idx,
-                                              __wg_data_size_rng2, 
-                                              __items_in_wg_count,
-                                              __max_wi_amount_for_data_loading,
-                                              __loading_data_per_wi,
-                                              __sp_base_left_global,
-                                              __sp_base_right_global);
+                                load_data(__n1, __n2, __wg_id, 2, __local_idx, __rngs_data_in_slm2, __slm_idx, __rng2, __rng_idx,
+                                            __wg_data_size_rng2, 
+                                            __items_in_wg_count,
+                                            __loading_data_per_wi,
+                                            __sp_base_left_global,
+                                            __sp_base_right_global);
 #endif
-                                }
                             }
                         }
                     }
