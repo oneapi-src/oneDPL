@@ -314,15 +314,15 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         template <std::size_t AccessorIdx, typename AccessorsTuple>
         static auto
-        get_local_accessor(AccessorsTuple& __acc_tuple, std::size_t __offset = 0)
+        get_local_accessor(AccessorsTuple& __loc_acc_pack, std::size_t __offset = 0)
         {
             static_assert(std::tuple_size_v<AccessorsTuple> == 1 || std::tuple_size_v<AccessorsTuple> == 2);
 
             if constexpr (std::tuple_size_v<AccessorsTuple> == 1)
-                return std::pair(std::get<0>(__acc_tuple), __offset);
+                return std::pair(std::get<0>(__loc_acc_pack), __offset);
 
             else
-                return std::pair(std::get<AccessorIdx>(__acc_tuple), 0);
+                return std::pair(std::get<AccessorIdx>(__loc_acc_pack), 0);
         }
     };
 
@@ -340,15 +340,23 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
            |                   | wi(0) | wi(1) | wi(2) | wi(3) | ... | wi(__wi_in_one_wg - 1) |            |  <--- __local_id: in which work-item we are
            +-------------------+-------+-------+-------+-------+-----+------------------------+------------+
            |  rng[0]           |       |       |       |       |     |                        |            |  
-           |  rng[1]           |   +   |       |       |       |     |                        | slm[0]     |  <--- __idx_global_begin
-           |  rng[2]           |       |   +   |       |       |     |                        | slm[1]     |  
-           |  rng[3]           |       |       |   +   |       |     |                        | slm[2]     |  
-           |  rng[4]           |       |       |       |   +   |     |                        | slm[3]     |  
+           |  rng[1]           |   +   |       |       |       |     |                        | slm[0]     |  <--- __idx_global_begin              \
+           |  rng[2]           |   +   |       |       |       |     |                        | slm[1]     |                                        | SLM bank: write into one SLM bank from one work-item
+           |  rng[3]           |   +   |       |       |       |     |                        | slm[2]     |                                       /
+           |  rng[4]           |       |   +   |       |       |     |                        | slm[3]     |
+           |  rng[5]           |       |   +   |       |       |     |                        | slm[3]     |
+           |  rng[6]           |       |   +   |       |       |     |                        | slm[3]     |
+           |  rng[7]           |       |       |   +   |       |     |                        | slm[3]     |
+           |  rng[8]           |       |       |   +   |       |     |                        | slm[3]     |
+           |  rng[9]           |       |       |   +   |       |     |                        | slm[3]     |
+           |  rng[10]          |       |       |       |   +   |     |                        | slm[3]     |
+           |  rng[11]          |       |       |       |   +   |     |                        | slm[3]     |
+           |  rng[12]          |       |       |       |   +   |     |                        | slm[3]     |
            |  .....            |       |       |       |       | +++ |                        | ...        |  
            |  rng[M + 1]       |       |       |       |       |     |           +            | slm[M]     |  
-           |  rng[M + 2]       |   +   |       |       |       |     |                        | slm[M + 1] |  
-           |  rng[M + 3]       |       |   +   |       |       |     |                        | slm[M + 2] |  
-           |  rng[M + 4]       |       |       |   +   |       |     |                        | slm[M + 3] |
+           |  rng[M + 2]       |       |       |       |       |     |           +            | slm[M + 1] |  
+           |  rng[M + 3]       |       |       |       |       |     |           +            | slm[M + 2] |  
+           |  rng[M + 4]       |       |       |       |       |     |                        | slm[M + 3] |
            |  rng[M + 5]       |       |       |       |   -   |     |                        |            |  <--- __idx_global_end
            |  .....            |       |       |       |       | --- |                        |            |  
            |  rng[M + M + 1]   |       |       |       |       |     |           -            |            |  
@@ -472,7 +480,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
             const std::size_t __slm_cached_data_size = __wi_in_one_wg * __chunk;
-            auto loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
+            auto __loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
 
             // Run nd_range parallel_for to process all the data
             // - each work-group caching source data in SLM and processing diagonals between two base diagonals;
@@ -496,10 +504,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
                     const _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
 
-                    auto [__rng1_loc_acc, offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(loc_acc_pack);
-                    auto [__rng2_loc_acc, offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(loc_acc_pack, __rng1_wg_data_size);
-                    auto __rng1_cache_slm = std::addressof(__rng1_loc_acc[0]) + offset_to_slm1;
-                    auto __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + offset_to_slm2;
+                    auto [__rng1_loc_acc, __offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(__loc_acc_pack);
+                    auto [__rng2_loc_acc, __offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(__loc_acc_pack, __rng1_wg_data_size);
+                    auto __rng1_cache_slm = std::addressof(__rng1_loc_acc[0]) + __offset_to_slm1;
+                    auto __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + __offset_to_slm2;
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
                     load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,  __wi_in_one_wg, __local_id);
