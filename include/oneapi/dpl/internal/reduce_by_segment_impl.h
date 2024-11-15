@@ -58,7 +58,7 @@
 #include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../pstl/ranges_defs.h"
 #include "../pstl/glue_algorithm_ranges_impl.h"
-#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+// #include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 #include "scan_by_segment_impl.h"
 #endif
 

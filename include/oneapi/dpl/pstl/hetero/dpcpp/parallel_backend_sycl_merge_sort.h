@@ -24,7 +24,7 @@
 #include <type_traits> // std::decay_t, std::integral_constant
 
 #include "sycl_defs.h"                   // __dpl_sycl::__local_accessor, __dpl_sycl::__group_barrier
-#include "sycl_traits.h"                 // SYCL traits specialization for some oneDPL types.
+// #include "sycl_traits.h"                 // SYCL traits specialization for some oneDPL types.
 #include "../../utils.h"                 // __dpl_bit_floor, __dpl_bit_ceil
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
@@ -74,7 +74,8 @@ struct __group_merge_path_sorter
         std::uint32_t __next_sorted = __sorted * 2;
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
-        std::int16_t __iters = sycl::ctz(__sorted_final) - sycl::ctz(__sorted);
+        // std::int16_t __iters = sycl::ctz(__sorted_final) - sycl::ctz(__sorted);
+        std::int16_t __iters = std::ceil(std::log2(__sorted_final)) - std::ceil(std::log2(__sorted));
         for (std::int16_t __i = 0; __i < __iters; ++__i)
         {
             const std::uint32_t __id_local = __id % __next_sorted;
@@ -248,7 +249,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
-        const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
+        // const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
+        const std::int64_t __n_iter = std::ceil(std::log2(__n_power2)) - std::ceil(std::log2(__leaf_size));
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
             __event_chain = __q.submit([&, __event_chain, __n_sorted, __data_in_temp](sycl::handler& __cgh) {

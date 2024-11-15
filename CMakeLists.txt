@@ -87,10 +87,10 @@ if (_fsycl_option)
     endif()
 endif()
 
-# Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
-if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
-    message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
-endif()
+# # Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
+# if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
+#     message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+# endif()
 
 # Set the default backend if one has not been explicitly provided
 if (NOT ONEDPL_BACKEND)

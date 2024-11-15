@@ -74,7 +74,9 @@ __slm_adjusted_work_group_size(const _ExecutionPolicy& __policy, _Size __local_m
     if (__wg_size == 0)
         __wg_size = __max_work_group_size(__policy);
     auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
+    // Ambiguios call in AdaptiveCPP
+    // return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
+    return std::min<_Size>(__local_mem_size / __local_mem_per_wi, __wg_size);
 }
 
 #if _ONEDPL_USE_SUB_GROUPS
@@ -111,39 +113,39 @@ __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_s
 // 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
 #define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
-template <typename _ExecutionPolicy>
-::std::size_t
-__kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
-{
-    const sycl::device& __device = __policy.queue().get_device();
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
-    return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
-#else
-    return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
-#endif
-}
+// template <typename _ExecutionPolicy>
+// ::std::size_t
+// __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
+// {
+//     const sycl::device& __device = __policy.queue().get_device();
+// #if _USE_KERNEL_DEVICE_SPECIFIC_API
+//     return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
+// #else
+//     return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
+// #endif
+// }
 
-template <typename _ExecutionPolicy>
-::std::uint32_t
-__kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
-{
-    const sycl::device& __device = __policy.queue().get_device();
-    [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
-    const ::std::uint32_t __sg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
-        __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
-            __device
-#    if _ONEDPL_LIBSYCL_VERSION < 60000
-            ,
-            sycl::range<3> { __wg_size, 1, 1 }
-#    endif
-        );
-#else
-        __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
-            __device, sycl::range<3>{__wg_size, 1, 1});
-#endif
-    return __sg_size;
-}
+// template <typename _ExecutionPolicy>
+// ::std::uint32_t
+// __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
+// {
+//     const sycl::device& __device = __policy.queue().get_device();
+//     [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
+//     const ::std::uint32_t __sg_size =
+// #if _USE_KERNEL_DEVICE_SPECIFIC_API
+//         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
+//             __device
+// #    if _ONEDPL_LIBSYCL_VERSION < 60000
+//             ,
+//             sycl::range<3> { __wg_size, 1, 1 }
+// #    endif
+//         );
+// #else
+//         __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
+//             __device, sycl::range<3>{__wg_size, 1, 1});
+// #endif
+//     return __sg_size;
+// }
 //-----------------------------------------------------------------------------
 
 } // namespace __internal
@@ -548,8 +550,8 @@ struct __result_and_scratch_storage
             return false;
         if (!__device.has(sycl::aspect::usm_host_allocations))
             return false;
-        if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
-            return false;
+        // if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+        //     return false;
         return true;
 #else
         return false;
