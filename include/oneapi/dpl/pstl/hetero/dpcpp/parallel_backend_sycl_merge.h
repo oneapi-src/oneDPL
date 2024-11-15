@@ -181,7 +181,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         return __result;
     }
 
-    return std::make_pair(0, 0);
+    return __zero_split_point<_Index>;
 }
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
@@ -355,6 +355,50 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         }
     };
 
+    template <typename _Range, typename _DataType>
+    static void
+    load_data_into_slm(_Range&& __rng, _DataType* __slm,
+                       std::size_t __sp_base_left_global_from, std::size_t __sp_base_left_global_to,
+                       std::size_t __items_in_wg_count, std::size_t __local_idx)
+    {
+        const std::size_t __wg_data_size_rng = __sp_base_left_global_to - __sp_base_left_global_from;
+        if (__wg_data_size_rng > 0)
+        {
+            // Calculate the size of the current part of merging data per work-item
+            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), __items_in_wg_count);
+            assert(__loading_data_per_wi > 0);
+
+            if (__loading_data_per_wi > 1)
+            {
+                const auto __slm_idx_begin = __local_idx * __loading_data_per_wi;
+                const auto __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
+
+                for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
+                {
+                    const std::size_t __rng_idx = __sp_base_left_global_from + __slm_idx;
+                    if (__rng_idx < __sp_base_left_global_to)
+                    {
+                        assert(__slm_idx < __wg_data_size_rng);
+                        assert(__rng_idx < __rng.size());
+                        __slm[__slm_idx] = __rng[__rng_idx];
+                    }
+                }
+            }
+            else
+            {
+                assert(__loading_data_per_wi == 1);
+
+                const std::size_t __rng_idx = __sp_base_left_global_from + __local_idx;
+                if (__rng_idx < __sp_base_left_global_to)
+                {
+                    assert(__local_idx < __wg_data_size_rng);
+                    assert(__rng_idx < __rng.size());
+                    __slm[__local_idx] = __rng[__rng_idx];
+                }
+            }
+        }
+    }
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
@@ -483,71 +527,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __rngs_data_in_slm1 = std::addressof(__loc_acc_rng1[0]) + offset_to_slm1;
                     auto __rngs_data_in_slm2 = std::addressof(__loc_acc_rng2[0]) + offset_to_slm2;
 
-                    ////////////////////////////////////////////////////////////////////////////////////////
-                    // Cooperative data load from __rng1 to __rngs_data_in_slm1
-                    if (__wg_data_size_rng1 > 0)
-                    {
-                        // Calculate the size of the current part of merging data per work-item
-                        const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng1, __items_in_wg_count);
-
-                        // Calculate the range of SLM indexes of loading data
-                        const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
-                        const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
-
-                        for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
-                        {
-                            const std::size_t __rng_idx = __sp_base_left_global.first + __slm_idx;
-                            if (__rng_idx < __sp_base_right_global.first)
-                            {
-                                assert(__slm_idx < __wg_data_size_rng1);
-                                assert(__rng_idx < __n1);
-#if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-                                __rngs_data_in_slm1[__slm_idx] = __rng1[__rng_idx];
-#else
-                                load_data(__n1, __n2, __wg_id, 1, __local_idx, __rngs_data_in_slm1, __slm_idx, __rng1, __rng_idx,
-                                            __wg_data_size_rng2, 
-                                            __items_in_wg_count,
-                                            __loading_data_per_wi,
-                                            __sp_base_left_global,
-                                            __sp_base_right_global);
-#endif
-                            }
-                        }
-                    }
-
-                    ////////////////////////////////////////////////////////////////////////////////////////
-                    // Cooperative data load from __rng2 to __rngs_data_in_slm2
-                    if (__wg_data_size_rng2 > 0)
-                    {
-                        const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__wg_data_size_rng2, __items_in_wg_count);
-
-                        // Calculate the range of SLM indexes of loading data
-                        const std::size_t __slm_idx_begin = __local_idx * __loading_data_per_wi;
-                        const std::size_t __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
-
-                        for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
-                        {
-                            const std::size_t __rng_idx = __sp_base_left_global.second + __slm_idx;
-                            if (__rng_idx < __sp_base_right_global.second)
-                            {
-                                assert(__slm_idx < __wg_data_size_rng2);
-                                assert(__rng_idx < __n2);
-#if !USE_DEBUG_CODE_IN_MERGE_SUBMITTER_LARGE
-                                __rngs_data_in_slm2[__slm_idx] = __rng2[__rng_idx];
-#else
-                                load_data(__n1, __n2, __wg_id, 2, __local_idx, __rngs_data_in_slm2, __slm_idx, __rng2, __rng_idx,
-                                            __wg_data_size_rng2, 
-                                            __items_in_wg_count,
-                                            __loading_data_per_wi,
-                                            __sp_base_left_global,
-                                            __sp_base_right_global);
-#endif
-                            }
-                        }
-                    }
+                    // Cooperative data load from __rng1 to __rngs_data_in_slm1, from __rng2 to __rngs_data_in_slm2
+                    load_data_into_slm(__rng1, __rngs_data_in_slm1, __sp_base_left_global.first,  __sp_base_right_global.first,  __items_in_wg_count, __local_idx);
+                    load_data_into_slm(__rng2, __rngs_data_in_slm2, __sp_base_left_global.second, __sp_base_right_global.second, __items_in_wg_count, __local_idx);
 
                     // Wait until all the data is loaded
-                    //  - we shouldn't setup this barrier under any conditions!!!
                     __dpl_sycl::__group_barrier(__nd_item);
 
                     // Current diagonal inside of the merge matrix?
