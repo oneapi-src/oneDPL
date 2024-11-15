@@ -343,8 +343,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         assert(__chunk > 0);
 
         // Pessimistically only use half of the memory to take into account memory used by compiled kernel
-        const std::size_t __max_slm_size_adj =
-            oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, __merge_slm_helper::get_data_size(__rng1, __rng2));
+        const std::size_t __max_slm_size_adj = 
+            std::max((std::size_t)__chunk,
+                     std::min((std::size_t)__n,
+                               oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, __merge_slm_helper::get_data_size(__rng1, __rng2))));
 
         // The amount of data must be a multiple of the chunk size.
         const std::size_t __max_source_data_items_fit_into_slm = __max_slm_size_adj - __max_slm_size_adj % __chunk;
