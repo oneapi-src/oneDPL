@@ -493,9 +493,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     // Current diagonal inside of the merge matrix?
                     if (__global_linear_id * __chunk < __n)
                     {
-                        // We are between two base diagonals and need to find the start points in the merge matrix area,
-                        // limited by split points of the left and right base diagonals.
-
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
