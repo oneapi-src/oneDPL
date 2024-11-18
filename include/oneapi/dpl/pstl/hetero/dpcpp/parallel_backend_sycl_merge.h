@@ -420,28 +420,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         // TODO what size of SLM bank we have now?
         constexpr std::size_t __slm_bank_size = 64;     // = 1024;
 
-#if 0
-        auto __n1 = __rng1.size();
-        auto __n2 = __rng2.size();
-
-        if (__n1 == 521 && __n2 == 260)
-        {
-            __n1 = __n1;
-            __n2 = __n2;
-        }
-#endif
-
         using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
         using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
 
         // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
         const std::size_t __wi_for_data_reading1 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range1ValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
         const std::size_t __wi_for_data_reading2 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range2ValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
-
-#if 0
-        const std::size_t __wi_for_data_reading1_128 = __calc_wi_amount_for_data_reading<128, _Range1ValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
-        const std::size_t __wi_for_data_reading2_128 = __calc_wi_amount_for_data_reading<128, _Range2ValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
-#endif
 
         // Now arrange the reading by work-items
         if (__wi_in_one_wg >= __wi_for_data_reading1 + __wi_for_data_reading2)
