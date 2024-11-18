@@ -575,9 +575,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                            __wi_in_one_wg, __local_id);
                     }
 
-                    // Wait until all the data is loaded (if we have more then one item in work-group
-                    if (__wi_in_one_wg > 1)
-                        __dpl_sycl::__group_barrier(__nd_item);
+                    // Wait until all the data is loaded
+                    __dpl_sycl::__group_barrier(__nd_item);
 
                     // Current diagonal inside of the merge matrix?
                     if (__have_data)
