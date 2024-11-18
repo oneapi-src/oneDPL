@@ -412,10 +412,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         return __wi_for_data_reading;
     }
 
-    template <typename _Range, typename _DataType>
+    template <typename _Range, typename _DataType1, typename _DataType2>
     static void
-    load_data_into_slm(_Range&& __rng1, _DataType* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
-                       _Range&& __rng2, _DataType* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
+    load_data_into_slm(_Range&& __rng1, _DataType1* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
+                       _Range&& __rng2, _DataType2* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
                        const std::size_t __wi_in_one_wg, const std::size_t __local_id)
     {
         // TODO what size of SLM bank we have now?
