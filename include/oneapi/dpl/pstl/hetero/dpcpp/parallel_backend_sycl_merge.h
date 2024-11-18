@@ -634,7 +634,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     constexpr std::size_t __starting_size_limit_for_large_submitter = 16 * 1'048'576; // 4 Mb
 
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (__n < __starting_size_limit_for_large_submitter)
+    if (false)  //if (__n < __starting_size_limit_for_large_submitter)
     {
         static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
 
