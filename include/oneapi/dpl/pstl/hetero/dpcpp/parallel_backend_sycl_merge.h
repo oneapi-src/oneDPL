@@ -328,7 +328,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
     template <typename _Range, typename _DataType>
     inline static void
-    load_data_into_slm(_Range&& __rng, _DataType* __slm,
+    load_data_into_slm_impl(_Range&& __rng, _DataType* __slm,
                        std::size_t __idx_global_begin, std::size_t __idx_global_end,
                        std::size_t __wi_in_one_wg, std::size_t __local_id)
     {
@@ -401,6 +401,76 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     __slm[__local_id] = __rng[__rng_idx];
                 }
             }
+        }
+    }
+
+    template <const std::size_t __slm_bank_size, typename _RangeValueType>
+    static std::size_t
+    __calc_wi_amount_for_data_reading(const std::size_t __wi_in_one_wg, const std::size_t __reading_data)
+    {
+        //const std::size_t __required_reading_data_per_wi = __slm_bank_size / sizeof(_RangeValueType);
+
+        std::size_t __wi_for_data_reading = 0;
+        if (__reading_data > 0)
+        {
+            const std::size_t __required_reading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
+
+            __wi_for_data_reading = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__reading_data, __required_reading_data_per_wi));
+        }
+
+        return __wi_for_data_reading;
+    }
+
+    template <typename _Range, typename _DataType>
+    static void
+    load_data_into_slm(_Range&& __rng1, _DataType* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
+                       _Range&& __rng2, _DataType* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
+                       const std::size_t __wi_in_one_wg, const std::size_t __local_id)
+    {
+        // TODO what size of SLM bank we have now?
+        constexpr std::size_t __slm_bank_size = 1024;
+
+#if 0
+        auto __n1 = __rng1.size();
+        auto __n2 = __rng2.size();
+
+        if (__n1 == 521 && __n2 == 260)
+        {
+            __n1 = __n1;
+            __n2 = __n2;
+        }
+#endif
+
+        using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
+        using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+
+        // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
+        const std::size_t __wi_for_data_reading1 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range1ValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
+        const std::size_t __wi_for_data_reading2 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range2ValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
+
+#if 0
+        const std::size_t __wi_for_data_reading1_128 = __calc_wi_amount_for_data_reading<128, _Range1ValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
+        const std::size_t __wi_for_data_reading2_128 = __calc_wi_amount_for_data_reading<128, _Range2ValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
+#endif
+
+        // Now arrange the reading by work-items
+        if (__wi_in_one_wg >= __wi_for_data_reading1 + __wi_for_data_reading2)
+        {
+            if (__local_id < __wi_for_data_reading1)
+            {
+                load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
+            }
+            else if (__local_id < __wi_for_data_reading1 + __wi_for_data_reading2)
+            {
+                // When we reading data from parallel-working work-items, we should reduce the local id of current work-item
+                // because we calculate readed data size based on this value.
+                load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id - __wi_for_data_reading1);
+            }
+        }
+        else if (__local_id < __wi_for_data_reading1 + __wi_for_data_reading2)
+        {
+            load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
+            load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id);
         }
     }
 
@@ -510,8 +580,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + __offset_to_slm2;
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
-                    load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,  __wi_in_one_wg, __local_id);
-                    load_data_into_slm(__rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second, __wi_in_one_wg, __local_id);
+                    load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,
+                                       __rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second,
+                                       __wi_in_one_wg, __local_id);
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
