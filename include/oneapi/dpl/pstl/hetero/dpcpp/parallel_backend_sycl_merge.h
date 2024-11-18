@@ -418,7 +418,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                        const std::size_t __wi_in_one_wg, const std::size_t __local_id)
     {
         // TODO what size of SLM bank we have now?
-        constexpr std::size_t __slm_bank_size = 1024;
+        constexpr std::size_t __slm_bank_size = 64;     // = 1024;
 
 #if 0
         auto __n1 = __rng1.size();
