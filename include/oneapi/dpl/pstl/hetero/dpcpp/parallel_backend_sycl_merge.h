@@ -383,6 +383,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                 std::size_t __slm_idx = __slm_idx_begin;
                 std::size_t __rng_idx = __idx_global_begin + __slm_idx;
 
+                _ONEDPL_PRAGMA_UNROLL
                 for (; __slm_idx < __slm_idx_end && __rng_idx < __idx_global_end; ++__slm_idx, ++__rng_idx)
                         __slm[__slm_idx] = __rng[__rng_idx];
             }
