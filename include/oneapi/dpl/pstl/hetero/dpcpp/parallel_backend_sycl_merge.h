@@ -438,7 +438,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             else if (__local_id < __wi_for_data_reading1 + __wi_for_data_reading2)
             {
                 // When we reading data from parallel-working work-items, we should reduce the local id of current work-item
-                // because we calculate readed data size based on this value.
+                // because we calculate reeded data size based on this value.
                 load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id - __wi_for_data_reading1);
             }
         }
