@@ -385,7 +385,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                 _ONEDPL_PRAGMA_UNROLL
                 for (; __slm_idx < __slm_idx_end && __rng_idx < __idx_global_end; ++__slm_idx, ++__rng_idx)
-                        __slm[__slm_idx] = __rng[__rng_idx];
+                    __slm[__slm_idx] = __rng[__rng_idx];
             }
             else
             {
@@ -400,8 +400,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     static std::size_t
     __calc_wi_amount_for_data_reading(const std::size_t __wi_in_one_wg, const std::size_t __reading_data)
     {
-        //const std::size_t __required_reading_data_per_wi = __slm_bank_size / sizeof(_RangeValueType);
-
         std::size_t __wi_for_data_reading = 0;
         if (__reading_data > 0)
         {
