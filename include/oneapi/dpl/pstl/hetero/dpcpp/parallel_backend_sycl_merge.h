@@ -380,26 +380,17 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                 const auto __slm_idx_begin = __local_id * __loading_data_per_wi;
                 const auto __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
 
-                for (std::size_t __slm_idx = __slm_idx_begin; __slm_idx < __slm_idx_end; ++__slm_idx)
-                {
-                    const std::size_t __rng_idx = __idx_global_begin + __slm_idx;
-                    if (__rng_idx < __idx_global_end)
-                    {
-                        assert(__slm_idx < __wg_data_size_rng);
-                        assert(__rng_idx < __rng.size());
+                std::size_t __slm_idx = __slm_idx_begin;
+                std::size_t __rng_idx = __idx_global_begin + __slm_idx;
+
+                for (; __slm_idx < __slm_idx_end && __rng_idx < __idx_global_end; ++__slm_idx, ++__rng_idx)
                         __slm[__slm_idx] = __rng[__rng_idx];
-                    }
-                }
             }
             else
             {
                 const std::size_t __rng_idx = __idx_global_begin + __local_id;
                 if (__rng_idx < __idx_global_end)
-                {
-                    assert(__local_id < __wg_data_size_rng);
-                    assert(__rng_idx < __rng.size());
                     __slm[__local_id] = __rng[__rng_idx];
-                }
             }
         }
     }
