@@ -345,14 +345,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
            |  rng[2]           |   +   |       |       |       |     |                        | slm[1]     |                                        | SLM bank: write into one SLM bank from one work-item
            |  rng[3]           |   +   |       |       |       |     |                        | slm[2]     |                                       /
            |  rng[4]           |       |   +   |       |       |     |                        | slm[3]     |
-           |  rng[5]           |       |   +   |       |       |     |                        | slm[3]     |
-           |  rng[6]           |       |   +   |       |       |     |                        | slm[3]     |
-           |  rng[7]           |       |       |   +   |       |     |                        | slm[3]     |
-           |  rng[8]           |       |       |   +   |       |     |                        | slm[3]     |
-           |  rng[9]           |       |       |   +   |       |     |                        | slm[3]     |
-           |  rng[10]          |       |       |       |   +   |     |                        | slm[3]     |
-           |  rng[11]          |       |       |       |   +   |     |                        | slm[3]     |
-           |  rng[12]          |       |       |       |   +   |     |                        | slm[3]     |
+           |  rng[5]           |       |   +   |       |       |     |                        | slm[4]     |
+           |  rng[6]           |       |   +   |       |       |     |                        | slm[5]     |
+           |  rng[7]           |       |       |   +   |       |     |                        | slm[6]     |
+           |  rng[8]           |       |       |   +   |       |     |                        | slm[7]     |
+           |  rng[9]           |       |       |   +   |       |     |                        | slm[8]     |
+           |  rng[10]          |       |       |       |   +   |     |                        | slm[9]     |
+           |  rng[11]          |       |       |       |   +   |     |                        | slm[10]    |
+           |  rng[12]          |       |       |       |   +   |     |                        | slm[11]    |
            |  .....            |       |       |       |       | +++ |                        | ...        |  
            |  rng[M + 1]       |       |       |       |       |     |           +            | slm[M]     |  
            |  rng[M + 2]       |       |       |       |       |     |           +            | slm[M + 1] |  
