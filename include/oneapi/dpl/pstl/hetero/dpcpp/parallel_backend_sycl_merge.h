@@ -56,9 +56,10 @@ _split_point_t<_Index>
 __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
                    const _Index __n2, _Compare __comp)
 {
-    const _Index __rng1_from = 0;
+    constexpr _Index __rng1_from = 0;
+    constexpr _Index __rng2_from = 0;
+
     const _Index __rng1_to = __n1;
-    const _Index __rng2_from = 0;
     const _Index __rng2_to = __n2;
 
     assert(__rng1_from <= __rng1_to);
