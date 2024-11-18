@@ -330,8 +330,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     template <typename _Range, typename _DataType>
     static void
     load_data_into_slm_impl(_Range&& __rng, _DataType* __slm,
-                       std::size_t __idx_global_begin, std::size_t __idx_global_end,
-                       std::size_t __wi_in_one_wg, std::size_t __local_id)
+                            std::size_t __idx_global_begin, std::size_t __idx_global_end,
+                            std::size_t __wi_in_one_wg, std::size_t __local_id)
     {
         // How we load data:
         /*
@@ -547,29 +547,31 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _Range1ValueType* __rng1_cache_slm = nullptr;
                     _Range1ValueType* __rng2_cache_slm = nullptr;
 
-                    // Current diagonal inside of the merge matrix?
-                    const bool __have_data = __global_linear_id * __chunk < __n;
+                    // Split points on left anr right base diagonals
+                    //  - in GLOBAL coordinates
+                    const _split_point_t<std::size_t>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
+                    const _split_point_t<std::size_t>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__group_linear_id + 1]; 
 
-                    // Current diagonal inside of the merge matrix?
-                    if (__have_data)
+                    assert(__sp_base_right_global.first >= __sp_base_left_global.first);
+                    assert(__sp_base_right_global.second >= __sp_base_left_global.second);
+
+                    __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
+                    __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+
+                    const bool __need_load_data = __rng1_wg_data_size > 0 || __rng2_wg_data_size > 0;
+                    const bool __need_merge_data = __global_linear_id * __chunk < __n;
+
+                    if (__need_load_data || __need_merge_data)
                     {
-                        // Split points on left anr right base diagonals
-                        //  - in GLOBAL coordinates
-                        const _split_point_t<std::size_t>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
-                        const _split_point_t<std::size_t>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__group_linear_id + 1]; 
-
-                        assert(__sp_base_right_global.first >= __sp_base_left_global.first);
-                        assert(__sp_base_right_global.second >= __sp_base_left_global.second);
-
-                        __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
-                        __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
-
                         auto [__rng1_loc_acc, __offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(__loc_acc_pack);
                         auto [__rng2_loc_acc, __offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(__loc_acc_pack, __rng1_wg_data_size);
                         __rng1_cache_slm = std::addressof(__rng1_loc_acc[0]) + __offset_to_slm1;
                         __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + __offset_to_slm2;
+                    }
 
-                        // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
+                    // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
+                    if (__need_load_data)
+                    {
                         load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,
                                            __rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second,
                                            __wi_in_one_wg, __local_id);
@@ -579,7 +581,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     __dpl_sycl::__group_barrier(__nd_item);
 
                     // Current diagonal inside of the merge matrix?
-                    if (__have_data)
+                    if (__need_merge_data)
                     {
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
