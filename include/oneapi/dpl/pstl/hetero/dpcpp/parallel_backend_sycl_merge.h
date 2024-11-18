@@ -389,9 +389,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     const auto __n = __rng1.size() + __rng2.size();
     if (__n < 4 * 1'048'576)
     {
-        if (__n <= std::numeric_limits<std::uint32_t>::max())
+        if (__n <= std::numeric_limits<std::uint16_t>::max())
         {
-            using _WiIndex = std::uint32_t;
+            using _WiIndex = std::uint16_t;
             using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name<_CustomName, _WiIndex>>;
             return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
@@ -400,7 +400,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         }
         else
         {
-            using _WiIndex = std::uint64_t;
+            using _WiIndex = std::uint32_t;
             using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name<_CustomName, _WiIndex>>;
             return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
