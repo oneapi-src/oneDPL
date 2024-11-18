@@ -302,7 +302,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
             using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
 
-            if constexpr (false && std::is_same_v<_Range1ValueType, _Range2ValueType>)
+            if constexpr (std::is_same_v<_Range1ValueType, _Range2ValueType>)
                 return std::tuple<__dpl_sycl::__local_accessor<_Range1ValueType>>(
                     __dpl_sycl::__local_accessor<_Range1ValueType>(2 * __slm_cached_data_size, __cgh));
             else
