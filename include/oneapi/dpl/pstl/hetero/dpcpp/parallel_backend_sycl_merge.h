@@ -391,13 +391,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
                     const _IdType __i_elem = __local_id * __chunk;
+                    const _IdType __i_elem_next = (__local_id + 1) * __chunk;
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
                     _ONEDPL_PRAGMA_UNROLL
-                    for (_IdType __idx = __i_elem; __idx < __i_elem + __chunk && __sp_base_left_global.first + __idx < __sp_base_right_global.first; ++__idx)
+                    for (_IdType __idx = __i_elem; __idx < __i_elem_next && __idx < __rng1_wg_data_size; ++__idx)
                         __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
                     _ONEDPL_PRAGMA_UNROLL
-                    for (_IdType __idx = __i_elem; __idx < __i_elem + __chunk && __sp_base_left_global.second + __idx < __sp_base_right_global.second; ++__idx)
+                    for (_IdType __idx = __i_elem; __idx < __i_elem_next && __idx < __rng2_wg_data_size; ++__idx)
                         __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
 
                     // Wait until all the data is loaded
