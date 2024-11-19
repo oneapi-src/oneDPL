@@ -455,6 +455,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     {
         using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
         using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+        static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>, "In this implementation we can merge only data of the same type");
 
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
@@ -626,8 +627,13 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 
     constexpr std::size_t __starting_size_limit_for_large_submitter = 16 * 1'048'576; // 4 Mb
 
+    using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
+    using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+
+    constexpr bool __same_merge_types = std::is_same_v<_Range1ValueType, _Range2ValueType>;
+
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (false)  //if (__n < __starting_size_limit_for_large_submitter)
+    if (false)  //if (__n < __starting_size_limit_for_large_submitter || !__same_merge_types)
     {
         static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
 
