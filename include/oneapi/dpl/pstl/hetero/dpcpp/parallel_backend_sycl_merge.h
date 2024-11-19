@@ -365,26 +365,30 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         using _RangeValueType = _Range1ValueType;
 
+        const auto __to_read_rng1 = __idx_global_end1 - __idx_global_begin1;
+        const auto __to_read_rng2 = __idx_global_end2 - __idx_global_begin2;
+
         // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
         const std::size_t __required_reading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
-        const std::size_t __wi_for_data_reading1 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__idx_global_end1 - __idx_global_begin1, __required_reading_data_per_wi));
-        const std::size_t __wi_for_data_reading2 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__idx_global_end2 - __idx_global_begin2, __required_reading_data_per_wi));
+        const std::size_t __wi_for_data_reading_all = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng1 + __to_read_rng2, __required_reading_data_per_wi));
+        const std::size_t __wi_for_data_reading1 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng1, __required_reading_data_per_wi));
+        const std::size_t __wi_for_data_reading2 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng2, __required_reading_data_per_wi));
 
         // Now arrange the reading by work-items
-        if (__wi_in_one_wg >= __wi_for_data_reading1 + __wi_for_data_reading2)
+        if (__wi_in_one_wg >= __wi_for_data_reading_all)
         {
             if (__local_id < __wi_for_data_reading1)
             {
                 load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
             }
-            else if (__local_id < __wi_for_data_reading1 + __wi_for_data_reading2)
+            else if (__local_id < __wi_for_data_reading_all)
             {
                 // When we reading data from parallel-working work-items, we should reduce the local id of current work-item
                 // because we calculate reeded data size based on this value.
                 load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id - __wi_for_data_reading1);
             }
         }
-        else if (__local_id < __wi_for_data_reading1 + __wi_for_data_reading2)
+        else if (__local_id < __wi_for_data_reading_all)
         {
             load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
             load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id);
