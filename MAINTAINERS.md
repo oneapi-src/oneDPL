@@ -52,7 +52,7 @@ Responsibilities:
 * Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
 * Submit issues, feature requests, and code in accordance with the [Contribution Guidelines](CONTRIBUTING.md)
 
-Priviledges:
+Privileges:
 * Code contributions recognized in the oneDPL [credits](CREDITS.txt)
 * Eligible to become a Code Owner
 * Read permissions granted to the repository
@@ -61,7 +61,7 @@ Priviledges:
 ## Code Owner
 
 A Code Owner is an established contributor that is recognized by active code owners and maintaininers as capable of
-taking on additional activities and the responsibilities and priviledges that come with them. A Code Owner is
+taking on additional activities and the responsibilities and privileges that come with them. A Code Owner is
 responsible for a specific oneDPL component or functional area of the project. Code Owners are collectively responsible,
 with other Code Owners, for developing and maintaining their component or functional areas, including reviewing all
 changes to the corresponding areas of responsibility and indicating whether those changes are ready to be merged. Code
@@ -79,7 +79,7 @@ Responsibilities in addition to those of Contributors:
 * Enforce the Contribution Guidelines
 * Co-own a component or aspect of the repository, including contributing bug fixes, implementing features, and performance optimizations
 
-Priviledges:
+Privileges:
 * Eligible to become a Maintainer
 * Write permissions granted to the repository
 * Can recommend Contributors to become Code Owners
@@ -103,7 +103,7 @@ Requirements:
   * Track record of major project contributions to a specific project component.
   * Demonstrated deep knowledge of a specific project component.
   * Demonstrated broad knowledge of the project across multiple areas.
-  * Commits to using priviledges responsibly for the good of the project.
+  * Commits to using privileges responsibly for the good of the project.
   * Is able to exercise judgment for the good of the project, independent of
     their employer, friends, or team.
 
@@ -111,7 +111,7 @@ Responsibilities in additionto those of Code Owners:
 * Co-own the technical direction of a component or aspect of the library
 * Co-own the project as a whole, including determining strategy and policy for the project
 
-Priviledges:
+Privileges:
 * Maintain permissions granted to the repository
 * Can participate in promotions of Code Owners and Maintainers
 * Choose project's Milestones during planning
