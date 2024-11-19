@@ -365,10 +365,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         return __wi_for_data_reading;
     }
 
-    template <typename _Range1, typename _Range2, typename _DataType1, typename _DataType2>
+    template <typename _Range, typename _DataType>
     static void
-    load_data_into_slm(_Range1&& __rng1, _DataType1* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
-                       _Range2&& __rng2, _DataType2* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
+    load_data_into_slm(_Range&& __rng1, _DataType* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
+                       _Range&& __rng2, _DataType* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
                        const std::size_t __wi_in_one_wg, const std::size_t __local_id)
     {
         // TODO what size of SLM bank we have now?
@@ -376,10 +376,13 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
         using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+        static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>, "In this implementation we can merge only data of the same type");
+
+        using _RangeValueType = _Range1ValueType;
 
         // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
-        const std::size_t __wi_for_data_reading1 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range1ValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
-        const std::size_t __wi_for_data_reading2 = __calc_wi_amount_for_data_reading<__slm_bank_size, _Range2ValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
+        const std::size_t __wi_for_data_reading1 = __calc_wi_amount_for_data_reading<__slm_bank_size, _RangeValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
+        const std::size_t __wi_for_data_reading2 = __calc_wi_amount_for_data_reading<__slm_bank_size, _RangeValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
 
         // Now arrange the reading by work-items
         if (__wi_in_one_wg >= __wi_for_data_reading1 + __wi_for_data_reading2)
