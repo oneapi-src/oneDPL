@@ -9,6 +9,7 @@ on:
       - main
       - 'release/**'
     paths:
+      - '.github/**/*'
       - 'cmake/**/*'
       - 'include/**/*'
       - 'test/**/*'
