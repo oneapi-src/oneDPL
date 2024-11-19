@@ -302,6 +302,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
         assert(__chunk > 0);
 
+        // Define SLM bank size
+        constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
+
+        // Calculate how many data items we can read into one SLM bank
+        constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
+
         // Pessimistically only use 2/3 of the memory to take into account memory used by compiled kernel
         const auto __slm_adjusted_work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_RangeValueType));
         const auto __slm_adjusted_work_group_size_x_part = __slm_adjusted_work_group_size * 2 / 3;
@@ -388,7 +394,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const std::size_t __chunk_of_data_reading = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg);
+                    const std::size_t __chunk_of_data_reading = std::max(__data_items_in_slm_bank, oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
 
                     const std::size_t __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
                     const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
