@@ -84,7 +84,7 @@ Privileges:
 * Write permissions granted to the repository
 * Can recommend Contributors to become Code Owners
 * Can suggest Milestones during planning
-* Can chose Milestones for a specific component
+* Can choose Milestones for a specific component
 * Can propose new RFC or participate in review of existing RFCs
 
 The process of becoming a Code Owner is:
@@ -107,7 +107,7 @@ Requirements:
   * Is able to exercise judgment for the good of the project, independent of
     their employer, friends, or team.
 
-Responsibilities in additionto those of Code Owners:
+Responsibilities in addition to those of Code Owners:
 * Co-own the technical direction of a component or aspect of the library
 * Co-own the project as a whole, including determining strategy and policy for the project
 
