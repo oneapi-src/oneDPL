@@ -447,7 +447,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-    constexpr std::size_t __starting_size_limit_for_large_submitter = 16 * 1'048'576; // 4 Mb
+    constexpr std::size_t __starting_size_limit_for_large_submitter = 1 * 1'048'576; // 1 Mb
 
     using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
     using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
