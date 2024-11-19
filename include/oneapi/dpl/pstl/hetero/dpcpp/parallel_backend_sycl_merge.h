@@ -280,121 +280,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
-    template <typename _Range, typename _DataType>
-    static void
-    load_data_into_slm_impl(_Range&& __rng, _DataType* __slm,
-                            std::size_t __idx_global_begin, std::size_t __idx_global_end,
-                            std::size_t __wi_in_one_wg, std::size_t __local_id)
-    {
-        // How we load data:
-        /*
-           +-------------------+--------------------------------------------------------------+------------+
-           | Source data index |                   Work-items in one work-group               | SLM index  |
-           +-------------------+--------------------------------------------------------------+------------+
-           |                   | wi(0) | wi(1) | wi(2) | wi(3) | ... | wi(__wi_in_one_wg - 1) |            |  <--- __local_id: in which work-item we are
-           +-------------------+-------+-------+-------+-------+-----+------------------------+------------+
-           |  rng[0]           |       |       |       |       |     |                        |            |  
-           |  rng[1]           |   +   |       |       |       |     |                        | slm[0]     |  <--- __idx_global_begin              \
-           |  rng[2]           |   +   |       |       |       |     |                        | slm[1]     |                                        | SLM bank: write into one SLM bank from one work-item
-           |  rng[3]           |   +   |       |       |       |     |                        | slm[2]     |                                       /
-           |  rng[4]           |       |   +   |       |       |     |                        | slm[3]     |
-           |  rng[5]           |       |   +   |       |       |     |                        | slm[4]     |
-           |  rng[6]           |       |   +   |       |       |     |                        | slm[5]     |
-           |  rng[7]           |       |       |   +   |       |     |                        | slm[6]     |
-           |  rng[8]           |       |       |   +   |       |     |                        | slm[7]     |
-           |  rng[9]           |       |       |   +   |       |     |                        | slm[8]     |
-           |  rng[10]          |       |       |       |   +   |     |                        | slm[9]     |
-           |  rng[11]          |       |       |       |   +   |     |                        | slm[10]    |
-           |  rng[12]          |       |       |       |   +   |     |                        | slm[11]    |
-           |  .....            |       |       |       |       | +++ |                        | ...        |  
-           |  rng[M + 1]       |       |       |       |       |     |           +            | slm[M]     |  
-           |  rng[M + 2]       |       |       |       |       |     |           +            | slm[M + 1] |  
-           |  rng[M + 3]       |       |       |       |       |     |           +            | slm[M + 2] |  
-           |  rng[M + 4]       |       |       |       |       |     |                        | slm[M + 3] |
-           |  rng[M + 5]       |       |       |       |   -   |     |                        |            |  <--- __idx_global_end
-           |  .....            |       |       |       |       | --- |                        |            |  
-           |  rng[M + M + 1]   |       |       |       |       |     |           -            |            |  
-           +-------------------+--------------------------------------------------------------+------------+
-                                                   ^
-                                                   |
-                                              __local_id
-           
-            "+" - load one source data item ito SLM
-        */
-
-        const std::size_t __wg_data_size_rng = __idx_global_end - __idx_global_begin;
-        if (__wg_data_size_rng > 0)
-        {
-            // Calculate the size of the current part of merging data per work-item
-            const std::size_t __loading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__rng.size(), __wi_in_one_wg);
-            assert(__loading_data_per_wi > 0);
-
-            if (__loading_data_per_wi > 1)
-            {
-                const auto __slm_idx_begin = __local_id * __loading_data_per_wi;
-                const auto __slm_idx_end = __slm_idx_begin + __loading_data_per_wi;
-
-                std::size_t __slm_idx = __slm_idx_begin;
-                std::size_t __rng_idx = __idx_global_begin + __slm_idx;
-
-                _ONEDPL_PRAGMA_UNROLL
-                for (; __slm_idx < __slm_idx_end && __rng_idx < __idx_global_end; ++__slm_idx, ++__rng_idx)
-                    __slm[__slm_idx] = __rng[__rng_idx];
-            }
-            else
-            {
-                const std::size_t __rng_idx = __idx_global_begin + __local_id;
-                if (__rng_idx < __idx_global_end)
-                    __slm[__local_id] = __rng[__rng_idx];
-            }
-        }
-    }
-
-    template <typename _Range, typename _DataType>
-    static void
-    load_data_into_slm(_Range&& __rng1, _DataType* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
-                       _Range&& __rng2, _DataType* __slm2, const std::size_t __idx_global_begin2, const std::size_t __idx_global_end2,
-                       const std::size_t __wi_in_one_wg, const std::size_t __local_id)
-    {
-        // TODO what size of SLM bank we have now?
-        constexpr std::size_t __slm_bank_size = 64;     // = 1024;
-
-        using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-        using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
-        static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>, "In this implementation we can merge only data of the same type");
-
-        using _RangeValueType = _Range1ValueType;
-
-        const auto __to_read_rng1 = __idx_global_end1 - __idx_global_begin1;
-        const auto __to_read_rng2 = __idx_global_end2 - __idx_global_begin2;
-
-        // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
-        const std::size_t __required_reading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
-        const std::size_t __wi_for_data_reading_all = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng1 + __to_read_rng2, __required_reading_data_per_wi));
-        const std::size_t __wi_for_data_reading1 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng1, __required_reading_data_per_wi));
-        const std::size_t __wi_for_data_reading2 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__to_read_rng2, __required_reading_data_per_wi));
-
-        // Now arrange the reading by work-items
-        if (__wi_in_one_wg >= __wi_for_data_reading_all)
-        {
-            if (__local_id < __wi_for_data_reading1)
-            {
-                load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
-            }
-            else if (__local_id < __wi_for_data_reading_all)
-            {
-                // When we reading data from parallel-working work-items, we should reduce the local id of current work-item
-                // because we calculate reeded data size based on this value.
-                load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id - __wi_for_data_reading1);
-            }
-        }
-        else if (__local_id < __wi_for_data_reading_all)
-        {
-            load_data_into_slm_impl(__rng1, __slm1, __idx_global_begin1, __idx_global_end1, __wi_for_data_reading1, __local_id);
-            load_data_into_slm_impl(__rng2, __slm2, __idx_global_begin2, __idx_global_end2, __wi_for_data_reading2, __local_id);
-        }
-    }
-
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
@@ -498,34 +383,34 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
-                    _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
-                    _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+                    const _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
+                    const _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
 
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const bool __need_load_data = __rng1_wg_data_size > 0 || __rng2_wg_data_size > 0;
-                    const bool __need_merge_data = __global_linear_id * __chunk < __n;
+                    // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                    const _IdType __i_elem = __local_id * __chunk;
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
-                    if (__need_load_data)
-                    {
-                        load_data_into_slm(__rng1, __rng1_cache_slm, __sp_base_left_global.first,  __sp_base_right_global.first,
-                                           __rng2, __rng2_cache_slm, __sp_base_left_global.second, __sp_base_right_global.second,
-                                           __wi_in_one_wg, __local_id);
-                    }
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (_IdType __idx = __i_elem; __idx < __i_elem + __chunk && __sp_base_left_global.first + __idx < __sp_base_right_global.first; ++__idx)
+                        __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (_IdType __idx = __i_elem; __idx < __i_elem + __chunk && __sp_base_left_global.second + __idx < __sp_base_right_global.second; ++__idx)
+                        __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
 
                     // Current diagonal inside of the merge matrix?
-                    if (__need_merge_data)
+                    if (__global_linear_id * __chunk < __n)
                     {
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
                             __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
-                            (_IdType)(__local_id * __chunk),                            // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                            __i_elem,                                                   // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
                             __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
                             __comp);
 
