@@ -310,7 +310,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         // Pessimistically only use 2/3 of the memory to take into account memory used by compiled kernel
         const auto __slm_adjusted_work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_RangeValueType));
-        const auto __slm_adjusted_work_group_size_x_part = __slm_adjusted_work_group_size * 2 / 3;
+        const auto __slm_adjusted_work_group_size_x_part = __slm_adjusted_work_group_size * 4 / 5;
         const std::size_t __max_slm_size_adj = __slm_adjusted_work_group_size_x_part;
 
         // The amount of data must be a multiple of the chunk size.
