@@ -385,24 +385,38 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     const _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
                     const _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+                    const _IdType __rng_wg_data_size = __rng1_wg_data_size + __rng2_wg_data_size;
 
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                    const _IdType __i_elem = __local_id * __chunk;
-                    const _IdType __i_elem_next = (__local_id + 1) * __chunk;
+                    const std::size_t __chunk_of_data_reading = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_wg_data_size, __wi_in_one_wg);
+                    const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
+                    if (__idx_begin < __rng_wg_data_size)
+                    {
+                        const _IdType __idx_end = std::min(__idx_begin + __chunk_of_data_reading, (std::size_t)__rng_wg_data_size);
 
-                    // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
-                    _IdType __idx_end = std::min(__i_elem_next, __rng1_wg_data_size);
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (_IdType __idx = __i_elem; __idx < __idx_end; ++__idx)
-                        __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
+                        // Cooperative data load from __rng1 to __rng1_cache_slm
+                        if (__idx_begin < __rng1_wg_data_size)
+                        {
+                            const _IdType __idx_begin_rng1 = __idx_begin;
+                            const _IdType __idx_end_rng1 = std::min(__idx_end, __rng1_wg_data_size);
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (_IdType __idx = __idx_begin_rng1; __idx < __idx_end_rng1; ++__idx)
+                                __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
+                        }
 
-                    __idx_end = std::min(__i_elem_next, __rng2_wg_data_size);
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (_IdType __idx = __i_elem; __idx < __idx_end; ++__idx)
-                        __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
+                        // Cooperative data load from __rng2 to __rng1_cache_slm
+                        if (__idx_end > __rng1_wg_data_size)
+                        {
+                            const _IdType __idx_begin_rng2 = 0;
+                            const _IdType __idx_end_rng2 = __idx_end - __rng1_wg_data_size;
+
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (_IdType __idx = __idx_begin_rng2; __idx < __idx_end_rng2; ++__idx)
+                                __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
+                        }
+                    }
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
@@ -414,7 +428,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
                             __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
-                            __i_elem,                                                   // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                            (_IdType)(__local_id * __chunk),                            // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
                             __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
                             __comp);
 
@@ -459,7 +473,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     constexpr bool __same_merge_types = std::is_same_v<_Range1ValueType, _Range2ValueType>;
 
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (__n < __starting_size_limit_for_large_submitter || !__same_merge_types)
+    if (false)//if (__n < __starting_size_limit_for_large_submitter || !__same_merge_types)
     {
         static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
 
