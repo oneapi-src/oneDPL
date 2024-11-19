@@ -390,7 +390,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const std::size_t __chunk_of_data_reading = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_wg_data_size, __wi_in_one_wg);
+                    constexpr std::size_t __slm_bank_size = 32;
+
+                    const std::size_t __chunk_of_data_reading = std::max(
+                        oneapi::dpl::__internal::__dpl_ceiling_div(__rng_wg_data_size, __wi_in_one_wg),
+                        oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, 2 * sizeof(_RangeValueType)));
                     const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
                     if (__idx_begin < __rng_wg_data_size)
                     {
