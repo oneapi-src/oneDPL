@@ -280,53 +280,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
-    // Create local accessors for data cache in SLM:
-    //  - one accessor for the first and for the second ranges if _Range1 and _Range2 has the SAME value types;
-    //  - two accessors for the first and for the second ranges if _Range1 and _Range2 has DIFFERENT value types.
-    struct __merge_slm_helper
-    {
-        template <typename _Range1, typename _Range2>
-        static std::size_t
-        get_data_size(_Range1&& __rng1, _Range2&& __rng2)
-        {
-            using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-            using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
-
-            return sizeof(_Range1ValueType) + sizeof(_Range2ValueType);
-        }
-
-        template <typename _Range1, typename _Range2>
-        static constexpr auto
-        create_local_accessors(sycl::handler& __cgh, _Range1&& __rng1, _Range2&& __rng2,
-                               std::size_t __slm_cached_data_size)
-        {
-            using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-            using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
-
-            if constexpr (std::is_same_v<_Range1ValueType, _Range2ValueType>)
-                return std::tuple<__dpl_sycl::__local_accessor<_Range1ValueType>>(
-                    __dpl_sycl::__local_accessor<_Range1ValueType>(2 * __slm_cached_data_size, __cgh));
-            else
-                return std::tuple<__dpl_sycl::__local_accessor<_Range1ValueType>,
-                                  __dpl_sycl::__local_accessor<_Range2ValueType>>(
-                    __dpl_sycl::__local_accessor<_Range1ValueType>(__slm_cached_data_size, __cgh),
-                    __dpl_sycl::__local_accessor<_Range2ValueType>(__slm_cached_data_size, __cgh));
-        }
-
-        template <std::size_t AccessorIdx, typename AccessorsTuple>
-        static auto
-        get_local_accessor(AccessorsTuple& __loc_acc_pack, std::size_t __offset = 0)
-        {
-            static_assert(std::tuple_size_v<AccessorsTuple> == 1 || std::tuple_size_v<AccessorsTuple> == 2);
-
-            if constexpr (std::tuple_size_v<AccessorsTuple> == 1)
-                return std::pair(std::get<0>(__loc_acc_pack), __offset);
-
-            else
-                return std::pair(std::get<AccessorIdx>(__loc_acc_pack), 0);
-        }
-    };
-
     template <typename _Range, typename _DataType>
     static void
     load_data_into_slm_impl(_Range&& __rng, _DataType* __slm,
@@ -457,6 +410,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
         static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>, "In this implementation we can merge only data of the same type");
 
+        using _RangeValueType = _Range1ValueType;
+
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;
@@ -472,8 +427,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         // Pessimistically only use half of the memory to take into account memory used by compiled kernel
         const std::size_t __max_slm_size_adj = 
             std::max((std::size_t)__chunk,
-                     std::min((std::size_t)__n,
-                               oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, __merge_slm_helper::get_data_size(__rng1, __rng2))));
+                     std::min((std::size_t)__n, oneapi::dpl::__internal::__slm_adjusted_work_group_size(
+                                                                 __exec, 2 * sizeof(_RangeValueType))));
 
         // The amount of data must be a multiple of the chunk size.
         const std::size_t __max_source_data_items_fit_into_slm = __max_slm_size_adj - __max_slm_size_adj % __chunk;
@@ -529,7 +484,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto __base_diagonals_sp_global_ptr = __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
             const std::size_t __slm_cached_data_size = __wi_in_one_wg * __chunk;
-            auto __loc_acc_pack = __merge_slm_helper::create_local_accessors(__cgh, __rng1, __rng2, __slm_cached_data_size);
+            __dpl_sycl::__local_accessor<_RangeValueType> __loc_acc(2 * __slm_cached_data_size, __cgh);
 
             // Run nd_range parallel_for to process all the data
             // - each work-group caching source data in SLM and processing diagonals between two base diagonals;
@@ -542,12 +497,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const std::size_t __local_id = __nd_item.get_local_id(0);                   // Merge sub-matrix LOCAL diagonal's index
                     const std::size_t __group_linear_id = __nd_item.get_group_linear_id();      // Merge matrix base diagonal's GLOBAL index
 
-                    _IdType __rng1_wg_data_size = 0;
-                    _IdType __rng2_wg_data_size = 0;
-
-                    _Range1ValueType* __rng1_cache_slm = nullptr;
-                    _Range1ValueType* __rng2_cache_slm = nullptr;
-
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
                     const _split_point_t<std::size_t>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
@@ -556,19 +505,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
-                    __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
-                    __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+                    _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
+                    _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+
+                    _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
+                    _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
                     const bool __need_load_data = __rng1_wg_data_size > 0 || __rng2_wg_data_size > 0;
                     const bool __need_merge_data = __global_linear_id * __chunk < __n;
-
-                    if (__need_load_data || __need_merge_data)
-                    {
-                        auto [__rng1_loc_acc, __offset_to_slm1] = __merge_slm_helper::template get_local_accessor<0>(__loc_acc_pack);
-                        auto [__rng2_loc_acc, __offset_to_slm2] = __merge_slm_helper::template get_local_accessor<1>(__loc_acc_pack, __rng1_wg_data_size);
-                        __rng1_cache_slm = std::addressof(__rng1_loc_acc[0]) + __offset_to_slm1;
-                        __rng2_cache_slm = std::addressof(__rng2_loc_acc[0]) + __offset_to_slm2;
-                    }
 
                     // Cooperative data load from __rng1 to __rng1_cache_slm, from __rng2 to __rng1_cache_slm
                     if (__need_load_data)
