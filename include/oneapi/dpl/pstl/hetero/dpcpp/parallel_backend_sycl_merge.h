@@ -455,7 +455,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     constexpr bool __same_merge_types = std::is_same_v<_Range1ValueType, _Range2ValueType>;
 
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (false)  //if (__n < __starting_size_limit_for_large_submitter || !__same_merge_types)
+    if (__n < __starting_size_limit_for_large_submitter || !__same_merge_types)
     {
         static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
 
