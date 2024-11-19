@@ -631,24 +631,12 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     {
         static_assert(__starting_size_limit_for_large_submitter < std::numeric_limits<std::uint32_t>::max());
 
-        if (__n <= std::numeric_limits<std::uint16_t>::max())
-        {
-            using _WiIndex = std::uint16_t;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __merge_kernel_name<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
-                std::forward<_Range3>(__rng3), __comp);
-        }
-        else
-        {
-            using _WiIndex = std::uint32_t;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __merge_kernel_name<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
-                std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
-                std::forward<_Range3>(__rng3), __comp);
-        }
+        using _WiIndex = std::uint32_t;
+        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name<_CustomName, _WiIndex>>;
+        return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+            std::forward<_Range3>(__rng3), __comp);
     }
     else
     {
