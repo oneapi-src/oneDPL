@@ -299,7 +299,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
         // Empirical number of values to process per work-item
-        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 8;
+        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
         assert(__chunk > 0);
 
         // Pessimistically only use half of the memory to take into account memory used by compiled kernel
