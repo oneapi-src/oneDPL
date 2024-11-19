@@ -350,21 +350,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         }
     }
 
-    template <const std::size_t __slm_bank_size, typename _RangeValueType>
-    static std::size_t
-    __calc_wi_amount_for_data_reading(const std::size_t __wi_in_one_wg, const std::size_t __reading_data)
-    {
-        std::size_t __wi_for_data_reading = 0;
-        if (__reading_data > 0)
-        {
-            const std::size_t __required_reading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
-
-            __wi_for_data_reading = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__reading_data, __required_reading_data_per_wi));
-        }
-
-        return __wi_for_data_reading;
-    }
-
     template <typename _Range, typename _DataType>
     static void
     load_data_into_slm(_Range&& __rng1, _DataType* __slm1, const std::size_t __idx_global_begin1, const std::size_t __idx_global_end1,
@@ -381,8 +366,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         using _RangeValueType = _Range1ValueType;
 
         // Calculate how many work-items should read the part of __rng1 and __rng2 into SLM cache
-        const std::size_t __wi_for_data_reading1 = __calc_wi_amount_for_data_reading<__slm_bank_size, _RangeValueType>(__wi_in_one_wg, __idx_global_end1 - __idx_global_begin1);
-        const std::size_t __wi_for_data_reading2 = __calc_wi_amount_for_data_reading<__slm_bank_size, _RangeValueType>(__wi_in_one_wg, __idx_global_end2 - __idx_global_begin2);
+        const std::size_t __required_reading_data_per_wi = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
+        const std::size_t __wi_for_data_reading1 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__idx_global_end1 - __idx_global_begin1, __required_reading_data_per_wi));
+        const std::size_t __wi_for_data_reading2 = std::min(__wi_in_one_wg, oneapi::dpl::__internal::__dpl_ceiling_div(__idx_global_end2 - __idx_global_begin2, __required_reading_data_per_wi));
 
         // Now arrange the reading by work-items
         if (__wi_in_one_wg >= __wi_for_data_reading1 + __wi_for_data_reading2)
