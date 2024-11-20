@@ -326,15 +326,15 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        // Empirical number of values to process per work-item
-        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
-        assert(__chunk > 0);
-
         // Define SLM bank size
         constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
 
         // Calculate how many data items we can read into one SLM bank
         constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
+
+        // Empirical number of values to process per work-item
+        _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
+        assert(__chunk > 0);
 
         // Pessimistically only use 2/3 of the memory to take into account memory used by compiled kernel
         const auto __slm_adjusted_work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_RangeValueType));
@@ -352,6 +352,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         // The amount of the base diagonals is the amount of the work-groups
         //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
         const std::size_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __wi_in_one_wg);
+
+        assert(__wg_count * __wi_in_one_wg * __chunk >= __n);
 
         // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         //  - in GLOBAL coordinates
