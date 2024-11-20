@@ -446,7 +446,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         }
                     }
 
-                    const std::size_t __first_wi_local_id_for_read_rng2 = __wi_in_one_wg - __how_many_wi_reads_rng2 - 1;
+                    const std::size_t __first_wi_local_id_for_read_rng2 = __wi_in_one_wg - __how_many_wi_reads_rng2;
                     if (__local_id >= __first_wi_local_id_for_read_rng2)
                     {
                         const _IdType __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
