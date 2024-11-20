@@ -26,6 +26,8 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 
+//#define DUMP_DATA_LOADING 1
+
 namespace oneapi
 {
 namespace dpl
@@ -280,6 +282,20 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
+#if DUMP_DATA_LOADING
+    template <typename _Range, typename _Index, typename _Data>
+    static void
+    __load_item_into_slm(_Range&& __rng, _Index __idx_from, _Data* __slm, _Index __idx_to, std::size_t __range_index,
+                         bool __b_check, std::size_t __group_linear_id, std::size_t __local_id)
+    {
+        // BP
+        //  condition: __b_check
+        //  action: __range_index = {__range_index}, __rng[{__idx_from}] -> __slm[{__idx_to}], __group_linear_id = {__group_linear_id}, __local_id = {__local_id}
+        //  action: {__range_index}, {__idx_from}, {__idx_to}, {__group_linear_id}, {__local_id}
+        __slm[__idx_to] = __rng[__idx_from];
+    }
+#endif
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
@@ -293,6 +309,18 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;
+
+#if DUMP_DATA_LOADING
+        //const bool __b_check = __n1 == 16144 && __n2 == 8072;
+        //const bool __b_check = __n1 == 50716 && __n2 == 25358;      // __wi_in_one_wg = 51 __wg_count = 12
+        const bool __b_check = false;
+
+        if (__b_check)
+        {
+            int i = 0;
+            i = i;
+        }
+#endif
 
         assert(__n1 > 0 || __n2 > 0);
 
@@ -410,7 +438,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
+#if !DUMP_DATA_LOADING
                                 __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
+#else
+                                __load_item_into_slm(__rng1, __sp_base_left_global.first + __idx, __rng1_cache_slm, __idx, 1, __b_check, __group_linear_id, __local_id);
+#endif
                         }
                     }
 
@@ -426,12 +458,43 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
+#if !DUMP_DATA_LOADING
                                 __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
+#else
+                                __load_item_into_slm(__rng2, __sp_base_left_global.second + __idx, __rng2_cache_slm, __idx, 2, __b_check, __group_linear_id, __local_id);
+#endif
                         }
                     }
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
+
+#if DUMP_DATA_LOADING
+                    if (__local_id == 0)
+                    {
+                        for (auto i = __sp_base_left_global.first; i < __sp_base_right_global.first; ++i)
+                        {
+                            auto _idx_slm = i - __sp_base_left_global.first;
+                            if (__rng1_cache_slm[_idx_slm] != __rng1[i])
+                            {
+                                auto __group_linear_id_tmp = __group_linear_id;
+                                __group_linear_id_tmp = __group_linear_id_tmp;
+                                assert(false);
+                            }
+                        }
+
+                        for (auto i = __sp_base_left_global.second; i < __sp_base_right_global.second; ++i)
+                        {
+                            auto _idx_slm = i - __sp_base_left_global.second;
+                            if (__rng2_cache_slm[_idx_slm] != __rng2[i])
+                            {
+                                auto __group_linear_id_tmp = __group_linear_id;
+                                __group_linear_id_tmp = __group_linear_id_tmp;
+                                assert(false);
+                            }
+                        }
+                    }
+#endif
 
                     // Current diagonal inside of the merge matrix?
                     if (__global_linear_id * __chunk < __n)
