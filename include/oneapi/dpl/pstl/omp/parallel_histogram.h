@@ -40,9 +40,14 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
     auto __policy1 = oneapi::dpl::__omp_backend::__chunk_partitioner(__first, __last);
     auto __policy2 = oneapi::dpl::__omp_backend::__chunk_partitioner(__histogram_first, __histogram_first + __num_bins);
 
-    std::vector<std::vector<_HistogramValueT>> __local_histograms(__num_threads, std::vector<_HistogramValueT>(__num_bins, _HistogramValueT{0}));
+    std::vector<std::vector<_HistogramValueT>> __local_histograms(__num_threads);
 
     //TODO: use histogram output for zeroth thread?
+    _PSTL_PRAGMA(omp taskloop shared(__local_histograms))
+    for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
+    {
+        __local_histograms[__tid].resize(__num_bins, _HistogramValueT{0});
+    }
 
     // main loop
     _PSTL_PRAGMA(omp taskloop shared(__local_histograms))
