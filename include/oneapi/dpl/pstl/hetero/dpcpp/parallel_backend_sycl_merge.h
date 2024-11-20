@@ -305,7 +305,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
 
         // Empirical number of values to process per work-item
-        _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
+        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
@@ -315,17 +315,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::size_t __slm_mem_size_x_part = __slm_mem_size * 4 / 5;
 
         // Calculate how many items count we may place into SLM memory
-        const auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
+        auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
-        std::size_t __wi_in_one_wg = __slm_cached_items_count / __chunk;
-        const std::size_t __max_wi_in_one_wg = __exec.queue().get_device().template get_info<sycl::info::device::max_work_item_sizes<1>>()[0];
-        if (__wi_in_one_wg > __max_wi_in_one_wg)
-        {
-            __chunk = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_cached_items_count, __max_wi_in_one_wg);
-            __wi_in_one_wg = __slm_cached_items_count / __chunk;
-            assert(__wi_in_one_wg <= __max_wi_in_one_wg);
-        }
+        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+        const std::size_t __wi_in_one_wg = std::min(__max_wg_size, __slm_cached_items_count / __chunk);
         assert(__wi_in_one_wg > 0);
 
         // The amount of the base diagonals is the amount of the work-groups
