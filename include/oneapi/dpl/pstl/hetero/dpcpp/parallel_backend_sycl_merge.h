@@ -394,20 +394,20 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const std::size_t __chunk_of_data_reading = std::max(__data_items_in_slm_bank, oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
+                    const _IdType __chunk_of_data_reading = std::max(__data_items_in_slm_bank, oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
 
-                    const std::size_t __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
-                    const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
+                    const _IdType __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
+                    const _IdType __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
                     
                     // Calculate the amount of WI for read data from rng1
                     if (__local_id < __how_many_wi_reads_rng1)
                     {
-                        const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
+                        const _IdType __idx_begin = __local_id * __chunk_of_data_reading;
 
                         // Cooperative data load from __rng1 to __rng1_cache_slm
                         if (__idx_begin < __rng1_wg_data_size)
                         {
-                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, (std::size_t)__rng1_wg_data_size);
+                            const _IdType __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng1_wg_data_size);
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
@@ -418,12 +418,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const std::size_t __first_wi_local_id_for_read_rng2 = __wi_in_one_wg - __how_many_wi_reads_rng2 - 1;
                     if (__local_id >= __first_wi_local_id_for_read_rng2)
                     {
-                        const std::size_t __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
+                        const _IdType __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
 
                         // Cooperative data load from __rng2 to __rng2_cache_slm
                         if (__idx_begin < __rng2_wg_data_size)
                         {
-                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, (std::size_t)__rng2_wg_data_size);
+                            const _IdType __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng2_wg_data_size);
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
