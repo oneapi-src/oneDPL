@@ -382,8 +382,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     // Split points on left anr right base diagonals
                     //  - in GLOBAL coordinates
-                    const _split_point_t<std::size_t>& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
-                    const _split_point_t<std::size_t>& __sp_base_right_global = __base_diagonals_sp_global_ptr[__group_linear_id + 1]; 
+                    const auto& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__group_linear_id];
+                    const auto& __sp_base_right_global = __base_diagonals_sp_global_ptr[__group_linear_id + 1]; 
 
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
