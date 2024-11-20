@@ -1,8 +1,8 @@
 # Introduction
 
 This document defines the roles available in the oneDPL project and provides a list of the
-[current maintainers](Current Maintainers) for each area of development in oneDPL. The document also defines the
-process for maintainers to [Leave the Role](leave the role) in the project.
+[current maintainers](#Current Maintainers) for each area of development in oneDPL. The document also defines the
+process for maintainers to [Leave the Role](#Leaving A Role) in the project.
 
 # Roles and Responsibilities
 
@@ -139,7 +139,7 @@ There are currently no Code Owners identified for oneDPL.
 | Dynamic Selection API | Anuya Welling | @AnuyaWelling2801 |
 | Kernel Templates API | Sergey Kopienko<br>Dmitriy Sobolev | @SergeyKopienko<br>@dmitriy-sobolev |
 
-## Leaving the Role of Code Owner or Maintainer
+## Leaving A Role
 
 Active code owners and maintainers of the oneDPL project may leave their current role by submitting a PR removing their
 name from the list of current maintainers or code owners and tagging two or more active maintainers to review and
