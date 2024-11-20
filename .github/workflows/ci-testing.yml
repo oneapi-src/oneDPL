@@ -13,6 +13,8 @@ on:
       - 'cmake/**/*'
       - 'include/**/*'
       - 'test/**/*'
+      - 'CMakeLists.txt'
+      - '.clang-format'
 
 
 

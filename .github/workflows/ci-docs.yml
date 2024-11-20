@@ -11,15 +11,6 @@ on:
 
 permissions: read-all
 
-env:
-  BUILD_CONCURRENCY: 4
-  MACOS_BUILD_CONCURRENCY: 3
-  TEST_TIMEOUT: 360
-  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/8222de4d-2c5e-41bc-bdd5-f557a9edda28/w_tbb_oneapi_p_2021.13.0.627_offline.exe
-  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7991e201-ca0f-4689-bdb6-1ed73a8246fd/w_dpcpp-cpp-compiler_p_2024.2.0.491_offline.exe
-  WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
-  LINUX_ONEAPI_PATH: /opt/intel/oneapi
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !contains(github.ref, 'refs/heads/main') }}
