@@ -25,13 +25,45 @@ main()
     //A checker below modifies a return type; a range based version with policy has another return type.
     auto merge_checker = [](std::ranges::random_access_range auto&& r_1,
                                        std::ranges::random_access_range auto&& r_2,
-                                       std::ranges::random_access_range auto&& r_out, auto&&... args)
+                                       std::ranges::random_access_range auto&& r_out, auto comp, auto proj1,
+                                       auto proj2, auto&&... args)
     {
-        auto res = std::ranges::merge(std::forward<decltype(r_1)>(r_1), std::forward<decltype(r_2)>(r_2),
-            std::ranges::begin(r_out), std::forward<decltype(args)>(args)...);
-
         using ret_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<decltype(r_1)>,
             std::ranges::borrowed_iterator_t<decltype(r_2)>, std::ranges::borrowed_iterator_t<decltype(r_out)>>;
+
+        auto it_out = std::ranges::begin(r_out);
+        auto it_1 = std::ranges::begin(r_1);
+        auto it_2 = std::ranges::begin(r_2);
+        for(;;)
+        {
+            if(it_out == std::ranges::end(r_out))
+                return ret_type{res.in1, res.in2, res.out};
+            
+            if(it_1 == std::ranges::end(r_1))
+            {
+                for(auto it_2 = std::ranges::begin(r_2) && it_out != std::ranges::end(r_out); ++it_2, ++it_out)
+                     *it_out = *it_2;
+                return ret_type{res.in1, res.in2, res.out};
+            }
+            else if(it_2 == std::ranges::end(r_2))
+            {
+                for(auto it_1 = std::ranges::begin(r_1) && it_out != std::ranges::end(r_out); ++it_1, ++it_out)
+                     *it_out = *it_1;
+                return ret_type{res.in1, res.in2, res.out};
+            }
+
+            if (std::invoke(comp, std::invoke(proj1, *it_1), std::invoke(proj2, *it_2)))
+            {
+                *it_out = *it_1;
+                ++it_1, ++it_out;
+            }
+            else
+            {
+                *it_out = *it_2;
+                ++it_2, ++it_out;
+            }
+        }
+
         return ret_type{res.in1, res.in2, res.out};
     };
 
