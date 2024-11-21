@@ -299,13 +299,13 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
         // Define SLM bank size
-        constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
+        //constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
 
         // Calculate how many data items we can read into one SLM bank
-        constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
+        //constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
 
         // Empirical number of values to process per work-item
-        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
+        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;// __data_items_in_slm_bank;
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
@@ -396,7 +396,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const _IdType __chunk_of_data_reading = std::max(__data_items_in_slm_bank, oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
+                    const _IdType __chunk_of_data_reading = std::max(__chunk/*__data_items_in_slm_bank*/, (_IdType)oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
 
                     const _IdType __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
                     const _IdType __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
