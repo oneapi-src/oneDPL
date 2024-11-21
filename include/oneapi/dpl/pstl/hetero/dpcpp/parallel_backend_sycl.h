@@ -804,6 +804,9 @@ struct __gen_red_by_seg_reduce_input
         const auto __in_keys = std::get<0>(__in_rng.tuple());
         const auto __in_vals = std::get<1>(__in_rng.tuple());
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
+        // The first segment start (index 0) is not marked with a 1. This is because we need the first
+        // segment's key and value output index to be 0. We begin marking new segments only after the
+        // first.
         const std::size_t __new_seg_mask = __id > 0 && !__binary_pred(__in_keys[__id - 1], __in_keys[__id]);
         return oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]});
     }
@@ -847,7 +850,7 @@ struct __gen_red_by_seg_scan_input
                 oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true, __current_key,
                 __current_key); // Passing __current_key as the next key for the last element is a placeholder
         }
-        else
+        else // __id == 0
         {
             const _KeyType& __next_key = __in_keys[__id + 1];
             return oneapi::dpl::__internal::make_tuple(
@@ -869,7 +872,7 @@ struct __red_by_seg_op
     {
         using std::get;
         // The left-hand side has processed elements from the same segment, so update the reduction value.
-        if (std::get<0>(__rhs_tup) == 0)
+        if (get<0>(__rhs_tup) == 0)
         {
             return oneapi::dpl::__internal::make_tuple(get<0>(__lhs_tup),
                                                        __binary_op(get<1>(__lhs_tup), get<1>(__rhs_tup)));
@@ -899,6 +902,11 @@ struct __write_red_by_seg
         const bool __is_seg_end = get<1>(__tup);
         const std::size_t __out_idx = get<0>(get<0>(__tup));
 
+        // With the exception of the first key which is output by index 0, the first key in each segment is written
+        // by the work item that outputs the previous segment's reduction value. This is because the reduce_by_segment
+        // API requires that the first key in a segment is output and is important for when keys in a segment might not
+        // be the same (but satisfy the predicate). The last segment does not output a key as there are no future
+        // segments process.
         if (__id == 0)
             __out_keys[0] = __current_key;
         if (__is_seg_end)
