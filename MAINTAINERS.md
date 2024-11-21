@@ -123,17 +123,17 @@ The process of becoming a Maintainer is:
 1. A Code Owner is nominated by a current Maintainer by opening a PR modifying the MAINTAINERS.md file to move the code owner into the Current Maintainers section.
 2. A majority of the Current Maintainers must approve the PR.
 
-## Leave A Role
+## <a name="leavearole"></a>Leave A Role
 
 Active code owners and maintainers of the oneDPL project may leave their current role by submitting a PR removing their
 name from the list of current maintainers or code owners and tagging two or more active maintainers to review and
 approve the PR.
 
-## Current Code Owners
+## <a name="currentcodeowners"></a>Current Code Owners
 
 There are currently no Code Owners identified for oneDPL.
 
-## Current Maintainers
+## <a name="currentmaintainers"></a>Current Maintainers
 
 | Feature               | Maintainer          | Github ID |
 | --------------------- | ------------------- | -------- |
