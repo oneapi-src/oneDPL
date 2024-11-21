@@ -39,7 +39,7 @@ The oneDPL project defines three primary roles:
 These roles are merit based. Refer to the corresponding section for specific
 requirements and the nomination process.
 
-## Contributor
+## <a name="contributor"></a>Contributor
 
 A Contributor can invest their time and resources in several different ways to improve oneDPL
 * Answering questions from community members in Discussions on Issues
@@ -58,7 +58,7 @@ Privileges:
 * Read permissions granted to the repository
 * Can suggest Milestones during planning
 
-## Code Owner
+## <a name="codeowner"></a>Code Owner
 
 A Code Owner is an established contributor that is recognized by active code owners and maintaininers as capable of
 taking on additional activities and the responsibilities and privileges that come with them. A Code Owner is
@@ -93,7 +93,7 @@ affiliation.
 2. At least two specific component Maintainers approve the PR.
 3. MAINTAINERS.md file is updated to represent corresponding areas of responsibility.
 
-## Maintainer
+## <a name="maintainer"></a>Maintainer
 
 A Maintainer is one of the most established contributors who are responsible for the project technical direction and
 participate in making decisions about strategy and priorities of the project.
