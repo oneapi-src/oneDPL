@@ -146,7 +146,6 @@ struct __subgroup_radix_sort
         auto
         operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_counter)
         {
-            constexpr std::uint16_t __req_sub_group_size = 16;
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
 
