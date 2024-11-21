@@ -119,6 +119,10 @@ Privileges:
 * Can manage release process of the project
 * Can represent the project in public as a Maintainer
 
+The process of becoming a Maintainer is:
+1. A Code Owner is nominated by a current Maintainer by opening a PR modifying the MAINTAINERS.md file to move the code owner into the Current Maintainers section.
+2. A majority of the Current Maintainers must approve the PR.
+
 ## Code Owners
 
 There are currently no Code Owners identified for oneDPL.
