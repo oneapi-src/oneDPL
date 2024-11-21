@@ -1,8 +1,8 @@
 # Introduction
 
 This document defines the roles available in the oneDPL project and provides a list of the
-[Current Maintainers](#currentmaintainers) for each area of development in oneDPL. The document also defines the
-process for maintainers to [Leave A Role](#leavearole) in the project.
+[Current Code Owners](#currentcodeowners) and [Current Maintainers](#currentmaintainers) for each area of development
+in oneDPL. The document also defines the process for maintainers to [Leave A Role](#leavearole) in the project.
 
 # Roles and Responsibilities
 
@@ -123,7 +123,13 @@ The process of becoming a Maintainer is:
 1. A Code Owner is nominated by a current Maintainer by opening a PR modifying the MAINTAINERS.md file to move the code owner into the Current Maintainers section.
 2. A majority of the Current Maintainers must approve the PR.
 
-## Code Owners
+## Leave A Role
+
+Active code owners and maintainers of the oneDPL project may leave their current role by submitting a PR removing their
+name from the list of current maintainers or code owners and tagging two or more active maintainers to review and
+approve the PR.
+
+## Current Code Owners
 
 There are currently no Code Owners identified for oneDPL.
 
@@ -142,9 +148,3 @@ There are currently no Code Owners identified for oneDPL.
 | Random Number Generators | Pavel Dyakov | @paveldyakov |
 | Dynamic Selection API | Anuya Welling | @AnuyaWelling2801 |
 | Kernel Templates API | Sergey Kopienko<br>Dmitriy Sobolev | @SergeyKopienko<br>@dmitriy-sobolev |
-
-## Leave A Role
-
-Active code owners and maintainers of the oneDPL project may leave their current role by submitting a PR removing their
-name from the list of current maintainers or code owners and tagging two or more active maintainers to review and
-approve the PR.
