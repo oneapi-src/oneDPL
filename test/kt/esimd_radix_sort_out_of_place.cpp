@@ -210,13 +210,13 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
-    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(q, size, TestUtils::adjust_kernel_name<0>(param));
-    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(q, size, TestUtils::adjust_kernel_name<1>(param));
-    test_sycl_iterators<T, IsAscending, RadixBits>(q, size, TestUtils::adjust_kernel_name<2>(param));
-    test_sycl_buffer<T, IsAscending, RadixBits>(q, size, TestUtils::adjust_kernel_name<3>(param));
+    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(q, size, TestUtils::create_new_kernel_param_idx<0>(param));
+    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(q, size, TestUtils::create_new_kernel_param_idx<1>(param));
+    test_sycl_iterators<T, IsAscending, RadixBits>(q, size, TestUtils::create_new_kernel_param_idx<2>(param));
+    test_sycl_buffer<T, IsAscending, RadixBits>(q, size, TestUtils::create_new_kernel_param_idx<3>(param));
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, IsAscending, RadixBits>(q, size, TestUtils::adjust_kernel_name<4>(param));
-    test_subrange_view<T, IsAscending, RadixBits>(q, size, TestUtils::adjust_kernel_name<5>(param));
+    test_all_view<T, IsAscending, RadixBits>(q, size, TestUtils::create_new_kernel_param_idx<4>(param));
+    test_subrange_view<T, IsAscending, RadixBits>(q, size, TestUtils::create_new_kernel_param_idx<5>(param));
 #endif // _ENABLE_RANGES_TESTING
 }
 
@@ -242,11 +242,11 @@ main()
             for (auto size : sort_sizes)
             {
                 test_general_cases<TEST_KEY_TYPE, Ascending, TestRadixBits>(
-                    q, size, TestUtils::adjust_kernel_name<0>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<0>(params));
                 test_general_cases<TEST_KEY_TYPE, Descending, TestRadixBits>(
-                    q, size, TestUtils::adjust_kernel_name<1>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<1>(params));
             }
-            test_small_sizes<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, TestUtils::adjust_kernel_name<3>(params));
+            test_small_sizes<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, TestUtils::create_new_kernel_param_idx<3>(params));
         }
         catch (const ::std::exception& exc)
         {

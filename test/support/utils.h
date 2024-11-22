@@ -48,7 +48,6 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "utils_sycl.h"
 #    include "oneapi/dpl/experimental/kt/kernel_param.h"
-#    include "oneapi/dpl/execution" // for oneapi::dpl::execution::DefaultKernelName
 #endif
 
 namespace TestUtils
@@ -966,20 +965,16 @@ struct kernel_name_with_idx
 {
 };
 
-template <int idx, typename KernelParams>
+template <int idx, typename KernelParam>
 constexpr auto
-adjust_kernel_name([[maybe_unused]] KernelParams params)
+create_new_kernel_param_idx(KernelParam)
 {
-    auto new_params = oneapi::dpl::experimental::kt::kernel_param<
-        KernelParams::data_per_workitem, KernelParams::workgroup_size,
-        kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
 #if TEST_EXPLICIT_KERNEL_NAMES
-    return new_params;
+    return oneapi::dpl::experimental::kt::kernel_param<KernelParam::data_per_workitem,
+                                                       KernelParam::workgroup_size,
+                                                       kernel_name_with_idx<typename KernelParam::kernel_name, idx>>{};
 #else
-    if constexpr (std::is_same_v<typename KernelParams::kernel_name, oneapi::dpl::execution::DefaultKernelName>)
-        return params;
-    else
-        return new_params;
+    return KernelParam{};
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 #endif //TEST_DPCPP_BACKEND_PRESENT

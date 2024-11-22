@@ -148,13 +148,13 @@ main()
             for (auto size : sort_sizes)
             {
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(
-                    q, size, TestUtils::adjust_kernel_name<0>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<0>(params));
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
-                    q, size, TestUtils::adjust_kernel_name<1>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<1>(params));
                 test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(
-                    q, size, TestUtils::adjust_kernel_name<2>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<2>(params));
                 test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(
-                    q, size, TestUtils::adjust_kernel_name<3>(params));
+                    q, size, TestUtils::create_new_kernel_param_idx<3>(params));
             }
         }
         catch (const ::std::exception& exc)
