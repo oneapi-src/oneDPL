@@ -26,7 +26,7 @@ main()
     auto merge_checker = [](std::ranges::random_access_range auto&& r_1,
                                        std::ranges::random_access_range auto&& r_2,
                                        std::ranges::random_access_range auto&& r_out, auto comp, auto proj1,
-                                       auto proj2, auto&&... args)
+                                       auto proj2)
     {
         using ret_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<decltype(r_1)>,
             std::ranges::borrowed_iterator_t<decltype(r_2)>, std::ranges::borrowed_iterator_t<decltype(r_out)>>;
@@ -37,19 +37,19 @@ main()
         for(;;)
         {
             if(it_out == std::ranges::end(r_out))
-                return ret_type{res.in1, res.in2, res.out};
+                return ret_type{it_1, it_2, it_out};
             
             if(it_1 == std::ranges::end(r_1))
             {
-                for(auto it_2 = std::ranges::begin(r_2) && it_out != std::ranges::end(r_out); ++it_2, ++it_out)
+                for(auto it_2 = std::ranges::begin(r_2); it_out != std::ranges::end(r_out); ++it_2, ++it_out)
                      *it_out = *it_2;
-                return ret_type{res.in1, res.in2, res.out};
+                return ret_type{it_1, it_2, it_out};
             }
             else if(it_2 == std::ranges::end(r_2))
             {
-                for(auto it_1 = std::ranges::begin(r_1) && it_out != std::ranges::end(r_out); ++it_1, ++it_out)
+                for(auto it_1 = std::ranges::begin(r_1); it_out != std::ranges::end(r_out); ++it_1, ++it_out)
                      *it_out = *it_1;
-                return ret_type{res.in1, res.in2, res.out};
+                return ret_type{it_1, it_2, it_out};
             }
 
             if (std::invoke(comp, std::invoke(proj1, *it_1), std::invoke(proj2, *it_2)))
@@ -64,10 +64,10 @@ main()
             }
         }
 
-        return ret_type{res.in1, res.in2, res.out};
+        return ret_type{it_1, it_2, it_out};
     };
 
-    test_range_algo<0, int, data_in_in_out>{big_sz}(dpl_ranges::merge, merge_checker, std::ranges::less{});
+    test_range_algo<0, int, data_in_in_out>{big_sz}(dpl_ranges::merge, merge_checker, std::ranges::less{}, std::identity{}, std::identity{});
 
     test_range_algo<1, int, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, proj, proj);
     test_range_algo<2, P2, data_in_in_out>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, &P2::x, &P2::x);
