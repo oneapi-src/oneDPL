@@ -92,9 +92,9 @@ Privileges:
 * Can propose new RFC or participate in review of existing RFCs
 
 The process of becoming a Code Owner is:
-1. A Contributor is nominated by opening a PR modifying the MAINTAINERS.md file including name, Github username, and
-affiliation.
-2. At least two specific component Maintainers approve the PR.
+1. A Contributor is nominated by opening a PR modifying the MAINTAINERS.md file including project component along with
+contributor name, Github username, and affiliation.
+2. At least two specific component Code Owners or Maintainers approve the PR.
 3. MAINTAINERS.md file is updated to represent corresponding areas of responsibility.
 
 ## <a name="maintainer"></a>Maintainer
@@ -138,20 +138,27 @@ approve the PR.
 
 ## <a name="currentcodeowners"></a>Current Code Owners
 
-There are currently no Code Owners identified for oneDPL.
+| Component             | Code Owner(s)       | Github ID | Affiliation |
+| --------------------- | ------------------- | --------- | ----------- |
+| C++ standard policies and CPU backends | Dan Hoeflinger | @danhoeflinger | Intel |
+| SYCL device policies and SYCL backends | Mikhail Dvorskiy<br>Adam Fidel | @MikeDvorskiy<br>@adamfidel |  Intel |
+| Tested Standard C++ APIs & Utility Function Object Classes | Sergey Kopienko | @SergeyKopeinko | Intel |
+| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev | Intel<br>Intel<br>Intel<br>Independent<br>Intel<br>Intel |
+| Range-Based Algorithms | Mikhail Dvorskiy | @MikeDvorskiy | Intel |
+| Asynchronous API Algorithms | Pablo Reble | @reble | Intel |
+| Additional Algorithms | Dan Hoeflinger<br>Matt Michel | @danhoeflinger<br>@mmichel11 | Intel<br>Intel |
+| Iterators | Dan Hoeflinger | @danhoeflinger | Intel |
+| Random Number Generators | Pavel Dyakov | @paveldyakov | Intel |
+| Dynamic Selection API | Anuya Welling | @AnuyaWelling2801 | AMD |
+| Kernel Templates API | Sergey Kopienko<br>Dmitriy Sobolev | @SergeyKopienko<br>@dmitriy-sobolev | Intel<br>Intel |
 
 ## <a name="currentmaintainers"></a>Current Maintainers
 
-| Feature               | Maintainer          | Github ID |
-| --------------------- | ------------------- | -------- |
-| C++ standard policies and CPU backends | Dan Hoeflinger | @danhoeflinger |
-| SYCL device policies and SYCL backends | Mikhail Dvorskiy<br>Adam Fidel | @MikeDvorskiy<br>@adamfidel | 
-| Tested Standard C++ APIs & Utility Function Object Classes | Sergey Kopienko | @SergeyKopeinko |
-| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev |
-| Range-Based Algorithms | Mikhail Dvorskiy | @MikeDvorskiy |
-| Asynchronous API Algorithms | Pablo Reble | @reble |
-| Additional Algorithms | Dan Hoeflinger<br>Matt Michel | @danhoeflinger<br>@mmichel11 |
-| Iterators | Dan Hoeflinger | @danhoeflinger |
-| Random Number Generators | Pavel Dyakov | @paveldyakov |
-| Dynamic Selection API | Anuya Welling | @AnuyaWelling2801 |
-| Kernel Templates API | Sergey Kopienko<br>Dmitriy Sobolev | @SergeyKopienko<br>@dmitriy-sobolev |
+| Maintainer          | Github ID | Affiliation |
+| ------------------- | --------- | ----------- |
+| Mikhail Dvorskiy | @MikeDvorskiy | Intel |
+| Dan Hoeflinger   | @danhoeflinger | Intel |
+| Sergey Kopienko  | @SergeyKopeinko | Intel |
+| Alexey Kukanov   | @akukanov | Intel |
+| Timmie Smith     | @timmiesmith | Intel |
+| Dmitriy Sobolev  | @dmitriy-sobolev | Intel |
