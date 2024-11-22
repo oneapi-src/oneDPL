@@ -962,17 +962,17 @@ create_new_policy_idx(Policy&& policy)
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename KernelName, int idx>
-struct __kernel_name_with_idx
+struct kernel_name_with_idx
 {
 };
 
 template <int idx, typename KernelParams>
 constexpr auto
-get_new_kernel_params([[maybe_unused]] KernelParams params)
+adjust_kernel_name([[maybe_unused]] KernelParams params)
 {
     auto new_params = oneapi::dpl::experimental::kt::kernel_param<
         KernelParams::data_per_workitem, KernelParams::workgroup_size,
-        __kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
+        kernel_name_with_idx<typename KernelParams::kernel_name, idx>>{};
 #if TEST_EXPLICIT_KERNEL_NAMES
     return new_params;
 #else
