@@ -287,6 +287,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         std::size_t wg_count = 0;
         std::size_t wi_in_one_wg = 0;
         std::size_t chunk = 0;
+        std::size_t diags_per_wi = 1;
     };
 
     // Calculate nd-range params
@@ -313,27 +314,23 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
         assert(__chunk > 0);
 
-        // Get the size of local memory arena in bytes.
-        const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+        // Get maximum amount of work-items in work-group
+        const std::size_t __hw_max_wi_in_one_wg = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 
-        // Pessimistically only use 4/5 of the memory to take into account memory used by compiled kernel
-        const std::size_t __slm_mem_size_x_part = __slm_mem_size * 4 / 5;
+        // Get amount of compute units(CU) and calculate the amount of work-groups with oversubscription usage
+        constexpr std::uint32_t __oversubscription = 2;
+        const std::size_t __hw_max_wg_count = __oversubscription * oneapi::dpl::__internal::__max_compute_units(__exec);
 
-        // Calculate how many items count we may place into SLM memory
-        auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
+        const std::size_t __wi_in_one_wg = std::min(__hw_max_wi_in_one_wg, oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec,__chunk * sizeof(_RangeValueType)));
+        const std::size_t __wg_count = std::min(__hw_max_wg_count, oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __wi_in_one_wg));
 
-        // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
-        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
-        const std::size_t __wi_in_one_wg = std::min(__max_wg_size, __slm_cached_items_count / __chunk);
-        assert(__wi_in_one_wg > 0);
+        // Calculate how many diagonals we should process per work-item
+        const std::size_t __diagonals_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_count * __wi_in_one_wg * __chunk);
 
-        // The amount of the base diagonals is the amount of the work-groups
-        //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
-        const std::size_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __wi_in_one_wg);
+        // Check that we have enough nd-range to process all the data
+        assert(__wg_count * __wi_in_one_wg * __diagonals_per_work_item * __chunk >= __n);
 
-        assert(__wg_count * __wi_in_one_wg * __chunk >= __n);
-
-        return nd_range_params{__wg_count, __wi_in_one_wg, __chunk};
+        return nd_range_params{__wg_count, __wi_in_one_wg, __chunk, __diagonals_per_work_item};
     }
 
     // Calculation of split points on each base diagonal
@@ -467,33 +464,37 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
 
-                    // Current diagonal inside of the merge matrix?
-                    if (__global_linear_id * __nd_range_params.chunk < __n)
+                    // Process subset of diagonals in the current work-item
+                    for (std::size_t __diagonal_iteration_idx = 0; __diagonal_iteration_idx < __nd_range_params.diags_per_wi; ++__diagonal_iteration_idx)
                     {
-                        // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                        const _IdType __i_elem = __local_id * __nd_range_params.chunk;
+                        //  Calculate __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                        const _IdType __start3 = (__global_linear_id * __nd_range_params.diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
 
-                        // Find split point in LOCAL coordinates
-                        //  - bottom-right split point describes the size of current area between two base diagonals.
-                        const _split_point_t<_IdType> __sp_local = __find_start_point(
-                            __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
-                            __i_elem,                                                   // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                            __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
-                            __comp);
+                        // Current diagonal inside of the merge matrix?
+                        if (__start3 < __n)
+                        {
+                            // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                            _IdType __i_elem_local = (__local_id * __nd_range_params.diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
 
-                        // Calculate __start3 in GLOBAL coordinates because __rng3 is not cached at all
-                        const _IdType __start3 = __global_linear_id * __nd_range_params.chunk;
+                            // Find split point in LOCAL coordinates
+                            //  - bottom-right split point describes the size of current area between two base diagonals.
+                            _split_point_t<_IdType> __sp_local = __find_start_point(
+                                __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
+                                __i_elem_local,                                             // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                                __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
+                                __comp);
 
-                        // Merge data for the current diagonal
-                        //  - we should have here __sp_global in GLOBAL coordinates
-                        __serial_merge(__rng1_cache_slm, __rng2_cache_slm,              // SLM cached copy of merging data
-                                       __rng3,                                          // Destination range
-                                       __sp_local.first,                                // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
-                                       __sp_local.second,                               // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
-                                       __start3,                                        // __start3 in GLOBAL coordinates because __rng3 is not cached at all
-                                       __nd_range_params.chunk,
-                                       __rng1_wg_data_size, __rng2_wg_data_size,        // size of rng1 and rng2
-                                       __comp);
+                            // Merge data for the current diagonal
+                            //  - we should have here __sp_global in GLOBAL coordinates
+                            __serial_merge(__rng1_cache_slm, __rng2_cache_slm,              // SLM cached copy of merging data
+                                           __rng3,                                          // Destination range
+                                           __sp_local.first,                                // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                           __sp_local.second,                               // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                           __start3,                                        // __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                                           __nd_range_params.chunk,
+                                           __rng1_wg_data_size, __rng2_wg_data_size,        // size of rng1 and rng2
+                                           __comp);
+                        }
                     }
                 });
         });
