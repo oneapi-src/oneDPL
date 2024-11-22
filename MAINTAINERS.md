@@ -18,16 +18,18 @@ The oneDPL project defines three primary roles:
 | _Responsibilities_                                                                                                                          |                         |                         |                         |
 | Follow the Code of Conduct                                                                                                                  |            ✓            |            ✓           |            ✓            |
 | Follow Contribution Guidelines                                                                                                              |            ✓            |            ✓           |            ✓            |
-| Enforce Contribution Guidelines                                                                                                             |            ✗            |            ✓           |            ✓            |
+| Ensure Contribution Guidelines are followed                                                                                                 |            ✗            |            ✓           |            ✓            |
+| Cleanup Stale PRs and Branches impacting a component                                                                                        |            ✗            |            ✓           |            ✓            |
 | Co-own component or aspect of the library,<br>  including contributing: bug fixes, implementing features,<br> and performance optimizations |            ✗            |            ✓           |            ✓            |
-| Co-own on technical direction of component or<br> aspect of the library                                                                     |            ✗            |            ✗           |            ✓            |
+| Co-own on technical direction of component or<br> aspect of the library                                                                     |            ✗            |            ✓           |            ✓            |
 | Co-own the project as a whole,<br> including determining strategy and policy for the project                                                |            ✗            |            ✗           |            ✓            |
 | _Privileges_                                                                                                                                |                         |                         |                         |
-| Permission granted                                                                                                                          |   [Read][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
+| Permission granted                                                                                                                          |   [Write][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
+| Can Approve PRs     |            ✗             |             ✓           |            ✓            |
 | Eligible to become                                                                                                                          |       Code Owner        |       Maintainer        |            ✗            |
 | Can recommend Contributors<br> to become Code Owner                                                                                         |            ✗            |            ✓           |            ✓            |
 | Can participate in promotions of<br> Code Owners and  Maintainers                                                                           |            ✗            |            ✗           |            ✓            |
-| Can suggest Milestones during planning                                                                                                      |            ✓            |            ✓           |            ✓            |
+| Can suggest PRs/issues for<br> Milestones during planning                                                                                   |            ✓            |            ✓           |            ✓            |
 | Can choose Milestones for specific component                                                                                                |            ✗            |            ✓           |            ✓            |
 | Choose project's Milestones during planning                                                                                                 |            ✗            |            ✗           |            ✓            |
 | Can propose new RFC or<br> participate in review of existing RFC                                                                            |            ✓            |            ✓           |            ✓            |
@@ -45,7 +47,7 @@ A Contributor can invest their time and resources in several different ways to i
 * Answering questions from community members in Discussions on Issues
 * Providing feedback on RFC pull requests and Discussions
 * Reviewing and/or testing pull requests
-* Contribute code, including bug fixes, new examples of oneDPL use, and new feature implementations
+* Contribute code, including bug fixes, tests, new examples of oneDPL use, and new feature implementations
 * Contribute design proposals as RFCs
 
 Responsibilities:
@@ -76,8 +78,11 @@ Requirements:
 * Can propose new RFC or participate in review of existing RFCs
 
 Responsibilities in addition to those of Contributors:
-* Enforce the Contribution Guidelines
-* Co-own a component or aspect of the repository, including contributing bug fixes, implementing features, and performance optimizations
+* Ensure the Contribution Guidelines are followed in contributions impacting the Code Owner's component
+* Cleanup stale PRs and branches that have work impacting their component
+* Participate in the discussion of RFCs that impact their component
+* Co-own a component or aspect of the repository, including ensuring bugs are addressed, features are well tested,
+  requested features from RFCs are implemented, and the performance of component APIs is optimized.
 
 Privileges:
 * Eligible to become a Maintainer
@@ -96,7 +101,10 @@ affiliation.
 ## <a name="maintainer"></a>Maintainer
 
 A Maintainer is one of the most established contributors who are responsible for the project technical direction and
-participate in making decisions about strategy and priorities of the project.
+participate in making decisions about strategy and priorities of the project. The responsibilities they have increase
+in scope from that of Code Owners to encompass the entire project. Maintainers may make public presentations and
+statements in public forums (e.g., UXL DevSummit, UXL working group meetings, etc.) about the status and direction of
+the oneDPL project.
 
 Requirements:
   * Experience as a Code Owner.
