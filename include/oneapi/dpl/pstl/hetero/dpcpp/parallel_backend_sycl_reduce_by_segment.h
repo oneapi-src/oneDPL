@@ -175,7 +175,7 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
                                                                               sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
                 std::size_t __group_id = __item.get_group(0);
-                std::size_t __local_id = __item.get_local_id(0);
+                std::uint32_t __local_id = __item.get_local_id(0);
                 std::size_t __global_id = __item.get_global_id(0);
 
                 std::size_t __start = __global_id * __vals_per_item;
@@ -267,12 +267,12 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
 
                 // 2c. Count the number of prior work segments cooperatively over group
                 std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
-                    __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
+                    __group, __item_segments, __dpl_sycl::__plus<std::size_t>());
                 std::size_t __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
 
                 // 2d. Find the greatest segment end less than the current index (inclusive)
                 std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
-                    __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
+                    __group, __max_end, __dpl_sycl::__maximum<std::size_t>());
 
                 // __wg_segmented_scan is a derivative work and responsible for the third header copyright
                 __val_type __carry_in = oneapi::dpl::internal::__wg_segmented_scan(
@@ -287,7 +287,7 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
                 if (__local_id == 0)
                 {
                     __apply_aggs = false;
-                    if (__global_id == 0 && __n > 0)
+                    if (__global_id == 0)
                     {
                         // first segment identifier is always the first key
                         __out_keys[0] = __keys[0];
