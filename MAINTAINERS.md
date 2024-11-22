@@ -58,7 +58,7 @@ Privileges:
 * Code contributions recognized in the oneDPL [credits](CREDITS.txt)
 * Eligible to become a Code Owner
 * Read permissions granted to the repository
-* Can suggest Milestones during planning
+* Can suggest PRs and issues to be included in Milestones during planning
 
 ## <a name="codeowner"></a>Code Owner
 
@@ -88,8 +88,7 @@ Privileges:
 * Eligible to become a Maintainer
 * Write permissions granted to the repository
 * Can recommend Contributors to become Code Owners
-* Can suggest Milestones during planning
-* Can choose Milestones for a specific component
+* Can choose PRs and issues to be included in Milestones for a specific component
 * Can propose new RFC or participate in review of existing RFCs
 
 The process of becoming a Code Owner is:
