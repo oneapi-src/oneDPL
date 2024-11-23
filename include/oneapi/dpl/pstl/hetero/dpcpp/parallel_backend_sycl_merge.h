@@ -185,10 +185,10 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
-template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
+template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Index3, typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
-               const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
+               const _Index3 __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
 {
     if (__start1 >= __n1)
     {
@@ -310,28 +310,39 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         constexpr std::size_t __data_items_in_slm_bank = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
 
         // Empirical number of values to process per work-item
-        const std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
+        std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
         const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
 
-        // Pessimistically only use 4/5 of the memory to take into account memory used by compiled kernel
+        // Pessimistically only use 4 / 5 of the memory to take into account memory used by compiled kernel
         const std::size_t __slm_mem_size_x_part = __slm_mem_size * 4 / 5;
 
         // Calculate how many items count we may place into SLM memory
-        auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
+        const auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
+
+        // Get the maximum work-group size for the current device
+        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
-        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
-        const std::size_t __wi_in_one_wg = std::min(__max_wg_size, __slm_cached_items_count / __chunk);
-        assert(__wi_in_one_wg > 0);
+        std::size_t __wi_in_one_wg = __slm_cached_items_count / __chunk;
+        if (__wi_in_one_wg > __max_wg_size)
+        {
+            __chunk = __chunk * oneapi::dpl::__internal::__dpl_bit_ceil(__wi_in_one_wg / __max_wg_size);
+            __wi_in_one_wg = __slm_cached_items_count / __chunk;
+        }
+        assert(0 < __wi_in_one_wg && __wi_in_one_wg <= __max_wg_size);
 
         // The amount of the base diagonals is the amount of the work-groups
         //  - also it's the distance between two base diagonals is equal to the amount of work-items in each work-group
-        const std::size_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __wi_in_one_wg);
+        const std::size_t __wg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, (std::size_t)__chunk * __wi_in_one_wg);
 
+        // Check that we have enough nd-range to process all the data
         assert(__wg_count * __wi_in_one_wg * __chunk >= __n);
+
+        // Check that we have enough SLM to cache all the data
+        assert(__wi_in_one_wg * __chunk * sizeof(_RangeValueType) <= __slm_mem_size_x_part);
 
         return nd_range_params{__wg_count, __wi_in_one_wg, __chunk};
     }
