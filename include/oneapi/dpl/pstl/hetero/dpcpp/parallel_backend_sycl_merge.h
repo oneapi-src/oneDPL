@@ -39,6 +39,31 @@ using _split_point_t = std::pair<_Index, _Index>;
 template <typename _Index>
 constexpr _split_point_t<_Index> __zero_split_point{0, 0};
 
+template <typename _Size1, typename _Value, typename _Compare>
+_Size1
+__pstl_lower_bound(_Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    auto __n = __last - __first;
+    auto __cur = __n;
+    _Size1 __it;
+    while (__n > 0)
+    {
+        __it = __first;
+        __cur = __n / 2;
+        __it += __cur;
+        if (__comp(__it, __value))
+        {
+            __n -= __cur + 1;
+            __first = ++__it;
+        }
+        else
+        {
+            __n = __cur;
+        }
+    }
+    return __first;
+}
+
 //Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
 //to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
 //     0   1  1  2   3
@@ -152,14 +177,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
         ////////////////////////////////////////////////////////////////////////////////////
         // Run search of split point on diagonal
 
-        using __it_t = oneapi::dpl::counting_iterator<_Index>;
-
-        __it_t __diag_it_begin(idx1_from);
-        __it_t __diag_it_end(idx1_to);
-
         constexpr int kValue = 1;
-        const __it_t __res =
-            std::lower_bound(__diag_it_begin, __diag_it_end, kValue, [&](_Index __idx, const auto& __value) {
+        const auto __res = __pstl_lower_bound(idx1_from, idx1_to, kValue, [&](_Index __idx, const auto& __value) {
                 const auto __rng1_idx = __idx;
                 const auto __rng2_idx = __index_sum - __idx;
 
@@ -171,7 +190,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
                 return __zero_or_one < kValue;
             });
 
-        const _split_point_t<_Index> __result = std::make_pair(*__res, __index_sum - *__res + 1);
+        const _split_point_t<_Index> __result = std::make_pair(__res, __index_sum - __res + 1);
         assert(__result.first + __result.second == __i_elem);
 
         assert(__rng1_from <= __result.first && __result.first <= __rng1_to);
