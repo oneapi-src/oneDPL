@@ -351,7 +351,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     //  - in GLOBAL coordinates
                     _split_point_t<_IdType> __sp(__linear_id == 0 ? __zero_split_point<std::size_t> : _split_point_t<std::size_t>{__n1, __n2});
                     if (0 < __linear_id && __linear_id < __wg_count)
-                        __sp = __find_start_point(__rng1, __rng2, (_IdType)(__linear_id * __wi_in_one_wg * __chunk), __n1, __n2, __comp);
+                        __sp = __find_start_point(__rng1, __rng2, __linear_id * __wi_in_one_wg * __chunk, __n1, __n2, __comp);
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
@@ -396,7 +396,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const std::size_t __chunk_of_data_reading = std::max(__chunk/*__data_items_in_slm_bank*/, (_IdType)oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
+                    const std::size_t __chunk_of_data_reading = std::max(__chunk/*__data_items_in_slm_bank*/, oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
 
                     const std::size_t __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
                     const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
@@ -443,7 +443,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         //  - bottom-right split point describes the size of current area between two base diagonals.
                         const _split_point_t<_IdType> __sp_local = __find_start_point(
                             __rng1_cache_slm, __rng2_cache_slm,                         // SLM cached copy of merging data
-                            (_IdType)(__local_id * __chunk),                            // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                            __local_id * __chunk,                                       // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
                             __rng1_wg_data_size, __rng2_wg_data_size,                   // size of rng1 and rng2
                             __comp);
 
@@ -451,9 +451,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         //  - we should have here __sp_global in GLOBAL coordinates
                         __serial_merge(__rng1_cache_slm, __rng2_cache_slm,              // SLM cached copy of merging data
                                        __rng3,                                          // Destination range
-                                       __sp_local.first,                                // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
-                                       __sp_local.second,                               // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
-                                       (_IdType)(__global_linear_id * __chunk),         // __start3 in GLOBAL coordinates because __rng3 is not cached at all
+                                       (std::size_t)__sp_local.first,                   // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       (std::size_t)__sp_local.second,                  // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       __global_linear_id * __chunk,                    // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __chunk,
                                        __rng1_wg_data_size, __rng2_wg_data_size,        // size of rng1 and rng2
                                        __comp);
