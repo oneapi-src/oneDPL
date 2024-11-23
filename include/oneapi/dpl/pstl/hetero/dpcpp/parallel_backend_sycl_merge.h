@@ -342,7 +342,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
-        const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+        const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 20;
 
         // Calculate how many items count we may place into SLM memory
         const auto __slm_cached_items_count = __slm_mem_size / sizeof(_RangeValueType);
