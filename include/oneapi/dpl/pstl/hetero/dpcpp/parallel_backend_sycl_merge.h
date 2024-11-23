@@ -489,18 +489,16 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     __dpl_sycl::__group_barrier(__nd_item);
 
                     // Process subset of diagonals in the current work-item
-                    auto __n_local = __n;
-                    auto __diags_per_wi = __nd_range_params.diags_per_wi;
-                    for (std::size_t __diagonal_iteration_idx = 0; __diagonal_iteration_idx < __diags_per_wi; ++__diagonal_iteration_idx)
+                    for (std::size_t __diagonal_iteration_idx = 0; __diagonal_iteration_idx < __nd_range_params.diags_per_wi; ++__diagonal_iteration_idx)
                     {
                         //  Calculate __start3 in GLOBAL coordinates because __rng3 is not cached at all
-                        const std::size_t __start3 = (__global_linear_id * __diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
+                        const std::size_t __start3 = (__global_linear_id * __nd_range_params.diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
 
                         // Current diagonal inside of the global merge matrix?
-                        if (__start3 < __n_local)
+                        if (__start3 < __n)
                         {
                             // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                            const std::size_t __i_elem = (__local_id * __diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
+                            const std::size_t __i_elem = (__local_id * __nd_range_params.diags_per_wi + __diagonal_iteration_idx) * __nd_range_params.chunk;
 
                             // Current diagonal inside of the local merge matrix?
                             if (__i_elem < __rng_wg_data_size)
