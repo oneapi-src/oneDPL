@@ -334,6 +334,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         // Define SLM bank size
         constexpr std::size_t __slm_bank_size = 16;     // TODO is it correct value? How to get it from hardware?
 
+        const std::size_t __oversubscription = 20;
+
         // Calculate how many data items we can read into one SLM bank
         constexpr std::size_t __data_items_in_slm_bank = __dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
 
@@ -342,13 +344,13 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
-        const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 20;
+        const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / __oversubscription;
 
         // Calculate how many items count we may place into SLM memory
         const auto __slm_cached_items_count = __slm_mem_size / sizeof(_RangeValueType);
 
         // Get the maximum work-group size for the current device
-        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>() * __oversubscription;
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
         std::size_t __diags_per_wi = 1;
