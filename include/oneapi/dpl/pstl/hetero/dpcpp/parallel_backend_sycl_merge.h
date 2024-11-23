@@ -290,9 +290,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         using _RangeValueType = _Range1ValueType;
 
-        const _IdType __n1 = __rng1.size();
-        const _IdType __n2 = __rng2.size();
-        const _IdType __n = __n1 + __n2;
+        const std::size_t __n1 = __rng1.size();
+        const std::size_t __n2 = __rng2.size();
+        const std::size_t __n = __n1 + __n2;
 
         assert(__n1 > 0 || __n2 > 0);
 
@@ -305,7 +305,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         //constexpr std::size_t __data_items_in_slm_bank = std::max((std::size_t)1, __slm_bank_size / sizeof(_RangeValueType));
 
         // Empirical number of values to process per work-item
-        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;// __data_items_in_slm_bank;
+        const std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4; // __data_items_in_slm_bank;
         assert(__chunk > 0);
 
         // Get the size of local memory arena in bytes.
@@ -390,26 +390,26 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
-                    const _IdType __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
-                    const _IdType __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
+                    const std::size_t __rng1_wg_data_size = __sp_base_right_global.first - __sp_base_left_global.first;
+                    const std::size_t __rng2_wg_data_size = __sp_base_right_global.second - __sp_base_left_global.second;
 
                     _RangeValueType* __rng1_cache_slm = std::addressof(__loc_acc[0]);
                     _RangeValueType* __rng2_cache_slm = std::addressof(__loc_acc[0]) + __rng1_wg_data_size;
 
-                    const _IdType __chunk_of_data_reading = std::max(__chunk/*__data_items_in_slm_bank*/, (_IdType)oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
+                    const std::size_t __chunk_of_data_reading = std::max(__chunk/*__data_items_in_slm_bank*/, (_IdType)oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size + __rng2_wg_data_size, __wi_in_one_wg));
 
-                    const _IdType __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
-                    const _IdType __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
+                    const std::size_t __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
+                    const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
                     
                     // Calculate the amount of WI for read data from rng1
                     if (__local_id < __how_many_wi_reads_rng1)
                     {
-                        const _IdType __idx_begin = __local_id * __chunk_of_data_reading;
+                        const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
 
                         // Cooperative data load from __rng1 to __rng1_cache_slm
                         if (__idx_begin < __rng1_wg_data_size)
                         {
-                            const _IdType __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng1_wg_data_size);
+                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng1_wg_data_size);
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
@@ -420,12 +420,12 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const std::size_t __first_wi_local_id_for_read_rng2 = __wi_in_one_wg - __how_many_wi_reads_rng2;
                     if (__local_id >= __first_wi_local_id_for_read_rng2)
                     {
-                        const _IdType __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
+                        const std::size_t __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
 
                         // Cooperative data load from __rng2 to __rng2_cache_slm
                         if (__idx_begin < __rng2_wg_data_size)
                         {
-                            const _IdType __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng2_wg_data_size);
+                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng2_wg_data_size);
                     
                             _ONEDPL_PRAGMA_UNROLL
                             for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
