@@ -185,10 +185,10 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
-template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Index3, typename _Compare>
+template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
-               const _Index3 __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
+               const _Index __start3, const _Index __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
 {
     if (__start1 >= __n1)
     {
@@ -254,7 +254,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
         // Empirical number of values to process per work-item
-        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        const _IdType __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
@@ -482,7 +482,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     if (__global_linear_id * __nd_range_params.chunk < __n)
                     {
                         // Calculate __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                        const _IdType __i_elem = __local_id * __nd_range_params.chunk;
+                        const std::size_t __i_elem = __local_id * __nd_range_params.chunk;
 
                         // Find split point in LOCAL coordinates
                         //  - bottom-right split point describes the size of current area between two base diagonals.
@@ -493,14 +493,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                             __comp);
 
                         // Calculate __start3 in GLOBAL coordinates because __rng3 is not cached at all
-                        const _IdType __start3 = __global_linear_id * __nd_range_params.chunk;
+                        const std::size_t __start3 = __global_linear_id * __nd_range_params.chunk;
 
                         // Merge data for the current diagonal
                         //  - we should have here __sp_global in GLOBAL coordinates
                         __serial_merge(__rng1_cache_slm, __rng2_cache_slm,              // SLM cached copy of merging data
                                        __rng3,                                          // Destination range
-                                       __sp_local.first,                                // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
-                                       __sp_local.second,                               // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       (std::size_t)__sp_local.first,                   // __start1 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
+                                       (std::size_t)__sp_local.second,                  // __start2 in LOCAL coordinates because __rng1_cache_slm is work-group SLM cached copy of source data
                                        __start3,                                        // __start3 in GLOBAL coordinates because __rng3 is not cached at all
                                        __nd_range_params.chunk,
                                        __rng1_wg_data_size, __rng2_wg_data_size,        // size of rng1 and rng2
