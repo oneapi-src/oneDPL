@@ -317,20 +317,23 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::size_t __slm_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
 
         // Pessimistically only use 4 / 5 of the memory to take into account memory used by compiled kernel
-        const std::size_t __slm_mem_size_x_part = __slm_mem_size * 4 / 5;
+        //const std::size_t __slm_mem_size_x_part = __slm_mem_size * 48 / 100;
+        const std::size_t __slm_mem_size_x_part = __slm_mem_size; // / 2;
 
         // Calculate how many items count we may place into SLM memory
         const auto __slm_cached_items_count = __slm_mem_size_x_part / sizeof(_RangeValueType);
 
         // Get the maximum work-group size for the current device
-        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+        const std::size_t __max_wg_size =
+            __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
         std::size_t __wi_in_one_wg = __slm_cached_items_count / __chunk;
         if (__wi_in_one_wg > __max_wg_size)
         {
-            __chunk = __chunk * oneapi::dpl::__internal::__dpl_bit_ceil(__wi_in_one_wg / __max_wg_size);
-            __wi_in_one_wg = __slm_cached_items_count / __chunk;
+            //__chunk = __chunk * oneapi::dpl::__internal::__dpl_bit_ceil(__wi_in_one_wg / __max_wg_size);
+            //__wi_in_one_wg = __slm_cached_items_count / __chunk;
+            __wi_in_one_wg = __max_wg_size;
         }
         assert(0 < __wi_in_one_wg && __wi_in_one_wg <= __max_wg_size);
 
