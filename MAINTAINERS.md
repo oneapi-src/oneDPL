@@ -43,7 +43,8 @@ requirements and the nomination process.
 
 ## <a name="contributor"></a>Contributor
 
-A Contributor can invest their time and resources in several different ways to improve oneDPL
+This role is open to anyone that would like to become actively involved in the oneDPL project. A Contributor can invest
+their time and resources in several different ways to improve oneDPL
 * Answering questions from community members in Discussions on Issues
 * Providing feedback on RFC pull requests and Discussions
 * Reviewing and/or testing pull requests
