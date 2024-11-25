@@ -89,8 +89,11 @@ if (NOT DEFINED ONEDPL_BACKEND OR ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
     if (NOT SYCL_HEADER)
         CHECK_INCLUDE_FILE_CXX("CL/sycl.hpp" SYCL_HEADER_OLD ${FSYCL_OPTION_IF_SUPPORTED})
     endif()
-
     if (SYCL_HEADER OR SYCL_HEADER_OLD)
+        set(SYCL_SUPPORT TRUE)
+    endif()
+
+    if (SYCL_SUPPORT)
         message(STATUS "SYCL is supported")
     else()
         if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
