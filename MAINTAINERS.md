@@ -24,7 +24,7 @@ The oneDPL project defines three primary roles, each with their own responsibili
 | Co-own on technical direction of component or<br> aspect of the library                                                                     |            ✗            |            ✓           |            ✓            |
 | Co-own the project as a whole,<br> including determining strategy and policy for the project                                                |            ✗            |            ✗           |            ✓            |
 
-|                                                                                                                         _Privileges_        |                         |                         |                         |
+|                                                                                                                         _Privileges_        |       Contributor       |       Code Owner        |       Maintainer        |
 | :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------: | :---------------------: | :---------------------: |
 | Permission granted                                                                                                                          |   [Write][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
 | Can Approve PRs     |            ✗             |             ✓           |            ✓            |
