@@ -6,16 +6,16 @@ in oneDPL. The document also defines the process for maintainers to [Leave A Rol
 
 # Roles and Responsibilities
 
-The oneDPL project defines three primary roles:
+The oneDPL project defines three primary roles, each with their own responsibilities and privileges:
 * [Contributor](#contributor)
 * [Code Owner](#codeowner)
 * [Maintainer](#maintainer)
 
 [permissions]: https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization#permissions-for-each-role
 
-|                                                                                                                                             |       Contributor       |       Code Owner        |       Maintainer        |
+|                                                                                                                         _Responsibilities_  |       Contributor       |       Code Owner        |       Maintainer        |
 | :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------: | :---------------------: | :---------------------: |
-| _Responsibilities_                                                                                                                          |                         |                         |                         |
+|                                                                                                                                             |                         |                         |                         |
 | Follow the Code of Conduct                                                                                                                  |            ✓            |            ✓           |            ✓            |
 | Follow Contribution Guidelines                                                                                                              |            ✓            |            ✓           |            ✓            |
 | Ensure Contribution Guidelines are followed                                                                                                 |            ✗            |            ✓           |            ✓            |
@@ -23,7 +23,9 @@ The oneDPL project defines three primary roles:
 | Co-own component or aspect of the library,<br>  including contributing: bug fixes, implementing features,<br> and performance optimizations |            ✗            |            ✓           |            ✓            |
 | Co-own on technical direction of component or<br> aspect of the library                                                                     |            ✗            |            ✓           |            ✓            |
 | Co-own the project as a whole,<br> including determining strategy and policy for the project                                                |            ✗            |            ✗           |            ✓            |
-| _Privileges_                                                                                                                                |                         |                         |                         |
+
+|                                                                                                                         _Privileges_        |                         |                         |                         |
+| :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------: | :---------------------: | :---------------------: |
 | Permission granted                                                                                                                          |   [Write][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
 | Can Approve PRs     |            ✗             |             ✓           |            ✓            |
 | Eligible to become                                                                                                                          |       Code Owner        |       Maintainer        |            ✗            |
