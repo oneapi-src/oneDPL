@@ -146,7 +146,7 @@ approve the PR.
 | C++ standard policies and CPU backends | Dan Hoeflinger | @danhoeflinger | Intel |
 | SYCL device policies and SYCL backends | Mikhail Dvorskiy<br>Adam Fidel | @MikeDvorskiy<br>@adamfidel |  Intel |
 | Tested Standard C++ APIs & Utility Function Object Classes | Sergey Kopienko | @SergeyKopeinko | Intel |
-| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev | Intel<br>Intel<br>Intel<br>Independent<br>Intel<br>Intel |
+| C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev | Intel<br>Intel<br>Intel<br>Independent<br>Intel |
 | Range-Based Algorithms | Mikhail Dvorskiy | @MikeDvorskiy | Intel |
 | Asynchronous API Algorithms | Pablo Reble | @reble | Intel |
 | Additional Algorithms | Dan Hoeflinger<br>Matt Michel | @danhoeflinger<br>@mmichel11 | Intel<br>Intel |
