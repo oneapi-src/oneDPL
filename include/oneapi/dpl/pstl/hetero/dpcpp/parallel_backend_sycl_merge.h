@@ -31,7 +31,7 @@
 #define WAIT_IN_IMPL 1
 #define FILL_ADDITIONAL_DIAGONALS 1
 #if FILL_ADDITIONAL_DIAGONALS
-#   define USE_ADDITIONAL_DIAGONALS 0
+#   define USE_ADDITIONAL_DIAGONALS 1
 #endif
 
 namespace oneapi
@@ -774,46 +774,58 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                 _split_point_t<std::size_t> __sp_base_left_local = {0, 0};
                                 _split_point_t<std::size_t> __sp_base_right_local = {__rng1_wg_data_size, __rng2_wg_data_size};
 
-                                _split_point_t<_IdType> __sp_local(0, 0);
-                                bool __sp_local_evaluated = false;
+                                bool __sp_local_found = false;
+                                _split_point_t<std::size_t> __sp_from_additional_diagonal{0, 0};
 
 #if USE_ADDITIONAL_DIAGONALS
-                                if (__nd_range_params.have_additional_base_diagonals_inside_one_wg())
+                                if (__nd_range_params.have_additional_base_diagonals_inside_one_wg() && 0 < __i_elem)
                                 {
                                     // Calculate indexes of nearest left and right base diagonals
-                                    const std::size_t __additional_left_base_diagonal_idx  = std::min(__diagonal_idx_right_global, __step_of_base_diagonals_in_one_wg_count * (__local_diagonal_idx / __step_of_base_diagonals_in_one_wg_count));
-                                    const std::size_t __additional_right_base_diagonal_idx = std::min(__diagonal_idx_right_global, __additional_left_base_diagonal_idx + __step_of_base_diagonals_in_one_wg_count);
+                                    const std::size_t __additional_left_base_diagonal_idx  = __local_diagonal_idx / __step_of_base_diagonals_in_one_wg_count;
+                                    const std::size_t __additional_right_base_diagonal_idx = __additional_left_base_diagonal_idx + 1;
 
-                                    const std::size_t __diagonal_idx_left  = __diagonal_idx_left_global + __additional_left_base_diagonal_idx;
-                                    const std::size_t __diagonal_idx_right = __diagonal_idx_left_global + __additional_right_base_diagonal_idx;
+                                    // std::min(__diagonal_idx_right_global
+                                    const std::size_t __additional_diagonal_idx_left  = std::min(__diagonal_idx_right_global, __diagonal_idx_left_global + __additional_left_base_diagonal_idx);
+                                    const std::size_t __additional_diagonal_idx_right = std::min(__diagonal_idx_right_global, __diagonal_idx_left_global + __additional_right_base_diagonal_idx);
 
-                                    if (__diagonal_idx_left != __diagonal_idx_right &&
-                                        __diagonal_idx_left_global <= __diagonal_idx_left && __diagonal_idx_right <= __diagonal_idx_right_global)
+                                    if (__additional_diagonal_idx_left != __additional_diagonal_idx_right &&
+                                        __diagonal_idx_left_global <= __additional_diagonal_idx_left && __additional_diagonal_idx_right <= __diagonal_idx_right_global)
                                     {
-                                        // Get split-points from nearest base diagonals in GLOBAL coordinates
-                                        __sp_base_left_local  = __base_diagonals_sp_global_ptr[__diagonal_idx_left];
-                                        __sp_base_right_local = __base_diagonals_sp_global_ptr[__diagonal_idx_right];
-
-                                        assert(__sp_base_left_local.first  <= __sp_base_right_local.first);
-                                        assert(__sp_base_left_local.second <= __sp_base_right_local.second);
-
-                                        assert(__sp_base_left_local.first  >= __sp_base_left_global.first);
-                                        assert(__sp_base_left_local.second >= __sp_base_left_global.second);
-
-                                        // Convert split-points from nearest base diagonals into local coordinates
-                                        __sp_base_left_local  = __convert_to_local(__sp_base_left_global, __sp_base_left_local);
-                                        __sp_base_right_local = __convert_to_local(__sp_base_left_global, __sp_base_right_local);
-
-                                        // Avoid calculation split-points for precalculated base diagonals
-                                        if (__local_diagonal_idx % __step_of_base_diagonals_in_one_wg_count == 0)
+                                        // Avoid split-point search on left additional diagonal due it's already calculated
+                                        if (__local_diagonal_idx == __additional_left_base_diagonal_idx * __step_of_base_diagonals_in_one_wg_count)
                                         {
-                                            __sp_local = __sp_base_left_local;
-                                            __sp_local_evaluated = true;
+                                            __sp_from_additional_diagonal = __base_diagonals_sp_global_ptr[__additional_diagonal_idx_left];
+                                            __sp_from_additional_diagonal = __convert_to_local(__sp_base_left_global, __sp_from_additional_diagonal);
+                                            __sp_local_found = true;
                                         }
-                                        else if (__diagonal_idx_right_global - __diagonal_idx_left_global == __local_diagonal_idx)
+
+                                        // Avoid split-point search on right additional diagonal due it's already calculated
+                                        else if (__local_diagonal_idx == __additional_right_base_diagonal_idx * __step_of_base_diagonals_in_one_wg_count)
                                         {
-                                            __sp_local = __convert_to_local(__sp_base_left_global, __sp_base_right_global);
-                                            __sp_local_evaluated = true;
+                                            __sp_from_additional_diagonal = __base_diagonals_sp_global_ptr[__additional_diagonal_idx_right];
+                                            __sp_from_additional_diagonal = __convert_to_local(__sp_base_left_global, __sp_from_additional_diagonal);
+                                            __sp_local_found = true;
+                                        }
+
+                                        // Move__sp_base_left_local, __sp_base_right_local from cached data size to nearest additional diagonals
+                                        else
+                                        {
+                                            // Get split-points from nearest base diagonals in GLOBAL coordinates
+                                            __sp_base_left_local  = __base_diagonals_sp_global_ptr[__additional_diagonal_idx_left];
+                                            __sp_base_right_local = __base_diagonals_sp_global_ptr[__additional_diagonal_idx_right];
+
+                                            assert(__sp_base_left_local.first  <= __sp_base_right_local.first);
+                                            assert(__sp_base_left_local.second <= __sp_base_right_local.second);
+
+                                            assert(__sp_base_left_local.first  >= __sp_base_left_global.first);
+                                            assert(__sp_base_left_local.second >= __sp_base_left_global.second);
+
+                                            // Convert split-points from nearest base diagonals into local coordinates
+                                            __sp_base_left_local  = __convert_to_local(__sp_base_left_global, __sp_base_left_local);
+                                            __sp_base_right_local = __convert_to_local(__sp_base_left_global, __sp_base_right_local);
+
+                                            assert(__sp_base_left_local.first + __sp_base_left_local.second <= __i_elem);
+                                            assert(__i_elem <= __sp_base_right_local.first + __sp_base_right_local.second);
                                         }
                                     }
                                 }
@@ -821,14 +833,13 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                                 // Find split point in LOCAL coordinates
                                 //  - bottom-right split point describes the size of current area between two base diagonals.
-                                if (!__sp_local_evaluated)
-                                {
-                                    __sp_local = __find_start_point_in(
-                                        __rng1_cache_slm, __rng2_cache_slm,                     // SLM cached copy of merging data
-                                        __i_elem,                                               // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
-                                        __sp_base_left_local, __sp_base_right_local,            // limitations for __rng1_cache_slm, __rng2_cache_slm in LOCAL coordinates
-                                        __comp);
-                                }
+                                const _split_point_t<_IdType> __sp_local =
+                                    __sp_local_found
+                                    ? __sp_from_additional_diagonal
+                                    : __find_start_point_in(__rng1_cache_slm, __rng2_cache_slm,                     // SLM cached copy of merging data
+                                                            __i_elem,                                               // __i_elem in LOCAL coordinates because __rng1_cache_slm and __rng1_cache_slm is work-group SLM cached copy of source data
+                                                            __sp_base_left_local, __sp_base_right_local,            // limitations for __rng1_cache_slm, __rng2_cache_slm in LOCAL coordinates
+                                                            __comp);
 
                                 assert(__sp_base_left_local.first  <= __sp_local.first  && __sp_local.first  <= __sp_base_right_local.first);
                                 assert(__sp_base_left_local.second <= __sp_local.second && __sp_local.second <= __sp_base_right_local.second);
