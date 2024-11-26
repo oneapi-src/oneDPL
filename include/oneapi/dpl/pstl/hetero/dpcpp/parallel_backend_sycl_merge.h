@@ -29,7 +29,7 @@
 #define LOG_SET_SPLIT_POINTS 1
 #define LOG_ND_RANGE_PARAMS 1
 #define WAIT_IN_IMPL 1
-//#define FILL_ADDITIONAL_DIAGONALS 1
+#define FILL_ADDITIONAL_DIAGONALS 1
 #if FILL_ADDITIONAL_DIAGONALS
 #   define USE_ADDITIONAL_DIAGONALS 0
 #endif
@@ -460,11 +460,16 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     // Get index for specified additional diagonal
     static std::size_t
     __eval_i_element_global(const nd_range_params& __nd_range_params, const std::size_t __group_linear_id,
-                            const std::size_t __internal_base_diag_idx, const std::size_t __step_of_base_diagonals_in_one_wg_count)
+                            const std::size_t __internal_base_diag_idx, const std::size_t __step_of_base_diagonals_in_one_wg_count,
+                            const _split_point_t<_IdType>& __sp_base_right_global)
     {
         std::size_t __result = __eval_i_element_global(__nd_range_params, __group_linear_id);
 
-        __result += __step_of_base_diagonals_in_one_wg_count * __nd_range_params.chunk;
+        __result += __internal_base_diag_idx * __step_of_base_diagonals_in_one_wg_count * __nd_range_params.chunk;
+
+        // Limit the result from upper side because the distance between last (right) internal additional diagonal
+        // and right global diagonal of the group may be less then __step_of_base_diagonals_in_one_wg_count
+        __result = std::min(__result, (std::size_t)(__sp_base_right_global.first + __sp_base_right_global.second));
 
         return __result;
     }
@@ -609,26 +614,21 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     assert(__sp_base_right_global.first >= __sp_base_left_global.first);
                     assert(__sp_base_right_global.second >= __sp_base_left_global.second);
 
+                    const std::size_t __diagonal_idx_local = __local_id + 1;
+                    const std::size_t __diagonal_idx_global = __diagonal_idx_left_global + __diagonal_idx_local;
+                    const _IdType __i_elem = __eval_i_element_global(__nd_range_params, __group_linear_id, __diagonal_idx_local, __step_of_base_diagonals_in_one_wg_count, __sp_base_right_global);
+
                     // Calculate index of current diagonal
-                    _split_point_t<_IdType> __sp = __sp_base_right_global;
-
-                    // In the last group some additional diagonals and right base diagonal may be outside of merge matrix
-                    const _IdType __i_elem = __eval_i_element_global(__nd_range_params, __group_linear_id, __local_id, __step_of_base_diagonals_in_one_wg_count);
-                    if (__i_elem < __n)
-                    {
-                        __sp = __find_start_point_in(__rng1, __rng2,                                    // source data
-                                                     __i_elem,                                          // __i_elem in GLOBAL coordinates
-                                                     __sp_base_left_global, __sp_base_right_global,     // limitations for rng1, rng2 in GLOBAL coordinates
-                                                     __comp);
-                    }
-
-                    const std::size_t __diagonal_idx = __diagonal_idx_left_global + __local_id + 1;
+                    const _split_point_t<_IdType> __sp = __find_start_point_in(__rng1, __rng2,                                    // source data
+                                                                               __i_elem,                                          // __i_elem in GLOBAL coordinates
+                                                                               __sp_base_left_global, __sp_base_right_global,     // limitations for rng1, rng2 in GLOBAL coordinates
+                                                                               __comp);
 
 #if LOG_SET_SPLIT_POINTS
                     // TODO remove debug code
-                    __set_base_sp(__base_diagonals_sp_global_ptr, __diagonal_idx, __sp, __n1, __n2);
+                    __set_base_sp(__base_diagonals_sp_global_ptr, __diagonal_idx_global, __sp, __n1, __n2);
 #else
-                    __base_diagonals_sp_global_ptr[__diagonal_idx] = __sp;
+                    __base_diagonals_sp_global_ptr[__diagonal_idx_global] = __sp;
 #endif
                 });
         });
@@ -661,6 +661,17 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         }
     }
 
+    static _split_point_t<_IdType>
+    __convert_to_local(const _split_point_t<_IdType>& __sp_base_global, const _split_point_t<_IdType>& __sp_global)
+    {
+        assert(__sp_global.first >= __sp_base_global.first);
+        assert(__sp_global.second >= __sp_base_global.second);
+
+        _split_point_t<_IdType> __sp_local{ __sp_global.first - __sp_base_global.first, __sp_global.second - __sp_base_global.second };
+
+        return __sp_local;
+    }
+
     // Process merge in nd-range space
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
@@ -677,7 +688,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         using _RangeValueType = _Range1ValueType;
 
-        const _IdType __n = __rng1.size() + __rng2.size();
+        /*const*/ _IdType __n = __rng1.size() + __rng2.size();
+        __n = __n;
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
 
@@ -789,11 +801,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         assert(__sp_base_left_local.second >= __sp_base_left_global.second);
 
                                         // Convert split-points from nearest base diagonals into local coordinates
-                                        __sp_base_left_local.first  -= __sp_base_left_global.first;
-                                        __sp_base_left_local.second -= __sp_base_left_global.second;
-
-                                        __sp_base_right_local.first  -= __sp_base_left_global.first;
-                                        __sp_base_right_local.second -= __sp_base_left_global.second;
+                                        __sp_base_left_local  = __convert_to_local(__sp_base_left_global, __sp_base_left_local);
+                                        __sp_base_right_local = __convert_to_local(__sp_base_left_global, __sp_base_right_local);
 
                                         // Avoid calculation split-points for precalculated base diagonals
                                         if (__local_diagonal_idx % __step_of_base_diagonals_in_one_wg_count == 0)
@@ -803,11 +812,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         }
                                         else if (__diagonal_idx_right_global - __diagonal_idx_left_global == __local_diagonal_idx)
                                         {
-                                            __sp_local = __sp_base_right_global;
-
-                                            __sp_local.first  -= __sp_base_left_global.first;
-                                            __sp_local.second -= __sp_base_left_global.second;
-
+                                            __sp_local = __convert_to_local(__sp_base_left_global, __sp_base_right_global);
                                             __sp_local_evaluated = true;
                                         }
                                     }
@@ -857,7 +862,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         tmp = tmp;
     }
 #endif
-
 
 public:
 
