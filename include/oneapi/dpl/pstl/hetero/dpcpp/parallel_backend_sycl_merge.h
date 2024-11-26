@@ -412,6 +412,27 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         });
     }
 
+    // Read data into SLM cache
+    template <typename _Range, typename _RangeValueType>
+    static void
+    __read_data_into_slm(const _Range& __rng, _RangeValueType* __rng_cache_slm,
+                         const std::size_t __local_id, const std::size_t __chunk_of_data_reading,
+                         const std::size_t __rng_wg_data_size,
+                         const std::size_t __rng_offset)
+    {
+        const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
+
+        // Cooperative data load from __rng1 to __rng1_cache_slm
+        if (__idx_begin < __rng_wg_data_size)
+        {
+            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng_wg_data_size);
+
+            _ONEDPL_PRAGMA_UNROLL
+            for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
+                __rng_cache_slm[__idx] = __rng[__rng_offset + __idx];
+        }
+    }
+
     // Process merge in nd-range space
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
@@ -471,40 +492,16 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     const std::size_t __chunk_of_data_reading = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_wg_data_size, __nd_range_params.wi_in_one_wg);
 
+                    // Read data from __rng1 into __rng1_cache_slm
                     const std::size_t __how_many_wi_reads_rng1 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng1_wg_data_size, __chunk_of_data_reading);
-                    const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
-                    
-                    // Calculate the amount of WI for read data from rng1
                     if (__local_id < __how_many_wi_reads_rng1)
-                    {
-                        const std::size_t __idx_begin = __local_id * __chunk_of_data_reading;
+                        __read_data_into_slm(__rng1, __rng1_cache_slm, __local_id, __chunk_of_data_reading, __rng1_wg_data_size, __sp_base_left_global.first);
 
-                        // Cooperative data load from __rng1 to __rng1_cache_slm
-                        if (__idx_begin < __rng1_wg_data_size)
-                        {
-                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng1_wg_data_size);
-                    
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
-                                __rng1_cache_slm[__idx] = __rng1[__sp_base_left_global.first + __idx];
-                        }
-                    }
-
+                    // Read data from __rng2 into __rng2_cache_slm
+                    const std::size_t __how_many_wi_reads_rng2 = oneapi::dpl::__internal::__dpl_ceiling_div(__rng2_wg_data_size, __chunk_of_data_reading);
                     const std::size_t __first_wi_local_id_for_read_rng2 = __nd_range_params.wi_in_one_wg - __how_many_wi_reads_rng2;
                     if (__local_id >= __first_wi_local_id_for_read_rng2)
-                    {
-                        const std::size_t __idx_begin = (__local_id - __first_wi_local_id_for_read_rng2) * __chunk_of_data_reading;
-
-                        // Cooperative data load from __rng2 to __rng2_cache_slm
-                        if (__idx_begin < __rng2_wg_data_size)
-                        {
-                            const std::size_t __idx_end = std::min(__idx_begin + __chunk_of_data_reading, __rng2_wg_data_size);
-                    
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (_IdType __idx = __idx_begin; __idx < __idx_end; ++__idx)
-                                __rng2_cache_slm[__idx] = __rng2[__sp_base_left_global.second + __idx];
-                        }
-                    }
+                        __read_data_into_slm(__rng2, __rng2_cache_slm, __local_id - __first_wi_local_id_for_read_rng2, __chunk_of_data_reading, __rng2_wg_data_size, __sp_base_left_global.second);
 
                     // Wait until all the data is loaded
                     __dpl_sycl::__group_barrier(__nd_item);
