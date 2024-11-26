@@ -22,13 +22,24 @@ main()
     using namespace test_std_ranges;
     namespace dpl_ranges = oneapi::dpl::ranges;
 
-    auto find_if_not_checker = TEST_PREPARE_CALLABLE(std::ranges::find_if_not);
+    const int n = 1<<25; //32M
 
-    test_range_algo<0>{big_sz}(dpl_ranges::find_if_not, find_if_not_checker, pred1);
-    test_range_algo<1>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, proj);
-    test_range_algo<2, P2>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, &P2::x);
-    test_range_algo<3, P2>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, &P2::proj);
+    //transform view
+    test_range_algo<0>{n}.test_view(std::views::transform([](const auto a) { return a*2; }), 
+        dpl_ranges::find_if, std::ranges::find_if, pred, proj);
+
+    //reverse view
+    test_range_algo<1>{n}.test_view(std::views::reverse, dpl_ranges::sort, std::ranges::sort, std::less{});
+
+    //take view
+    test_range_algo<2>{n}.test_view(std::views::take(n/2), dpl_ranges::count_if, std::ranges::count_if, pred, proj);
+
+    //drop view
+    test_range_algo<3>{n}.test_view(std::views::drop(n/2), dpl_ranges::count_if, std::ranges::count_if, pred, proj);
+
+    //NOTICE: std::ranges::views::all, std::ranges::subrange, std::span are tested implicitly within the 'test_range_algo' test engine.
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
 }
+
