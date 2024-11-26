@@ -322,8 +322,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     {
         using namespace oneapi::dpl::__internal;
 
-        using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-        using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+        using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+        using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
         static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>,
                       "In this implementation we can merge only data of the same type");
 
@@ -442,8 +442,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                        const nd_range_params& __nd_range_params,
                        const _Storage& __base_diagonals_sp_global_storage) const
     {
-        using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-        using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+        using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+        using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
         static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>,
                       "In this implementation we can merge only data of the same type");
 
@@ -556,8 +556,8 @@ public:
     __future<sycl::event>
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
-        using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-        using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+        using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+        using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
         static_assert(std::is_same_v<_Range1ValueType, _Range2ValueType>, "In this implementation we can merge only data of the same type");
 
         using _RangeValueType = _Range1ValueType;
@@ -610,8 +610,8 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     //constexpr std::size_t __starting_size_limit_for_large_submitter = 1 * 1'048'576; // 1 Mb
     constexpr std::size_t __starting_size_limit_for_large_submitter = 10 * 1'024;
 
-    using _Range1ValueType = typename std::iterator_traits<decltype(__rng1.begin())>::value_type;
-    using _Range2ValueType = typename std::iterator_traits<decltype(__rng2.begin())>::value_type;
+    using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+    using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
 
     constexpr bool __same_merge_types = std::is_same_v<_Range1ValueType, _Range2ValueType>;
 
