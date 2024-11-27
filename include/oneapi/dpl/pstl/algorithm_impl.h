@@ -3014,35 +3014,6 @@ __pattern_merge(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIt
                                      typename _Tag::__is_vector{});
 }
 
-template<class ForwardIt, class T = typename std::iterator_traits<ForwardIt>::value_type,
-         class Compare>
-ForwardIt lower_bound_2(ForwardIt first, ForwardIt last, const T& value, Compare comp)
-{
-    ForwardIt it;
-    typename std::iterator_traits<ForwardIt>::difference_type count, step;
-    count = std::distance(first, last);
- 
-    while (count > 0)
-    {
-        it = first;
-        step = count / 2;
-        std::advance(it, step);
- 
-        std::cout << "it: " << *it << " ";
-        if (comp(*it, value))
-        {
-            first = ++it;
-            count -= step + 1;
-        }
-        else
-            count = step;
-    }
- 
-    std::cout << "first: " << *first << " ";
-    std::cout << std::endl;
-    return first;
-}
-
 template<typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
          typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
 std::pair<_It1, _It2>
@@ -3100,7 +3071,7 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                                 __it_res_1 = __res.first;
                                                 __it_res_2 = __res.second;
                                             }
-                                      }, /*_ONEDPL_MERGE_CUT_OFF*/10);
+                                      }, _ONEDPL_MERGE_CUT_OFF);
     });
 
     return {__it_res_1, __it_res_2};
@@ -3130,7 +3101,7 @@ __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ran
     auto __n_1 = __last1 - __first1;
     auto __n_2 = __last2 - __first2;
     auto __n_3 = __n_1 + __n_2;
-    __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __first1, __n_1, __first2, __n_2, __d_first, __n_3, __comp);
+    __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __first2, __n_2, __first1, __n_1, __d_first, __n_3, __comp);
     return __d_first + __n_3;
 #endif
 }

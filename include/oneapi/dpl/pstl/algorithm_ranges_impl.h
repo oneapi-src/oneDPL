@@ -487,48 +487,13 @@ __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&
     auto __it_2 = std::ranges::begin(__r2);
     auto __it_out = std::ranges::begin(__out_r);
 
-    auto __res = __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __it_1, __n_1, __it_2, __n_2, __it_out, __n_out, __comp_2);
+    auto __res = __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __it_2, __n_2, __it_1, __n_1, __it_out, __n_out, __comp_2);
 
     using __return_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_type{__res.first, __res.second, __it_out + __n_out};
+    return __return_type{__res.second, __res.first, __it_out + __n_out};
 }
-
-//TODO:
-#if 0
-template<typename Index1, typename Index2, typename Index3>
-auto
-__brick_merge(Index1 x, Index2 y, Index3 i, Index3 j)
-{
-    for(Index3 k = i; k < j; ++k)
-    {
-        if(x >= x_e)
-        {
-            assert(y < y_e);
-            c[k] = b[y];
-            ++y;
-        }
-        else if(y >= y_e)
-        {
-            assert(x < x_e);
-            c[k] = a[x];
-            ++x;
-        }
-        else if(a[x] < b[y])
-        {
-            c[k] = a[x];
-            ++x;
-        }
-        else
-        {
-            c[k] = b[y];
-            ++y;
-        }
-    }
-}
-#endif
-
 
 template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
          typename _Proj1, typename _Proj2>
