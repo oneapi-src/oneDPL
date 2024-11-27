@@ -413,7 +413,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const auto __slm_cached_items_count = __slm_mem_size / sizeof(_RangeValueType);
 
         // Get the maximum work-group size for the current device
-        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>() * __oversubscription;
+        const std::size_t __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 
         // The amount of items in the each work-group is the amount of diagonals processing between two work-groups + 1 (for the left base diagonal in work-group)
         std::size_t __diags_per_wi = 1;
