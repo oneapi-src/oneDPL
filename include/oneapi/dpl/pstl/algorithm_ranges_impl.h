@@ -448,29 +448,6 @@ auto
 __pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
                 _Proj1 __proj1, _Proj2 __proj2)
 {
-    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
-    assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r)); // for debug purposes only
-
-    auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
-        std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj2,
-        std::forward<decltype(__val2)>(__val2)));};
-
-    auto __res = oneapi::dpl::__internal::__pattern_merge(__tag, std::forward<_ExecutionPolicy>(__exec),
-        std::ranges::begin(__r1), std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2),
-        std::ranges::begin(__r2) + std::ranges::size(__r2), std::ranges::begin(__out_r), __comp_2);
-
-    using __return_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
-        std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    return __return_type{std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2) + std::ranges::size(__r2), __res};
-}
-
-template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
-         typename _Proj1, typename _Proj2>
-auto
-__pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
-                _Proj1 __proj1, _Proj2 __proj2)
-{
     auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
         std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj2,
         std::forward<decltype(__val2)>(__val2)));};
@@ -493,48 +470,6 @@ __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
     return __return_type{__res.second, __res.first, __it_out + __n_out};
-}
-
-template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
-         typename _Proj1, typename _Proj2>
-auto
-__pattern_merge(__serial_tag</*IsVector*/std::false_type>, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
-                _Proj1 __proj1, _Proj2 __proj2)
-{
-    using __return_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
-        std::ranges::borrowed_iterator_t<_OutRange>>;
-
-    auto __it_1 = std::ranges::begin(__r1);
-    auto __it_2 = std::ranges::begin(__r2);
-    auto __it_out = std::ranges::begin(__out_r);
-    while(__it_1 != std::ranges::end(__r1) && __it_2 != std::ranges::end(__r2))
-    {
-         if (std::invoke(__comp, std::invoke(__proj1, *__it_1), std::invoke(__proj2, *__it_2)))
-         {
-             *__it_out = *__it_1;
-             ++__it_out, ++__it_1;
-         }
-         else
-         {
-             *__it_out = *__it_2;
-             ++__it_out, ++__it_2;
-         }
-         if(__it_out == std::ranges::end(__out_r))
-            return __return_type{__it_1, __it_2, __it_out};
-    }
-
-    if(__it_1 == std::ranges::end(__r1))
-    {
-        for(; __it_2 != std::ranges::end(__r2) && __it_out != std::ranges::end(__out_r); ++__it_2, ++__it_out)
-            *__it_out = *__it_2;
-    }
-    else
-    {
-        //assert(__it_2 == std::ranges::end(__r2);
-        for(; __it_1 != std::ranges::end(__r1) && __it_out != std::ranges::end(__out_r); ++__it_1, ++__it_out)
-            *__it_out = *__it_1;
-    }
-    return __return_type{__it_1, __it_2, __it_out};
 }
 
 } // namespace __ranges
