@@ -2950,7 +2950,8 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 
 template<std::random_access_iterator It1, std::random_access_iterator It2, std::random_access_iterator ItOut, typename _Comp>
 std::pair<It1, It2>
-__brick_merge(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp)
+__brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
+              /* __is_vector = */ std::false_type)
 {
     while(__it_1 != __it_1_e && __it_2 != __it_2_e)
     {
@@ -2980,6 +2981,14 @@ __brick_merge(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out
             *__it_out = *__it_1;
     }
     return {__it_1, __it_2};
+}
+
+template<std::random_access_iterator It1, std::random_access_iterator It2, std::random_access_iterator ItOut, typename _Comp>
+std::pair<It1, It2>
+__brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
+              /* __is_vector = */ std::true_type)
+{
+    return __unseq_backend::__simd_merge(__it_1, __it_1_e, __it_2, __it_2_e, __it_out, __it_out_e, __comp);
 }
 
 template <class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator, class _Compare>
@@ -3012,6 +3021,16 @@ __pattern_merge(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIt
 
     return __internal::__brick_merge(__first1, __last1, __first2, __last2, __d_first, __comp,
                                      typename _Tag::__is_vector{});
+}
+
+template<class _Tag, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
+         typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
+std::pair<_It1, _It2>
+__pattern_merge_2(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2,
+                _Index2 __n_2, _OutIt __it_out, _Index3 __n_out, _Comp __comp)
+{
+    return __brick_merge_2(__it_1, __it_1 + __n_1, __it_2, __it_2 + __n_2, __it_out, __it_out + __n_out, __comp,
+                           typename _Tag::__is_vector{});
 }
 
 template<typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
@@ -3062,16 +3081,16 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                             }
 
                                             //serial merge n elements, starting from input x and y, to [i, j) output range
-                                            auto __res = __brick_merge(__it_1 + __r, __it_1 + __n_1,
+                                            auto __res = __brick_merge_2(__it_1 + __r, __it_1 + __n_1,
                                                                        __it_2 + __c, __it_2 + __n_2,
-                                                                       __it_out + __i, __it_out + __j, __comp);
+                                                                       __it_out + __i, __it_out + __j, __comp, _IsVector{});
 
                                             if(__j == __n_out)
                                             {
                                                 __it_res_1 = __res.first;
                                                 __it_res_2 = __res.second;
                                             }
-                                      }, _ONEDPL_MERGE_CUT_OFF);
+                                      }, _ONEDPL_MERGE_CUT_OFF); //grainsize
     });
 
     return {__it_res_1, __it_res_2};
@@ -3084,7 +3103,6 @@ __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ran
                 _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                 _RandomAccessIterator3 __d_first, _Compare __comp)
 {
-#if 0
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
@@ -3097,13 +3115,6 @@ __pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ran
             });
         return __d_first + (__last1 - __first1) + (__last2 - __first2);
     });
-#else
-    auto __n_1 = __last1 - __first1;
-    auto __n_2 = __last2 - __first2;
-    auto __n_3 = __n_1 + __n_2;
-    __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __first2, __n_2, __first1, __n_1, __d_first, __n_3, __comp);
-    return __d_first + __n_3;
-#endif
 }
 
 //------------------------------------------------------------------------
