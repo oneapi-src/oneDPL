@@ -13,9 +13,10 @@ which the same API and functionality as `std::ranges::zip_view`.
 
 
 ### Key Requirements
-`oneapi::dpl::ranges::zip_view` should have:
-- API compliance with `std::ranges::zip_view`
-- `oneapi::dpl::__internal::tuple` underhood, due to `std::tuple` has issues with swapability and device copyability.
+`oneapi::dpl::ranges::zip_view` should be:
+- API compliant with `std::ranges::zip_view`
+- device copyable itself
+- the 'oneapi::dpl::ranges::zip_view::iterator' type should be value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
 
 
 ### Performance
