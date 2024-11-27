@@ -29,9 +29,9 @@
 #define LOG_SET_SPLIT_POINTS 1
 #define LOG_ND_RANGE_PARAMS 1
 #define WAIT_IN_IMPL 1
-#define FILL_ADDITIONAL_DIAGONALS 1
+#define FILL_ADDITIONAL_DIAGONALS 0
 #if FILL_ADDITIONAL_DIAGONALS
-#   define USE_ADDITIONAL_DIAGONALS 1
+#   define USE_ADDITIONAL_DIAGONALS 0
 #endif
 
 namespace oneapi
@@ -316,13 +316,12 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
     }
 };
 
-template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _DiagonalsInGroupKernelName, typename _MergeKernelName>
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
 struct __parallel_merge_submitter_large;
 
-template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _DiagonalsInGroupKernelName, typename... _MergeKernelName>
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
 struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
-                                        __internal::__optional_kernel_name<_DiagonalsInGroupKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
   protected:
@@ -448,32 +447,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         return nd_range_params{__wg_count, __wi_in_one_wg, __chunk, __diags_per_wi, __additional_diags_inside_wg};
     }
 
-    // Get index for specified base diagonal
-    static std::size_t
-    __eval_i_element_global(const nd_range_params& __nd_range_params, const std::size_t __group_linear_id)
-    {
-        std::size_t __result = __group_linear_id * __nd_range_params.get_wg_data_size();
-
-        return __result;
-    }
-
-    // Get index for specified additional diagonal
-    static std::size_t
-    __eval_i_element_global(const nd_range_params& __nd_range_params, const std::size_t __group_linear_id,
-                            const std::size_t __internal_base_diag_idx, const std::size_t __step_of_base_diagonals_in_one_wg_count,
-                            const _split_point_t<_IdType>& __sp_base_right_global)
-    {
-        std::size_t __result = __eval_i_element_global(__nd_range_params, __group_linear_id);
-
-        __result += __internal_base_diag_idx * __step_of_base_diagonals_in_one_wg_count * __nd_range_params.chunk;
-
-        // Limit the result from upper side because the distance between last (right) internal additional diagonal
-        // and right global diagonal of the group may be less then __step_of_base_diagonals_in_one_wg_count
-        __result = std::min(__result, (std::size_t)(__sp_base_right_global.first + __sp_base_right_global.second));
-
-        return __result;
-    }
-
     // Get indexes of left and right base diagonals indexes for specified group
     static std::tuple<std::size_t, std::size_t>
     __get_group_base_diagonals(const nd_range_params& __nd_range_params, const std::size_t __group_linear_id)
@@ -517,119 +490,58 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
 
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
-            _split_point_t<_IdType>* __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-
-            // Each work-item processing one base diagonal per group
-            __cgh.parallel_for<_DiagonalsKernelName...>(
-                sycl::range</*dim=*/1>(__nd_range_params.wg_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
-
-                    const std::size_t __linear_id = __item_id.get_linear_id();
-
-                    // Save top-left split point for first/last base diagonals of merge matrix
-                    //  - in GLOBAL coordinates
-                    _split_point_t<_IdType> __sp = __zero_split_point<std::size_t>;
-                    if (0 < __linear_id && __linear_id < __nd_range_params.wg_count)
-                    {
-                        const _IdType __i_elem = __eval_i_element_global(__nd_range_params, __linear_id);
-
-                        // On left base diagonal of group we should always be inside of merge matrix
-                        assert(__i_elem < __n);
-
-                        __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    }
-                    else if (__linear_id == __nd_range_params.wg_count)
-                    {
-                        __sp = {__n1, __n2};
-                    }
-
-                    // In this code __linear_id logically is group identifier
-                    const auto [__diagonal_idx_left_global, __diagonal_idx_right_global] = __get_group_base_diagonals(__nd_range_params, __linear_id);
-
-#if LOG_SET_SPLIT_POINTS
-                    // TODO remove debug code
-                    __set_base_sp(__base_diagonals_sp_global_ptr, __diagonal_idx_left_global, __sp, __n1, __n2);
-#else
-                    __base_diagonals_sp_global_ptr[__diagonal_idx_left_global] = __sp;
-#endif
-                });
-        });
-#if WAIT_IN_IMPL
-        // TODO remove debug code
-        __event.wait();
-#endif
-
-        return __event;
-    }
-
-    // Calculation of split points on each base diagonal
-    //    - one work-group processing all additional diagonals between two base diagonals
-    //    - one work-item processing one additional diagonal between two base diagonals
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Compare, typename _Storage>
-    sycl::event
-    eval_additional_points_inside_groups(sycl::event __event,
-                                         _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Compare __comp,
-                                         const nd_range_params& __nd_range_params,
-                                         _Storage& __base_diagonals_sp_global_storage) const
-    {
-        if (!__nd_range_params.have_additional_base_diagonals_inside_one_wg())
-            return __event;
-
-        const _IdType __n1 = __rng1.size();
-        const _IdType __n2 = __rng2.size();
-        const _IdType __n = __n1 + __n2;
-
-        __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-
-            __cgh.depends_on(__event);
-
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
-
             auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh);
             auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
             const std::size_t __step_of_base_diagonals_in_one_wg_count = __nd_range_params.get_step_of_base_diagonals_in_one_wg_count();
 
-            // Each work-group processing all base diagonals between two base diagonals.
-            // Each work-item processing one base diagonal inside group.
-            __cgh.parallel_for<_DiagonalsInGroupKernelName...>(
-                sycl::nd_range</*dim=*/1>(__nd_range_params.wg_count * __nd_range_params.additional_diags_inside_wg, __nd_range_params.additional_diags_inside_wg),
+            const std::size_t __wg_count = __nd_range_params.wg_count + 1;                      // +1 to take into account the last group in which we fill only left base diagonal split point
+            const std::size_t __wi_count = __nd_range_params.additional_diags_inside_wg + 1;
+
+            // Each work-group processing left base diagonal and additional internal diagonals between two base diagonals.
+            // Each work-item processing one base or additional diagonal inside group.
+            __cgh.parallel_for<_DiagonalsKernelName...>(
+                sycl::nd_range</*dim=*/1>(__wg_count * __wi_count, __wi_count),
                 [=](sycl::nd_item</*dim=*/1> __nd_item)
                 {
-                    const std::size_t __global_linear_id = __nd_item.get_global_linear_id();    // Merge matrix diagonal's GLOBAL index
+                    //const std::size_t __global_linear_id = __nd_item.get_global_linear_id();    // Merge matrix diagonal's GLOBAL index
                     const std::size_t __local_id = __nd_item.get_local_id(0);                   // Merge sub-matrix LOCAL diagonal's index
                     const std::size_t __group_linear_id = __nd_item.get_group_linear_id();      // Merge matrix base diagonal's GLOBAL index
 
                     // Calculate indexes of left and right base diagonals for the current group
                     const auto [__diagonal_idx_left_global, __diagonal_idx_right_global] = __get_group_base_diagonals(__nd_range_params, __group_linear_id);
-                    assert(__local_id < __diagonal_idx_right_global - __diagonal_idx_left_global);
+                    //assert(__local_id < __diagonal_idx_right_global - __diagonal_idx_left_global);
 
-                    // Split points on left anr right base diagonals
-                    //  - in GLOBAL coordinates
-                    const auto& __sp_base_left_global  = __base_diagonals_sp_global_ptr[__diagonal_idx_left_global];
-                    const auto& __sp_base_right_global = __base_diagonals_sp_global_ptr[__diagonal_idx_right_global];
+                    const bool __is_first_wi_of_first_group = __group_linear_id == 0 && __local_id == 0;
+                    const bool __is_last_group = __group_linear_id == __wg_count - 1;
 
-                    assert(__sp_base_left_global < __sp_base_right_global);
+                    // In the last group we calculate and fill the split point only for the left base diagonal
+                    if (!__is_last_group || __local_id == 0) 
+                    {
+                        _split_point_t<_IdType> __sp = __is_first_wi_of_first_group ? __zero_split_point<_IdType> : _split_point_t<_IdType>{ __n1, __n2 };
+                        if (!__is_last_group)
+                        {
+                            if (!__is_first_wi_of_first_group)
+                            {
+                                // We calculate some additional diagonal inside of the group
+                                const _IdType __i_elem = __group_linear_id * __nd_range_params.get_wg_data_size() + __local_id * __step_of_base_diagonals_in_one_wg_count * __nd_range_params.chunk;
 
-                    assert(__sp_base_right_global.first >= __sp_base_left_global.first);
-                    assert(__sp_base_right_global.second >= __sp_base_left_global.second);
+                                // Save top-left split point for first/last base diagonals of merge matrix
+                                //  - in GLOBAL coordinates
+                                if (__i_elem < __n)
+                                    __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                            }
+                        }
 
-                    const std::size_t __diagonal_idx_local = __local_id + 1;
-                    const std::size_t __diagonal_idx_global = __diagonal_idx_left_global + __diagonal_idx_local;
-                    const _IdType __i_elem = __eval_i_element_global(__nd_range_params, __group_linear_id, __diagonal_idx_local, __step_of_base_diagonals_in_one_wg_count, __sp_base_right_global);
+                        const std::size_t __diagonal_idx_global = __diagonal_idx_left_global + __local_id;
 
-                    // Calculate index of current diagonal
-                    const _split_point_t<_IdType> __sp = __find_start_point_in(__rng1, __rng2,                                    // source data
-                                                                               __i_elem,                                          // __i_elem in GLOBAL coordinates
-                                                                               __sp_base_left_global, __sp_base_right_global,     // limitations for rng1, rng2 in GLOBAL coordinates
-                                                                               __comp);
-
-#if LOG_SET_SPLIT_POINTS
-                    // TODO remove debug code
-                    __set_base_sp(__base_diagonals_sp_global_ptr, __diagonal_idx_global, __sp, __n1, __n2);
-#else
-                    __base_diagonals_sp_global_ptr[__diagonal_idx_global] = __sp;
-#endif
+    #if LOG_SET_SPLIT_POINTS
+                        // TODO remove debug code
+                        __set_base_sp(__base_diagonals_sp_global_ptr, __diagonal_idx_global, __sp, __n1, __n2);
+    #else
+                        __base_diagonals_sp_global_ptr[__diagonal_idx_global] = __sp;
+    #endif
+                    }
                 });
         });
 #if WAIT_IN_IMPL
@@ -914,19 +826,7 @@ public:
         __event.wait();
 #endif
 
-        // 2. Calculate additional split points for some diagonals inside group
-        //    - one work-group processing all additional diagonals between two base diagonals
-        //    - one work-item processing one additional diagonal between two base diagonals
-        __event = eval_additional_points_inside_groups(__event,
-                                                       __exec, __rng1, __rng2, __comp,
-                                                       __nd_range_params,
-                                                       __base_diagonals_sp_global_storage);
-#if WAIT_IN_IMPL
-        // TODO remove debug code
-        __event.wait();
-#endif
-
-        // 3. Merge data using split points on each base diagonal
+        // 2. Merge data using split points on each base diagonal
         //    - one work-item processing one diagonal
         //    - work-items grouped to process diagonals between two base diagonals (include left base diagonal and exclude right base diagonal)
         __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp,
@@ -987,11 +887,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             using _WiIndex = std::uint32_t;
             using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __diagonals_kernel_name<_CustomName, _WiIndex>>;
-            using _DiagonalsInGroupKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __diagonals_in_group_kernel_name<_CustomName, _WiIndex>>;
             using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _DiagonalsInGroupKernelName, _MergeKernelName>()(
+            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
@@ -1000,11 +898,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             using _WiIndex = std::uint64_t;
             using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __diagonals_kernel_name<_CustomName, _WiIndex>>;
-            using _DiagonalsInGroupKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                __diagonals_in_group_kernel_name<_CustomName, _WiIndex>>;
             using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
-            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _DiagonalsInGroupKernelName, _MergeKernelName>()(
+            return __parallel_merge_submitter_large<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
         }
