@@ -71,7 +71,7 @@ test_dl_initialization(const std::vector<sycl::queue>& u)
 
 template <typename Policy, typename UniverseContainer, typename ResourceFunction, bool AutoTune = false>
 int
-test_select(UniverseContainer u, ResourceFunction&& f)
+test_select(UniverseContainer u, ResourceFunction/*&&*/ f)
 {
     using my_policy_t = Policy;
     my_policy_t p{u};
