@@ -1,4 +1,4 @@
-# General support for asynchronous API
+# General architecture for asynchronous API
 
 ## Introduction
 
@@ -95,12 +95,27 @@ for (work-queue q in qs) {
     append s to jobs;
 }
 /* synchronize with all parts */
-sync-with(jobs);
+sync-with(jobs); /* possibly in a loop */
+
 /* combine the results, if needed */
 ```
 
 For example, [Distributed Ranges](https://github.com/oneapi-src/distributed-ranges) use oneDPL
 asynchronous algorithms in this way to distribute work across available devices.
+
+The fork-join pattern can also use work queue synchronization:
+```
+work-queue qs[] = {/*initialize all the queues*/};
+/* split work to multiple queues */
+for (work-queue q in qs) {
+    foo-async(q, /*arguments*/);
+}
+/* synchronize with all queues */
+for (work-queue q in qs) {
+    sync-with(q);
+}
+/* combine the results, if needed */
+```
 
 ## Existing approaches outside oneDPL
 
