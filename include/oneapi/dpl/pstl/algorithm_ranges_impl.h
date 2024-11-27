@@ -465,48 +465,12 @@ __pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _
     return __return_type{std::ranges::begin(__r1) + std::ranges::size(__r1), std::ranges::begin(__r2) + std::ranges::size(__r2), __res};
 }
 
-template<std::random_access_iterator It1, std::random_access_iterator It2, std::random_access_iterator ItOut, typename _Comp>
-std::pair<It1, It2>
-__brick_merge(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp)
-{
-    while(__it_1 != __it_1_e && __it_2 != __it_2_e)
-    {
-         if (__comp(*__it_1, *__it_2))
-         {
-             *__it_out = *__it_1;
-             ++__it_out, ++__it_1;
-         }
-         else
-         {
-             *__it_out = *__it_2;
-             ++__it_out, ++__it_2;
-         }
-         if(__it_out == __it_out_e)
-            return {__it_1, __it_2};
-    }
-
-    if(__it_1 == __it_1_e)
-    {
-        for(; __it_2 != __it_2_e && __it_out != __it_out_e; ++__it_2, ++__it_out)
-            *__it_out = *__it_2;
-    }
-    else
-    {
-        //assert(__it_2 == __it_2_e);
-        for(; __it_1 != __it_1_e && __it_out != __it_out_e; ++__it_1, ++__it_out)
-            *__it_out = *__it_1;
-    }
-    return {__it_1, __it_2};
-}
-
 template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _OutRange, typename _Comp,
          typename _Proj1, typename _Proj2>
 auto
-__pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
+__pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r, _Comp __comp,
                 _Proj1 __proj1, _Proj2 __proj2)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
         std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)), std::invoke(__proj2,
         std::forward<decltype(__val2)>(__val2)));};
@@ -517,68 +481,18 @@ __pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R1&& __r1
 
     _Index1 __n_1 = std::ranges::size(__r1);
     _Index2 __n_2 = std::ranges::size(__r2);
-
     _Index3 __n_out = std::min<_Index3>(__n_1 + __n_2, std::ranges::size(__out_r));
 
     auto __it_1 = std::ranges::begin(__r1);
     auto __it_2 = std::ranges::begin(__r2);
     auto __it_out = std::ranges::begin(__out_r);
 
-    std::ranges::borrowed_iterator_t<_R1> __it_res_1;
-    std::ranges::borrowed_iterator_t<_R1> __it_res_2;
-
-    __internal::__except_handler([&]() {
-        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _Index3(0), __n_out,
-                                      [=, &__r1, &__r2, &__out_r, &__it_res_1, &__it_res_2](_Index3 __i, _Index3 __j)
-                                      {/*...*/
-
-                                            //a start merging point on the merge path; for each thread
-                                            std::ranges::range_difference_t<_R1> __x = 0;
-                                            std::ranges::range_difference_t<_R2> __y = 0;
-
-                                            if(__i > 0)
-                                            {
-                                                //calc merge path intersection:
-                                                const _Index3 __d_size = std::abs(std::max<_Index2>(0, __i - __n_2) - (std::min<_Index1>(__i, __n_1) - 1)) + 1;
-
-                                                auto __get_x = [__i, __n_1](auto __d) { return std::min<_Index1>(__i, __n_1) - __d; };
-                                                auto __get_y = [__i, __n_1](auto __d) { return std::max<_Index1>(0, __i - __n_1) + __d; };
-
-                                                oneapi::dpl::counting_iterator<_Index3> __it_d(0);
-                                                auto __res_d = *std::lower_bound(__it_d, __it_d + __d_size, 1,
-                                                    [&](auto __d, auto __val) {
-                                                        auto __x = __get_x(__d);
-                                                        auto __y = __get_y(__d);
-
-                                                        const auto __res = __comp_2(__r1[__x], __r2[__y]) ? 0 : 1;
-                                                        return __res < __val;
-                                                    }
-                                                );
-                                                //intersection point
-                                                __x = __get_x(__res_d);
-                                                __y = __get_y(__res_d);
-
-                                            }
-
-                                            const _Index3 __n = __j - __i;
-
-                                            //serial merge n elements, starting from input x and y, to [i, j) output range
-                                            auto __res = __brick_merge(__it_1 + __x, __it_1 + __n_1,
-                                                                       __it_2 + __y, __it_2 + __n_2,
-                                                                       __it_out + __i, __it_out + __j, __comp_2);
-
-                                            if(__j == __n_out)
-                                            {
-                                                __it_res_1 = __res.first;
-                                                __it_res_2 = __res.second;
-                                            }
-                                      });
-    });
+    auto __res = __pattern_merge_2(__tag, std::forward<_ExecutionPolicy>(__exec), __it_1, __n_1, __it_2, __n_2, __it_out, __n_out, __comp_2);
 
     using __return_type = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_type{__it_res_1, __it_res_2, std::ranges::begin(__out_r) + __n_out};
+    return __return_type{__res.first, __res.second, __it_out + __n_out};
 }
 
 //TODO:
