@@ -301,11 +301,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __base_diag_part = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-        __base_diagonals_sp_storage_t __result_and_scratch{__exec, 0, __base_diag_count + 1};
+        __base_diagonals_sp_storage_t __base_diagonals_sp_global_storage{__exec, 0, __base_diag_count + 1};
 
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
-            auto __base_diagonals_sp_global_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
@@ -328,7 +328,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            auto __base_diagonals_sp_global_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
             __cgh.depends_on(__event);
 
