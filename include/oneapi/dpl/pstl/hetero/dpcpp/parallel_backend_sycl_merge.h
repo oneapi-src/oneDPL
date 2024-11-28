@@ -31,6 +31,8 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
+template <typename _Index>
+using _split_point_t = std::pair<_Index, _Index>;
 
 //Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
 //to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
@@ -45,7 +47,7 @@ namespace __par_backend_hetero
 //   |             ---->
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-std::pair<_Index, _Index>
+_split_point_t<_Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
                       const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
 {
@@ -158,7 +160,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
                 return __zero_or_one < kValue;
             });
 
-        const std::pair<_Index, _Index> __result = std::make_pair(*__res, __index_sum - *__res + 1);
+        const _split_point_t<_Index> __result{ *__res, __index_sum - *__res + 1 };
         assert(__result.first + __result.second == __i_elem);
 
         assert(__rng1_from <= __result.first && __result.first <= __rng1_to);
@@ -175,7 +177,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
 }
 
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-std::pair<_Index, _Index>
+_split_point_t<_Index>
 __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
                    const _Index __n2, _Compare __comp)
 {
@@ -298,9 +300,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __base_diag_count = 1'024 * 32;
         const _IdType __base_diag_part = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
-        using _split_point_t = std::pair<_IdType, _IdType>;
-
-        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t>;
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
         __base_diagonals_sp_storage_t __result_and_scratch{__exec, 0, __base_diag_count + 1};
 
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -345,14 +345,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
                     auto __diagonal_idx = __global_idx / __base_diag_part;
 
-                    _split_point_t __start;
+                    _split_point_t<_IdType> __start;
                     if (__global_idx % __base_diag_part != 0)
                     {
                         // Check that we fit into size of scratch
                         assert(__diagonal_idx + 1 < __base_diag_count + 1);
 
-                        const _split_point_t __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
-                        const _split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+                        const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
+                        const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
                         __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
                                                         __sp_left.second, __sp_right.second, __i_elem, __comp);
