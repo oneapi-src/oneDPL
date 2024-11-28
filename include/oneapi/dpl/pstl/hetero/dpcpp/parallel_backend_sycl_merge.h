@@ -435,7 +435,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::size_t __n = __rng1.size() + __rng2.size();
 
         // Define SLM bank size
-        constexpr std::size_t __slm_bank_size = 16;     // TODO is it correct value? How to get it from hardware?
+        constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
 
         const std::size_t __oversubscription = 4;
 
