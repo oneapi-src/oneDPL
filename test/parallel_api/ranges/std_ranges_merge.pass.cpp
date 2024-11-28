@@ -41,26 +41,26 @@ main()
             
             if(it_1 == std::ranges::end(r_1))
             {
-                for(auto it_2 = std::ranges::begin(r_2); it_out != std::ranges::end(r_out); ++it_2, ++it_out)
+                for(; it_out != std::ranges::end(r_out); ++it_2, ++it_out)
                      *it_out = *it_2;
                 return ret_type{it_1, it_2, it_out};
             }
             else if(it_2 == std::ranges::end(r_2))
             {
-                for(auto it_1 = std::ranges::begin(r_1); it_out != std::ranges::end(r_out); ++it_1, ++it_out)
+                for(; it_out != std::ranges::end(r_out); ++it_1, ++it_out)
                      *it_out = *it_1;
                 return ret_type{it_1, it_2, it_out};
             }
 
-            if (std::invoke(comp, std::invoke(proj1, *it_1), std::invoke(proj2, *it_2)))
-            {
-                *it_out = *it_1;
-                ++it_1, ++it_out;
-            }
-            else
+            if (std::invoke(comp, std::invoke(proj2, *it_2), std::invoke(proj1, *it_1)))
             {
                 *it_out = *it_2;
                 ++it_2, ++it_out;
+            }
+            else
+            {
+                *it_out = *it_1;
+                ++it_1, ++it_out;
             }
         }
 
