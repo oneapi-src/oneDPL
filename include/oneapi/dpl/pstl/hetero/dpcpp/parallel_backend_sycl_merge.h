@@ -177,7 +177,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
     {
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
-        const _IdType __n = __n1 + __n2;
+        const _IdType __n = std::min<_IdType>(__n1 + __n2, __rng3.size());
 
         assert(__n1 > 0 || __n2 > 0);
 

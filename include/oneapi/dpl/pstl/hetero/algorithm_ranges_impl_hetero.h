@@ -54,7 +54,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Function, t
 void
 __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
-    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    auto __n = std::min({__rngs.size()...});
     if (__n > 0)
     {
         oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
