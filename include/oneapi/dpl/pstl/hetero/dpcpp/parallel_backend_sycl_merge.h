@@ -281,6 +281,73 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
+protected:
+
+    struct nd_range_params
+    {
+        std::size_t  base_diag_count = 0;
+        std::size_t  base_diag_part = 0;
+        std::uint8_t chunk = 0;
+        _IdType      steps = 0;
+    };
+
+    template <typename _ExecutionPolicy>
+    using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
+
+    // Calculate nd-range params
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+    nd_range_params
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const _Range1& __rng1, const _Range2& __rng2) const
+    {
+        const std::size_t __n = __rng1.size() + __rng2.size();
+
+        // Empirical number of values to process per work-item
+        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+
+        const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+        const _IdType __base_diag_count = 1'024 * 32;
+        const _IdType __base_diag_part = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+
+        return { __base_diag_count, __base_diag_part, __chunk, __steps };
+    }
+
+    // Calculation of split points on each base diagonal
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Compare, typename _Storage>
+    sycl::event
+    eval_split_points_for_groups(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Compare __comp,
+                                 const nd_range_params& __nd_range_params,
+                                 _Storage& __base_diagonals_sp_global_storage) const
+    {
+        const _IdType __n1 = __rng1.size();
+        const _IdType __n2 = __rng2.size();
+
+        sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
+                __cgh, __dpl_sycl::__no_init{});
+
+            __cgh.parallel_for<_DiagonalsKernelName...>(
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
+                    auto __global_idx = __item_id.get_linear_id();
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                    _split_point_t<_IdType> __sp = __global_idx == 0 ? _split_point_t<_IdType>{ 0, 0 } : _split_point_t<_IdType>{ __n1, __n2 };
+
+                    if (0 < __global_idx && __global_idx < __nd_range_params.base_diag_count)
+                    {
+                        const _IdType __i_elem = __global_idx * __nd_range_params.base_diag_part * __nd_range_params.chunk;
+                        __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                    }
+
+                    __base_diagonals_sp_global_ptr[__global_idx] = __sp;
+                });
+        });
+
+        return __event;
+    }
+
+public:
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
@@ -293,38 +360,13 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        // Empirical number of values to process per work-item
-        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        // Calculate nd-range params
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
 
-        const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
-        const _IdType __base_diag_count = 1'024 * 32;
-        const _IdType __base_diag_part = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+        __base_diagonals_sp_storage_t<_ExecutionPolicy> __base_diagonals_sp_global_storage{__exec, 0, __nd_range_params.base_diag_count + 1};
 
-        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-        __base_diagonals_sp_storage_t __base_diagonals_sp_global_storage{__exec, 0, __base_diag_count + 1};
-
-        sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
-                __cgh, __dpl_sycl::__no_init{});
-
-            __cgh.parallel_for<_DiagonalsKernelName...>(
-                sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
-                    auto __global_idx = __item_id.get_linear_id();
-                    auto __base_diagonals_sp_global_ptr =
-                        __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-
-                    _split_point_t<_IdType> __sp = __global_idx == 0 ? _split_point_t<_IdType>{ 0, 0 } : _split_point_t<_IdType>{ __n1, __n2 };
-
-                    if (0 < __global_idx && __global_idx < __base_diag_count)
-                    {
-                        const _IdType __i_elem = __global_idx * __base_diag_part * __chunk;
-                        __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    }
-
-                    __base_diagonals_sp_global_ptr[__global_idx] = __sp;
-                });
-        });
+        // Calculation of split points on each base diagonal
+        sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
@@ -333,19 +375,19 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             __cgh.depends_on(__event);
 
             __cgh.parallel_for<_MergeKernelName...>(
-                sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
-                    const _IdType __i_elem = __global_idx * __chunk;
+                    const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
 
                     auto __base_diagonals_sp_global_ptr =
-                        __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-                    auto __diagonal_idx = __global_idx / __base_diag_part;
+                        __base_diagonals_sp_storage_t<_ExecutionPolicy>::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __diagonal_idx = __global_idx / __nd_range_params.base_diag_part;
 
                     _split_point_t<_IdType> __start;
-                    if (__global_idx % __base_diag_part != 0)
+                    if (__global_idx % __nd_range_params.base_diag_part != 0)
                     {
                         // Check that we fit into size of scratch
-                        assert(__diagonal_idx + 1 < __base_diag_count + 1);
+                        assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
 
                         const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
                         const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
@@ -358,7 +400,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
                     }
 
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __nd_range_params.chunk, __n1, __n2,
                                    __comp);
                 });
         });
