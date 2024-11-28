@@ -2948,7 +2948,7 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 // merge
 //------------------------------------------------------------------------
 
-template<std::random_access_iterator It1, std::random_access_iterator It2, std::random_access_iterator ItOut, typename _Comp>
+template<typename It1, typename It2, typename ItOut, typename _Comp>
 std::pair<It1, It2>
 __brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
               /* __is_vector = */ std::false_type)
@@ -3082,8 +3082,8 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
 
                                             //serial merge n elements, starting from input x and y, to [i, j) output range
                                             auto __res = __brick_merge_2(__it_1 + __r, __it_1 + __n_1,
-                                                                       __it_2 + __c, __it_2 + __n_2,
-                                                                       __it_out + __i, __it_out + __j, __comp, _IsVector{});
+                                                                         __it_2 + __c, __it_2 + __n_2,
+                                                                         __it_out + __i, __it_out + __j, __comp, _IsVector{});
 
                                             if(__j == __n_out)
                                             {
