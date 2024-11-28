@@ -291,9 +291,6 @@ protected:
         _IdType      steps = 0;
     };
 
-    template <typename _ExecutionPolicy>
-    using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-
     // Calculate nd-range params
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
     nd_range_params
@@ -346,27 +343,17 @@ protected:
         return __event;
     }
 
-public:
-
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
+    // Process parallel merge
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
+              typename _Storage>
+    sycl::event
+    run_parallel_merge(sycl::event __event,
+                       _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp,
+                       const nd_range_params& __nd_range_params,
+                       const _Storage& __base_diagonals_sp_global_storage) const
     {
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
-        const _IdType __n = __n1 + __n2;
-
-        assert(__n1 > 0 || __n2 > 0);
-
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-        // Calculate nd-range params
-        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
-
-        __base_diagonals_sp_storage_t<_ExecutionPolicy> __base_diagonals_sp_global_storage{__exec, 0, __nd_range_params.base_diag_count + 1};
-
-        // Calculation of split points on each base diagonal
-        sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
@@ -379,8 +366,7 @@ public:
                     auto __global_idx = __item_id.get_linear_id();
                     const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
 
-                    auto __base_diagonals_sp_global_ptr =
-                        __base_diagonals_sp_storage_t<_ExecutionPolicy>::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
                     auto __diagonal_idx = __global_idx / __nd_range_params.base_diag_part;
 
                     _split_point_t<_IdType> __start;
@@ -404,6 +390,33 @@ public:
                                    __comp);
                 });
         });
+
+        return __event;
+    }
+
+public:
+
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
+    {
+        assert(__rng1.size() > 0 || __rng2.size() > 0);
+
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+
+        // Calculate nd-range params
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
+
+        // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
+        __base_diagonals_sp_storage_t __base_diagonals_sp_global_storage{__exec, 0, __nd_range_params.base_diag_count + 1};
+
+        // Calculation of split points on each base diagonal
+        sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
+
+        // Merge data using split points on each base diagonal
+        __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
+
         return __future(__event);
     }
 };
