@@ -386,8 +386,10 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-    const auto __n = __rng1.size() + __rng2.size();
-    if (__n < 4 * 1'048'576)
+    constexpr std::size_t __starting_size_limit_for_large_submitter = 4 * 1'048'576; // 4 MB
+
+    const std::size_t __n = __rng1.size() + __rng2.size();
+    if (__n < __starting_size_limit_for_large_submitter)
     {
         using _WiIndex = std::uint32_t;
         using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
