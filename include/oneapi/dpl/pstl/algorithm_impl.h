@@ -31,6 +31,7 @@
 #include "parallel_backend.h"
 #include "parallel_impl.h"
 #include "iterator_impl.h"
+#include "../functional"
 
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_impl_hetero.h" // for __pattern_fill_n, __pattern_generate_n
@@ -2983,7 +2984,7 @@ __brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_o
     return {__it_1, __it_2};
 }
 
-template<std::random_access_iterator It1, std::random_access_iterator It2, std::random_access_iterator ItOut, typename _Comp>
+template<typename It1, typename It2, typename ItOut, typename _Comp>
 std::pair<It1, It2>
 __brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
               /* __is_vector = */ std::true_type)
@@ -3055,10 +3056,13 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                             if(__i > 0)
                                             {
                                                 //calc merge path intersection:
-                                                const _Index3 __d_size = std::abs(std::max<_Index2>(0, __i - __n_2) - (std::min<_Index1>(__i, __n_1) - 1)) + 1;
+                                                const _Index3 __d_size = 
+                                                    std::abs(std::max<_Index2>(0, __i - __n_2) - (std::min<_Index1>(__i, __n_1) - 1)) + 1;
 
-                                                auto __get_row = [__i, __n_1](auto __d) { return std::min<_Index1>(__i, __n_1) - __d - 1; };
-                                                auto __get_column = [__i, __n_1](auto __d) { return std::max<_Index1>(0, __i - __n_1 - 1) + __d + (__i / (__n_1 + 1) > 0 ? 1 : 0); };
+                                                auto __get_row = [__i, __n_1](auto __d)
+                                                    { return std::min<_Index1>(__i, __n_1) - __d - 1; };
+                                                auto __get_column = [__i, __n_1](auto __d)
+                                                    { return std::max<_Index1>(0, __i - __n_1 - 1) + __d + (__i / (__n_1 + 1) > 0 ? 1 : 0); };
 
                                                 oneapi::dpl::counting_iterator<_Index3> __it_d(0);
 
@@ -3067,7 +3071,8 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                                         auto __r = __get_row(__d);
                                                         auto __c = __get_column(__d);
 
-                                                        oneapi::dpl::__internal::__compare<_Comp, std::identity> __cmp{__comp, std::identity{}};
+                                                        oneapi::dpl::__internal::__compare<_Comp, oneapi::dpl::identity>
+                                                            __cmp{__comp, oneapi::dpl::identity{}};
                                                         const auto __res = (__cmp(__it_1[__r], __it_2[__c]) ? 1 : 0);
 
                                                         return __res < __val;
