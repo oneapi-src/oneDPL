@@ -300,39 +300,39 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         using _split_point_t = std::pair<_IdType, _IdType>;
 
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t>;
-        __result_and_scratch_storage_t __result_and_scratch{__exec, 0, __base_diag_count + 1};
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t>;
+        __base_diagonals_sp_storage_t __result_and_scratch{__exec, 0, __base_diag_count + 1};
 
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
-            auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
+            auto __base_diagonals_sp_global_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
                 sycl::range</*dim=*/1>(__base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
-                    auto __scratch_ptr =
-                        __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
+                    auto __base_diagonals_sp_global_ptr =
+                        __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
                     if (__global_idx == 0)
                     {
-                        __scratch_ptr[0] = std::make_pair((_IdType)0, (_IdType)0);
+                        __base_diagonals_sp_global_ptr[0] = std::make_pair((_IdType)0, (_IdType)0);
                     }
                     else if (__global_idx == __base_diag_count)
                     {
-                        __scratch_ptr[__base_diag_count] = std::make_pair(__n1, __n2);
+                        __base_diagonals_sp_global_ptr[__base_diag_count] = std::make_pair(__n1, __n2);
                     }
                     else
                     {
                         const _IdType __i_elem = __global_idx * __base_diag_part * __chunk;
-                        __scratch_ptr[__global_idx] = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                        __base_diagonals_sp_global_ptr[__global_idx] = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                     }
                 });
         });
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            auto __scratch_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+            auto __base_diagonals_sp_global_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
             __cgh.depends_on(__event);
 
@@ -341,25 +341,25 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __global_idx = __item_id.get_linear_id();
                     const _IdType __i_elem = __global_idx * __chunk;
 
-                    auto __scratch_ptr =
-                        __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__scratch_acc);
-                    auto __scratch_idx = __global_idx / __base_diag_part;
+                    auto __base_diagonals_sp_global_ptr =
+                        __base_diagonals_sp_storage_t::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __diagonal_idx = __global_idx / __base_diag_part;
 
                     _split_point_t __start;
                     if (__global_idx % __base_diag_part != 0)
                     {
                         // Check that we fit into size of scratch
-                        assert(__scratch_idx + 1 < __base_diag_count + 1);
+                        assert(__diagonal_idx + 1 < __base_diag_count + 1);
 
-                        const _split_point_t __sp_left = __scratch_ptr[__scratch_idx];
-                        const _split_point_t __sp_right = __scratch_ptr[__scratch_idx + 1];
+                        const _split_point_t __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
+                        const _split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
                         __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
                                                         __sp_left.second, __sp_right.second, __i_elem, __comp);
                     }
                     else
                     {
-                        __start = __scratch_ptr[__scratch_idx];
+                        __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
                     }
 
                     __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
