@@ -19,7 +19,7 @@
 #include <limits>    // std::numeric_limits
 #include <cassert>   // assert
 #include <cstdint>   // std::uint8_t, ...
-#include <utility>   // std::make_pair, std::forward
+#include <utility>   // std::forward
 #include <algorithm> // std::min, std::lower_bound
 
 #include "sycl_defs.h"
@@ -172,7 +172,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     {
         assert(__rng1_from == 0);
         assert(__rng2_from == 0);
-        return std::make_pair(__rng1_from, __rng2_from);
+        return { __rng1_from, __rng2_from };
     }
 }
 
@@ -316,11 +316,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     if (__global_idx == 0)
                     {
-                        __base_diagonals_sp_global_ptr[0] = std::make_pair((_IdType)0, (_IdType)0);
+                        __base_diagonals_sp_global_ptr[0] = _split_point_t<_IdType>{ 0, 0 };
                     }
                     else if (__global_idx == __base_diag_count)
                     {
-                        __base_diagonals_sp_global_ptr[__base_diag_count] = std::make_pair(__n1, __n2);
+                        __base_diagonals_sp_global_ptr[__base_diag_count] = _split_point_t<_IdType>{ __n1, __n2 };
                     }
                     else
                     {
