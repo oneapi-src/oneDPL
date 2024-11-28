@@ -302,7 +302,7 @@ protected:
 
         const std::size_t __n = __rng1.size() + __rng2.size();
 
-        constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
+        constexpr std::size_t __slm_bank_size = 16;     // TODO is it correct value? How to get it from hardware?
 
         // Calculate how many data items we can read into one SLM bank
         constexpr std::size_t __data_items_in_slm_bank = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
