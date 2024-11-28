@@ -296,10 +296,19 @@ protected:
     nd_range_params
     eval_nd_range_params(_ExecutionPolicy&& __exec, const _Range1& __rng1, const _Range2& __rng2) const
     {
+        using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+        using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
+        using _RangeValueType = std::conditional_t<(sizeof(_Range1ValueType) > sizeof(_Range2ValueType)), _Range1ValueType, _Range2ValueType>;
+
         const std::size_t __n = __rng1.size() + __rng2.size();
 
+        constexpr std::size_t __slm_bank_size = 32;     // TODO is it correct value? How to get it from hardware?
+
+        // Calculate how many data items we can read into one SLM bank
+        constexpr std::size_t __data_items_in_slm_bank = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
+
         // Empirical number of values to process per work-item
-        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         const _IdType __base_diag_count = 1'024 * 32;
