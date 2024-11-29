@@ -17,7 +17,8 @@ which the same API and functionality as `std::ranges::zip_view`.
 - API compliant with `std::ranges::zip_view`
 - random accessable view; the "underlying" views also should be random accessable
 - in case of a device usage: a device copyable view itself and the "underlying" views also should be device copyable
-'oneapi::dpl::ranges::zip_view::iterator' type should be:
+  
+`oneapi::dpl::ranges::zip_view::iterator` should be:
 - value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
 - convertible `oneapi::dpl::zip_iterator`
 
