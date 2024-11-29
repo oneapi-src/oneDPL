@@ -11,16 +11,15 @@ useful for iterating over multiple collections in parallel. `std::ranges::zip_vi
 but there are many users who work with C++20 standard yet. So, oneDPL introduces `oneapi::dpl::ranges::zip_view`,
 which the same API and functionality as `std::ranges::zip_view`.
 
-
 ### Key Requirements
 `oneapi::dpl::ranges::zip_view` should be:
+- compilable with C++20 version (minimum)
 - API compliant with `std::ranges::zip_view`
-- device copyable itself
-- the 'oneapi::dpl::ranges::zip_view::iterator' type should be value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
-
+- random accessable view; the "underlying" views also should be random accessable
+- in case of a device usage: a device copyable view itself and the "underlying" views also should be device copyable
+'oneapi::dpl::ranges::zip_view::iterator' type should be:
+- value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
+- convertible `oneapi::dpl::zip_iterator`
 
 ### Performance
-Combining `std::ranges::zip_view` with data pipelines and kernel fusion enables developers to write expressive,
-efficient code for processing multiple related datasets. This approach not only simplifies the logic but also
-optimizes performance, making it an essential technique in modern C++ development. Whether you're working with
-simple transformations or complex data processing workflows, zip_view can be a valuable utility.
+TBD
