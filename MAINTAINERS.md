@@ -59,7 +59,7 @@ Responsibilities:
 Privileges:
 * Code contributions recognized in the oneDPL [credits](CREDITS.txt)
 * Eligible to become a Code Owner
-* Read permissions granted to the repository
+* Write permissions granted to the repository
 * Can suggest PRs and issues to be included in Milestones during planning
 
 ## <a name="codeowner"></a>Code Owner
@@ -77,7 +77,6 @@ Requirements:
 * Demonstrated in-depth knowledge of the architecture of a specific project
   component.
 * Commits to being responsible for that specific area.
-* Can propose new RFC or participate in review of existing RFCs
 
 Responsibilities in addition to those of Contributors:
 * Ensure the Contribution Guidelines are followed in contributions impacting the Code Owner's component
@@ -142,11 +141,11 @@ approve the PR.
 
 | Component             | Code Owner(s)       | Github ID | Affiliation |
 | --------------------- | ------------------- | --------- | ----------- |
-| C++ standard policies and CPU backends | Dan Hoeflinger | @danhoeflinger | Intel |
+| C++ standard policies and CPU backends | Mikhail Dvorskiy<br>Dan Hoeflinger | @MikeDvorskiy<br>@danhoeflinger | Intel<br>Intel |
 | SYCL device policies and SYCL backends | Mikhail Dvorskiy<br>Adam Fidel | @MikeDvorskiy<br>@adamfidel |  Intel |
 | Tested Standard C++ APIs & Utility Function Object Classes | Sergey Kopienko | @SergeyKopeinko | Intel |
 | C++17 standard algorithms | Mikhail Dvorskiy<br>Adam Fidel<br>SergeyKopienko<br>Julian Miller<br>Dmitriy Sobolev | @MikeDvorskiy<br>@adamfidel<br>@SergeyKopienko<br>@julianmi<br>@dmitriy-sobolev | Intel<br>Intel<br>Intel<br>Independent<br>Intel |
-| Range-Based Algorithms | Mikhail Dvorskiy | @MikeDvorskiy | Intel |
+| Range-Based Algorithms | Mikhail Dvorskiy<br>Ruslan Arutyunyan | @MikeDvorskiy<br>@rarutyun | Intel<br>Intel |
 | Asynchronous API Algorithms | Pablo Reble | @reble | Intel |
 | Additional Algorithms | Dan Hoeflinger<br>Matt Michel | @danhoeflinger<br>@mmichel11 | Intel<br>Intel |
 | Iterators | Dan Hoeflinger | @danhoeflinger | Intel |
