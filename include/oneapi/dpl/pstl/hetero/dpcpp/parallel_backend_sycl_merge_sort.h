@@ -255,7 +255,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 __cgh.depends_on(__event_chain);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
+
+                auto __temp_buf_acc = __temp_buf.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+                auto __dst = _TempBuf::__get_usm_or_buffer_accessor_ptr(__temp_buf_acc);
 
                 __cgh.parallel_for<_GlobalSortName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
@@ -268,8 +270,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                         if (__data_in_temp)
                         {
-                            const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst, __offset);
-                            const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
+                            auto __rng1 = __dst + __offset;
+                            auto __rng2 = __dst + __offset + __n1;
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
                             __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
@@ -306,13 +308,16 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
         __event_chain = __q.submit([&, __event_chain](sycl::handler& __cgh) {
             __cgh.depends_on(__event_chain);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __temp_acc = __temp_buf.template get_access<access_mode::read>(__cgh);
+
+            auto __temp_buf_acc = __temp_buf.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+            auto __src = _TempBuf::__get_usm_or_buffer_accessor_ptr(__temp_buf_acc);
+
             // We cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__rng.size()),
-                                                 [=](sycl::item</*dim=*/1> __item_id) {
-                                                     const std::size_t __idx = __item_id.get_linear_id();
-                                                     __rng[__idx] = __temp_acc[__idx];
-                                                 });
+                [=](sycl::item</*dim=*/1> __item_id) {
+                    const std::size_t __idx = __item_id.get_linear_id();
+                    __rng[__idx] = __src[__idx];
+                });
         });
         return __event_chain;
     }
@@ -351,8 +356,7 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
 
     // 2. Merge sorting
-    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
-    auto __temp_buf = __temp.get_buffer();
+    __result_and_scratch_storage<_ExecutionPolicy, _Tp> __temp_buf(__exec, 0, __rng.size());
     auto [__event_sort, __data_in_temp] = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
         __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
 
@@ -361,7 +365,10 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     {
         __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_sort);
     }
-    return __future(__event_sort);
+
+    // We should extend the lifetime of our temporary buffer (in the case if it's really not based on sycl::buffer)
+    // till the end of processing all our events in this chain.
+    return __future(__event_sort, __temp_buf);
 }
 
 template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
