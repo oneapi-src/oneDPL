@@ -20,7 +20,7 @@ which the same API and functionality as `std::ranges::zip_view`.
   
 `oneapi::dpl::ranges::zip_view::iterator` should be:
 - value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
-- convertible `oneapi::dpl::zip_iterator`
+- convertible to `oneapi::dpl::zip_iterator`
 
 ### Performance
 TBD
