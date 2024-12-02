@@ -25,7 +25,7 @@ The oneDPL project defines three primary roles, each with their own responsibili
 | Co-own the project as a whole,<br> including determining strategy and policy for the project                                                |            ✗            |            ✗           |            ✓            |
 |                     |                         |                        |                         |
 |                                                                                                                         **_Privileges_**    |     **Contributor**     |     **Code Owner**      |     **Maintainer**      |
-|                                                                                                                         Permission granted  |   [Write][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
+|                                                                                                                         Permission granted  |   [Read][permissions]/[Write][permissions]   |   [Write][permissions]  | [Maintain][permissions] |
 | Can Approve PRs     |            ✗             |             ✓           |            ✓            |
 | Eligible to become                                                                                                                          |       Code Owner        |       Maintainer        |            ✗            |
 | Can recommend Contributors<br> to become Code Owner                                                                                         |            ✗            |            ✓           |            ✓            |
@@ -59,7 +59,7 @@ Responsibilities:
 Privileges:
 * Code contributions recognized in the oneDPL [credits](CREDITS.txt)
 * Eligible to become a Code Owner
-* Write permissions granted to the repository
+* May request write permissions to the repository from the oneDPL Maintainers.
 * Can suggest PRs and issues to be included in Milestones during planning
 
 ## <a name="codeowner"></a>Code Owner
