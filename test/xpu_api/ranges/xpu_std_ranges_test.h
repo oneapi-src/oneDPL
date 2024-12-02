@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/utils_sycl.h"
+
 template<typename KernelName, typename Test>
 bool
 kernel_test(Test test)
