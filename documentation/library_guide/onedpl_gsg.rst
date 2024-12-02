@@ -35,8 +35,9 @@ page for:
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html>`_
 to use |onedpl_short|.
 
-Additionally, to use |onedpl_short| and other Base Kit components on NVIDIA® GPUs, install the
-`oneAPI for NVIDIA® GPUs plugin <https://developer.codeplay.com/products/oneapi/nvidia/home/>`_.
+Additionally, to use |onedpl_short| and other Base Kit components on non-Intel GPUs install either the
+`oneAPI for NVIDIA® GPUs plugin <https://developer.codeplay.com/products/oneapi/nvidia/home/>`_ or the
+`oneAPI for AMD GPUs plugin <https://developer.codeplay.com/products/oneapi/amd/home/>`_.
 
 See the |onedpl_short|
 `System Requirements <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/2022-7/intel-oneapi-dpc-library-introduction.html>`_
