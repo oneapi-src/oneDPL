@@ -117,15 +117,33 @@ for (work-queue q in qs) {
 /* combine the results, if needed */
 ```
 
+### Out of the scope (non-goals)
+
+There is no intention to support asynchronous computations in general nor use cases beyond the functionality
+of oneDPL, such as dependencies between any asynchronously executed functions. There exist other libraries
+as well as the C++ standard capacities for that purpose, some mentioned later in the document.
+
+SYCL supports out-of-order queues and provides APIs to set dependencies between kernels,
+including explicit dependencies via events. The experimental async algorithms in oneDPL were designed
+to preserve this capability; however, we have no evidence of it being used in practice. Also our study of
+the usage of Thrust asynchronous algorithms have not found examples of dependency chains. Therefore,
+support for this use case is not a requirement.
+
 ## Existing approaches outside oneDPL
 
 ### Thrust
 
-The Thrust library uses two approaches for its asynchronous algorithms. First, it has a set of
-explicitly asynchronous algorithms that return an event or a future to later synchronize with.
+The Thrust library uses two approaches for its asynchronous algorithms. Both approaches are implemented
+for the CUDA backend only.
+
+First, it has a set of explicitly asynchronous algorithms in `namespace thrust::async` that return an event
+or a future to later synchronize with. Now this API is unofficially deprecated, according to
+https://github.com/NVIDIA/cccl/issues/100.
+
 Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
 can skip non-essential synchronization as the caller will explicitly synchronize with the device
-or stream before accessing the results. Both approaches are implemented for the CUDA backend only.
+or stream before accessing the results.
+
 More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
 
 ### C++ async & future
