@@ -29,6 +29,12 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -58,6 +64,10 @@ struct __subgroup_bubble_sorter
     }
 };
 
+const __SYCL_CONSTANT_AS char fmt[] = "__id_local = %d - start(%d, %d); __n1 = %d, __n2 = %d\n";
+
+// sycl::ext::oneapi::experimental::printf(fmt, f);
+
 struct __group_merge_path_sorter
 {
     template <typename _StorageAcc, typename _Compare>
@@ -69,6 +79,8 @@ struct __group_merge_path_sorter
         const std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
 
         const std::uint32_t __id = __item.get_local_linear_id() * __data_per_workitem;
+
+        auto __accessor_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc);
 
         bool __data_in_temp = false;
         std::uint32_t __next_sorted = __sorted * 2;
@@ -86,12 +98,15 @@ struct __group_merge_path_sorter
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
-            auto __in_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc) + __data_in_temp * __sorted_final;
-            auto __out_ptr = __dpl_sycl::__get_accessor_ptr(__storage_acc) + (!__data_in_temp) * __sorted_final;
+            auto __in_ptr  = __accessor_ptr + (__data_in_temp ? __sorted_final : 0);
+            auto __out_ptr = __accessor_ptr + (__data_in_temp ? 0 : __sorted_final);
             auto __in_ptr1 = __in_ptr + __start1;
             auto __in_ptr2 = __in_ptr + __start2;
 
             const auto __start = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
+
+            sycl::ext::oneapi::experimental::printf(fmt, __id_local, __start.first, __start.second, (int)__n1, (int)__n2);
+
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
             __serial_merge(__in_ptr1, __in_ptr2, __out_ptr, __start.first, __start.second, __id, __data_per_workitem,
                            __n1, __n2, __comp);
@@ -125,7 +140,8 @@ struct __leaf_sorter
     _StorageAcc
     create_storage_accessor(sycl::handler& __cgh) const
     {
-        return _StorageAcc(storage_size(__data_per_workitem, __workgroup_size), __cgh);
+        const auto size = storage_size(__data_per_workitem, __workgroup_size);
+        return _StorageAcc(size, __cgh);
     }
 
     __leaf_sorter(const _Range& __rng, _Compare __comp, std::uint16_t __data_per_workitem,
@@ -135,6 +151,26 @@ struct __leaf_sorter
           __sub_group_sorter(), __group_sorter()
     {
         assert((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
+
+        std::cout << "__leaf_sorter : "<< std::endl;
+        std::cout << "\t__data_per_workitem = " << __data_per_workitem << std::endl;
+        std::cout << "\t__workgroup_size = " << __workgroup_size << std::endl;
+    }
+
+    template <typename Container, typename Index, typename Value>
+    static void
+    set_value(Container& container, Index index, const Value& value)
+    {
+        assert(value < 1000);
+        container[index] = value;
+    }
+
+    template <typename Container, typename Index>
+    static auto
+    get_value(Container& container, Index index)
+    {
+        const auto value = container[index];
+        return value;
     }
 
     void
@@ -160,7 +196,7 @@ struct __leaf_sorter
             const std::size_t __global_value_id = __wg_start + __local_value_id;
             if (__global_value_id < __n)
             {
-                __storage_acc[__local_value_id] = std::move(__rng[__global_value_id]);
+                set_value(__storage_acc, __local_value_id, get_value(__rng, __global_value_id));
             }
         }
         sycl::group_barrier(__sg);
@@ -176,7 +212,7 @@ struct __leaf_sorter
         __dpl_sycl::__group_barrier(__item);
 
         // 3. Sort on work-group level
-        bool __data_in_temp =
+        const bool __data_in_temp =
             __group_sorter.sort(__item, __storage_acc, __comp, static_cast<std::uint32_t>(0), __adjusted_process_size,
                                 /*sorted per sub-group*/ __data_per_workitem, __data_per_workitem, __workgroup_size);
         // barrier is not needed here because of the barrier inside the sort method
@@ -189,7 +225,7 @@ struct __leaf_sorter
             const std::size_t __global_value_id = __wg_start + __local_value_id;
             if (__global_value_id < __n)
             {
-                __rng[__global_value_id] = std::move(__storage_acc[__local_value_id + __data_in_temp * __process_size]);
+                set_value(__rng, __global_value_id, get_value(__storage_acc, __local_value_id + (__data_in_temp ? __process_size : 0)));
             }
         }
     }

@@ -222,6 +222,13 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     }
 }
 
+template <typename Container, typename Index, typename Value>
+void
+set_value_in_merge(Container& container, Index index, const Value& value)
+{
+    container[index] = value;
+}
+
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
@@ -234,14 +241,14 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
         //copying a residual of the second seq
         const _Index __n = std::min<_Index>(__n2 - __start2, __chunk);
         for (std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng2[__start2 + __i];
+            set_value_in_merge(__rng3, __start3 + __i, __rng2[__start2 + __i]);
     }
     else if (__start2 >= __n2)
     {
         //copying a residual of the first seq
         const _Index __n = std::min<_Index>(__n1 - __start1, __chunk);
         for (std::uint8_t __i = 0; __i < __n; ++__i)
-            __rng3[__start3 + __i] = __rng1[__start1 + __i];
+            set_value_in_merge(__rng3, __start3 + __i, __rng1[__start1 + __i]);
     }
     else
     {
@@ -251,22 +258,22 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
             const auto& __val2 = __rng2[__start2];
             if (__comp(__val2, __val1))
             {
-                __rng3[__start3 + __i] = __val2;
+                set_value_in_merge(__rng3, __start3 + __i, __val2);
                 if (++__start2 == __n2)
                 {
                     //copying a residual of the first seq
                     for (++__i; __i < __chunk && __start1 < __n1; ++__i, ++__start1)
-                        __rng3[__start3 + __i] = __rng1[__start1];
+                        set_value_in_merge(__rng3, __start3 + __i, __rng1[__start1]);
                 }
             }
             else
             {
-                __rng3[__start3 + __i] = __val1;
+                set_value_in_merge(__rng3, __start3 + __i, __val1);
                 if (++__start1 == __n1)
                 {
                     //copying a residual of the second seq
                     for (++__i; __i < __chunk && __start2 < __n2; ++__i, ++__start2)
-                        __rng3[__start3 + __i] = __rng2[__start2];
+                        set_value_in_merge(__rng3, __start3 + __i, __rng2[__start2]);
                 }
             }
         }
