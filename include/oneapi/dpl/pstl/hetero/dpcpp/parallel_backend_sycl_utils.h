@@ -108,15 +108,12 @@ __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_s
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
 
-// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
-
 template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
+#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50700)
     return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
     return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
@@ -130,10 +127,10 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
     const sycl::device& __device = __policy.queue().get_device();
     [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
     const ::std::uint32_t __sg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
+#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50700)
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
             __device
-#    if _ONEDPL_LIBSYCL_VERSION < 60000
+#    if _ONEDPL_DPCPP_LIBSYCL_VERSION < 60000
             ,
             sycl::range<3> { __wg_size, 1, 1 }
 #    endif
@@ -267,7 +264,7 @@ class __kernel_compiler
     static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
     template <typename _Exec>
     static auto
     __compile(_Exec&& __exec)
