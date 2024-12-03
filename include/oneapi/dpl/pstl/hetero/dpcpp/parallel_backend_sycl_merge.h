@@ -324,7 +324,7 @@ protected:
     struct nd_range_params
     {
         std::size_t  base_diag_count = 0;
-        std::size_t  base_diag_part = 0;
+        std::size_t  steps_between_two_base_diags = 0;
         std::uint8_t chunk = 0;
         _IdType      steps = 0;
     };
@@ -350,9 +350,9 @@ protected:
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         const _IdType __base_diag_count = 1'024 * 32;
-        const _IdType __base_diag_part = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+        const _IdType __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
-        return { __base_diag_count, __base_diag_part, __chunk, __steps };
+        return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
 
     // Calculation of split points on each base diagonal
@@ -379,7 +379,7 @@ protected:
 
                     if (0 < __global_idx && __global_idx < __nd_range_params.base_diag_count)
                     {
-                        const _IdType __i_elem = __global_idx * __nd_range_params.base_diag_part * __nd_range_params.chunk;
+                        const _IdType __i_elem = __global_idx * __nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk;
                         __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                     }
 
@@ -414,10 +414,10 @@ protected:
                     const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-                    auto __diagonal_idx = __global_idx / __nd_range_params.base_diag_part;
+                    auto __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
                     _split_point_t<_IdType> __start;
-                    if (__global_idx % __nd_range_params.base_diag_part != 0)
+                    if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
                     {
                         // Check that we fit into size of scratch
                         assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
