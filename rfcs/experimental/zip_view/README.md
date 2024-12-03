@@ -5,7 +5,7 @@ According to proposed RFC document about `std::ranges::zip_view` a following imp
 
 ## Implementation details
 - `oneapi::dpl::ranges::zip_view` is designed as C++ class, which represents a range adaptor (see C++ Range Library).
-This class encapsulate a tuple-like type to keep a combination of two or more ranges.
+This class encapsulates a tuple-like type to keep a combination of two or more ranges.
 - The implementation provides all necessary operators to satisfy 'random accessible view' requirement.
 - To provide a device copyability requirement `oneapi::dpl::__internal::tuple` is proposed as tuple-like type underhood.
 - To provide a value-swappable requirement `oneapi::dpl::__internal::tuple` is proposed as a dereferenced value for
