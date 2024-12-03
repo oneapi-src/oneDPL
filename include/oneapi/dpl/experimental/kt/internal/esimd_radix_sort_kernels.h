@@ -647,7 +647,7 @@ struct __radix_sort_onesweep_kernel
                     // should not logically be needed. Consider removing once this has been further investigated.
                     // This preprocessor check is set to expire and needs to be reevaluated once the SYCL major version
                     // is upgraded to 9.
-#if _ONEDPL_LIBSYCL_VERSION < 90000
+#if _ONEDPL_DPCPP_LIBSYCL_VERSION < 90000
 #   if _ONEDPL_ESIMD_LSC_FENCE_PRESENT
                     __dpl_esimd::__ns::fence<__dpl_esimd::__ns::memory_kind::local>();
 #   else
