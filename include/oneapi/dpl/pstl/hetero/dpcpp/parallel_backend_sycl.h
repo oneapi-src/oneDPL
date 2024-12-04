@@ -324,13 +324,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             auto __temp_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
             __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_LocalScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel_1,
-#endif
                 sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                     auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                     __local_scan(__item, __n, __local_acc, __rng1, __rng2, __temp_ptr, __size_per_wg, __wgroup_size,
@@ -345,13 +342,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 __cgh.depends_on(__submit_event);
                 auto __temp_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh);
                 __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL
                 __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
                 __cgh.parallel_for<_GroupScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel_2,
-#endif
                     // TODO: try to balance work between several workgroups instead of one
                     sycl::nd_range<1>(__wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                         auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
