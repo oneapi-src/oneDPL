@@ -364,16 +364,18 @@ protected:
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
 
+        const auto __chunk = __nd_range_params.chunk;
+
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
 
             __cgh.parallel_for<_MergeKernelName1...>(
                 sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
-                    const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
+                    const _IdType __i_elem = __global_idx * __chunk;
 
                     _split_point_t<_IdType> __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __nd_range_params.chunk, __n1, __n2, __comp);
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2, __comp);
                 });
         });
 
@@ -469,7 +471,7 @@ public:
             __event = run_parallel_merge(__exec, __rng1, __rng2, __rng3, __comp, __nd_range_params);
         }
 
-        return __future(__event, std::move(__p_result_and_scratch_storage_base));
+        return __future(std::move(__event), std::move(__p_result_and_scratch_storage_base));
     }
 
 private:
