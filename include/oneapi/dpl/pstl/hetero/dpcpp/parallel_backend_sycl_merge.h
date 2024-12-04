@@ -19,7 +19,7 @@
 #include <limits>    // std::numeric_limits
 #include <cassert>   // assert
 #include <cstdint>   // std::uint8_t, ...
-#include <utility>   // std::forward
+#include <utility>   // std::make_pair, std::forward
 #include <algorithm> // std::min, std::lower_bound
 
 #include "sycl_defs.h"
