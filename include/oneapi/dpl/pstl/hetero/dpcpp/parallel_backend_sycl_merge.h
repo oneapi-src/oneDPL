@@ -307,7 +307,9 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
                                    __comp);
                 });
         });
-        return __future(__event);
+        // We should return the same thing in the second param of __future for compatibility
+        // with the returning value in __parallel_merge_submitter_large::operator()
+        return __future(__event, __result_and_scratch_storage_base_ptr{});
     }
 };
 
@@ -458,15 +460,16 @@ public:
 
         // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-        __base_diagonals_sp_storage_t __base_diagonals_sp_global_storage{__exec, 0, __nd_range_params.base_diag_count + 1};
+        auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
+        __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
         // Calculation of split points on each base diagonal
-        sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
+        sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
 
         // Merge data using split points on each base diagonal
-        __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, __base_diagonals_sp_global_storage);
+        __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
 
-        return __future(__event);
+        return __future(__event, std::move(__p_result_and_scratch_storage_base));
     }
 };
 
