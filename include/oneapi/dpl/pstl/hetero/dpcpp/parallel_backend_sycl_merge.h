@@ -196,7 +196,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
             return __zero_or_one < kValue;
         });
 
-    const _split_point_t<_Index> __result{ *__res, __index_sum - *__res + 1 };
+    const _split_point_t<_Index> __result{*__res, __index_sum - *__res + 1};
     assert(__result.first + __result.second == __i_elem);
 
     assert(__rng1_from <= __result.first && __result.first <= __rng1_to);
@@ -256,23 +256,23 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     }
 }
 
-template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName1, typename _MergeKernelName2>
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName1,
+          typename _MergeKernelName2>
 struct __parallel_merge_submitter;
 
-template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName1, typename... _MergeKernelName2>
-struct __parallel_merge_submitter<_IdType, _CustomName,
-                                        __internal::__optional_kernel_name<_DiagonalsKernelName...>,
-                                        __internal::__optional_kernel_name<_MergeKernelName1...>,
-                                        __internal::__optional_kernel_name<_MergeKernelName2...>>
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName1,
+          typename... _MergeKernelName2>
+struct __parallel_merge_submitter<_IdType, _CustomName, __internal::__optional_kernel_name<_DiagonalsKernelName...>,
+                                  __internal::__optional_kernel_name<_MergeKernelName1...>,
+                                  __internal::__optional_kernel_name<_MergeKernelName2...>>
 {
-protected:
-
+  protected:
     struct nd_range_params
     {
-        std::size_t  base_diag_count = 0;
-        std::size_t  steps_between_two_base_diags = 0;
+        std::size_t base_diag_count = 0;
+        std::size_t steps_between_two_base_diags = 0;
         std::uint8_t chunk = 0;
-        _IdType      steps = 0;
+        _IdType steps = 0;
     };
 
     // Calculate nd-range params
@@ -282,23 +282,26 @@ protected:
     {
         using _Range1ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
         using _Range2ValueType = oneapi::dpl::__internal::__value_t<_Range2>;
-        using _RangeValueType = std::conditional_t<(sizeof(_Range1ValueType) > sizeof(_Range2ValueType)), _Range1ValueType, _Range2ValueType>;
+        using _RangeValueType = std::conditional_t<(sizeof(_Range1ValueType) > sizeof(_Range2ValueType)),
+                                                   _Range1ValueType, _Range2ValueType>;
 
         const std::size_t __n = __rng1.size() + __rng2.size();
 
-        constexpr std::size_t __slm_bank_size = 16;     // TODO is it correct value? How to get it from hardware?
+        constexpr std::size_t __slm_bank_size = 16; // TODO is it correct value? How to get it from hardware?
 
         // Calculate how many data items we can read into one SLM bank
-        constexpr std::size_t __data_items_in_slm_bank = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
+        constexpr std::size_t __data_items_in_slm_bank =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
 
         // Empirical number of values to process per work-item
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         const _IdType __base_diag_count = __use_base_diags ? 32 * 1'024 : 0;
-        const _IdType __steps_between_two_base_diags = __use_base_diags ? oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count) : 0;
+        const _IdType __steps_between_two_base_diags =
+            __use_base_diags ? oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count) : 0;
 
-        return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
+        return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
     }
 
     // Calculation of split points on each base diagonal
@@ -314,19 +317,23 @@ protected:
 
         sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
-                __cgh, __dpl_sycl::__no_init{});
+            auto __base_diagonals_sp_global_acc =
+                __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
+                    __cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
                 sycl::range</*dim=*/1>(__nd_range_params.base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
-                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __base_diagonals_sp_global_ptr =
+                        _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    _split_point_t<_IdType> __sp = __global_idx == 0 ? _split_point_t<_IdType>{ 0, 0 } : _split_point_t<_IdType>{ __n1, __n2 };
+                    _split_point_t<_IdType> __sp =
+                        __global_idx == 0 ? _split_point_t<_IdType>{0, 0} : _split_point_t<_IdType>{__n1, __n2};
 
                     if (0 < __global_idx && __global_idx < __nd_range_params.base_diag_count)
                     {
-                        const _IdType __i_elem = __global_idx * __nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk;
+                        const _IdType __i_elem =
+                            __global_idx * __nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk;
                         if (__i_elem < __n)
                             __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                     }
@@ -358,7 +365,8 @@ protected:
                     const _IdType __i_elem = __global_idx * __chunk;
 
                     _split_point_t<_IdType> __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2, __comp);
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                                   __comp);
                 });
         });
 
@@ -369,9 +377,8 @@ protected:
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
     sycl::event
-    run_parallel_merge(sycl::event __event,
-                       _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp,
-                       const nd_range_params& __nd_range_params,
+    run_parallel_merge(sycl::event __event, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                       _Range3&& __rng3, _Compare __comp, const nd_range_params& __nd_range_params,
                        const _Storage& __base_diagonals_sp_global_storage) const
     {
         const _IdType __n1 = __rng1.size();
@@ -379,7 +386,8 @@ protected:
 
         __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+            auto __base_diagonals_sp_global_acc =
+                __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
             __cgh.depends_on(__event);
 
@@ -388,7 +396,8 @@ protected:
                     auto __global_idx = __item_id.get_linear_id();
                     const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
 
-                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __base_diagonals_sp_global_ptr =
+                        _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
                     auto __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
                     _split_point_t<_IdType> __start;
@@ -408,19 +417,16 @@ protected:
                         __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
                     }
 
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __nd_range_params.chunk, __n1, __n2, __comp);
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
+                                   __nd_range_params.chunk, __n1, __n2, __comp);
                 });
         });
 
         return __event;
     }
 
-public:
-
-    __parallel_merge_submitter(bool __use_base_diags)
-        : __use_base_diags(__use_base_diags)
-    {
-    }
+  public:
+    __parallel_merge_submitter(bool __use_base_diags) : __use_base_diags(__use_base_diags) {}
 
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -440,13 +446,18 @@ public:
         if (__use_base_diags)
         {
             // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-            auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(__exec, 0, __nd_range_params.base_diag_count + 1);
-            __p_result_and_scratch_storage_base.reset(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
+            auto __p_base_diagonals_sp_global_storage =
+                new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(
+                    __exec, 0, __nd_range_params.base_diag_count + 1);
+            __p_result_and_scratch_storage_base.reset(
+                static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
-            __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
+            __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params,
+                                                   *__p_base_diagonals_sp_global_storage);
 
             // Merge data using split points on each base diagonal
-            __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
+            __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params,
+                                         *__p_base_diagonals_sp_global_storage);
         }
         else
         {
@@ -457,8 +468,7 @@ public:
         return __future(std::move(__event), std::move(__p_result_and_scratch_storage_base));
     }
 
-private:
-
+  private:
     const bool __use_base_diags = false;
 };
 
@@ -492,7 +502,8 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             __merge_kernel_name1<_CustomName, _WiIndex>>;
         using _MergeKernelName2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name2<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1, _MergeKernelName2>(__use_base_diags)(
+        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1,
+                                          _MergeKernelName2>(__use_base_diags)(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
@@ -505,7 +516,8 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             __merge_kernel_name1<_CustomName, _WiIndex>>;
         using _MergeKernelName2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name2<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1, _MergeKernelName2>(__use_base_diags)(
+        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1,
+                                          _MergeKernelName2>(__use_base_diags)(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
