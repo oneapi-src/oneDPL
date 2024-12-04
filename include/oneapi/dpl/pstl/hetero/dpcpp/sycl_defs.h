@@ -60,9 +60,10 @@
 #define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50300)
 #define _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50500)
+#define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(60200)
+
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) &&                                   \
                                             (_ONEDPL_DPCPP_LIBSYCL_VERSION >= 50700)
-#define _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED (_ONEDPL_DPCPP_LIBSYCL_VERSION >= 60200)
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
     (_ONEDPL_DPCPP_LIBSYCL_VERSION < 70100) && (_ONEDPL_DPCPP_LIBSYCL_VERSION != 0)
 
@@ -81,7 +82,7 @@
 #    endif
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
-#if _ONEDPL_DPCPP_LIBSYCL_VERSION >= 50300
+#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50300)
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #else
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
@@ -98,7 +99,7 @@
 
 // The unified future supporting USM memory and buffers is only supported after DPCPP 2023.1
 // but not by 2023.2.
-#if (_ONEDPL_DPCPP_LIBSYCL_VERSION >= 60100 && _ONEDPL_DPCPP_LIBSYCL_VERSION != 60200)
+#if (_ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(60100) && _ONEDPL_DPCPP_LIBSYCL_VERSION != 60200)
 #    define _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT 1
 #else
 #    define _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT 0
@@ -384,7 +385,7 @@ constexpr __target __target_device =
 #endif
 
 constexpr __target __host_target =
-#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50400)
+#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(60200)
     __target::host_task;
 #else
     __target::host_buffer;
@@ -392,7 +393,7 @@ constexpr __target __host_target =
 
 template <typename _DataT>
 using __buffer_allocator =
-#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50400)
+#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(60000)
     sycl::buffer_allocator<_DataT>;
 #else
     sycl::buffer_allocator;
