@@ -273,13 +273,14 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     }
 }
 
-template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName1, typename _MergeKernelName2>
 struct __parallel_merge_submitter;
 
-template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName1, typename... _MergeKernelName2>
 struct __parallel_merge_submitter<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
-                                        __internal::__optional_kernel_name<_MergeKernelName...>>
+                                        __internal::__optional_kernel_name<_MergeKernelName1...>,
+                                        __internal::__optional_kernel_name<_MergeKernelName2...>>
 {
 protected:
 
@@ -355,6 +356,31 @@ protected:
     }
 
     // Process parallel merge
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+    sycl::event
+    run_parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp,
+                       const nd_range_params& __nd_range_params) const
+    {
+        const _IdType __n1 = __rng1.size();
+        const _IdType __n2 = __rng2.size();
+
+        sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
+
+            __cgh.parallel_for<_MergeKernelName1...>(
+                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
+                    auto __global_idx = __item_id.get_linear_id();
+                    const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
+
+                    _split_point_t<_IdType> __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __nd_range_params.chunk, __n1, __n2, __comp);
+                });
+        });
+
+        return __event;
+    }
+
+    // Process parallel merge
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
     sycl::event
@@ -372,38 +398,29 @@ protected:
 
             __cgh.depends_on(__event);
 
-            const bool __use_base_diags_local = __use_base_diags;
-
-            __cgh.parallel_for<_MergeKernelName...>(
+            __cgh.parallel_for<_MergeKernelName2...>(
                 sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
                     auto __global_idx = __item_id.get_linear_id();
                     const _IdType __i_elem = __global_idx * __nd_range_params.chunk;
 
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+                    auto __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
+
                     _split_point_t<_IdType> __start;
-                    if (__use_base_diags_local)
+                    if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
                     {
-                        auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-                        auto __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
-                        
-                        if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
-                        {
-                            // Check that we fit into size of scratch
-                            assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
+                        // Check that we fit into size of scratch
+                        assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
 
-                            const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
-                            const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+                        const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
+                        const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
-                            __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
-                                                            __sp_left.second, __sp_right.second, __i_elem, __comp);
-                        }
-                        else
-                        {
-                            __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
-                        }
+                        __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
+                                                        __sp_left.second, __sp_right.second, __i_elem, __comp);
                     }
                     else
                     {
-                        __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                        __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
                     }
 
                     __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __nd_range_params.chunk, __n1, __n2, __comp);
@@ -433,18 +450,26 @@ public:
 
         // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-        auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __use_base_diags ? __nd_range_params.base_diag_count + 1 : 0);
-        __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
+
+        __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base;
 
         // Calculation of split points on each base diagonal
         sycl::event __event;
         if (__use_base_diags)
         {
-            __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
-        }
+            auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
+            __p_result_and_scratch_storage_base.reset(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
-        // Merge data using split points on each base diagonal
-        __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
+            __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
+
+            // Merge data using split points on each base diagonal
+            __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
+        }
+        else
+        {
+            // Merge data using split points on each base diagonal
+            __event = run_parallel_merge(__exec, __rng1, __rng2, __rng3, __comp, __nd_range_params);
+        }
 
         return __future(__event, std::move(__p_result_and_scratch_storage_base));
     }
@@ -455,7 +480,10 @@ private:
 };
 
 template <typename... _Name>
-class __merge_kernel_name;
+class __merge_kernel_name1;
+
+template <typename... _Name>
+class __merge_kernel_name2;
 
 template <typename... _Name>
 class __diagonals_kernel_name;
@@ -477,9 +505,11 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         using _WiIndex = std::uint32_t;
         using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __diagonals_kernel_name<_CustomName, _WiIndex>>;
-        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __merge_kernel_name<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>(__use_base_diags)(
+        using _MergeKernelName1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name1<_CustomName, _WiIndex>>;
+        using _MergeKernelName2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name2<_CustomName, _WiIndex>>;
+        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1, _MergeKernelName2>(__use_base_diags)(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
@@ -488,9 +518,11 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         using _WiIndex = std::uint64_t;
         using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __diagonals_kernel_name<_CustomName, _WiIndex>>;
-        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __merge_kernel_name<_CustomName, _WiIndex>>;
-        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName>(__use_base_diags)(
+        using _MergeKernelName1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name1<_CustomName, _WiIndex>>;
+        using _MergeKernelName2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name2<_CustomName, _WiIndex>>;
+        return __parallel_merge_submitter<_WiIndex, _CustomName, _DiagonalsKernelName, _MergeKernelName1, _MergeKernelName2>(__use_base_diags)(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
     }
