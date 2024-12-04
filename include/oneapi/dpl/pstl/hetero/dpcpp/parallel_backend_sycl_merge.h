@@ -448,16 +448,14 @@ public:
         // Calculate nd-range params
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
 
-        // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>;
-
         __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base;
 
         // Calculation of split points on each base diagonal
         sycl::event __event;
         if (__use_base_diags)
         {
-            auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
+            // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+            auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(__exec, 0, __nd_range_params.base_diag_count + 1);
             __p_result_and_scratch_storage_base.reset(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
             __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params, *__p_base_diagonals_sp_global_storage);
