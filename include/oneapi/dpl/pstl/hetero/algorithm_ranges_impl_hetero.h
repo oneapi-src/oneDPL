@@ -54,7 +54,8 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Function, t
 void
 __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
-    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    using _Size = std::make_unsigned_t<std::common_type_t<oneapi::dpl::__internal::__difference_t<_Ranges>...>>;
+    auto __n = std::min({_Size(__rngs.size())...});
     if (__n > 0)
     {
         oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
@@ -727,8 +728,6 @@ auto
 __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _OutRange&& __out_r,
     _Comp __comp, _Proj1 __proj1, _Proj2 __proj2)
 {
-    assert(std::ranges::size(__r1) + std::ranges::size(__r2) <= std::ranges::size(__out_r)); // for debug purposes only
-
     auto __comp_2 = [__comp, __proj1, __proj2](auto&& __val1, auto&& __val2) { return std::invoke(__comp,
         std::invoke(__proj1, std::forward<decltype(__val1)>(__val1)),
         std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
