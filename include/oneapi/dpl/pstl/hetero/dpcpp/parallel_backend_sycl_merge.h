@@ -97,16 +97,16 @@ _split_point_t<_Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
                       const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
 {
-    if constexpr (!std::is_pointer_v<_Rng1> && !std::is_pointer_v<_Rng2>)
-    {
-        assert(0 <= __rng1_from && __rng1_from < __rng1_to && __rng1_to < __rng1.size());
-        assert(0 <= __rng2_from && __rng2_from < __rng2_to && __rng2_to < __rng2.size());
-    }
-    else
-    {
-        assert(0 <= __rng1_from && __rng1_from < __rng1_to);
-        assert(0 <= __rng2_from && __rng2_from < __rng2_to);
-    }
+    assert(__rng1_from + __rng2_from <= __i_elem && __i_elem <= __rng1_to + __rng2_to);
+
+    if (__i_elem == 0)
+        return _split_point_t<_Index>{ 0, 0 };
+
+    if (__rng1_from == __rng1_to)
+        return _split_point_t<_Index>{ __rng1_from, __rng2_from + __i_elem };
+
+    if (__rng2_from == __rng2_to)
+        return _split_point_t<_Index>{ __rng1_from + __i_elem, __rng2_to };
 
     // We shouldn't call this function with __i_elem == 0 because we a priory know that
     // split point for this case is {0, 0}
