@@ -22,12 +22,43 @@
 #include <cstdint>     // std::uint32_t, ...
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
+#include <vector>
 
 #include "sycl_defs.h"                   // __dpl_sycl::__local_accessor, __dpl_sycl::__group_barrier
 #include "sycl_traits.h"                 // SYCL traits specialization for some oneDPL types.
 #include "../../utils.h"                 // __dpl_bit_floor, __dpl_bit_ceil
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
+
+//#define TRACE_SPLIT_POINTS_ON_BASE_DIAGONALS 1
+#define WAIT_AFTER_EACH_SUBMIT 1
+
+#if WAIT_AFTER_EACH_SUBMIT
+#    define TRACE_MAIN_WORK 1
+#endif
+
+#ifdef __SYCL_DEVICE_ONLY__
+#    define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#    define __SYCL_CONSTANT_AS
+#endif
+
+#if TRACE_SPLIT_POINTS_ON_BASE_DIAGONALS
+const __SYCL_CONSTANT_AS char fmt_diagonal_state[] = "Split-point on base diagonal: diagonal = %10d, split-point = {%10d, %10d}\n";
+#endif
+
+#if TRACE_MAIN_WORK
+const __SYCL_CONSTANT_AS char fmt_call_state_open[]  = "Global id = %10d, %s";
+const __SYCL_CONSTANT_AS char fmt_call_state_close[] = "Global id = %10d, %s\n";
+#endif
+
+sycl::event wait_on_call(sycl::event __event)
+{
+#if WAIT_AFTER_EACH_SUBMIT
+    __event.wait();
+#endif
+    return __event;
+}
 
 namespace oneapi
 {
@@ -178,7 +209,7 @@ struct __leaf_sorter
         // 3. Sort on work-group level
         bool __data_in_temp =
             __group_sorter.sort(__item, __storage_acc, __comp, static_cast<std::uint32_t>(0), __adjusted_process_size,
-                                /*sorted per sub-group*/ __data_per_workitem, __data_per_workitem, __workgroup_size);
+                /*sorted per sub-group*/ __data_per_workitem, __data_per_workitem, __workgroup_size);
         // barrier is not needed here because of the barrier inside the sort method
 
         // 4. Store
@@ -214,7 +245,7 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
     sycl::event
     operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSorter& __leaf_sorter) const
     {
-        return __q.submit([&](sycl::handler& __cgh) {
+        return wait_on_call(__q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __storage_acc = __leaf_sorter.create_storage_accessor(__cgh);
             const std::uint32_t __wg_count =
@@ -223,73 +254,478 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
                                                sycl::range<1>(__leaf_sorter.__workgroup_size));
             __cgh.parallel_for<_LeafSortName...>(
                 __nd_range, [=](sycl::nd_item<1> __item) { __leaf_sorter.sort(__item, __storage_acc); });
-        });
+        }));
     }
 };
 
-template <typename _IndexT, typename _GlobalSortName>
+template <typename _IndexT, typename _DiagonalsKernelName, typename _GlobalSortName1, typename _GlobalSortName2>
 struct __merge_sort_global_submitter;
 
-template <typename _IndexT, typename... _GlobalSortName>
-struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
+template <typename _IndexT, typename... _DiagonalsKernelName, typename... _GlobalSortName1, typename... _GlobalSortName2>
+struct __merge_sort_global_submitter<_IndexT,
+                                     __internal::__optional_kernel_name<_DiagonalsKernelName...>,
+                                     __internal::__optional_kernel_name<_GlobalSortName1...>,
+                                     __internal::__optional_kernel_name<_GlobalSortName2...>>
 {
-    template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
-    std::pair<sycl::event, bool>
-    operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
+protected:
+
+    using _merge_split_point_t = _split_point_t<_IndexT>;
+
+    static constexpr std::size_t __starting_size_limit_for_large_submitter = 4 * 1'048'576; // 4 MB
+
+    struct nd_range_params
+    {
+        std::size_t   base_diag_count = 0;
+        std::size_t   steps_between_two_base_diags = 0;
+        std::uint32_t chunk = 0;
+        std::size_t   steps = 0;
+    };
+
+    struct WorkDataArea
+    {
+        // How WorkDataArea is implemented :
+        // 
+        //                              i_elem_local
+        //                                |
+        //                      offset    |    i_elem
+        //                        |       |      |
+        //                        V       V      V
+        //                 +------+-------+------+-----+
+        //                 |      |       |      /     |
+        //                 |      |       |     /      |
+        //                 |      |       |    /       |
+        //                 |      |       |   /        |
+        //                 |      |       |  /         |
+        //                 |      |       | /          |
+        //       offset -> +------+---n1--+       <----+---- whole data area : size == __n
+        //                 |      |      /|            |
+        //                 |      |   <-/-+------------+---- working data area : sizeof(rng1) <= __n_sorted, sizeof(rng2) <= __n_sorted
+        //                 |      |    /  |            |
+        //                 |     n2   /   |            |
+        //                 |      |  /    |            |
+        //                 |      | /     |            |
+        //                 |      |/      |            |
+        // i_elem_local -> +------+-------+            |
+        //                 |     /                     |
+        //                 |    /                      |
+        //                 |   /                       |
+        //                 |  /                        |
+        //                 | /                         |
+        //       i_elem -> +/                          |
+        //                 |                           |
+        //                 |                           |
+        //                 |                           |
+        //                 |                           |
+        //                 |                           |
+        //                 +---------------------------+
+
+        _IndexT i_elem = 0;             // Global diagonal index
+        _IndexT i_elem_local = 0;       // Local diagonal index
+        _IndexT offset = 0;             // Offset to the first element in the subrange (i.e. the first element of the first subrange for merge)
+        _IndexT n1 = 0;                 // Size of the first subrange
+        _IndexT n2 = 0;                 // Size of the second subrange
+
+        WorkDataArea(const std::size_t __n, const std::size_t __n_sorted,
+                     const std::size_t __linear_id,
+                     const std::size_t __chunk)
+        {
+            // Calculate global diagonal index
+            i_elem = __linear_id * __chunk;
+
+            // Calculate local diagonal index
+            i_elem_local = i_elem % (__n_sorted * 2);
+
+            // Calculate offset to the first element in the subrange (i.e. the first element of the first subrange for merge)
+            offset = std::min<_IndexT>(i_elem - i_elem_local, __n);
+
+            // Calculate size of the first and the second subranges
+            n1 = std::min<_IndexT>(offset + __n_sorted, __n) - offset;
+            n2 = std::min<_IndexT>(offset + __n_sorted + n1, __n) - (offset + n1);
+        }
+
+        inline bool
+        is_i_elem_local_inside_merge_matrix() const
+        {
+            return i_elem_local < n1 + n2;
+        }
+    };
+
+    template <typename Rng>
+    struct DropViews
+    {
+        using __drop_view_simple_t = oneapi::dpl::__ranges::drop_view_simple<Rng, _IndexT>;
+
+        __drop_view_simple_t rng1;
+        __drop_view_simple_t rng2;
+
+        DropViews(Rng& __rng, const WorkDataArea& __data_area)
+            : rng1(__rng, __data_area.offset)
+            , rng2(__rng, __data_area.offset + __data_area.n1)
+        {}
+    };
+
+    // Calculate nd-range params
+    template <typename _ExecutionPolicy>
+    nd_range_params
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, bool __use_base_diags) const
+    {
+        const bool __is_cpu = __exec.queue().get_device().is_cpu();
+        const std::uint32_t __chunk = __is_cpu ? 32 : 4;
+        const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
+
+        _IndexT __base_diag_count = 0;
+        _IndexT __steps_between_two_base_diags = 0;
+
+        if (__use_base_diags)
+        {
+            __base_diag_count = 32 * 1'024;     // 32 Kb
+            __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+        }
+
+        return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
+    }
+
+    // Calculation of split points on each base diagonal
+    template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
+    sycl::event
+    eval_split_points_for_groups(const sycl::event& __event_chain,
+                                 const _IndexT __n_sorted, const bool __data_in_temp,
+                                 _ExecutionPolicy&& __exec, _Range&& __rng, _TempBuf& __temp_buf, _Compare __comp,
+                                 const nd_range_params& __nd_range_params,
+                                 _Storage& __base_diagonals_sp_global_storage) const
+    {
+        const _IndexT __n = __rng.size();
+
+        return wait_on_call(__exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.depends_on(__event_chain);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
+                __cgh, __dpl_sycl::__no_init{});
+
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
+
+            __cgh.parallel_for<_DiagonalsKernelName...>(
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
+
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                    const std::size_t __linear_id = __item_id.get_linear_id();
+
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
+
+                    _merge_split_point_t __sp = __linear_id == 0 ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
+
+                    if (0 < __linear_id && __linear_id < __nd_range_params.base_diag_count
+                        && __data_area.is_i_elem_local_inside_merge_matrix())
+                    {
+                        if (__data_in_temp)
+                        {
+                            DropViews __views(__dst, __data_area);
+                            __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                      __data_area.i_elem_local /* i_elem */,
+                                                      __data_area.n1, __data_area.n2,
+                                                      __comp);
+                        }
+                        else
+                        {
+                            DropViews __views(__rng, __data_area);
+                            __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                      __data_area.i_elem_local /* i_elem */,
+                                                      __data_area.n1, __data_area.n2,
+                                                      __comp);
+                        }
+                    }
+
+#if TRACE_SPLIT_POINTS_ON_BASE_DIAGONALS
+                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_state, __linear_id, __sp.first, __sp.second);
+#endif
+
+                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
+                });
+        }));
+    }
+
+    template <typename _Range1, typename _Range2, typename _Compare, typename _BaseDiagonalsSPStorage>
+    static _merge_split_point_t
+    __find_or_eval_sp(const nd_range_params& __nd_range_params,
+                      _Range1& __rng1, _Range2& __rng2,
+                      const std::size_t __diagonal_idx_local,
+                      _IndexT __i_elem_local,
+                      _Compare __comp,
+                      _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
+    {
+        const bool __is_base_diagonal = __diagonal_idx_local % __nd_range_params.steps_between_two_base_diags == 0;
+        const std::size_t __diagonal_idx = __diagonal_idx_local / __nd_range_params.steps_between_two_base_diags;
+
+        _merge_split_point_t __start;
+        if (!__is_base_diagonal)
+        {
+            // Check that we fit into size of scratch
+            assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
+
+            const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+
+            return __find_start_point_in(std::forward<_Range1>(__rng1), __sp_left.first, __sp_right.first,
+                                         std::forward<_Range2>(__rng2), __sp_left.second, __sp_right.second,
+                                         __i_elem_local, __comp);
+        }
+        else
+        {
+            return __base_diagonals_sp_global_ptr[__diagonal_idx];
+        }
+    }
+
+    // Process parallel merge
+    template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare>
+    sycl::event
+    run_parallel_merge(const sycl::event& __event_chain,
+                       const _IndexT __n_sorted, const bool __data_in_temp,
+                       _ExecutionPolicy&& __exec, _Range&& __rng, _TempBuf& __temp_buf, _Compare __comp,
+                       const nd_range_params& __nd_range_params) const
+    {
+        const _IndexT __n = __rng.size();
+
+        return wait_on_call(__exec.queue().submit([&](sycl::handler& __cgh) {
+
+            __cgh.depends_on(__event_chain);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
+
+            __cgh.parallel_for<_GlobalSortName1...>(
+                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const std::size_t __linear_id = __item_id.get_linear_id();
+
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk);
+                    if (__data_area.is_i_elem_local_inside_merge_matrix())
+                    {
+                        if (__data_in_temp)
+                        {
+                            DropViews __views(__dst, __data_area);
+
+                            const auto __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                                 __data_area.i_elem_local /* i_elem */,
+                                                                 __data_area.n1, __data_area.n2,
+                                                                 __comp);
+
+                            __serial_merge(__views.rng1, __views.rng2, __rng /* rng3 */,
+                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
+                                           __nd_range_params.chunk,
+                                           __data_area.n1, __data_area.n2,
+                                           __comp);
+                        }
+                        else
+                        {
+                            DropViews __views(__rng, __data_area);
+
+                            const auto __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                                 __data_area.i_elem_local  /* i_elem */,
+                                                                 __data_area.n1, __data_area.n2,
+                                                                 __comp);
+
+                            __serial_merge(__views.rng1, __views.rng2, __dst /* rng3 */,
+                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
+                                           __nd_range_params.chunk,
+                                           __data_area.n1, __data_area.n2,
+                                           __comp);
+                        }
+                    }
+                });
+        }));
+    }
+
+    // Process parallel merge with usage of split-points on base diagonals
+    template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare,
+              typename _Storage>
+    sycl::event
+    run_parallel_merge(const sycl::event& __event_chain,
+                       const _IndexT __n_sorted, const bool __data_in_temp,
+                       _ExecutionPolicy&& __exec, _Range&& __rng, _TempBuf& __temp_buf, _Compare __comp,
+                       const nd_range_params& __nd_range_params,
+                       _Storage& __base_diagonals_sp_global_storage) const
+    {
+#if TRACE_MAIN_WORK
+            std::cout << "#41\tInside run_parallel_merge..." << std::endl;
+#endif
+
+        const _IndexT __n = __rng.size();
+
+        return wait_on_call(__exec.queue().submit([&](sycl::handler& __cgh) {
+
+            __cgh.depends_on(__event_chain);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
+
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+
+            __cgh.parallel_for<_GlobalSortName2...>(
+                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const std::size_t __linear_id = __item_id.get_linear_id();
+
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk);
+
+                    if (__data_area.is_i_elem_local_inside_merge_matrix())
+                    {
+                        auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                        if (__data_in_temp)
+                        {
+                            DropViews __views(__dst, __data_area);
+
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_open, __linear_id, "Call __find_or_eval_sp...");
+    #endif
+                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
+                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
+                                                                __comp,
+                                                                __base_diagonals_sp_global_ptr);
+
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_close, __linear_id, "done");
+    #endif
+
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_open, __linear_id, "Call __serial_merge...");
+    #endif
+                            __serial_merge(__views.rng1, __views.rng2, __rng /* rng3 */,
+                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
+                                           __nd_range_params.chunk,
+                                           __data_area.n1, __data_area.n2,
+                                           __comp);
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_close, __linear_id, "done");
+    #endif
+                        }
+                        else
+                        {
+                            DropViews __views(__rng, __data_area);
+
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_open, __linear_id, "Call __find_or_eval_sp...");
+    #endif
+                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
+                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
+                                                                __comp,
+                                                                __base_diagonals_sp_global_ptr);
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_close, __linear_id, "done");
+    #endif
+
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_open, __linear_id, "Call __serial_merge...\n");
+    #endif
+                            __serial_merge(__views.rng1, __views.rng2, __dst /* rng3 */,
+                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
+                                           __nd_range_params.chunk,
+                                           __data_area.n1, __data_area.n2,
+                                           __comp);
+    #if TRACE_MAIN_WORK
+                            sycl::ext::oneapi::experimental::printf(fmt_call_state_close, __linear_id, "done");
+    #endif
+                        }
+                    }
+                });
+        }));
+
+#if TRACE_MAIN_WORK
+        std::cout << "#42 exit" << std::endl;
+#endif
+    }
+
+public:
+
+    using __container_of_temp_storages_t = std::vector<__result_and_scratch_storage_base_ptr>;
+
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
+    std::tuple<sycl::event, bool, __container_of_temp_storages_t>
+    operator()(_ExecutionPolicy&& __exec, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
                sycl::event __event_chain) const
     {
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
-        const bool __is_cpu = __q.get_device().is_cpu();
-        const std::uint32_t __chunk = __is_cpu ? 32 : 4;
-        const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+
         bool __data_in_temp = false;
+
+        // Calculate nd-range params
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, false);
+
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while
         // std::log2 may be prone to rounding errors on some architectures
         const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
+
+        // Create container for storages with split-points on base diagonal
+        //  - each iteration should have their own container
+        __container_of_temp_storages_t __temp_sp_storages(std::max(__n_iter, (std::int64_t)0));
+
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-            __event_chain = __q.submit([&, __event_chain, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
-                __cgh.depends_on(__event_chain);
+            if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
+            {
+                const nd_range_params __nd_range_params_bd = eval_nd_range_params(__exec, 2 * __n_sorted, true);
 
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
+#if TRACE_MAIN_WORK
+                std::cout << "#1eval_split_points_for_groups : __n_sorted = " << __n_sorted << ", __data_in_temp = " << __data_in_temp << ", diags storage size = " << __nd_range_params_bd.base_diag_count + 1 << std::endl;
+#endif
 
-                __cgh.parallel_for<_GlobalSortName...>(
-                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                        const _IndexT __i_elem = __item_id.get_linear_id() * __chunk;
-                        const _IndexT __i_elem_local = __i_elem % (__n_sorted * 2);
+                // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+                // - for current iteration
+                __base_diagonals_sp_storage_t* __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_bd.base_diag_count + 1);
+                __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
-                        const _IndexT __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
-                        const _IndexT __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
-                        const _IndexT __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
+#if TRACE_MAIN_WORK
+                std::cout << "#2\tCall eval_split_points_for_groups..." << std::endl;
+#endif
+                // Calculation of split-points on each base diagonal
+                __event_chain = eval_split_points_for_groups(__event_chain,
+                                                             __n_sorted, __data_in_temp,
+                                                             __exec, __rng, __temp_buf, __comp,
+                                                             __nd_range_params_bd,
+                                                             *__p_base_diagonals_sp_storage);
+#if TRACE_MAIN_WORK
+                std::cout << "#3done" << std::endl;
+#endif
 
-                        if (__data_in_temp)
-                        {
-                            const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst, __offset);
-                            const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
+#if TRACE_MAIN_WORK
+                std::cout << "#4\tCall run_parallel_merge..." << std::endl;
+#endif
+                // Process parallel merge with usage of split-points on base diagonals
+                __event_chain = run_parallel_merge(__event_chain,
+                                                   __n_sorted, __data_in_temp,
+                                                   __exec, __rng, __temp_buf, __comp,
+                                                   __nd_range_params_bd,
+                                                   *__p_base_diagonals_sp_storage);
+#if TRACE_MAIN_WORK
+                std::cout << "#5done" << std::endl;
+#endif
+            }
+            else
+            {
+#if TRACE_MAIN_WORK
+                std::cout << "#6\tCall run_parallel_merge...";
+#endif
+                // Process parallel merge
+                __event_chain = run_parallel_merge(__event_chain,
+                                                   __n_sorted, __data_in_temp,
+                                                   __exec, __rng, __temp_buf, __comp,
+                                                   __nd_range_params);
+#if TRACE_MAIN_WORK
+                std::cout << "#7done" << std::endl;
+#endif
+            }
 
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
-                                           __chunk, __n1, __n2, __comp);
-                        }
-                        else
-                        {
-                            const oneapi::dpl::__ranges::drop_view_simple __rng1(__rng, __offset);
-                            const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
-
-                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
-                                           __chunk, __n1, __n2, __comp);
-                        }
-                    });
-            });
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
-        return {__event_chain, __data_in_temp};
+
+        return {__event_chain, __data_in_temp, std::move(__temp_sp_storages)};
     }
 };
 
@@ -303,7 +739,7 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
     sycl::event
     operator()(sycl::queue& __q, _Range& __rng, _TempBuf& __temp_buf, sycl::event __event_chain) const
     {
-        __event_chain = __q.submit([&, __event_chain](sycl::handler& __cgh) {
+        return wait_on_call(__q.submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event_chain);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp_buf.template get_access<access_mode::read>(__cgh);
@@ -313,8 +749,7 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
                                                      const std::size_t __idx = __item_id.get_linear_id();
                                                      __rng[__idx] = __temp_acc[__idx];
                                                  });
-        });
-        return __event_chain;
+        }));
     }
 };
 
@@ -322,7 +757,13 @@ template <typename... _Name>
 class __sort_leaf_kernel;
 
 template <typename... _Name>
-class __sort_global_kernel;
+class __diagonals_kernel_name_for_merge_sort;
+
+template <typename... _Name>
+class __sort_global_kernel1;
+
+template <typename... _Name>
+class __sort_global_kernel2;
 
 template <typename... _Name>
 class __sort_copy_back_kernel;
@@ -336,8 +777,12 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _LeafSortKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
-    using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __sort_global_kernel<_CustomName, _IndexT>>;
+    using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
+    using _GlobalSortKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __sort_global_kernel1<_CustomName, _IndexT>>;
+    using _GlobalSortKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __sort_global_kernel2<_CustomName, _IndexT>>;
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
@@ -353,15 +798,15 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
-    auto [__event_sort, __data_in_temp] = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
-        __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
+    auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
+        __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
         __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_sort);
     }
-    return __future(__event_sort);
+    return __future(__event_sort, std::move(__temp_sp_storages));
 }
 
 template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare>
