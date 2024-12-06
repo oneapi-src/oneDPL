@@ -64,6 +64,8 @@
 
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1) &&                                   \
                                             (_ONEDPL_LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50200)
+
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN                                                             \
     (_ONEDPL_LIBSYCL_VERSION < 70100) && (_ONEDPL_LIBSYCL_VERSION != 0)
 
@@ -122,7 +124,7 @@ using __known_identity = sycl::known_identity<_BinaryOp, _T>;
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
 
-#elif _ONEDPL_LIBSYCL_VERSION == 50200
+#elif _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT
 template <typename _BinaryOp, typename _T>
 using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
 
