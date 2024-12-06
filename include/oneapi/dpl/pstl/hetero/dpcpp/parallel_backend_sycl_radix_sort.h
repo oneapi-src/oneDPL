@@ -346,7 +346,7 @@ enum class __peer_prefix_algo
 template <std::uint32_t __radix_states, typename _OffsetT, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
-#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT _ONEDPL_LIBSYCL_ZERO_OR_GE(50700)
+#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50700)
 
 #if _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT
 template <std::uint32_t __radix_states, typename _OffsetT>
