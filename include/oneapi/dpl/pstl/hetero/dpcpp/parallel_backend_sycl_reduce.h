@@ -205,7 +205,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, _Commutative, _V
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         const bool __is_full = __n == __size_per_work_group * __n_groups;
 
-        return __exec.queue().submit([&, __n](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             std::size_t __local_mem_size = __reduce_pattern.local_mem_req(__work_group_size);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__local_mem_size), __cgh);
