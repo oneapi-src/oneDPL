@@ -427,9 +427,6 @@ protected:
         _merge_split_point_t __start;
         if (!__is_base_diagonal)
         {
-            // Check that we fit into size of scratch
-            assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
-
             const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
             const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
