@@ -63,7 +63,7 @@ struct __group_merge_path_sorter
     template <typename _StorageAcc, typename _Compare>
     bool
     sort(const sycl::nd_item<1>& __item, const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start,
-         std::uint32_t __end, std::uint32_t __sorted, std::uint16_t __data_per_workitem,
+         std::uint32_t __end, std::uint32_t __sorted, std::uint32_t __data_per_workitem,
          std::uint32_t __workgroup_size) const
     {
         const std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
@@ -259,12 +259,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                 __cgh.parallel_for<_GlobalSortName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                        const _IndexT __i_elem = __item_id.get_linear_id() * __chunk;
-                        const _IndexT __i_elem_local = __i_elem % (__n_sorted * 2);
+                        const std::uint32_t __i_elem = __item_id.get_linear_id() * __chunk;
+                        const std::uint32_t __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        const _IndexT __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
-                        const _IndexT __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
-                        const _IndexT __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
+                        const std::uint32_t __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
+                        const std::uint32_t __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
+                        const std::uint32_t __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
                         if (__data_in_temp)
                         {
