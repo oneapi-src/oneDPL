@@ -2338,11 +2338,11 @@ __parallel_partial_sort(oneapi::dpl::__internal::__device_backend_tag __backend_
 
 //------------------------------------------------------------------------
 // reduce_by_segment - sync pattern
-//------------------------------------------------------------------------
-
+//
 // TODO: The non-identity fallback path of reduce-by-segment must currently be implemented synchronously due to the
 // inability to create event dependency chains across separate parallel pattern calls. If we ever add support for
 // cross parallel pattern dependencies, then we can implement this as an async pattern.
+//------------------------------------------------------------------------
 template <typename _Name>
 struct __reduce1_wrapper;
 
