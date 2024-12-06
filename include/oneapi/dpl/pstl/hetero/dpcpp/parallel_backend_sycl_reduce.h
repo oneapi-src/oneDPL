@@ -139,7 +139,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, _Commutative, _VecSize,
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _Tp>;
         __result_and_scratch_storage_t __scratch_container{__exec, 1, 0};
 
-        sycl::event __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
+        sycl::event __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             auto __res_acc =
                 __scratch_container.template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
