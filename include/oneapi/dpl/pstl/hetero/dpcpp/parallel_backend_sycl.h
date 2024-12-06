@@ -832,6 +832,7 @@ struct __gen_red_by_seg_scan_input
         using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__in_keys)>;
         using _ValueType = oneapi::dpl::__internal::__value_t<decltype(__in_vals)>;
         const _KeyType& __current_key = __in_keys[__id];
+        const _ValueType& __current_val = __in_vals[__id];
         // Ordering the most common condition first has yielded the best results.
         if (__id > 0 && __id < __n - 1)
         {
@@ -839,7 +840,7 @@ struct __gen_red_by_seg_scan_input
             const _KeyType& __next_key = __in_keys[__id + 1];
             const std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
             return oneapi::dpl::__internal::make_tuple(
-                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}),
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, __current_val),
                 !__binary_pred(__current_key, __next_key), __next_key, __current_key);
         }
         else if (__id == __n - 1)
@@ -847,14 +848,14 @@ struct __gen_red_by_seg_scan_input
             const _KeyType& __prev_key = __in_keys[__id - 1];
             const std::size_t __new_seg_mask = !__binary_pred(__prev_key, __current_key);
             return oneapi::dpl::__internal::make_tuple(
-                oneapi::dpl::__internal::make_tuple(__new_seg_mask, _ValueType{__in_vals[__id]}), true, __current_key,
+                oneapi::dpl::__internal::make_tuple(__new_seg_mask, __current_val), true, __current_key,
                 __current_key); // Passing __current_key as the next key for the last element is a placeholder
         }
         else // __id == 0
         {
             const _KeyType& __next_key = __in_keys[__id + 1];
             return oneapi::dpl::__internal::make_tuple(
-                oneapi::dpl::__internal::make_tuple(std::size_t{0}, _ValueType{__in_vals[__id]}),
+                oneapi::dpl::__internal::make_tuple(std::size_t{0}, __current_val),
                 !__binary_pred(__current_key, __next_key), __next_key, __current_key);
         }
     }
