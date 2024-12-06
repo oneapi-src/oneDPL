@@ -179,15 +179,11 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     constexpr int kValue = 1;
     const __it_t __res =
         std::lower_bound(__diag_it_begin, __diag_it_end, kValue, [&](_Index __idx, const auto& __value) {
-            const auto __rng1_idx = __idx;
-            const auto __rng2_idx = __index_sum - __idx;
-
-            const auto __zero_or_one = __comp(__rng2[__rng2_idx], __rng1[__rng1_idx]);
+            const auto __zero_or_one = __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
             return __zero_or_one < kValue;
         });
 
-    const _split_point_t<_Index> __result{*__res, __index_sum - *__res + 1};
-    return __result;
+    return {*__res, __index_sum - *__res + 1};
 }
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
