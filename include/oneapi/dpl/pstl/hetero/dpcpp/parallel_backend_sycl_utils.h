@@ -113,7 +113,7 @@ template <typename _ExecutionPolicy>
 __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50700)
+#if _ONEDPL_LIBSYCL_ZERO_OR_GE(50700)
     return __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
     return __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
@@ -127,10 +127,10 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
     const sycl::device& __device = __policy.queue().get_device();
     [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
     const ::std::uint32_t __sg_size =
-#if _ONEDPL_DPCPP_LIBSYCL_ZERO_OR_GE(50700)
+#if _ONEDPL_LIBSYCL_ZERO_OR_GE(50700)
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
             __device
-#    if _ONEDPL_DPCPP_LIBSYCL_VERSION < 60000
+#    if _ONEDPL_LIBSYCL_VERSION < 60000
             ,
             sycl::range<3> { __wg_size, 1, 1 }
 #    endif
