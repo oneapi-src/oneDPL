@@ -129,7 +129,7 @@ struct all_view_fn
     }
 };
 
-#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
+#if _ONEDPL_SYCL2020_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 struct all_host_view_fn
 {
     // An overload for sycl::buffer template type
@@ -163,7 +163,7 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
-#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
+#if _ONEDPL_SYCL2020_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 inline constexpr all_host_view_fn
 #else
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,

@@ -430,7 +430,7 @@ struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::scan_t
     }
 };
 
-#if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
+#if _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT
 template <std::uint32_t __radix_states, typename _OffsetT>
 struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::subgroup_ballot>
 {
@@ -470,7 +470,7 @@ struct __peer_prefix_helper<__radix_states, _OffsetT, __peer_prefix_algo::subgro
         return __offset;
     }
 };
-#endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
+#endif // _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT
 
 template <typename _InRange, typename _OutRange>
 void
@@ -728,13 +728,13 @@ struct __parallel_radix_sort_iteration
         sycl::event __reorder_event{};
         if (__reorder_sg_size == 8 || __reorder_sg_size == 16 || __reorder_sg_size == 32)
         {
-#if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
+#if _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT
             constexpr auto __peer_algorithm = __peer_prefix_algo::subgroup_ballot;
 #elif _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT
             constexpr auto __peer_algorithm = __peer_prefix_algo::atomic_fetch_or;
 #else
             constexpr auto __peer_algorithm = __peer_prefix_algo::scan_then_broadcast;
-#endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
+#endif // _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT
 
             __reorder_event =
                 __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_ascending, __peer_algorithm>(
