@@ -110,7 +110,7 @@ __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_s
 
 // 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
 #define _ONEDPL_SYCL2020_KERNEL_DEVICE_API_PRESENT                                                                     \
-    (__SYCL_COMPILER_VERSION > 20201214 || _ONEDPL_LIBSYCL_ZERO_OR_GE(50700))
+    (_ONEDPL_GENERIC_SYCL_LIBRARY || __SYCL_COMPILER_VERSION > 20201214 || _ONEDPL_LIBSYCL_VERSION >= 50700)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
