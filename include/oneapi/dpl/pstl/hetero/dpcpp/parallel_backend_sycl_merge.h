@@ -104,7 +104,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
         return _split_point_t<_Index>{ __rng1_from, __rng2_from + __i_elem };
 
     if (__rng2_from == __rng2_to)
-        return _split_point_t<_Index>{ __rng1_from + __i_elem, __rng2_to };
+        return _split_point_t<_Index>{ __rng1_from + __i_elem, __rng2_from };
 
     // ----------------------- EXAMPLE ------------------------
     // Let's consider the following input data:
