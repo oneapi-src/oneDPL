@@ -337,20 +337,19 @@ protected:
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, bool __use_base_diags) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, _IndexT __n_sorted) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        _IndexT __base_diag_count = 0;
-        _IndexT __steps_between_two_base_diags = 0;
+        _IndexT __base_diag_count = 32 * 1'024;     // 32 Kb
 
-        if (__use_base_diags)
-        {
-            __base_diag_count = 32 * 1'024;     // 32 Kb
-            __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
-        }
+        while (__n_sorted <= __base_diag_count)
+            __n_sorted = __n_sorted * 2;
+        __base_diag_count = __n_sorted / 2;
+
+        _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
@@ -380,14 +379,11 @@ protected:
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    const std::size_t __linear_id = __item_id.get_linear_id();
+                    const WorkDataArea __data_area(__n, __n_sorted, __item_id.get_linear_id(), __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
 
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
+                    _merge_split_point_t __sp = __data_area.i_elem_local ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
 
-                    _merge_split_point_t __sp = __linear_id == 0 ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
-
-                    if (0 < __linear_id && __linear_id < __nd_range_params.base_diag_count
-                        && __data_area.is_i_elem_local_inside_merge_matrix())
+                    if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
                         if (__data_in_temp)
                         {
@@ -585,7 +581,7 @@ public:
         bool __data_in_temp = false;
 
         // Calculate nd-range params
-        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, false);
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, __n_sorted);
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -602,25 +598,23 @@ public:
         {
             if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
             {
-                const nd_range_params __nd_range_params_bd = eval_nd_range_params(__exec, 2 * __n_sorted, true);
-
                 // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
                 // - for current iteration
-                __base_diagonals_sp_storage_t* __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_bd.base_diag_count + 1);
+                __base_diagonals_sp_storage_t* __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
                 // Calculation of split-points on each base diagonal
                 __event_chain = eval_split_points_for_groups(__event_chain,
                                                              __n_sorted, __data_in_temp,
                                                              __exec, __rng, __temp_buf, __comp,
-                                                             __nd_range_params_bd,
+                                                             __nd_range_params,
                                                              *__p_base_diagonals_sp_storage);
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge(__event_chain,
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
-                                                   __nd_range_params_bd,
+                                                   __nd_range_params,
                                                    *__p_base_diagonals_sp_storage);
             }
             else
