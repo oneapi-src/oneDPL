@@ -110,7 +110,7 @@ __supports_sub_group_size(const _ExecutionPolicy& __exec, std::size_t __target_s
 
 // 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
 #define _ONEDPL_SYCL2020_KERNEL_DEVICE_API_PRESENT                                                                     \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || __SYCL_COMPILER_VERSION > 20201214 || _ONEDPL_LIBSYCL_VERSION >= 50700)
+    (__SYCL_COMPILER_VERSION > 20201214 || (_ONEDPL_LIBSYCL_VERSION != 0  && _ONEDPL_LIBSYCL_VERSION >= 50700))
 
 template <typename _ExecutionPolicy>
 ::std::size_t
@@ -268,7 +268,7 @@ class __kernel_compiler
     static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
-#if _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if !_ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
     template <typename _Exec>
     static auto
     __compile(_Exec&& __exec)
@@ -543,7 +543,7 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_host_allocations(sycl::queue __queue)
     {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+#if !_ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT
         auto __device = __queue.get_device();
         if (!__device.is_gpu())
             return false;
@@ -560,7 +560,7 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_allocations(sycl::queue __queue)
     {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+#if !_ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT
         return __queue.get_device().has(sycl::aspect::usm_device_allocations);
 #else
         return false;
@@ -613,7 +613,7 @@ struct __result_and_scratch_storage
     static auto
     __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, std::size_t __scratch_n = 0)
     {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+#if !_ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT
         return __acc.__get_pointer();
 #else
         return &__acc[__scratch_n];
@@ -624,7 +624,7 @@ struct __result_and_scratch_storage
     auto
     __get_result_acc(sycl::handler& __cgh, const sycl::property_list& __prop_list = {}) const
     {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+#if !_ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT
         if (__use_USM_host && __supports_USM_device)
             return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __result_buf.get(), __prop_list);
         else if (__supports_USM_device)
@@ -640,7 +640,7 @@ struct __result_and_scratch_storage
     auto
     __get_scratch_acc(sycl::handler& __cgh, const sycl::property_list& __prop_list = {}) const
     {
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+#if !_ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT
         if (__use_USM_host || __supports_USM_device)
             return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __scratch_buf.get(), __prop_list);
         return __usm_or_buffer_accessor<__accessor_t<_AccessMode>>(__cgh, __sycl_buf.get(), __prop_list);
