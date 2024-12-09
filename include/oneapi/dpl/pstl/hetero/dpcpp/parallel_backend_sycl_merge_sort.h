@@ -399,7 +399,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -437,14 +437,6 @@ protected:
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                     }
-                    else if (__data_area.n1 + __data_area.n2 > 0)
-                    {
-                        __sp = { __data_area.n1, __data_area.n2 };
-                    }
-                    else
-                    {
-                        __sp = { __n_sorted, __n_sorted };
-                    }
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
 
@@ -471,16 +463,22 @@ protected:
         const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{ 0, 0 };
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
-        _merge_split_point_t __start;
-        if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+        if (__sp_right.first + __sp_right.second > 0)
         {
-            __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
-                                            __views.rng2, __sp_left.second, __sp_right.second,
-                                            __data_area.i_elem_local, __comp);
+            if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+            {
+                __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
+                                                __views.rng2, __sp_left.second, __sp_right.second,
+                                                __data_area.i_elem_local, __comp);
+            }
+            else
+            {
+                __result = __sp_left;
+            }
         }
         else
         {
-            __result = __sp_left;
+            __result = __find_start_point_w(__data_area, __views, __comp);
         }
 
         const auto __result_correct = __find_start_point_w(__data_area, __views, __comp);
@@ -514,7 +512,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -560,7 +558,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&,__event_chain](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
