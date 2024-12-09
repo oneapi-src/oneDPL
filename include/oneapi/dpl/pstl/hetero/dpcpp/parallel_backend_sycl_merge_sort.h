@@ -30,18 +30,6 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
-#ifdef __SYCL_DEVICE_ONLY__
-#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
-#else
-#define __SYCL_CONSTANT_AS
-#endif
-
-const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_trace_base_diags[] = "find between two base diagonals (%7d and %7d) : {%7d, %7d}, {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_incorrect_sp1[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_incorrect_sp2[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}, at [%7d] - {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_correct_sp[] = "correct split point at %s: {%7d, %7d}\n";
-
 namespace oneapi
 {
 namespace dpl
@@ -439,8 +427,6 @@ protected:
                     }
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
-
-                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __linear_id, __sp.first, __sp.second);
                 });
         });
     }
@@ -479,24 +465,6 @@ protected:
         else
         {
             __result = __find_start_point_w(__data_area, __views, __comp);
-        }
-
-        const auto __result_correct = __find_start_point_w(__data_area, __views, __comp);
-        if (__result_correct != __result)
-        {
-            if (__diagonal_idx == 0)
-            {
-                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#1 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
-                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
-            }
-            else
-            {
-                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#2 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
-                                                        __diagonal_idx - 1, __sp_left.first, __sp_left.second,
-                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
-            }
-
-            __result = __result_correct;
         }
 
         return __result;
