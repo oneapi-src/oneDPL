@@ -399,7 +399,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -514,7 +514,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -560,7 +560,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&,__event_chain](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
