@@ -325,17 +325,12 @@ protected:
     {
         using __drop_view_simple_t = oneapi::dpl::__ranges::drop_view_simple<Rng, _IndexT>;
 
-        const _IndexT offset1;
-        const _IndexT offset2;
-
-        const __drop_view_simple_t rng1;
-        const __drop_view_simple_t rng2;
+        __drop_view_simple_t rng1;
+        __drop_view_simple_t rng2;
 
         DropViews(Rng& __rng, const WorkDataArea& __data_area)
-            : offset1(__data_area.offset)
-            , offset2(__data_area.offset + __data_area.n1)
-            , rng1(__rng, offset1)
-            , rng2(__rng, offset2)
+            : rng1(__rng, __data_area.offset)
+            , rng2(__rng, __data_area.offset + __data_area.n1)
         {}
     };
 
@@ -359,7 +354,7 @@ protected:
         return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
 
-    // Calculation of split points on each base diagonal in GLOBAL coordinates
+    // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
     eval_split_points_for_groups(const sycl::event& __event_chain,
@@ -384,53 +379,46 @@ protected:
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    const std::size_t __linear_id = __item_id.get_linear_id();
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
+                    const WorkDataArea __data_area(__n, __n_sorted, __item_id.get_linear_id(), __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp_global = __linear_id ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
+                    _merge_split_point_t __sp = __data_area.i_elem_local ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
                         if (__data_in_temp)
                         {
                             DropViews __views(__dst, __data_area);
-                            const auto __sp_local = __find_start_point(__views.rng1, __views.rng2,
-                                                                       __data_area.i_elem_local /* i_elem */,
-                                                                       __data_area.n1, __data_area.n2,
-                                                                       __comp);
-                            __sp_global.first  = __sp_local.first  + __views.offset1;
-                            __sp_global.second = __sp_local.second + __views.offset2;
+                            __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                      __data_area.i_elem_local /* i_elem */,
+                                                      __data_area.n1, __data_area.n2,
+                                                      __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
-                            const auto __sp_local = __find_start_point(__views.rng1, __views.rng2,
-                                                                       __data_area.i_elem_local /* i_elem */,
-                                                                       __data_area.n1, __data_area.n2,
-                                                                       __comp);
-                            __sp_global.first  = __sp_local.first  + __views.offset1;
-                            __sp_global.second = __sp_local.second + __views.offset2;
+                            __sp = __find_start_point(__views.rng1, __views.rng2,
+                                                      __data_area.i_elem_local /* i_elem */,
+                                                      __data_area.n1, __data_area.n2,
+                                                      __comp);
                         }
                     }
 
-                    __base_diagonals_sp_global_ptr[__linear_id] = __sp_global;
+                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
         });
     }
 
-    // Calculate split-point in LOCAL coordinates of current views (__views.rng1, __views.rng2) (zero-based)
-    template <typename _DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
+    template <typename _Range1, typename _Range2, typename _Compare, typename _BaseDiagonalsSPStorage>
     static _merge_split_point_t
     __find_or_eval_sp(const nd_range_params& __nd_range_params,
-                      const _DropViews& __views,
-                      const std::size_t __diagonal_idx_global,
-                      const _IndexT __i_elem_local,
+                      _Range1& __rng1, _Range2& __rng2,
+                      const std::size_t __diagonal_idx_local,
+                      _IndexT __i_elem_local,
                       _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
-
     {
-        const bool __is_base_diagonal = __diagonal_idx_global % __nd_range_params.steps_between_two_base_diags == 0;
-        const std::size_t __diagonal_idx = __diagonal_idx_global / __nd_range_params.steps_between_two_base_diags;
+        const bool __is_base_diagonal = __diagonal_idx_local % __nd_range_params.steps_between_two_base_diags == 0;
+        const std::size_t __diagonal_idx = __diagonal_idx_local / __nd_range_params.steps_between_two_base_diags;
 
         _merge_split_point_t __start;
         if (!__is_base_diagonal)
@@ -438,20 +426,16 @@ protected:
             // Check that we fit into size of scratch
             assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
 
-            const _merge_split_point_t __sp_left_global  = __base_diagonals_sp_global_ptr[__diagonal_idx];
-            const _merge_split_point_t __sp_right_global = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+            const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
-            const _merge_split_point_t __sp_left_local  = { __sp_left_global.first  - __views.offset1, __sp_left_global.second  - __views.offset2 };
-            const _merge_split_point_t __sp_right_local = { __sp_right_global.first - __views.offset1, __sp_right_global.second - __views.offset2 };
-
-            return __find_start_point_in(__views.rng1, __sp_left_local.first,  __sp_right_local.first,
-                                         __views.rng2, __sp_left_local.second, __sp_right_local.second,
+            return __find_start_point_in(std::forward<_Range1>(__rng1), __sp_left.first, __sp_right.first,
+                                         std::forward<_Range2>(__rng2), __sp_left.second, __sp_right.second,
                                          __i_elem_local, __comp);
         }
         else
         {
-            _merge_split_point_t __sp_global = __base_diagonals_sp_global_ptr[__diagonal_idx];
-            return { __sp_global.first - __views.offset1, __sp_global.second - __views.offset2 };
+            return __base_diagonals_sp_global_ptr[__diagonal_idx];
         }
     }
 
@@ -551,9 +535,8 @@ protected:
                         {
                             DropViews __views(__dst, __data_area);
 
-                            // Calculate split-point in LOCAL coordinates of current views (__views.rng1, __views.rng2) (zero-based)
-                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views,
-                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
+                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
+                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
 
@@ -567,9 +550,8 @@ protected:
                         {
                             DropViews __views(__rng, __data_area);
 
-                            // Calculate split-point in LOCAL coordinates of current views (__views.rng1, __views.rng2) (zero-based)
-                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views,
-                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
+                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
+                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
 
