@@ -30,6 +30,18 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_trace_base_diags[] = "find between two base diagonals (%7d and %7d) : {%7d, %7d}, {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_sp1[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_sp2[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}, at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_correct_sp[] = "correct split point at %s: {%7d, %7d}\n";
+
 namespace oneapi
 {
 namespace dpl
@@ -354,6 +366,28 @@ protected:
         return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
 
+    template <typename DropViews, typename _Compare>
+    inline
+    static _merge_split_point_t __find_start_point_w(const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp)
+    {
+        return __find_start_point(__views.rng1, __views.rng2, __data_area.i_elem_local, __data_area.n1, __data_area.n2, __comp);
+    }
+
+    template <typename DropViews, typename _Rng, typename _Compare>
+    inline
+    static void __serial_merge_w(const nd_range_params& __nd_range_params,
+                                 const WorkDataArea& __data_area,
+                                 const DropViews& __views, _Rng& __rng,
+                                 const _merge_split_point_t& __sp,
+                                 _Compare __comp)
+    {
+        __serial_merge(__views.rng1, __views.rng2, __rng /* rng3 */,
+                       __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
+                       __nd_range_params.chunk,
+                       __data_area.n1, __data_area.n2,
+                       __comp);
+    }
+
     // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
@@ -365,11 +399,12 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
+
             __cgh.depends_on(__event_chain);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read_write>(
                 __cgh, __dpl_sycl::__no_init{});
 
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
@@ -387,61 +422,104 @@ protected:
                     // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
                     const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp = _merge_split_point_t{ __data_area.n1, __data_area.n2 };
+                    _merge_split_point_t __sp{ 0, 0};
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
                         if (__data_in_temp)
                         {
                             DropViews __views(__dst, __data_area);
-                            __sp = __find_start_point(__views.rng1, __views.rng2,
-                                                      __data_area.i_elem_local /* i_elem */,
-                                                      __data_area.n1, __data_area.n2,
-                                                      __comp);
+                            __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
-                            __sp = __find_start_point(__views.rng1, __views.rng2,
-                                                      __data_area.i_elem_local /* i_elem */,
-                                                      __data_area.n1, __data_area.n2,
-                                                      __comp);
+                            __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                     }
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
+
+                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __linear_id, __sp.first, __sp.second);
                 });
         });
     }
 
-    template <typename _Range1, typename _Range2, typename _Compare, typename _BaseDiagonalsSPStorage>
+    template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     static _merge_split_point_t
-    __find_or_eval_sp(const nd_range_params& __nd_range_params,
-                      _Range1& __rng1, _Range2& __rng2,
-                      const std::size_t __diagonal_idx_global,
-                      _IndexT __i_elem_local,
+    __find_or_eval_sp(const std::size_t __global_idx,
+                      const nd_range_params& __nd_range_params,
+                      const WorkDataArea& __data_area,
+                      const DropViews& __views,
                       _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        const bool __is_base_diagonal = __diagonal_idx_global % __nd_range_params.steps_between_two_base_diags == 0;
-        const std::size_t __diagonal_idx = __diagonal_idx_global / __nd_range_params.steps_between_two_base_diags;
+        _merge_split_point_t __result(0, 0);
+
+        std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
         assert(__diagonal_idx < __nd_range_params.base_diag_count);
 
-        _merge_split_point_t __start;
-        if (!__is_base_diagonal)
-        {
-            const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{ 0, 0 };
-            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
+        const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{ 0, 0 };
+        const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
-            return __find_start_point_in(std::forward<_Range1>(__rng1), __sp_left.first, __sp_right.first,
-                                         std::forward<_Range2>(__rng2), __sp_left.second, __sp_right.second,
-                                         __i_elem_local, __comp);
+        _merge_split_point_t __start;
+        if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+        {
+            if (__sp_left.first <= __sp_right.first && __sp_left.second <= __sp_right.second)
+            {
+                __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
+                                             __views.rng2, __sp_left.second, __sp_right.second,
+                                             __data_area.i_elem_local, __comp);
+
+                auto __tmp_sp = __find_start_point_w(__data_area, __views, __comp);
+                if (__result != __tmp_sp)
+                {
+                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#1 FAIL", __result.first, __result.second, __tmp_sp.first, __tmp_sp.second,
+                                                            __diagonal_idx - 1, __sp_left.first, __sp_left.second,
+                                                            __diagonal_idx, __sp_right.first, __sp_right.second);
+                    __result = __tmp_sp;
+                }
+                else
+                {
+                    sycl::ext::oneapi::experimental::printf(fmt_correct_sp, "#1 OK", __result.first, __result.second);
+                }
+            }
+            else
+            {
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#11 - FAIL: (__sp_left.first <= __sp_right.first && __sp_left.second <= __sp_right.second)==false", 0, 0, 0, 0,
+                                                        __diagonal_idx - 1, __sp_left.first, __sp_left.second,
+                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
+            }
         }
         else
         {
-            return __base_diagonals_sp_global_ptr[__diagonal_idx];
+            const auto __sp = __sp_left; //__base_diagonals_sp_global_ptr[__diagonal_idx];
+            if (__sp.first + __sp.second > 0)
+            {
+                __result = __sp;
+                auto __tmp_sp = __find_start_point_w(__data_area, __views, __comp);
+                if (__result != __tmp_sp)
+                {
+                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#2 FAIL", __result.first, __result.second, __tmp_sp.first, __tmp_sp.second,
+                                                            __diagonal_idx, __sp.first, __sp.second);
+                    __result = __tmp_sp;
+                }
+                else
+                {
+                    sycl::ext::oneapi::experimental::printf(fmt_correct_sp, "#2 OK", __result.first, __result.second);
+                }
+            }
+#if 0            
+            else
+            {
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#21 - FAIL: (__sp.first + __sp.second > 0)==false", 0, 0, 0, 0,
+                                                        __diagonal_idx, __sp.first, __sp.second);
+            }
+#endif            
         }
+
+        return __find_start_point_w(__data_area, __views, __comp);
     }
 
     // Process parallel merge
@@ -454,7 +532,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, __event_chain](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -473,31 +551,15 @@ protected:
                         {
                             DropViews __views(__dst, __data_area);
 
-                            const auto __sp = __find_start_point(__views.rng1, __views.rng2,
-                                                                 __data_area.i_elem_local /* i_elem */,
-                                                                 __data_area.n1, __data_area.n2,
-                                                                 __comp);
-
-                            __serial_merge(__views.rng1, __views.rng2, __rng /* rng3 */,
-                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
-                                           __nd_range_params.chunk,
-                                           __data_area.n1, __data_area.n2,
-                                           __comp);
+                            const auto __sp = __find_start_point_w(__data_area, __views, __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __rng, __sp, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
 
-                            const auto __sp = __find_start_point(__views.rng1, __views.rng2,
-                                                                 __data_area.i_elem_local  /* i_elem */,
-                                                                 __data_area.n1, __data_area.n2,
-                                                                 __comp);
-
-                            __serial_merge(__views.rng1, __views.rng2, __dst /* rng3 */,
-                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
-                                           __nd_range_params.chunk,
-                                           __data_area.n1, __data_area.n2,
-                                           __comp);
+                            const auto __sp = __find_start_point_w(__data_area, __views, __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __sp, __comp);
                         }
                     }
                 });
@@ -516,7 +578,7 @@ protected:
     {
         const _IndexT __n = __rng.size();
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&,__event_chain](sycl::handler& __cgh) {
 
             __cgh.depends_on(__event_chain);
 
@@ -530,41 +592,33 @@ protected:
 
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
                     const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk);
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
-                        auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-
                         if (__data_in_temp)
                         {
                             DropViews __views(__dst, __data_area);
 
-                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
-                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
+                            const auto __sp = __find_or_eval_sp(__linear_id /* __global_idx */,
+                                                                __nd_range_params,
+                                                                __data_area, __views,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
-
-                            __serial_merge(__views.rng1, __views.rng2, __rng /* rng3 */,
-                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
-                                           __nd_range_params.chunk,
-                                           __data_area.n1, __data_area.n2,
-                                           __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __rng, __sp, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
 
-                            const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
-                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
+                            const auto __sp = __find_or_eval_sp(__linear_id /* __global_idx */,
+                                                                __nd_range_params,
+                                                                __data_area, __views,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
-
-                            __serial_merge(__views.rng1, __views.rng2, __dst /* rng3 */,
-                                           __sp.first /* start1 */, __sp.second /* start2 */, __data_area.i_elem /* start3 */,
-                                           __nd_range_params.chunk,
-                                           __data_area.n1, __data_area.n2,
-                                           __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __sp, __comp);
                         }
                     }
                 });
@@ -614,6 +668,7 @@ public:
                                                              __exec, __rng, __temp_buf, __comp,
                                                              __nd_range_params,
                                                              *__p_base_diagonals_sp_storage);
+                __event_chain.wait();
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge(__event_chain,
@@ -621,6 +676,7 @@ public:
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params,
                                                    *__p_base_diagonals_sp_storage);
+                __event_chain.wait();
             }
             else
             {
@@ -629,6 +685,7 @@ public:
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params);
+                __event_chain.wait();
             }
 
             __n_sorted *= 2;
