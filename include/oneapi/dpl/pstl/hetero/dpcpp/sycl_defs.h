@@ -39,8 +39,6 @@
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
 #    define _ONEDPL_LIBSYCL_VERSION                                                                                    \
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
-#else
-#    define _ONEDPL_LIBSYCL_VERSION 0
 #endif
 
 #if _ONEDPL_FPGA_DEVICE
@@ -51,52 +49,36 @@
 #    endif
 #endif
 
-// Feature macros, opt-out logic stems from the assumption that SYCL2020 is supported by default
-#define _ONEDPL_SYCL2020_NO_INIT_ABSENT                                                                                \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT                                                                          \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_COLLECTIVES_ABSENT                                                                            \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT                                                                         \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_ABSENT                                                                     \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_ATOMIC_REF_ABSENT                                                                             \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50500)
-#define _ONEDPL_SYCL2020_SUB_GROUP_ABSENT                                                                              \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50700)
-#define _ONEDPL_SYCL2020_HOST_ACCESSOR_ABSENT                                                                          \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50700)
+// Feature macros, opt-out logic stems from the assumption that SYCL 2020 specification is supported by default
+#define _ONEDPL_SYCL2020_KERNEL_DEVICE_API_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50200)
+#define _ONEDPL_SYCL2020_BITCAST_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_NO_INIT_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_COLLECTIVES_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_BUFFER_SIZE_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_ACCESSOR_SIZE_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_TARGET_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50400)
+#define _ONEDPL_SYCL2020_TARGET_DEVICE_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50400)
+#define _ONEDPL_SYCL2020_ATOMIC_REF_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50500)
+#define _ONEDPL_SYCL2020_SUB_GROUP_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50700)
+#define _ONEDPL_SYCL2020_HOST_ACCESSOR_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50700)
+#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50700)
 // The unified future supporting USM memory and buffers is only supported after DPC++ 2023.1 but not by 2023.2.
-#define _ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT                                                                     \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && (_ONEDPL_LIBSYCL_VERSION < 60100 || _ONEDPL_LIBSYCL_VERSION == 60200))
-#define _ONEDPL_SYCL2020_TARGET_ABSENT                                                                                 \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50400)
-#define _ONEDPL_SYCL2020_TARGET_DEVICE_ABSENT                                                                          \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50400)
-#define _ONEDPL_SYCL2020_HOST_TARGET_ABSENT                                                                            \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60200)
-#define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_ABSENT                                                                       \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60000)
-#define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_ABSENT                                                                         \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60000)
-#define _ONEDPL_SYCL2020_GET_HOST_ACCESS_ABSENT                                                                        \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60200)
-#define _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_ABSENT                                                                \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 70000)
-#define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_ABSENT                                                                    \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_BUFFER_SIZE_ABSENT                                                                            \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_SYCL2020_ACCESSOR_SIZE_ABSENT                                                                          \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_ABSENT (_ONEDPL_LIBSYCL_VERSION < 60000)
+#define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_ABSENT (_ONEDPL_LIBSYCL_VERSION < 60000)
+#define _ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT (_ONEDPL_LIBSYCL_VERSION < 60100 || _ONEDPL_LIBSYCL_VERSION == 60200)
+#define _ONEDPL_SYCL2020_HOST_TARGET_ABSENT (_ONEDPL_LIBSYCL_VERSION < 60200)
+#define _ONEDPL_SYCL2020_GET_HOST_ACCESS_ABSENT (_ONEDPL_LIBSYCL_VERSION < 60200)
+#define _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_ABSENT (_ONEDPL_LIBSYCL_VERSION < 70000)
 
 // Feature macros for DPC++ SYCL runtime library alternatives to non-supported SYCL2020 features
-#define _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT                                                                            \
-    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
-#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT                                                                         \
-    (_ONEDPL_LIBSYCL_VERSION == 50200)
+#define _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION == 50200)
+#define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT                                                                         \
+    (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1 && _ONEDPL_LIBSYCL_VERSION >= 50700)
 
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION < 70100)
 
@@ -208,7 +190,7 @@ template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-#if 0 //_ONEDPL_LIBSYCL_VERSION == 0 || _ONEDPL_LIBSYCL_VERSION >= 50300
+#if 0 // !defined(_ONEDPL_LIBSYCL_VERSION) || _ONEDPL_LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
     // 1) sycl::group_barrier() implementation is not ready
     // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
