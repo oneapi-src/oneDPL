@@ -1,0 +1,40 @@
+# zip_view Support for the oneDPL Range APIs with C++20
+
+## Introduction
+`std::ranges::zip_view` is powerful utility enables developers to combine two or more ranges into a single view,
+where each element is represented as a tuple containing corresponding elements from each input range.
+
+## Motivations
+`std::ranges::zip_view` is a convenient way to combine multiple ranges into a single view, where each element of
+the resulting range is a tuple containing one element from each of the input ranges. This can be particularly
+useful for iterating over multiple collections in parallel. `std::ranges::zip_view` is introduced starting with C++23,
+but there are many users who work with C++20 standard yet. So, oneDPL introduces `oneapi::dpl::ranges::zip_view`,
+which the same API and functionality as `std::ranges::zip_view`.
+
+### Key Requirements
+`oneapi::dpl::ranges::zip_view` should be:
+- compilable with C++20 version (minimum)
+- API compliant with `std::ranges::zip_view`
+- random accessible view; the "underlying" views also should be random accessible
+- in case of a device usage: a device copyable view itself and the "underlying" views also should be device copyable
+  
+`oneapi::dpl::ranges::zip_view::iterator` should be:
+- value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
+- convertible to `oneapi::dpl::zip_iterator`
+- abble to use with the non-range algorithms
+
+### Implementation proposal
+- `oneapi::dpl::ranges::zip_view` is designed as C++ class, which represents a range adaptor (see C++ Range Library).
+This class encapsulates a tuple-like type to keep a combination of two or more ranges.
+- The implementation provides all necessary operators to satisfy 'random accessible view' requirement.
+- To provide a device copyability requirement `oneapi::dpl::__internal::tuple` is proposed as tuple-like type underhood.
+- To provide a value-swappable requirement `oneapi::dpl::__internal::tuple` is proposed as a dereferenced value for
+`oneapi::dpl::ranges::zip_view::iterator`, due to the standard `std::tuple` C++20 is not swappable type.
+- Usage of C++ concepts is desirable to write type requirements for types, methods and members of the class.
+- C++20 is minimum supported version for the class. It allows to use modern C++ things like concepts and others.
+
+### Test coverage
+
+- `oneapi::dpl::ranges::zip_view` is tested itself, base functionality.
+- should be tested with at least one oneDPL range based algorithm.
+- should be tested with at least one oneDPL iterator based algorithm.
