@@ -713,7 +713,8 @@ __wait_and_get_value(_Event&&, const sycl::buffer<_T>& __buf, std::size_t __idx 
 // An overload of __wait_and_get_value for '__result_and_scratch_storage'
 template <typename _Event, typename _ExecutionPolicy, typename _T>
 constexpr auto
-__wait_and_get_value(_Event&& __event, const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage, std::size_t __idx = 0)
+__wait_and_get_value(_Event&& __event, const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage,
+                     std::size_t __idx = 0)
 {
     return __storage.__wait_and_get_value(__event, __idx);
 }
@@ -769,6 +770,9 @@ class __future : private std::tuple<_Args...>
 #endif
     }
 
+    //_ArgsIdx specifies a compile time index of i-th argument passed into '__future' constructor after an event
+    //__elem_idx specifies a runtime time index of k-th element of i-th argument in case when i-th argument
+    // is not scalar value - an array/buffer like type.
     template <std::size_t _ArgsIdx = 0>
     auto
     get(std::size_t __elem_idx = 0)
