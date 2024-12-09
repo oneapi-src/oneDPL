@@ -28,6 +28,9 @@
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
+#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT (_ONEDPL_LIBSYCL_VERSION == 0 || _ONEDPL_LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
+
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
 //To achieve better performance, number of segments and work-group size are variated depending on a number of elements:
 //1. 32K...512K  - number of segments is increased up to 8 times
@@ -198,11 +201,11 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         oneapi::dpl::__ranges::__require_access(__hdl, __val_rng, __count_rng);
         // an accessor per work-group with value counters from each work-item
         auto __count_lacc = __dpl_sycl::__local_accessor<_CountT>(__wg_size * __radix_states, __hdl);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
             __kernel,
 #endif
             sycl::nd_range<1>(__segments * __wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
@@ -299,11 +302,11 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
         __hdl.depends_on(__dependency_event);
         // access the counters for all work groups
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
             __kernel,
 #endif
             sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
@@ -345,8 +348,6 @@ enum class __peer_prefix_algo
 
 template <std::uint32_t __radix_states, typename _OffsetT, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
-
-#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50700)
 
 #if _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT
 template <std::uint32_t __radix_states, typename _OffsetT>
@@ -546,11 +547,11 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT
             __kernel,
 #endif
             //Each SYCL work group processes one data segment.

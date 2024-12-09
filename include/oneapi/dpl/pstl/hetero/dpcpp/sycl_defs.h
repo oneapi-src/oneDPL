@@ -37,11 +37,10 @@
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#    define _ONEDPL_LIBSYCL_VERSION                                                                              \
+#    define _ONEDPL_LIBSYCL_VERSION                                                                                    \
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
-#endif
-#if !defined(_ONEDPL_LIBSYCL_VERSION)
-#    define _ONEDPL_GENERIC_SYCL_LIBRARY 1
+#else
+#    define _ONEDPL_LIBSYCL_VERSION 0
 #endif
 
 #if _ONEDPL_FPGA_DEVICE
@@ -52,27 +51,52 @@
 #    endif
 #endif
 
-// Macros to check the new SYCL features
-#define _ONEDPL_SYCL2020_NO_INIT_PRESENT                                                                               \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT                                                                         \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT                                                                           \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT                                                                        \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT                                                                    \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT                                                                            \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50500)
-#define _ONEDPL_SYCL2020_SUB_GROUP_PRESENT                                                                             \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50700)
+// Feature macros, opt-out logic stems from the assumption that SYCL2020 is supported by default
+#define _ONEDPL_SYCL2020_NO_INIT_ABSENT                                                                                \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_ABSENT                                                                          \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_COLLECTIVES_ABSENT                                                                            \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT                                                                         \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_ABSENT                                                                     \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_ATOMIC_REF_ABSENT                                                                             \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50500)
+#define _ONEDPL_SYCL2020_SUB_GROUP_ABSENT                                                                              \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50700)
+#define _ONEDPL_SYCL2020_HOST_ACCESSOR_ABSENT                                                                          \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50700)
+// The unified future supporting USM memory and buffers is only supported after DPC++ 2023.1 but not by 2023.2.
+#define _ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_ABSENT                                                                     \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && (_ONEDPL_LIBSYCL_VERSION < 60100 || _ONEDPL_LIBSYCL_VERSION == 60200))
+#define _ONEDPL_SYCL2020_TARGET_ABSENT                                                                                 \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50400)
+#define _ONEDPL_SYCL2020_TARGET_DEVICE_ABSENT                                                                          \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50400)
+#define _ONEDPL_SYCL2020_HOST_TARGET_ABSENT                                                                            \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60200)
+#define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_ABSENT                                                                       \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60000)
+#define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_ABSENT                                                                         \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60000)
+#define _ONEDPL_SYCL2020_GET_HOST_ACCESS_ABSENT                                                                        \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 60200)
+#define _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_ABSENT                                                                \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 70000)
+#define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_ABSENT                                                                    \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_BUFFER_SIZE_ABSENT                                                                            \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_SYCL2020_ACCESSOR_SIZE_ABSENT                                                                          \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
 
-#define _ONEDPL_SYCL2020_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED                                                          \
-    (_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 60200)
-
-#define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
-#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION == 50200)
+// Feature macros for DPC++ SYCL runtime library alternatives to non-supported SYCL2020 features
+#define _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT                                                                            \
+    (_ONEDPL_LIBSYCL_VERSION != 0 && _ONEDPL_LIBSYCL_VERSION < 50300)
+#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT                                                                         \
+    (_ONEDPL_LIBSYCL_VERSION == 50200)
 
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION < 70100)
 
@@ -89,9 +113,9 @@
 #    endif
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
-#if _ONEDPL_LIBSYCL_VERSION >= 50300 || _ONEDPL_GENERIC_SYCL_LIBRARY
+#if !_ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_ABSENT
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
@@ -104,25 +128,17 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE)
 #endif
 
-// The unified future supporting USM memory and buffers is only supported after DPCPP 2023.1
-// but not by 2023.2.
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || (_ONEDPL_LIBSYCL_VERSION >= 50300 && _ONEDPL_LIBSYCL_VERSION != 60200)
-#    define _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT 1
-#else
-#    define _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT 0
-#endif
-
 namespace __dpl_sycl
 {
 
 using __no_init =
-#if _ONEDPL_SYCL2020_NO_INIT_PRESENT
+#if !_ONEDPL_SYCL2020_NO_INIT_ABSENT
     sycl::property::no_init;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50300
     sycl::property::noinit;
 #endif
 
-#if _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+#if !_ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT
 template <typename _BinaryOp, typename _T>
 using __known_identity = sycl::known_identity<_BinaryOp, _T>;
 
@@ -135,12 +151,12 @@ using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
 
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
-#endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+#endif // !_ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT
 
 template <typename _BinaryOp, typename _T>
 inline constexpr auto __known_identity_v = __known_identity<_BinaryOp, _T>::value;
 
-#if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
+#if !_ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_ABSENT
 template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
@@ -149,7 +165,7 @@ using __maximum = sycl::maximum<_T>;
 
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
-#else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
+#elif _ONEDPL_LIBSYCL_VERSION < 50300
 template <typename _T>
 using __plus = sycl::ONEAPI::plus<_T>;
 
@@ -158,11 +174,11 @@ using __maximum = sycl::ONEAPI::maximum<_T>;
 
 template <typename _T>
 using __minimum = sycl::ONEAPI::minimum<_T>;
-#endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
+#endif // !_ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_ABSENT
 
-#if _ONEDPL_SYCL2020_SUB_GROUP_PRESENT
+#if !_ONEDPL_SYCL2020_SUB_GROUP_ABSENT
 using __sub_group = sycl::sub_group;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50700
 using __sub_group = sycl::ONEAPI::sub_group;
 #endif
 
@@ -170,9 +186,9 @@ template <typename _Buffer>
 constexpr auto
 __get_buffer_size(const _Buffer& __buffer)
 {
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300
+#if !_ONEDPL_SYCL2020_BUFFER_SIZE_ABSENT
     return __buffer.size();
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50300
     return __buffer.get_count();
 #endif
 }
@@ -181,9 +197,9 @@ template <typename _Accessor>
 constexpr auto
 __get_accessor_size(const _Accessor& __accessor)
 {
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300
+#if !_ONEDPL_SYCL2020_ACCESSOR_SIZE_ABSENT
     return __accessor.size();
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50300
     return __accessor.get_count();
 #endif
 }
@@ -192,7 +208,7 @@ template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-#if 0 //_ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50300
+#if 0 //_ONEDPL_LIBSYCL_VERSION == 0 || _ONEDPL_LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
     // 1) sycl::group_barrier() implementation is not ready
     // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
@@ -206,9 +222,9 @@ template <typename... _Args>
 constexpr auto
 __group_broadcast(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::group_broadcast(__args...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::broadcast(__args...);
 #endif
 }
@@ -217,9 +233,9 @@ template <typename... _Args>
 constexpr auto
 __exclusive_scan_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::exclusive_scan_over_group(__args...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::exclusive_scan(__args...);
 #endif
 }
@@ -228,9 +244,9 @@ template <typename... _Args>
 constexpr auto
 __inclusive_scan_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::inclusive_scan_over_group(__args...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::inclusive_scan(__args...);
 #endif
 }
@@ -239,9 +255,9 @@ template <typename... _Args>
 constexpr auto
 __reduce_over_group(_Args... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::reduce_over_group(__args...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::reduce(__args...);
 #endif
 }
@@ -250,9 +266,9 @@ template <typename... _Args>
 constexpr auto
 __any_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::any_of_group(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -261,9 +277,9 @@ template <typename... _Args>
 constexpr auto
 __all_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::all_of_group(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -272,9 +288,9 @@ template <typename... _Args>
 constexpr auto
 __none_of_group(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::none_of_group(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -283,9 +299,9 @@ template <typename... _Args>
 constexpr auto
 __joint_exclusive_scan(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -294,9 +310,9 @@ template <typename... _Args>
 constexpr auto
 __joint_inclusive_scan(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -305,9 +321,9 @@ template <typename... _Args>
 constexpr auto
 __joint_reduce(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_reduce(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::reduce(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -316,9 +332,9 @@ template <typename... _Args>
 constexpr auto
 __joint_any_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_any_of(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -327,9 +343,9 @@ template <typename... _Args>
 constexpr auto
 __joint_all_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_all_of(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -338,9 +354,9 @@ template <typename... _Args>
 constexpr auto
 __joint_none_of(_Args&&... __args)
 {
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+#if !_ONEDPL_SYCL2020_COLLECTIVES_ABSENT
     return sycl::joint_none_of(::std::forward<_Args>(__args)...);
-#else
+#elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
 #endif
 }
@@ -378,38 +394,38 @@ inline auto __fpga_selector()
 #endif // _ONEDPL_FPGA_DEVICE
 
 using __target =
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50400
+#if !_ONEDPL_SYCL2020_TARGET_ABSENT
     sycl::target;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50400
     sycl::access::target;
 #endif
 
 constexpr __target __target_device =
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 50400
+#if !_ONEDPL_SYCL2020_TARGET_DEVICE_ABSENT
     __target::device;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50400
     __target::global_buffer;
 #endif
 
 constexpr __target __host_target =
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 60200
+#if !_ONEDPL_SYCL2020_HOST_TARGET_ABSENT
     __target::host_task;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 60200
     __target::host_buffer;
 #endif
 
 template <typename _DataT>
 using __buffer_allocator =
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 60000
+#if !_ONEDPL_SYCL2020_BUFFER_ALLOCATOR_ABSENT
     sycl::buffer_allocator<_DataT>;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 60000
     sycl::buffer_allocator;
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
-#if _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT
+#if !_ONEDPL_SYCL2020_ATOMIC_REF_ABSENT
 using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 50500
 struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 {
     explicit __atomic_ref(_AtomicType& ref)
@@ -419,9 +435,9 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 
 template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 60000
+#if !_ONEDPL_SYCL2020_LOCAL_ACCESSOR_ABSENT
     sycl::local_accessor<_DataT, _Dimensions>;
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 60000
     sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
@@ -429,9 +445,9 @@ template <typename _Buf>
 auto
 __get_host_access(_Buf&& __buf)
 {
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 60200
+#if !_ONEDPL_SYCL2020_GET_HOST_ACCESS_ABSENT
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 60200
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
 #endif
 }
@@ -440,9 +456,9 @@ template <typename _Acc>
 auto
 __get_accessor_ptr(const _Acc& __acc)
 {
-#if _ONEDPL_GENERIC_SYCL_LIBRARY || _ONEDPL_LIBSYCL_VERSION >= 70000
+#if !_ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_ABSENT
     return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
-#else
+#elif _ONEDPL_LIBSYCL_VERSION < 70000
     return __acc.get_pointer();
 #endif
 }
