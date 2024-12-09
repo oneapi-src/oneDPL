@@ -49,7 +49,7 @@
 #    endif
 #endif
 
-// Feature macros, opt-out logic stems from the assumption that SYCL 2020 specification is supported by default
+// SYCL 2020 feature macros, opt-out logic stems from the assumption that they are supported by default
 #define _ONEDPL_SYCL2020_KERNEL_DEVICE_API_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50200)
 #define _ONEDPL_SYCL2020_BITCAST_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
 #define _ONEDPL_SYCL2020_NO_INIT_ABSENT (_ONEDPL_LIBSYCL_VERSION < 50300)
