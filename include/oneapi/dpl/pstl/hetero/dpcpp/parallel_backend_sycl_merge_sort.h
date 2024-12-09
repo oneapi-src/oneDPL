@@ -437,6 +437,14 @@ protected:
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                     }
+                    else if (__data_area.n1 + __data_area.n2 > 0)
+                    {
+                        __sp = { __data_area.n1, __data_area.n2 };
+                    }
+                    else
+                    {
+                        __sp = { __n_sorted, __n_sorted };
+                    }
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
 
@@ -466,60 +474,34 @@ protected:
         _merge_split_point_t __start;
         if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
         {
-            if (__sp_left.first <= __sp_right.first && __sp_left.second <= __sp_right.second)
-            {
-                __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
-                                             __views.rng2, __sp_left.second, __sp_right.second,
-                                             __data_area.i_elem_local, __comp);
-
-                auto __tmp_sp = __find_start_point_w(__data_area, __views, __comp);
-                if (__result != __tmp_sp)
-                {
-                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#1 FAIL", __result.first, __result.second, __tmp_sp.first, __tmp_sp.second,
-                                                            __diagonal_idx - 1, __sp_left.first, __sp_left.second,
-                                                            __diagonal_idx, __sp_right.first, __sp_right.second);
-                    __result = __tmp_sp;
-                }
-                else
-                {
-                    sycl::ext::oneapi::experimental::printf(fmt_correct_sp, "#1 OK", __result.first, __result.second);
-                }
-            }
-            else
-            {
-                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#11 - FAIL: (__sp_left.first <= __sp_right.first && __sp_left.second <= __sp_right.second)==false", 0, 0, 0, 0,
-                                                        __diagonal_idx - 1, __sp_left.first, __sp_left.second,
-                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
-            }
+            __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
+                                            __views.rng2, __sp_left.second, __sp_right.second,
+                                            __data_area.i_elem_local, __comp);
         }
         else
         {
-            const auto __sp = __sp_left; //__base_diagonals_sp_global_ptr[__diagonal_idx];
-            if (__sp.first + __sp.second > 0)
-            {
-                __result = __sp;
-                auto __tmp_sp = __find_start_point_w(__data_area, __views, __comp);
-                if (__result != __tmp_sp)
-                {
-                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#2 FAIL", __result.first, __result.second, __tmp_sp.first, __tmp_sp.second,
-                                                            __diagonal_idx, __sp.first, __sp.second);
-                    __result = __tmp_sp;
-                }
-                else
-                {
-                    sycl::ext::oneapi::experimental::printf(fmt_correct_sp, "#2 OK", __result.first, __result.second);
-                }
-            }
-#if 0            
-            else
-            {
-                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#21 - FAIL: (__sp.first + __sp.second > 0)==false", 0, 0, 0, 0,
-                                                        __diagonal_idx, __sp.first, __sp.second);
-            }
-#endif            
+            __result = __sp_left;
         }
 
-        return __find_start_point_w(__data_area, __views, __comp);
+        const auto __result_correct = __find_start_point_w(__data_area, __views, __comp);
+        if (__result_correct != __result)
+        {
+            if (__diagonal_idx == 0)
+            {
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#1 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
+            }
+            else
+            {
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#2 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx - 1, __sp_left.first, __sp_left.second,
+                                                        __diagonal_idx, __sp_right.first, __sp_right.second);
+            }
+
+            __result = __result_correct;
+        }
+
+        return __result;
     }
 
     // Process parallel merge
