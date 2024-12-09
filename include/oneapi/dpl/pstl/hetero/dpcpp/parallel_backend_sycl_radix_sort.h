@@ -28,9 +28,6 @@
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
-#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT (_ONEDPL_LIBSYCL_VERSION == 0 || _ONEDPL_LIBSYCL_VERSION >= 50700)
-#define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50700)
-
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
 //To achieve better performance, number of segments and work-group size are variated depending on a number of elements:
 //1. 32K...512K  - number of segments is increased up to 8 times
