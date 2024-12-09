@@ -153,16 +153,30 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, std::pair<std::size_t, std::size_t>>;
+        __result_and_scratch_storage_t __result_storage{__exec, 2, 0};
+
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
+            auto __result_acc = __result_storage.template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
+
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                auto __id = __item_id.get_linear_id();
+                const _IdType __i_elem = __id * __chunk;
+
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
                                __comp);
+
+                if(__id == __steps - 1) //the last WI does additional work
+                {
+                    const auto __ends = __find_start_point(__rng1, __rng2, __n, __n1, __n2, __comp);
+                    auto __res_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
+                    *__res_ptr = {__ends.first, __ends.second};
+                }
             });
         });
-        return __future(__event);
+        return __future(__event, __result_storage);
     }
 };
 
