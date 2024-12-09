@@ -1,15 +1,15 @@
 // -*- C++ -*-
-//===-- normal_distribution_dp_tests_set_test.cpp ---------------------------------------===//
+//===-- lognormal_distr_dp_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-//===----------------------------------------------------------------------===//
+//===-------------------------------------------------------------------------===//
 //
 // Abstract:
 //
-// Test of normal_distribution - check statistical properties of the distribution
+// Test of lognormal_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -17,7 +17,7 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::normal_distribution<RealType>;
+using Distr = oneapi::dpl::lognormal_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- philox_uniform_real_distribution_dp_test.pass.cpp --------------------===//
+//===-- philox_uniform_real_distr_dp_test.pass.cpp --------------------===//
 //
 // Copyright (C) Intel Corporation
 //

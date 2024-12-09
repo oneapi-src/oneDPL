@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- bernoulli_distribution_test.cpp ------------------------------------===//
+//===-- bernoulli_distr_test.cpp ------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

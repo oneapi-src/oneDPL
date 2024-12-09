@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- uniform_int_distribution_test.cpp ----------------------------------===//
+//===-- uniform_int_distr_test.cpp ----------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

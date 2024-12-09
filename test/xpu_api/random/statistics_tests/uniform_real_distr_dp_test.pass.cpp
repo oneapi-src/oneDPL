@@ -1,6 +1,5 @@
-
 // -*- C++ -*-
-//===-- weibull_distribution_dp_test.cpp ---------------------------------===//
+//===-- uniform_real_distr_dp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -10,7 +9,7 @@
 //
 // Abstract:
 //
-// Test of weibull_distribution - check statistical properties of the distribution
+// Test of uniform_real_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -18,13 +17,11 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::weibull_distribution<RealType>;
+using Distr = oneapi::dpl::uniform_real_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
-int
-main()
-{
+int main() {
 
 #if TEST_UNNAMED_LAMBDAS
 

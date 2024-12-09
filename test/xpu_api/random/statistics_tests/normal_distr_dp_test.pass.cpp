@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- extreme_value_distribution_dp_tests_set_test.cpp ---------------------------------===//
+//===-- normal_distr_dp_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -9,7 +9,7 @@
 //
 // Abstract:
 //
-// Test of extreme_value_distribution - check statistical properties of the distribution
+// Test of normal_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -17,13 +17,11 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::extreme_value_distribution<RealType>;
+using Distr = oneapi::dpl::normal_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
-int
-main()
-{
+int main() {
 
 #if TEST_UNNAMED_LAMBDAS
 

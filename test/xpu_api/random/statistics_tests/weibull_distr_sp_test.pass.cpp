@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution_sp_test.cpp ---------------------------------===//
+//===-- weibull_distr_sp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -9,7 +9,7 @@
 //
 // Abstract:
 //
-// Test of exponential_distribution - check statistical properties of the distribution
+// Test of weibull_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -17,7 +17,7 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::exponential_distribution<RealType>;
+using Distr = oneapi::dpl::weibull_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 

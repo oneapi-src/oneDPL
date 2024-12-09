@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- weibull_distribution_sp_test.cpp ---------------------------------===//
+//===-- normal_distr_sp_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -9,7 +9,7 @@
 //
 // Abstract:
 //
-// Test of weibull_distribution - check statistical properties of the distribution
+// Test of normal_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -17,13 +17,11 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::weibull_distribution<RealType>;
+using Distr = oneapi::dpl::normal_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
-int
-main()
-{
+int main() {
 
 #if TEST_UNNAMED_LAMBDAS
 
@@ -32,7 +30,7 @@ main()
     constexpr int nsamples = 100;
     int err = 0;
 
-    // testing sycl::vec<float, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+            // testing sycl::vec<float, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "sycl::vec<float,1>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- lognormal_distribution_sp_test.cpp ---------------------------------------===//
+//===-- lognormal_distr_sp_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

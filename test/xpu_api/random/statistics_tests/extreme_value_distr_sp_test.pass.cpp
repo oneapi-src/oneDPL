@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- uniform_real_distribution_sp_test.cpp ---------------------------------===//
+//===-- extreme_value_distr_sp_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -9,7 +9,7 @@
 //
 // Abstract:
 //
-// Test of uniform_real_distribution - check statistical properties of the distribution
+// Test of extreme_value_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 
@@ -17,11 +17,13 @@
 #include "common_for_distributions.hpp"
 
 template<typename RealType>
-using Distr = oneapi::dpl::uniform_real_distribution<RealType>;
+using Distr = oneapi::dpl::extreme_value_distribution<RealType>;
 
 #endif // TEST_UNNAMED_LAMBDAS
 
-int main() {
+int
+main()
+{
 
 #if TEST_UNNAMED_LAMBDAS
 

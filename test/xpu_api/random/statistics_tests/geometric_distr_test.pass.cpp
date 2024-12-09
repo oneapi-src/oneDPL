@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- geometric_distribution_test.cpp ------------------------------------===//
+//===-- geometric_distr_test.cpp ------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
