@@ -375,13 +375,19 @@ protected:
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
-                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
+                // +1 doesn't required here, because we need to calculate split points for each base diagonal
+                // and for the right base diagonal in the last work-group but we can keep it one position to the left
+                // because we know that for 0-diagonal the split point is { 0, 0 }.
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count /*+ 1*/), [=](sycl::item</*dim=*/1> __item_id) {
+
+                    const std::size_t __linear_id = __item_id.get_linear_id();
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    const WorkDataArea __data_area(__n, __n_sorted, __item_id.get_linear_id(), __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
+                    // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp = __data_area.i_elem_local ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
+                    _merge_split_point_t __sp = _merge_split_point_t{ __data_area.n1, __data_area.n2 };
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
@@ -412,22 +418,21 @@ protected:
     static _merge_split_point_t
     __find_or_eval_sp(const nd_range_params& __nd_range_params,
                       _Range1& __rng1, _Range2& __rng2,
-                      const std::size_t __diagonal_idx_local,
+                      const std::size_t __diagonal_idx_global,
                       _IndexT __i_elem_local,
                       _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        const bool __is_base_diagonal = __diagonal_idx_local % __nd_range_params.steps_between_two_base_diags == 0;
-        const std::size_t __diagonal_idx = __diagonal_idx_local / __nd_range_params.steps_between_two_base_diags;
+        const bool __is_base_diagonal = __diagonal_idx_global % __nd_range_params.steps_between_two_base_diags == 0;
+        const std::size_t __diagonal_idx = __diagonal_idx_global / __nd_range_params.steps_between_two_base_diags;
+
+        assert(__diagonal_idx < __nd_range_params.base_diag_count);
 
         _merge_split_point_t __start;
         if (!__is_base_diagonal)
         {
-            // Check that we fit into size of scratch
-            assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
-
-            const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
-            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+            const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{ 0, 0 };
+            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
             return __find_start_point_in(std::forward<_Range1>(__rng1), __sp_left.first, __sp_right.first,
                                          std::forward<_Range2>(__rng2), __sp_left.second, __sp_right.second,
@@ -536,7 +541,7 @@ protected:
                             DropViews __views(__dst, __data_area);
 
                             const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
-                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
+                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
 
@@ -551,7 +556,7 @@ protected:
                             DropViews __views(__rng, __data_area);
 
                             const auto __sp = __find_or_eval_sp(__nd_range_params, __views.rng1, __views.rng2,
-                                                                __linear_id /* diagonal_idx_local */, __data_area.i_elem_local,
+                                                                __linear_id /* __diagonal_idx_global */, __data_area.i_elem_local,
                                                                 __comp,
                                                                 __base_diagonals_sp_global_ptr);
 
@@ -598,9 +603,9 @@ public:
         {
             if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
             {
-                // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+                // Create storage for save split-points on each base diagonal
                 // - for current iteration
-                __base_diagonals_sp_storage_t* __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
+                auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count);
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
                 // Calculation of split-points on each base diagonal
