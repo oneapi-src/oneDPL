@@ -650,7 +650,6 @@ public:
                                                              __exec, __rng, __temp_buf, __comp,
                                                              __nd_range_params,
                                                              *__p_base_diagonals_sp_storage);
-                __event_chain.wait();
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge(__event_chain,
@@ -658,7 +657,6 @@ public:
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params,
                                                    *__p_base_diagonals_sp_storage);
-                __event_chain.wait();
             }
             else
             {
@@ -667,7 +665,6 @@ public:
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params);
-                __event_chain.wait();
             }
 
             __n_sorted *= 2;
