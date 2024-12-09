@@ -701,35 +701,40 @@ struct __deferrable_mode
 {
 };
 
-//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
-//Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
+// An overload of __wait_and_get_value for 'sycl::buffer'
+template <typename _Event, typename _T>
+constexpr auto
+__wait_and_get_value(_Event&&, const sycl::buffer<_T>& __buf, std::size_t __idx = 0)
+{
+    //according to a contract, returned value is one-element sycl::buffer
+    return __buf.get_host_access(sycl::read_only)[__idx];
+}
+
+// An overload of __wait_and_get_value for '__result_and_scratch_storage'
+template <typename _Event, typename _ExecutionPolicy, typename _T>
+constexpr auto
+__wait_and_get_value(_Event&& __event, const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage, std::size_t __idx = 0)
+{
+    return __storage.__wait_and_get_value(__event, __idx);
+}
+
+template <typename _Event, typename _T>
+constexpr auto
+__wait_and_get_value(_Event&& __event, const _T& __val, std::size_t)
+{
+    __event.wait_and_throw();
+    return __val;
+}
+
+//A contract for 'future' class: 
+//* The first argument is an event, which has 'wait_and_throw' method
+//* The second and the following argument a trivial type T or RAII storage.
+//* The 'future' class extends the lifetime for such RAII objects.
+//* Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
-
-    template <typename _T>
-    constexpr auto
-    __wait_and_get_value(const sycl::buffer<_T>& __buf)
-    {
-        //according to a contract, returned value is one-element sycl::buffer
-        return __buf.get_host_access(sycl::read_only)[0];
-    }
-
-    template <typename _ExecutionPolicy, typename _T>
-    constexpr auto
-    __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
-    {
-        return __storage.__wait_and_get_value(__my_event);
-    }
-
-    template <typename _T>
-    constexpr auto
-    __wait_and_get_value(const _T& __val)
-    {
-        wait();
-        return __val;
-    }
 
   public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
@@ -764,13 +769,14 @@ class __future : private std::tuple<_Args...>
 #endif
     }
 
+    template <std::size_t _ArgsIdx = 0>
     auto
-    get()
+    get(std::size_t __elem_idx = 0)
     {
         if constexpr (sizeof...(_Args) > 0)
         {
-            auto& __val = std::get<0>(*this);
-            return __wait_and_get_value(__val);
+            auto& __val = std::get<_ArgsIdx>(*this);
+            return __wait_and_get_value(event(), __val, __elem_idx);
         }
         else
             wait();
