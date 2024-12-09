@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- uniform_int_distribution_device_test.pass.cpp ---------------------------------===//
+//===-- uniform_int_distr_device_test.pass.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

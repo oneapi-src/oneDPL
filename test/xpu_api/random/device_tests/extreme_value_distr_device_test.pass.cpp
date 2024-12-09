@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- extreme_value_distribution_device_test.pass.cpp ---------------------------------===//
+//===-- extreme_value_distr_device_test.pass.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

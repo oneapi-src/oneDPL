@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- cauchy_distribution_device_test.pass.cpp ---------------------------------===//
+//===-- cauchy_distr_device_test.pass.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

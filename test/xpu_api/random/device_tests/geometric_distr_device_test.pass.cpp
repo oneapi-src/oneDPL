@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- geometric_distribution_device_test.pass.cpp ---------------------------------===//
+//===-- geometric_distr_device_test.pass.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
