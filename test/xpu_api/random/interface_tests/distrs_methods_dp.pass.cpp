@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- distributions_methods_dp.pass.cpp -------------------------------------===//
+//===-- distrs_methods_dp.pass.cpp -------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,7 +15,7 @@
 #include "support/utils.h"
 
 #if TEST_UNNAMED_LAMBDAS
-#include "common_for_distributions_methods.hpp"
+#include "common_for_distrs_methods.hpp"
 #endif // TEST_UNNAMED_LAMBDAS
 
 int
