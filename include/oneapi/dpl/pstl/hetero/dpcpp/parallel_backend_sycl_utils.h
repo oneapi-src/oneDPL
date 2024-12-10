@@ -518,8 +518,14 @@ struct __usm_or_buffer_accessor
     }
 };
 
+struct __result_and_scratch_storage_base
+{
+    virtual ~__result_and_scratch_storage_base() = default;
+};
+using __result_and_scratch_storage_base_ptr = std::shared_ptr<__result_and_scratch_storage_base>;
+
 template <typename _ExecutionPolicy, typename _T>
-struct __result_and_scratch_storage
+struct __result_and_scratch_storage : __result_and_scratch_storage_base
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
