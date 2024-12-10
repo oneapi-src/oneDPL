@@ -30,6 +30,20 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_trace_base_diags[] = "find between two base diagonals (%7d and %7d) : {%7d, %7d}, {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_sp1[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_sp2[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}, at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_correct_sp1[] = "correct split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_correct_sp2[] = "correct split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}, at [%7d] - {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_correct_sp[] = "correct split point at %s: {%7d, %7d}\n";
+
 namespace oneapi
 {
 namespace dpl
@@ -398,19 +412,20 @@ protected:
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
-                // +1 doesn't required here, because we need to calculate split points for each base diagonal
-                // and for the right base diagonal in the last work-group but we can keep it one position to the left
-                // because we know that for 0-diagonal the split point is { 0, 0 }.
-                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count /*+ 1*/), [=](sycl::item</*dim=*/1> __item_id) {
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count + 1), [=](sycl::item</*dim=*/1> __item_id) {
 
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
                     // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp{ 0, 0};
+                    _merge_split_point_t __sp =
+                        __linear_id == 0 
+                            ? _merge_split_point_t{ 0, 0 }
+                            : _merge_split_point_t{ __data_area.n1,
+                                                    __data_area.n2 };
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
@@ -427,6 +442,10 @@ protected:
                     }
 
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
+
+#if 0
+                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __linear_id, __sp.first, __sp.second);
+#endif                    
                 });
         });
     }
@@ -440,18 +459,22 @@ protected:
                       _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        _merge_split_point_t __result(0, 0);
 
         std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
-        assert(__diagonal_idx < __nd_range_params.base_diag_count);
+        // Check that we fit into size of scratch
+        assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
 
-        const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{ 0, 0 };
-        const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
-
-        if (__sp_right.first + __sp_right.second > 0)
+        _merge_split_point_t __result(0, 0);
+        if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
         {
-            if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+            // Check that we fit into size of scratch
+            assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
+
+            _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+            _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+
+            if (__sp_right.first + __sp_right.second > 0)
             {
                 __result = __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first,
                                                 __views.rng2, __sp_left.second, __sp_right.second,
@@ -459,13 +482,62 @@ protected:
             }
             else
             {
-                __result = __sp_left;
+                __result = __find_start_point_w(__data_area, __views, __comp);
             }
         }
         else
         {
-            __result = __find_start_point_w(__data_area, __views, __comp);
+            __result = __base_diagonals_sp_global_ptr[__diagonal_idx];
+
+            if (__result.first + __result.second == 0 && __diagonal_idx > 0)
+            {
+                __result = __find_start_point_w(__data_area, __views, __comp);
+            }
         }
+
+#if 0
+        const auto __result_correct = __find_start_point_w(__data_area, __views, __comp);
+        if (__result_correct != __result)
+        {
+            if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+            {
+                const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+                const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp2, "#1 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx, __sp_left.first, __sp_left.second,
+                                                        __diagonal_idx + 1, __sp_right.first, __sp_right.second);
+            }
+            else
+            {
+                const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+
+                sycl::ext::oneapi::experimental::printf(fmt_incorrect_sp1, "#2 FAIL", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx, __sp_left.first, __sp_left.second);
+            }
+
+            __result = __result_correct;
+        }
+        else
+        {
+            if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
+            {
+                const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+                const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+
+                sycl::ext::oneapi::experimental::printf(fmt_correct_sp2, "#1 OK", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx, __sp_left.first, __sp_left.second,
+                                                        __diagonal_idx + 1, __sp_right.first, __sp_right.second);
+            }
+            else
+            {
+                const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+
+                sycl::ext::oneapi::experimental::printf(fmt_correct_sp1, "#2 OK", __result.first, __result.second, __result_correct.first, __result_correct.second,
+                                                        __diagonal_idx, __sp_left.first, __sp_left.second);
+            }
+        }        
+#endif        
 
         return __result;
     }
@@ -607,7 +679,7 @@ public:
             {
                 // Create storage for save split-points on each base diagonal
                 // - for current iteration
-                auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count);
+                auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
                 // Calculation of split-points on each base diagonal
@@ -621,8 +693,8 @@ public:
                 __event_chain = run_parallel_merge(__event_chain,
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
-                                                   __nd_range_params,
-                                                   *__p_base_diagonals_sp_storage);
+                                                   __nd_range_params);//,
+                                                   //*__p_base_diagonals_sp_storage);
             }
             else
             {
