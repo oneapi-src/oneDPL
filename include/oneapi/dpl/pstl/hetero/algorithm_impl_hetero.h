@@ -2030,13 +2030,15 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         return 1;
     }
 
-    auto __keep_keys = __ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __keep_keys = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __keys = __keep_keys(__keys_first, __keys_last);
-    auto __keep_values = __ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __keep_values = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __values = __keep_values(__values_first, __values_first + __n);
-    auto __keep_key_outputs = __ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator3>();
+    auto __keep_key_outputs =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator3>();
     auto __out_keys = __keep_key_outputs(__out_keys_first, __out_keys_first + __n);
-    auto __keep_value_outputs = __ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator4>();
+    auto __keep_value_outputs =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator4>();
     auto __out_values = __keep_value_outputs(__out_values_first, __out_values_first + __n);
     return oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment(
         _BackendTag{}, std::forward<_ExecutionPolicy>(__exec), __keys.all_view(), __values.all_view(),
