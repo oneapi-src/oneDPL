@@ -164,8 +164,9 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                 auto __id = __item_id.get_linear_id();
                 const _IdType __i_elem = __id * __chunk;
 
+                const auto __n_merge = std::min<_IdType>(__chunk, __n - __i_elem);
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __n_merge, __n1, __n2,
                                __comp);
 
                 if(__id == __steps - 1) //the last WI does additional work
