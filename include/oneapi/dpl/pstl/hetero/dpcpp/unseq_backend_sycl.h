@@ -24,7 +24,7 @@
 #include "sycl_defs.h"
 
 #define _ONEDPL_SYCL_KNOWN_IDENTITY_PRESENT                                                                            \
-    (!_ONEDPL_SYCL2020_KNOWN_IDENTITY_ABSENT || _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT)
+    (_ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT || _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT)
 
 namespace oneapi
 {
