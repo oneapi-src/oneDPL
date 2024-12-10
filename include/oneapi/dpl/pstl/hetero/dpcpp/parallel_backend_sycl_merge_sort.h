@@ -36,7 +36,8 @@
 #define __SYCL_CONSTANT_AS
 #endif
 
-const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_find_start_point_call[] = "work-item (%7d) : __find_start_point(__data_area.i_elem_local = %7d, __data_area.n1 = %7d, __data_area.n2 = %7d)\n";
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "work-item (%7d) : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_trace_base_diags[] = "find between two base diagonals (%7d and %7d) : {%7d, %7d}, {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_incorrect_sp1[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_incorrect_sp2[] = "incorrect split point at %s: {%7d, %7d} instead of {%7d, %7d}. Base split-points has been used: at [%7d] - {%7d, %7d}, at [%7d] - {%7d, %7d}\n";
@@ -263,6 +264,7 @@ protected:
         std::size_t   steps_between_two_base_diags = 0;
         std::uint32_t chunk = 0;
         std::size_t   steps = 0;
+        std::size_t   parts = 0;            // The amount of __n_sorted in __n
     };
 
     struct WorkDataArea
@@ -357,15 +359,13 @@ protected:
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
+        const std::size_t __steps_in_n_sorted = oneapi::dpl::__internal::__dpl_ceiling_div(__n_sorted, __chunk);
         _IndexT __base_diag_count = 32 * 1'024;     // 32 Kb
+        _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps_in_n_sorted, __base_diag_count);
 
-        while (__n_sorted <= __base_diag_count)
-            __n_sorted = __n_sorted * 2;
-        __base_diag_count = __n_sorted / 2;
+        const std::size_t _parts = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __n_sorted);
 
-        _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
-
-        return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
+        return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps, _parts };
     }
 
     template <typename DropViews, typename _Compare>
@@ -424,8 +424,11 @@ protected:
                     _merge_split_point_t __sp =
                         __linear_id == 0 
                             ? _merge_split_point_t{ 0, 0 }
-                            : _merge_split_point_t{ __data_area.n1,
-                                                    __data_area.n2 };
+                            : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
+
+//#if 0
+                    sycl::ext::oneapi::experimental::printf(fmt_find_start_point_call, __linear_id, __data_area.i_elem_local, __data_area.n1, __data_area.n2);
+//#endif                    
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
@@ -441,11 +444,13 @@ protected:
                         }
                     }
 
-                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
+                    std::size_t __base_diag_index = __linear_id;
 
-#if 0
-                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __linear_id, __sp.first, __sp.second);
-#endif                    
+                    __base_diagonals_sp_global_ptr[__base_diag_index] = __sp;
+
+//#if 0
+                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __linear_id, __base_diag_index, __sp.first, __sp.second);
+//#endif                    
                 });
         });
     }
@@ -495,7 +500,7 @@ protected:
             }
         }
 
-#if 0
+//#if 0
         const auto __result_correct = __find_start_point_w(__data_area, __views, __comp);
         if (__result_correct != __result)
         {
@@ -537,7 +542,7 @@ protected:
                                                         __diagonal_idx, __sp_left.first, __sp_left.second);
             }
         }        
-#endif        
+//#endif        
 
         return __result;
     }
@@ -677,9 +682,14 @@ public:
         {
             if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
             {
+                const std::size_t _parts = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __n_sorted);
+
+                // Calculate nd-range params
+                const nd_range_params __nd_range_params_local = eval_nd_range_params(__exec, __n, __n_sorted);
+
                 // Create storage for save split-points on each base diagonal
                 // - for current iteration
-                auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count + 1);
+                auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_local.parts * (__nd_range_params_local.base_diag_count + 1));
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
                 // Calculation of split-points on each base diagonal
