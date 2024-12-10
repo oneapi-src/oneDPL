@@ -97,15 +97,6 @@ _split_point_t<_Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
                       const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
 {
-    if (__i_elem == 0)
-        return _split_point_t<_Index>{ 0, 0 };
-
-    if (__rng1_from == __rng1_to)
-        return _split_point_t<_Index>{ __rng1_from, __rng2_from + __i_elem };
-
-    if (__rng2_from == __rng2_to)
-        return _split_point_t<_Index>{ __rng1_from + __i_elem, __rng2_from };
-
     // ----------------------- EXAMPLE ------------------------
     // Let's consider the following input data:
     //    rng1.size() = 10
