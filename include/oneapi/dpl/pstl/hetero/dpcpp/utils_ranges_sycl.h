@@ -165,7 +165,7 @@ inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_dev
 
 #if _ONEDPL_SYCL2020_HOST_ACCESSOR_PRESENT
 inline constexpr all_host_view_fn
-#elif _ONEDPL_LIBSYCL_VERSION < 60200
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
 #endif
