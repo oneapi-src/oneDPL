@@ -130,7 +130,7 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
 #if _ONEDPL_SYCL2020_KERNEL_DEVICE_API_PRESENT
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
             __device
-#    if _ONEDPL_LIBSYCL_VERSION < 60000
+#    if _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000)
             ,
             sycl::range<3> { __wg_size, 1, 1 }
 #    endif

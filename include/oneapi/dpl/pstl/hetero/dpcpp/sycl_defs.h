@@ -88,7 +88,7 @@
 #define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT                                                                         \
     (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1 && _ONEDPL_LIBSYCL_VERSION >= 50700)
 
-#define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION < 70100)
+#define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(70100))
 
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
@@ -105,7 +105,7 @@
 
 #if _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_PRESENT
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
-#elif _ONEDPL_LIBSYCL_VERSION < 50300
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
@@ -124,7 +124,7 @@ namespace __dpl_sycl
 using __no_init =
 #if _ONEDPL_SYCL2020_NO_INIT_PRESENT
     sycl::property::no_init;
-#elif _ONEDPL_LIBSYCL_VERSION < 50300
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     sycl::property::noinit;
 #endif
 
@@ -155,7 +155,7 @@ using __maximum = sycl::maximum<_T>;
 
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
-#elif _ONEDPL_LIBSYCL_VERSION < 50300
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
 template <typename _T>
 using __plus = sycl::ONEAPI::plus<_T>;
 
@@ -168,7 +168,7 @@ using __minimum = sycl::ONEAPI::minimum<_T>;
 
 #if _ONEDPL_SYCL2020_SUB_GROUP_PRESENT
 using __sub_group = sycl::sub_group;
-#elif _ONEDPL_LIBSYCL_VERSION < 50700
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700)
 using __sub_group = sycl::ONEAPI::sub_group;
 #endif
 
@@ -178,7 +178,7 @@ __get_buffer_size(const _Buffer& __buffer)
 {
 #if _ONEDPL_SYCL2020_BUFFER_SIZE_PRESENT
     return __buffer.size();
-#elif _ONEDPL_LIBSYCL_VERSION < 50300
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     return __buffer.get_count();
 #endif
 }
@@ -189,7 +189,7 @@ __get_accessor_size(const _Accessor& __accessor)
 {
 #if _ONEDPL_SYCL2020_ACCESSOR_SIZE_PRESENT
     return __accessor.size();
-#elif _ONEDPL_LIBSYCL_VERSION < 50300
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     return __accessor.get_count();
 #endif
 }
@@ -386,21 +386,21 @@ inline auto __fpga_selector()
 using __target =
 #if _ONEDPL_SYCL2020_TARGET_PRESENT
     sycl::target;
-#elif _ONEDPL_LIBSYCL_VERSION < 50400
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400)
     sycl::access::target;
 #endif
 
 constexpr __target __target_device =
 #if _ONEDPL_SYCL2020_TARGET_DEVICE_PRESENT
     __target::device;
-#elif _ONEDPL_LIBSYCL_VERSION < 50400
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400)
     __target::global_buffer;
 #endif
 
 constexpr __target __host_target =
 #if _ONEDPL_SYCL2020_HOST_TARGET_PRESENT
     __target::host_task;
-#elif _ONEDPL_LIBSYCL_VERSION < 60200
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
     __target::host_buffer;
 #endif
 
@@ -408,14 +408,14 @@ template <typename _DataT>
 using __buffer_allocator =
 #if _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_PRESENT
     sycl::buffer_allocator<_DataT>;
-#elif _ONEDPL_LIBSYCL_VERSION < 60000
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000)
     sycl::buffer_allocator;
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
 #if _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT
 using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
-#elif _ONEDPL_LIBSYCL_VERSION < 50500
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50500)
 struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 {
     explicit __atomic_ref(_AtomicType& ref)
@@ -427,7 +427,7 @@ template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
 #if _ONEDPL_SYCL2020_LOCAL_ACCESSOR_PRESENT
     sycl::local_accessor<_DataT, _Dimensions>;
-#elif _ONEDPL_LIBSYCL_VERSION < 60000
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000)
     sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
@@ -437,7 +437,7 @@ __get_host_access(_Buf&& __buf)
 {
 #if _ONEDPL_SYCL2020_GET_HOST_ACCESS_PRESENT
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
-#elif _ONEDPL_LIBSYCL_VERSION < 60200
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
 #endif
 }
@@ -448,7 +448,7 @@ __get_accessor_ptr(const _Acc& __acc)
 {
 #if _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_PRESENT
     return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
-#elif _ONEDPL_LIBSYCL_VERSION < 70000
+#elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(70000)
     return __acc.get_pointer();
 #endif
 }
