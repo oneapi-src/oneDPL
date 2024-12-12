@@ -280,7 +280,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
+                            if (__i == 4)
+                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
                             __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
@@ -290,7 +291,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
+                            if (__i == 4)
+                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
                             __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
