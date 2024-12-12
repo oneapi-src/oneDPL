@@ -290,7 +290,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                 {
                                     const auto val_this = __rng1[i];
                                     const auto val_next = __rng1[i + 1];
-                                    if (!__comp(val_this, val_next))
+                                    if (val_this > val_next)
                                     {
                                         assert(false);
                                     }
@@ -302,7 +302,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                 {
                                     const auto val_this = __rng2[i];
                                     const auto val_next = __rng2[i + 1];
-                                    if (!__comp(val_this, val_next))
+                                    if (val_this > val_next)
                                     {
                                         assert(false);
                                     }
@@ -329,9 +329,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                 {
                                     const auto val_this = __rng1[i];
                                     const auto val_next = __rng1[i + 1];
-                                    if (!__comp(val_this, val_next))
+                                    if (val_this > val_next)
                                     {
-                                        __comp(val_this, val_next);
                                         assert(false);
                                     }
                                 }
@@ -342,7 +341,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                 {
                                     const auto val_this = __rng2[i];
                                     const auto val_next = __rng2[i + 1];
-                                    if (!__comp(val_this, val_next))
+                                    if (val_this > val_next)
                                     {
                                         assert(false);
                                     }
