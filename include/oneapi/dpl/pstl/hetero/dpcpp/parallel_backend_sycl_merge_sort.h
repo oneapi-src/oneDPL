@@ -37,6 +37,7 @@
 #endif
 
 const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, __data_area.i_elem_local = %7d, __n1 = %7d, __n2 = %7d\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_data[] = "Incorrect data : %f, %f !!!\n";
 
 namespace oneapi
 {
@@ -293,6 +294,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                     if (val_this > val_next)
                                     {
                                         assert(false);
+                                        sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
                                     }
                                 }
                             }
@@ -305,6 +307,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                     if (val_this > val_next)
                                     {
                                         assert(false);
+                                        sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
                                     }
                                 }
                             }
@@ -332,6 +335,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                     if (val_this > val_next)
                                     {
                                         assert(false);
+                                        sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
                                     }
                                 }
                             }
@@ -344,6 +348,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                     if (val_this > val_next)
                                     {
                                         assert(false);
+                                        sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
                                     }
                                 }
                             }

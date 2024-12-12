@@ -38,7 +38,8 @@ main()
     auto buf_begin_discard_write = oneapi::dpl::begin(buf, sycl::write_only, sycl::property::no_init{});
     std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
 
-    dpl::sort(policy, buf_begin, buf_end, std::less<_Type>{});
+    //dpl::sort(policy, buf_begin, buf_end, std::less<_Type>{});
+    dpl::sort(policy, buf_begin, buf_end, [](_Type v1, _Type v2){ return v1 < v2; });
 
     assert(dpl::is_sorted(policy, buf_begin, buf_end, std::less<_Type>{}));
 #endif
