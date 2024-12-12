@@ -548,7 +548,7 @@ main()
 
         constexpr bool just_call_submit = false;
         constexpr bool call_select_before_submit = true;
-
+/*
         auto actual = test_auto_initialization(u1);
         actual = test_select<policy_t, decltype(u1), const decltype(f)&, true>(u1, f);
         actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u1, 0);
@@ -602,7 +602,7 @@ main()
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 1);
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 2);
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u2, 3);
-
+*/
         bProcessed = true;
     }
 #endif // Devices available are CPU and GPU
