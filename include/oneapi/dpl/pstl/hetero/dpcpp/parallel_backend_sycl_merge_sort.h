@@ -22,6 +22,7 @@
 #include <cstdint>     // std::uint32_t, ...
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
+#include <ranges>
 
 #include "sycl_defs.h"                   // __dpl_sycl::__local_accessor, __dpl_sycl::__group_barrier
 #include "sycl_traits.h"                 // SYCL traits specialization for some oneDPL types.
@@ -35,7 +36,7 @@
 #define __SYCL_CONSTANT_AS
 #endif
 
-const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, __data_area.i_elem_local = %7d\n";
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, __data_area.i_elem_local = %7d, __n1 = %7d, __n2 = %7d\n";
 
 namespace oneapi
 {
@@ -270,29 +271,87 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         const _IndexT __i_elem = __item_id.get_linear_id() * __chunk;
                         const _IndexT __i_elem_local = __i_elem % (__n_sorted * 2);
 
+                        assert(__i_elem >= __i_elem_local);
+
                         const _IndexT __offset = std::min<_IndexT>(__i_elem - __i_elem_local, __n);
                         const _IndexT __n1 = std::min<_IndexT>(__offset + __n_sorted, __n) - __offset;
                         const _IndexT __n2 = std::min<_IndexT>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
                         if (__data_in_temp)
                         {
-                            const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst, __offset);
-                            const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
+                            //const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst, __offset);
+                            //const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
+                            std::ranges::subrange __rng1(__dst.begin() + __offset,        __dst.begin() + __offset + __n1);
+                            std::ranges::subrange __rng2(__dst.begin() + __offset + __n1, __dst.begin() + __offset + __n1 + __n2);
 
+                            if (!std::is_sorted(__rng1.begin(), __rng1.end(), __comp))
+                            {
+                                for (std::size_t i = 0; i < __n1 - 1; ++i)
+                                {
+                                    const auto val_this = __rng1[i];
+                                    const auto val_next = __rng1[i + 1];
+                                    if (!__comp(val_this, val_next))
+                                    {
+                                        assert(false);
+                                    }
+                                }
+                            }
+                            if (!std::is_sorted(__rng2.begin(), __rng2.end(), __comp))
+                            {
+                                for (std::size_t i = 0; i < __n2 - 1; ++i)
+                                {
+                                    const auto val_this = __rng2[i];
+                                    const auto val_next = __rng2[i + 1];
+                                    if (!__comp(val_this, val_next))
+                                    {
+                                        assert(false);
+                                    }
+                                }
+                            }
+
+                            // std::subrange
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
                             if (__i == 4)
-                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
+                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local, __n1, __n2);
                             __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
-                            const oneapi::dpl::__ranges::drop_view_simple __rng1(__rng, __offset);
-                            const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
+                            //const oneapi::dpl::__ranges::drop_view_simple __rng1(__rng, __offset);
+                            //const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
+                            std::ranges::subrange __rng1(__rng.begin() + __offset,        __rng.begin() + __offset + __n1);
+                            std::ranges::subrange __rng2(__rng.begin() + __offset + __n1, __rng.begin() + __offset + __n1 + __n2);
+
+                            if (!std::is_sorted(__rng1.begin(), __rng1.end(), __comp))
+                            {
+                                for (std::size_t i = 0; i < __n1 - 1; ++i)
+                                {
+                                    const auto val_this = __rng1[i];
+                                    const auto val_next = __rng1[i + 1];
+                                    if (!__comp(val_this, val_next))
+                                    {
+                                        __comp(val_this, val_next);
+                                        assert(false);
+                                    }
+                                }
+                            }
+                            if (!std::is_sorted(__rng2.begin(), __rng2.end(), __comp))
+                            {
+                                for (std::size_t i = 0; i < __n2 - 1; ++i)
+                                {
+                                    const auto val_this = __rng2[i];
+                                    const auto val_next = __rng2[i + 1];
+                                    if (!__comp(val_this, val_next))
+                                    {
+                                        assert(false);
+                                    }
+                                }
+                            }
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
                             if (__i == 4)
-                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
+                                sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local, __n1, __n2);
                             __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
