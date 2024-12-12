@@ -95,9 +95,9 @@ template <typename _BinaryOp, typename _Tp>
 inline constexpr _Tp __known_identity =
 #if _ONEDPL_SYCL_KNOWN_IDENTITY_PRESENT
     __dpl_sycl::__known_identity<_BinaryOp, _Tp>::value;
-#else  //_ONEDPL_SYCL_KNOWN_IDENTITY_PRESENT
+#else
     __known_identity_for_plus<_BinaryOp, _Tp>::value; //for plus only
-#endif //_ONEDPL_SYCL_KNOWN_IDENTITY_PRESENT
+#endif
 
 template <typename _ExecutionPolicy, typename _F>
 struct walk_n
