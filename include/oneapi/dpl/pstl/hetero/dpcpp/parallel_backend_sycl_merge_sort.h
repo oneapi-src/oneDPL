@@ -29,6 +29,14 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp[] = "__base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, __data_area.i_elem_local = %7d\n";
+
 namespace oneapi
 {
 namespace dpl
@@ -272,6 +280,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
                             __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
@@ -281,11 +290,13 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __item_id.get_linear_id(), start.first, start.second, __i_elem_local);
                             __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
                                            __chunk, __n1, __n2, __comp);
                         }
                     });
             });
+            __event_chain.wait();
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
