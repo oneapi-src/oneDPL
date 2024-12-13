@@ -1311,10 +1311,11 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
 // parallel_histogram
 //------------------------------------------------------------------------
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
-          typename _Fp>
+          typename _FpHist, typename _FpInitialize, typename _FpAccum>
 void
 __parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
-                     _RandomAccessIterator1 __last, _Size __num_bins, _RandomAccessIterator2 __histogram_first, _Fp __f)
+                     _RandomAccessIterator1 __last, _Size __num_bins, _RandomAccessIterator2 __histogram_first,
+                     _FpHist __f, _FpInitialize __init, _FpAccum __accum)
 {
     using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator2>::value_type;
 
@@ -1326,19 +1327,15 @@ __parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolic
             std::vector<_HistogramValueT>& __local_histogram = __thread_local_histogram.local();
             __f(__first + __range.begin(), __first + __range.end(), __local_histogram.begin());
         });
+
         tbb::parallel_for(tbb::blocked_range<_Size>(0, __num_bins), [&](const tbb::blocked_range<_Size>& __range) {
             auto __local_histogram = __thread_local_histogram.begin();
-            for (auto __i = __range.begin(); __i != __range.end(); ++__i)
-            {
-                __histogram_first[__i] = (*__local_histogram)[__i];
-            }
+            __init(__local_histogram->begin() + __range.begin(), __range.size(), __histogram_first + __range.begin());
             ++__local_histogram;
             for (; __local_histogram != __thread_local_histogram.end(); ++__local_histogram)
             {
-                for (auto __i = __range.begin(); __i != __range.end(); ++__i)
-                {
-                    __histogram_first[__i] += (*__local_histogram)[__i];
-                }
+                __accum(__local_histogram->begin() + __range.begin(), __range.size(),
+                        __histogram_first + __range.begin());
             }
         });
     });

@@ -4355,7 +4355,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                            __histogram_first + __num_bins, _HistogramValueT{0});
             //Atomic histogram brick to protect against race conditions
             __par_backend::__parallel_for(__backend_tag{}, std::forward<_ExecutionPolicy>(__exec), _DiffType{0}, __n,
-                                          [&](_DiffType __i, _DiffType __j) {
+                                          [__first, __func, __histogram_first](_DiffType __i, _DiffType __j) {
                                               __brick_histogram_atomics(__first + __i, __first + __j, __func,
                                                                         __histogram_first, _IsVector{});
                                           });
@@ -4365,8 +4365,18 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             //Embarassingly parallel with temporary histogram outputs
             __par_backend::__parallel_histogram(
                 __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __num_bins,
-                __histogram_first, [&](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
+                __histogram_first,
+                [__func](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
                     __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
+                },
+                [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
+                    oneapi::dpl::__unseq_backend::__simd_walk_2(__local_histogram_first, __n, __histogram_accum_first,
+                                                                oneapi::dpl::__internal::__pstl_assign());
+                },
+                [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
+                    oneapi::dpl::__unseq_backend::__simd_walk_2(
+                        __local_histogram_first, __n, __histogram_accum_first,
+                        [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; });
                 });
         }
     }
