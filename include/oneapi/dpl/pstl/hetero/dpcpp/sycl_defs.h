@@ -74,7 +74,7 @@
 #define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
 #define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
 // The unified future supporting USM memory and buffers is only supported after DPC++ 2023.1 but not by 2023.2.
-#define _ONEDPL_SYCL2020_UNIFIED_USM_BUFFER_PRESENT                                                                    \
+#define _ONEDPL_SYCL2020_DEFAULT_ACCESSOR_CONSTRUCTOR_PRESENT                                                          \
     (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60100) || _ONEDPL_LIBSYCL_VERSION != 60200)
 #define _ONEDPL_SYCL2020_HOST_TARGET_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
 #define _ONEDPL_SYCL2020_HOST_ACCESSOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
@@ -451,6 +451,17 @@ __get_accessor_ptr(const _Acc& __acc)
     return __acc.get_pointer();
 #endif
 }
+
+#if defined(SYCL_EXT_ONEAPI_BACKEND_LEVEL_ZERO) || defined(SYCL_EXT_ACPP_BACKEND_LEVEL_ZERO)
+#    define _ONEDPL_SYCL_L0_EXT_PRESENT 1
+#endif
+#if _ONEDPL_SYCL_L0_EXT_PRESENT
+#    if defined(SYCL_EXT_ONEAPI_BACKEND_LEVEL_ZERO)
+inline constexpr auto __level_zero_backend = sycl::backend::ext_oneapi_level_zero;
+#    elif defined(SYCL_EXT_ACPP_BACKEND_LEVEL_ZERO)
+inline constexpr auto __level_zero_backend = sycl::backend::level_zero;
+#    endif
+#endif
 
 } // namespace __dpl_sycl
 
