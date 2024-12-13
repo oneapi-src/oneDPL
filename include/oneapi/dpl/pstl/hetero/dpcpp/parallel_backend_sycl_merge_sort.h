@@ -45,6 +45,7 @@
 #define LOG_MAIN_OPS        1
 
 const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp   [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d\n";
+const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp_p [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d (*)\n";
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_1[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd     [%7d] = {%7d, %7d}                                         -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_2[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd_left[%7d] = {%7d, %7d}, bd_right[%7d] = {%7d, %7d} -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_user_message     [] = "%d %s\n";
@@ -567,18 +568,15 @@ protected:
                     sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __part_index, __storage_base_diagonal_idx, __sp.first, __sp.second, __data_area.i_elem_local);
 #endif
 
-                    if (__data_base_diagonal_idx + 1 == __items_count)
+                    // Fill split-point on the last (additional) base diagonal in the data group by { __data_area.n1, __data_area.n2 }
+                    if (__local_base_diag_idx + 2 == __base_diag_count_in_one_data_part)
                     {
-#if LOG_EVAL_BASE_DIAGS
-                        sycl::ext::oneapi::experimental::printf(fmt_user_message, __storage_base_diagonal_idx + 1, "if (__data_base_diagonal_idx + 1 == __items_count)");
-#endif
-
                         // Check that we fit into size of scratch
-                        KERNEL_ASSERT(__storage_base_diagonal_idx + 1 < __base_diagonal_storage_size);
+                        KERNEL_ASSERT(__storage_base_diagonal_idx + 2 < __base_diagonal_storage_size);
 
-                        __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx + 1] = __sp_end;
+                        __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx + 2] = __sp_end;
 #if LOG_EVAL_BASE_DIAGS
-                        sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __part_index, __storage_base_diagonal_idx + 1, __sp_end.first, __sp_end.second, __data_area.i_elem_local + __nd_range_params.chunk);
+                        sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp_p, __part_index, __storage_base_diagonal_idx + 2, __sp_end.first, __sp_end.second, __data_area.i_elem_local + __nd_range_params.chunk);
 #endif
                     }
                 });
