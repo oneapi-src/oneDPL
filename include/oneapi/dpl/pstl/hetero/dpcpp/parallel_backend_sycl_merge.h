@@ -25,6 +25,26 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
+const __SYCL_CONSTANT_AS char fmt_assertion[] = "Assertion failed: file = %s, line = %d\n";
+
+inline
+void kernel_assert(const char* file_name, std::size_t line_no)
+{
+    sycl::ext::oneapi::experimental::printf(fmt_assertion, file_name, line_no);
+}
+
+#define KERNEL_ASSERT(cond) \
+        if (!(cond))            \
+        {                       \
+            kernel_assert(__FILE__, __LINE__); \
+        }
+
 namespace oneapi
 {
 namespace dpl
@@ -145,11 +165,11 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
 
     _IndexSigned idx1_from = __rng1_from;
     _IndexSigned idx1_to = __rng1_to;
-    assert(idx1_from <= idx1_to);
+    KERNEL_ASSERT(idx1_from <= idx1_to);
 
     _IndexSigned idx2_from = __index_sum - (__rng1_to - 1);
     _IndexSigned idx2_to = __index_sum - __rng1_from + 1;
-    assert(idx2_from <= idx2_to);
+    KERNEL_ASSERT(idx2_from <= idx2_to);
 
     const _IndexSigned idx2_from_diff =
         idx2_from < (_IndexSigned)__rng2_from ? (_IndexSigned)__rng2_from - idx2_from : 0;
@@ -161,11 +181,11 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     idx2_from = __index_sum - (idx1_to - 1);
     idx2_to = __index_sum - idx1_from + 1;
 
-    assert(idx1_from <= idx1_to);
-    assert(__rng1_from <= idx1_from && idx1_to <= __rng1_to);
+    KERNEL_ASSERT(idx1_from <= idx1_to);
+    KERNEL_ASSERT(__rng1_from <= idx1_from && idx1_to <= __rng1_to);
 
-    assert(idx2_from <= idx2_to);
-    assert(__rng2_from <= idx2_from && idx2_to <= __rng2_to);
+    KERNEL_ASSERT(idx2_from <= idx2_to);
+    KERNEL_ASSERT(__rng2_from <= idx2_from && idx2_to <= __rng2_to);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Run search of split point on diagonal
@@ -181,19 +201,19 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
             const auto __rng1_idx = __idx;
             const auto __rng2_idx = __index_sum - __idx;
 
-            assert(__rng1_from <= __rng1_idx && __rng1_idx < __rng1_to);
-            assert(__rng2_from <= __rng2_idx && __rng2_idx < __rng2_to);
-            assert(__rng1_idx + __rng2_idx == __index_sum);
+            KERNEL_ASSERT(__rng1_from <= __rng1_idx && __rng1_idx < __rng1_to);
+            KERNEL_ASSERT(__rng2_from <= __rng2_idx && __rng2_idx < __rng2_to);
+            KERNEL_ASSERT(__rng1_idx + __rng2_idx == __index_sum);
 
             const auto __zero_or_one = __comp(__rng2[__rng2_idx], __rng1[__rng1_idx]);
             return __zero_or_one < kValue;
         });
 
     const _split_point_t<_Index> __result{*__res, __index_sum - *__res + 1};
-    assert(__result.first + __result.second == __i_elem);
+    KERNEL_ASSERT(__result.first + __result.second == __i_elem);
 
-    assert(__rng1_from <= __result.first && __result.first <= __rng1_to);
-    assert(__rng2_from <= __result.second && __result.second <= __rng2_to);
+    KERNEL_ASSERT(__rng1_from <= __result.first && __result.first <= __rng1_to);
+    KERNEL_ASSERT(__rng2_from <= __result.second && __result.second <= __rng2_to);
 
     return __result;
 }
@@ -400,7 +420,7 @@ struct __parallel_merge_submitter<_IdType, _CustomName, __internal::__optional_k
                     if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
                     {
                         // Check that we fit into size of scratch
-                        assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
+                        KERNEL_ASSERT(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
 
                         const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
                         const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
@@ -428,7 +448,7 @@ struct __parallel_merge_submitter<_IdType, _CustomName, __internal::__optional_k
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
-        assert(__rng1.size() > 0 || __rng2.size() > 0);
+        KERNEL_ASSERT(__rng1.size() > 0 || __rng2.size() > 0);
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 

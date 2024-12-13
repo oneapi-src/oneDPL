@@ -30,7 +30,7 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
-#define USE_DEBUG_OUTPUT 0
+#define USE_DEBUG_OUTPUT 1
 
 #if USE_DEBUG_OUTPUT
 #ifdef __SYCL_DEVICE_ONLY__
@@ -156,7 +156,7 @@ struct __leaf_sorter
           __workgroup_size(__workgroup_size), __process_size(__data_per_workitem * __workgroup_size),
           __sub_group_sorter(), __group_sorter()
     {
-        assert((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
+        KERNEL_ASSERT((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
     }
 
     void
@@ -386,7 +386,7 @@ protected:
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __base_diag_count * __chunk);
 
         // We check this condition on host side
-        assert(__base_diag_count * __steps_between_two_base_diags == __steps);
+        KERNEL_ASSERT(__base_diag_count * __steps_between_two_base_diags == __steps);
 
         return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
@@ -477,7 +477,7 @@ protected:
 
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        assert((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
+        KERNEL_ASSERT((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
 
@@ -522,7 +522,7 @@ protected:
                     const std::size_t __storage_base_diagonal_idx = __part_index * (__base_diag_count_in_one_data_part + 1) + __local_base_diag_idx;
 
                     // Check that we fit into size of scratch
-                    assert(__storage_base_diagonal_idx < __base_diagonal_storage_size);
+                    KERNEL_ASSERT(__storage_base_diagonal_idx < __base_diagonal_storage_size);
 
                     __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx] = __sp;
 #if LOG_EVAL_BASE_DIAGS
@@ -536,7 +536,7 @@ protected:
 #endif
 
                         // Check that we fit into size of scratch
-                        assert(__storage_base_diagonal_idx + 1 < __base_diagonal_storage_size);
+                        KERNEL_ASSERT(__storage_base_diagonal_idx + 1 < __base_diagonal_storage_size);
 
                         __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx + 1] = __sp_end;
 #if LOG_EVAL_BASE_DIAGS
@@ -586,7 +586,7 @@ protected:
 
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        assert((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
+        KERNEL_ASSERT((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         const std::size_t __data_base_diagonal_idx = __linear_id / __nd_range_params.steps_between_two_base_diags;
 
@@ -598,7 +598,10 @@ protected:
         if (__linear_id % __nd_range_params.steps_between_two_base_diags != 0)
         {
             // Check that we fit into size of scratch
-            assert(__base_diagonal_storage_idx + 1 < __base_diagonal_storage_size);
+            KERNEL_ASSERT(__base_diagonal_storage_idx + 1 < __base_diagonal_storage_size);
+
+            KERNEL_ASSERT(__base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].first <= __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].first);
+            KERNEL_ASSERT(__base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].second <= __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].second);
 
             __result = __find_start_point_in_w(__views.rng1, __views.rng2,
                                                __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx],
@@ -618,7 +621,7 @@ protected:
         else
         {
             // Check that we fit into size of scratch
-            assert(__base_diagonal_storage_idx < __base_diagonal_storage_size);
+            KERNEL_ASSERT(__base_diagonal_storage_idx < __base_diagonal_storage_size);
 
             __result = __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx];
 
@@ -893,8 +896,8 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    assert(__rng.size() > 1);
-    assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
+    KERNEL_ASSERT(__rng.size() > 1);
+    KERNEL_ASSERT((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
            "Leaf size must be a power of 2");
 
     sycl::queue __q = __exec.queue();
