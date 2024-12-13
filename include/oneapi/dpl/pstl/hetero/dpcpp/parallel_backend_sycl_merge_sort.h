@@ -30,32 +30,6 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
-#define MANDATORY_WAIT   0
-#define USE_DEBUG_OUTPUT 0
-
-#if USE_DEBUG_OUTPUT
-#ifdef __SYCL_DEVICE_ONLY__
-#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
-#else
-#define __SYCL_CONSTANT_AS
-#endif
-
-#define LOG_EVAL_BASE_DIAGS 0
-#define LOG_LOOKUP_SP       0
-
-#define LOG_MAIN_OPS        0
-
-const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp   [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d\n";
-const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp_p [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d (*)\n";
-const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_1[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd     [%7d] = {%7d, %7d}                                         -> {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_2[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd_left[%7d] = {%7d, %7d}, bd_right[%7d] = {%7d, %7d} -> {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_user_message     [] = "%d %s\n";
-const __SYCL_CONSTANT_AS char fmt_user_message2    [] = "%d %s %d\n";
-const __SYCL_CONSTANT_AS char fmt_invalid_db_state [] = "\t\t\tInvalid BD state at [%7d] : this sp = {%7d, %7d}, next sp = {%7d, %7d}, diff = {%7d, %7d}\n";
-const __SYCL_CONSTANT_AS char fmt_incorrect_data   [] = "\t\t\t !!! Incorrect data (source data is unsorted): %f, %f !!!\n";
-
-#endif // USE_DEBUG_OUTPUT
-
 namespace oneapi
 {
 namespace dpl
@@ -161,7 +135,7 @@ struct __leaf_sorter
           __workgroup_size(__workgroup_size), __process_size(__data_per_workitem * __workgroup_size),
           __sub_group_sorter(), __group_sorter()
     {
-        KERNEL_ASSERT((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
+        assert((__process_size & (__process_size - 1)) == 0 && "Process size must be a power of 2");
     }
 
     void
@@ -392,7 +366,7 @@ protected:
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __base_diag_count * __chunk);
 
         // We check this condition on host side
-        KERNEL_ASSERT(__base_diag_count * __steps_between_two_base_diags == __steps);
+        assert(__base_diag_count * __steps_between_two_base_diags == __steps);
 
         return { __base_diag_count, __steps_between_two_base_diags, __chunk, __steps };
     }
@@ -441,40 +415,6 @@ protected:
                        __comp);
     }
 
-    template <typename DropViews, typename _Compare>
-    inline
-    static void
-    check_is_sorted(const WorkDataArea& __data_area,
-                    const DropViews& __views,
-                    _Compare __comp)
-    {
-#if USE_DEBUG_OUTPUT
-        if (__data_area.n1 > 1)
-        {
-            for (std::size_t i = 0; i < __data_area.n1 - 1; ++i)
-            {
-                const auto val_this = __views.rng1[i];
-                const auto val_next = __views.rng1[i + 1];
-                //if (!__comp(val_this, val_next))                
-                if (val_this > val_next)
-                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
-            }
-        }
-
-        if (__data_area.n2 > 1)
-        {
-            for (std::size_t i = 0; i < __data_area.n2 - 1; ++i)
-            {
-                const auto val_this = __views.rng2[i];
-                const auto val_next = __views.rng2[i + 1];
-                //if (!__comp(val_this, val_next))                
-                if (val_this > val_next)
-                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
-            }
-        }
-#endif
-    }
-
     // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
@@ -517,7 +457,7 @@ protected:
 
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        KERNEL_ASSERT((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
+        assert((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
 
@@ -547,13 +487,11 @@ protected:
                         if (__data_in_temp)
                         {
                             DropViews __views(__dst, __data_area);
-                            check_is_sorted(__data_area, __views, __comp);
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
-                            check_is_sorted(__data_area, __views, __comp);
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                     }
@@ -563,72 +501,16 @@ protected:
                     const std::size_t __local_base_diag_idx    = __data_base_diagonal_idx % __base_diag_count_in_one_data_part;
                     const std::size_t __storage_base_diagonal_idx = __part_index * (__base_diag_count_in_one_data_part + 1) + __local_base_diag_idx;
 
-                    // Check that we fit into size of scratch
-                    KERNEL_ASSERT(__storage_base_diagonal_idx < __base_diagonal_storage_size);
-
                     __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx] = __sp;
-#if LOG_EVAL_BASE_DIAGS
-                    sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __part_index, __storage_base_diagonal_idx, __sp.first, __sp.second, __data_area.i_elem_local);
-#endif
 
                     // Fill split-point on the last (additional) base diagonal in the data group by { __data_area.n1, __data_area.n2 }
                     if (__local_base_diag_idx + 2 == __base_diag_count_in_one_data_part)
                     {
-                        // Check that we fit into size of scratch
-                        KERNEL_ASSERT(__storage_base_diagonal_idx + 2 < __base_diagonal_storage_size);
-
                         __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx + 2] = __sp_end;
-#if LOG_EVAL_BASE_DIAGS
-                        sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp_p, __part_index, __storage_base_diagonal_idx + 2, __sp_end.first, __sp_end.second, __data_area.i_elem_local + __nd_range_params.chunk);
-#endif
                     }
                 });
         });
     }
-
-#if USE_DEBUG_OUTPUT
-    // Check split points on each base diagonal
-    template <typename _ExecutionPolicy, typename _Storage>
-    sycl::event
-    check_split_points_for_groups(const sycl::event& __event_chain,
-                                  _ExecutionPolicy&& __exec,
-                                  const _IndexT __n_sorted, const nd_range_params& __nd_range_params,
-                                  _Storage& __base_diagonals_sp_global_storage, const std::size_t __base_diagonal_storage_size) const
-    {
-        // Amount of base diagonals in one data group
-        const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
-
-            __cgh.depends_on(__event_chain);
-
-            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
-
-            __cgh.parallel_for<_CheckDiagonalsKernelName...>(sycl::range</*dim=*/1>(__base_diagonal_storage_size - 1),
-                [=](sycl::item</*dim=*/1> __item_id) {
-
-                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-
-                    const std::size_t __linear_id = __item_id.get_linear_id();
-
-                    // Skip last sp in the data group
-                    if ((__linear_id + 1) % (__base_diag_count_in_one_data_part + 1) == 0)
-                        return;
-
-                    const auto __sp_this = __base_diagonals_sp_global_ptr[__linear_id];
-                    const auto __sp_next = __base_diagonals_sp_global_ptr[__linear_id + 1];
-
-                    if (__sp_this.first > __sp_next.first || __sp_this.second > __sp_next.second)
-                    {
-                        sycl::ext::oneapi::experimental::printf(fmt_invalid_db_state, __linear_id,
-                                                                __sp_this.first, __sp_this.second,
-                                                                __sp_next.first, __sp_next.second,
-                                                                __sp_next.first - __sp_this.first, __sp_next.second - __sp_this.second);
-                    }
-                });
-            });
-    }
-#endif
 
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     static _merge_split_point_t
@@ -665,11 +547,8 @@ protected:
         // Base diagonals common array:
         // [bd00,                         bd01, bd10,                   bd11, bd20,                   bd21, bd30,                   bd31, bd40,                   bd41, bd50, ...]
 
-        _merge_split_point_t __result = __data_area.i_elem_local == 0 ? _merge_split_point_t{ 0, 0 } : _merge_split_point_t{ __data_area.n1, __data_area.n2 };
-
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        KERNEL_ASSERT((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         const std::size_t __data_base_diagonal_idx = __linear_id / __nd_range_params.steps_between_two_base_diags;
 
@@ -680,45 +559,13 @@ protected:
 
         if (__linear_id % __nd_range_params.steps_between_two_base_diags != 0)
         {
-            // Check that we fit into size of scratch
-            KERNEL_ASSERT(__base_diagonal_storage_idx + 1 < __base_diagonal_storage_size);
-
-            KERNEL_ASSERT(__base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].first <= __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].first);
-            KERNEL_ASSERT(__base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].second <= __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].second);
-
-            __result = __find_start_point_in_w(__views.rng1, __views.rng2,
-                                               __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx],
-                                               __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1],
-                                               __data_area.i_elem_local, __comp);
-
-#if LOG_LOOKUP_SP
-            sycl::ext::oneapi::experimental::printf(
-                fmt_trace_lookup_sp_2,
-                __part_index,
-                __linear_id, __data_area.i_elem_local,
-                __base_diagonal_storage_idx,     __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].first,     __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].second,
-                __base_diagonal_storage_idx + 1, __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].first, __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1].second,
-                __result.first, __result.second);
-#endif
-        }
-        else
-        {
-            // Check that we fit into size of scratch
-            KERNEL_ASSERT(__base_diagonal_storage_idx < __base_diagonal_storage_size);
-
-            __result = __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx];
-
-#if LOG_LOOKUP_SP
-            sycl::ext::oneapi::experimental::printf(
-                fmt_trace_lookup_sp_1,
-                __part_index,
-                __linear_id, __data_area.i_elem_local,
-                __base_diagonal_storage_idx, __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].first, __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx].second,
-                __result.first, __result.second);
-#endif
+            return __find_start_point_in_w(__views.rng1, __views.rng2,
+                                           __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx],
+                                           __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1],
+                                           __data_area.i_elem_local, __comp);
         }
 
-        return __result;
+        return __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx];
     }
 
     // Process parallel merge
@@ -833,21 +680,12 @@ public:
                sycl::event __event_chain) const
     {
         const _IndexT __n = __rng.size();
-#if LOG_MAIN_OPS
-        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0. Iteration started : __n = ", __n);
-#endif
         _IndexT __n_sorted = __leaf_size;
 
         bool __data_in_temp = false;
 
         // Calculate nd-range params
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n);
-#if LOG_MAIN_OPS
-        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.1 Iteration started : __nd_range_params.chunk = ",                        __nd_range_params.chunk);
-        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.2 Iteration started : __nd_range_params.steps = ",                        __nd_range_params.steps);
-        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.3 Iteration started : __nd_range_params.steps_between_two_base_diags = ", __nd_range_params.steps_between_two_base_diags);
-        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.4 Iteration started : __nd_range_params.base_diag_count = ",              __nd_range_params.base_diag_count);
-#endif
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -862,9 +700,6 @@ public:
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message2, __i, "1. Iteration started : __n_sorted = ", __n_sorted);
-#endif
             if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
             {
                 const std::size_t __parts = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
@@ -875,43 +710,12 @@ public:
                 auto __p_base_diagonals_sp_storage = new __base_diagonals_sp_storage_t(__exec, 0, __base_diagonal_storage_size);
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "2.1 Iteration : eval_split_points_on_base_diags");
-#endif
-
                 // Calculation of split-points on each base diagonal
                 __event_chain = eval_split_points_on_base_diags(__event_chain,
                                                                 __n_sorted, __data_in_temp,
                                                                 __exec, __rng, __temp_buf, __comp,
                                                                 __nd_range_params,
                                                                 *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
-#if MANDATORY_WAIT
-                __event_chain.wait();
-#endif
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "2.2 Iteration - eval_split_points_on_base_diags - done");
-#endif
-
-#if USE_DEBUG_OUTPUT
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.1 Iteration : check_split_points_for_groups");
-#endif
-                // Check split points on each base diagonal
-                __event_chain = check_split_points_for_groups(__event_chain,
-                                                              __exec,
-                                                              __n_sorted, __nd_range_params,
-                                                              *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
-#if MANDATORY_WAIT
-                __event_chain.wait();
-#endif
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.2 Iteration : check_split_points_for_groups - done");
-#endif
-#endif
-
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.1 Iteration - run_parallel_merge_with_base_diags");
-#endif
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge_with_base_diags(__event_chain,
@@ -919,30 +723,14 @@ public:
                                                                    __exec, __rng, __temp_buf, __comp,
                                                                    __nd_range_params,
                                                                    *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
-#if MANDATORY_WAIT
-                __event_chain.wait();
-#endif
-
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.2 Iteration - run_parallel_merge_with_base_diags - done");
-#endif
             }
             else
             {
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "5.1 Iteration - run_parallel_merge");
-#endif
                 // Process parallel merge
                 __event_chain = run_parallel_merge(__event_chain,
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params);
-#if MANDATORY_WAIT
-                __event_chain.wait();
-#endif
-#if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "5.2 Iteration - run_parallel_merge - done");
-#endif
             }
 
             __n_sorted *= 2;
@@ -1015,8 +803,8 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    KERNEL_ASSERT(__rng.size() > 1);
-    KERNEL_ASSERT((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
+    assert(__rng.size() > 1);
+    assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&
            "Leaf size must be a power of 2");
 
     sycl::queue __q = __exec.queue();
