@@ -48,7 +48,9 @@ const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp   [] = "__part_index = %d : __b
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_1[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd     [%7d] = {%7d, %7d}                                         -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_2[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd_left[%7d] = {%7d, %7d}, bd_right[%7d] = {%7d, %7d} -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_user_message     [] = "%d %s\n";
+const __SYCL_CONSTANT_AS char fmt_user_message2    [] = "%d %s %d\n";
 const __SYCL_CONSTANT_AS char fmt_invalid_db_state [] = "\t\t\tInvalid BD state at [%7d] : this sp = {%7d, %7d}, next sp = {%7d, %7d}, diff = {%7d, %7d}\n";
+const __SYCL_CONSTANT_AS char fmt_incorrect_data   [] = "\t\t\t !!! Incorrect data (source data is unsorted): %f, %f !!!\n";
 
 #endif // USE_DEBUG_OUTPUT
 
@@ -437,6 +439,38 @@ protected:
                        __comp);
     }
 
+    template <typename DropViews, typename _Compare>
+    inline
+    static void
+    check_is_sorted(const WorkDataArea& __data_area,
+                    const DropViews& __views,
+                    _Compare __comp)
+    {
+        if (__data_area.n1 > 1)
+        {
+            for (std::size_t i = 0; i < __data_area.n1 - 1; ++i)
+            {
+                const auto val_this = __views.rng1[i];
+                const auto val_next = __views.rng1[i + 1];
+                //if (!__comp(val_this, val_next))                
+                if (val_this > val_next)
+                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
+            }
+        }
+
+        if (__data_area.n2 > 1)
+        {
+            for (std::size_t i = 0; i < __data_area.n2 - 1; ++i)
+            {
+                const auto val_this = __views.rng2[i];
+                const auto val_next = __views.rng2[i + 1];
+                //if (!__comp(val_this, val_next))                
+                if (val_this > val_next)
+                    sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
+            }
+        }
+    }
+
     // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
@@ -509,11 +543,13 @@ protected:
                         if (__data_in_temp)
                         {
                             DropViews __views(__dst, __data_area);
+                            check_is_sorted(__data_area, __views, __comp);
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
+                            check_is_sorted(__data_area, __views, __comp);
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                     }
@@ -794,12 +830,21 @@ public:
                sycl::event __event_chain) const
     {
         const _IndexT __n = __rng.size();
+#if LOG_MAIN_OPS
+        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0. Iteration started : __n = ", __n);
+#endif
         _IndexT __n_sorted = __leaf_size;
 
         bool __data_in_temp = false;
 
         // Calculate nd-range params
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n);
+#if LOG_MAIN_OPS
+        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.1 Iteration started : __nd_range_params.chunk = ",                        __nd_range_params.chunk);
+        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.2 Iteration started : __nd_range_params.steps = ",                        __nd_range_params.steps);
+        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.3 Iteration started : __nd_range_params.steps_between_two_base_diags = ", __nd_range_params.steps_between_two_base_diags);
+        sycl::ext::oneapi::experimental::printf(fmt_user_message2, 0, "0.4 Iteration started : __nd_range_params.base_diag_count = ",              __nd_range_params.base_diag_count);
+#endif
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -815,7 +860,7 @@ public:
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
 #if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "1. Iteration started...");
+            sycl::ext::oneapi::experimental::printf(fmt_user_message2, __i, "1. Iteration started : __n_sorted = ", __n_sorted);
 #endif
             if (2 * __n_sorted >= __starting_size_limit_for_large_submitter)
             {
