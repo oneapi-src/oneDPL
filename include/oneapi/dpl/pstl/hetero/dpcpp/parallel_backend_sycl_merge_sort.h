@@ -486,13 +486,12 @@ protected:
 
             auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
 
-            auto __dst = __temp_buf.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             __cgh.parallel_for<_DiagonalsKernelName...>(sycl::range</*dim=*/1>(__items_count),
                 [=](sycl::item</*dim=*/1> __item_id) {
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-                    auto __dst_ptr = __dst.__get_pointer();
 
                     const std::size_t __data_base_diagonal_idx = __item_id.get_linear_id();
                     const std::size_t __data_diagonal_idx = __data_base_diagonal_idx * __nd_range_params.steps_between_two_base_diags;
@@ -506,7 +505,7 @@ protected:
                     {
                         if (__data_in_temp)
                         {
-                            DropViews __views(__dst_ptr, __data_area);
+                            DropViews __views(__dst, __data_area);
                             __sp = __find_start_point_w(__data_area, __views, __comp);
                         }
                         else
@@ -637,12 +636,10 @@ protected:
             __cgh.depends_on(__event_chain);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __dst = __temp_buf.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             __cgh.parallel_for<_GlobalSortName1...>(sycl::range</*dim=*/1>(__nd_range_params.steps),
                 [=](sycl::item</*dim=*/1> __item_id) {
-
-                    auto __dst_ptr = __dst.__get_pointer();
 
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
@@ -651,7 +648,7 @@ protected:
                     {
                         if (__data_in_temp)
                         {
-                            DropViews __views(__dst_ptr, __data_area);
+                            DropViews __views(__dst, __data_area);
 
                             const auto __sp = __find_start_point_w(__data_area, __views, __comp);
                             __serial_merge_w(__nd_range_params, __data_area, __views, __rng, __sp, __comp);
@@ -661,7 +658,7 @@ protected:
                             DropViews __views(__rng, __data_area);
 
                             const auto __sp = __find_start_point_w(__data_area, __views, __comp);
-                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst_ptr, __sp, __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __sp, __comp);
                         }
                     }
                 });
@@ -685,7 +682,7 @@ protected:
             __cgh.depends_on(__event_chain);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __dst = __temp_buf.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
@@ -693,7 +690,6 @@ protected:
                 [=](sycl::item</*dim=*/1> __item_id) {
 
                     auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
-                    auto __dst_ptr = __dst.__get_pointer();
 
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
@@ -702,7 +698,7 @@ protected:
                     {
                         if (__data_in_temp)
                         {
-                            DropViews __views(__dst_ptr, __data_area);
+                            DropViews __views(__dst, __data_area);
 
                             const auto __start = __lookup_start_point(__linear_id,
                                                                       __n_sorted, __nd_range_params,
@@ -720,7 +716,7 @@ protected:
                                                                       __data_area, __views,
                                                                       __comp,
                                                                       __base_diagonals_sp_global_ptr, __base_diagonal_storage_size);
-                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst_ptr, __start, __comp);
+                            __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __start, __comp);
                         }
                     }
                 });
@@ -838,17 +834,13 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
     {
         return __q.submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event_chain);
-
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __dst = __temp_buf.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
-
+            auto __temp_acc = __temp_buf.template get_access<access_mode::read>(__cgh);
             // We cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__rng.size()),
                                                  [=](sycl::item</*dim=*/1> __item_id) {
-                                                     auto __dst_ptr = __dst.__get_pointer();
-
                                                      const std::size_t __idx = __item_id.get_linear_id();
-                                                     __rng[__idx] = __dst_ptr[__idx];
+                                                     __rng[__idx] = __temp_acc[__idx];
                                                  });
         });
     }
@@ -897,8 +889,8 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __comp, __leaf_sorter);
 
     // 2. Merge sorting
-    __result_and_scratch_storage<_ExecutionPolicy, _Tp> __temp_buf(__exec, 0, __rng.size());
-
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
+    auto __temp_buf = __temp.get_buffer();
     auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
         __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
 
