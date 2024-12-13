@@ -378,12 +378,12 @@ protected:
     nd_range_params
     eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size) const
     {
-        const bool __is_cpu = __exec.queue().get_device().is_cpu();     // __rng_size == 16384, __chunk == 32, __steps == 512
+        const bool __is_cpu = __exec.queue().get_device().is_cpu();
         const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        _IndexT __base_diag_count = std::min<_IndexT>(__steps / 4, 32 * 1'024);     // 32 Kb                                            // __base_diag_count == 12
-        _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __base_diag_count * __chunk);   // __steps_between_two_base_diags == 6
+        _IndexT __base_diag_count = std::min<_IndexT>(__steps / 4, 32 * 1'024);     // 32 Kb
+        _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __base_diag_count * __chunk);
 
         // We check this condition on host side
         assert(__base_diag_count * __steps_between_two_base_diags == __steps);
