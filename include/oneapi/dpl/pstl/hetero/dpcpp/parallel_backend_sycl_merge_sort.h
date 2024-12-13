@@ -228,13 +228,12 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
     }
 };
 
-template <typename _IndexT, typename _DiagonalsKernelName, typename _CheckDiagonalsKernelName, typename _GlobalSortName1, typename _GlobalSortName2>
+template <typename _IndexT, typename _DiagonalsKernelName, typename _GlobalSortName1, typename _GlobalSortName2>
 struct __merge_sort_global_submitter;
 
-template <typename _IndexT, typename... _DiagonalsKernelName, typename... _CheckDiagonalsKernelName, typename... _GlobalSortName1, typename... _GlobalSortName2>
+template <typename _IndexT, typename... _DiagonalsKernelName, typename... _GlobalSortName1, typename... _GlobalSortName2>
 struct __merge_sort_global_submitter<_IndexT,
                                      __internal::__optional_kernel_name<_DiagonalsKernelName...>,
-                                     __internal::__optional_kernel_name<_CheckDiagonalsKernelName...>,
                                      __internal::__optional_kernel_name<_GlobalSortName1...>,
                                      __internal::__optional_kernel_name<_GlobalSortName2...>>
 {
@@ -772,9 +771,6 @@ template <typename... _Name>
 class __diagonals_kernel_name_for_merge_sort;
 
 template <typename... _Name>
-class __check_diagonals_kernel_name_for_merge_sort;
-
-template <typename... _Name>
 class __sort_global_kernel1;
 
 template <typename... _Name>
@@ -794,8 +790,6 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
     using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
-    using _CheckDiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __check_diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
     using _GlobalSortKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __sort_global_kernel1<_CustomName, _IndexT>>;
     using _GlobalSortKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
@@ -818,7 +812,7 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
-    auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _CheckDiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
+    auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
         __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
 #if MANDATORY_WAIT
     __event_sort.wait();
