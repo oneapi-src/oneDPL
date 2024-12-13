@@ -30,7 +30,7 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
-#define USE_DEBUG_OUTPUT 1
+#define USE_DEBUG_OUTPUT 0
 
 #if USE_DEBUG_OUTPUT
 #ifdef __SYCL_DEVICE_ONLY__
@@ -39,10 +39,10 @@
 #define __SYCL_CONSTANT_AS
 #endif
 
-#define LOG_EVAL_BASE_DIAGS 1
+#define LOG_EVAL_BASE_DIAGS 0
 #define LOG_LOOKUP_SP       0
 
-#define LOG_MAIN_OPS        1
+#define LOG_MAIN_OPS        0
 
 const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp   [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d\n";
 const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp_p [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d (*)\n";
@@ -447,6 +447,7 @@ protected:
                     const DropViews& __views,
                     _Compare __comp)
     {
+#if USE_DEBUG_OUTPUT
         if (__data_area.n1 > 1)
         {
             for (std::size_t i = 0; i < __data_area.n1 - 1; ++i)
@@ -470,6 +471,7 @@ protected:
                     sycl::ext::oneapi::experimental::printf(fmt_incorrect_data, val_this, val_next);
             }
         }
+#endif
     }
 
     // Calculation of split points on each base diagonal
@@ -583,6 +585,7 @@ protected:
         });
     }
 
+#if USE_DEBUG_OUTPUT
     // Check split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Storage>
     sycl::event
@@ -624,6 +627,7 @@ protected:
                 });
             });
     }
+#endif
 
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     static _merge_split_point_t
@@ -885,6 +889,7 @@ public:
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "2.2 Iteration - eval_split_points_on_base_diags - done");
 #endif
 
+#if USE_DEBUG_OUTPUT
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.1 Iteration : check_split_points_for_groups");
 #endif
@@ -896,6 +901,7 @@ public:
                 __event_chain.wait();
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.2 Iteration : check_split_points_for_groups - done");
+#endif
 #endif
 
 #if LOG_MAIN_OPS
