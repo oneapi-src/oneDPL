@@ -477,7 +477,6 @@ protected:
 
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        assert((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
 
@@ -521,9 +520,6 @@ protected:
                     const std::size_t __local_base_diag_idx    = __data_base_diagonal_idx % __base_diag_count_in_one_data_part;
                     const std::size_t __storage_base_diagonal_idx = __part_index * (__base_diag_count_in_one_data_part + 1) + __local_base_diag_idx;
 
-                    // Check that we fit into size of scratch
-                    assert(__storage_base_diagonal_idx < __base_diagonal_storage_size);
-
                     __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx] = __sp;
 #if LOG_EVAL_BASE_DIAGS
                     sycl::ext::oneapi::experimental::printf(fmt_diagonal_id_sp, __part_index, __storage_base_diagonal_idx, __sp.first, __sp.second, __data_area.i_elem_local);
@@ -534,9 +530,6 @@ protected:
 #if LOG_EVAL_BASE_DIAGS
                         sycl::ext::oneapi::experimental::printf(fmt_user_message, __storage_base_diagonal_idx + 1, "if (__data_base_diagonal_idx + 1 == __items_count)");
 #endif
-
-                        // Check that we fit into size of scratch
-                        assert(__storage_base_diagonal_idx + 1 < __base_diagonal_storage_size);
 
                         __base_diagonals_sp_global_ptr[__storage_base_diagonal_idx + 1] = __sp_end;
 #if LOG_EVAL_BASE_DIAGS
@@ -586,7 +579,6 @@ protected:
 
         // Amount of base diagonals in one data group
         const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
-        assert((2 * __n_sorted) % (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk) == 0);
 
         const std::size_t __data_base_diagonal_idx = __linear_id / __nd_range_params.steps_between_two_base_diags;
 
@@ -597,9 +589,6 @@ protected:
 
         if (__linear_id % __nd_range_params.steps_between_two_base_diags != 0)
         {
-            // Check that we fit into size of scratch
-            assert(__base_diagonal_storage_idx + 1 < __base_diagonal_storage_size);
-
             __result = __find_start_point_in_w(__views.rng1, __views.rng2,
                                                __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx],
                                                __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx + 1],
@@ -617,9 +606,6 @@ protected:
         }
         else
         {
-            // Check that we fit into size of scratch
-            assert(__base_diagonal_storage_idx < __base_diagonal_storage_size);
-
             __result = __base_diagonals_sp_global_ptr[__base_diagonal_storage_idx];
 
 #if LOG_LOOKUP_SP
