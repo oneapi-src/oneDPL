@@ -39,15 +39,16 @@
 #define __SYCL_CONSTANT_AS
 #endif
 
-#define LOG_EVAL_BASE_DIAGS 0
+#define LOG_EVAL_BASE_DIAGS 1
 #define LOG_LOOKUP_SP       0
 
-#define LOG_MAIN_OPS        0
+#define LOG_MAIN_OPS        1
 
 const __SYCL_CONSTANT_AS char fmt_diagonal_id_sp   [] = "__part_index = %d : __base_diagonals_sp_global_ptr[%7d] = {%7d, %7d}, i_elem_local = %7d\n";
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_1[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd     [%7d] = {%7d, %7d}                                         -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_trace_lookup_sp_2[] = "__part_index = %d : __lookup_start_point : __linear_id = %7d, i_elem_local = %7d, bd_left[%7d] = {%7d, %7d}, bd_right[%7d] = {%7d, %7d} -> {%7d, %7d}\n";
 const __SYCL_CONSTANT_AS char fmt_user_message     [] = "%d %s\n";
+const __SYCL_CONSTANT_AS char fmt_invalid_db_state [] = "\t\t\tInvalid BD state at [%7d] : this sp = {%7d, %7d}, next sp = {%7d, %7d}, diff = {%7d, %7d}\n";
 
 #endif // USE_DEBUG_OUTPUT
 
@@ -249,12 +250,13 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
     }
 };
 
-template <typename _IndexT, typename _DiagonalsKernelName, typename _GlobalSortName1, typename _GlobalSortName2>
+template <typename _IndexT, typename _DiagonalsKernelName, typename _CheckDiagonalsKernelName, typename _GlobalSortName1, typename _GlobalSortName2>
 struct __merge_sort_global_submitter;
 
-template <typename _IndexT, typename... _DiagonalsKernelName, typename... _GlobalSortName1, typename... _GlobalSortName2>
+template <typename _IndexT, typename... _DiagonalsKernelName, typename... _CheckDiagonalsKernelName, typename... _GlobalSortName1, typename... _GlobalSortName2>
 struct __merge_sort_global_submitter<_IndexT,
                                      __internal::__optional_kernel_name<_DiagonalsKernelName...>,
+                                     __internal::__optional_kernel_name<_CheckDiagonalsKernelName...>,
                                      __internal::__optional_kernel_name<_GlobalSortName1...>,
                                      __internal::__optional_kernel_name<_GlobalSortName2...>>
 {
@@ -547,6 +549,48 @@ protected:
         });
     }
 
+    // Check split points on each base diagonal
+    template <typename _ExecutionPolicy, typename _Storage>
+    sycl::event
+    check_split_points_for_groups(const sycl::event& __event_chain,
+                                  _ExecutionPolicy&& __exec,
+                                  const _IndexT __n_sorted, const nd_range_params& __nd_range_params,
+                                  _Storage& __base_diagonals_sp_global_storage, const std::size_t __base_diagonal_storage_size) const
+    {
+        // Amount of base diagonals in one data group
+        const std::size_t __base_diag_count_in_one_data_part = (2 * __n_sorted) / (__nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk);
+
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+
+            __cgh.depends_on(__event_chain);
+
+            auto __base_diagonals_sp_global_acc = __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
+
+            __cgh.parallel_for<_CheckDiagonalsKernelName...>(sycl::range</*dim=*/1>(__base_diagonal_storage_size - 1),
+                [=](sycl::item</*dim=*/1> __item_id) {
+
+                    auto __base_diagonals_sp_global_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
+
+                    const std::size_t __linear_id = __item_id.get_linear_id();
+
+                    // Skip last sp in the data group
+                    if ((__linear_id + 1) % (__base_diag_count_in_one_data_part + 1) == 0)
+                        return;
+
+                    const auto __sp_this = __base_diagonals_sp_global_ptr[__linear_id];
+                    const auto __sp_next = __base_diagonals_sp_global_ptr[__linear_id + 1];
+
+                    if (__sp_this.first > __sp_next.first || __sp_this.second > __sp_next.second)
+                    {
+                        sycl::ext::oneapi::experimental::printf(fmt_invalid_db_state, __linear_id,
+                                                                __sp_this.first, __sp_this.second,
+                                                                __sp_next.first, __sp_next.second,
+                                                                __sp_next.first - __sp_this.first, __sp_next.second - __sp_this.second);
+                    }
+                });
+            });
+    }
+
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     static _merge_split_point_t
     __lookup_start_point(const std::size_t __linear_id,            // sycl::range</*dim=*/1>(__nd_range_params.steps)
@@ -798,9 +842,21 @@ public:
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "2.2 Iteration - eval_split_points_on_base_diags - done");
 #endif
 
+#if LOG_MAIN_OPS
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.1 Iteration : check_split_points_for_groups");
+#endif
+                // Check split points on each base diagonal
+                __event_chain = check_split_points_for_groups(__event_chain,
+                                                              __exec,
+                                                              __n_sorted, __nd_range_params,
+                                                              *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
+                __event_chain.wait();
+#if LOG_MAIN_OPS
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.2 Iteration : check_split_points_for_groups - done");
+#endif
 
 #if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.1 Iteration - run_parallel_merge_with_base_diags");
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.1 Iteration - run_parallel_merge_with_base_diags");
 #endif
 
                 // Process parallel merge with usage of split-points on base diagonals
@@ -812,13 +868,13 @@ public:
                 __event_chain.wait();
 
 #if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.2 Iteration - run_parallel_merge_with_base_diags - done");
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.2 Iteration - run_parallel_merge_with_base_diags - done");
 #endif
             }
             else
             {
 #if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.1 Iteration - run_parallel_merge");
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "5.1 Iteration - run_parallel_merge");
 #endif
                 // Process parallel merge
                 __event_chain = run_parallel_merge(__event_chain,
@@ -827,7 +883,7 @@ public:
                                                    __nd_range_params);
                 __event_chain.wait();
 #if LOG_MAIN_OPS
-            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.2 Iteration - run_parallel_merge - done");
+            sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "5.2 Iteration - run_parallel_merge - done");
 #endif
             }
 
@@ -870,6 +926,9 @@ template <typename... _Name>
 class __diagonals_kernel_name_for_merge_sort;
 
 template <typename... _Name>
+class __check_diagonals_kernel_name_for_merge_sort;
+
+template <typename... _Name>
 class __sort_global_kernel1;
 
 template <typename... _Name>
@@ -889,6 +948,8 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
     using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
+    using _CheckDiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __check_diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
     using _GlobalSortKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __sort_global_kernel1<_CustomName, _IndexT>>;
     using _GlobalSortKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
@@ -909,7 +970,7 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
-    auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
+    auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _CheckDiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
         __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
     __event_sort.wait();
 
