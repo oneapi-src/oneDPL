@@ -904,17 +904,20 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
 
     // 1. Perform sorting of the leaves of the merge sort tree
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
+    __event_leaf_sort.wait();
 
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
     auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
         __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
+    __event_sort.wait();
 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
         __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_sort);
+        __event_sort.wait();
     }
     return __future(__event_sort, std::move(__temp_sp_storages));
 }
