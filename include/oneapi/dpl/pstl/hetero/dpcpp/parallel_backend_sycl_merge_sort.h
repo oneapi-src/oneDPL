@@ -30,6 +30,7 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+#define MANDATORY_WAIT   0
 #define USE_DEBUG_OUTPUT 0
 
 #if USE_DEBUG_OUTPUT
@@ -884,7 +885,9 @@ public:
                                                                 __exec, __rng, __temp_buf, __comp,
                                                                 __nd_range_params,
                                                                 *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
+#if MANDATORY_WAIT
                 __event_chain.wait();
+#endif
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "2.2 Iteration - eval_split_points_on_base_diags - done");
 #endif
@@ -898,7 +901,9 @@ public:
                                                               __exec,
                                                               __n_sorted, __nd_range_params,
                                                               *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
+#if MANDATORY_WAIT
                 __event_chain.wait();
+#endif
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "3.2 Iteration : check_split_points_for_groups - done");
 #endif
@@ -914,7 +919,9 @@ public:
                                                                    __exec, __rng, __temp_buf, __comp,
                                                                    __nd_range_params,
                                                                    *__p_base_diagonals_sp_storage, __base_diagonal_storage_size);
+#if MANDATORY_WAIT
                 __event_chain.wait();
+#endif
 
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "4.2 Iteration - run_parallel_merge_with_base_diags - done");
@@ -930,7 +937,9 @@ public:
                                                    __n_sorted, __data_in_temp,
                                                    __exec, __rng, __temp_buf, __comp,
                                                    __nd_range_params);
+#if MANDATORY_WAIT
                 __event_chain.wait();
+#endif
 #if LOG_MAIN_OPS
             sycl::ext::oneapi::experimental::printf(fmt_user_message, __i, "5.2 Iteration - run_parallel_merge - done");
 #endif
@@ -1014,20 +1023,26 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
 
     // 1. Perform sorting of the leaves of the merge sort tree
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
+#if MANDATORY_WAIT
     __event_leaf_sort.wait();
+#endif
 
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
     auto __temp_buf = __temp.get_buffer();
     auto [__event_sort, __data_in_temp, __temp_sp_storages] = __merge_sort_global_submitter<_IndexT, _DiagonalsKernelName, _CheckDiagonalsKernelName, _GlobalSortKernel1, _GlobalSortKernel2>()(
         __exec, __rng, __comp, __leaf_sorter.__process_size, __temp_buf, __event_leaf_sort);
+#if MANDATORY_WAIT
     __event_sort.wait();
+#endif
 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
         __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf, __event_sort);
+#if MANDATORY_WAIT
         __event_sort.wait();
+#endif
     }
     return __future(__event_sort, std::move(__temp_sp_storages));
 }
