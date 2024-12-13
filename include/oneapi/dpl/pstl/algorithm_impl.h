@@ -4295,10 +4295,9 @@ void
 __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
                   _RandomAccessIterator __histogram_first, _IsVector) noexcept
 {
-    using _Size = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
     for (; __first != __last; ++__first)
     {
-        _Size __bin = __func.get_bin(*__first);
+        std::int32_t __bin = __func.get_bin(*__first);
         if (__bin >= 0)
         {
             ++__histogram_first[__bin];
@@ -4311,12 +4310,9 @@ void
 __brick_histogram_atomics(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
                           _RandomAccessIterator __histogram_first, _IsVector) noexcept
 {
-    using _Size = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
-    using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
-
     for (; __first != __last; ++__first)
     {
-        _Size __bin = __func.get_bin(*__first);
+        std::int32_t __bin = __func.get_bin(*__first);
         if (__bin >= 0)
         {
             _ONEDPL_ATOMIC_INCREMENT(__histogram_first[__bin]);
