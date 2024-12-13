@@ -387,7 +387,7 @@ protected:
         if (__i_elem == 0)
             return { 0, 0 };
 
-#if 0
+#if 1
         // TODO required to check should we use this code or not from perf side
         if (__sp_left.first == __sp_right.first)
             return _merge_split_point_t{ __sp_left.first, std::min(__sp_left.second + __i_elem, __sp_right.second) };
