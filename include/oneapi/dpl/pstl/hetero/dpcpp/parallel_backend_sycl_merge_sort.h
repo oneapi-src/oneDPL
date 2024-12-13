@@ -262,7 +262,7 @@ protected:
 
     using _merge_split_point_t = _split_point_t<_IndexT>;
 
-    static constexpr std::size_t __starting_size_limit_for_large_submitter = 10 * 1024; // 4 MB //4 * 1'048'576; // 4 MB
+    static constexpr std::size_t __starting_size_limit_for_large_submitter = 4 * 1'048'576; // 4 MB
 
     struct nd_range_params
     {
