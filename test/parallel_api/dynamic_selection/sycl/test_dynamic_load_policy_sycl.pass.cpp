@@ -77,11 +77,11 @@ main()
         actual = test_submit_and_wait<just_call_submit, policy_t>(u, f2);
 
         actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, f2);
-
+/*
         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f);
- /*
-        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f);
 */
+ 
+        actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f);
         bProcessed = true;
     }
 #endif // Devices available are CPU and GPU
