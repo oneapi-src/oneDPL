@@ -134,7 +134,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 10);
-/*
+
     for (size_t i = 0; i < N; ++i)
     {
         for (size_t j = 0; j < D; ++j)
@@ -151,6 +151,8 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
     std::atomic<int> probability = 0;
     size_t total_items = 6;
+
+    /*
     if constexpr (call_select_before_submit)
     {
         for (int i = 0; i < total_items; i++)
