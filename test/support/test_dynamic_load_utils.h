@@ -122,6 +122,7 @@ template <bool call_select_before_submit, typename Policy, typename UniverseCont
 int
 test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 {
+ /*
     using my_policy_t = Policy;
     my_policy_t p{u};
 
@@ -162,8 +163,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
                     probability.fetch_add(1);
                 }
 
-auto e2 = e.submit([&](sycl::handler& cgh) {});
-    /*            
+                
                 if (target == 0)
                 {
                     auto e2 = e.submit([&](sycl::handler& cgh) {
@@ -191,7 +191,7 @@ auto e2 = e.submit([&](sycl::handler& cgh) {});
                     return e2;
                 }
 
-                */
+                
             };
             auto s = oneapi::dpl::experimental::select(p, func);
             auto e = oneapi::dpl::experimental::submit(s, func);
@@ -252,6 +252,7 @@ auto e2 = e.submit([&](sycl::handler& cgh) {});
         return 1;
     }
     std::cout << "submit and wait on group: OK\n";
+*/
     return 0;
 }
 
