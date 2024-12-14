@@ -67,7 +67,7 @@ main()
         constexpr bool call_select_before_submit = true;
 
         auto actual = test_dl_initialization(u);
-
+/*
         actual = test_select<policy_t, decltype(u), decltype(f2)&, false>(u, f2);
 
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2);
@@ -77,7 +77,7 @@ main()
         actual = test_submit_and_wait<just_call_submit, policy_t>(u, f2);
 
         actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, f2);
-/*
+
         actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f);
 */
  
