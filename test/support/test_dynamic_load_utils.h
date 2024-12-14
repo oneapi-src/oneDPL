@@ -161,6 +161,9 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
                 {
                     probability.fetch_add(1);
                 }
+
+auto e2 = e.submit([&](sycl::handler& cgh) {});
+    /*            
                 if (target == 0)
                 {
                     auto e2 = e.submit([&](sycl::handler& cgh) {
@@ -187,6 +190,8 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
                     auto e2 = e.submit([&](sycl::handler& cgh) {});
                     return e2;
                 }
+
+                */
             };
             auto s = oneapi::dpl::experimental::select(p, func);
             auto e = oneapi::dpl::experimental::submit(s, func);
