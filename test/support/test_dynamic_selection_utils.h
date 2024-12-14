@@ -159,7 +159,6 @@ template <bool call_select_before_submit, typename Policy, typename UniverseCont
 int
 test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int offset = 0)
 {
-    /*
     using my_policy_t = Policy;
     my_policy_t p{u};
 
@@ -218,7 +217,6 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int off
         return 1;
     }
     std::cout << "submit_and_wait_on_group: OK\n";
-  */
     return 0;
 }
 
