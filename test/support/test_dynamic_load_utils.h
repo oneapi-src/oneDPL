@@ -122,7 +122,7 @@ template <bool call_select_before_submit, typename Policy, typename UniverseCont
 int
 test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 {
- /*
+ 
     using my_policy_t = Policy;
     my_policy_t p{u};
 
@@ -134,7 +134,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 10);
-
+/*
     for (size_t i = 0; i < N; ++i)
     {
         for (size_t j = 0; j < D; ++j)
