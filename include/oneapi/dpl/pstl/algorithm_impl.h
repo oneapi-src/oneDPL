@@ -4370,13 +4370,12 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                     __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
                 },
                 [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
-                    oneapi::dpl::__unseq_backend::__simd_walk_2(__local_histogram_first, __n, __histogram_accum_first,
-                                                                oneapi::dpl::__internal::__pstl_assign());
+                    __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
+                                                                oneapi::dpl::__internal::__pstl_assign(), IsVector{});
                 },
                 [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
-                    oneapi::dpl::__unseq_backend::__simd_walk_2(
-                        __local_histogram_first, __n, __histogram_accum_first,
-                        [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; });
+                    __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
+                        [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, IsVector{});
                 });
         }
     }
