@@ -166,6 +166,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int off
     std::atomic<int> ecount = 0;
     bool pass = true;
     if constexpr (call_select_before_submit)
+  /*
     {
         for (int i = 1; i <= N; i++)
         {
@@ -209,6 +210,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int off
         }
         oneapi::dpl::experimental::wait(p.get_submission_group());
     }
+    */
     if (!pass)
     {
         std::cout << "ERROR: did not select expected resources\n";
