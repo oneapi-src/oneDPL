@@ -142,11 +142,21 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
         {
             a[i][j] = distribution(generator);
             b[i][j] = distribution(generator);
+            //resultMatrix[i][j] = distribution(generator);
+        }
+    }
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        for (size_t j = 0; j < N; ++j)
+        {
+           // a[i][j] = distribution(generator);
+            //b[i][j] = distribution(generator);
             resultMatrix[i][j] = distribution(generator);
         }
     }
 
- 
+    
 //    std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
     sycl::buffer<std::array<int, D>, 1> bufferB(b.data(), sycl::range<1>(N));
