@@ -134,6 +134,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
     std::array<std::array<int, N>, N> a;
     std::array<std::array<int, N>, N> b;
+    std::array<std::array<int, N>, N> resultMatrix;
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 10);
@@ -146,8 +147,14 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
         {
             a[i][j] = distribution(generator);
             b[i][j] = distribution(generator);
+            resultMatrix[i][j] = distribution(generator);
         }
     }
+
+    sycl::buffer<std::array<int, N>, 1> bufferA(a.data(), sycl::range<1>(N));
+    sycl::buffer<std::array<int, N>, 1> bufferB(b.data(), sycl::range<1>(N));
+    sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
+
 /*
     std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
@@ -155,11 +162,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
 */
 
-    std::array<std::array<int, N>, N> resultMatrix;
-    sycl::buffer<std::array<int, N>, 2> bufferA(a.data(), sycl::range<2>(N, N));
-    sycl::buffer<std::array<int, N>, 2> bufferB(b.data(), sycl::range<2>(N, N));
-    sycl::buffer<std::array<int, N>, 2> bufferResultMatrix(resultMatrix.data(), sycl::range<2>(N, N));
-    
+   
     
 /*
     std::atomic<int> probability = 0;
