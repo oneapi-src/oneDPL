@@ -131,7 +131,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
    // std::array<std::array<int, D>, N> a;
    // std::array<std::array<int, D>, N> b;
-
+/*
     std::array<std::array<int, N>, N> a;
     std::array<std::array<int, N>, N> b;
     std::array<std::array<int, N>, N> resultMatrix;
@@ -154,7 +154,8 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     sycl::buffer<std::array<int, N>, 1> bufferA(a.data(), sycl::range<1>(N));
     sycl::buffer<std::array<int, N>, 1> bufferB(b.data(), sycl::range<1>(N));
 //    sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
-
+*/
+    
 /*
     std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
