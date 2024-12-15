@@ -153,7 +153,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
         {
            // a[i][j] = distribution(generator);
             //b[i][j] = distribution(generator);
-            resultMatrix[i][j] = distribution(generator);
+          //  resultMatrix[i][j] = distribution(generator);
         }
     }
 
@@ -165,7 +165,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
    
     
-/*
+
     std::atomic<int> probability = 0;
     size_t total_items = 6;
 
@@ -271,7 +271,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
         return 1;
     }
     std::cout << "submit and wait on group: OK\n";
-*/
+
     return 0;
 }
 
