@@ -374,7 +374,9 @@ protected:
     inline
     static _merge_split_point_t __find_start_point_w(const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp)
     {
-        return __find_start_point(__views.rng1, __views.rng2, __data_area.i_elem_local, __data_area.n1, __data_area.n2, __comp);
+        return __find_start_point_in(__views.rng1, 0, __data_area.n1,
+                                     __views.rng2, 0, __data_area.n2,
+                                     __data_area.i_elem_local, __comp);
     }
 
     template <typename _Rng1, typename __SP1, typename _Rng2, typename __SP2, typename _Index, typename _Compare>
