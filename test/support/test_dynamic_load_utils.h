@@ -129,15 +129,20 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     constexpr size_t N = 1000; // Number of vectors
     constexpr size_t D = 100;  // Dimension of each vector
 
-    std::array<std::array<int, D>, N> a;
-    std::array<std::array<int, D>, N> b;
+   // std::array<std::array<int, D>, N> a;
+   // std::array<std::array<int, D>, N> b;
+
+    std::array<std::array<int, N>, N> a;
+    std::array<std::array<int, N>, N> b;
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 10);
 
     for (size_t i = 0; i < N; ++i)
     {
-        for (size_t j = 0; j < D; ++j)
+        //for (size_t j = 0; j < D; ++j)
+        for (size_t j = 0; j < N; ++j)
+
         {
             a[i][j] = distribution(generator);
             b[i][j] = distribution(generator);
@@ -151,8 +156,8 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 */
 
     std::array<std::array<int, N>, N> resultMatrix;
-    sycl::buffer<std::array<int, D>, 2> bufferA(a.data(), sycl::range<2>(N, D));
-    sycl::buffer<std::array<int, D>, 2> bufferB(b.data(), sycl::range<2>(N, D));
+    sycl::buffer<std::array<int, N>, 2> bufferA(a.data(), sycl::range<2>(N, N));
+    sycl::buffer<std::array<int, N>, 2> bufferB(b.data(), sycl::range<2>(N, N));
     sycl::buffer<std::array<int, N>, 2> bufferResultMatrix(resultMatrix.data(), sycl::range<2>(N, N));
     
     
