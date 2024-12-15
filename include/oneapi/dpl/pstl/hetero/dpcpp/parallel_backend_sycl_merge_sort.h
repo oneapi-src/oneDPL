@@ -233,7 +233,7 @@ struct __merge_sort_global_submitter;
 template <typename _IndexT, typename... _GlobalSortName>
 struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
 {
-    template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
+    template <typename _Range, typename _Compare, typename _TempBufs, typename _LeafSizeT>
     std::pair<sycl::event, int>
     operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBufs& __temp_buf_pack,
                sycl::event __event_chain) const
@@ -256,8 +256,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
 
-                auto __dst0 = __temp_buf_pack.temp_buf[0].template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
-                auto __dst1 = __temp_buf_pack.temp_buf[1].template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+                auto __dst0 = __temp_buf_pack.temp_buf0.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
+                auto __dst1 = __temp_buf_pack.temp_buf1.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh, __dpl_sycl::__no_init{});
 
                 __cgh.parallel_for<_GlobalSortName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
@@ -279,29 +279,29 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                 const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
 
                                 const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                                __serial_merge(__rng1, __rng2, __dst_ptr[0] /*__rng3*/, start.first, start.second, __i_elem,
+                                __serial_merge(__rng1, __rng2, __dst_ptr0 /*__rng3*/, start.first, start.second, __i_elem,
                                                __chunk, __n1, __n2, __comp);
                             }
                             break;
 
                         case 0 :
                             {
-                                const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst_ptr[0], __offset);
-                                const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst_ptr[0], __offset + __n1);
+                                const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst_ptr0, __offset);
+                                const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst_ptr0, __offset + __n1);
 
                                 const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                                __serial_merge(__rng1, __rng2, __dst_ptr[1] /*__rng3*/, start.first, start.second, __i_elem,
+                                __serial_merge(__rng1, __rng2, __dst_ptr1 /*__rng3*/, start.first, start.second, __i_elem,
                                                __chunk, __n1, __n2, __comp);
                             }
                             break;
 
                         case 1:
                             {
-                                const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst_ptr[1], __offset);
-                                const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst_ptr[1], __offset + __n1);
+                                const oneapi::dpl::__ranges::drop_view_simple __rng1(__dst_ptr1, __offset);
+                                const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst_ptr1, __offset + __n1);
 
                                 const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                                __serial_merge(__rng1, __rng2, __dst_ptr[0] /*__rng3*/, start.first, start.second, __i_elem,
+                                __serial_merge(__rng1, __rng2, __dst_ptr0 /*__rng3*/, start.first, start.second, __i_elem,
                                                __chunk, __n1, __n2, __comp);
                             }
                             break;
@@ -367,12 +367,13 @@ template <typename _ExecutionPolicy, typename _Tp>
 struct __temp_buf_pack_container
 {
     __temp_buf_pack_container(_ExecutionPolicy&& __exec, std::size_t __rng_size)
-        : temp_buf[0](__exec, 0, __rng_size)
-        , temp_buf[1](__exec, 0, __rng_size)
+        : temp_buf0(__exec, 0, __rng_size)
+        , temp_buf1(__exec, 0, __rng_size)
     {
     }
 
-    __result_and_scratch_storage<_ExecutionPolicy, _Tp> temp_buf[2];
+    __result_and_scratch_storage<_ExecutionPolicy, _Tp> temp_buf0;
+    __result_and_scratch_storage<_ExecutionPolicy, _Tp> temp_buf1;
 };
 
 template <typename _IndexT, typename _ExecutionPolicy, typename _Range, typename _Compare, typename _LeafSorter>
@@ -399,7 +400,7 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
 
     // 2. Merge sorting
-    __temp_buf_pack_container<_ExecutionPolicy, _Tp> __temp_buf_pack(exec, __rng.size());
+    __temp_buf_pack_container<_ExecutionPolicy, _Tp> __temp_buf_pack(__exec, __rng.size());
 
     auto [__event_sort, __data_in_temp] = __merge_sort_global_submitter<_IndexT, _GlobalSortKernel>()(
         __q, __rng, __comp, __leaf_sorter.__process_size, __temp_buf_pack, __event_leaf_sort);
@@ -410,8 +411,10 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
     case -1:
         break;
     case 0:
+        __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf_pack.temp_buf0, __event_sort);
+        break;
     case 1:
-        __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf_pack.temp_buf[__data_in_temp], __event_sort);
+        __event_sort = __merge_sort_copy_back_submitter<_CopyBackKernel>()(__q, __rng, __temp_buf_pack.temp_buf1, __event_sort);
         break;
     }
 
