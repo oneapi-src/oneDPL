@@ -143,12 +143,19 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
             b[i][j] = distribution(generator);
         }
     }
-
-    std::array<std::array<int, N>, N> resultMatrix{};
+/*
+    std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
     sycl::buffer<std::array<int, D>, 1> bufferB(b.data(), sycl::range<1>(N));
- 
     sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
+*/
+
+    std::array<std::array<int, N>, N> resultMatrix;
+    sycl::buffer<std::array<int, D>, 2> bufferA(a.data(), sycl::range<2>(N, D));
+    sycl::buffer<std::array<int, D>, 2> bufferB(b.data(), sycl::range<2>(N, D));
+    sycl::buffer<std::array<int, N>, 2> bufferResultMatrix(resultMatrix.data(), sycl::range<2>(N, N));
+    
+    
 /*
     std::atomic<int> probability = 0;
     size_t total_items = 6;
