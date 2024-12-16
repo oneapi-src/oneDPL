@@ -103,7 +103,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             const std::size_t __sub_group_start_idx =
                 __iters_per_work_item * __adj_elements_per_work_item * (__work_group_id * __work_group_size + __sub_group_size * __sub_group_id);
             const bool __is_full_sub_group =
-                __sub_group_start_idx + __iters_per_work_item * __adj_elements_per_work_item + __sub_group_size <= __count;
+                __sub_group_start_idx + __iters_per_work_item * __adj_elements_per_work_item * __sub_group_size <= __count;
             const std::size_t __work_item_idx = __sub_group_start_idx + __adj_elements_per_work_item * __sub_group_local_id;
             return std::make_tuple(__work_item_idx, __adj_elements_per_work_item * __sub_group_size, __is_full_sub_group);
         }
@@ -124,14 +124,15 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     static std::size_t
     __estimate_best_start_size(const _ExecutionPolicy& __exec, _Fp __brick)
     {
-#if 0
-        constexpr static std::uint16_t __iters_per_work_item = 4 / decltype(__brick)::__preferred_vector_size; 
+        // To ensure that the large submitter gets tested on all devices, set the switch point to 10,000 only when compiling
+        // oneDPL tests.
+#if TEST_FOR_ALGORITHM_LARGE_SUBMITTER
+        return 10000;
+#else
         const std::size_t __work_group_size =
             oneapi::dpl::__internal::__max_work_group_size(__exec, __max_work_group_size);
         const std::uint32_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-        return __work_group_size * __max_cu;
-#else
-        return 10000;
+        return __work_group_size * _Fp::__preferred_iters_per_item * __max_cu;
 #endif
     }
 
@@ -186,7 +187,6 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
 
     using __small_submitter = __parallel_for_small_submitter<_ForKernelSmall>;
     using __large_submitter = __parallel_for_large_submitter<_ForKernelLarge, _Ranges...>;
-    //std::cerr << _Fp::__preferred_vector_size << std::endl;
     // Compile two kernels: one for small-to-medium inputs and a second for large. This avoids runtime checks within a
     // single kernel that worsen performance for small cases. If the number of iterations of the large submitter is 1,
     // then only compile the basic kernel as the two versions are effectively the same.

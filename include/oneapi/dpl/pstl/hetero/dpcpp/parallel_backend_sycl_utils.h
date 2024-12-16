@@ -940,14 +940,15 @@ struct __vector_load
 template <typename _TransformOp>
 struct __lazy_store_transform_op
 {
-    _TransformOp __transform{};
+    _TransformOp __transform;
+    // Unary transformations into an output buffer
     template <typename _IdxType1, typename _IdxType2, typename _SourceAcc, typename _DestAcc>
     void
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
     {
-        // TODO: fix this. it always performs an assignment in its current state
         __transform(__source_acc[__idx_source].__v, __dest_acc[__idx_dest]);
     }
+    // Binary transformations into an output buffer
     template <typename _IdxType1, typename _IdxType2, typename _Source1Acc, typename _Source2Acc, typename _DestAcc>
     void
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _Source1Acc __source1_acc, _Source2Acc __source2_acc, _DestAcc __dest_acc) const
@@ -1050,7 +1051,7 @@ struct __strided_loop
 	void
     operator()(/*__is_full*/std::false_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op, _Ranges&&... __rngs) const
     {
-        // constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
+        // Constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
         const std::uint8_t __adjusted_iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n - __idx, __stride);
         for (std::uint16_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
@@ -1059,17 +1060,6 @@ struct __strided_loop
             __idx += __stride;
         }
     }
-};
-
-template <typename _Rng>
-struct __is_vectorizable_view
-    : std::false_type
-{
-};
-template <typename... _Args>
-struct __is_vectorizable_view<oneapi::dpl::__ranges::guard_view<_Args...>>
-    : std::true_type
-{
 };
 
 } // namespace __par_backend_hetero
