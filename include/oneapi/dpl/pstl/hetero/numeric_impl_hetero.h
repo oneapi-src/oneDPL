@@ -266,10 +266,11 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
         auto __view1 = __buf1.all_view();
         auto __view2 = __buf2.all_view();
 
-        using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn), decltype(__view1), decltype(__view2)>;
+        using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn), decltype(__view1),
+                                                                  decltype(__view2)>;
 
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, __exec, _Function{{}, __fn, static_cast<std::size_t>(__n)}, __n,
-                                                          __view1, __view2)
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{}, __exec, _Function{{}, __fn, static_cast<std::size_t>(__n)}, __n, __view1, __view2)
             .__deferrable_wait();
     }
 
