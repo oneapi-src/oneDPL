@@ -1324,20 +1324,15 @@ __parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolic
                                                                                                 _HistogramValueT{0});
         size_t __n = __last - __first;
         tbb::parallel_for(tbb::blocked_range<_Size>(0, __n), [&](const tbb::blocked_range<_Size>& __range) {
-            if (tbb::this_task_arena::current_thread_index() == 0)
-            {
-                //use the first thread to initialize the global histogram
-                __f(__first + __range.begin(), __first + __range.end(), __histogram_first);
-            }
-            else
-            {
-                __f(__first + __range.begin(), __first + __range.end(), __thread_local_histogram.local().begin());
-            }
-            
+            std::vector<_HistogramValueT>& __local_histogram = __thread_local_histogram.local();
+            __f(__first + __range.begin(), __first + __range.end(), __local_histogram.begin());
         });
 
         tbb::parallel_for(tbb::blocked_range<_Size>(0, __num_bins), [&](const tbb::blocked_range<_Size>& __range) {
-            for (auto __local_histogram = __thread_local_histogram.begin(); __local_histogram != __thread_local_histogram.end(); ++__local_histogram)
+            auto __local_histogram = __thread_local_histogram.begin();
+            __init(__local_histogram->begin() + __range.begin(), __range.size(), __histogram_first + __range.begin());
+            ++__local_histogram;
+            for (; __local_histogram != __thread_local_histogram.end(); ++__local_histogram)
             {
                 __accum(__local_histogram->begin() + __range.begin(), __range.size(),
                         __histogram_first + __range.begin());
