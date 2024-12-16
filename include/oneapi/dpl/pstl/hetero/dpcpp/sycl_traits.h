@@ -368,7 +368,7 @@ namespace oneapi::dpl::unseq_backend
 template <typename _ExecutionPolicy, typename _F>
 struct walk_n;
 
-template <typename _ExecutionPolicy, typename _F>
+template <typename _ExecutionPolicy, typename _F, typename _Range1, typename _Range2>
 struct walk_adjacent_difference;
 
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative,
@@ -429,9 +429,9 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backen
 {
 };
 
-template <typename _ExecutionPolicy, typename _F>
+template <typename _ExecutionPolicy, typename _F, typename _Range1, typename _Range2>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::walk_adjacent_difference,
-                                                       _ExecutionPolicy, _F)>
+                                                       _ExecutionPolicy, _F, _Range1, _Range2)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_F>
 {
 };
@@ -555,7 +555,7 @@ namespace oneapi::dpl::internal
 
 enum class search_algorithm;
 
-template <typename Comp, typename T, search_algorithm func>
+template <typename Comp, typename T, typename _Range, search_algorithm func>
 struct custom_brick;
 
 template <typename T, typename Predicate>
@@ -575,8 +575,8 @@ class transform_if_stencil_fun;
 
 } // namespace oneapi::dpl::internal
 
-template <typename Comp, typename T, oneapi::dpl::internal::search_algorithm func>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::internal::custom_brick, Comp, T, func)>
+template <typename Comp, typename T, typename _Range, oneapi::dpl::internal::search_algorithm func>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::internal::custom_brick, Comp, T, _Range, func)>
     : oneapi::dpl::__internal::__are_all_device_copyable<Comp, T>
 {
 };

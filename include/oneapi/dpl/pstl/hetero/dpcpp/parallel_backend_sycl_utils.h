@@ -901,6 +901,177 @@ __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
         throw;
 }
 
+// For use with __lazy_ctor_storage
+struct __lazy_load_transform_op
+{
+    template <typename _IdxType1, typename _IdxType2, typename _SourceAcc, typename _DestAcc>
+    void
+    operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
+    {
+        __dest_acc[__idx_dest].__setup(__source_acc[__idx_source]);
+    }
+};
+
+template <std::uint16_t __vec_size>
+struct __vector_load
+{
+    static_assert(__vec_size <= 4);
+    std::size_t __n;
+    template <typename _IdxType, typename _LoadOp, typename... _Acc>
+    void
+    operator()(std::true_type, _IdxType __start_idx, _LoadOp __load_op, _Acc... __acc) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
+            __load_op(__start_idx + __i, __i, __acc...);
+    }
+    
+    template <typename _IdxType, typename _LoadOp, typename... _Acc>
+    void
+    operator()(std::false_type, _IdxType __start_idx, _LoadOp __load_op, _Acc... __acc) const
+    {
+        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __start_idx));
+        for (std::uint16_t __i = 0; __i < __elements; ++__i)
+            __load_op(__start_idx + __i, __i, __acc...);
+    }
+};
+
+// For use with __lazy_ctor_storage
+template <typename _TransformOp>
+struct __lazy_store_transform_op
+{
+    _TransformOp __transform{};
+    template <typename _IdxType1, typename _IdxType2, typename _SourceAcc, typename _DestAcc>
+    void
+    operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
+    {
+        // TODO: fix this. it always performs an assignment in its current state
+        __transform(__source_acc[__idx_source].__v, __dest_acc[__idx_dest]);
+    }
+    template <typename _IdxType1, typename _IdxType2, typename _Source1Acc, typename _Source2Acc, typename _DestAcc>
+    void
+    operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _Source1Acc __source1_acc, _Source2Acc __source2_acc, _DestAcc __dest_acc) const
+    {
+        __transform(__source1_acc[__idx_source].__v, __source2_acc[__idx_source].__v, __dest_acc[__idx_dest]);
+    }
+};
+
+template <std::uint16_t __vec_size, typename _F>
+struct __vector_walk
+{
+    _F __f;
+    std::size_t __n;
+
+    template <typename... _Rngs>
+    void operator()(std::true_type, std::size_t __idx, _Rngs&&... __rngs) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
+        {
+
+            __f(__rngs[__idx + __i]...);
+        }
+    }
+    // For a non-full vector path, process it sequentially. This will always be the last sub or work group
+    // if it does not evenly divide into input
+    template <typename... _Rngs>
+    void operator()(std::false_type, std::size_t __idx, _Rngs&&... __rngs) const
+    {
+        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __idx));
+        for (std::uint16_t __i = 0; __i < __elements; ++__i)
+        {
+            __f(__rngs[__idx + __i]...);
+        }
+    }
+};
+
+template <std::uint16_t __vec_size>
+struct __vector_store
+{
+    std::size_t __n;
+    static_assert(__vec_size <= 4);
+    template <typename _IdxType, typename _StoreOp, typename... _Acc>
+    void
+    operator()(std::true_type, _IdxType __start_idx, _StoreOp __store_op, _Acc... __acc) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
+            __store_op(__i, __start_idx + __i, __acc...);
+    }
+    template <typename _IdxType, typename _StoreOp, typename... _Acc>
+    void
+    operator()(std::false_type, _IdxType __start_idx, _StoreOp __store_op, _Acc... __acc) const
+    {
+        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __start_idx));
+        for (std::uint16_t __i = 0; __i < __elements; ++__i)
+            __store_op(__i, __start_idx + __i, __acc...);
+    }
+};
+
+template <std::uint16_t __vec_size>
+struct __vector_reverse
+{
+    template <typename _IsFull, typename _Idx, typename _Array>
+    void
+    operator()(_IsFull __is_full, const _Idx __elements_to_process, _Array __array) const
+    {
+        if constexpr (__is_full)
+        {
+            _ONEDPL_PRAGMA_UNROLL
+            for (std::uint16_t __i = 0; __i != __vec_size / 2; ++__i)
+                std::swap(__array[__i].__v, __array[__vec_size - __i - 1].__v);
+        }
+        else
+        {
+          for (std::uint16_t __i = 0; __i != __elements_to_process / 2; ++__i)
+              std::swap(__array[__i].__v, __array[__elements_to_process - __i - 1].__v);
+        }
+    }
+};
+
+// Processes a loop with a given stride. Intended to be used with sub-group / work-group strides for good memory access patterns
+// (potentially with vectorization)
+template <std::uint16_t __num_strides>
+struct __strided_loop
+{
+    std::size_t __n;
+    template <typename _IdxType, typename _LoopBodyOp, typename... _Ranges>
+	void
+    operator()(/*__is_full*/std::true_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op, _Ranges&&... __rngs) const
+    {
+        _ONEDPL_PRAGMA_UNROLL
+        for (std::uint16_t __i = 0; __i < __num_strides; ++__i)
+        {
+            __loop_body_op(std::true_type{}, __idx, __rngs...);
+            __idx += __stride;
+        }
+    }
+    template <typename _IdxType, typename _LoopBodyOp, typename... _Ranges>
+	void
+    operator()(/*__is_full*/std::false_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op, _Ranges&&... __rngs) const
+    {
+        // constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
+        const std::uint8_t __adjusted_iters_per_work_item =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__n - __idx, __stride);
+        for (std::uint16_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
+        {
+            __loop_body_op(std::false_type{}, __idx, __rngs...);
+            __idx += __stride;
+        }
+    }
+};
+
+template <typename _Rng>
+struct __is_vectorizable_view
+    : std::false_type
+{
+};
+template <typename... _Args>
+struct __is_vectorizable_view<oneapi::dpl::__ranges::guard_view<_Args...>>
+    : std::true_type
+{
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi

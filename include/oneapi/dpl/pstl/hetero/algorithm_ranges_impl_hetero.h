@@ -58,6 +58,7 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     const _Size __n = std::min({_Size(__rngs.size())...});
     if (__n > 0)
     {
+        // TODO add specializations with a fallback to walk n
         oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                           ::std::forward<_Ranges>(__rngs)...)
