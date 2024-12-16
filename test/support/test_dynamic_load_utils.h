@@ -153,7 +153,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
         {
            // a[i][j] = distribution(generator);
             //b[i][j] = distribution(generator);
-          //  resultMatrix[i][j] = distribution(generator);
+            resultMatrix[i][j] = distribution(generator);
         }
     }
 
