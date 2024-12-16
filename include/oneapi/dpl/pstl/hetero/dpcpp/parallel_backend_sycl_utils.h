@@ -22,7 +22,7 @@
 #include <tuple>
 #include <algorithm>
 
-#include "../../iterator_impl.h"
+#include "../../iterator_impl.h" 
 
 #include "sycl_defs.h"
 #include "execution_sycl_defs.h"
@@ -683,8 +683,8 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         }
     }
 
-    template <typename _T, std::size_t _N>
-    void get_values(std::array<_T, _N>& __arr)
+    template <std::size_t _N>
+    void get_values(std::array<_T, _N>& __arr) const
     {
         assert(__result_n > 0);
         assert(_N == __result_n);
@@ -713,14 +713,14 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         return __get_value(idx);
     }
 
-    template <typename _Event, typename _T, std::size_t _N>
+    template <typename _Event, std::size_t _N>
     void
     __wait_and_get_value(_Event&& __event, std::array<_T, _N>& __arr) const
     {
         if (is_USM())
             __event.wait_and_throw();
 
-        return get_values(__arr);
+        get_values(__arr);
     }
 };
 
@@ -745,7 +745,7 @@ struct __wait_and_get_value
     constexpr void
     operator()(auto&& __event, const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage, std::array<_T, _N>& __arr)
     {
-        return __storage.__wait_and_get_value(__event, __arr);
+        __storage.__wait_and_get_value(__event, __arr);
     }
 
     template <typename _T>
@@ -812,9 +812,11 @@ class __future : private std::tuple<_Args...>
     }
 
     template <typename _T, std::size_t _N>
-    std::enable_if_t<sizeof...(_Args) > 0>
+    void
     get_values(std::array<_T, _N>& __arr)
     {
+        static_assert(sizeof...(_Args) > 0);
+        auto& __val = std::get<0>(*this);
         __wait_and_get_value{}(event(), __val, __arr);
     }
 
