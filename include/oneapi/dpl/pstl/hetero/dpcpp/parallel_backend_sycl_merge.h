@@ -376,7 +376,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     if (__i_elem < __n1 + __n2)
                     {
-                        _split_point_t<_IdType> __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                        _split_point_t<_IdType> __start = __find_start_point_in(__rng1, (_IdType)0, __n1, __rng2, (_IdType)0, __n2, __i_elem, __comp);
                         __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
                                        __comp);
                     }
