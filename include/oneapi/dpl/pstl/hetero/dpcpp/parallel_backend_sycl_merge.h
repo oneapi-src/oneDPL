@@ -350,38 +350,6 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     }
 
     // Process parallel merge
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    sycl::event
-    run_parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp,
-                       const nd_range_params& __nd_range_params) const
-    {
-        const _IdType __n1 = __rng1.size();
-        const _IdType __n2 = __rng2.size();
-
-        const auto __chunk = __nd_range_params.chunk;
-
-        sycl::event __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-
-            __cgh.parallel_for<_MergeKernelName...>(
-                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
-                    auto __global_idx = __item_id.get_linear_id();
-                    const _IdType __i_elem = __global_idx * __chunk;
-
-                    if (__i_elem < __n1 + __n2)
-                    {
-                        _split_point_t<_IdType> __start =
-                            __find_start_point_in(__rng1, (_IdType)0, __n1, __rng2, (_IdType)0, __n2, __i_elem, __comp);
-                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
-                                       __n2, __comp);
-                    }
-                });
-        });
-
-        return __event;
-    }
-
-    // Process parallel merge
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
     sycl::event
