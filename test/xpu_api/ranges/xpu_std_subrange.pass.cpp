@@ -29,8 +29,9 @@ main()
     auto test = [](){
         auto v = std::ranges::views::iota(0, 4);
         auto res = std::ranges::subrange(v.begin() + 1, v.end());
-        return res.size() == 3 && res[0] == 0 && res[1] == 1 && res[2] == 2 &&
-               (*res.begin() + 2) == 2 && res.end() - res.begin() == 3;
+
+        return res.size() == 3 && res[0] == 1 && res[1] == 2 && res[2] == 3 && (*res.begin() + 2) == 3 && 
+            res.end() - res.begin() == 3 && *std::ranges::next(res.begin()) == 2 && *std::ranges::prev(res.end()) == 3;
     };
     const bool res = kernel_test<class std_reverse_test>(test);
     EXPECT_TRUE(res, "Wrong result of subrange check within a kernel");
