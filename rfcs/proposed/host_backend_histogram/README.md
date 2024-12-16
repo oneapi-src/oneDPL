@@ -46,14 +46,31 @@ Our goal here is to make something maintainable and to reuse as much as we can w
 reviewed within oneDPL. With everything else, this must be balanced with performance considerations.
 
 ### unseq Backend
+Currently oneDPL relies upon openMP SIMD to provide its vectorization, which is designed to provide vectorization across
+loop iterations. OneDPL does not directly use any intrinsics which may offer more complex functionality than what is
+provided by OpenMP.
+
 As mentioned above, histogram looks to be a memory bandwidth-dependent algorithm. This may limit the benefit achievable
-from vector instructions as they provide assistance mostly in speeding up computation. Vector operations in this case
-also compound our issue of race conditions, multiplying the number of concurrent lines of execution by the vector
-length. The advantage we get from vectorization of the increment operation or the lookup into the output histogram may
-not provide much benefit, especially when we account for the extra memory footprint required or synchronization
-required to overcome the race conditions which we add from the additional concurrent streams of execution. It may make
-sense to decline to add vectorized operations within histogram depending on the implementation used, and based on
-performance results.
+from vector instructions as they provide assistance mostly in speeding up computation.
+
+For histogram, there are a few things to consider. First, lets consider the calculation to determine which bin to
+increment. There are two APIs, even and custom range which have significantly different methods to determine the bin to
+increment. For the even bin API, the calculations to determine selected bin have some opportunity for vectorization as
+each input has the same mathematical operations applied to each. However, for the custom range API, each input element
+uses a binary search through a list of bin boundaries to determine the selected bin. This operation will have a
+different length and control flow based upon each input element and will be very difficult to vectorize.
+
+Second, lets consider the increment operation itself. This operation increments a data dependant bin location, and may
+result in conflicts between elements of the same vector. This increment operation therefore is unvectorizable without
+more complex handling. Some hardware does implement SIMD conflict detection via specific intrinsics, but this is not
+generally available, and certainly not available via OpenMP SIMD. Alternatively, we can multiply our number of temporary
+histogram copies by a factor of the vector width, but we will need to determine if this is worth the overhead, memory
+footprint, and extra accumulation at the end. OpenMP SIMD does provide an `ordered` structured block which we can use to
+exempt the increment from SIMD operations as well. It must be determined if SIMD is beneficial in either API variety. It
+seems only possible to be beneficial for the even bin API, but more investigation is required.
+
+Finally, for our below proposed implementation, there is the task of combining temporary histogram data into the global
+output histogram. This is directly vectorizable via our existing brick_walk implementation.
 
 ### Serial Backend
 We plan to support a serial backend for histogram APIs in addition to openMP and TBB. This backend will handle all
@@ -76,18 +93,63 @@ we need for `histogram`. However, we cannot simply use it without any added infr
 histogram. We should be able to use `parallel_for` as a building block for our implementation, but it requires some way
 to synchronize and accumulate between threads.
 
-## Proposal
-I believe there are two competing options for `histogram`, which may both have utility in the final implementation
-depending on the use case.
 
-### Implementation One (Embarrassingly Parallel)
+## Alternative Approaches
+
+### Atomics
+This method uses atomic operations to remove the race conditions during accumulation. With atomic increments of the
+output histogram data, we can merely run a `parallel_for` pattern.
+
+To deal with atomics appropriately, we have some limitations. We must either use standard library atomics, atomics
+specific to a backend, or custom atomics specific to a compiler. `C++17` provides `std::atomic<T>`, however, this can
+only provide atomicity for data which is created with atomics in mind. This means allocating temporary data and then
+copying it to the output data. `C++20` provides `std::atomic_ref<T>` which would allow us to wrap user-provided output
+data in an atomic wrapper, but we cannot assume `C++20` for all users. OpenMP provides atomic
+operations, but that is only available for the OpenMP backend.  The working plan was to implement a macro like
+`_ONEDPL_ATOMIC_INCREMENT(var)` which uses an `std::atomic_ref` if available, and alternatively uses compiler builtins
+like `InterlockedAdd` or `__atomic_fetch_add_n`. In a proof of concept implementation,this seemed to work, but does
+reach more into details than compiler / OS specifics than is desired for implementations prior to `C++20`.
+
+After experimenting with a proof of concept implementation of this implementation, it seems that the atomic
+implementation has very limited applicability to real cases. We explored a spectrum of number of elements combined with
+number of bins with both OpenMP and TBB. There was some subset of cases for which the atomics implementation
+outperformed the proposed implementation (below). However, this was generally limited to some specific cases where
+the number of bins was very large (~1 Million), and even for this subset significant benefit was only found for cases
+with a small number for input elements relative to number of bins. This makes sense because the atomic implementation
+is able to avoid the overhead of allocating and initializing temporary histogram copies, which is largest when
+the number of bins is large compared to the number of input elements. With many bins, contention on atomics is also
+limited as compared to the embarassingly parallel proposal which does experience this contention.
+
+When we examine the real world utility of these cases, we find that they are uncommon and unlikely to be the important
+use cases. Histograms generally are used to categorize large images or arrays into a smaller number of bins to
+characterize the result. Cases for which there are similar or more bins than input elements are not very practical in
+practice. The maintenance and complexity cost associated with supporting and maintaining a second implementation to
+serve this subset of cases does not seem to be justified. Therefore, this implementation has been discarded at this
+time.
+
+### Other Unexplored Approaches
+* One could consider some sort of locking approach which locks mutexes for subsections of the output histogram prior to
+  modifying them. It's possible such an approach could provide a similar approach to atomics, but with different
+  overhead trade-offs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
+
+* Another possible approach could be to do something like the proposed implementation one, but with some sparse
+  representation of output data. However, I think the general assumptions we can make about the normal case make this
+  less likely to be beneficial. It is quite likely that `n` is much larger than the output histograms, and that a large
+  percentage of the output histogram may be occupied, even when considering dividing the input amongst multiple
+  threads. This could be explored if we find temporary storage is too large for some cases and the atomic approach
+  does not provide a good fallback.
+
+## Proposal
+After exploring the above implementation for `histogram`, it seems the following proposal better represents the use
+cases which are important, and provides reasonable performance for most cases.
+
+### Embarrassingly Parallel Via Temporary Histograms
 This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
 `histogram`.
 
 #### OpenMP:
 1) Determine the number of threads that we will use locally
-2) Create temporary data for the number of threads minus one copy of the histogram output sequence. Thread zero can
-   use the user-provided output data.
+2) In parallel, create and initialize temporary data for the number of threads copies of the histogram output sequence.
 3) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
    its own copy of the output sequence using the temporary storage to remove any race conditions.
 4) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
@@ -101,52 +163,3 @@ the index. This allows us to operate in a composable manner while keeping the sa
 1) Embarrassingly parallel accumulation to thread local storage
 2) Embarrassingly parallel aggregate to output data
 
-I believe the challenge here may be to properly provide the heuristics to choose between this implementation and the
-other implementation.  However, we should be able to have some reasonable division.
-
-### Implementation Two (Atomics)
-This method uses atomic operations to remove the race conditions during accumulation. With atomic increments of the
-output histogram data, we can merely run a `parallel_for` pattern.
-
-To deal with atomics appropriately, we have some limitations. We must either use standard library atomics, atomics
-specific to a backend, or custom atomics specific to a compiler. `C++17` provides `std::atomic<T>`, however, this can
-only provide atomicity for data which is created with atomics in mind. This means allocating temporary data and then
-copying it to the output data. `C++20` provides `std::atomic_ref<T>` which would allow us to wrap user-provided output
-data in an atomic wrapper, but we cannot assume `C++20` for all users. OpenMP provides atomic
-operations, but that is only available for the OpenMP backend.  The working plan is to implement a macro like
-`_ONEDPL_ATOMIC_INCREMENT(var)` which uses an `std::atomic_ref` if available, and alternatively uses compiler builtins
-like `InterlockedAdd` or `__atomic_fetch_add_n`.  It needs to be investigated if we need to have any version which
-needs to turn off the atomic implementation, due to lack of support by the compiler (I think this is unlikely).
-
-It remains to be seen if atomics are worth their overhead and contention from a performance perspective and may depend
-on the different approaches available.
-
-### Selecting Between Algorithms
-It may be the case that multiple aspects may provide an advantage to either algorithm one or two. Which `histogram` API
-has been called, `n`, the number of output bins, and backend/atomic provider may all impact the performance trade-offs
-between these two approaches. My intention is to experiment with these and be open to a heuristic to choose one or the
-other based upon the circumstances if that is what the data suggests is best. The larger the number of output bins, the
-better atomics should do vs redundant copies of the output.
-
-## Alternative Approaches
-* One could consider some sort of locking approach which locks mutexes for subsections of the output histogram prior to
-  modifying them. It's possible such an approach could provide a similar approach to atomics, but with different
-  overhead trade-offs. It seems quite likely that this would result in more overhead, but it could be worth exploring.
-
-* Another possible approach could be to do something like the proposed implementation one, but with some sparse
-  representation of output data. However, I think the general assumptions we can make about the normal case make this
-  less likely to be beneficial. It is quite likely that `n` is much larger than the output histograms, and that a large
-  percentage of the output histogram may be occupied, even when considering dividing the input amongst multiple
-  threads. This could be explored if we find temporary storage is too large for some cases and the atomic approach
-  does not provide a good fallback.
-
-## Open Questions
-
-* What is the overhead of atomics in general in this case and does the overhead there make them inherently worse than
-  merely having extra copies of the histogram and accumulating?
-
-* Is it worthwhile to have separate implementations for TBB and OpenMP because they may differ in the best-performing
-  implementation? What is the best heuristic for selecting between algorithms (if one is not the clear winner)?
-
-* How will vectorized bricks perform, and in what situations will it be advantageous to use or not use vector
-  instructions?
