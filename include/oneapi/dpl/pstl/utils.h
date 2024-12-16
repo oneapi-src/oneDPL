@@ -25,7 +25,6 @@
 #include <iterator>
 #include <functional>
 #include <type_traits>
-#include <atomic>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -41,16 +40,6 @@
 #        define __has_builtin(__x) 0
 #    endif
 #    include <cstring> // memcpy
-#endif
-
-#if _ONEDPL_CPP20_ATOMIC_REF_PRESENT
-#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) \
-     std::atomic_ref<std::decay_t<decltype(element_ref)>>{element_ref}.fetch_add(1, std::memory_order_relaxed)
-#elif defined(_MSC_VER)
-//TODO: find a better way to do this with intrinsics on MSVC without including windows.h?
-#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) reinterpret_cast<std::atomic<std::decay_t<decltype(element_ref)>>*>((&element_ref))->fetch_add(1, std::memory_order_relaxed)
-#else
-#   define _ONEDPL_ATOMIC_INCREMENT(element_ref) __atomic_fetch_add(&element_ref, 1, __ATOMIC_RELAXED)
 #endif
 
 namespace oneapi

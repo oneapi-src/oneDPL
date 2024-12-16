@@ -4305,21 +4305,6 @@ __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFun
     }
 }
 
-template <typename _ForwardIterator, typename _IdxHashFunc, typename _RandomAccessIterator, class _IsVector>
-void
-__brick_histogram_atomics(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
-                          _RandomAccessIterator __histogram_first, _IsVector) noexcept
-{
-    for (; __first != __last; ++__first)
-    {
-        std::int32_t __bin = __func.get_bin(*__first);
-        if (__bin >= 0)
-        {
-            _ONEDPL_ATOMIC_INCREMENT(__histogram_first[__bin]);
-        }
-    }
-}
-
 template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator>
 void
@@ -4351,29 +4336,17 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                     __histogram_first + __num_bins, _HistogramValueT{0});
     if (__n > 0)
     {
-        if (__num_bins >= __histogram_threshold)
-        {
-            //Atomic histogram brick to protect against race conditions
-            __par_backend::__parallel_for(__backend_tag{}, std::forward<_ExecutionPolicy>(__exec), _DiffType{0}, __n,
-                                          [__first, __func, __histogram_first](_DiffType __i, _DiffType __j) {
-                                              __brick_histogram_atomics(__first + __i, __first + __j, __func,
-                                                                        __histogram_first, _IsVector{});
-                                          });
-        }
-        else
-        {
-            //Embarassingly parallel with temporary histogram outputs
-            __par_backend::__parallel_histogram(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __num_bins,
-                __histogram_first,
-                [__func](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
-                    __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
-                },
-                [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
-                    __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
-                        [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
-                });
-        }
+        //Embarassingly parallel with temporary histogram outputs
+        __par_backend::__parallel_histogram(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __num_bins,
+            __histogram_first,
+            [__func](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
+                __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
+            },
+            [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
+                __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
+                    [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
+            });
     }
 }
 
