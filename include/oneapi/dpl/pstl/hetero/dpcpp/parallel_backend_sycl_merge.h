@@ -370,9 +370,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     if (__i_elem < __n1 + __n2)
                     {
-                        _split_point_t<_IdType> __start = __find_start_point_in(__rng1, (_IdType)0, __n1, __rng2, (_IdType)0, __n2, __i_elem, __comp);
-                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
-                                       __comp);
+                        _split_point_t<_IdType> __start =
+                            __find_start_point_in(__rng1, (_IdType)0, __n1, __rng2, (_IdType)0, __n2, __i_elem, __comp);
+                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
+                                       __n2, __comp);
                     }
                 });
         });
@@ -451,11 +452,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
         sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params,
-            *__p_base_diagonals_sp_global_storage);
+                                                           *__p_base_diagonals_sp_global_storage);
 
         // Merge data using split points on each base diagonal
         __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params,
-            *__p_base_diagonals_sp_global_storage);
+                                     *__p_base_diagonals_sp_global_storage);
 
         return __future(std::move(__event), std::move(__p_result_and_scratch_storage_base));
     }
