@@ -4329,8 +4329,6 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     using _HistogramValueT = typename std::iterator_traits<_RandomAccessIterator2>::value_type;
     using _DiffType = typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type;
 
-    const _DiffType __histogram_threshold = 1048576;
-
     _DiffType __n = __last - __first;
     if (__n > 0)
     {
@@ -4341,10 +4339,12 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             [__func](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
                 __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
             },
+            //initialize output global histogram with first local histogram via assign
             [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
                 __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
                                                             oneapi::dpl::__internal::__pstl_assign(), _IsVector{});
             },
+            //accumulate into output global histogram with other local histogram via += operator
             [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
                 __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
                     [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
