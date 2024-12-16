@@ -297,14 +297,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         const std::size_t __n = __rng1.size() + __rng2.size();
 
-        constexpr std::size_t __slm_bank_size = 16; // TODO is it correct value? How to get it from hardware?
-
-        // Calculate how many data items we can read into one SLM bank
-        constexpr std::size_t __data_items_in_slm_bank =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__slm_bank_size, sizeof(_RangeValueType));
-
         // Empirical number of values to process per work-item
-        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : __data_items_in_slm_bank;
+        const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         const _IdType __base_diag_count = 32 * 1'024;
@@ -476,6 +470,20 @@ class __merge_kernel_name_large;
 template <typename... _Name>
 class __diagonals_kernel_name;
 
+template <typename _Tp>
+std::size_t
+starting_size_limit_for_large_submitter()
+{
+    return 4 * 1'048'576; // 4 MB
+}
+
+template <>
+std::size_t
+starting_size_limit_for_large_submitter<int>()
+{
+    return 16 * 1'048'576; // 8 MB
+}
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
 __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
@@ -483,10 +491,10 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-    constexpr std::size_t __starting_size_limit_for_large_submitter = 4 * 1'048'576; // 4 MB
+    using __value_type = oneapi::dpl::__internal::__value_t<_Range3>;
 
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (__n < __starting_size_limit_for_large_submitter)
+    if (__n < starting_size_limit_for_large_submitter<__value_type>())
     {
         using _WiIndex = std::uint32_t;
         using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
