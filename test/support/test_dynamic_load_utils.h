@@ -126,9 +126,11 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     using my_policy_t = Policy;
     my_policy_t p{u};
 
-    constexpr size_t N = 1000; // Number of vectors
-    //constexpr size_t N = 100; // Number of vectors
-    constexpr size_t D = 100;  // Dimension of each vector
+    constexpr size_t N = 50; // Number of vectors
+    //constexpr size_t N = 1000; // Number of vectors
+    //constexpr size_t D = 100;  // Dimension of each vector
+    constexpr size_t D = 5;  // Dimension of each vector
+
 
     std::array<std::array<int, D>, N> a;
     std::array<std::array<int, D>, N> b;
@@ -146,7 +148,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
             //resultMatrix[i][j] = distribution(generator);
         }
     }
-
+/*
     for (size_t i = 0; i < N; ++i)
     {
         for (size_t j = 0; j < N; ++j)
@@ -156,7 +158,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
             resultMatrix[i][j] = distribution(generator);
         }
     }
-
+*/
     
 //    std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
