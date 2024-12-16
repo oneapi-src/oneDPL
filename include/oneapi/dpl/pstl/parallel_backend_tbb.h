@@ -1323,7 +1323,7 @@ __parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolic
         tbb::enumerable_thread_specific<std::vector<_HistogramValueT>> __thread_local_histogram(__num_bins,
                                                                                                 _HistogramValueT{0});
         size_t __n = __last - __first;
-        tbb::parallel_for(tbb::blocked_range<_Size>(0, __n), [&](const tbb::blocked_range<_Size>& __range) {
+        tbb::parallel_for(tbb::blocked_range<_Size>(0, __n, 1024), [&](const tbb::blocked_range<_Size>& __range) {
             std::vector<_HistogramValueT>& __local_histogram = __thread_local_histogram.local();
             __f(__first + __range.begin(), __first + __range.end(), __local_histogram.begin());
         });

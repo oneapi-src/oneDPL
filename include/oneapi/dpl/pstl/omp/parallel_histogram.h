@@ -41,11 +41,15 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
     auto __policy1 = oneapi::dpl::__omp_backend::__chunk_partitioner(__first, __last);
     auto __policy2 = oneapi::dpl::__omp_backend::__chunk_partitioner(__histogram_first, __histogram_first + __num_bins);
 
-    std::vector<std::vector<_HistogramValueT>> __local_histograms(__num_threads);
+    const std::size_t __threads_to_use = std::min(__num_threads,
+                                                  oneapi::dpl::__internal::__dpl_ceiling_div(__size,
+                                                                                             __policy1.__chunk_size));
+
+    std::vector<std::vector<_HistogramValueT>> __local_histograms(__threads_to_use);
 
     //TODO: use histogram output for zeroth thread?
     _PSTL_PRAGMA(omp taskloop shared(__local_histograms))
-    for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
+    for (std::size_t __tid = 0; __tid < __threads_to_use; ++__tid)
     {
         __local_histograms[__tid].resize(__num_bins, _HistogramValueT{0});
     }
@@ -69,7 +73,7 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
                 __init(__local_histograms[0].begin() + (__chunk_first - __histogram_first),
                        (__chunk_last - __chunk_first), __chunk_first);
 
-                for (std::size_t __i = 1; __i < __num_threads; ++__i)
+                for (std::size_t __i = 1; __i < __threads_to_use; ++__i)
                 {
                     __accum(__local_histograms[__i].begin() + (__chunk_first - __histogram_first),
                             (__chunk_last - __chunk_first), __chunk_first);
