@@ -925,7 +925,7 @@ struct __vector_load
         for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
             __load_op(__start_idx + __i, __i, __acc...);
     }
-    
+
     template <typename _IdxType, typename _LoadOp, typename... _Acc>
     void
     operator()(std::false_type, _IdxType __start_idx, _LoadOp __load_op, _Acc... __acc) const
@@ -951,7 +951,8 @@ struct __lazy_store_transform_op
     // Binary transformations into an output buffer
     template <typename _IdxType1, typename _IdxType2, typename _Source1Acc, typename _Source2Acc, typename _DestAcc>
     void
-    operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _Source1Acc __source1_acc, _Source2Acc __source2_acc, _DestAcc __dest_acc) const
+    operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _Source1Acc __source1_acc, _Source2Acc __source2_acc,
+               _DestAcc __dest_acc) const
     {
         __transform(__source1_acc[__idx_source].__v, __source2_acc[__idx_source].__v, __dest_acc[__idx_dest]);
     }
@@ -964,7 +965,8 @@ struct __vector_walk
     std::size_t __n;
 
     template <typename... _Rngs>
-    void operator()(std::true_type, std::size_t __idx, _Rngs&&... __rngs) const
+    void
+    operator()(std::true_type, std::size_t __idx, _Rngs&&... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
@@ -976,7 +978,8 @@ struct __vector_walk
     // For a non-full vector path, process it sequentially. This will always be the last sub or work group
     // if it does not evenly divide into input
     template <typename... _Rngs>
-    void operator()(std::false_type, std::size_t __idx, _Rngs&&... __rngs) const
+    void
+    operator()(std::false_type, std::size_t __idx, _Rngs&&... __rngs) const
     {
         std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __idx));
         for (std::uint16_t __i = 0; __i < __elements; ++__i)
@@ -1024,8 +1027,8 @@ struct __vector_reverse
         }
         else
         {
-          for (std::uint16_t __i = 0; __i != __elements_to_process / 2; ++__i)
-              std::swap(__array[__i].__v, __array[__elements_to_process - __i - 1].__v);
+            for (std::uint16_t __i = 0; __i != __elements_to_process / 2; ++__i)
+                std::swap(__array[__i].__v, __array[__elements_to_process - __i - 1].__v);
         }
     }
 };
@@ -1037,8 +1040,9 @@ struct __strided_loop
 {
     std::size_t __n;
     template <typename _IdxType, typename _LoopBodyOp, typename... _Ranges>
-	void
-    operator()(/*__is_full*/std::true_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op, _Ranges&&... __rngs) const
+    void
+    operator()(/*__is_full*/ std::true_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op,
+               _Ranges&&... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint16_t __i = 0; __i < __num_strides; ++__i)
@@ -1048,8 +1052,9 @@ struct __strided_loop
         }
     }
     template <typename _IdxType, typename _LoopBodyOp, typename... _Ranges>
-	void
-    operator()(/*__is_full*/std::false_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op, _Ranges&&... __rngs) const
+    void
+    operator()(/*__is_full*/ std::false_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op,
+               _Ranges&&... __rngs) const
     {
         // Constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
         const std::uint8_t __adjusted_iters_per_work_item =

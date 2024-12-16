@@ -757,21 +757,18 @@ __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _Ranges&&.
 // Check the outer view type type to see if we can vectorize. Any non-contiguous inputs (e.g. reverse
 // views, permutation views, etc.) cannot be vectorized.
 template <typename _Args>
-struct __is_vectorizable_view
-    : std::false_type
+struct __is_vectorizable_view : std::false_type
 {
 };
 // If the outer view is a guard view, then the input is passed directly as a pointer and we can use.
 template <typename... _Args>
-struct __is_vectorizable_view<oneapi::dpl::__ranges::guard_view<_Args...>>
-    : std::true_type
+struct __is_vectorizable_view<oneapi::dpl::__ranges::guard_view<_Args...>> : std::true_type
 {
 };
 // If all_view is passed, then we are processing a sycl::buffer directly which is contiguous and can
-// be used. 
+// be used.
 template <typename... _Args>
-struct __is_vectorizable_view<oneapi::dpl::__ranges::all_view<_Args...>>
-    : std::true_type
+struct __is_vectorizable_view<oneapi::dpl::__ranges::all_view<_Args...>> : std::true_type
 {
 };
 
