@@ -148,7 +148,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
             //resultMatrix[i][j] = distribution(generator);
         }
     }
-/*
+
     for (size_t i = 0; i < N; ++i)
     {
         for (size_t j = 0; j < N; ++j)
@@ -158,7 +158,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
             resultMatrix[i][j] = distribution(generator);
         }
     }
-*/
+
     
 //    std::array<std::array<int, N>, N> resultMatrix;
     sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
