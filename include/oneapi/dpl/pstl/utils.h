@@ -785,6 +785,16 @@ union __lazy_ctor_storage
     }
 };
 
+// Utility to explicitly call the destructor of __lazy_ctor_storage as a callback functor 
+struct __lazy_ctor_storage_deleter
+{
+    template <typename _Tp>
+    void operator()(__lazy_ctor_storage<_Tp> __storage) const
+    {
+        __storage.__destroy();
+    }
+};
+
 // Returns the smallest type within a set of potentially nested template types.
 // E.g. If we consider the type: T = tuple<float, tuple<short, long>, int, double>,
 // then __min_nested_type_size<T>::value returns sizeof(short).
