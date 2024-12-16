@@ -126,8 +126,8 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     using my_policy_t = Policy;
     my_policy_t p{u};
 
-    //constexpr size_t N = 1000; // Number of vectors
-    constexpr size_t N = 100; // Number of vectors
+    constexpr size_t N = 1000; // Number of vectors
+    //constexpr size_t N = 100; // Number of vectors
     constexpr size_t D = 100;  // Dimension of each vector
 
     std::array<std::array<int, D>, N> a;
