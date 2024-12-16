@@ -41,11 +41,11 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
     auto __policy1 = oneapi::dpl::__omp_backend::__chunk_partitioner(__first, __last);
     auto __policy2 = oneapi::dpl::__omp_backend::__chunk_partitioner(__histogram_first, __histogram_first + __num_bins);
 
-    std::vector<std::vector<_HistogramValueT>> __local_histograms(__num_threads);
+    std::vector<std::vector<_HistogramValueT>> __local_histograms(__num_threads - 1);
 
     //TODO: use histogram output for zeroth thread?
     _PSTL_PRAGMA(omp taskloop shared(__local_histograms))
-    for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
+    for (std::size_t __tid = 0; __tid < __num_threads - 1; ++__tid)
     {
         __local_histograms[__tid].resize(__num_bins, _HistogramValueT{0});
     }
@@ -57,7 +57,15 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
         oneapi::dpl::__omp_backend::__process_chunk(
             __policy1, __first, __chunk, [&](auto __chunk_first, auto __chunk_last) {
                 auto __thread_num = omp_get_thread_num();
-                __f(__chunk_first, __chunk_last, __local_histograms[__thread_num].begin());
+                if (__thread_num == 0)
+                {
+                    //use the first thread to initialize the global histogram
+                    __f(__chunk_first, __chunk_last, __histogram_first);
+                }
+                else
+                {
+                    __f(__chunk_first, __chunk_last, __local_histograms[__thread_num - 1].begin());
+                }
             });
     }
 
@@ -66,10 +74,7 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
     {
         oneapi::dpl::__omp_backend::__process_chunk(
             __policy2, __histogram_first, __chunk, [&](auto __chunk_first, auto __chunk_last) {
-                __init(__local_histograms[0].begin() + (__chunk_first - __histogram_first),
-                       (__chunk_last - __chunk_first), __chunk_first);
-
-                for (std::size_t __i = 1; __i < __num_threads; ++__i)
+                for (std::size_t __i = 0; __i < __num_threads - 1; ++__i)
                 {
                     __accum(__local_histograms[__i].begin() + (__chunk_first - __histogram_first),
                             (__chunk_last - __chunk_first), __chunk_first);
