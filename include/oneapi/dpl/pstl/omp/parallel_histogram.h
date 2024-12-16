@@ -26,10 +26,10 @@ namespace __omp_backend
 {
 
 template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2, typename _FpHist,
-          typename _FpInitialize, typename _FpAccum>
+          typename _FpAccum>
 void
 __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _Size __num_bins,
-                 _RandomAccessIterator2 __histogram_first, _FpHist __f, _FpInitialize __init, _FpAccum __accum)
+                 _RandomAccessIterator2 __histogram_first, _FpHist __f, _FpAccum __accum)
 {
     using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator2>::value_type;
 
@@ -84,18 +84,17 @@ __histogram_body(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, 
 }
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
-          typename _FpHist, typename _FpInitialize, typename _FpAccum>
+          typename _FpHist, typename _FpAccum>
 void
 __parallel_histogram(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
                      _RandomAccessIterator1 __last, _Size __num_bins, _RandomAccessIterator2 __histogram_first,
-                     _FpHist __f, _FpInitialize __init, _FpAccum __accum)
+                     _FpHist __f, _FpAccum __accum)
 {
     if (omp_in_parallel())
     {
         // We don't create a nested parallel region in an existing parallel
         // region: just create tasks
-        oneapi::dpl::__omp_backend::__histogram_body(__first, __last, __num_bins, __histogram_first, __f, __init,
-                                                     __accum);
+        oneapi::dpl::__omp_backend::__histogram_body(__first, __last, __num_bins, __histogram_first, __f, __accum);
     }
     else
     {
@@ -104,8 +103,7 @@ __parallel_histogram(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolic
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            oneapi::dpl::__omp_backend::__histogram_body(__first, __last, __num_bins, __histogram_first, __f, __init,
-                                                         __accum);
+            oneapi::dpl::__omp_backend::__histogram_body(__first, __last, __num_bins, __histogram_first, __f, __accum);
         }
     }
 }
