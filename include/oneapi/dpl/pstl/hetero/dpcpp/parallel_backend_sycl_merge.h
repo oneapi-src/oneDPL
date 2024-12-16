@@ -440,15 +440,15 @@ template <typename... _Name>
 class __diagonals_kernel_name;
 
 template <typename _Tp>
-std::size_t
-starting_size_limit_for_large_submitter()
+constexpr std::size_t
+__get_starting_size_limit_for_large_submitter()
 {
     return 4 * 1'048'576; // 4 MB
 }
 
 template <>
-std::size_t
-starting_size_limit_for_large_submitter<int>()
+constexpr std::size_t
+__get_starting_size_limit_for_large_submitter<int>()
 {
     return 16 * 1'048'576; // 8 MB
 }
@@ -463,9 +463,10 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     using __value_type = oneapi::dpl::__internal::__value_t<_Range3>;
 
     const std::size_t __n = __rng1.size() + __rng2.size();
-    if (__n < starting_size_limit_for_large_submitter<__value_type>())
+    if (__n < __get_starting_size_limit_for_large_submitter<__value_type>())
     {
         using _WiIndex = std::uint32_t;
+        static_assert(__get_starting_size_limit_for_large_submitter<__value_type>() <= std::numeric_limits<_WiIndex>::max());
         using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name<_CustomName, _WiIndex>>;
         return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
