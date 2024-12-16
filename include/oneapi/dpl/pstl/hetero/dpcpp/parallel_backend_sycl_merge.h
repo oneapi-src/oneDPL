@@ -174,7 +174,7 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
             return __zero_or_one < kValue;
         });
 
-    return {*__res, __index_sum - *__res + 1};
+    return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
