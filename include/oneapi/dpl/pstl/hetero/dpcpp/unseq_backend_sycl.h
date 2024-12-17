@@ -1538,7 +1538,6 @@ struct __brick_reduce_idx : public walk_scalar_base<_Range>
         __value_type __segment_end =
             (__idx == __segment_starts.size() - 1) ? __value_type(__n) : __segment_starts[__idx + 1];
         __out_values[__idx] = reduce(__segment_starts[__idx], __segment_end, __values);
-
     }
     template <typename _IsFull, typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
     void
