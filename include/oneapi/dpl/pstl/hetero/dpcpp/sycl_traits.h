@@ -418,7 +418,7 @@ struct __brick_includes;
 template <typename _ExecutionPolicy, typename _Compare, typename _Size1, typename _Size2, typename _IsOpDifference>
 class __brick_set_op;
 
-template <typename _BinaryOperator, typename _Size>
+template <typename _BinaryOperator, typename _Size, typename _Range>
 struct __brick_reduce_idx;
 
 } // namespace oneapi::dpl::unseq_backend
@@ -543,9 +543,9 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backen
 {
 };
 
-template <typename _BinaryOperator, typename _Size>
+template <typename _BinaryOperator, typename _Size, typename _Range>
 struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::unseq_backend::__brick_reduce_idx, _BinaryOperator,
-                                                       _Size)>
+                                                       _Size, _Range)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_BinaryOperator, _Size>
 {
 };
