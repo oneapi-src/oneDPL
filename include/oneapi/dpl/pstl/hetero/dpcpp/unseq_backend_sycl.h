@@ -1414,57 +1414,20 @@ class __brick_set_op
     }
 };
 
+// TODO: The implementation of shift left is reliant on exactly n (shift factor)
+// work items being launched by the parallel_for pattern, so it cannot be vectorized
+// or process multiple iterations per work items as is. For now, we must ensure that our
+// small submitter is launched in the SYCL backend's __parallel_for
 template <typename _ExecutionPolicy, typename _DiffType, typename _Range>
-struct __brick_shift_left : public walk_vector_or_scalar_base<_Range>
+struct __brick_shift_left
 {
     using __base_t = walk_vector_or_scalar_base<_Range>;
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
+    constexpr static bool __can_vectorize = false;
+    constexpr static std::uint16_t __preferred_vector_size = 1;
+    constexpr static std::uint16_t __preferred_iters_per_item = 1;
     _DiffType __size;
     _DiffType __n;
-
-    template <typename _IsFull, typename _ItemId>
-    void
-    __vector_path(_IsFull __is_full, const _ItemId __idx, _Range __rng) const
-    {
-        if (__idx >= __n)
-            return;
-        const _DiffType __i = __idx - __n; //loop invariant
-        oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType> __rng_vector[__base_t::__preferred_vector_size];
-        auto __rng_pointer = __rng.begin();
-        for (_DiffType __k = __n; __k < __size; __k += __n)
-        {
-            if (__k + __idx + __base_t::__preferred_vector_size <= __size)
-            {
-                oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::true_type{}, __k + __idx,
-                                                      oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{},
-                                                      __rng_pointer, __rng_vector);
-                oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::true_type{}, __k + __i,
-                                                      oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<
-                                                          oneapi::dpl::__internal::__pstl_assign>{},
-                                                      __rng_vector, __rng_pointer);
-                oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::true_type{}, 0,
-                            oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng_vector);
-            }
-            else if (__k + __idx < __size)
-            {
-                oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::false_type{}, __k + __idx,
-                                                      oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{},
-                                                      __rng_pointer, __rng_vector);
-                oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::false_type{}, __k + __i,
-                                                      oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<
-                                                          oneapi::dpl::__internal::__pstl_assign>{},
-                                                      __rng_vector, __rng_pointer);
-                oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{
-                    static_cast<std::size_t>(__size)}(std::false_type{}, 0,
-                            oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng_vector);
-            }
-        }
-    }
 
     template <typename _IsFull, typename _ItemId>
     void
@@ -1482,10 +1445,7 @@ struct __brick_shift_left : public walk_vector_or_scalar_base<_Range>
     void
     operator()(_IsFull __is_full, const _ItemId __idx, _Range __rng) const
     {
-        if constexpr (__base_t::__can_vectorize)
-            __vector_path(__is_full, __idx, __rng);
-        else
-            __scalar_path(__is_full, __idx, __rng);
+        __scalar_path(__is_full, __idx, __rng);
     }
 };
 
