@@ -31,7 +31,7 @@ This class encapsulates a tuple-like type to keep a combination of two or more r
 - To provide a value-swappable requirement `oneapi::dpl::__internal::tuple` is proposed as a dereferenced value for
 `oneapi::dpl::ranges::zip_view::iterator` due to `std::tuple` not satisfying the value-swappable requirement in C++20.
 - Usage of C++ concepts is desirable to write type requirements for types, methods and members of the class.
-- C++20 is minimum supported version for the class. It allows to use modern C++ things like concepts and others.
+- C++20 is minimum supported version for the class. It allows using modern C++ features such as concepts and others.
 
 ### Test coverage
 
