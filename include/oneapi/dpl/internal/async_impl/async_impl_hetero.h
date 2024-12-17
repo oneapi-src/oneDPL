@@ -46,7 +46,8 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
 
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk1_vector_or_scalar<_ExecutionPolicy, _Function, decltype(__view)>{{}, __f, std::size_t(__n)}, __n, __view);
+        unseq_backend::walk1_vector_or_scalar<_ExecutionPolicy, _Function, decltype(__view)>{{}, __f, std::size_t(__n)},
+        __n, __view);
     return __future_obj;
 }
 
@@ -72,7 +73,9 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
 
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk2_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2)>{{}, __f, std::size_t(__n)}, __n, __view1, __view2);
+        unseq_backend::walk2_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2)>{
+            {}, __f, std::size_t(__n)},
+        __n, __view1, __view2);
 
     return __future.__make_future(__first2 + __n);
 }
@@ -100,11 +103,11 @@ __pattern_walk3_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
     auto __view2 = __buf2.all_view();
     auto __view3 = __buf3.all_view();
 
-    auto __future =
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk3_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2),
-                                                decltype(__view3)>{{}, __f, size_t(__n)}, __n,
-                                                          __view1, __view2, __view3);
+    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::walk3_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2),
+                                                decltype(__view3)>{{}, __f, size_t(__n)},
+        __n, __view1, __view2, __view3);
 
     return __future.__make_future(__first3 + __n);
 }
