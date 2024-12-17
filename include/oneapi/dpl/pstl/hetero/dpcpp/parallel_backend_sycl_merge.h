@@ -254,7 +254,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         auto __event = __exec.queue().submit(
-            [&__rng1, &__rng2, &__rng3, __steps, __chunk, __n1, __n2, __comp](sycl::handler& __cgh) {
+            [&__rng1, &__rng2, &__rng3, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
                 __cgh.parallel_for<_MergeKernelName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
@@ -321,8 +321,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;
 
-        return __exec.queue().submit([&__rng1, &__rng2, __base_diagonals_sp_global_storage, __n1, __n2, __n,
-                                      __nd_range_params, __comp](sycl::handler& __cgh) {
+        return __exec.queue().submit([&__rng1, &__rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage,
+                                      __n1, __n2, __n](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
@@ -361,8 +361,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
 
-        return __exec.queue().submit([&__event, &__rng1, &__rng2, &__rng3, __nd_range_params,
-                                      __base_diagonals_sp_global_storage, __n1, __n2, __comp](sycl::handler& __cgh) {
+        return __exec.queue().submit([&__event, &__rng1, &__rng2, &__rng3, __comp, __nd_range_params,
+                                      __base_diagonals_sp_global_storage, __n1, __n2](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
