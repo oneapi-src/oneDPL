@@ -264,7 +264,7 @@ struct walk3_vectors_or_scalars : public walk_vector_or_scalar_base<_Range1, _Ra
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
             __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{}, __raw_ptr1, __rng1_vector);
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __idx, __raw_ptr2, __rng2_vector, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{});
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{}, __raw_ptr2, __rng2_vector);
         // 2. Apply binary functor to vector and store into global memory
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
             __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<_F>{__f}, __rng1_vector,
