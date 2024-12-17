@@ -125,6 +125,8 @@ test()
 int
 main()
 {
+    test<std::int8_t, std::int8_t>();
+    test<std::int16_t, std::int16_t>();
     test<std::int32_t, std::int8_t>();
     test<std::uint16_t, float32_t>();
     test<float64_t, std::int64_t>();

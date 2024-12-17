@@ -154,6 +154,8 @@ test()
 int
 main()
 {
+    test<std::int8_t>();
+    test<std::int16_t>();
     test<std::int32_t>();
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<float64_t>>();
