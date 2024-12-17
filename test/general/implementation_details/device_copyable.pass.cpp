@@ -78,6 +78,19 @@ test_device_copyable()
     static_assert(sycl::is_device_copyable_v<
                       oneapi::dpl::unseq_backend::walk_n<policy_non_device_copyable, noop_device_copyable>>,
                   "walk_n is not device copyable with device copyable types");
+    //walk1_vector_or_scalar
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk1_vector_or_scalar<
+                      policy_non_device_copyable, noop_device_copyable, range_device_copyable>>,
+                  "walk1_vector_or_scalar is not device copyable with device copyable types");
+    //walk2_vectors_or_scalars
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk2_vectors_or_scalars<
+                      policy_non_device_copyable, noop_device_copyable, range_device_copyable, range_device_copyable>>,
+                  "walk2_vectors_or_scalars is not device copyable with device copyable types");
+    //walk3_vectors_or_scalars
+    static_assert(sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk3_vectors_or_scalars<
+                      policy_non_device_copyable, noop_device_copyable, range_device_copyable, range_device_copyable,
+                      range_device_copyable>>,
+                  "walk3_vectors_or_scalars is not device copyable with device copyable types");
     //walk_adjacent_difference
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk_adjacent_difference<
                       policy_non_device_copyable, noop_device_copyable, range_device_copyable, range_device_copyable>>,
@@ -344,6 +357,21 @@ test_non_device_copyable()
     static_assert(!sycl::is_device_copyable_v<
                       oneapi::dpl::unseq_backend::walk_n<policy_non_device_copyable, noop_non_device_copyable>>,
                   "walk_n is device copyable with non device copyable types");
+    //walk1_vector_or_scalar
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk1_vector_or_scalar<
+                      policy_non_device_copyable, noop_non_device_copyable, range_non_device_copyable>>,
+                  "walk1_vector_or_scalar is device copyable with non device copyable types");
+    //walk2_vectors_or_scalars
+    static_assert(
+        !sycl::is_device_copyable_v<
+            oneapi::dpl::unseq_backend::walk2_vectors_or_scalars<policy_non_device_copyable, noop_non_device_copyable,
+                                                                 range_non_device_copyable, range_non_device_copyable>>,
+        "walk2_vectors_or_scalars is device copyable with non device copyable types");
+    //walk3_vectors_or_scalars
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::unseq_backend::walk3_vectors_or_scalars<
+                      policy_non_device_copyable, noop_non_device_copyable, range_non_device_copyable,
+                      range_non_device_copyable, range_non_device_copyable>>,
+                  "walk3_vectors_or_scalars is device copyable with non device copyable types");
     //walk_adjacent_difference
     static_assert(
         !sycl::is_device_copyable_v<
