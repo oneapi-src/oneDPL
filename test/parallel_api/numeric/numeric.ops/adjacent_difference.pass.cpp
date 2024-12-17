@@ -165,6 +165,8 @@ int
 main()
 {
     test<std::uint8_t, std::uint32_t>([](std::uint32_t a, std::uint32_t b) { return a - b; });
+    test<std::uint8_t, std::uint8_t>([](std::uint8_t a, std::uint8_t b) { return a > b ? a - b : b - a; });
+    test<std::uint16_t, std::uint16_t>([](std::uint16_t a, std::uint16_t b) { return a > b ? a - b : b - a; });
     test<std::int32_t, std::int64_t>([](std::int64_t a, std::int64_t b) { return a / (b + 1); });
     test<std::int64_t, float32_t>([](float32_t a, float32_t b) { return (a + b) / 2; });
 #if !TEST_DPCPP_BACKEND_PRESENT
