@@ -92,7 +92,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
                          std::size_t __adj_elements_per_work_item,
                          std::size_t __work_group_size)
     {
-        if constexpr (1)//oneapi::dpl::__internal::__is_spirv_target_v)
+        if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
         {
             const __dpl_sycl::__sub_group __sub_group = __item.get_sub_group();
             const std::uint32_t __sub_group_size = __sub_group.get_local_linear_range();
@@ -110,11 +110,11 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
         else
         {
             const std::size_t __work_group_start_idx =
-                __item.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item;
-            const std::size_t __work_item_idx = __work_group_start_idx + __item.get_local_linear_id();
+                __item.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item * __adj_elements_per_work_item;
+            const std::size_t __work_item_idx = __work_group_start_idx + __item.get_local_linear_id() * __adj_elements_per_work_item;
             const bool __is_full_work_group =
-                __work_group_start_idx + __iters_per_work_item * __work_group_size <= __count;
-            return std::make_tuple(__work_item_idx, __work_group_size, __is_full_work_group);
+                __work_group_start_idx + __iters_per_work_item * __work_group_size * __adj_elements_per_work_item <= __count;
+            return std::make_tuple(__work_item_idx, __work_group_size * __adj_elements_per_work_item, __is_full_work_group);
         }
     }
 
