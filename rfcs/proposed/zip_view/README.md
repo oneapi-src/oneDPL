@@ -1,7 +1,7 @@
 # zip_view Support for the oneDPL Range APIs with C++20
 
 ## Introduction
-`std::ranges::zip_view` is powerful utility enables developers to combine two or more ranges into a single view,
+`std::ranges::zip_view` is a powerful utility that enables developers to combine two or more ranges into a single view,
 where each element is represented as a tuple containing corresponding elements from each input range.
 
 ## Motivations
