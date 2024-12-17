@@ -958,15 +958,15 @@ struct __lazy_store_transform_op
     }
 };
 
-template <std::uint16_t __vec_size, typename _F>
+template <std::uint16_t __vec_size>
 struct __vector_walk
 {
-    _F __f;
+    static_assert(__vec_size <= 4);
     std::size_t __n;
 
-    template <typename... _Rngs>
+    template <typename _IdxType, typename _WalkFunction, typename... _Rngs>
     void
-    operator()(std::true_type, std::size_t __idx, _Rngs&&... __rngs) const
+    operator()(std::true_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
@@ -977,9 +977,9 @@ struct __vector_walk
     }
     // For a non-full vector path, process it sequentially. This will always be the last sub or work group
     // if it does not evenly divide into input
-    template <typename... _Rngs>
+    template <typename _IdxType, typename _WalkFunction, typename... _Rngs>
     void
-    operator()(std::false_type, std::size_t __idx, _Rngs&&... __rngs) const
+    operator()(std::false_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
         std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __idx));
         for (std::uint16_t __i = 0; __i < __elements; ++__i)
