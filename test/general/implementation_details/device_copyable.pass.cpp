@@ -47,7 +47,7 @@ test_device_copyable()
 
     //custom_brick
     static_assert(sycl::is_device_copyable_v<oneapi::dpl::internal::custom_brick<
-                      noop_device_copyable, int_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
+                      noop_device_copyable, int_device_copyable, range_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
                   "custom_brick is not device copyable with device copyable types");
     //replace_if_fun
     static_assert(
@@ -79,7 +79,7 @@ test_device_copyable()
     //walk_adjacent_difference
     static_assert(
         sycl::is_device_copyable_v<
-            oneapi::dpl::unseq_backend::walk_adjacent_difference<policy_non_device_copyable, noop_device_copyable>>,
+            oneapi::dpl::unseq_backend::walk_adjacent_difference<policy_non_device_copyable, noop_device_copyable, range_device_copyable, range_device_copyable>>,
         "walk_adjacent_difference is not device copyable with device copyable types");
     //transform_reduce
     static_assert(
@@ -149,7 +149,7 @@ test_device_copyable()
         "__brick_set_op is not device copyable with device copyable types");
     // __brick_reduce_idx
     static_assert(sycl::is_device_copyable_v<
-                      oneapi::dpl::unseq_backend::__brick_reduce_idx<noop_device_copyable, int_device_copyable>>,
+                      oneapi::dpl::unseq_backend::__brick_reduce_idx<noop_device_copyable, int_device_copyable, range_device_copyable>>,
                   "__brick_reduce_idx is not device copyable with device copyable types");
 
     //__gen_transform_input
@@ -313,7 +313,7 @@ test_non_device_copyable()
     //custom_brick
     static_assert(
         !sycl::is_device_copyable_v<oneapi::dpl::internal::custom_brick<
-            noop_device_copyable, int_non_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
+            noop_device_copyable, int_non_device_copyable, range_non_device_copyable, oneapi::dpl::internal::search_algorithm::lower_bound>>,
         "custom_brick is device copyable with non device copyable types");
     //replace_if_fun
     static_assert(!sycl::is_device_copyable_v<
@@ -346,7 +346,7 @@ test_non_device_copyable()
     //walk_adjacent_difference
     static_assert(
         !sycl::is_device_copyable_v<
-            oneapi::dpl::unseq_backend::walk_adjacent_difference<policy_non_device_copyable, noop_non_device_copyable>>,
+            oneapi::dpl::unseq_backend::walk_adjacent_difference<policy_non_device_copyable, noop_non_device_copyable, range_non_device_copyable, range_non_device_copyable>>,
         "walk_adjacent_difference is device copyable with non device copyable types");
     //transform_reduce
     static_assert(
@@ -416,7 +416,7 @@ test_non_device_copyable()
         "__brick_set_op is device copyable with non device copyable types");
     //__brick_reduce_idx
     static_assert(!sycl::is_device_copyable_v<
-                      oneapi::dpl::unseq_backend::__brick_reduce_idx<noop_device_copyable, int_non_device_copyable>>,
+                      oneapi::dpl::unseq_backend::__brick_reduce_idx<noop_device_copyable, int_non_device_copyable, range_non_device_copyable>>,
                   "__brick_reduce_idx is device copyable with non device copyable types");
 
     //__gen_transform_input

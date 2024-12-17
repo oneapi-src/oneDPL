@@ -1513,8 +1513,8 @@ struct __brick_assign_key_position
 };
 
 // reduce the values in a segment associated with a key
-template <typename _BinaryOperator, typename _Size>
-struct __brick_reduce_idx
+template <typename _BinaryOperator, typename _Size, typename _Range>
+struct __brick_reduce_idx : public walk_scalar_base<_Range>
 {
     __brick_reduce_idx(const _BinaryOperator& __b, const _Size __n_) : __binary_op(__b), __n(__n_) {}
 
@@ -1529,16 +1529,23 @@ struct __brick_reduce_idx
             __res = __binary_op(__res, __values[__segment_begin]);
         return __res;
     }
-
-    template <typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
+    template <typename _IsFull, typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
     void
-    operator()(const _ItemId __idx, const _ReduceIdx& __segment_starts, const _Values& __values,
-               _OutValues& __out_values) const
+    __scalar_path(_IsFull, const _ItemId __idx, const _ReduceIdx& __segment_starts, const _Values& __values,
+                  _OutValues& __out_values) const
     {
         using __value_type = decltype(__segment_starts[__idx]);
         __value_type __segment_end =
             (__idx == __segment_starts.size() - 1) ? __value_type(__n) : __segment_starts[__idx + 1];
         __out_values[__idx] = reduce(__segment_starts[__idx], __segment_end, __values);
+
+    }
+    template <typename _IsFull, typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
+    void
+    operator()(_IsFull __is_full, const _ItemId __idx, const _ReduceIdx& __segment_starts, const _Values& __values,
+               _OutValues& __out_values) const
+    {
+        __scalar_path(__is_full, __idx, __segment_starts, __values, __out_values);
     }
 
   private:
