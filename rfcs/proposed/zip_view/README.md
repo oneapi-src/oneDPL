@@ -14,7 +14,7 @@ with the same API and functionality as `std::ranges::zip_view`.
 ### Key Requirements
 `oneapi::dpl::ranges::zip_view` should be:
 - compilable with C++20 version (minimum)
-- API compliant with `std::ranges::zip_view`
+- API-compliant with `std::ranges::zip_view`
 - random accessible view; the "underlying" views also should be random accessible
 - in case of a device usage: a device copyable view itself and the "underlying" views also should be device copyable
   
