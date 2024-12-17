@@ -15,6 +15,16 @@
 
 #include "std_ranges_test.h"
 
+//a random access range, but without operator[] and size() method
+struct RangeRA
+{
+    int a[10] = {};
+    int*  begin() { return  a; }
+    int* end() { return  a + 10; }
+    const int*  begin() const { return  a; }
+    const int* end() const { return  a + 10; }
+};
+
 std::int32_t
 main()
 {
@@ -32,6 +42,13 @@ main()
     test_range_algo<1>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, proj_mutuable);
     test_range_algo<2, P2>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::for_each, for_each_checker, f_mutuable, &P2::proj);
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    //test with a random access range without operator[] and size() method
+    RangeRA in_range;
+    dpl_ranges::for_each(dpcpp_policy(), in_range, f);
+#endif //TEST_DPCPP_BACKEND_PRESENT
+
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
