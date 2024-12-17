@@ -24,7 +24,7 @@ with the same API and functionality as `std::ranges::zip_view`.
 - abble to use with the non-range algorithms
 
 ### Implementation proposal
-- `oneapi::dpl::ranges::zip_view` is designed as C++ class, which represents a range adaptor (see C++ Range Library).
+- `oneapi::dpl::ranges::zip_view` is designed as a C++ class which represents a range adaptor (see C++ Range Library).
 This class encapsulates a tuple-like type to keep a combination of two or more ranges.
 - The implementation provides all necessary operators to satisfy 'random accessible view' requirement.
 - To provide a device copyability requirement `oneapi::dpl::__internal::tuple` is proposed as tuple-like type underhood.
