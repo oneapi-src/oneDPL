@@ -9,7 +9,7 @@ where each element is represented as a tuple containing corresponding elements f
 the resulting range is a tuple containing one element from each of the input ranges. This can be particularly
 useful for iterating over multiple collections in parallel. `std::ranges::zip_view` was introduced in C++23,
 but many developers are still using C++20 standard. So, oneDPL introduces `oneapi::dpl::ranges::zip_view`,
-which the same API and functionality as `std::ranges::zip_view`.
+with the same API and functionality as `std::ranges::zip_view`.
 
 ### Key Requirements
 `oneapi::dpl::ranges::zip_view` should be:
