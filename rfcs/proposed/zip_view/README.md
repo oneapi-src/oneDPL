@@ -21,7 +21,7 @@ with the same API and functionality as `std::ranges::zip_view`.
 `oneapi::dpl::ranges::zip_view::iterator` should be:
 - value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
 - convertible to `oneapi::dpl::zip_iterator`
-- abble to use with the non-range algorithms
+- able to be used with the non-range algorithms
 
 ### Implementation proposal
 - `oneapi::dpl::ranges::zip_view` is designed as a C++ class which represents a range adaptor (see C++ Range Library).
