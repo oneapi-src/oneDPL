@@ -42,9 +42,11 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
+    auto __view = __buf.all_view();
+
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
+        unseq_backend::walk1_vector_or_scalar<_ExecutionPolicy, _Function, decltype(__view)>{{}, __f, std::size_t(__n)}, __n, __view);
     return __future_obj;
 }
 
@@ -65,9 +67,12 @@ __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
+    auto __view1 = __buf1.all_view();
+    auto __view2 = __buf2.all_view();
+
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
+        unseq_backend::walk2_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2)>{{}, __f, std::size_t(__n)}, __n, __view1, __view2);
 
     return __future.__make_future(__first2 + __n);
 }
@@ -91,10 +96,15 @@ __pattern_walk3_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
+    auto __view1 = __buf1.all_view();
+    auto __view2 = __buf2.all_view();
+    auto __view3 = __buf3.all_view();
+
     auto __future =
         oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-                                                          __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
+                                                          unseq_backend::walk3_vectors_or_scalars<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2),
+                                                decltype(__view3)>{{}, __f, size_t(__n)}, __n,
+                                                          __view1, __view2, __view3);
 
     return __future.__make_future(__first3 + __n);
 }
