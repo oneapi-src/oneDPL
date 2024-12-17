@@ -168,11 +168,12 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     __it_t __diag_it_end(idx1_to);
 
     constexpr int kValue = 1;
-    const __it_t __res =
-        std::lower_bound(__diag_it_begin, __diag_it_end, kValue, [&__rng1, &__rng2, __index_sum, __comp](_Index __idx, const auto& __value) {
-            const auto __zero_or_one = __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
-            return __zero_or_one < kValue;
-        });
+    const __it_t __res = std::lower_bound(__diag_it_begin, __diag_it_end, kValue,
+                                          [&__rng1, &__rng2, __index_sum, __comp](_Index __idx, const auto& __value) {
+                                              const auto __zero_or_one =
+                                                  __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
+                                              return __zero_or_one < kValue;
+                                          });
 
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
@@ -252,16 +253,17 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
-        auto __event = __exec.queue().submit([&__rng1, &__rng2, &__rng3, __steps, __chunk, __n1, __n2, __comp](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            __cgh.parallel_for<_MergeKernelName...>(
-                sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                    const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                    const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
-                                   __comp);
-                });
-        });
+        auto __event = __exec.queue().submit(
+            [&__rng1, &__rng2, &__rng3, __steps, __chunk, __n1, __n2, __comp](sycl::handler& __cgh) {
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
+                __cgh.parallel_for<_MergeKernelName...>(
+                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                        const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
+                                       __n2, __comp);
+                    });
+            });
         // We should return the same thing in the second param of __future for compatibility
         // with the returning value in __parallel_merge_submitter_large::operator()
         return __future(__event, __result_and_scratch_storage_base_ptr{});
@@ -319,7 +321,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;
 
-        return __exec.queue().submit([&__rng1, &__rng2, __base_diagonals_sp_global_storage, __n1, __n2, __n, __nd_range_params, __comp](sycl::handler& __cgh) {
+        return __exec.queue().submit([&__rng1, &__rng2, __base_diagonals_sp_global_storage, __n1, __n2, __n,
+                                      __nd_range_params, __comp](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
@@ -358,7 +361,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
 
-        return __exec.queue().submit([&__event, &__rng1, &__rng2, &__rng3, __nd_range_params, __base_diagonals_sp_global_storage, __n1, __n2, __comp](sycl::handler& __cgh) {
+        return __exec.queue().submit([&__event, &__rng1, &__rng2, &__rng3, __nd_range_params,
+                                      __base_diagonals_sp_global_storage, __n1, __n2, __comp](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
@@ -462,7 +466,8 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     if (__n < __get_starting_size_limit_for_large_submitter<__value_type>())
     {
         using _WiIndex = std::uint32_t;
-        static_assert(__get_starting_size_limit_for_large_submitter<__value_type>() <= std::numeric_limits<_WiIndex>::max());
+        static_assert(__get_starting_size_limit_for_large_submitter<__value_type>() <=
+                      std::numeric_limits<_WiIndex>::max());
         using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name<_CustomName, _WiIndex>>;
         return __parallel_merge_submitter<_WiIndex, _MergeKernelName>()(
