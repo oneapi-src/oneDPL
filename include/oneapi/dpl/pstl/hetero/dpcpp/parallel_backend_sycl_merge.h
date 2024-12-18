@@ -89,9 +89,9 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     const _Index __rng2_size = std::min<_Index>(__n2 > __start2 ? __n2 - __start2 : (_Index)0, (_Index)__chunk);
     const _Index __rng3_size = std::min<_Index>(__rng1_size + __rng2_size, (_Index)__chunk);
 
-    const auto __rng1_idx_end = __start1 + __rng1_size;
-    const auto __rng2_idx_end = __start2 + __rng2_size;
-    const auto __rng3_idx_end = __start3 + __rng3_size;
+    const _Index __rng1_idx_end = __start1 + __rng1_size;
+    const _Index __rng2_idx_end = __start2 + __rng2_size;
+    const _Index __rng3_idx_end = __start3 + __rng3_size;
 
     _Index __rng1_idx = __start1;
     _Index __rng2_idx = __start2;
