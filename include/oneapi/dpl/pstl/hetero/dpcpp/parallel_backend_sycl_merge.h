@@ -145,9 +145,11 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
 
     _IndexSigned idx1_from = __rng1_from;
     _IndexSigned idx1_to = __rng1_to;
+    assert(idx1_from <= idx1_to);
 
     _IndexSigned idx2_from = __index_sum - (__rng1_to - 1);
     _IndexSigned idx2_to = __index_sum - __rng1_from + 1;
+    assert(idx2_from <= idx2_to);
 
     const _IndexSigned idx2_from_diff =
         idx2_from < (_IndexSigned)__rng2_from ? (_IndexSigned)__rng2_from - idx2_from : 0;
@@ -158,6 +160,12 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
 
     idx2_from = __index_sum - (idx1_to - 1);
     idx2_to = __index_sum - idx1_from + 1;
+
+    assert(idx1_from <= idx1_to);
+    assert(__rng1_from <= idx1_from && idx1_to <= __rng1_to);
+
+    assert(idx2_from <= idx2_to);
+    assert(__rng2_from <= idx2_from && idx2_to <= __rng2_to);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Run search of split point on diagonal
@@ -364,6 +372,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     _split_point_t<_IdType> __start;
                     if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
                     {
+                        // Check that we fit into size of scratch
+                        assert(__diagonal_idx + 1 < __nd_range_params.base_diag_count + 1);
+
                         const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
                         const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
