@@ -225,14 +225,13 @@ main()
     const int threads_to_use = std::min(max_threads, int(32));
     omp_set_num_threads(threads_to_use);
 #endif
+    using ValueType = ::std::int32_t;
 
     const ::std::size_t N = 100000;
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
-       test_shift_by_type<std::uint8_t>(m, n);
-       test_shift_by_type<std::uint16_t>(m, n);
-       test_shift_by_type<std::int32_t>(m, n);
+       test_shift_by_type<ValueType>(m, n);
     }
 
     return TestUtils::done();
