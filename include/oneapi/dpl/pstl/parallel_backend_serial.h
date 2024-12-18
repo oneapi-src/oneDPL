@@ -46,19 +46,23 @@ template <typename _ValueType>
 struct __thread_enumerable_storage
 {
     __thread_enumerable_storage(std::size_t __num_bins, _ValueType __init_value) : __storage(__num_bins, __init_value)
-    {}
+    {
+    }
 
-    std::size_t size() const
+    std::size_t
+    size() const
     {
         return std::size_t{1};
     }
 
-    auto get()
+    auto
+    get()
     {
         return __storage.begin();
     }
 
-    auto get_with_id(std::size_t __i)
+    auto
+    get_with_id(std::size_t __i)
     {
         return get();
     }

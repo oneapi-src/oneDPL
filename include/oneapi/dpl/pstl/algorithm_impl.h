@@ -45,8 +45,7 @@ namespace __internal
 
 template <class _ValueType>
 auto
-__create_thread_enumerable_storage(std::size_t __num_elements,
-                                   _ValueType __init_value)
+__make_thread_enumerable_storage(std::size_t __num_elements, _ValueType __init_value)
 {
     return __par_backend::__thread_enumerable_storage{__num_elements, __init_value};
 }
@@ -4339,8 +4338,8 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     _DiffType __n = __last - __first;
     if (__n > 0)
     {
-        auto __thread_enumerable_storage = oneapi::dpl::__internal::__create_thread_enumerable_storage(
-            __num_bins, _HistogramValueT{0});
+        auto __thread_enumerable_storage =
+            oneapi::dpl::__internal::__make_thread_enumerable_storage(__num_bins, _HistogramValueT{0});
 
         //main histogram loop
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -4353,19 +4352,22 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
         __par_backend::__parallel_for(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __histogram_first,
             __histogram_first + __num_bins,
-            [__histogram_first, &__thread_enumerable_storage](auto __global_histogram_first, auto __global_histogram_last) {
+            [__histogram_first, &__thread_enumerable_storage](auto __global_histogram_first,
+                                                              auto __global_histogram_last) {
                 _DiffType __local_n = __global_histogram_last - __global_histogram_first;
                 std::size_t __num_temporary_copies = __thread_enumerable_storage.size();
                 _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
                 //initialize output global histogram with first local histogram via assign
-                __internal::__brick_walk2_n(__thread_enumerable_storage.get_with_id(0) + __range_begin_id, __local_n, __global_histogram_first,
-                                        oneapi::dpl::__internal::__pstl_assign(), _IsVector{});
+                __internal::__brick_walk2_n(__thread_enumerable_storage.get_with_id(0) + __range_begin_id, __local_n,
+                                            __global_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
+                                            _IsVector{});
                 for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
                 {
                     //accumulate into output global histogram with other local histogram via += operator
                     __internal::__brick_walk2_n(
-                    __thread_enumerable_storage.get_with_id(__i) + __range_begin_id, __local_n, __global_histogram_first,
-                    [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
+                        __thread_enumerable_storage.get_with_id(__i) + __range_begin_id, __local_n,
+                        __global_histogram_first, [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; },
+                        _IsVector{});
                 }
             });
     }
