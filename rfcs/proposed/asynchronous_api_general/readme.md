@@ -9,22 +9,59 @@ parallel algorithms, which oneDPL follows, does not assume asynchronous executio
 thread can only return when the algorithm finishes (for details, see [algorithms.parallel.exec]
 section of the C++ standard).
 
-To address this demand, experimental [asynchronous algorithms](https://oneapi-src.github.io/oneDPL/parallel_api/async_api.html)
-have been added. These functions do not block the calling thread but instead return a *future* that
-can be used to synchronize and obtain the computed value at a later time. These algorithms can also
-accept a list of `sycl::event` objects as *input dependencies* (though the implementation has not
-advanced beyond immediate wait on these events). The `wait_for_all` function waits for completion
-of a given list of events or futures.
+To address this demand, [experimental asynchronous algorithms](#onedpl-experimental-asynchronous-algorithms)
+have been added that not block the calling thread. Then oneDPL added the experimental functionality for
+[dynamic selection](https://oneapi-src.github.io/oneDPL/dynamic_selection_api_main.html) that also
+allows starting asynchronous work and wait for its completion later.
 
-Later the experimental functionality for [dynamic selection](https://oneapi-src.github.io/oneDPL/dynamic_selection_api_main.html)
-of an execution device has been added. The `submit` function there executes a user-specified
-function object, which can start asynchronous work and return a *waitable* object
-to synchronize later with. There is a `wait` function to wait for such an object as well.
+For these experimental APIs to get solid and go into production, we wanted to design a single
+consistent approach to asynchronous execution. That was the original goal of this RFC proposal.
+However, due to new information we found while studying the topic, eventually we concluded that
+such common asynchronous API is not needed.
 
-For these experimental APIs to get solid and go into production, there is a clear need for a single
-consistent approach to asynchronous execution. Defining that is the goal of this RFC proposal.
+## Context
 
-## The use cases
+### Thrust & CUB
+
+The Thrust library from Nvidia uses two approaches for its asynchronous algorithms.
+Both approaches are implemented for the CUDA backend only.
+
+First, it has a small set of explicitly asynchronous algorithms in `namespace thrust::async`
+that return an event or a *future* to later synchronize with. However, recently we have learned
+that, according to https://github.com/NVIDIA/cccl/issues/100, this API is considered deprecated
+(though yet unofficially).
+
+Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
+can skip non-essential synchronization as the caller will explicitly synchronize with the device
+or stream before accessing the results.
+
+More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
+
+The device algorithms of CUB are (implicitly) asynchronous but, unlike Thrust, these do not return
+anything waitable and require explicit synchronization with the device. There are notably more
+`cub::Device*` algorithms than those in `thrust::async`.
+
+### oneDPL experimental asynchronous algorithms
+
+As mentioned before, [the asynchronous algorithms](https://oneapi-src.github.io/oneDPL/parallel_api/async_api.html)
+in oneDPL are intended to allow the underlying SYCL implementation proceed without blocking
+the calling thread. These functions return a future that can be used to synchronize and obtain
+the computed value at a later time. The functions can also accept a list of `sycl::event` objects
+as *input dependencies* (though the implementation has not advanced beyond immediate wait on these events).
+The `wait_for_all` function waits for completion of a given list of events or futures.
+
+The second goal of this API was to allow functional mapping for `thrust::async` algorithms,
+facilitating support for SYCL in applications that use Thrust.
+
+### oneDPL experimental API for kernel templates
+
+TBD
+
+## Reasons for archival
+
+TBD
+
+## Backup: The use case study
 
 In the practical use of the oneDPL asynchronous APIs as well as similar APIs of other libraries
 (such as Thrust) we observed several typical patterns, pseudocode examples of which follow.
@@ -129,22 +166,7 @@ to preserve this capability; however, we have no evidence of it being used in pr
 the usage of Thrust asynchronous algorithms have not found examples of dependency chains. Therefore,
 support for this use case is not a requirement.
 
-## Existing approaches outside oneDPL
-
-### Thrust
-
-The Thrust library uses two approaches for its asynchronous algorithms. Both approaches are implemented
-for the CUDA backend only.
-
-First, it has a set of explicitly asynchronous algorithms in `namespace thrust::async` that return an event
-or a future to later synchronize with. Now this API is unofficially deprecated, according to
-https://github.com/NVIDIA/cccl/issues/100.
-
-Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
-can skip non-essential synchronization as the caller will explicitly synchronize with the device
-or stream before accessing the results.
-
-More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
+## Backup: Asynchrony support in the C++ standard
 
 ### C++ async & future
 
@@ -175,34 +197,3 @@ Some companion proposals, notably for [async_scope](https://wg21.link/p3149) and
 context](https://wg21.link/p2079), are yet to be accepted to the working draft. The proposal for
 adding [asynchronous parallel algorithms](https://wg21.link/p3300) is at a very early stage and
 is not planned for C++ 26.
-
-## Design considerations
-
-### Key requirements
-
-### Use of C++26 senders
-
-### Returning a computed value
-
-### Expressing dependencies
-
-### Lifetime of temporary allocations
-
-### Interoperability
-
-## Proposal
-
-TODO: Replace the text in this section with a full and detailed description of the proposal.
-It is expected to have:
-
-- The proposed API such as class definitions and function declarations.
-- Coverage of the described use cases.
-- Alternatives that were considered, along with their pros and cons.
-
-## Open Questions
-
-TODO: List any questions that are not sufficiently elaborated in the proposal,
-need more discussion or prototyping experience, etc.
-
-- Exception handling
-- Cancellation support to avoid computing what is no more necessary
