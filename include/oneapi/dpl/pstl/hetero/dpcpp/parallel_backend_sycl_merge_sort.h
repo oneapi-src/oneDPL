@@ -91,7 +91,7 @@ struct __group_merge_path_sorter
             auto __in_ptr1 = __in_ptr + __start1;
             auto __in_ptr2 = __in_ptr + __start2;
 
-            const auto __start = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
+            const std::pair<std::uint32_t, std::uint32_t> __start = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
             __serial_merge(__in_ptr1, __in_ptr2, __out_ptr, __start.first, __start.second, __id, __data_per_workitem,
                            __n1, __n2, __comp);
