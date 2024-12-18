@@ -16,7 +16,7 @@ interest from the community, acceptance of the required specification changes, e
 
 A document here needs to be updated if the corresponding feature undergoes
 modifications while remaining experimental. Other changes, such as updates on the
-exit conditions or on the implementation and usage experience are also welcome.
+exit conditions or on the implementation and usage experience, are also welcome.
 
 For features that require specification changes prior to production, the document might
 include wording for those changes or a link to any PRs opened against the specification.
