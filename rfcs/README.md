@@ -92,6 +92,11 @@ There is no requirement that an RFC should pass all the stages in order.
 A typical flow for an RFC would include at least `proposed` and `supported`;
 however, any state can be skipped, depending on the progress and the needs.
 
+For a document that describes a wide set of functionality or a general direction
+and includes sub-RFCs for specific features, a few instances might simultaneously
+reside in different states, adjusted as necessary to reflect the overall progress
+on the direction and on its sub-proposals.
+
 See the README files in respective directories for additional information.
 
 ## Document Style Recommendations
