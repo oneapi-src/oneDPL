@@ -1294,16 +1294,16 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     _Size __shift;
     template <typename _IsFull, typename _Idx, typename _AccessorSrc, typename _AccessorDst>
     void
-    __vector_path(_IsFull __is_full, const _Idx __idx, const _AccessorSrc& __acc1, _AccessorDst& __acc2) const
+    __vector_path(_IsFull __is_full, const _Idx __idx, const _AccessorSrc __acc1, _AccessorDst __acc2) const
     {
         auto __acc1_pointer = __acc1.begin();
         auto __acc2_pointer = __acc2.begin();
         _Idx __shifted_idx = __shift + __idx;
         _Idx __wrapped_idx = __shifted_idx % __size;
-        std::size_t __n = __shift;
+        std::size_t __n = __size;
         oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType> __acc1_vector[__base_t::__preferred_vector_size];
         //1. Vectorize loads only if we know the wrap around point is beyond the current vector elements to process
-        if (__wrapped_idx + __base_t::__preferred_vector_size < __size)
+        if (__wrapped_idx + __base_t::__preferred_vector_size <= __size)
         {
             oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
                 __is_full, __wrapped_idx, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{}, __acc1_pointer,

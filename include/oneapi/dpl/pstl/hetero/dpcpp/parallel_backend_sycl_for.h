@@ -194,10 +194,10 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
     {
         if (__count >= __large_submitter::__estimate_best_start_size(__exec, __brick))
         {
-          return __large_submitter{}(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                     std::forward<_Ranges>(__rngs)...);
-         }
-     }
+            return __large_submitter{}(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                       std::forward<_Ranges>(__rngs)...);
+        }
+    }
     return __small_submitter{}(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
                                std::forward<_Ranges>(__rngs)...);
 }
