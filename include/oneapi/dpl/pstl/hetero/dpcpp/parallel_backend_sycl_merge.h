@@ -80,7 +80,8 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
-template <unsigned int _UnrollFactor = 4, typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
+template <unsigned int _UnrollFactor = 4, typename _Rng1, typename _Rng2, typename _Rng3, typename _Index,
+          typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index __start1, _Index __start2,
                const _Index __start3, const std::uint8_t __chunk, const _Index __n1, const _Index __n2, _Compare __comp)
@@ -96,8 +97,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     _Index __rng1_idx = __start1;
     _Index __rng2_idx = __start2;
     _Index __rng3_idx = __start3;
-    
-    #pragma unroll _UnrollFactor
+
+#pragma unroll _UnrollFactor
     for (_Index __rng3_idx = __start3; __rng3_idx < __rng3_idx_end; ++__rng3_idx)
     {
         const bool __rng1_idx_less__n1 = __rng1_idx < __rng1_idx_end;
