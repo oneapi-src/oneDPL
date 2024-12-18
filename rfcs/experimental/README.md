@@ -15,10 +15,11 @@ These conditions might include demonstrated performance improvements, demonstrat
 interest from the community, acceptance of the required specification changes, etc.
 
 A document here needs to be updated if the corresponding feature undergoes
-modifications while remaining experimental.
+modifications while remaining experimental. Other changes, such as updates on the
+exit conditions or on the implementation and usage experience are also welcome.
 
-For features that require specification changes, the document might include
-wording for those changes or a link to any PRs opened against the specification.
+For features that require specification changes prior to production, the document might
+include wording for those changes or a link to any PRs opened against the specification.
 
 Proposals in the `rfcs/experimental` directory do not remain there indefinitely.
 They should move either to `rfcs/supported` when they become fully supported

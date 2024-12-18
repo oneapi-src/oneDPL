@@ -16,10 +16,11 @@ discussions, etc.
 
 ## Proposal
 
-Replace the text in this section with a full and detailed description of the proposal
-with highlighted consequences.
+Replace the text in this section with a detailed description of the proposal
+with highlighted consequences. The description can be iteratively clarified
+as the proposal matures.
 
-Depending on the kind of the proposal, the description should cover:
+Depending on the kind of the proposal, the description may need to cover the following:
 
 - New use cases supported by the extension.
 - The expected performance benefit for a modification, supported with the data, if available.
