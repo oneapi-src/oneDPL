@@ -28,12 +28,10 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
-#include <tuple>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
-#include "../../utils.h"
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
