@@ -266,7 +266,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     {
         std::size_t base_diag_count = 0;
         std::size_t steps_between_two_base_diags = 0;
-        std::uint8_t chunk = 0;
+        _IdType chunk = 0;
         _IdType steps = 0;
     };
 
