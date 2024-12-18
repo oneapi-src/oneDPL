@@ -54,36 +54,58 @@
 // A SYCL implementation is assumed to support the features unless specified otherwise.
 // This is controlled by extendable logic: !(A && A < SUPPORTED_VER_A) && !(B && B < SUPPORTED_VER_B) && ...,
 // where A, B, etc., are macros representing the version of a specific SYCL implementation.
-#define _ONEDPL_SYCL2020_BITCAST_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_NO_INIT_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_BUFFER_SIZE_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_ACCESSOR_SIZE_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_SYCL2020_TARGET_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
-#define _ONEDPL_SYCL2020_TARGET_DEVICE_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
-#define _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50500))
-#define _ONEDPL_SYCL2020_SUB_GROUP_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700))
-#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700))
+#define _ONEDPL_SYCL2020_BITCAST_PRESENT                                                                               \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_NO_INIT_PRESENT                                                                               \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT                                                                           \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_BUFFER_SIZE_PRESENT                                                                           \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_ACCESSOR_SIZE_PRESENT                                                                         \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT                                                                         \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT                                                                        \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT                                                                    \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_PRESENT                                                                   \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_TARGET_PRESENT                                                                                \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
+#define _ONEDPL_SYCL2020_TARGET_DEVICE_PRESENT                                                                         \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
+#define _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT                                                                            \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50500))
+#define _ONEDPL_SYCL2020_SUB_GROUP_PRESENT                                                                             \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700))
+#define _ONEDPL_SYCL2020_SUBGROUP_BARRIER_PRESENT                                                                      \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700))
 // 20201214 value corresponds to DPC++ 2021.1.2
 #define _ONEDPL_SYCL2020_KERNEL_DEVICE_API_PRESENT                                                                     \
     (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700) || __SYCL_COMPILER_VERSION > 20201214)
-#define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
-#define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
+#define _ONEDPL_SYCL2020_BUFFER_ALLOCATOR_PRESENT                                                                      \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
+#define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_PRESENT                                                                        \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
 // The unified future supporting USM memory and buffers is only supported after DPC++ 2023.1 but not by 2023.2.
 #define _ONEDPL_SYCL2020_DEFAULT_ACCESSOR_CONSTRUCTOR_PRESENT                                                          \
     (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60100) || _ONEDPL_LIBSYCL_VERSION != 60200)
-#define _ONEDPL_SYCL2020_HOST_TARGET_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
-#define _ONEDPL_SYCL2020_HOST_ACCESSOR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
-#define _ONEDPL_SYCL2020_GET_HOST_ACCESS_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
-#define _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_PRESENT (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(70000))
+#define _ONEDPL_SYCL2020_HOST_TARGET_PRESENT                                                                           \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
+#define _ONEDPL_SYCL2020_HOST_ACCESSOR_PRESENT                                                                         \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
+#define _ONEDPL_SYCL2020_GET_HOST_ACCESS_PRESENT                                                                       \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
+#define _ONEDPL_SYCL2020_LOCAL_ACC_GET_MULTI_PTR_PRESENT                                                               \
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(70000))
 
 // Feature macros for DPC++ SYCL runtime library alternatives to non-supported SYCL 2020 features
-#define _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
-#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION == 50200)
+#define _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT                                                                            \
+    (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT                                                                         \
+    (_ONEDPL_LIBSYCL_VERSION == 50200)
 #define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT                                                                         \
     (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1 && _ONEDPL_LIBSYCL_VERSION >= 50700)
 
