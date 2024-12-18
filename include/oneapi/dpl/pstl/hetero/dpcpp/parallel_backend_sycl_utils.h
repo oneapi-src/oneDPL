@@ -912,17 +912,17 @@ struct __lazy_load_transform_op
     }
 };
 
-template <std::uint16_t __vec_size>
+template <std::uint8_t __vec_size>
 struct __vector_load
 {
-    static_assert(__vec_size <= 4);
+    static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
     std::size_t __n;
     template <typename _IdxType, typename _LoadOp, typename... _Acc>
     void
     operator()(std::true_type, _IdxType __start_idx, _LoadOp __load_op, _Acc... __acc) const
     {
         _ONEDPL_PRAGMA_UNROLL
-        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
+        for (std::uint8_t __i = 0; __i < __vec_size; ++__i)
             __load_op(__start_idx + __i, __i, __acc...);
     }
 
@@ -930,8 +930,8 @@ struct __vector_load
     void
     operator()(std::false_type, _IdxType __start_idx, _LoadOp __load_op, _Acc... __acc) const
     {
-        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __start_idx));
-        for (std::uint16_t __i = 0; __i < __elements; ++__i)
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __start_idx});
+        for (std::uint8_t __i = 0; __i < __elements; ++__i)
             __load_op(__start_idx + __i, __i, __acc...);
     }
 };
@@ -958,10 +958,10 @@ struct __lazy_store_transform_op
     }
 };
 
-template <std::uint16_t __vec_size>
+template <std::uint8_t __vec_size>
 struct __vector_walk
 {
-    static_assert(__vec_size <= 4);
+    static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
     std::size_t __n;
 
     template <typename _IdxType, typename _WalkFunction, typename... _Rngs>
@@ -969,9 +969,8 @@ struct __vector_walk
     operator()(std::true_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
-        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
+        for (std::uint8_t __i = 0; __i < __vec_size; ++__i)
         {
-
             __f(__rngs[__idx + __i]...);
         }
     }
@@ -981,40 +980,42 @@ struct __vector_walk
     void
     operator()(std::false_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
-        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __idx));
-        for (std::uint16_t __i = 0; __i < __elements; ++__i)
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __idx});
+        for (std::uint8_t __i = 0; __i < __elements; ++__i)
         {
             __f(__rngs[__idx + __i]...);
         }
     }
 };
 
-template <std::uint16_t __vec_size>
+template <std::uint8_t __vec_size>
 struct __vector_store
 {
+    static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
     std::size_t __n;
-    static_assert(__vec_size <= 4);
-    template <typename _IdxType, typename _StoreOp, typename... _Acc>
+
+    template <typename _IdxType, typename _StoreOp, typename... _Rngs>
     void
-    operator()(std::true_type, _IdxType __start_idx, _StoreOp __store_op, _Acc... __acc) const
+    operator()(std::true_type, _IdxType __start_idx, _StoreOp __store_op, _Rngs... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
-        for (std::uint16_t __i = 0; __i < __vec_size; ++__i)
-            __store_op(__i, __start_idx + __i, __acc...);
+        for (std::uint8_t __i = 0; __i < __vec_size; ++__i)
+            __store_op(__i, __start_idx + __i, __rngs...);
     }
-    template <typename _IdxType, typename _StoreOp, typename... _Acc>
+    template <typename _IdxType, typename _StoreOp, typename... _Rngs>
     void
-    operator()(std::false_type, _IdxType __start_idx, _StoreOp __store_op, _Acc... __acc) const
+    operator()(std::false_type, _IdxType __start_idx, _StoreOp __store_op, _Rngs... __rngs) const
     {
-        std::uint16_t __elements = std::min(__vec_size, decltype(__vec_size)(__n - __start_idx));
-        for (std::uint16_t __i = 0; __i < __elements; ++__i)
-            __store_op(__i, __start_idx + __i, __acc...);
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __start_idx});
+        for (std::uint8_t __i = 0; __i < __elements; ++__i)
+            __store_op(__i, __start_idx + __i, __rngs...);
     }
 };
 
-template <std::uint16_t __vec_size>
+template <std::uint8_t __vec_size>
 struct __vector_reverse
 {
+    static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
     template <typename _IsFull, typename _Idx, typename _Array>
     void
     operator()(_IsFull __is_full, const _Idx __elements_to_process, _Array __array) const
@@ -1022,12 +1023,12 @@ struct __vector_reverse
         if constexpr (__is_full)
         {
             _ONEDPL_PRAGMA_UNROLL
-            for (std::uint16_t __i = 0; __i != __vec_size / 2; ++__i)
+            for (std::uint8_t __i = 0; __i < __vec_size / 2; ++__i)
                 std::swap(__array[__i].__v, __array[__vec_size - __i - 1].__v);
         }
         else
         {
-            for (std::uint16_t __i = 0; __i != __elements_to_process / 2; ++__i)
+            for (std::uint8_t __i = 0; __i < __elements_to_process / 2; ++__i)
                 std::swap(__array[__i].__v, __array[__elements_to_process - __i - 1].__v);
         }
     }
@@ -1035,7 +1036,7 @@ struct __vector_reverse
 
 // Processes a loop with a given stride. Intended to be used with sub-group / work-group strides for good memory access patterns
 // (potentially with vectorization)
-template <std::uint16_t __num_strides>
+template <std::uint8_t __num_strides>
 struct __strided_loop
 {
     std::size_t __n;
@@ -1045,7 +1046,7 @@ struct __strided_loop
                _Ranges&&... __rngs) const
     {
         _ONEDPL_PRAGMA_UNROLL
-        for (std::uint16_t __i = 0; __i < __num_strides; ++__i)
+        for (std::uint8_t __i = 0; __i < __num_strides; ++__i)
         {
             __loop_body_op(std::true_type{}, __idx, __rngs...);
             __idx += __stride;
@@ -1059,7 +1060,7 @@ struct __strided_loop
         // Constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
         const std::uint8_t __adjusted_iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n - __idx, __stride);
-        for (std::uint16_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
+        for (std::uint8_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
         {
             __loop_body_op(std::false_type{}, __idx, __rngs...);
             __idx += __stride;

@@ -28,7 +28,6 @@
 #include <cmath>
 #include <limits>
 #include <cstdint>
-#include <tuple>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
