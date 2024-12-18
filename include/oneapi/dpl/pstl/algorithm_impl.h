@@ -44,6 +44,14 @@ namespace dpl
 namespace __internal
 {
 
+template <class _ValueType>
+auto
+__create_thread_enumerable_storage(std::size_t __num_elements,
+                                   _ValueType __init_value)
+{
+    return __par_backend::__thread_enumerable_storage{__num_elements, __init_value};
+}
+
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------
@@ -4332,22 +4340,34 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     _DiffType __n = __last - __first;
     if (__n > 0)
     {
-        //Embarassingly parallel with temporary histogram outputs
-        __par_backend::__parallel_histogram(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __num_bins,
-            __histogram_first,
-            [__func](auto __subrange_first, auto __subrange_last, auto __histogram_first) {
-                __brick_histogram(__subrange_first, __subrange_last, __func, __histogram_first, _IsVector{});
-            },
-            //initialize output global histogram with first local histogram via assign
-            [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
-                __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
-                                                            oneapi::dpl::__internal::__pstl_assign(), _IsVector{});
-            },
-            //accumulate into output global histogram with other local histogram via += operator
-            [](auto __local_histogram_first, std::uint32_t __n, auto __histogram_accum_first) {
-                __internal::__brick_walk2_n(__local_histogram_first, __n, __histogram_accum_first,
+        auto __thread_enumerable_storage = oneapi::dpl::__internal::__create_thread_enumerable_storage(
+            __num_bins, _HistogramValueT{0});
+
+        //main histogram loop
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                      [__func, &__thread_enumerable_storage](_RandomAccessIterator1 __first_local,
+                                                                             _RandomAccessIterator1 __last_local) {
+                                          __internal::__brick_histogram(__first_local, __last_local, __func,
+                                                                        __thread_enumerable_storage.get(), _IsVector{});
+                                      });
+        // now accumulate temporary storage into output global histogram
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+            __histogram_first + __num_bins,
+            [__histogram_first, &__thread_enumerable_storage](auto __global_histogram_first, auto __global_histogram_last) {
+                _DiffType __local_n = __global_histogram_last - __global_histogram_first;
+                std::size_t __num_temporary_copies = __thread_enumerable_storage.size();
+                _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
+                //initialize output global histogram with first local histogram via assign
+                __internal::__brick_walk2_n(__thread_enumerable_storage.get_with_id(0) + __range_begin_id, __local_n, __global_histogram_first,
+                                        oneapi::dpl::__internal::__pstl_assign(), _IsVector{});
+                for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
+                {
+                    //accumulate into output global histogram with other local histogram via += operator
+                    __internal::__brick_walk2_n(
+                    __thread_enumerable_storage.get_with_id(__i) + __range_begin_id, __local_n, __global_histogram_first,
                     [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
+                }
             });
     }
     else
