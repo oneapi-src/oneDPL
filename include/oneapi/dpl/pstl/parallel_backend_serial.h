@@ -42,6 +42,30 @@ __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
+template <typename _ValueType>
+struct __thread_enumerable_storage
+{
+    __thread_enumerable_storage(std::size_t __num_bins, _ValueType __init_value) : __storage(__num_bins, __init_value)
+    {}
+
+    std::size_t size() const
+    {
+        return std::size_t{1};
+    }
+
+    auto get()
+    {
+        return __storage.begin();
+    }
+
+    auto get_with_id(std::size_t __i)
+    {
+        return get();
+    }
+
+    std::vector<_ValueType> __storage;
+};
+
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
 __parallel_for(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,

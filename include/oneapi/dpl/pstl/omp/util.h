@@ -25,6 +25,7 @@
 #include <vector>
 #include <type_traits>
 #include <omp.h>
+#include <iostream>
 
 #include "../parallel_backend_utils.h"
 #include "../unseq_backend_simd.h"
@@ -152,6 +153,43 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     auto __last = __first + __this_chunk_size;
     __f(__first, __last);
 }
+
+template <typename _ValueType>
+struct __thread_enumerable_storage
+{
+    __thread_enumerable_storage(std::size_t __num_bins, _ValueType __init_value)
+    {
+        _PSTL_PRAGMA(omp parallel)
+        _PSTL_PRAGMA(omp single nowait)
+        {
+            __num_threads = omp_get_num_threads();
+            __thread_specific_storage.resize(__num_threads);
+            _PSTL_PRAGMA(omp taskloop shared(__thread_specific_storage, __num_bins, __init_value))
+            for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
+            {
+                __thread_specific_storage[__tid].resize(__num_bins, __init_value);
+            }
+        }
+    }
+
+    std::size_t size() const
+    {
+        return __num_threads;
+    }
+
+    auto get_with_id(std::size_t __i)
+    {
+        return __thread_specific_storage[__i].begin();
+    }
+
+    auto get()
+    {
+        return get_with_id(omp_get_thread_num());
+    }
+
+    std::vector<std::vector<_ValueType>> __thread_specific_storage;
+    std::size_t __num_threads;
+};
 
 } // namespace __omp_backend
 } // namespace dpl
