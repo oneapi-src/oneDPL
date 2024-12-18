@@ -1331,39 +1331,6 @@ struct __thread_enumerable_storage
     tbb::enumerable_thread_specific<std::vector<_ValueType>> __thread_specific_storage;
 };
 
-//------------------------------------------------------------------------
-// parallel_histogram
-//------------------------------------------------------------------------
-template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
-          typename _FpHist, typename _FpInitialize, typename _FpAccum>
-void
-__parallel_histogram(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
-                     _RandomAccessIterator1 __last, _Size __num_bins, _RandomAccessIterator2 __histogram_first,
-                     _FpHist __f, _FpInitialize __init, _FpAccum __accum)
-{
-    using _HistogramValueT = typename ::std::iterator_traits<_RandomAccessIterator2>::value_type;
-
-    tbb::this_task_arena::isolate([&]() {
-        tbb::enumerable_thread_specific<std::vector<_HistogramValueT>> __thread_local_histogram(__num_bins,
-                                                                                                _HistogramValueT{0});
-        size_t __n = __last - __first;
-        tbb::parallel_for(tbb::blocked_range<_Size>(0, __n, 1024), [&](const tbb::blocked_range<_Size>& __range) {
-            std::vector<_HistogramValueT>& __local_histogram = __thread_local_histogram.local();
-            __f(__first + __range.begin(), __first + __range.end(), __local_histogram.begin());
-        });
-
-        tbb::parallel_for(tbb::blocked_range<_Size>(0, __num_bins), [&](const tbb::blocked_range<_Size>& __range) {
-            auto __local_histogram = __thread_local_histogram.begin();
-            __init(__local_histogram->begin() + __range.begin(), __range.size(), __histogram_first + __range.begin());
-            ++__local_histogram;
-            for (; __local_histogram != __thread_local_histogram.end(); ++__local_histogram)
-            {
-                __accum(__local_histogram->begin() + __range.begin(), __range.size(),
-                        __histogram_first + __range.begin());
-            }
-        });
-    });
-}
 
 } // namespace __tbb_backend
 } // namespace dpl
