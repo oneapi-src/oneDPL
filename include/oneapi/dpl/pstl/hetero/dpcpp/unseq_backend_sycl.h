@@ -1502,6 +1502,64 @@ struct __brick_reduce_idx : public walk_scalar_base<_Range>
     _Size __n;
 };
 
+// std::swap_ranges is unique in that both sets of provided ranges will be modified. Due to this,
+// we define a separate functor from __walk2_vectors_or_scalars with a customized vectorization path.
+template <typename _ExecutionPolicy, typename _F, typename _Range1, typename _Range2>
+struct __brick_swap : public walk_vector_or_scalar_base<_Range1, _Range2>
+{
+    using __base_t = walk_vector_or_scalar_base<_Range1, _Range2>;
+    _F __f;
+    std::size_t __n;
+    template <typename _IsFull, typename _ItemId>
+    void
+    __vector_path(_IsFull __is_full, const _ItemId __idx, _Range1 __rng1, _Range2 __rng2) const
+    {
+        using _ValueType1 = oneapi::dpl::__internal::__value_t<_Range1>;
+        using _ValueType2 = oneapi::dpl::__internal::__value_t<_Range2>;
+        // This is needed for the icpx compiler to vectorize. The indirection introduced by our all / guard views interfere
+        // with compiler vectorization. At this point, we have ensured that input is contiguous and can be operated on as a raw pointer. The
+        // begin() function for these views will return a pointer.
+        auto __raw_ptr1 = __rng1.begin();
+        auto __raw_ptr2 = __rng2.begin();
+        oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType1> __rng1_vector[__base_t::__preferred_vector_size];
+        oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType1> __rng2_vector[__base_t::__preferred_vector_size];
+        // 1. Load inputs into vectors
+        oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{}, __raw_ptr1, __rng1_vector);
+        oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_transform_op{}, __raw_ptr2, __rng2_vector);
+        // 2. Swap the two ranges
+        oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<_F>{__f}, __rng2_vector,
+            __raw_ptr1);
+        oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<_F>{__f}, __rng1_vector,
+            __raw_ptr2);
+        // 3. Explicitly call destructor of lazy union type
+        oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+        oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng2_vector);
+    }
+
+    template <typename _IsFull, typename _Idx>
+    void
+    __scalar_path(_IsFull __is_full, const _Idx __idx, const _Range1 __rng1, _Range2 __rng2) const
+    {
+        __f(__rng1[__idx], __rng2[__idx]);
+    }
+
+    template <typename _IsFull, typename _Idx>
+    void
+    operator()(_IsFull __is_full, const _Idx __idx, const _Range1 __rng1, _Range2 __rng2) const
+    {
+        if constexpr (__base_t::__can_vectorize)
+            __vector_path(__is_full, __idx, __rng1, __rng2);
+        else
+            __scalar_path(__is_full, __idx, __rng1, __rng2);
+    }
+};
+
 } // namespace unseq_backend
 } // namespace dpl
 } // namespace oneapi

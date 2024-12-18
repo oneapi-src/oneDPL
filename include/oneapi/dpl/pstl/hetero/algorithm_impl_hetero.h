@@ -139,10 +139,28 @@ _ForwardIterator2
 __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
 {
-    return __pattern_walk2</*_WaitMode*/ __par_backend_hetero::__deferrable_mode,
-                           __par_backend_hetero::access_mode::read_write,
-                           __par_backend_hetero::access_mode::read_write>(
-        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
+    auto __n = __last1 - __first1;
+    if (__n <= 0)
+        return __first2;
+
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator1>();
+    auto __buf1 = __keep1(__first1, __last1);
+
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator2>();
+    auto __buf2 = __keep2(__first2, __first2 + __n);
+
+    auto __view1 = __buf1.all_view();
+    auto __view2 = __buf2.all_view();
+
+    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        _BackendTag{}, std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::__brick_swap<_ExecutionPolicy, _Function, decltype(__view1), decltype(__view2)>{
+            {}, __f, size_t(__n)},
+        __n, __view1, __view2);
+    __future.wait(__par_backend_hetero::__deferrable_mode{});
+    return __first2 + __n;
 }
 
 //------------------------------------------------------------------------
