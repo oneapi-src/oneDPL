@@ -63,7 +63,7 @@ struct __group_merge_path_sorter
     template <typename _StorageAcc, typename _Compare>
     bool
     sort(const sycl::nd_item<1>& __item, const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start,
-         std::uint32_t __end, std::uint32_t __sorted, std::uint16_t __data_per_workitem,
+         std::uint32_t __end, std::uint32_t __sorted, std::uint32_t __data_per_workitem,
          std::uint32_t __workgroup_size) const
     {
         const std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
@@ -241,7 +241,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
         const bool __is_cpu = __q.get_device().is_cpu();
-        const std::uint32_t __chunk = __is_cpu ? 32 : 4;
+        const _IndexT __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         bool __data_in_temp = false;
 
