@@ -233,8 +233,6 @@ struct __merge_sort_global_submitter;
 template <typename _IndexT, typename... _GlobalSortName>
 struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name<_GlobalSortName...>>
 {
-    static constexpr std::uint32_t __gpu_chunk = 4;
-
     template <typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
     std::pair<sycl::event, bool>
     operator()(sycl::queue& __q, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
@@ -243,7 +241,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
         const bool __is_cpu = __q.get_device().is_cpu();
-        const std::uint32_t __chunk = __is_cpu ? 32 : __gpu_chunk;
+        const std::uint32_t __chunk = __is_cpu ? 32 : 4;
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         bool __data_in_temp = false;
 
@@ -274,8 +272,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__dst, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge<__gpu_chunk>(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second,
-                                                        __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
@@ -283,8 +281,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                             const oneapi::dpl::__ranges::drop_view_simple __rng2(__rng, __offset + __n1);
 
                             const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
-                            __serial_merge<__gpu_chunk>(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second,
-                                                        __i_elem, __chunk, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst /*__rng3*/, start.first, start.second, __i_elem,
+                                           __chunk, __n1, __n2, __comp);
                         }
                     });
             });
