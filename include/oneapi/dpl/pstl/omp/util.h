@@ -25,7 +25,6 @@
 #include <vector>
 #include <type_traits>
 #include <omp.h>
-#include <iostream>
 
 #include "../parallel_backend_utils.h"
 #include "../unseq_backend_simd.h"
@@ -172,17 +171,20 @@ struct __thread_enumerable_storage
         }
     }
 
-    std::size_t size() const
+    std::size_t
+    size() const
     {
         return __num_threads;
     }
 
-    auto get_with_id(std::size_t __i)
+    auto
+    get_with_id(std::size_t __i)
     {
         return __thread_specific_storage[__i].begin();
     }
 
-    auto get()
+    auto
+    get()
     {
         return get_with_id(omp_get_thread_num());
     }
