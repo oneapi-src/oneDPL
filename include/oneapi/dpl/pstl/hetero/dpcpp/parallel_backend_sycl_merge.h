@@ -97,13 +97,11 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index _
     _Index __rng2_idx = __start2;
     _Index __rng3_idx = __start3;
     
-    bool __rng1_idx_less__n1, __rng2_idx_less__n2;
-
     #pragma unroll _UnrollFactor
     for (_Index __rng3_idx = __start3; __rng3_idx < __rng3_idx_end; ++__rng3_idx)
     {
-        __rng1_idx_less__n1 = __rng1_idx < __rng1_idx_end;
-        __rng2_idx_less__n2 = __rng2_idx < __rng2_idx_end;
+        const bool __rng1_idx_less__n1 = __rng1_idx < __rng1_idx_end;
+        const bool __rng2_idx_less__n2 = __rng2_idx < __rng2_idx_end;
 
         __rng3[__rng3_idx] =
             __rng1_idx_less__n1 && __rng2_idx_less__n2
