@@ -175,22 +175,24 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Rang
     if (__rng1.size() <= __rng2.size())
     {
         std::size_t __n = __rng1.size();
-        auto __exec1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(std::forward<_ExecutionPolicy>(__exec));
+        auto __exec1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
+            std::forward<_ExecutionPolicy>(__exec));
         auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, std::move(__exec1),
-            unseq_backend::__brick_swap<decltype(__exec1), _Function, _Range1, _Range2>{
+            unseq_backend::__brick_swap<decltype(__exec1), _Function, std::decay_t<_Range1>, std::decay_t<_Range2>>{
                 {}, __f, __n},
             __n, __rng1, __rng2);
         __future.wait(__par_backend_hetero::__deferrable_mode{});
         return __n;
     }
     std::size_t __n = __rng2.size();
-    auto __exec2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(std::forward<_ExecutionPolicy>(__exec));
+    auto __exec2 =
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(std::forward<_ExecutionPolicy>(__exec));
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-            _BackendTag{}, std::move(__exec2),
-            unseq_backend::__brick_swap<decltype(__exec2), _Function, _Range2, _Range1>{
-                {}, __f, __n},
-            __n, __rng2, __rng1);
+        _BackendTag{}, std::move(__exec2),
+        unseq_backend::__brick_swap<decltype(__exec2), _Function, std::decay_t<_Range2>, std::decay_t<_Range1>>{
+            {}, __f, __n},
+        __n, __rng2, __rng1);
     __future.wait(__par_backend_hetero::__deferrable_mode{});
     return __n;
 }
