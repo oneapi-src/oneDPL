@@ -43,6 +43,13 @@ namespace dpl
 namespace __internal
 {
 
+template <class _ValueType>
+auto
+__make_thread_enumerable_storage(std::size_t __num_elements, _ValueType __init_value)
+{
+    return __par_backend::__thread_enumerable_storage{__num_elements, __init_value};
+}
+
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------
@@ -4287,6 +4294,88 @@ __pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalItera
         __tag, ::std::forward<_ExecutionPolicy>(__exec), _ReverseIterator(__last), _ReverseIterator(__first), __n);
 
     return __res.base();
+}
+
+template <typename _ForwardIterator, typename _IdxHashFunc, typename _RandomAccessIterator, class _IsVector>
+void
+__brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
+                  _RandomAccessIterator __histogram_first, _IsVector) noexcept
+{
+    for (; __first != __last; ++__first)
+    {
+        std::int32_t __bin = __func.get_bin(*__first);
+        if (__bin >= 0)
+        {
+            ++__histogram_first[__bin];
+        }
+    }
+}
+
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size, typename _IdxHashFunc,
+          typename _RandomAccessIterator>
+void
+__pattern_histogram(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                    _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator __histogram_first)
+{
+    using _HistogramValueT = typename std::iterator_traits<_RandomAccessIterator>::value_type;
+    static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
+    __pattern_fill(_Tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
+                   _HistogramValueT{0});
+    __brick_histogram(__first, __last, __func, __histogram_first, typename _Tag::__is_vector{});
+}
+
+template <class _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
+          typename _IdxHashFunc, typename _RandomAccessIterator2>
+void
+__pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                    _RandomAccessIterator1 __last, _Size __num_bins, _IdxHashFunc __func,
+                    _RandomAccessIterator2 __histogram_first)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+    using _HistogramValueT = typename std::iterator_traits<_RandomAccessIterator2>::value_type;
+    using _DiffType = typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type;
+
+    _DiffType __n = __last - __first;
+    if (__n > 0)
+    {
+        auto __thread_enumerable_storage =
+            oneapi::dpl::__internal::__make_thread_enumerable_storage(__num_bins, _HistogramValueT{0});
+
+        //main histogram loop
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                      [__func, &__thread_enumerable_storage](_RandomAccessIterator1 __first_local,
+                                                                             _RandomAccessIterator1 __last_local) {
+                                          __internal::__brick_histogram(__first_local, __last_local, __func,
+                                                                        __thread_enumerable_storage.get(), _IsVector{});
+                                      });
+        // now accumulate temporary storage into output global histogram
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+            __histogram_first + __num_bins,
+            [__histogram_first, &__thread_enumerable_storage](auto __global_histogram_first,
+                                                              auto __global_histogram_last) {
+                _DiffType __local_n = __global_histogram_last - __global_histogram_first;
+                std::size_t __num_temporary_copies = __thread_enumerable_storage.size();
+                _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
+                //initialize output global histogram with first local histogram via assign
+                __internal::__brick_walk2_n(__thread_enumerable_storage.get_with_id(0) + __range_begin_id, __local_n,
+                                            __global_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
+                                            _IsVector{});
+                for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
+                {
+                    //accumulate into output global histogram with other local histogram via += operator
+                    __internal::__brick_walk2_n(
+                        __thread_enumerable_storage.get_with_id(__i) + __range_begin_id, __local_n,
+                        __global_histogram_first, [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; },
+                        _IsVector{});
+                }
+            });
+    }
+    else
+    {
+        __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+                       __histogram_first + __num_bins, _HistogramValueT{0});
+    }
 }
 
 } // namespace __internal
