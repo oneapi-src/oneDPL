@@ -304,8 +304,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const _IdType __n2 = __rng2.size();
         const _IdType __n = __n1 + __n2;
 
+        const _IdType __base_diag_chunk = __nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk;
+
         return __exec.queue().submit([&__rng1, &__rng2, __comp, __nd_range_params, __base_diagonals_sp_global_storage,
-                                      __n1, __n2, __n](sycl::handler& __cgh) {
+                                      __n1, __n2, __n, __base_diag_chunk](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2);
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
@@ -322,8 +324,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     if (0 < __global_idx && __global_idx < __nd_range_params.base_diag_count)
                     {
-                        const _IdType __i_elem =
-                            __global_idx * __nd_range_params.steps_between_two_base_diags * __nd_range_params.chunk;
+                        const _IdType __i_elem = __global_idx * __base_diag_chunk;
                         if (__i_elem < __n)
                             __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                     }
