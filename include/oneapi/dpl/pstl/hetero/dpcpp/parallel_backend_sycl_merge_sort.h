@@ -64,7 +64,7 @@ struct __group_merge_path_sorter
     template <typename _StorageAcc, typename _Compare>
     bool
     sort(const sycl::nd_item<1>& __item, const _StorageAcc& __storage_acc, _Compare __comp, std::uint32_t __start,
-         std::uint32_t __end, std::uint32_t __sorted, std::uint16_t __data_per_workitem,
+         std::uint32_t __end, std::uint32_t __sorted, std::uint32_t __data_per_workitem,
          std::uint32_t __workgroup_size) const
     {
         const std::uint32_t __sorted_final = __data_per_workitem * __workgroup_size;
@@ -92,7 +92,8 @@ struct __group_merge_path_sorter
             auto __in_ptr1 = __in_ptr + __start1;
             auto __in_ptr2 = __in_ptr + __start2;
 
-            const auto __start = __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
+            const std::pair<std::uint32_t, std::uint32_t> __start =
+                __find_start_point(__in_ptr1, __in_ptr2, __id_local, __n1, __n2, __comp);
             // TODO: copy the data into registers before the merge to halve the required amount of SLM
             __serial_merge(__in_ptr1, __in_ptr2, __out_ptr, __start.first, __start.second, __id, __data_per_workitem,
                            __n1, __n2, __comp);
@@ -245,10 +246,10 @@ protected:
 
     struct nd_range_params
     {
-        std::size_t   base_diag_count = 0;
-        std::size_t   steps_between_two_base_diags = 0;
-        std::uint32_t chunk = 0;
-        std::size_t   steps = 0;
+        std::size_t base_diag_count = 0;
+        std::size_t steps_between_two_base_diags = 0;
+        _IndexT chunk = 0;
+        _IndexT steps = 0;
     };
 
     struct WorkDataArea
