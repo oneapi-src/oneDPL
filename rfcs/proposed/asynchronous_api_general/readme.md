@@ -1,5 +1,7 @@
 # General architecture for asynchronous API
 
+Rejected and archived.
+
 ## Introduction
 
 oneDPL algorithms with device execution policies are developed on top of SYCL, and since the early
@@ -9,59 +11,39 @@ parallel algorithms, which oneDPL follows, does not assume asynchronous executio
 thread can only return when the algorithm finishes (for details, see [algorithms.parallel.exec]
 section of the C++ standard).
 
-To address this demand, [experimental asynchronous algorithms](#onedpl-experimental-asynchronous-algorithms)
-have been added that not block the calling thread. Then oneDPL added the experimental functionality for
-[dynamic selection](https://oneapi-src.github.io/oneDPL/dynamic_selection_api_main.html) that also
-allows starting asynchronous work and wait for its completion later.
+To address this demand, [oneDPL experimental asynchronous algorithms] have been added
+that do not block the calling thread. Then oneDPL added the experimental functionality for
+[dynamic selection](https://uxlfoundation.github.io/oneDPL/dynamic_selection_api_main.html) that also
+allows starting asynchronous work and waiting for its completion later.
 
-For these experimental APIs to get solid and go into production, we wanted to design a single
+## Original RFC goal
+
+For the mentioned experimental APIs to get solid and go into production, we wanted to design a single
 consistent approach to asynchronous execution. That was the original goal of this RFC proposal.
-However, due to new information we found while studying the topic, eventually we concluded that
-such common asynchronous API is not needed.
-
-## Context
-
-### Thrust & CUB
-
-The Thrust library from Nvidia uses two approaches for its asynchronous algorithms.
-Both approaches are implemented for the CUDA backend only.
-
-First, it has a small set of explicitly asynchronous algorithms in `namespace thrust::async`
-that return an event or a *future* to later synchronize with. However, recently we have learned
-that, according to https://github.com/NVIDIA/cccl/issues/100, this API is considered deprecated
-(though yet unofficially).
-
-Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
-can skip non-essential synchronization as the caller will explicitly synchronize with the device
-or stream before accessing the results.
-
-More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
-
-The device algorithms of CUB are (implicitly) asynchronous but, unlike Thrust, these do not return
-anything waitable and require explicit synchronization with the device. There are notably more
-`cub::Device*` algorithms than those in `thrust::async`.
-
-### oneDPL experimental asynchronous algorithms
-
-As mentioned before, [the asynchronous algorithms](https://oneapi-src.github.io/oneDPL/parallel_api/async_api.html)
-in oneDPL are intended to allow the underlying SYCL implementation proceed without blocking
-the calling thread. These functions return a future that can be used to synchronize and obtain
-the computed value at a later time. The functions can also accept a list of `sycl::event` objects
-as *input dependencies* (though the implementation has not advanced beyond immediate wait on these events).
-The `wait_for_all` function waits for completion of a given list of events or futures.
-
-The second goal of this API was to allow functional mapping for `thrust::async` algorithms,
-facilitating support for SYCL in applications that use Thrust.
-
-### oneDPL experimental API for kernel templates
-
-TBD
+However, after studying the topic we decided not to proceed with it now.
 
 ## Reasons for archival
 
-TBD
+We have concluded that it would be premature to make the oneDPL asynchronous algorithms fully supported.
+The major concerns are:
+- All known use cases for these algorithms are SYCL based. There is therefore not much practical motivation
+  for a general solution, while some SYCL specific API, such as oneDPL [kernel templates](
+  https://uxlfoundation.github.io/oneDPL/kernel_templates_main.html), can potentially better serve the needs.
+- In many practical usages we observed the pattern of [synchronization with a queue or a device](#2-synchronize-with-a-work-queue).
+  It might be addressed in a simpler and more extendable way with deferred waiting hints similar to
+  [`par_nosync` policy in Thrust](#thrust-and-cub).
+- The C++ community starts shifting from [future-based asynchronous APIs](#c-async--future) to the
+  [schedulers and senders](#c26-execution-control-library) based approach. For example, Nvidia actively
+  develops the experimental [stdexec library](https://github.com/NVIDIA/stdexec) while it considers
+  deprecating the [asynchronous algorithms in Thrust](#thrust-and-cub).
 
-## Backup: The use case study
+So it seems better to explore alternative ways to address the use cases for asynchronous execution,
+as well as algorithms based on C++ 26 schedulers and senders. That eliminates the motivation for
+designing a unified generic approach for asynchrony in oneDPL.
+
+The rest of the document contains additional information as well as useful links.
+
+## Use case study
 
 In the practical use of the oneDPL asynchronous APIs as well as similar APIs of other libraries
 (such as Thrust) we observed several typical patterns, pseudocode examples of which follow.
@@ -154,7 +136,7 @@ for (work-queue q in qs) {
 /* combine the results, if needed */
 ```
 
-### Out of the scope (non-goals)
+### Out of scope
 
 There is no intention to support asynchronous computations in general nor use cases beyond the functionality
 of oneDPL, such as dependencies between any asynchronously executed functions. There exist other libraries
@@ -166,7 +148,41 @@ to preserve this capability; however, we have no evidence of it being used in pr
 the usage of Thrust asynchronous algorithms have not found examples of dependency chains. Therefore,
 support for this use case is not a requirement.
 
-## Backup: Asynchrony support in the C++ standard
+## Additional context
+
+### Thrust and CUB
+
+The Thrust library from Nvidia uses two approaches for its asynchronous algorithms.
+Both approaches are implemented for the CUDA backend only.
+
+First, it has a small set of explicitly asynchronous algorithms in `namespace thrust::async`
+that return an event or a *future* to later synchronize with. However, this API have not much evolved
+since introduction, are not well documented, and, according to https://github.com/NVIDIA/cccl/issues/100,
+it is considered deprecated since at least 2023 (though yet unofficially).
+
+Second, Thrust has a special `par_nosync` execution policy that indicates that the implementation
+can skip non-essential synchronization as the caller will explicitly synchronize with the device
+or stream before accessing the results.
+
+More information can be found in the [Thrust changelog](https://nvidia.github.io/cccl/thrust/releases/changelog.html).
+
+The [device algorithms in CUB](https://nvidia.github.io/cccl/cub/developer_overview.html#device-scope) are
+implicitly asynchronous. Unlike Thrust, these do not return any waitable and require synchronization
+with the device. There are notably more `cub::Device*` algorithms than those in `thrust::async`.
+
+### oneDPL experimental asynchronous algorithms
+
+As mentioned before, [the asynchronous algorithms](https://oneapi-src.github.io/oneDPL/parallel_api/async_api.html)
+in oneDPL are intended to allow the underlying SYCL implementation proceed without blocking
+the calling thread. These functions return a future that can be used to synchronize and obtain
+the computed value at a later time. The functions can also accept a list of `sycl::event` objects
+as *input dependencies* (though the implementation has not advanced beyond immediate wait on these events).
+The `wait_for_all` function waits for completion of a given list of events or futures.
+
+The second goal of this API was to allow functional mapping for `thrust::async` algorithms,
+facilitating support for SYCL in applications that use Thrust.
+
+So far, we know of only a few projects that use these algorithms.
 
 ### C++ async & future
 
@@ -193,7 +209,7 @@ The stages of creating and executing a graph of computations are separate; the e
 be started explicitly by one of a few dedicated calls. Therefore the approach appears more
 suitable for deferred execution, while eager execution would be at least more verbose to code.
 
-Some companion proposals, notably for [async_scope](https://wg21.link/p3149) and [system execution
-context](https://wg21.link/p2079), are yet to be accepted to the working draft. The proposal for
-adding [asynchronous parallel algorithms](https://wg21.link/p3300) is at a very early stage and
-is not planned for C++ 26.
+Some companion proposals, notably for [async_scope](https://wg21.link/p3149) and
+[system execution context](https://wg21.link/p2079), are yet to be accepted to the working draft
+as of now. The proposal for adding [asynchronous parallel algorithms](https://wg21.link/p3300) is
+at a very early stage and is not planned for C++ 26.
