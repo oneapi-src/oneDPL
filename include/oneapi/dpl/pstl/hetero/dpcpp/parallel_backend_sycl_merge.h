@@ -319,17 +319,14 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     auto __base_diagonals_sp_global_ptr =
                         _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    _split_point_t<_IdType> __sp =
-                        __global_idx == 0 ? _split_point_t<_IdType>{0, 0} : _split_point_t<_IdType>{__n1, __n2};
+                    const _IdType __i_elem = __global_idx * __base_diag_chunk;
 
-                    if (0 < __global_idx && __global_idx < __nd_range_params.base_diag_count)
-                    {
-                        const _IdType __i_elem = __global_idx * __base_diag_chunk;
-                        if (__i_elem < __n)
-                            __sp = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
-                    }
-
-                    __base_diagonals_sp_global_ptr[__global_idx] = __sp;
+                    __base_diagonals_sp_global_ptr[__global_idx] =
+                        __i_elem == 0 
+                        ? _split_point_t<_IdType>{0, 0}
+                        : __i_elem < __n 
+                            ? __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp)
+                            : _split_point_t<_IdType>{__n1, __n2};
                 });
         });
     }
