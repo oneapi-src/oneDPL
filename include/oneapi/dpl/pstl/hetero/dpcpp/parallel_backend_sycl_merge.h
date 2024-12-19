@@ -270,7 +270,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         _IdType steps = 0;
     };
 
-    // Calculate nd-range params
+    // Calculate nd-range parameters
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
     nd_range_params
     eval_nd_range_params(_ExecutionPolicy&& __exec, const _Range1& __rng1, const _Range2& __rng2) const
@@ -391,7 +391,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        // Calculate nd-range params
+        // Calculate nd-range parameters
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
 
         // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
