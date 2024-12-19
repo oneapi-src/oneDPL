@@ -394,7 +394,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         // Calculate nd-range parameters
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
 
-        // Create storage for save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+        // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         auto __p_base_diagonals_sp_global_storage =
             new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(
                 __exec, 0, __nd_range_params.base_diag_count + 1);
