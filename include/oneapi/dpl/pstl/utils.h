@@ -785,11 +785,12 @@ union __lazy_ctor_storage
     }
 };
 
-// Utility to explicitly call the destructor of __lazy_ctor_storage as a callback functor 
+// Utility to explicitly call the destructor of __lazy_ctor_storage as a callback functor
 struct __lazy_ctor_storage_deleter
 {
     template <typename _Tp>
-    void operator()(__lazy_ctor_storage<_Tp> __storage) const
+    void
+    operator()(__lazy_ctor_storage<_Tp> __storage) const
     {
         __storage.__destroy();
     }

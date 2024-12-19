@@ -89,8 +89,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
     // device.
     static inline std::tuple<std::size_t, std::size_t, bool>
     __stride_recommender(const sycl::nd_item<1>& __item, std::size_t __count, std::size_t __iters_per_work_item,
-                         std::size_t __adj_elements_per_work_item,
-                         std::size_t __work_group_size)
+                         std::size_t __adj_elements_per_work_item, std::size_t __work_group_size)
     {
         if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
         {
@@ -101,20 +100,27 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             const std::size_t __work_group_id = __item.get_group().get_group_linear_id();
 
             const std::size_t __sub_group_start_idx =
-                __iters_per_work_item * __adj_elements_per_work_item * (__work_group_id * __work_group_size + __sub_group_size * __sub_group_id);
+                __iters_per_work_item * __adj_elements_per_work_item *
+                (__work_group_id * __work_group_size + __sub_group_size * __sub_group_id);
             const bool __is_full_sub_group =
-                __sub_group_start_idx + __iters_per_work_item * __adj_elements_per_work_item * __sub_group_size <= __count;
-            const std::size_t __work_item_idx = __sub_group_start_idx + __adj_elements_per_work_item * __sub_group_local_id;
-            return std::make_tuple(__work_item_idx, __adj_elements_per_work_item * __sub_group_size, __is_full_sub_group);
+                __sub_group_start_idx + __iters_per_work_item * __adj_elements_per_work_item * __sub_group_size <=
+                __count;
+            const std::size_t __work_item_idx =
+                __sub_group_start_idx + __adj_elements_per_work_item * __sub_group_local_id;
+            return std::make_tuple(__work_item_idx, __adj_elements_per_work_item * __sub_group_size,
+                                   __is_full_sub_group);
         }
         else
         {
-            const std::size_t __work_group_start_idx =
-                __item.get_group().get_group_linear_id() * __work_group_size * __iters_per_work_item * __adj_elements_per_work_item;
-            const std::size_t __work_item_idx = __work_group_start_idx + __item.get_local_linear_id() * __adj_elements_per_work_item;
+            const std::size_t __work_group_start_idx = __item.get_group().get_group_linear_id() * __work_group_size *
+                                                       __iters_per_work_item * __adj_elements_per_work_item;
+            const std::size_t __work_item_idx =
+                __work_group_start_idx + __item.get_local_linear_id() * __adj_elements_per_work_item;
             const bool __is_full_work_group =
-                __work_group_start_idx + __iters_per_work_item * __work_group_size * __adj_elements_per_work_item <= __count;
-            return std::make_tuple(__work_item_idx, __work_group_size * __adj_elements_per_work_item, __is_full_work_group);
+                __work_group_start_idx + __iters_per_work_item * __work_group_size * __adj_elements_per_work_item <=
+                __count;
+            return std::make_tuple(__work_item_idx, __work_group_size * __adj_elements_per_work_item,
+                                   __is_full_work_group);
         }
     }
 
