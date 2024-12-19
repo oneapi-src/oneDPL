@@ -97,24 +97,18 @@ struct test_merge_compare
     }
 };
 
-template <typename T, typename Generator1, typename Generator2>
+template <typename T, typename Generator1, typename Generator2, typename FStep>
 void
-test_merge_by_type(Generator1 generator1, Generator2 generator2)
+test_merge_by_type(Generator1 generator1, Generator2 generator2, size_t start_size, size_t max_size, FStep fstep)
 {
     using namespace std;
-    size_t max_size = 100000;
     Sequence<T> in1(max_size, generator1);
     Sequence<T> in2(max_size / 2, generator2);
     Sequence<T> out(in1.size() + in2.size());
     ::std::sort(in1.begin(), in1.end());
     ::std::sort(in2.begin(), in2.end());
 
-    size_t start_size = 0;
-#if TEST_DPCPP_BACKEND_PRESENT
-    start_size = 2;
-#endif
-
-    for (size_t size = start_size; size <= max_size; size = size <= 16 ? size + 1 : size_t(3.1415 * size)) {
+    for (size_t size = start_size; size <= max_size; size = fstep(size)) {
 #if !TEST_DPCPP_BACKEND_PRESENT
         invoke_on_all_policies<0>()(test_merge<T>(),  in1.cbegin(), in1.cbegin() + size,  in2.data(),
                                     in2.data() + size / 2, out.begin(), out.begin() + 1.5 * size);
@@ -137,6 +131,16 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
                                     in2.cbegin() + size / 2, out.begin(), out.begin() + 3 * size / 2, ::std::less<T>());
 #endif
     }
+}
+
+template <typename FStep>
+void
+test_merge_by_type(size_t start_size, size_t max_size, FStep fstep)
+{
+    test_merge_by_type<std::int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; }, [](size_t v) { return v * 2; }, start_size, max_size, fstep);
+#if !ONEDPL_FPGA_DEVICE
+    test_merge_by_type<float64_t>([](size_t v) { return float64_t(v); }, [](size_t v) { return float64_t(v - 100); }, start_size, max_size, fstep);
+#endif
 }
 
 template <typename T>
@@ -166,9 +170,24 @@ struct test_merge_tuple
 int
 main()
 {
-    test_merge_by_type<std::int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; }, [](size_t v) { return v * 2; });
-#if !ONEDPL_FPGA_DEVICE
-    test_merge_by_type<float64_t>([](size_t v) { return float64_t(v); }, [](size_t v) { return float64_t(v - 100); });
+#if TEST_DPCPP_BACKEND_PRESENT
+    const size_t start_size_small = 2;
+#else
+    const size_t start_size_small = 0;
+#endif
+    const size_t max_size_small = 100000;
+    auto fstep_small = [](std::size_t size){ return size <= 16 ? size + 1 : size_t(3.1415 * size);};
+    test_merge_by_type(start_size_small, max_size_small, fstep_small);
+
+    // Large data sizes (on GPU only)
+#if TEST_DPCPP_BACKEND_PRESENT
+    if (!TestUtils::get_test_queue().get_device().is_cpu())
+    {
+        const size_t start_size_large = 4'000'000;
+        const size_t max_size_large = 8'000'000;
+        auto fstep_large = [](std::size_t size){ return size + 2'000'000; };
+        test_merge_by_type(start_size_large, max_size_large, fstep_large);
+    }
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
