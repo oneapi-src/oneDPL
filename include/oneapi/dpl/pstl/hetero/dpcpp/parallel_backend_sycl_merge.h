@@ -261,7 +261,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
-  protected:
+  private:
     struct nd_range_params
     {
         std::size_t base_diag_count = 0;
