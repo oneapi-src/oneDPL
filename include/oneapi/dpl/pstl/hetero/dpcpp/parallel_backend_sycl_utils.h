@@ -518,6 +518,10 @@ struct __usm_or_buffer_accessor
     }
 };
 
+// This base class is provided to allow same-typed shared pointer return values from kernels in
+// a `__future` for keeping alive temporary data, while allowing run-time branches to lead to
+// differently typed temporary storage for kernels. Virtual destructor is required to call
+// derived class destructor when leaving scope.
 struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
