@@ -141,6 +141,13 @@ test_merge_by_type(size_t start_size, size_t max_size, FStep fstep)
 #if !ONEDPL_FPGA_DEVICE
     test_merge_by_type<float64_t>([](size_t v) { return float64_t(v); }, [](size_t v) { return float64_t(v - 100); }, start_size, max_size, fstep);
 #endif
+
+#if !TEST_DPCPP_BACKEND_PRESENT
+    // Wrapper has atomic increment in ctor. It's not allowed in kernel
+    test_merge_by_type<Wrapper<std::int16_t>>([](size_t v) { return Wrapper<std::int16_t>(v % 100); },
+                                              [](size_t v) { return Wrapper<std::int16_t>(v % 10); },
+                                              start_size, max_size, fstep);
+#endif
 }
 
 template <typename T>
@@ -191,11 +198,9 @@ main()
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    // Wrapper has atomic increment in ctor. It's not allowed in kernel
-    test_merge_by_type<Wrapper<std::int16_t>>([](size_t v) { return Wrapper<std::int16_t>(v % 100); },
-                                         [](size_t v) { return Wrapper<std::int16_t>(v % 10); });
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 #endif
+
 
     using T = std::tuple<std::int32_t, std::int32_t>; //a pair (key, value)
     std::vector<T> a = { {1, 2}, {1, 2}, {1,2}, {1,2}, {1, 2}, {1, 2} };
