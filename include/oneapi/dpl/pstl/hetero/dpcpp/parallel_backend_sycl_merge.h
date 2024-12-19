@@ -399,7 +399,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(
                 __exec, 0, __nd_range_params.base_diag_count + 1);
 
-        // Save raw-pointer into shared_ptr for return it in __future to extend life-time of the storage
+        // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
             static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
