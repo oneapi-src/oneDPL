@@ -286,6 +286,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+        // TODO required to evaluate this value besed on available SLM size for each work-group.
         const _IdType __base_diag_count = 32 * 1'024;
         const _IdType __steps_between_two_base_diags =
             oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
