@@ -323,11 +323,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const _IdType __i_elem = __global_idx * __base_diag_chunk;
 
                     __base_diagonals_sp_global_ptr[__global_idx] =
-                        __i_elem == 0 
-                        ? _split_point_t<_IdType>{0, 0}
-                        : __i_elem < __n 
-                            ? __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp)
-                            : _split_point_t<_IdType>{__n1, __n2};
+                        __i_elem == 0
+                            ? _split_point_t<_IdType>{0, 0}
+                            : (__i_elem < __n ? __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp)
+                                              : _split_point_t<_IdType>{__n1, __n2});
                 });
         });
     }
