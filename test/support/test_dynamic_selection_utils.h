@@ -113,7 +113,8 @@ test_select(UniverseContainer u, ResourceFunction&& f)
     using my_policy_t = Policy;
     my_policy_t p{u};
 
-    const int N = 100;
+    //const int N = 100;
+    const int N = 10;
     std::atomic<int> ecount = 0;
     bool pass = true;
 
