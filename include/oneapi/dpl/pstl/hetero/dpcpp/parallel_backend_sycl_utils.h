@@ -522,7 +522,6 @@ struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
 };
-using __result_and_scratch_storage_base_ptr = std::shared_ptr<__result_and_scratch_storage_base>;
 
 template <typename _ExecutionPolicy, typename _T>
 struct __result_and_scratch_storage : __result_and_scratch_storage_base

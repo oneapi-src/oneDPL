@@ -249,7 +249,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
             });
         // We should return the same thing in the second param of __future for compatibility
         // with the returning value in __parallel_merge_submitter_large::operator()
-        return __future(__event, __result_and_scratch_storage_base_ptr{});
+        return __future(__event, std::shared_ptr<__result_and_scratch_storage_base>{});
     }
 };
 
@@ -400,7 +400,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                 __exec, 0, __nd_range_params.base_diag_count + 1);
 
         // Save raw-pointer into shared_ptr for return it in __future to extend life-time of the storage
-        __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base(
+        std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
             static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
         // Find split-points on the base diagonals
