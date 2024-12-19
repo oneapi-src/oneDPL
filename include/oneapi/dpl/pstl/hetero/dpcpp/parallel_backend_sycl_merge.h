@@ -402,10 +402,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         __result_and_scratch_storage_base_ptr __p_result_and_scratch_storage_base(
             static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
+        // Find split-points on the base diagonals
         sycl::event __event = eval_split_points_for_groups(__exec, __rng1, __rng2, __comp, __nd_range_params,
                                                            *__p_base_diagonals_sp_global_storage);
 
-        // Merge data using split points on each base diagonal
+        // Merge data using split points on each diagonal
         __event = run_parallel_merge(__event, __exec, __rng1, __rng2, __rng3, __comp, __nd_range_params,
                                      *__p_base_diagonals_sp_global_storage);
 
