@@ -435,7 +435,7 @@ template <>
 constexpr std::size_t
 __get_starting_size_limit_for_large_submitter<int>()
 {
-    return 16 * 1'048'576; // 8 MB
+    return 16 * 1'048'576; // 16 MB
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
