@@ -11,8 +11,8 @@ parallel algorithms, which oneDPL follows, does not assume asynchronous executio
 thread can only return when the algorithm finishes (for details, see [algorithms.parallel.exec]
 section of the C++ standard).
 
-To address this demand, [oneDPL experimental asynchronous algorithms] have been added
-that do not block the calling thread. Then oneDPL added the experimental functionality for
+To address this demand, [experimental asynchronous algorithms](#onedpl-experimental-asynchronous-algorithms)
+have been added that do not block the calling thread. Then oneDPL added the experimental functionality for
 [dynamic selection](https://uxlfoundation.github.io/oneDPL/dynamic_selection_api_main.html) that also
 allows starting asynchronous work and waiting for its completion later.
 
