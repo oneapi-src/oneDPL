@@ -165,11 +165,11 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _MergeKernelName>
+template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
 
-template <typename _IdType, typename... _MergeKernelName>
-struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_MergeKernelName...>>
+template <typename _IdType, typename... _Name>
+struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -191,8 +191,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
         auto __event = __exec.queue().submit(
             [&__rng1, &__rng2, &__rng3, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-                __cgh.parallel_for<_MergeKernelName...>(
-                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+                __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __start =
                             __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
