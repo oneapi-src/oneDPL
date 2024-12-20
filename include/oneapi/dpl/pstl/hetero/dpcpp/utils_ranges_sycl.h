@@ -169,7 +169,7 @@ inline constexpr all_host_view_fn
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
 #else
-#     error "sycl::host_accessor is not supported, and no alternative is available"
+#    error "sycl::host_accessor is not supported, and no alternative is available"
 #endif
     host_all;
 } // namespace views

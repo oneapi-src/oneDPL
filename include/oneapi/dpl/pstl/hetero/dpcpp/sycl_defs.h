@@ -172,7 +172,7 @@ template <typename _T>
 using __minimum = sycl::ONEAPI::minimum<_T>;
 
 #else
-#   error "sycl::plus, sycl::maximum, sycl::minimum are not supported, and no alternative is available"
+#    error "sycl::plus, sycl::maximum, sycl::minimum are not supported, and no alternative is available"
 #endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 
 #if _ONEDPL_SYCL2020_SUB_GROUP_PRESENT
