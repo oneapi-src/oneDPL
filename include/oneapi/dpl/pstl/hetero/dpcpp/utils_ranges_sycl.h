@@ -168,6 +168,8 @@ inline constexpr all_host_view_fn
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
+#else
+#     error "sycl::host_accessor is not supported, and no alternative is available"
 #endif
     host_all;
 } // namespace views
