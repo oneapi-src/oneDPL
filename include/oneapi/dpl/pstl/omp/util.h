@@ -153,6 +153,47 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
+template <typename _StorageType>
+struct __thread_enumerable_storage
+{
+    template <typename... Args>
+    __thread_enumerable_storage(Args&&... args)
+    {
+        _PSTL_PRAGMA(omp parallel)
+        _PSTL_PRAGMA(omp single nowait)
+        {
+            __num_threads = omp_get_num_threads();
+            __thread_specific_storage.resize(__num_threads);
+            _PSTL_PRAGMA(omp taskloop shared(__thread_specific_storage))
+            for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
+            {
+                __thread_specific_storage[__tid] = std::make_unique<_StorageType>(std::forward<Args>(args)...);
+            }
+        }
+    }
+
+    std::size_t
+    size() const
+    {
+        return __num_threads;
+    }
+
+    _StorageType&
+    get_with_id(std::size_t __i)
+    {
+        return *__thread_specific_storage[__i];
+    }
+
+    _StorageType&
+    get()
+    {
+        return get_with_id(omp_get_thread_num());
+    }
+
+    std::vector<std::unique_ptr<_StorageType>> __thread_specific_storage;
+    std::size_t __num_threads;
+};
+
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
