@@ -337,8 +337,8 @@ protected:
     eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, _IndexT __n_sorted) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
-        const std::uint32_t __chunk = __is_cpu ? 32 : 4;
-        const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
+        const _IndexT __chunk = __is_cpu ? 32 : 4;
+        const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
         // TODO required to evaluate this value based on available SLM size for each work-group.
         _IndexT __base_diag_count = 32 * 1'024;     // 32 Kb
