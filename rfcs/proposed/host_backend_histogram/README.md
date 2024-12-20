@@ -133,25 +133,22 @@ cases which are important, and provides reasonable performance for most cases.
 This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
 `histogram`.
 
-Create a generic `__thread_enumerable_storage` struct which will be defined by all parallel backends, which provides
+For this algorithm, each parallel backend will add a  `__thread_enumerable_storage<_StoredType>` struct which provides
 the following:
-* constructor which specifies the storage to be held per thread and a method to initialize it
-* `get()` returns an iterator to the beginning of the current thread's temporary vector
-* `get_with_id(int i)` returns an iterator to the beginning of temporary vector with index provided
-* `size()` returns number of temporary arrays
+* constructor which takes a variadic list of args to pass to the constructor of each thread's object
+* `get()` returns reference to the current threads stored object
+* `get_with_id(int i)` returns reference to the stored object for an index
+* `size()` returns number of stored objects
 
-1) Determine the number of threads that we will use locally
-2) In parallel, create and initialize temporary data for the number of threads copies of the histogram output sequence.
-3) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
-   its own copy of the output sequence using the temporary storage to remove any race conditions.
-4) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
-   histogram into the output histogram sequence. This step is also embarrassingly parallel.
-5) Deallocate temporary storage.
+In the TBB backend, this will use `enumerable_thread_specific` internally.  For OpenMP, this will either pre-allocate
+and initialize an object for each possible thread in parallel, or build functionality similar to
+`enumerable_thread_specific` which will create storage on demand upon first use within a thread. This will be determined
+within the histogram PR. The serial backend will merely create a single copy of the temporary object for use.
 
-#### TBB
-For TBB, we can do something similar, but we can use `enumerable_thread_specific` and its member function, `local()` to
-provide a lazy allocation of thread local management, which does not require querying the number of threads or getting
-the index. This allows us to operate in a composable manner while keeping the same conceptual implementation.
-1) Embarrassingly parallel accumulation to thread local storage
-2) Embarrassingly parallel aggregate to output data
+With this new structure we will use the following algorithm:
+
+1) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
+   its own temporary histogram returned by `__thread_enumerable_storage`.
+2) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
+   histogram created within `__thread_enumerable_storage` into the output histogram sequence.
 
