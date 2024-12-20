@@ -106,6 +106,8 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
+#else
+#    error "sycl::reqd_sub_group_size is not supported, and no alternative is available"
 #endif
 
 // This macro is intended to be used for specifying a subgroup size as a SYCL kernel attribute for SPIR-V targets
@@ -125,6 +127,8 @@ using __no_init =
     sycl::property::no_init;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     sycl::property::noinit;
+#else
+#    error "sycl::property::no_init is not supported, and no alternative is available"
 #endif
 
 #if _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
@@ -140,6 +144,9 @@ using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
 
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
+
+#else
+#    error "sycl::__known_identity is not supported, and no alternative is available"
 #endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 
 template <typename _BinaryOp, typename _T>
@@ -163,12 +170,17 @@ using __maximum = sycl::ONEAPI::maximum<_T>;
 
 template <typename _T>
 using __minimum = sycl::ONEAPI::minimum<_T>;
+
+#else
+#   error "sycl::plus, sycl::maximum, sycl::minimum are not supported, and no alternative is available"
 #endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 
 #if _ONEDPL_SYCL2020_SUB_GROUP_PRESENT
 using __sub_group = sycl::sub_group;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50700)
 using __sub_group = sycl::ONEAPI::sub_group;
+#else
+#    error "sycl::group is not supported, and no alternative is available"
 #endif
 
 template <typename _Buffer>
@@ -179,6 +191,8 @@ __get_buffer_size(const _Buffer& __buffer)
     return __buffer.size();
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     return __buffer.get_count();
+#else
+#    error "buffer::size is not supported, and no alternative is available"
 #endif
 }
 
@@ -190,6 +204,8 @@ __get_accessor_size(const _Accessor& __accessor)
     return __accessor.size();
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300)
     return __accessor.get_count();
+#else
+#    error "accessor::size is not supported, and no alternative is available"
 #endif
 }
 
@@ -215,6 +231,8 @@ __group_broadcast(_Args... __args)
     return sycl::group_broadcast(__args...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::broadcast(__args...);
+#else
+#    error "sycl::group_broadcast is not supported, and no alternative is available"
 #endif
 }
 
@@ -226,6 +244,8 @@ __exclusive_scan_over_group(_Args... __args)
     return sycl::exclusive_scan_over_group(__args...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::exclusive_scan(__args...);
+#else
+#    error "sycl::exclusive_scan_over_group is not supported, and no alternative is available"
 #endif
 }
 
@@ -237,6 +257,8 @@ __inclusive_scan_over_group(_Args... __args)
     return sycl::inclusive_scan_over_group(__args...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::inclusive_scan(__args...);
+#else
+#    error "sycl::inclusive_scan_over_group is not supported, and no alternative is available"
 #endif
 }
 
@@ -248,6 +270,8 @@ __reduce_over_group(_Args... __args)
     return sycl::reduce_over_group(__args...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::reduce(__args...);
+#else
+#    error "sycl::reduce_over_group is not supported, and no alternative is available"
 #endif
 }
 
@@ -259,6 +283,8 @@ __any_of_group(_Args&&... __args)
     return sycl::any_of_group(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::any_of_group is not supported, and no alternative is available"
 #endif
 }
 
@@ -270,6 +296,8 @@ __all_of_group(_Args&&... __args)
     return sycl::all_of_group(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::all_of_group is not supported, and no alternative is available"
 #endif
 }
 
@@ -281,6 +309,8 @@ __none_of_group(_Args&&... __args)
     return sycl::none_of_group(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::none_of is not supported, and no alternative is available"
 #endif
 }
 
@@ -292,6 +322,8 @@ __joint_exclusive_scan(_Args&&... __args)
     return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_exclusive_scan is not supported, and no alternative is available"
 #endif
 }
 
@@ -303,6 +335,8 @@ __joint_inclusive_scan(_Args&&... __args)
     return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_inclusive_scan is not supported, and no alternative is available"
 #endif
 }
 
@@ -314,6 +348,8 @@ __joint_reduce(_Args&&... __args)
     return sycl::joint_reduce(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::reduce(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_reduce is not supported, and no alternative is available"
 #endif
 }
 
@@ -325,6 +361,8 @@ __joint_any_of(_Args&&... __args)
     return sycl::joint_any_of(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_any_of is not supported, and no alternative is available"
 #endif
 }
 
@@ -336,6 +374,8 @@ __joint_all_of(_Args&&... __args)
     return sycl::joint_all_of(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_all_of is not supported, and no alternative is available"
 #endif
 }
 
@@ -347,6 +387,8 @@ __joint_none_of(_Args&&... __args)
     return sycl::joint_none_of(::std::forward<_Args>(__args)...);
 #elif _ONEDPL_LIBSYCL_COLLECTIVES_PRESENT
     return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+#else
+#    error "sycl::joint_none_of is not supported, and no alternative is available"
 #endif
 }
 
@@ -387,6 +429,8 @@ using __target =
     sycl::target;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400)
     sycl::access::target;
+#else
+#    error "sycl::target is not supported, and no alternative is available"
 #endif
 
 constexpr __target __target_device =
@@ -394,6 +438,8 @@ constexpr __target __target_device =
     __target::device;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400)
     __target::global_buffer;
+#else
+#    error "sycl::target::device is not supported, and no alternative is available"
 #endif
 
 constexpr __target __host_target =
@@ -401,6 +447,8 @@ constexpr __target __host_target =
     __target::host_task;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
     __target::host_buffer;
+#else
+#    error "sycl::target::host_task is not supported, and no alternative is available"
 #endif
 
 template <typename _DataT>
@@ -409,6 +457,8 @@ using __buffer_allocator =
     sycl::buffer_allocator<_DataT>;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000)
     sycl::buffer_allocator;
+#else
+#    error "sycl::buffer_allocator is not supported, and no alternative is available"
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
@@ -420,6 +470,8 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
     explicit __atomic_ref(_AtomicType& ref)
         : sycl::atomic<_AtomicType, _Space>(sycl::multi_ptr<_AtomicType, _Space>(&ref)){};
 };
+#else
+#    error "sycl::atomic_ref is not supported, and no alternative is available"
 #endif // _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT
 
 template <typename _DataT, int _Dimensions = 1>
@@ -428,6 +480,8 @@ using __local_accessor =
     sycl::local_accessor<_DataT, _Dimensions>;
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000)
     sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
+#else
+#    error "sycl::local_accessor is not supported, and no alternative is available"
 #endif
 
 template <typename _Buf>
@@ -438,6 +492,8 @@ __get_host_access(_Buf&& __buf)
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200)
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#else
+#    error "sycl::buffer::get_host_access is not supported, and no alternative is available"
 #endif
 }
 
@@ -449,6 +505,8 @@ __get_accessor_ptr(const _Acc& __acc)
     return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
 #elif _ONEDPL_LIBSYCL_VERSION_LESS_THAN(70000)
     return __acc.get_pointer();
+#else
+#    error "sycl::accessor::get_multi_ptr is not supported, and no alternative is available"
 #endif
 }
 
