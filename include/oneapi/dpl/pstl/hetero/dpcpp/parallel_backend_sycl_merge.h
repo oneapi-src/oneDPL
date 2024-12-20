@@ -196,8 +196,8 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __start =
                             __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
-                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
-                                       __n2, __comp);
+                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                                       __comp);
                     });
             });
         // We should return the same thing in the second param of __future for compatibility
