@@ -32,7 +32,7 @@ We want to minimize adding requirements for parallel backends to implement, and 
 algorithm implementation level. We should be able to avoid adding a `__parallel_histogram` call in the individual
 backends, and instead rely upon `__parallel_for`.
 
-### unseq Backend
+### SIMD/openMP SIMD Implementation
 Currently oneDPL relies upon openMP SIMD to provide its vectorization, which is designed to provide vectorization across
 loop iterations. OneDPL does not directly use any intrinsics which may offer more complex functionality than what is
 provided by OpenMP.
