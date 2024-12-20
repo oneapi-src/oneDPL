@@ -1,12 +1,15 @@
 # Host Backends Support for the Histogram APIs
 
 ## Introduction
-The oneDPL library added histogram APIs, currently implemented only for device policies with the DPC++ backend. These APIs are defined in the oneAPI Specification 1.4. Please see the
+The oneDPL library added histogram APIs, currently implemented only for device policies with the DPC++ backend. These
+APIs are defined in the oneAPI Specification 1.4. Please see the
 [oneAPI Specification](https://github.com/uxlfoundation/oneAPI-spec/blob/main/source/elements/oneDPL/source/parallel_api/algorithms.rst#parallel-algorithms)
-for the details. The host-side backends (serial, TBB, OpenMP) are not yet supported. This RFC proposes extending histogram support to these backends.
+for the details. The host-side backends (serial, TBB, OpenMP) are not yet supported. This RFC proposes extending
+histogram support to these backends.
 
 ## Motivations
-There are many cases to use a host-side serial or a host-side implementation of histogram. Another motivation for adding the support is simply to be spec compliant with the oneAPI specification.
+There are many cases to use a host-side serial or a host-side implementation of histogram. Another motivation for adding
+the support is simply to be spec compliant with the oneAPI specification.
 
 ## Design Considerations
 
@@ -139,10 +142,9 @@ the following:
 * `get_with_id(int i)` returns reference to the stored object for an index
 * `size()` returns number of stored objects
 
-In the TBB backend, this will use `enumerable_thread_specific` internally.  For OpenMP, this will either pre-allocate
-and initialize an object for each possible thread in parallel, or build functionality similar to
-`enumerable_thread_specific` which will create storage on demand upon first use within a thread. This will be determined
-within the histogram PR. The serial backend will merely create a single copy of the temporary object for use.
+In the TBB backend, this will use `enumerable_thread_specific` internally.  For OpenMP, this will pre-allocate
+and initialize an object for each possible thread in parallel. The serial backend will merely create a single copy of
+the temporary object for use.
 
 With this new structure we will use the following algorithm:
 
