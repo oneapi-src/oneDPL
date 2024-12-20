@@ -121,9 +121,8 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     __it_t __diag_it_begin(idx1_from);
     __it_t __diag_it_end(idx1_to);
 
-    constexpr bool kValue = false;
     const __it_t __res =
-        std::lower_bound(__diag_it_begin, __diag_it_end, kValue,
+        std::lower_bound(__diag_it_begin, __diag_it_end, false,
                          [&__rng1, &__rng2, __index_sum, __comp](_Index __idx, const bool __value) mutable {
                              return __value == __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
                          });
