@@ -47,38 +47,6 @@ using _split_point_t = std::pair<_Index, _Index>;
 //   |             ---->
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
-auto
-__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_elem, const _Index __n1,
-                   const _Index __n2, _Compare __comp)
-{
-    //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
-    oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-
-    if (__i_elem < __n2) //a condition to specify upper or lower part of the merge matrix to be processed
-    {
-        const _Index __q = __i_elem;                         //diagonal index
-        const _Index __n_diag = std::min<_Index>(__q, __n1); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, false /*value to find*/,
-                             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const bool __value) mutable {
-                                 return __value ==  __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
-                             });
-        return std::make_pair(*__res, __q - *__res);
-    }
-    else
-    {
-        const _Index __q = __i_elem - __n2;                         //diagonal index
-        const _Index __n_diag = std::min<_Index>(__n1 - __q, __n2); //diagonal size
-        auto __res =
-            std::lower_bound(__diag_it, __diag_it + __n_diag, false /*value to find*/,
-                             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const bool __value) mutable {
-                                 return __value == __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
-                             });
-        return std::make_pair(__q + *__res, __n2 - *__res);
-    }
-}
-
-template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
 _split_point_t<_Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
                       const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
@@ -226,7 +194,8 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
                 __cgh.parallel_for<_MergeKernelName...>(
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                        const auto __start =
+                            __find_start_point_in(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
                         __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
                                        __n2, __comp);
                     });
@@ -307,10 +276,10 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     const _IdType __i_elem = __global_idx * __base_diag_chunk;
 
                     __base_diagonals_sp_global_ptr[__global_idx] =
-                        __i_elem == 0
-                            ? _split_point_t<_IdType>{0, 0}
-                            : (__i_elem < __n ? __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp)
-                                              : _split_point_t<_IdType>{__n1, __n2});
+                        __i_elem == 0 ? _split_point_t<_IdType>{0, 0}
+                                      : (__i_elem < __n ? __find_start_point_in(__rng1, _IdType{0}, __n1, __rng2,
+                                                                                _IdType{0}, __n2, __i_elem, __comp)
+                                                        : _split_point_t<_IdType>{__n1, __n2});
                 });
         });
     }
