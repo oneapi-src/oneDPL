@@ -47,12 +47,10 @@ struct __subgroup_bubble_sorter
         {
             for (std::uint32_t j = __start + 1; j < __start + __end - i; ++j)
             {
-                auto& __first_item = __storage_acc[j - 1];
-                auto& __second_item = __storage_acc[j];
-                if (__comp(__second_item, __first_item))
+                if (__comp(__storage_acc[j], __storage_acc[j - 1]))
                 {
                     using std::swap;
-                    swap(__first_item, __second_item);
+                    swap(__storage_acc[j - 1], __storage_acc[j]);
                 }
             }
         }
