@@ -28,10 +28,9 @@ There are no guidelines here from the standard library as this is an extension A
 footprint where possible.
 
 ### Code Reuse
-It is a priority to reuse as much as we can which already exists and has been reviewed within oneDPL. We want to
-minimize adding requirements for parallel backends to implement, and lift as much as possible to the algorithm
-implementation level. We should be able to avoid adding a `__parallel_histogram` call in the individual backends, and
-instead rely upon `__parallel_for`.
+We want to minimize adding requirements for parallel backends to implement, and lift as much as possible to the
+algorithm implementation level. We should be able to avoid adding a `__parallel_histogram` call in the individual
+backends, and instead rely upon `__parallel_for`.
 
 ### unseq Backend
 Currently oneDPL relies upon openMP SIMD to provide its vectorization, which is designed to provide vectorization across
