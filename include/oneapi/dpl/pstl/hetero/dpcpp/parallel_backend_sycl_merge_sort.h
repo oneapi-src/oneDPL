@@ -639,7 +639,7 @@ public:
             __data_in_temp = !__data_in_temp;
         }
 
-        return {__event_chain, __data_in_temp, std::move(__temp_sp_storages)};
+        return {std::move(__event_chain), __data_in_temp, std::move(__temp_sp_storages)};
     }
 };
 
