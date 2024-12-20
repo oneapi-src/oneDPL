@@ -137,11 +137,11 @@ __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rn
     //      X'3 : call __comp(rng1[7], rng2[1])             // 7 + 1 == 9 - 1 == 8
     //   - where for every comparing pairs idx(rng1) + idx(rng2) == i_diag - 1
 
+    using _IndexSigned = std::make_signed_t<_Index>;
+
     ////////////////////////////////////////////////////////////////////////////////////
     // Taking into account the specified constraints of the range of processed data
-    const auto __index_sum = __i_elem - 1;
-
-    using _IndexSigned = std::make_signed_t<_Index>;
+    const _IndexSigned __index_sum = __i_elem - 1;
 
     _IndexSigned idx1_from = __rng1_from;
     _IndexSigned idx1_to = __rng1_to;
