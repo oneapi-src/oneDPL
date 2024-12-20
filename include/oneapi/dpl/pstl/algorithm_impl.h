@@ -4342,6 +4342,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             oneapi::dpl::__internal::__make_thread_enumerable_storage(__num_bins, _HistogramValueT{0});
 
         //main histogram loop
+        //TODO: add defaulted grain-size option for __parallel_for and use larger one here to account for overhead
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                       [__func, &__thread_enumerable_storage](_RandomAccessIterator1 __first_local,
                                                                              _RandomAccessIterator1 __last_local) {
