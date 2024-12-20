@@ -78,18 +78,6 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, const _Index __i_el
     }
 }
 
-//Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
-//to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
-//     0   1  1  2   3
-//    ------------------
-//   |--->
-// 0 | 0 | 1  1  1   1
-//   |   |
-// 0 | 0 | 1  1  1   1
-//   |   ---------->
-// 2 | 0   0  0  0 | 1
-//   |             ---->
-// 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
 _split_point_t<_Index>
 __find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
