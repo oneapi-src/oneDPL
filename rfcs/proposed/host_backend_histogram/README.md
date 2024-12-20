@@ -44,7 +44,7 @@ each input has the same mathematical operations applied to each. However, for th
 uses a binary search through a list of bin boundaries to determine the selected bin. This operation will have a
 different length and control flow based upon each input element and will be very difficult to vectorize.
 
-Next, lets consider the increment operation itself. This operation increments a data dependant bin location, and may
+Next, lets consider the increment operation itself. This operation increments a data dependent bin location, and may
 result in conflicts between elements of the same vector. This increment operation therefore is unvectorizable without
 more complex handling. Some hardware does implement SIMD conflict detection via specific intrinsics, but this is not
 available via OpenMP SIMD. Alternatively, we can multiply our number of temporary histogram copies by a factor of the
