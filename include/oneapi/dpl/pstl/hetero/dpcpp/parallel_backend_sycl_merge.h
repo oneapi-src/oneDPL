@@ -122,10 +122,11 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     __it_t __diag_it_end(idx1_to);
 
     constexpr bool kValue = false;
-    const __it_t __res = std::lower_bound(__diag_it_begin, __diag_it_end, kValue,
-                                          [&__rng1, &__rng2, __index_sum, __comp](_Index __idx, const bool __value) mutable {
-                                              return __value == __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
-                                          });
+    const __it_t __res =
+        std::lower_bound(__diag_it_begin, __diag_it_end, kValue,
+                         [&__rng1, &__rng2, __index_sum, __comp](_Index __idx, const bool __value) mutable {
+                             return __value == __comp(__rng2[__index_sum - __idx], __rng1[__idx]);
+                         });
 
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
@@ -192,12 +193,12 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
             [&__rng1, &__rng2, &__rng3, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
                 __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto __start =
-                            __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
-                        __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
-                                       __comp);
-                    });
+                    const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                    const auto __start =
+                        __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
+                    __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                                   __comp);
+                });
             });
         // We should return the same thing in the second param of __future for compatibility
         // with the returning value in __parallel_merge_submitter_large::operator()
