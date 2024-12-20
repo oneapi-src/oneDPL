@@ -42,10 +42,11 @@ __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
-template <typename _ValueType>
+template <typename _StorageType>
 struct __thread_enumerable_storage
 {
-    __thread_enumerable_storage(std::size_t __num_bins, _ValueType __init_value) : __storage(__num_bins, __init_value)
+    template <typename... Args>
+    __thread_enumerable_storage(Args&&... args) : __storage(std::forward<Args>(args)...)
     {
     }
 
@@ -55,19 +56,19 @@ struct __thread_enumerable_storage
         return std::size_t{1};
     }
 
-    auto
+    _StorageType&
     get()
     {
-        return __storage.begin();
+        return __storage;
     }
 
-    auto
+    _StorageType&
     get_with_id(std::size_t __i)
     {
         return get();
     }
 
-    std::vector<_ValueType> __storage;
+    _StorageType __storage;
 };
 
 template <class _ExecutionPolicy, class _Index, class _Fp>

@@ -153,20 +153,21 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
-template <typename _ValueType>
+template <typename _StorageType>
 struct __thread_enumerable_storage
 {
-    __thread_enumerable_storage(std::size_t __num_bins, _ValueType __init_value)
+    template <typename... Args>
+    __thread_enumerable_storage(Args&&... args)
     {
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
             __num_threads = omp_get_num_threads();
             __thread_specific_storage.resize(__num_threads);
-            _PSTL_PRAGMA(omp taskloop shared(__thread_specific_storage, __num_bins, __init_value))
+            _PSTL_PRAGMA(omp taskloop shared(__thread_specific_storage))
             for (std::size_t __tid = 0; __tid < __num_threads; ++__tid)
             {
-                __thread_specific_storage[__tid].resize(__num_bins, __init_value);
+                __thread_specific_storage[__tid] = std::make_unique<_StorageType>(std::forward<Args>(args)...);
             }
         }
     }
@@ -177,19 +178,19 @@ struct __thread_enumerable_storage
         return __num_threads;
     }
 
-    auto
+    _StorageType&
     get_with_id(std::size_t __i)
     {
-        return __thread_specific_storage[__i].begin();
+        return *__thread_specific_storage[__i];
     }
 
-    auto
+    _StorageType&
     get()
     {
         return get_with_id(omp_get_thread_num());
     }
 
-    std::vector<std::vector<_ValueType>> __thread_specific_storage;
+    std::vector<std::unique_ptr<_StorageType>> __thread_specific_storage;
     std::size_t __num_threads;
 };
 
