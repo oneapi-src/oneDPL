@@ -19,7 +19,7 @@
 #include <iterator>
 #include <type_traits>
 #if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
-#   include <ranges> // std::ranges::contiguous_range
+#include <ranges> // std::ranges::contiguous_range
 #endif
 
 #include "../../utils_ranges.h"
