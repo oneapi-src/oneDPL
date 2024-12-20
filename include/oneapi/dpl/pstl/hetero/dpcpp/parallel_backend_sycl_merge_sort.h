@@ -359,7 +359,8 @@ protected:
     inline
     static _merge_split_point_t __find_start_point_w(const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp)
     {
-        return __find_start_point(__views.rng1, __views.rng2, __data_area.i_elem_local, __data_area.n1, __data_area.n2, __comp);
+        return __find_start_point(__views.rng1, decltype(__data_area.n1){0}, __data_area.n1, __views.rng2,
+                                  decltype(__data_area.n2){0}, __data_area.n2, __data_area.i_elem_local, __comp);
     }
 
     template <typename DropViews, typename _Rng, typename _Compare>
@@ -576,7 +577,7 @@ protected:
 
 public:
 
-    using __container_of_temp_storages_t = std::vector<__result_and_scratch_storage_base_ptr>;
+    using __container_of_temp_storages_t = std::vector<std::shared_ptr<__result_and_scratch_storage_base>>;
 
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
     std::tuple<sycl::event, bool, __container_of_temp_storages_t>
