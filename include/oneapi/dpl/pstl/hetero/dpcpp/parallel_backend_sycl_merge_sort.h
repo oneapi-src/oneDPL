@@ -236,7 +236,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                      __internal::__optional_kernel_name<_GlobalSortName1...>,
                                      __internal::__optional_kernel_name<_GlobalSortName2...>>
 {
-  protected:
+  private:
     using _merge_split_point_t = _split_point_t<_IndexT>;
 
     struct nd_range_params
