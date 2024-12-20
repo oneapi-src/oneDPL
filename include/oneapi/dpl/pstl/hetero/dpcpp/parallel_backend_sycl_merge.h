@@ -48,8 +48,8 @@ using _split_point_t = std::pair<_Index, _Index>;
 // 3 | 0   0  0  0   0 |
 template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
 _split_point_t<_Index>
-__find_start_point_in(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
-                      const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
+__find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_to, const _Rng2& __rng2,
+                   const _Index __rng2_from, _Index __rng2_to, const _Index __i_elem, _Compare __comp)
 {
     // ----------------------- EXAMPLE ------------------------
     // Let's consider the following input data:
@@ -195,7 +195,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_M
                     sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                         const auto __start =
-                            __find_start_point_in(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
+                            __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
                         __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1,
                                        __n2, __comp);
                     });
@@ -277,8 +277,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     __base_diagonals_sp_global_ptr[__global_idx] =
                         __i_elem == 0 ? _split_point_t<_IdType>{0, 0}
-                                      : (__i_elem < __n ? __find_start_point_in(__rng1, _IdType{0}, __n1, __rng2,
-                                                                                _IdType{0}, __n2, __i_elem, __comp)
+                                      : (__i_elem < __n ? __find_start_point(__rng1, _IdType{0}, __n1, __rng2,
+                                                                             _IdType{0}, __n2, __i_elem, __comp)
                                                         : _split_point_t<_IdType>{__n1, __n2});
                 });
         });
@@ -318,8 +318,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
                         const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
 
-                        __start = __find_start_point_in(__rng1, __sp_left.first, __sp_right.first, __rng2,
-                                                        __sp_left.second, __sp_right.second, __i_elem, __comp);
+                        __start = __find_start_point(__rng1, __sp_left.first, __sp_right.first, __rng2,
+                                                     __sp_left.second, __sp_right.second, __i_elem, __comp);
                     }
                     else
                     {
