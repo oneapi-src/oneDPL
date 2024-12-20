@@ -434,12 +434,9 @@ protected:
     }
 
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
-    static _merge_split_point_t
-    __find_or_eval_sp(const std::size_t __global_idx,
-                      const nd_range_params& __nd_range_params,
-                      const WorkDataArea& __data_area,
-                      const DropViews& __views,
-                      _Compare __comp,
+    inline static _merge_split_point_t
+    __find_or_eval_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
+                      const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
         _merge_split_point_t __result(0, 0);
