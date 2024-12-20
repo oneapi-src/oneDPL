@@ -1,21 +1,12 @@
 # Host Backends Support for the Histogram APIs
 
 ## Introduction
-In version 2022.6.0, two `histogram` APIs were added to oneDPL, but implementations were only provided for device
-policies with the dpcpp backend. `Histogram` was added to the oneAPI specification 1.4 provisional release and should
-be present in the 1.4 specification. Please see the
+The oneDPL library added histogram APIs, currently implemented only for device policies with the DPC++ backend. These APIs are defined in the oneAPI Specification 1.4. Please see the
 [oneAPI Specification](https://github.com/uxlfoundation/oneAPI-spec/blob/main/source/elements/oneDPL/source/parallel_api/algorithms.rst#parallel-algorithms)
-for a full definition of the semantics of the histogram APIs. In short, they take elements from an input sequence and
-classify them into either evenly distributed or user-defined bins via a list of separating values and count the number
-of values in each bin, writing to a user-provided output histogram sequence. Currently, `histogram` is not supported
-with serial, tbb, or openmp backends in our oneDPL implementation. This RFC aims to propose the implementation of
-`histogram` for these host-side backends.
+for the details. The host-side backends (serial, TBB, OpenMP) are not yet supported. This RFC proposes extending histogram support to these backends.
 
 ## Motivations
-Users don't always want to use device policies and accelerators to run their code. It may make more sense in many cases
-to use a serial implementation or a host-side parallel implementation of `histogram`. It's natural for a user to expect
-that oneDPL supports these other backends for all APIs. Another motivation for adding the support is simply to be spec
-compliant with the oneAPI specification.
+There are many cases to use a host-side serial or a host-side implementation of histogram. Another motivation for adding the support is simply to be spec compliant with the oneAPI specification.
 
 ## Design Considerations
 
@@ -29,52 +20,47 @@ which they can select from when using oneDPL. It is important that all combinati
 the `histogram` APIs.
 
 ### Performance
-As with all algorithms in oneDPL, our goal is to make them as performant as possible. By definition, `histogram` is a
-low computation algorithm which will likely be limited by memory bandwidth, especially for the evenly-divided case.
-Minimizing and optimizing memory accesses, as well as limiting unnecessary memory traffic of temporaries, will likely
-have a high impact on overall performance.
+With little computation, a histogram algorithm is likely a memory-bound algorithm. So, the implementation prioritize
+reducing memory accesses and minimizing temporary memory traffic.
 
 ### Memory Footprint
-There are no guidelines here from the standard library as this is an extension API. However, we should always try to
-minimize memory footprint whenever possible. Minimizing memory footprint may also help us improve performance here
-because, as mentioned above, this will very likely be a memory bandwidth-bound API. In general, the normal case for
-histogram is for the number of elements in the input sequence to be far greater than the number of output histogram
-bins. We may be able to use that to our advantage.
+There are no guidelines here from the standard library as this is an extension API. Still, we will minimize memory
+footprint where possible.
 
 ### Code Reuse
-Our goal here is to make something maintainable and to reuse as much as we can which already exists and has been
-reviewed within oneDPL. With everything else, this must be balanced with performance considerations.
+It is a priority to reuse as much as we can which already exists and has been reviewed within oneDPL. We want to
+minimize adding requirements for parallel backends to implement, and lift as much as possible to the algorithm
+implementation level. We should be able to avoid adding a `__parallel_histogram` call in the individual backends, and
+instead rely upon `__parallel_for`.
 
 ### unseq Backend
 Currently oneDPL relies upon openMP SIMD to provide its vectorization, which is designed to provide vectorization across
 loop iterations. OneDPL does not directly use any intrinsics which may offer more complex functionality than what is
 provided by OpenMP.
 
-As mentioned above, histogram looks to be a memory bandwidth-dependent algorithm. This may limit the benefit achievable
-from vector instructions as they provide assistance mostly in speeding up computation.
-
-For histogram, there are a few things to consider. First, lets consider the calculation to determine which bin to
-increment. There are two APIs, even and custom range which have significantly different methods to determine the bin to
+There are a few parts of the histogram algorithm to consider. For the calculation to determine which bin to increment
+there are two APIs, even and custom range which have significantly different methods to determine the bin to
 increment. For the even bin API, the calculations to determine selected bin have some opportunity for vectorization as
 each input has the same mathematical operations applied to each. However, for the custom range API, each input element
 uses a binary search through a list of bin boundaries to determine the selected bin. This operation will have a
 different length and control flow based upon each input element and will be very difficult to vectorize.
 
-Second, lets consider the increment operation itself. This operation increments a data dependant bin location, and may
+Next, lets consider the increment operation itself. This operation increments a data dependant bin location, and may
 result in conflicts between elements of the same vector. This increment operation therefore is unvectorizable without
 more complex handling. Some hardware does implement SIMD conflict detection via specific intrinsics, but this is not
-generally available, and certainly not available via OpenMP SIMD. Alternatively, we can multiply our number of temporary
-histogram copies by a factor of the vector width, but we will need to determine if this is worth the overhead, memory
-footprint, and extra accumulation at the end. OpenMP SIMD does provide an `ordered` structured block which we can use to
-exempt the increment from SIMD operations as well. It must be determined if SIMD is beneficial in either API variety. It
-seems only possible to be beneficial for the even bin API, but more investigation is required.
+available via OpenMP SIMD. Alternatively, we can multiply our number of temporary histogram copies by a factor of the
+vector width, but it is unclear if it is worth the overhead. OpenMP SIMD provides an `ordered` structured block which
+we can use to exempt the increment from SIMD operations as well.  However, this often results in vectorization being
+refused by the compiler. Initial implementation will avoid vectorization of this main histogram loop.
 
-Finally, for our below proposed implementation, there is the task of combining temporary histogram data into the global
-output histogram. This is directly vectorizable via our existing brick_walk implementation.
+Last, for our below proposed implementation there is the task of combining temporary histogram data into the global
+output histogram. This is directly vectorizable via our existing brick_walk implementation, and will be vectorized when
+a vector policy is used.
 
 ### Serial Backend
 We plan to support a serial backend for histogram APIs in addition to openMP and TBB. This backend will handle all
-policies types, but always provide a serial unvectorized implementation.
+policies types, but always provide a serial unvectorized implementation. To make this backend compatible with the other
+approaches, we will use a single temporary histogram copy, which then is copied to the final global histogram.
 
 ## Existing Patterns
 
@@ -140,14 +126,20 @@ time.
   does not provide a good fallback.
 
 ## Proposal
-After exploring the above implementation for `histogram`, it seems the following proposal better represents the use
+After exploring the above implementation for `histogram`, the following proposal better represents the use
 cases which are important, and provides reasonable performance for most cases.
 
 ### Embarrassingly Parallel Via Temporary Histograms
 This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
 `histogram`.
 
-#### OpenMP:
+Create a generic `__thread_enumerable_storage` struct which will be defined by all parallel backends, which provides
+the following:
+* constructor which specifies the storage to be held per thread and a method to initialize it
+* `get()` returns an iterator to the beginning of the current thread's temporary vector
+* `get_with_id(int i)` returns an iterator to the beginning of temporary vector with index provided
+* `size()` returns number of temporary arrays
+
 1) Determine the number of threads that we will use locally
 2) In parallel, create and initialize temporary data for the number of threads copies of the histogram output sequence.
 3) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
