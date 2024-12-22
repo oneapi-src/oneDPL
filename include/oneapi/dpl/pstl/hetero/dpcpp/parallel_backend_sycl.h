@@ -492,7 +492,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
-#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
+#if _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
                         _IsFullGroup && oneapi::dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
 #else
@@ -502,6 +502,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     if constexpr (__can_use_subgroup_load_store)
                     {
+#if _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT
                         _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                         {
@@ -509,6 +510,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                             auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
                             __subgroup.store(__lacc_ptr + __idx, __val);
                         }
+#endif
                     }
                     else
                     {
@@ -523,6 +525,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
+#if _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT
                         _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                         {
@@ -530,6 +533,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                             auto __val = __subgroup.load(__lacc_ptr + __idx);
                             __subgroup.store(__out_rng.begin() + __idx, __val);
                         }
+#endif
                     }
                     else
                     {
@@ -598,7 +602,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
-#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
+#if _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
                         _IsFullGroup && oneapi::dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
 #else
@@ -607,6 +611,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     if constexpr (__can_use_subgroup_load_store)
                     {
+#if _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT
                         _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                         {
@@ -614,6 +619,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                             uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
                             __subgroup.store(__lacc_ptr + __idx, __val);
                         }
+#endif
                     }
                     else
                     {
