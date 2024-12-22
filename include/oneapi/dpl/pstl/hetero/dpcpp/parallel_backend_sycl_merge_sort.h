@@ -574,7 +574,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // Create container for storages with split-points on base diagonal
         //  - each iteration should have their own container
-        __container_of_temp_storages_t __temp_sp_storages(std::max<decltype(__n_iter)>(__n_iter, 0));
+        __container_of_temp_storages_t __temp_sp_storages;
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
@@ -595,7 +595,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 // - for current iteration
                 auto __p_base_diagonals_sp_storage =
                     new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_this.base_diag_count);
-                __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
+
+                // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
+                __temp_sp_storages.emplace_back(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_storage));
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
