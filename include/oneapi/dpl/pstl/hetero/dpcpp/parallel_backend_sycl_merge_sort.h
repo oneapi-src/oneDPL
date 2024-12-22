@@ -426,8 +426,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                       const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        _merge_split_point_t __result(0, 0);
-
         std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
         assert(__diagonal_idx < __nd_range_params.base_diag_count);
