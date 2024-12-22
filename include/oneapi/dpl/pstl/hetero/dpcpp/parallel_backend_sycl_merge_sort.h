@@ -427,8 +427,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         return __sp_right.first + __sp_right.second > 0
                    ? (!__is_base_diagonal
-                          ? __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                                  __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp)
+                          ? __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                               __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp)
                           : __sp_left)
                    : __find_start_point_w(__data_area, __views, __comp);
     }
