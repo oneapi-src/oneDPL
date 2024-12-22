@@ -340,12 +340,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // TODO required to evaluate this value based on available SLM size for each work-group.
         _IndexT __base_diag_count = 32 * 1'024; // 32 Kb
-
-        // TODO required to rewrite this without loop
-        while (__n_sorted <= __base_diag_count)
-            __n_sorted = __n_sorted * 2;
-        __base_diag_count = __n_sorted / 2;
-
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
