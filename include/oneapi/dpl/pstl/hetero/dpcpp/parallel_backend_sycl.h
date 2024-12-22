@@ -46,7 +46,7 @@
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
 
-#define _ONEDPL_USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
+//#define _ONEDPL_USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
 
 #if _ONEDPL_USE_RADIX_SORT
 #    include "parallel_backend_sycl_radix_sort.h"
