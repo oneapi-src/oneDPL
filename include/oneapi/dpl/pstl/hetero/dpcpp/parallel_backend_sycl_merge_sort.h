@@ -422,7 +422,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     inline static _merge_split_point_t
-    __find_or_eval_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
+    __lookup_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
                       const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
                       _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
@@ -516,18 +516,16 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         {
                             DropViews __views(__dst, __data_area);
 
-                            const auto __sp =
-                                __find_or_eval_sp(__linear_id /* __global_idx */, __nd_range_params, __data_area,
-                                                  __views, __comp, __base_diagonals_sp_global_ptr);
+                            const auto __sp = __lookup_sp(__linear_id /* __global_idx */, __nd_range_params,
+                                                          __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
                             __serial_merge_w(__nd_range_params, __data_area, __views, __rng, __sp, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
 
-                            const auto __sp =
-                                __find_or_eval_sp(__linear_id /* __global_idx */, __nd_range_params, __data_area,
-                                                  __views, __comp, __base_diagonals_sp_global_ptr);
+                            const auto __sp = __lookup_sp(__linear_id /* __global_idx */, __nd_range_params,
+                                                          __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
                             __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __sp, __comp);
                         }
                     }
