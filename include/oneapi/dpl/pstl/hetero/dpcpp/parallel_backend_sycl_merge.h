@@ -283,6 +283,15 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         });
     }
 
+    template <typename _Rng1, typename _Rng2, typename _Index, typename _Compare>
+    inline static _split_point_t<_Index>
+    __find_start_point_w(const _Rng1& __rng1, const _Rng2& __rng2, const _split_point_t<_IdType>& __sp_left,
+                         const _split_point_t<_IdType>& __sp_right, const _Index __i_elem, _Compare __comp)
+    {
+        return _find_start_point(__rng1, __sp_left.first, __sp_right.first, __rng2, __sp_left.second, __sp_right.second,
+                                 __i_elem, __comp);
+    }
+
     // Process parallel merge
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
@@ -311,19 +320,11 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
                     auto __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
-                    _split_point_t<_IdType> __start;
-                    if (__global_idx % __nd_range_params.steps_between_two_base_diags != 0)
-                    {
-                        const _split_point_t<_IdType> __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
-                        const _split_point_t<_IdType> __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
-
-                        __start = __find_start_point(__rng1, __sp_left.first, __sp_right.first, __rng2,
-                                                     __sp_left.second, __sp_right.second, __i_elem, __comp);
-                    }
-                    else
-                    {
-                        __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
-                    }
+                    const _split_point_t<_IdType> __start =
+                        __global_idx % __nd_range_params.steps_between_two_base_diags != 0
+                            ? __find_start_point(__rng1, __rng2, __base_diagonals_sp_global_ptr[__diagonal_idx],
+                                                 __base_diagonals_sp_global_ptr[__diagonal_idx + 1], __i_elem, __comp)
+                            : __base_diagonals_sp_global_ptr[__diagonal_idx];
 
                     __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
                                    __nd_range_params.chunk, __n1, __n2, __comp);
