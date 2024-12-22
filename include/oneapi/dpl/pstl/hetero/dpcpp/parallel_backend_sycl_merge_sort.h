@@ -399,7 +399,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                                    __nd_range_params.chunk *
                                                        __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp{0, 0};
+                    _merge_split_point_t __sp{__data_area.n1, __data_area.n2};
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
@@ -423,8 +423,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     inline static _merge_split_point_t
     __lookup_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
-                      const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
-                      _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
+                const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
+                _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
         std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
