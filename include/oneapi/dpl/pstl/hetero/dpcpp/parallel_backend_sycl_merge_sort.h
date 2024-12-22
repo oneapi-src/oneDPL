@@ -574,7 +574,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // Create container for storages with split-points on base diagonal
         //  - each iteration should have their own container
-        __container_of_temp_storages_t __temp_sp_storages(std::max(__n_iter, (std::int64_t)0));
+        __container_of_temp_storages_t __temp_sp_storages(std::max<decltype(__n_iter)>(__n_iter, 0));
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
