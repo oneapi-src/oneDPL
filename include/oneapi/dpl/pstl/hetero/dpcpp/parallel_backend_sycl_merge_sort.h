@@ -434,10 +434,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
+        const bool __is_base_diagonal = __global_idx % __nd_range_params.steps_between_two_base_diags == 0;
+
         return __sp_right.first + __sp_right.second > 0
-                   ? (__global_idx % __nd_range_params.steps_between_two_base_diags != 0
-                          ? __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                               __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp)
+                   ? (!__is_base_diagonal
+                          ? __find_start_point_in(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                                  __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp)
                           : __sp_left)
                    : __find_start_point_w(__data_area, __views, __comp);
     }
