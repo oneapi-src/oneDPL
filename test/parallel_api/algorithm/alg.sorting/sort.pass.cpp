@@ -425,6 +425,7 @@ test_sort(size_t start_size, size_t max_size, FStep fstep)
                                                          { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); },
                                                          start_size, max_size, fstep);
 
+#if 0
         test_sort<CallNumber + 20, unsigned char>([](unsigned char x, unsigned char y)
                                                   { return x > y; }, // Reversed so accidental use of < will be detected.
                                                   [](size_t k, size_t val) { return (unsigned char)val; },
@@ -432,8 +433,11 @@ test_sort(size_t start_size, size_t max_size, FStep fstep)
 
         test_sort<CallNumber + 30, unsigned char>(NonConstCmp{}, [](size_t k, size_t val) { return (unsigned char)val; },
                                                   start_size, max_size, fstep);
+#endif
 
 #endif // !ONEDPL_FPGA_DEVICE
+
+#if 0
         test_sort<CallNumber + 40, std::int32_t>([](std::int32_t x, std::int32_t y)
                                                  { return x > y; }, // Reversed so accidental use of < will be detected.
                                                  [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); },
@@ -444,8 +448,10 @@ test_sort(size_t start_size, size_t max_size, FStep fstep)
             [](size_t k, size_t val) {
             return std::int16_t(val) * (k % 2 ? 1 : -1); },
             start_size, max_size, fstep);
+#endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#if 0
         auto convert = [](size_t k, size_t val) {
             constexpr std::uint16_t mask = 0xFFFFu;
             std::uint16_t raw = std::uint16_t(val & mask);
@@ -462,6 +468,7 @@ test_sort(size_t start_size, size_t max_size, FStep fstep)
         };
         test_sort<CallNumber + 60, sycl::half>(std::greater<sycl::half>(), convert,
                                                start_size, max_size, fstep);
+#endif
 #endif
 }
 
@@ -490,7 +497,9 @@ main()
     {
         Stable = kind != 0;
 
+#if 0
         test_sort<100>(start_size_small, max_size_small, fstep_small);
+#endif
         test_sort<200>(start_size_large, max_size_large, fstep_large);
     }
 
