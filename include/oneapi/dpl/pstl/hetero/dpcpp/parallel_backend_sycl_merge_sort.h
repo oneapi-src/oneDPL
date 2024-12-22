@@ -332,7 +332,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, _IndexT __n_sorted) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
         const _IndexT __chunk = __is_cpu ? 32 : 4;
@@ -549,7 +549,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         using __value_type = oneapi::dpl::__internal::__value_t<_Range>;
 
         // Calculate nd-range params
-        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, __n_sorted);
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n);
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -572,20 +572,25 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             }
             else
             {
+                const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
+                nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
+                __nd_range_params_this.steps *= __portions;
+                __nd_range_params_this.base_diag_count *= __portions;
+
                 // Create storage for save split-points on each base diagonal
                 // - for current iteration
                 auto __p_base_diagonals_sp_storage =
-                    new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params.base_diag_count);
+                    new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_this.base_diag_count);
                 __temp_sp_storages[__i].reset(__p_base_diagonals_sp_storage);
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
                     eval_split_points_for_groups(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
-                                                 __comp, __nd_range_params, *__p_base_diagonals_sp_storage);
+                                                 __comp, __nd_range_params_this, *__p_base_diagonals_sp_storage);
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
-                                                   __comp, __nd_range_params, *__p_base_diagonals_sp_storage);
+                                                   __comp, __nd_range_params_this, *__p_base_diagonals_sp_storage);
             }
 
             __n_sorted *= 2;
