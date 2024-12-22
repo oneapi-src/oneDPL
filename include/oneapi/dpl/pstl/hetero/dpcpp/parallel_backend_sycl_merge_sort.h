@@ -399,23 +399,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                                    __nd_range_params.chunk *
                                                        __nd_range_params.steps_between_two_base_diags);
 
-                    _merge_split_point_t __sp{0, 0};
-
-                    if (__data_area.is_i_elem_local_inside_merge_matrix())
-                    {
-                        if (__data_in_temp)
-                        {
-                            DropViews __views(__dst, __data_area);
-                            __sp = __find_start_point_w(__data_area, __views, __comp);
-                        }
-                        else
-                        {
-                            DropViews __views(__rng, __data_area);
-                            __sp = __find_start_point_w(__data_area, __views, __comp);
-                        }
-                    }
-
-                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
+                    __base_diagonals_sp_global_ptr[__linear_id] =
+                        __data_area.is_i_elem_local_inside_merge_matrix()
+                            ? (__data_in_temp
+                                   ? __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp)
+                                   : __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp))
+                            : _merge_split_point_t{__data_area.n1, __data_area.n2};
                 });
         });
     }
