@@ -177,7 +177,7 @@ struct __leaf_sorter
 
         // 3. Sort on work-group level
         bool __data_in_temp =
-            __group_sorter.sort(__item, __storage_acc, __comp, static_cast<std::uint32_t>(0), __adjusted_process_size,
+            __group_sorter.sort(__item, __storage_acc, __comp, std::uint32_t{0}, __adjusted_process_size,
                                 /*sorted per sub-group*/ __data_per_workitem, __data_per_workitem, __workgroup_size);
         // barrier is not needed here because of the barrier inside the sort method
 
