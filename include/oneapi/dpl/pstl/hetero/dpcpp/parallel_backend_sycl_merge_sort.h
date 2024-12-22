@@ -396,6 +396,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
                     // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
+                    // Please see additional explanations in the __lookup_sp function below.
                     const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1,
                                                    __nd_range_params.chunk *
                                                        __nd_range_params.steps_between_two_base_diags);
@@ -412,11 +413,26 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     inline static _merge_split_point_t
-    __lookup_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
+    __lookup_sp(const std::size_t __linear_id_in_steps_range, const nd_range_params& __nd_range_params,
                 const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
                 _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
+        //   |                  subrange 0                |                subrange 1                  |                subrange 2                  |                subrange 3                  | subrange 4
+        //   |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    | contains the rest of data...  < Data parts
+        //   |----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/---                       < Steps
+        //   ^              ^              ^              ^              ^              ^              ^              ^         ^    ^              ^              ^              ^              ^
+        //   |              |              |              |              |              |              |              |         |    |              |              |              |              |
+        // bd00           bd01           bd02           bd10           bd11           bd12           bd20           bd21        |  bd22           bd30           bd31           bd32           bd40                              < Base diagonals
+        //                  ^              ^              ^              ^              ^              ^              ^         |    ^              ^              ^              ^              ^
+        //  ---             0              1              2              3              4              5              6         |    7              8              9              10             11                              < Indexes in the base diagonal's SP storage
+        //   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14  15   16    17   18   19   20   20   21   |    23   24   25   26   27   28   29   30   31   32   33   34   35    36                        < Linear IDs: __linear_id_in_steps_range
+        //   ^                                                                                                         |         |    |
+        //   |                                                                                                       __sp_left   |  __sp_right
+        //   |                                                                                                                   |
+        //   |                                                                                                       __linear_id_in_steps_range
+        //  We doesn't save the first diagonal into base diagonal's SP storage !!!
+
+        std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
         assert(__diagonal_idx < __nd_range_params.base_diag_count);
 
@@ -424,7 +440,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
-        const bool __is_base_diagonal = __global_idx % __nd_range_params.steps_between_two_base_diags == 0;
+        const bool __is_base_diagonal = __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
 
         return __sp_right.first + __sp_right.second > 0
                    ? (!__is_base_diagonal
@@ -508,16 +524,18 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         {
                             DropViews __views(__dst, __data_area);
 
-                            const auto __sp = __lookup_sp(__linear_id /* __global_idx */, __nd_range_params,
-                                                          __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
+                            const auto __sp =
+                                __lookup_sp(__linear_id /* __linear_id_in_steps_range */, __nd_range_params,
+                                            __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
                             __serial_merge_w(__nd_range_params, __data_area, __views, __rng, __sp, __comp);
                         }
                         else
                         {
                             DropViews __views(__rng, __data_area);
 
-                            const auto __sp = __lookup_sp(__linear_id /* __global_idx */, __nd_range_params,
-                                                          __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
+                            const auto __sp =
+                                __lookup_sp(__linear_id /* __linear_id_in_steps_range */, __nd_range_params,
+                                            __data_area, __views, __comp, __base_diagonals_sp_global_ptr);
                             __serial_merge_w(__nd_range_params, __data_area, __views, __dst, __sp, __comp);
                         }
                     }
