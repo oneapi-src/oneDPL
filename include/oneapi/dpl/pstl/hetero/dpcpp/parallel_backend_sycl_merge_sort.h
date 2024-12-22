@@ -287,7 +287,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         _IndexT i_elem = 0;       // Global diagonal index
         _IndexT i_elem_local = 0; // Local diagonal index
-        _IndexT offset = 0;       // Offset to the first element in the subrange (i.e. the first element of the first subrange for merge)
+        // Offset to the first element in the subrange (i.e. the first element of the first subrange for merge)
+        _IndexT offset = 0;
         _IndexT n1 = 0; // Size of the first subrange
         _IndexT n2 = 0; // Size of the second subrange
 
@@ -412,8 +413,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     inline static _merge_split_point_t
     __lookup_sp(const std::size_t __global_idx, const nd_range_params& __nd_range_params,
-                      const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
-                      _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
+                const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
+                _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
         std::size_t __diagonal_idx = __global_idx / __nd_range_params.steps_between_two_base_diags;
 
