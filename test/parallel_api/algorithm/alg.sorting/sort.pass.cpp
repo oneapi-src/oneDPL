@@ -482,16 +482,23 @@ main()
     const size_t max_size_small = 100'000;
     auto fstep_small = [](std::size_t size){ return size <= 16 ? size + 1 : size_t(3.1415 * size);};
 
+    // Large data sizes (on GPU only)
+#if TEST_DPCPP_BACKEND_PRESENT
     const size_t start_size_large = 4'000'000;
     const size_t max_size_large = 8'000'000;
     auto fstep_large = [](std::size_t size){ return size + 2'000'000; };
+#endif
 
     for (std::int32_t kind = start; kind < end; ++kind)
     {
         Stable = kind != 0;
 
         test_sort<100>(start_size_small, max_size_small, fstep_small);
+
+    // Large data sizes (on GPU only)
+#if TEST_DPCPP_BACKEND_PRESENT
         test_sort<200>(start_size_large, max_size_large, fstep_large);
+#endif
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
