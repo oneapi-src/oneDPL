@@ -330,6 +330,17 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         }
     };
 
+    std::size_t
+    tune_amount_of_base_diagonals(std::size_t __n_sorted, std::size_t __amount_of_base_diagonals) const
+    {
+        // Multiply work per item by a power of 2 to reach the desired number of iterations.
+        // __dpl_bit_ceil rounds the ratio up to the next power of 2.
+        const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
+            (std::size_t)std::ceil(256 * 1024 * 1024 / __n_sorted));            
+
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__amount_of_base_diagonals, __k);
+    }
+
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
@@ -340,7 +351,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
         // TODO required to evaluate this value based on available SLM size for each work-group.
-        _IndexT __base_diag_count = 32 * 1'024; // 32 Kb
+        _IndexT __base_diag_count = tune_amount_of_base_diagonals(__rng_size, 32 * 1'024); // 32 Kb
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
