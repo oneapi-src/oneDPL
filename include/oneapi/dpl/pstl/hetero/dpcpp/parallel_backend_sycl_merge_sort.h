@@ -375,7 +375,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __n = __rng.size();
 
         return __exec.queue().submit([&__event_chain, __n_sorted, __data_in_temp, &__rng, &__temp_buf, __comp,
-                                      __nd_range_params, &__base_diagonals_sp_global_storage, __n](sycl::handler& __cgh) {
+                                      __nd_range_params, &__base_diagonals_sp_global_storage,
+                                      __n](sycl::handler& __cgh) {
             __cgh.depends_on(__event_chain);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
@@ -441,7 +442,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
 
-        const bool __is_base_diagonal = __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
+        const bool __is_base_diagonal =
+            __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
 
         return __sp_right.first + __sp_right.second > 0
                    ? (!__is_base_diagonal
@@ -597,7 +599,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                     new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_this.base_diag_count);
 
                 // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
-                __temp_sp_storages.emplace_back(static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_storage));
+                __temp_sp_storages.emplace_back(
+                    static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_storage));
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
