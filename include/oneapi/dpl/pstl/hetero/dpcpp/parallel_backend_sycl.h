@@ -1844,8 +1844,8 @@ struct __parallel_find_or_impl_one_wg;
 template <typename... KernelName, bool __or_tag_check>
 struct __parallel_find_or_impl_one_wg<__internal::__optional_kernel_name<KernelName...>, __or_tag_check>
 {
-    template <typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType,
-              typename _Predicate, typename... _Ranges>
+    template <typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType, typename _Predicate,
+              typename... _Ranges>
     __FoundStateType
     operator()(_ExecutionPolicy&& __exec, _BrickTag __brick_tag, const std::size_t __rng_n,
                const std::size_t __wgroup_size, const __FoundStateType __init_value, _Predicate __pred,
@@ -1912,9 +1912,9 @@ struct __parallel_find_or_impl_multiple_wgs<__internal::__optional_kernel_name<K
     template <typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType, typename _Predicate,
               typename... _Ranges>
     _AtomicType
-    operator()(_ExecutionPolicy&& __exec, _BrickTag __brick_tag,
-               const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
-               const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
+    operator()(_ExecutionPolicy&& __exec, _BrickTag __brick_tag, const std::size_t __rng_n,
+               const std::size_t __n_groups, const std::size_t __wgroup_size, const _AtomicType __init_value,
+               _Predicate __pred, _Ranges&&... __rngs)
     {
         auto __result = __init_value;
 
