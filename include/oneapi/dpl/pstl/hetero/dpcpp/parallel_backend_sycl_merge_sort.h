@@ -333,8 +333,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     {
         // Multiply work per item by a power of 2 to reach the desired number of iterations.
         // __dpl_bit_ceil rounds the ratio up to the next power of 2.
-        const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
-            (std::size_t)std::ceil(256 * 1024 * 1024 / __n_sorted));            
+        const std::size_t __k =
+            oneapi::dpl::__internal::__dpl_bit_ceil((std::size_t)std::ceil(256 * 1024 * 1024 / __n_sorted));
 
         return oneapi::dpl::__internal::__dpl_ceiling_div(__amount_of_base_diagonals, __k);
     }
@@ -486,8 +486,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     __data_area.is_i_elem_local_inside_merge_matrix()
                         ? (__data_in_temp
-                           ? __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng, __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp), __comp)
-                           : __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst, __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp), __comp))
+                               ? __serial_merge_w(
+                                     __nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
+                                     __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp), __comp)
+                               : __serial_merge_w(
+                                     __nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
+                                     __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp), __comp))
                         : void();
                 });
         });
@@ -524,16 +528,16 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     __data_area.is_i_elem_local_inside_merge_matrix()
                         ? (__data_in_temp
-                           ? __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
-                                              __lookup_sp(__linear_id, __nd_range_params, __data_area,
-                                                          DropViews(__dst, __data_area), __comp,
-                                                          __base_diagonals_sp_global_ptr),
-                                              __comp)
-                           : __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
-                                              __lookup_sp(__linear_id, __nd_range_params, __data_area,
-                                                          DropViews(__rng, __data_area), __comp,
-                                                          __base_diagonals_sp_global_ptr),
-                                              __comp))
+                               ? __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
+                                                  __lookup_sp(__linear_id, __nd_range_params, __data_area,
+                                                              DropViews(__dst, __data_area), __comp,
+                                                              __base_diagonals_sp_global_ptr),
+                                                  __comp)
+                               : __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
+                                                  __lookup_sp(__linear_id, __nd_range_params, __data_area,
+                                                              DropViews(__rng, __data_area), __comp,
+                                                              __base_diagonals_sp_global_ptr),
+                                                  __comp))
                         : void();
                 });
         });
