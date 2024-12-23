@@ -60,6 +60,9 @@ concept __is_not_subscriptable = !__is_subscriptable<_T>;
 template<typename _T>
 concept __is_sizeable = requires(_T&& __a) { __a.size(); };
 
+template<typename _T>
+concept __is_empty_method = requires(_T&& __a) { __a.empty(); };
+
 template <typename _R>
 struct _WrapperRAR: public _R
 {
@@ -70,6 +73,9 @@ struct _WrapperRAR: public _R
 
     std::enable_if_t<!__is_sizeable<_R>, std::ranges::range_size_t<_R>>
     size() const { return this->_R::end() - this->_R::begin(); }
+
+    std::enable_if_t<!__is_empty_method<_R>, bool>
+    empty() const { return this->_R::end() - this->_R::begin() <= 0; }
 };
 
 template <__is_not_subscriptable _R>
@@ -190,8 +196,11 @@ struct __find_if_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
-        return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
-            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+
+        auto __ra = __get_r(__r);
+        auto __res = oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), __ra, __pred, __proj) - __ra.begin();
+        return __r.begin() + __res;
     }
 }; //__find_if_fn
 }  //__internal
@@ -254,7 +263,7 @@ struct __any_of_fn
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
         return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag,
-            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+            std::forward<_ExecutionPolicy>(__exec), __get_r(std::forward<_R>(__r)), __pred, __proj);
     }
 }; //__any_of_fn
 }  //__internal
