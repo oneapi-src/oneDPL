@@ -322,8 +322,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
                     const _split_point_t<_IdType> __start =
                         __global_idx % __nd_range_params.steps_between_two_base_diags != 0
-                            ? __find_start_point(__rng1, __rng2, __base_diagonals_sp_global_ptr[__diagonal_idx],
-                                                 __base_diagonals_sp_global_ptr[__diagonal_idx + 1], __i_elem, __comp)
+                            ? __find_start_point_w(__rng1, __rng2, __base_diagonals_sp_global_ptr[__diagonal_idx],
+                                                   __base_diagonals_sp_global_ptr[__diagonal_idx + 1], __i_elem, __comp)
                             : __base_diagonals_sp_global_ptr[__diagonal_idx];
 
                     __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
