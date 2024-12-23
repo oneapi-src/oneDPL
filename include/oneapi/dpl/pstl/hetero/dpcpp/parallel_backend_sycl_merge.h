@@ -284,7 +284,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     }
 
     template <typename _Rng1, typename _Rng2, typename _Compare>
-    inline static _split_point_t<_Index>
+    inline static _split_point_t<_IdType>
     __find_start_point_w(const _Rng1& __rng1, const _Rng2& __rng2, const _split_point_t<_IdType>& __sp_left,
                          const _split_point_t<_IdType>& __sp_right, const _IdType __i_elem, _Compare __comp)
     {
