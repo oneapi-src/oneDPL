@@ -202,7 +202,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 
                 const auto __n_merge = std::min<_IdType>(__chunk, __n - __i_elem);
                 const auto __start = __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
-                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __n_merge, __n1, __n2,
+                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __n_merge, __n1, __n2, __comp);
 
                 if(__id == __steps - 1) //the last WI does additional work
                 {
@@ -211,15 +211,16 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                     *__res_ptr = {__ends.first, __ends.second};
                 }
             });
+        });
         return __future(__event, __result_storage);
     }
 };
 
-template <typename _Id, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
+template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
 struct __parallel_merge_submitter_large;
 
-template <typename _Id, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
-struct __parallel_merge_submitter_large<_Id, _CustomName,
+template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
+struct __parallel_merge_submitter_large<_IdType, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
