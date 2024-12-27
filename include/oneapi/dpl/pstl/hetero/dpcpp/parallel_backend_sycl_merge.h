@@ -359,10 +359,9 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __rng1, __rng2);
 
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-        using __val_t = split_point_t<_IdType>;
-        auto __p_base_diagonals_sp_global_storage =
-            new __result_and_scratch_storage<_ExecutionPolicy, _split_point_t<_IdType>>(
-                __exec, 0, __nd_range_params.base_diag_count + 1);
+        using __val_t = _split_point_t<_IdType>;
+        auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(__exec,
+            0, __nd_range_params.base_diag_count + 1);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base<__val_t>> __p_result_and_scratch_storage_base(
