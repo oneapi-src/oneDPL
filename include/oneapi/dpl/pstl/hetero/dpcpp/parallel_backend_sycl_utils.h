@@ -523,7 +523,7 @@ template <typename _T>
 struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
-    virtual _T __wait_and_get_value(const sycl::event&, std::size_t) const = 0;
+    virtual _T __wait_and_get_value(sycl::event, std::size_t) const = 0;
 };
 
 template <typename _ExecutionPolicy, typename _T>
@@ -684,7 +684,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base<_T>
         }
     }
 
-    virtual _T __wait_and_get_value(const sycl::event& __event, std::size_t idx = 0) const override
+    virtual _T __wait_and_get_value(sycl::event __event, std::size_t idx = 0) const override
     {
         if (is_USM())
             __event.wait_and_throw();
