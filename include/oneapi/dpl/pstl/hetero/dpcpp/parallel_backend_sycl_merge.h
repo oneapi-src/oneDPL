@@ -189,7 +189,8 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         using __res_idx_t = std::pair<std::size_t, std::size_t>;
-        auto __p_res_storage = new __result_and_scratch_storage<_ExecutionPolicy, __res_idx_t>(__exec, 1, 0);
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __res_idx_t>;
+        auto __p_res_storage = new __result_and_scratch_storage_t(__exec, 1, 0);
                 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_base(__p_res_storage);
