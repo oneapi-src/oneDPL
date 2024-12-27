@@ -522,6 +522,8 @@ struct __usm_or_buffer_accessor
 struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
+    template <typename _Event>
+    virtual _T __wait_and_get_value(_Event&&, size_t) const = 0;
 };
 
 template <typename _ExecutionPolicy, typename _T>
@@ -683,7 +685,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
     }
 
     template <typename _Event>
-    _T
+    virtual _T
     __wait_and_get_value(_Event&& __event, size_t idx = 0) const
     {
         if (is_USM())
@@ -725,6 +727,13 @@ class __future : private std::tuple<_Args...>
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
     __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
+    {
+        return __storage.__wait_and_get_value(__my_event);
+    }
+
+    template <typename _ExecutionPolicy, typename _T>
+    constexpr auto
+    __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base>& __storage)
     {
         return __storage.__wait_and_get_value(__my_event);
     }
