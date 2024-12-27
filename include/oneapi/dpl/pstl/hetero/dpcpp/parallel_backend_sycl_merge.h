@@ -192,7 +192,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
 
         auto __event = __exec.queue().submit(
-            [&__rng1, &__rng2, &__rng3, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
+            [&__rng1, &__rng2, &__rng3, &__result_storage, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             auto __result_acc = __result_storage.template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
 
