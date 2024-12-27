@@ -684,7 +684,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base<_T>
         }
     }
 
-    virtual _T __wait_and_get_value(const sycl::event& __event, std::size_t idx = 0) override const
+    virtual _T __wait_and_get_value(const sycl::event& __event, std::size_t idx = 0) override override
     {
         if (is_USM())
             __event.wait_and_throw();
