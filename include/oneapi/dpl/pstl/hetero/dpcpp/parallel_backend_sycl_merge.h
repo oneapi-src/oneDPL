@@ -188,13 +188,16 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, std::pair<std::size_t, std::size_t>>;
-        __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
+        using __res_idx_t = std::pair<std::size_t, std::size_t>;
+        auto __p_res_storage = new __result_and_scratch_storage<_ExecutionPolicy, __res_idx_t>(__exec, 1, 0);
+                
+        // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
+        std::shared_ptr<__result_and_scratch_storage_base> __p_result_base(__p_res_storage);
 
         auto __event = __exec.queue().submit(
-            [&__rng1, &__rng2, &__rng3, &__result_storage, __comp, __chunk, __steps, __n, __n1, __n2](sycl::handler& __cgh) {
+            [&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n, __n1, __n2](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            auto __result_acc = __result_storage.template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
+            auto __result_acc = __p_res_storage->template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 auto __id = __item_id.get_linear_id();
@@ -212,7 +215,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                 }
             });
         });
-        return __future(__event, __result_storage);
+        return __future(std::move(__event), std::move(__p_result_base));
     }
 };
 
