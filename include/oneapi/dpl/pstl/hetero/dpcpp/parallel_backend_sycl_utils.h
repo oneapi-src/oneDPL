@@ -731,7 +731,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base>& __storage)
+    __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base<_T>>& __storage)
     {
         return __storage.__wait_and_get_value(__my_event);
     }
