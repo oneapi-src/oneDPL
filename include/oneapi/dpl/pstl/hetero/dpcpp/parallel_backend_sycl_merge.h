@@ -189,7 +189,7 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, std::pair<std::size_t, std::size_t>>;
-        __result_and_scratch_storage_t __result_storage{__exec, 2, 0};
+        __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
 
         auto __event = __exec.queue().submit(
             [&__rng1, &__rng2, &__rng3, __comp, __chunk, __steps, __n1, __n2](sycl::handler& __cgh) {
@@ -215,11 +215,11 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
     }
 };
 
-template <typename _IdType, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
+template <typename _Id, typename _CustomName, typename _DiagonalsKernelName, typename _MergeKernelName>
 struct __parallel_merge_submitter_large;
 
-template <typename _IdType, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
-struct __parallel_merge_submitter_large<_IdType, _CustomName,
+template <typename _Id, typename _CustomName, typename... _DiagonalsKernelName, typename... _MergeKernelName>
+struct __parallel_merge_submitter_large<_Id, _CustomName,
                                         __internal::__optional_kernel_name<_DiagonalsKernelName...>,
                                         __internal::__optional_kernel_name<_MergeKernelName...>>
 {
