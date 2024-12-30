@@ -4339,7 +4339,8 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
         __par_backend::__parallel_for(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__func, &__tls](_RandomAccessIterator1 __first_local, _RandomAccessIterator1 __last_local) {
-                __internal::__brick_histogram(__first_local, __last_local, __func, __tls.get().begin(), _IsVector{});
+                __internal::__brick_histogram(__first_local, __last_local, __func,
+                                              __tls.get_for_current_thread().begin(), _IsVector{});
             });
         // now accumulate temporary storage into output global histogram
         __par_backend::__parallel_for(

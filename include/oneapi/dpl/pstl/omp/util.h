@@ -154,6 +154,9 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
+
+// abstract class to allow inclusion in __thread_enumerable_storage as member without requiring explicit template
+// instantiation of param types
 template <typename _StorageType>
 class __construct_by_args_base
 {
@@ -163,6 +166,7 @@ class __construct_by_args_base
     construct() = 0;
 };
 
+// Helper class to allow construction of _StorageType from a stored argument pack
 template <typename _StorageType, typename... _P>
 class __construct_by_args : public __construct_by_args_base<_StorageType>
 {
@@ -193,34 +197,37 @@ struct __thread_enumerable_storage
     std::uint32_t
     size() const
     {
+        // only count storage which has been instantiated
         return __num_elements.load();
     }
 
     _StorageType&
     get_with_id(std::uint32_t __i)
     {
-        if (__i < size())
+        assert(__i < size());
+
+        std::uint32_t __count = 0;
+        std::uint32_t __j = 0;
+
+        for (; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
         {
-            std::uint32_t __count = 0;
-            std::uint32_t __j = 0;
-            for (; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
+            // Only include storage from threads which have instantiated a storage object
+            if (__thread_specific_storage[__j])
             {
-                if (__thread_specific_storage[__j])
-                {
-                    __count++;
-                }
+                __count++;
             }
-            // Need to back up one once we have found a valid element
-            return *__thread_specific_storage[__j - 1];
         }
+        // Need to back up one once we have found a valid storage object
+        return *__thread_specific_storage[__j - 1];
     }
 
     _StorageType&
-    get()
+    get_for_current_thread()
     {
         std::uint32_t __i = omp_get_thread_num();
         if (!__thread_specific_storage[__i])
         {
+            // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
             __thread_specific_storage[__i] = __construct_helper->construct();
             __num_elements.fetch_add(1);
         }

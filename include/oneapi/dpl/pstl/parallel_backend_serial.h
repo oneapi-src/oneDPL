@@ -57,7 +57,7 @@ struct __thread_enumerable_storage
     }
 
     _StorageType&
-    get()
+    get_for_current_thread()
     {
         return __storage;
     }
