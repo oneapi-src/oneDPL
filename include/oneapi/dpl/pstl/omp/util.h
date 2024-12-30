@@ -154,7 +154,6 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
-
 // abstract class to allow inclusion in __thread_enumerable_storage as member without requiring explicit template
 // instantiation of param types
 template <typename _StorageType>
