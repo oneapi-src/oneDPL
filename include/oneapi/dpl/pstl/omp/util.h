@@ -154,22 +154,29 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
-template<typename _StorageType>
-class __construct_by_args_base {
-public:
-    virtual ~__construct_by_args_base() { }
-    virtual std::unique_ptr<_StorageType> construct() = 0;
+template <typename _StorageType>
+class __construct_by_args_base
+{
+  public:
+    virtual ~__construct_by_args_base() {}
+    virtual std::unique_ptr<_StorageType>
+    construct() = 0;
 };
 
-template<typename _StorageType, typename... _P>
-class __construct_by_args: public __construct_by_args_base<_StorageType>{
-    public:
-    std::unique_ptr<_StorageType> construct() {
-        return std::move(std::apply([](auto... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...);}, pack));
+template <typename _StorageType, typename... _P>
+class __construct_by_args : public __construct_by_args_base<_StorageType>
+{
+  public:
+    std::unique_ptr<_StorageType>
+    construct()
+    {
+        return std::move(
+            std::apply([](auto... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, pack));
     }
-    __construct_by_args( _P&& ... args ) : pack(std::forward<_P>(args)...) {}
-    private:
-        std::tuple<_P...> pack;
+    __construct_by_args(_P&&... args) : pack(std::forward<_P>(args)...) {}
+
+  private:
+    std::tuple<_P...> pack;
 };
 
 template <typename _StorageType>
@@ -180,10 +187,7 @@ struct __thread_enumerable_storage
     {
         __construct_helper = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(args)...);
         _PSTL_PRAGMA(omp parallel)
-        _PSTL_PRAGMA(omp single)
-        {
-            __thread_specific_storage.resize(omp_get_num_threads());
-        }
+        _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
     }
 
     std::uint32_t
@@ -207,7 +211,7 @@ struct __thread_enumerable_storage
                 }
             }
             // Need to back up one once we have found a valid element
-            return *__thread_specific_storage[__j-1];
+            return *__thread_specific_storage[__j - 1];
         }
     }
 
