@@ -46,7 +46,7 @@ template <typename _StorageType>
 struct __thread_enumerable_storage
 {
     template <typename... Args>
-    __thread_enumerable_storage(Args&&... args) : __storage(std::forward<Args>(args)...)
+    __thread_enumerable_storage(Args&&... __args) : __storage(std::forward<Args>(__args)...)
     {
     }
 
