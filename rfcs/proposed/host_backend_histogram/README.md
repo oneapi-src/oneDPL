@@ -7,6 +7,8 @@ APIs are defined in the oneAPI Specification 1.4. Please see the
 for the details. The host-side backends (serial, TBB, OpenMP) are not yet supported. This RFC proposes extending
 histogram support to these backends.
 
+The pull request for the proposed implementation exists [here](https://github.com/oneapi-src/oneDPL/pull/1974).
+
 ## Motivations
 There are many cases to use a host-side serial or a host-side implementation of histogram. Another motivation for adding
 the support is simply to be spec compliant with the oneAPI specification.
