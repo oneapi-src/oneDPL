@@ -161,8 +161,7 @@ class __construct_by_args_base
 {
   public:
     virtual ~__construct_by_args_base() {}
-    virtual std::unique_ptr<_StorageType>
-    construct() = 0;
+    virtual std::unique_ptr<_StorageType> construct() = 0;
 };
 
 // Helper class to allow construction of _StorageType from a stored argument pack
@@ -174,21 +173,21 @@ class __construct_by_args : public __construct_by_args_base<_StorageType>
     construct()
     {
         return std::move(
-            std::apply([](auto... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, pack));
+            std::apply([](auto... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, __pack));
     }
-    __construct_by_args(_P&&... args) : pack(std::forward<_P>(args)...) {}
+    __construct_by_args(_P&&... __args) : __pack(std::forward<_P>(__args)...) {}
 
   private:
-    std::tuple<_P...> pack;
+    std::tuple<_P...> __pack;
 };
 
 template <typename _StorageType>
 struct __thread_enumerable_storage
 {
     template <typename... Args>
-    __thread_enumerable_storage(Args&&... args) : __num_elements(0)
+    __thread_enumerable_storage(Args&&... __args) : __num_elements(0)
     {
-        __construct_helper = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(args)...);
+        __construct_helper = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
     }
