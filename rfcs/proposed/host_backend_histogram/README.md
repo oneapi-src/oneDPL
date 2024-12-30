@@ -157,7 +157,7 @@ With this new structure we will use the following algorithm:
 
 1) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
    its own temporary histogram returned by `__thread_enumerable_storage`. The parallelism is divided on the input
-   element axis, and we rely upon existing `parallel_for` to implement chunksize and thread composibility.
+   element axis, and we rely upon existing `parallel_for` to implement chunksize and thread composability.
 2) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
    histogram created within `__thread_enumerable_storage` into the output histogram sequence. The parallelism is divided
    on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the output
