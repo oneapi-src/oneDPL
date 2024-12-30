@@ -62,17 +62,20 @@ a vector policy is used.
 ### Serial Backend
 We plan to support a serial backend for histogram APIs in addition to openMP and TBB. This backend will handle all
 policies types, but always provide a serial unvectorized implementation. To make this backend compatible with the other
-approaches, we will use a single temporary histogram copy, which then is copied to the final global histogram.
+approaches, we will use a single temporary histogram copy, which then is copied to the final global histogram. In
+our benchmarking, using a temporary copy performs similarly as compared to initializing and then accumulating directly
+into the output global histogram. There seems to be no performance motivated reason to special case the serial
+algorithm to use the global histogram directly.
 
-## Existing Patterns
+## Existing APIs / Patterns
 
 ### count_if
 `histogram` is similar to `count_if` in that it conditionally increments a number of counters based upon the data in a
-sequence. `count_if` returns a scalar-typed value and doesn't provide any function to modify the variable being
-incremented. Using `count_if` without significant modification would require us to loop through the entire sequence for
-each output bin in the histogram. From a memory bandwidth perspective, this is untenable. Similarly, using a
-`histogram` pattern to implement `count_if` is unlikely to provide a well-performing result in the end, as contention
-should be far higher, and `reduce` is a very well-matched pattern performance-wise.
+sequence. `count_if` relies upon the `transform_reduce` pattern internally, and returns a scalar-typed value and doesn't
+provide any function to modify the variable being incremented. Using `count_if` without significant modification would
+require us to loop through the entire sequence for each output bin in the histogram. From a memory bandwidth
+perspective, this is untenable. Similarly, using a `histogram` pattern to implement `count_if` is unlikely to provide a well-performing result in the end, as contention should be far higher, and `transform_reduce` is a very well-matched
+pattern performance-wise.
 
 ### parallel_for
 `parallel_for` is an interesting pattern in that it is very generic and embarrassingly parallel. This is close to what
@@ -132,24 +135,31 @@ After exploring the above implementation for `histogram`, the following proposal
 cases which are important, and provides reasonable performance for most cases.
 
 ### Embarrassingly Parallel Via Temporary Histograms
-This method uses temporary storage and a pair of embarrassingly parallel `parallel_for` loops to accomplish the
-`histogram`.
+This method uses temporary storage and a pair of calls to backend specific `parallel_for` functions to accomplish the
+`histogram`. These calls will use the existing infrastructure to provide properly composable parallelism, without extra
+histogram-specific patterns in the implementation of a backend.
 
-For this algorithm, each parallel backend will add a  `__thread_enumerable_storage<_StoredType>` struct which provides
-the following:
+This algorithm does however require that each parallel backend will add a  `__thread_enumerable_storage<_StoredType>`
+struct which provides the following:
 * constructor which takes a variadic list of args to pass to the constructor of each thread's object
-* `get()` returns reference to the current threads stored object
+* `get_for_current_thread()` returns reference to the current thread's stored object
 * `get_with_id(int i)` returns reference to the stored object for an index
 * `size()` returns number of stored objects
 
-In the TBB backend, this will use `enumerable_thread_specific` internally.  For OpenMP, this will pre-allocate
-and initialize an object for each possible thread in parallel. The serial backend will merely create a single copy of
-the temporary object for use.
+In the TBB backend, this will use `enumerable_thread_specific` internally.  For OpenMP, we implement our own similar
+thread local storage which will allocate and initialize the thread local storage at the first usage for each active
+thread, similar to TBB. The serial backend will merely create a single copy of the temporary object for use. The serial
+backend does not technically need any thread specific storage, but to avoid special casing for this serial backend, we
+use a single copy of histogram. In practice, our benchmarking reports little difference in performance between this
+implementation and the original, which directly accumulated to the output histogram.
 
 With this new structure we will use the following algorithm:
 
 1) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
-   its own temporary histogram returned by `__thread_enumerable_storage`.
+   its own temporary histogram returned by `__thread_enumerable_storage`. The parallelism is divided on the input
+   element axis, and we rely upon existing `parallel_for` to implement chunksize and thread composibility.
 2) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
-   histogram created within `__thread_enumerable_storage` into the output histogram sequence.
+   histogram created within `__thread_enumerable_storage` into the output histogram sequence. The parallelism is divided
+   on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the output
+   histogram.
 
