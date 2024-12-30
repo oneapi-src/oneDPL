@@ -65,7 +65,7 @@ struct __thread_enumerable_storage
     _StorageType&
     get_with_id(std::uint32_t __i)
     {
-        return get();
+        return get_for_current_thread();
     }
 
     _StorageType __storage;
