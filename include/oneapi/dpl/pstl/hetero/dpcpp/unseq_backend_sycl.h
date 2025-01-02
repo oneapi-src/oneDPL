@@ -214,7 +214,8 @@ struct walk2_vectors_or_scalars : public walk_vector_or_scalar_base<_Range1, _Ra
             __raw_ptr2);
         // 3. Explicitly call destructor of lazy union type
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType1>::__get_callable_deleter(),
+            __rng1_vector);
     }
 
     // _IsFull is ignored here. We assume that boundary checking has been already performed for this index.
@@ -270,9 +271,11 @@ struct walk3_vectors_or_scalars : public walk_vector_or_scalar_base<_Range1, _Ra
             __rng2_vector, __raw_ptr3);
         // 3. Explicitly call destructors of lazy union type
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType1>::__get_callable_deleter(),
+            __rng1_vector);
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng2_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType2>::__get_callable_deleter(),
+            __rng2_vector);
     }
 
     // _IsFull is ignored here. We assume that boundary checking has been already performed for this index.
@@ -359,7 +362,8 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
             __rng2[0] = __rng1_vector[0].__v;
         // 3. Delete temporary storage
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            __rng1_vector);
     }
     template <typename _IsFull, typename _ItemId>
     void
@@ -1196,9 +1200,11 @@ struct __reverse_functor : public walk_vector_or_scalar_base<_Range>
             __rng_right_vector, __rng_pointer);
         // 4. Call destructors of temporary storage
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng_left_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            __rng_left_vector);
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng_right_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            __rng_right_vector);
     }
     template <typename _IsFull, typename _Idx>
     void
@@ -1269,7 +1275,8 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         }
         // 3. Cleanup
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            __rng1_vector);
     }
     template <typename _IsFull, typename _Idx>
     void
@@ -1324,7 +1331,8 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
             __rng1_vector, __rng2_pointer);
         // 3. Delete temporary storage
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            __rng1_vector);
     }
     template <typename _IsFull, typename _Idx>
     void
@@ -1537,9 +1545,11 @@ struct __brick_swap : public walk_vector_or_scalar_base<_Range1, _Range2>
             __raw_ptr2);
         // 3. Explicitly call destructor of lazy union type
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng1_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType1>::__get_callable_deleter(),
+            __rng1_vector);
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage_deleter{}, __rng2_vector);
+            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType2>::__get_callable_deleter(),
+            __rng2_vector);
     }
 
     template <typename _IsFull, typename _Idx>
