@@ -175,7 +175,6 @@ struct walk1_vector_or_scalar : public walk_vector_or_scalar_base<_Range>
     void
     __scalar_path(_IsFull, const _ItemId __idx, _Range __rng) const
     {
-
         __f(__rng[__idx]);
     }
 
@@ -1341,7 +1340,6 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     void
     __scalar_path(_IsFull, const _Idx __idx, const _Range1 __rng1, _Range2 __rng2) const
     {
-
         __rng2[__idx] = __rng1[(__shift + __idx) % __size];
     }
     template <typename _IsFull, typename _Idx>
