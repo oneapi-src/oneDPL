@@ -86,9 +86,6 @@
 #define _ONEDPL_LIBSYCL_KNOWN_IDENTITY_PRESENT                (_ONEDPL_LIBSYCL_VERSION == 50200)
 #define _ONEDPL_LIBSYCL_SUB_GROUP_MASK_PRESENT                                                                         \
     (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1 && _ONEDPL_LIBSYCL_VERSION >= 50700)
-// TODO: consider replacing with SYCL_EXT_ONEAPI_GROUP_LOAD_STORE extension due to the deprecation with DPC++ 2025.1
-// or using a unified approach for loading and storing across the patterns
-#define _ONEDPL_LIBSYCL_SUB_GROUP_LOAD_STORE_PRESENT 0
 
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(70100))
 
