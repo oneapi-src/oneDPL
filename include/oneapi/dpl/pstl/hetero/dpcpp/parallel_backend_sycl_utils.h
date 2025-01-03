@@ -519,13 +519,15 @@ struct __usm_or_buffer_accessor
 // a `__future` for keeping alive temporary data, while allowing run-time branches to lead to
 // differently typed temporary storage for kernels. Virtual destructor is required to call
 // derived class destructor when leaving scope.
+template <typename _T>
 struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
+    virtual _T __wait_and_get_value(sycl::event, std::size_t) const = 0;
 };
 
 template <typename _ExecutionPolicy, typename _T>
-struct __result_and_scratch_storage : __result_and_scratch_storage_base
+struct __result_and_scratch_storage : __result_and_scratch_storage_base<_T>
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
@@ -682,9 +684,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         }
     }
 
-    template <typename _Event>
-    _T
-    __wait_and_get_value(_Event&& __event, size_t idx = 0) const
+    virtual _T __wait_and_get_value(sycl::event __event, std::size_t idx = 0) const override
     {
         if (is_USM())
             __event.wait_and_throw();
@@ -725,6 +725,13 @@ class __future : private std::tuple<_Args...>
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
     __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
+    {
+        return __storage.__wait_and_get_value(__my_event);
+    }
+
+    template <typename _ExecutionPolicy, typename _T>
+    constexpr auto
+    __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base<_T>>& __storage)
     {
         return __storage.__wait_and_get_value(__my_event);
     }
