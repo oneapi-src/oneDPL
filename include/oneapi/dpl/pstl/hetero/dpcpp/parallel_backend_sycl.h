@@ -493,7 +493,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
@@ -501,13 +501,13 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
                                                               __lacc_ptr, __bin_op, __init);
 
-                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         __out_rng[__idx] = __lacc[__idx];
                     }
 
-                    const ::std::uint16_t __residual = __n % _WGSize;
-                    const ::std::uint16_t __residual_start = __n - __residual;
+                    const std::uint16_t __residual = __n % _WGSize;
+                    const std::uint16_t __residual_start = __n - __residual;
                     if (__item_id < __residual)
                     {
                         auto __idx = __residual_start + __item_id;
@@ -565,7 +565,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
