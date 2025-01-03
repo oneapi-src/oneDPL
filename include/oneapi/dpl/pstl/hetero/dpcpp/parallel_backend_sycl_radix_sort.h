@@ -228,19 +228,19 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 const ::std::uint32_t __count_start_idx = __radix_states * __self_lidx;
                 for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                     __count_lacc[__count_start_idx + __radix_state_idx] = __count_arr[__radix_state_idx];
-                __dpl_sycl::__group_barrier(__self_item);
+                sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
 
                 // 2.1. count per wgroup: reduce till __count_lacc[] size > __wg_size (all threads work)
                 for (::std::uint32_t __i = 1; __i < __radix_states; ++__i)
                     __count_lacc[__self_lidx] += __count_lacc[__wg_size * __i + __self_lidx];
-                __dpl_sycl::__group_barrier(__self_item);
+                sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
                 // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
                 for (::std::uint32_t __active_ths = __wg_size >> 1; __active_ths >= __radix_states;
                      __active_ths >>= 1)
                 {
                     if (__self_lidx < __active_ths)
                         __count_lacc[__self_lidx] += __count_lacc[__active_ths + __self_lidx];
-                    __dpl_sycl::__group_barrier(__self_item);
+                    sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
                 }
                 // 2.3. count per wgroup: write local count array to global count array
                 if (__self_lidx < __radix_states)

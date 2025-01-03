@@ -148,7 +148,7 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
     {
         __local_histogram[__offset + __gSize * __k + __self_lidx] = 0;
     }
-    __dpl_sycl::__group_barrier(__self_item);
+    sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
 }
 
 template <typename _BinIdxType, typename _ValueType, typename _HistReg, typename _BinFunc>
@@ -275,7 +275,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                         __local_bin += __histogram[__k];
                     }
 
-                    __dpl_sycl::__group_barrier(__self_item);
+                    sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
 
                     __reduce_out_histograms<_bin_type, ::std::uint8_t>(__local_histogram, 0, __bins, __num_bins,
                                                                        __self_item);
@@ -370,7 +370,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                             }
                         }
                     }
-                    __dpl_sycl::__group_barrier(__self_item);
+                    sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
 
                     __reduce_out_histograms<_bin_type, ::std::uint16_t>(__local_histogram, 0, __bins, __num_bins,
                                                                         __self_item);
@@ -469,7 +469,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
                         }
                     }
 
-                    __dpl_sycl::__group_barrier(__self_item);
+                    sycl::group_barrier(__self_item.get_group(), sycl::memory_scope::work_group);
 
                     __reduce_out_histograms<_bin_type, ::std::uint32_t>(__hacc_private, __wgroup_idx * __num_bins,
                                                                         __bins, __num_bins, __self_item);

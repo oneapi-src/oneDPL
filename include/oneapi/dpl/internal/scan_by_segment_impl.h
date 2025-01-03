@@ -75,7 +75,7 @@ __wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, 
     _IdxType __first = 0;
     __local_acc[__local_id] = __accumulator;
 
-    __dpl_sycl::__group_barrier(__item);
+    sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 
     for (::std::size_t __i = 1; __i < __wgroup_size; __i *= 2)
     {
@@ -84,7 +84,7 @@ __wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, 
 
         __first = __wgroup_size - __first;
         __local_acc[__first + __local_id] = __accumulator;
-        __dpl_sycl::__group_barrier(__item);
+        sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
     }
 
     return (__local_id ? __local_acc[__first + __local_id - 1] : __identity);
@@ -314,7 +314,7 @@ struct __sycl_scan_by_segment_impl
                                     }
                                 }
                                 __loc_partials_acc[__local_id] = __local_collector;
-                                __dpl_sycl::__group_barrier(__item);
+                                sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
                                 // Serial aggregate collection and synchronization
                                 if (__local_id == 0)
                                 {

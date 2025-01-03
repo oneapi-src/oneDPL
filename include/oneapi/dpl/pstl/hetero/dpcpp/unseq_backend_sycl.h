@@ -379,7 +379,7 @@ struct reduce_over_group
         __local_mem[__local_idx] = __val;
         for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
-            __dpl_sycl::__group_barrier(__item_id);
+            sycl::group_barrier(__item_id.get_group(), sycl::memory_scope::work_group);
             if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
                 __global_idx + __power_2 < __n)
             {
@@ -770,7 +770,7 @@ struct __scan
             // 3:      00000001    10000000
             do
             {
-                __dpl_sycl::__group_barrier(__item);
+                sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 
                 if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
@@ -778,7 +778,7 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            __dpl_sycl::__group_barrier(__item);
+            sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 
             // 2. scan
             auto __partial_sums = __local_acc[__local_id];
@@ -794,10 +794,10 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            __dpl_sycl::__group_barrier(__item);
+            sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 
             __local_acc[__local_id] = __partial_sums;
-            __dpl_sycl::__group_barrier(__item);
+            sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
@@ -842,7 +842,7 @@ struct __scan
 
             __local_acc[__local_id] =
                 __dpl_sycl::__inclusive_scan_over_group(__item.get_group(), __old_value, __bin_op);
-            __dpl_sycl::__group_barrier(__item);
+            sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 
             __adder = __local_acc[__wgroup_size - 1];
 

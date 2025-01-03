@@ -395,7 +395,7 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
                                 }
                             }
                             __loc_partials_acc[__local_id] = __local_collector;
-                            __dpl_sycl::__group_barrier(__item);
+                            sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
                             // serial aggregate collection and synchronization
                             if (__local_id == 0)
                             {
