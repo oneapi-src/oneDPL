@@ -25,6 +25,7 @@
 #include <iterator>
 #include <functional>
 #include <type_traits>
+#include <algorithm>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -782,6 +783,26 @@ union __lazy_ctor_storage
     {
         __v.~_Tp();
     }
+    static auto
+    __get_callable_deleter()
+    {
+        return [](__lazy_ctor_storage& __storage) { __storage.__destroy(); };
+    }
+};
+
+// Returns the smallest type within a set of potentially nested template types.
+// E.g. If we consider the type: T = tuple<float, tuple<short, long>, int, double>,
+// then __min_nested_type_size<T>::value returns sizeof(short).
+template <typename _T>
+struct __min_nested_type_size
+{
+    constexpr static std::size_t value = sizeof(_T);
+};
+
+template <template <typename...> typename _WrapperType, typename... _Ts>
+struct __min_nested_type_size<_WrapperType<_Ts...>>
+{
+    constexpr static std::size_t value = std::min({__min_nested_type_size<_Ts>::value...});
 };
 
 } // namespace __internal

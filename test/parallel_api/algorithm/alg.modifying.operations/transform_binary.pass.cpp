@@ -153,5 +153,7 @@ main()
     //test case for zip iterator
     test<50, std::int32_t, std::int32_t, std::int32_t>(TheOperationZip<std::int32_t>(1), _ZipIteratorAdapter{});
 
+    test<60, std::uint16_t, std::uint16_t, std::int32_t>(TheOperation<std::uint16_t, std::uint16_t, std::int32_t>(1));
+
     return done();
 }
