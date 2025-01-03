@@ -42,6 +42,35 @@ __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
+template <typename _StorageType>
+struct __thread_enumerable_storage
+{
+    template <typename... Args>
+    __thread_enumerable_storage(Args&&... __args) : __storage(std::forward<Args>(__args)...)
+    {
+    }
+
+    std::uint32_t
+    size() const
+    {
+        return std::uint32_t{1};
+    }
+
+    _StorageType&
+    get_for_current_thread()
+    {
+        return __storage;
+    }
+
+    _StorageType&
+    get_with_id(std::uint32_t __i)
+    {
+        return get_for_current_thread();
+    }
+
+    _StorageType __storage;
+};
+
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
 __parallel_for(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,
