@@ -87,19 +87,9 @@ individually for a small fixed size data_per_workitem. For non-stable sorts, we 
 For stable sort APIs, we will need something else, which is an open question. Perhaps bubble sort per work-item followed
 by merging within the subgroup.
 
-
-### Misc Comments
-
 While CUB provides multiple flavors of reduce to cover many different APIs, I think we can just provide segmented_reduce
 and offer some wrappers within the SYCLomatic helpers to cover the same functionality without cluttering our interface.
 
-### Related Papers
-
-For further reading and related work, you can refer to the following papers and resources:
-
-1. [Efficient Merging and Sorting on GPUs](https://dl.acm.org/doi/pdf/10.1145/3079079.3079105)
-2. [Segmented Sort](https://moderngpu.github.io/segsort.html)
-3. [An Evaluation of Fast Segmented Sorting Implementations on GPU](https://www.researchgate.net/publication/357947992_An_evaluation_of_fast_segmented_sorting_implementations_on_GPUs) 
 
 ## Alternative Options
 
@@ -130,3 +120,10 @@ combinations of segment sizes to test edge cases.
 * For stable sort APIs what sort should we use for small groups? 
 * How to deal with small segments which do not fill the subgroup?
 
+## Related Papers
+
+For further reading and related work, you can refer to the following papers and resources:
+
+1. [Efficient Merging and Sorting on GPUs](https://dl.acm.org/doi/pdf/10.1145/3079079.3079105)
+2. [Segmented Sort](https://moderngpu.github.io/segsort.html)
+3. [An Evaluation of Fast Segmented Sorting Implementations on GPU](https://www.researchgate.net/publication/357947992_An_evaluation_of_fast_segmented_sorting_implementations_on_GPUs) 
