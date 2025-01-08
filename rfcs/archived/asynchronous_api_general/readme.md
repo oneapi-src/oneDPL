@@ -33,7 +33,7 @@ The major concerns are:
   It might be addressed in a simpler and more extendable way with deferred waiting hints similar to
   [`par_nosync` policy in Thrust](#thrust-and-cub).
 - The C++ community starts shifting from [future-based asynchronous APIs](#c-async--future) to the
-  [schedulers and senders](#c26-execution-control-library) based approach. For example, Nvidia actively
+  [schedulers and senders](#c26-execution-control-library) based approach. For example, NVIDIA actively
   develops the experimental [stdexec library](https://github.com/NVIDIA/stdexec) while it considers
   deprecating the [asynchronous algorithms in Thrust](#thrust-and-cub).
 
@@ -152,7 +152,7 @@ support for this use case is not a requirement.
 
 ### Thrust and CUB
 
-The Thrust library from Nvidia uses two approaches for its asynchronous algorithms.
+The Thrust library uses two approaches for its asynchronous algorithms.
 Both approaches are implemented for the CUDA backend only.
 
 First, it has a small set of explicitly asynchronous algorithms in `namespace thrust::async`
