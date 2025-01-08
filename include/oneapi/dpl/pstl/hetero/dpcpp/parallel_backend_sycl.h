@@ -489,8 +489,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
                     const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
-                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
-                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
@@ -562,8 +560,6 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
                     const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
-                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
-                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
