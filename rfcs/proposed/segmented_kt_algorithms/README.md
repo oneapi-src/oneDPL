@@ -1,4 +1,4 @@
-# Descriptive Name for the Proposal
+# Segmented Sort and Segmented Reduce Kernel Templates
 
 ## Introduction
 
