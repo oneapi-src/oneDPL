@@ -118,6 +118,7 @@ endif()
 
 if (MSVC)
     target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
+    message("DEBUG FLAGS ARE ${CMAKE_CXX_FLAGS_DEBUG}")
     set(CMAKE_CXX_FLAGS_DEBUG "")
 else()
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
