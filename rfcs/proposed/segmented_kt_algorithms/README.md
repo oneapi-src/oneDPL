@@ -32,6 +32,7 @@ we can revisit that then.
 
 I propose the following Kernel Template APIs:
 
+```
 template <typename Iter1, typename Iter2, typename Iter3, typename Comparator>
 sycl::event
 segmented_sort(Iter1 in_begin, Iter2 out_begin, Iter3 segment_offsets_begin, Iter3 segment_offsets_end, Comparator comp)
@@ -55,7 +56,7 @@ template <typename Iter1, typename Iter2, typename Iter3, typename BinaryOp>
 sycl::event
 segmented_reduce(Iter1 in_begin, Iter2 out_begin, Iter3 segment_offsets_begin, Iter3 segment_offsets_end,
                  BinaryOp binary_op)
-
+```
 
 These APIs will sort segments into size classes, group together small, medium, and large segments, and handle each size
 class differently. Small segments are ones which fit within a subgroup. These segments will be launched together
