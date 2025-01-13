@@ -187,8 +187,7 @@ struct __thread_enumerable_storage
     template <typename... Args>
     __thread_enumerable_storage(Args&&... __args) : __num_elements(0)
     {
-        __storage_factory =
-            std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
+        __storage_factory = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
     }
