@@ -13,7 +13,7 @@ Internally, these rules are defined with a trait `oneapi::dpl::__ranges::is_pass
 `std::true_type` or `std::false_type` to indicate whether the type `T` should be passed directly to sycl kernels.
 There exists a unofficial legacy `is_passed_directly` trait which types can define like this:
 `using is_passed_directly = std::true_type;` which is supported within oneDPL. This method is currently used for a
-number of helper types within the SYCLomatic compatability headers, (`device_pointer`, `device_iterator`,
+number of helper types within the SYCLomatic compatibility headers, (`device_pointer`, `device_iterator`,
 `tagged_pointer`, `constant_iterator`, `iterator_adaptor`). There is no official public API for users who want to
 create their own types which could be passed directly to SYCL kernels, this is a gap we should fill in with an official
 public API.
