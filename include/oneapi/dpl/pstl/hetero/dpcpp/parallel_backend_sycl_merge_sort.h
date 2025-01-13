@@ -355,6 +355,28 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
     }
 
+    template <typename _ExecutionPolicy>
+    std::size_t
+    get_max_base_diags_count(_ExecutionPolicy&& __exec, const std::int64_t __n_iter, const _IndexT __n,
+                             _IndexT __n_sorted) const
+    {
+        std::size_t __max_base_diags_count = 0;
+
+        for (std::int64_t __i = 0; __i < __n_iter; ++__i)
+        {
+            const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
+
+            nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
+
+            __max_base_diags_count =
+                std::max(__max_base_diags_count, __nd_range_params_this.base_diag_count * __portions);
+
+            __n_sorted *= 2;
+        }
+
+        return __max_base_diags_count;
+    }
+
     template <typename DropViews, typename _Compare>
     inline static _merge_split_point_t
     __find_start_point_w(const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp)
@@ -545,10 +567,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     }
 
   public:
-    using __container_of_temp_storages_t = std::vector<std::shared_ptr<__result_and_scratch_storage_base>>;
 
     template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _TempBuf, typename _LeafSizeT>
-    std::tuple<sycl::event, bool, __container_of_temp_storages_t>
+    std::tuple<sycl::event, bool, std::shared_ptr<__result_and_scratch_storage_base>>
     operator()(_ExecutionPolicy&& __exec, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
                sycl::event __event_chain) const
     {
@@ -569,9 +590,13 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         // std::log2 may be prone to rounding errors on some architectures
         const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
 
-        // Create container for storages with split-points on base diagonal
-        //  - each iteration should have their own container
-        __container_of_temp_storages_t __temp_sp_storages;
+        // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __n_iter, __n, __n_sorted);
+        auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+
+        // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
+        std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
+            static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
@@ -588,31 +613,22 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 __nd_range_params_this.steps *= __portions;
                 __nd_range_params_this.base_diag_count *= __portions;
 
-                // Create storage for save split-points on each base diagonal
-                // - for current iteration
-                auto __p_base_diagonals_sp_storage =
-                    new __base_diagonals_sp_storage_t(__exec, 0, __nd_range_params_this.base_diag_count);
-
-                // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
-                __temp_sp_storages.emplace_back(
-                    static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_storage));
-
                 // Calculation of split-points on each base diagonal
                 __event_chain =
                     eval_split_points_for_groups(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
-                                                 __comp, __nd_range_params_this, *__p_base_diagonals_sp_storage);
+                                                 __comp, __nd_range_params_this, *__p_base_diagonals_sp_global_storage);
 
                 // Process parallel merge with usage of split-points on base diagonals
                 __event_chain = run_parallel_merge_from_diagonals(__event_chain, __n_sorted, __data_in_temp, __exec,
                                                                   __rng, __temp_buf, __comp, __nd_range_params_this,
-                                                                  *__p_base_diagonals_sp_storage);
+                                                                  *__p_base_diagonals_sp_global_storage);
             }
 
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
         }
 
-        return {std::move(__event_chain), __data_in_temp, std::move(__temp_sp_storages)};
+        return {std::move(__event_chain), __data_in_temp, std::move(__p_result_and_scratch_storage_base)};
     }
 };
 
