@@ -20,11 +20,11 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <numeric>
 #include <utility>
 #include <type_traits>
-
 #include "parallel_backend_utils.h"
 
 namespace oneapi

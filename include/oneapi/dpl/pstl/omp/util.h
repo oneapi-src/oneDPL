@@ -20,12 +20,12 @@
 #include <atomic>
 #include <iterator>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <memory>
 #include <vector>
 #include <type_traits>
 #include <omp.h>
-#include <atomic>
 #include <tuple>
 
 #include "../parallel_backend_utils.h"
