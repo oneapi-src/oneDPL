@@ -441,7 +441,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         //   |                                                                                                       __sp_left   |  __sp_right
         //   |                                                                                                                   |
         //   |                                                                                                       __linear_id_in_steps_range
-        //  We doesn't save the first diagonal into base diagonal's SP storage !!!
+        //  We don't save the first diagonal into base diagonal's SP storage !!!
 
         std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
