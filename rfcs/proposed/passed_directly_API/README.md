@@ -77,6 +77,12 @@ This option can exist in concert with existing methods, the legacy `is_passed_di
 implementation away from explicit specializations of the trait to the customization point, but that is not required
 at first implementation.
 
+### Implementation details
+To make this robust, we will follow an C++17 updated version of what is discussed in
+[Eric Niebler's Post](https://ericniebler.com/2014/10/21/customization-point-design-in-c11-and-beyond/), using a
+callable, and using an `inline constexpr` to avoid issues with ODR and to avoid issues with resolving customization
+points when not separating the call to two steps with a `using` statement first.
+
 ## Alternatives considered
 ### Public trait struct explicit specialization
 We could simply make public our internal structure `oneapi::dpl::__ranges::is_passed_directly` as
