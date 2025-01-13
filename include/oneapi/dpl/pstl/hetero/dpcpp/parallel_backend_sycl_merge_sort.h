@@ -342,7 +342,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, const _IndexT __portions) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
         const _IndexT __chunk = __is_cpu ? 32 : 4;
@@ -352,7 +352,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         _IndexT __base_diag_count = tune_amount_of_base_diagonals(__rng_size, 32 * 1'024); // 32 Kb
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
-        return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
+        return {__base_diag_count * __portions, __steps_between_two_base_diags, __chunk, __steps * __portions};
     }
 
     template <typename _ExecutionPolicy>
@@ -367,10 +367,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __n_sorted = __n_sorted << (__n_iter - 1);
 
             const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-
-            nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
-
-            __max_base_diags_count = __nd_range_params_this.base_diag_count * __portions;
+            __max_base_diags_count = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions).base_diag_count;
         }
 
         return __max_base_diags_count;
@@ -580,7 +577,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         using __value_type = oneapi::dpl::__internal::__value_t<_Range>;
 
         // Calculate nd-range params
-        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n);
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, 1);
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -608,9 +605,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             else
             {
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-                nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
-                __nd_range_params_this.steps *= __portions;
-                __nd_range_params_this.base_diag_count *= __portions;
+                const nd_range_params __nd_range_params_this =
+                    eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions);
 
                 assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
 
