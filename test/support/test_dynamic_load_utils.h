@@ -130,6 +130,147 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 
     std::array<std::array<int, D>, N> a;
     std::array<std::array<int, D>, N> b;
+    std::array<std::array<int, N>, N> resultMatrix;
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distribution(1, 10);
+
+    // Fill arrays a and b with random values
+    for (size_t i = 0; i < N; ++i)
+    {
+        for (size_t j = 0; j < D; ++j)
+        {
+            a[i][j] = distribution(generator);
+            b[i][j] = distribution(generator);
+        }
+    }
+
+    // Create buffers for 2D arrays
+    sycl::buffer<int, 2> bufferA(a.data(), sycl::range<2>(N, D));
+    sycl::buffer<int, 2> bufferB(b.data(), sycl::range<2>(N, D));
+    sycl::buffer<int, 2> bufferResultMatrix(resultMatrix.data(), sycl::range<2>(N, N));
+
+    std::atomic<int> probability = 0;
+    size_t total_items = 6;
+
+    if constexpr (call_select_before_submit)
+    {
+        for (int i = 0; i < total_items; i++)
+        {
+            int target = i % u.size();
+            auto test_resource = f(i);
+            auto func = [&](typename Policy::resource_type e) {
+                if (e == test_resource)
+                {
+                    probability.fetch_add(1);
+                }
+                if (target == 0)
+                {
+                    auto e2 = e.submit([&](sycl::handler& cgh) {
+                        auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
+                        auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
+                        auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
+                        
+                        cgh.parallel_for<TestUtils::unique_kernel_name<class load2, 0>>(
+                            sycl::range<1>(N), [=](sycl::item<1> item) {
+                                for (size_t j = 0; j < N; ++j)
+                                {
+                                    int dotProduct = 0;
+                                    for (size_t i = 0; i < D; ++i)
+                                    {
+                                        dotProduct += accessorA[item.get_id(0)][i] * accessorB[item.get_id(0)][i];
+                                    }
+                                    accessorResultMatrix[item.get_id(0)][j] = dotProduct;
+                                }
+                            });
+                    });
+                    return e2;
+                }
+                else
+                {
+                    auto e2 = e.submit([&](sycl::handler& cgh) {});
+                    return e2;
+                }
+            };
+            auto s = oneapi::dpl::experimental::select(p, func);
+            auto e = oneapi::dpl::experimental::submit(s, func);
+            if (i > 0)
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
+        }
+        oneapi::dpl::experimental::wait(p.get_submission_group());
+    }
+    else
+    {
+        for (int i = 0; i < total_items; ++i)
+        {
+            int target = i % u.size();
+            auto test_resource = f(i);
+            oneapi::dpl::experimental::submit(
+                p, [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                    if (e == test_resource)
+                    {
+                        probability.fetch_add(1);
+                    }
+                    if (target == 0)
+                    {
+                        auto e2 = e.submit([&](sycl::handler& cgh) {
+                            auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
+                            auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
+                            auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
+                            
+                            cgh.parallel_for<TestUtils::unique_kernel_name<class load1, 0>>(
+                                sycl::range<1>(N), [=](sycl::item<1> item) {
+                                    for (size_t j = 0; j < N; ++j)
+                                    {
+                                        int dotProduct = 0;
+                                        for (size_t i = 0; i < D; ++i)
+                                        {
+                                            dotProduct += accessorA[item.get_id(0)][i] * accessorB[item.get_id(0)][i];
+                                        }
+                                        accessorResultMatrix[item.get_id(0)][j] = dotProduct;
+                                    }
+                                });
+                        });
+                        return e2;
+                    }
+                    else
+                    {
+                        auto e2 = e.submit([&](sycl::handler& cgh) {
+                            // Empty handler for other cases
+                        });
+                        return e2;
+                    }
+                });
+            if (i > 0)
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));
+        }
+        oneapi::dpl::experimental::wait(p.get_submission_group());
+    }
+
+    // Check if the expected number of resources were selected
+    if (probability < total_items / 2)
+    {
+        std::cout << "ERROR: did not select expected resources\n";
+        return 1;
+    }
+    std::cout << "submit and wait on group: OK\n";
+    return 0;
+}
+
+
+
+
+/*
+test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
+{
+    using my_policy_t = Policy;
+    my_policy_t p{u};
+
+    constexpr size_t N = 1000; // Number of vectors
+    constexpr size_t D = 100;  // Dimension of each vector
+
+    std::array<std::array<int, D>, N> a;
+    std::array<std::array<int, D>, N> b;
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 10);
@@ -246,7 +387,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     std::cout << "submit and wait on group: OK\n";
     return 0;
 }
-
+*/
 
 
 
