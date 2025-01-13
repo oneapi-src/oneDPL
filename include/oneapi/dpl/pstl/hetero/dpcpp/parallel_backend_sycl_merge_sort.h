@@ -480,6 +480,11 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                    : __find_start_point_w(__data_area, __views, __comp);
     }
 
+    struct __no_op
+    {
+        void operator()() {}
+    };
+
     // Process parallel merge
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare>
     sycl::event
@@ -510,7 +515,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                : __serial_merge_w(
                                      __nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
                                      __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp), __comp))
-                        : void();
+                        : __no_op{}();
                 });
         });
     }
@@ -557,7 +562,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                                               DropViews(__rng, __data_area), __comp,
                                                               __base_diagonals_sp_global_ptr),
                                                   __comp))
-                        : void();
+                        : __no_op{}();
                 });
         });
     }
