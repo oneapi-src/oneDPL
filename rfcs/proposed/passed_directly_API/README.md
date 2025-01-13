@@ -96,7 +96,7 @@ customization point, allowing the user to override that customization point with
 function.
 
 ### Require specifically named typedef / using in user's type
-We could simply make official our requirements for user's types to include a typedef or using statment to define if the
+We could simply make official our requirements for user's types to include a typedef or using statement to define if the
 type is passed directly like `using is_passed_directly = std::true_type;`, where the absence of this would be equivalent
 to a `std::false_type`. 
 
@@ -113,5 +113,5 @@ as expected, with custom types and combinations of iterators, usm pointers etc.
 Is there a better / more concise name than `is_passed_directly_to_sycl_kernels` we can use which properly conveys the
 meaning to the users?
 
-Should we be targetting Experimental or fully supported with this proposal?
+Should we be targeting Experimental or fully supported with this proposal?
  (Do we think user feedback is required to solidify an interface / experience?)
