@@ -1786,9 +1786,9 @@ struct __parallel_find_or_impl_one_wg<__internal::__optional_kernel_name<KernelN
     template <typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType, typename _Predicate,
               typename... _Ranges>
     __FoundStateType
-    operator()(_ExecutionPolicy&& __exec, _BrickTag __brick_tag, const std::size_t __rng_n,
-               const std::size_t __wgroup_size, const __FoundStateType __init_value, _Predicate __pred,
-               _Ranges&&... __rngs)
+    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _BrickTag __brick_tag,
+               const std::size_t __rng_n, const std::size_t __wgroup_size, const __FoundStateType __init_value,
+               _Predicate __pred, _Ranges&&... __rngs)
     {
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __FoundStateType>;
         __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
@@ -1851,9 +1851,9 @@ struct __parallel_find_or_impl_multiple_wgs<__internal::__optional_kernel_name<K
     template <typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType, typename _Predicate,
               typename... _Ranges>
     _AtomicType
-    operator()(_ExecutionPolicy&& __exec, _BrickTag __brick_tag, const std::size_t __rng_n,
-               const std::size_t __n_groups, const std::size_t __wgroup_size, const _AtomicType __init_value,
-               _Predicate __pred, _Ranges&&... __rngs)
+    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _BrickTag __brick_tag,
+               const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
+               const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
     {
         auto __result = __init_value;
 
@@ -1950,8 +1950,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<_KernelName, __or_tag_check>()(
-            std::forward<_ExecutionPolicy>(__exec), __brick_tag, __rng_n, __wgroup_size, __init_value, __pred,
-            std::forward<_Ranges>(__rngs)...);
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+            __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
     else
     {
@@ -1963,8 +1963,8 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
 
         // Multiple WG implementation
         __result = __parallel_find_or_impl_multiple_wgs<_KernelName, __or_tag_check>()(
-            std::forward<_ExecutionPolicy>(__exec), __brick_tag, __rng_n, __n_groups, __wgroup_size, __init_value,
-            __pred, std::forward<_Ranges>(__rngs)...);
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
+            __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
 
     if constexpr (__or_tag_check)
