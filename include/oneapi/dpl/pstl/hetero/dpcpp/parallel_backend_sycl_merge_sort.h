@@ -370,7 +370,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             __n_sorted = __n_sorted << (__n_iter - 1);
 
             const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-            __max_base_diags_count = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions).base_diag_count;
+            __max_base_diags_count =
+                eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions).base_diag_count;
         }
 
         return __max_base_diags_count;
@@ -593,7 +594,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __n_iter, __n, __n_sorted);
-        auto __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+        auto __p_base_diagonals_sp_global_storage =
+            new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
