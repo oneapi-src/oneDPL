@@ -26,6 +26,7 @@
 #include <type_traits>
 #include <omp.h>
 #include <atomic>
+#include <tuple>
 
 #include "../parallel_backend_utils.h"
 #include "../unseq_backend_simd.h"
@@ -160,7 +161,7 @@ template <typename _StorageType>
 class __construct_by_args_base
 {
   public:
-    virtual ~__construct_by_args_base() {}
+    virtual ~__construct_by_args_base() = default;
     virtual std::unique_ptr<_StorageType> construct() = 0;
 };
 
@@ -172,13 +173,12 @@ class __construct_by_args : public __construct_by_args_base<_StorageType>
     std::unique_ptr<_StorageType>
     construct() override
     {
-        return std::move(
-            std::apply([](auto... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, __pack));
+        return std::apply([](_P... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, __pack);
     }
     __construct_by_args(_P&&... __args) : __pack(std::forward<_P>(__args)...) {}
 
   private:
-    std::tuple<_P...> __pack;
+    const std::tuple<_P...> __pack;
 };
 
 template <typename _StorageType>
@@ -187,7 +187,7 @@ struct __thread_enumerable_storage
     template <typename... Args>
     __thread_enumerable_storage(Args&&... __args) : __num_elements(0)
     {
-        __construct_helper =
+        __storage_factory =
             std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
@@ -205,10 +205,14 @@ struct __thread_enumerable_storage
     {
         assert(__i < size());
 
-        std::uint32_t __count = 0;
         std::uint32_t __j = 0;
 
-        for (; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
+        if (size() == __thread_specific_storage.size())
+        {
+            return *__thread_specific_storage[__i];
+        }
+
+        for (std::uint32_t __count = 0; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
         {
             // Only include storage from threads which have instantiated a storage object
             if (__thread_specific_storage[__j])
@@ -227,7 +231,7 @@ struct __thread_enumerable_storage
         if (!__thread_specific_storage[__i])
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
-            __thread_specific_storage[__i] = __construct_helper->construct();
+            __thread_specific_storage[__i] = __storage_factory->construct();
             __num_elements.fetch_add(1);
         }
         return *__thread_specific_storage[__i];
@@ -235,7 +239,7 @@ struct __thread_enumerable_storage
 
     std::vector<std::unique_ptr<_StorageType>> __thread_specific_storage;
     std::atomic<std::uint32_t> __num_elements;
-    std::unique_ptr<__construct_by_args_base<_StorageType>> __construct_helper;
+    std::unique_ptr<__construct_by_args_base<_StorageType>> __storage_factory;
 };
 
 } // namespace __omp_backend
