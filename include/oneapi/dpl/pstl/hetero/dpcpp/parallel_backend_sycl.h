@@ -486,65 +486,29 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
             __hdl.parallel_for<_ScanKernelName...>(
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                     const auto& __group = __self_item.get_group();
-                    const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
                     const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
-                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
-                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
-
-#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && oneapi::dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
-#else
-                    constexpr bool __can_use_subgroup_load_store = false;
-#endif
 
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    if constexpr (__can_use_subgroup_load_store)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc_ptr + __idx, __val);
-                        }
-                    }
-                    else
-                    {
-                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
-                        {
-                            __lacc[__idx] = __unary_op(__in_rng[__idx]);
-                        }
+                        __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
                     __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
                                                               __lacc_ptr, __bin_op, __init);
 
-                    if constexpr (__can_use_subgroup_load_store)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __subgroup.load(__lacc_ptr + __idx);
-                            __subgroup.store(__out_rng.begin() + __idx, __val);
-                        }
+                        __out_rng[__idx] = __lacc[__idx];
                     }
-                    else
-                    {
-                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
-                        {
-                            __out_rng[__idx] = __lacc[__idx];
-                        }
 
-                        const ::std::uint16_t __residual = __n % _WGSize;
-                        const ::std::uint16_t __residual_start = __n - __residual;
-                        if (__item_id < __residual)
-                        {
-                            auto __idx = __residual_start + __item_id;
-                            __out_rng[__idx] = __lacc[__idx];
-                        }
+                    const std::uint16_t __residual = __n % _WGSize;
+                    const std::uint16_t __residual_start = __n - __residual;
+                    if (__item_id < __residual)
+                    {
+                        auto __idx = __residual_start + __item_id;
+                        __out_rng[__idx] = __lacc[__idx];
                     }
                 });
         });
@@ -592,35 +556,12 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                     auto __res_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__res_acc);
                     const auto& __group = __self_item.get_group();
-                    const auto& __subgroup = __self_item.get_sub_group();
                     // This kernel is only launched for sizes less than 2^16
                     const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
-                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
-                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
-
-#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && oneapi::dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
-#else
-                    constexpr bool __can_use_subgroup_load_store = false;
-#endif
                     auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
-                    if constexpr (__can_use_subgroup_load_store)
+                    for (std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
-                        {
-                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc_ptr + __idx, __val);
-                        }
-                    }
-                    else
-                    {
-                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
-                        {
-                            __lacc[__idx] = __unary_op(__in_rng[__idx]);
-                        }
+                        __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
                     __scan_work_group<_ValueType, /* _Inclusive */ false>(
@@ -939,12 +880,10 @@ struct __write_red_by_seg
         using std::get;
         auto __out_keys = get<0>(__out_rng.tuple());
         auto __out_values = get<1>(__out_rng.tuple());
-        using _KeyType = oneapi::dpl::__internal::__value_t<decltype(__out_keys)>;
-        using _ValType = oneapi::dpl::__internal::__value_t<decltype(__out_values)>;
 
-        const _KeyType& __next_key = get<2>(__tup);
-        const _KeyType& __current_key = get<3>(__tup);
-        const _ValType& __current_value = get<1>(get<0>(__tup));
+        const auto& __next_key = get<2>(__tup);
+        const auto& __current_key = get<3>(__tup);
+        const auto& __current_value = get<1>(get<0>(__tup));
         const bool __is_seg_end = get<1>(__tup);
         const std::size_t __out_idx = get<0>(get<0>(__tup));
 
@@ -2492,8 +2431,6 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag, _Exe
 
     const auto __n = __keys.size();
 
-    using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
-    using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
     // Prior to icpx 2025.0, the reduce-then-scan path performs poorly and should be avoided.
 #if !defined(__INTEL_LLVM_COMPILER) || __INTEL_LLVM_COMPILER >= 20250000
