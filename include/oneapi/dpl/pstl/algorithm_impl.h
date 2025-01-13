@@ -4289,7 +4289,7 @@ __pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalItera
     return __res.base();
 }
 
-template <typename _ForwardIterator, typename _IdxHashFunc, typename _RandomAccessIterator, class _IsVector>
+template <class _ForwardIterator, class _IdxHashFunc, class _RandomAccessIterator, class _IsVector>
 void
 __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFunc __func,
                   _RandomAccessIterator __histogram_first, _IsVector) noexcept
@@ -4304,8 +4304,8 @@ __brick_histogram(_ForwardIterator __first, _ForwardIterator __last, _IdxHashFun
     }
 }
 
-template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size, typename _IdxHashFunc,
-          typename _RandomAccessIterator>
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _IdxHashFunc,
+          class _RandomAccessIterator>
 void
 __pattern_histogram(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator __histogram_first)
@@ -4317,8 +4317,8 @@ __pattern_histogram(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _
     __brick_histogram(__first, __last, __func, __histogram_first, typename _Tag::__is_vector{});
 }
 
-template <class _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
-          typename _IdxHashFunc, typename _RandomAccessIterator2>
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _Size,
+          class _IdxHashFunc, class _RandomAccessIterator2>
 void
 __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                     _RandomAccessIterator1 __last, _Size __num_bins, _IdxHashFunc __func,
