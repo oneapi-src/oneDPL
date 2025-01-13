@@ -22,7 +22,6 @@
 #include <cstdint>     // std::uint32_t, ...
 #include <algorithm>   // std::min, std::max_element
 #include <type_traits> // std::decay_t, std::integral_constant
-#include <vector>
 
 #include "sycl_defs.h"                   // __dpl_sycl::__local_accessor, __dpl_sycl::__group_barrier
 #include "sycl_traits.h"                 // SYCL traits specialization for some oneDPL types.
