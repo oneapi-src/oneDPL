@@ -75,7 +75,7 @@
 #define _ONEDPL_SYCL2020_LOCAL_ACCESSOR_PRESENT               (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60000))
 // The unified future supporting USM memory and buffers is only supported after DPC++ 2023.1 but not by 2023.2.
 #define _ONEDPL_SYCL2020_DEFAULT_ACCESSOR_CONSTRUCTOR_PRESENT                                                          \
-    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60100) || _ONEDPL_LIBSYCL_VERSION != 60200)
+    (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60100) && _ONEDPL_LIBSYCL_VERSION != 60200)
 #define _ONEDPL_SYCL2020_HOST_TARGET_PRESENT                  (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
 #define _ONEDPL_SYCL2020_HOST_ACCESSOR_PRESENT                (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
 #define _ONEDPL_SYCL2020_GET_HOST_ACCESS_PRESENT              (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(60200))
@@ -88,9 +88,6 @@
     (SYCL_EXT_ONEAPI_SUB_GROUP_MASK >= 1 && _ONEDPL_LIBSYCL_VERSION >= 50700)
 
 #define _ONEDPL_SYCL_DEVICE_COPYABLE_SPECIALIZATION_BROKEN (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(70100))
-
-// TODO: determine which compiler configurations provide subgroup load/store
-#define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
 // Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
 // SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
