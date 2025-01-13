@@ -112,3 +112,6 @@ as expected, with custom types and combinations of iterators, usm pointers etc.
 
 Is there a better / more concise name than `is_passed_directly_to_sycl_kernels` we can use which properly conveys the
 meaning to the users?
+
+Should we be targetting Experimental or fully supported with this proposal?
+ (Do we think user feedback is required to solidify an interface / experience?)
