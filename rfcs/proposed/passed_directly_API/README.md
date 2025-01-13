@@ -43,6 +43,27 @@ is_passed_directly_to_sycl_kernels(const T&)
 }
 ```
 
+Below is a simple example of a type and customization point definition which is always passed directly.
+
+```
+namespace user
+{
+
+    struct my_passed_directly_type
+    {
+        /* unspecified user definition */
+    };
+
+    template <typename It1, typename It2>
+    constexpr
+    bool
+    is_passed_directly_to_sycl_kernels(const my_passed_directly_type&)
+    {
+        return true;
+    }
+} //namespace user
+```
+
 Users can use any constexpr logic based on their type to determine if the type can be passed directly into a SYCL kernel
 without any processing. Below is an example of a type which contains a pair of iterators, and should be treated as
 passed directly if and only if both base iterators are also passed directly. OneDPL will use this customization point
