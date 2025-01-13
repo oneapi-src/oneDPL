@@ -362,16 +362,15 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     {
         std::size_t __max_base_diags_count = 0;
 
-        for (std::int64_t __i = 0; __i < __n_iter; ++__i)
+        if (__n_iter > 0)
         {
+            __n_sorted = __n_sorted << (__n_iter - 1);
+
             const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
 
             nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
 
-            __max_base_diags_count =
-                std::max(__max_base_diags_count, __nd_range_params_this.base_diag_count * __portions);
-
-            __n_sorted *= 2;
+            __max_base_diags_count = __nd_range_params_this.base_diag_count * __portions;
         }
 
         return __max_base_diags_count;
@@ -612,6 +611,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
                 __nd_range_params_this.steps *= __portions;
                 __nd_range_params_this.base_diag_count *= __portions;
+
+                assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
