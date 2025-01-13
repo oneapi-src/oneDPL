@@ -46,7 +46,7 @@ int
 main()
 {
     auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of work with in empty dpl::array in kernel_test");
+    EXPECT_TRUE(ret, "Wrong result of work with empty dpl::array in kernel_test");
 
     return TestUtils::done();
 }
