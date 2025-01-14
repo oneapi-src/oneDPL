@@ -23,8 +23,8 @@ which are not part of oneDPL's specified interface.
 
 ## Proposal
 
-Create a customization point `oneapi::dpl::is_passed_directly_in_onedpl_device_policies` free function which allows users to
-define to mark their types as passed directly:
+Create a customization point `oneapi::dpl::is_passed_directly_in_onedpl_device_policies` free function which allows
+users to define to mark their types as passed directly:
 
 ```
 template <typename T>
