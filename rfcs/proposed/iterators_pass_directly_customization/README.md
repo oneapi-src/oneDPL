@@ -117,9 +117,22 @@ proposed method will allow unqualified calls to `is_passed_directly_in_onedpl_de
 Both options will also have access to any user defined customizations defined in the same namespace of the type.
 With access to c++17, we will use `inline constexpr` to avoid issues with ODR, rather than his described method.
 
-## Alternatives considered
+### Drawbacks
+#### Unavailable For SFINAE
+While `is_passed_directly_in_onedpl_device_policies` is defined to be `constexpr`, and all user customizations must also
+be `constexpr`, they will be unavailable for `std::enable_if` or other SFINAE checks. These checks only have access to
+the type of the template parameter, and do not have access to any named instance of that type. Therefore, without
+imposing a requirement like default constructibility on types, we cannot use
+`is_passed_directly_in_onedpl_device_policies` in this context, as we have no instance to use as the argument to our
+Argument Dependant Lookup (ADL) function. This is an inconvenience, and it will require some refactoring of the code
+which processes input sequences, but it should only impact internal usage of
+`is_passed_directly_in_onedpl_device_policies`.  I don't anticipate users wanting to incorporate this function into
+their own SFINAE checks. Alternatives below do not have such drawbacks, but I still believe this to be the superior
+option for users.
+
+## Alternatives Considered
 ### Public Trait Struct Explicit Specialization
-We could simply make public our internal structure `oneapi::dpl::__ranges::is_passed_directly` as
+oneDPL could make public our internal structure `oneapi::dpl::__ranges::is_passed_directly` as
 `oneapi::dpl::is_passed_directly` for users to specialize to define rules for their types. This would be a similar
 mechanism to `sycl::is_device_copyable`. The implementation details of this option should avoid some complexity required
 to properly implement the customization point.
@@ -136,13 +149,25 @@ customization point, allowing the user to override that customization point with
 function.
 
 ### Require Specifically Named Typedef / Using in User's Type
-We could simply make official our requirements for user's types to include a typedef or using statement to define if the
+oneDPL could make official our requirements for user's types to include a typedef or using statement to define if the
 type is passed directly like `using is_passed_directly = std::true_type;`, where the absence of this would be equivalent
 to a `std::false_type`. 
 
 However, this clutters the user type definitions with specifics of oneDPL. It also may not be as clear what this
 signifies for maintenance of user code without appropriate comments describing the details of oneDPL and SYCL. Users
 have expressed that this is undesirable.
+
+### Wrapper Class
+oneDPL could provide some wrapper iterator `direct_iterator` which wraps an arbitrary base iterator and marks it as
+passed directly. `direct_iterator` could utilize either of the above alternatives to accomplish this, and signal
+that the iterator should be passed directly. It would need to pass through all operations to the wrapped base iterator,
+and make sure no overhead is added in its usage.
+There is some complexity in adding such a wrapper iterator, and it would need to be considered carefully to make sure no
+problems would be introduced. This wrapper class may obfuscate users types, and make them more unwieldy to use. It is
+also less expressive than the other options in that it only has the ability to unilaterally mark a type as passed
+directly.  There is no logic that can be used to express some iterator type which may be conditionally passed directly,
+other than to have logic to conditionally apply the wrapper in the first place. This option seems less clear and has
+more opportunity to cause problems.
 
 ## Testing
 We will need a detailed test checking both positive and negative responses to
