@@ -476,12 +476,15 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const bool __is_base_diagonal =
             __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
 
-        return __sp_right.first + __sp_right.second > 0
-                   ? (!__is_base_diagonal
-                          ? __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                               __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp)
-                          : __sp_left)
-                   : __find_start_point_w(__data_area, __views, __comp);
+        if (__sp_right.first + __sp_right.second > 0)
+        {
+            if (!__is_base_diagonal)
+                return __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                          __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
+            return __sp_left;
+        }
+
+        return __find_start_point_w(__data_area, __views, __comp);
     }
 
     // Process parallel merge
@@ -508,13 +511,18 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
-                        __data_in_temp
-                            ? __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
-                                               __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp),
-                                               __comp)
-                            : __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
-                                               __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp),
-                                               __comp);
+                        if (__data_in_temp)
+                        {
+                            __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
+                                             __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp),
+                                             __comp);
+                        }
+                        else
+                        {
+                            __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
+                                             __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp),
+                                             __comp);
+                        }
                     }
                 });
         });
@@ -552,17 +560,22 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     if (__data_area.is_i_elem_local_inside_merge_matrix())
                     {
-                        __data_in_temp
-                            ? __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
-                                               __lookup_sp(__linear_id, __nd_range_params, __data_area,
-                                                           DropViews(__dst, __data_area), __comp,
-                                                           __base_diagonals_sp_global_ptr),
-                                               __comp)
-                            : __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
-                                               __lookup_sp(__linear_id, __nd_range_params, __data_area,
-                                                           DropViews(__rng, __data_area), __comp,
-                                                           __base_diagonals_sp_global_ptr),
-                                               __comp);
+                        if (__data_in_temp)
+                        {
+                            __serial_merge_w(__nd_range_params, __data_area, DropViews(__dst, __data_area), __rng,
+                                             __lookup_sp(__linear_id, __nd_range_params, __data_area,
+                                                         DropViews(__dst, __data_area), __comp,
+                                                         __base_diagonals_sp_global_ptr),
+                                             __comp);
+                        }
+                        else
+                        {
+                            __serial_merge_w(__nd_range_params, __data_area, DropViews(__rng, __data_area), __dst,
+                                             __lookup_sp(__linear_id, __nd_range_params, __data_area,
+                                                         DropViews(__rng, __data_area), __comp,
+                                                         __base_diagonals_sp_global_ptr),
+                                             __comp);
+                        }
                     }
                 });
         });
