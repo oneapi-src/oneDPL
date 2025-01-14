@@ -162,6 +162,7 @@ oneDPL could provide some wrapper iterator `direct_iterator` which wraps an arbi
 passed directly. `direct_iterator` could utilize either of the above alternatives to accomplish this, and signal
 that the iterator should be passed directly. It would need to pass through all operations to the wrapped base iterator,
 and make sure no overhead is added in its usage.
+
 There is some complexity in adding such a wrapper iterator, and it would need to be considered carefully to make sure no
 problems would be introduced. This wrapper class may obfuscate users types, and make them more unwieldy to use. It is
 also less expressive than the other options in that it only has the ability to unilaterally mark a type as passed
