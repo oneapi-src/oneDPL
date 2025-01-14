@@ -336,7 +336,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     {
         // TODO required to evaluate this value based on available SLM size for each work-group.
         const std::size_t __base_diag_count = 32 * 1'024;
-        
+
         // Multiply work per item by a power of 2 to reach the desired number of iterations.
         // __dpl_bit_ceil rounds the ratio up to the next power of 2.
         const std::size_t __k =
