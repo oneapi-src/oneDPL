@@ -68,11 +68,12 @@ without any processing. Below is an example of a type which contains a pair of i
 passed directly if and only if both base iterators are also passed directly. oneDPL will use this customization point
 internally when determining how to handle incoming data, picking up any user defined customizations.
 
-When using device policies, oneDPL will check iterator types by calling `is_passed_directly_in_onedpl_device_policies`
-and if `true` is returned, will pass the iterator directly to sycl kernels rather than the data into sycl buffers, and
-then using the sycl buffer to handle the device accessibility of the data. Users may also call
-`oneapi::dpl::is_passed_directly_in_onedpl_device_policies` themselves to check how the oneDPL internals will treat any
-iterator types. This may be useful to ensure that no extra overhead occurs in device policy calls.
+When using device policies, oneDPL will run compile time checks on argument iterator types by calling
+`is_passed_directly_in_onedpl_device_policies` as a `constexpr`. If `true` is returned, oneDPL will pass the iterator
+directly to sycl kernels rather than copying the data into sycl buffers and using accessors to those buffers in the
+kernel. Users may also call `oneapi::dpl::is_passed_directly_in_onedpl_device_policies` themselves to check how the
+oneDPL internals will treat any iterator types. This may be useful to ensure that no extra overhead occurs in device
+policy calls.
 
 ```
 namespace user
@@ -103,13 +104,18 @@ This option can exist in concert with existing methods, the legacy `is_passed_di
 implementation away from explicit specializations of the trait to the customization point, but that is not required
 at first implementation.
 
+`oneapi::dpl::is_passed_directly_in_onedpl_device_policies()` will be defined in `oneapi/dpl/execution`. It must be
+included prior to calling or overriding `oneapi::dpl::is_passed_directly_in_onedpl_device_policies()` with their own
+customizations.
+
 ### Implementation Details
-To make this robust, we will follow a C++17 updated version of what is discussed in
-[Eric Niebler's Post](https://ericniebler.com/2014/10/21/customization-point-design-in-c11-and-beyond/), using a
-callable, and using an `inline constexpr` to avoid issues with ODR and to avoid issues with resolving customization
-points when not separating the call to two steps with a `using` statement first. Using his proposed method will allow
-both qualified and unqualified calls to `is_passed_directly_in_onedpl_device_policies` to pick up the default
-implementation provided by oneDPL.
+We will follow a C++17 updated version of what is discussed in
+[Eric Niebler's Post](https://ericniebler.com/2014/10/21/customization-point-design-in-c11-and-beyond/). Using his
+proposed method will allow unqualified calls to `is_passed_directly_in_onedpl_device_policies()` after a
+`using oneapi::dpl::is_passed_directly_in_onedpl_device_policies;` statement, as well as qualified calls to
+`oneapi::dpl::is_passed_directly_in_onedpl_device_policies()` to find the default implementation provided by oneDPL.
+Both options will also have access to any user defined customizations defined in the same namespace of the type.
+With access to c++17, we will use `inline constexpr` to avoid issues with ODR, rather than his described method.
 
 ## Alternatives considered
 ### Public Trait Struct Explicit Specialization
