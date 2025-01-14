@@ -23,12 +23,12 @@ which are not part of oneDPL's specified interface.
 
 ## Proposal
 
-Create a customization point `oneapi::dpl::is_passed_directly_to_onedpl` free function which allows users to
+Create a customization point `oneapi::dpl::is_passed_directly_in_onedpl_device_policies` free function which allows users to
 define to mark their types as passed directly:
 
 ```
 template <typename T>
-constexpr bool is_passed_directly_to_onedpl(const T&);
+constexpr bool is_passed_directly_in_onedpl_device_policies(const T&);
 ```
 
 oneDPL will provide a default implementation which will defer to the existing trait:
@@ -37,7 +37,7 @@ oneDPL will provide a default implementation which will defer to the existing tr
 template <typename T>
 constexpr
 bool
-is_passed_directly_to_onedpl(const T&)
+is_passed_directly_in_onedpl_device_policies(const T&)
 {
 	return oneapi::dpl::__ranges::is_passed_directly_v<T>;
 }
@@ -57,7 +57,7 @@ namespace user
     template <typename It1, typename It2>
     constexpr
     bool
-    is_passed_directly_to_onedpl(const my_passed_directly_type&)
+    is_passed_directly_in_onedpl_device_policies(const my_passed_directly_type&)
     {
         return true;
     }
@@ -82,10 +82,10 @@ namespace user
     template <typename It1, typename It2>
     constexpr
     bool
-    is_passed_directly_to_onedpl(const iterator_pair<It1, It2>& pair)
+    is_passed_directly_in_onedpl_device_policies(const iterator_pair<It1, It2>& pair)
     {
-        return oneapi::dpl::is_passed_directly_to_onedpl(pair.first) &&
-               oneapi::dpl::is_passed_directly_to_onedpl(pair.second);
+        return oneapi::dpl::is_passed_directly_in_onedpl_device_policies(pair.first) &&
+               oneapi::dpl::is_passed_directly_in_onedpl_device_policies(pair.second);
     }
 } //namespace user
 ```
@@ -99,7 +99,7 @@ implementation away from explicit specializations of the trait to the customizat
 at first implementation.
 
 ### Implementation details
-To make this robust, we will follow an C++17 updated version of what is discussed in
+To make this robust, we will follow a C++17 updated version of what is discussed in
 [Eric Niebler's Post](https://ericniebler.com/2014/10/21/customization-point-design-in-c11-and-beyond/), using a
 callable, and using an `inline constexpr` to avoid issues with ODR and to avoid issues with resolving customization
 points when not separating the call to two steps with a `using` statement first.
@@ -132,13 +132,14 @@ signifies for maintenance of user code without appropriate comments describing t
 have expressed that this is undesirable.
 
 ### Testing
-We will need a detailed test checking both positive and negative responses to `is_passed_directly_to_onedpl` come
-as expected, with custom types and combinations of iterators, usm pointers etc.
+We will need a detailed test checking both positive and negative responses to
+`is_passed_directly_in_onedpl_device_policies` have the expected result, with custom types and combinations of
+iterators, usm pointers etc.
 
 ## Open Questions
 
-Is there a better / more concise name than `is_passed_directly_to_onedpl` we can use which properly conveys the
-meaning to the users?
+Is there a better / more concise name than `is_passed_directly_in_onedpl_device_policies` we can use which properly
+conveys the meaning to the users (and is perhaps less verbose)?
 
 Should we be targeting Experimental or fully Supported with this proposal?
  (Do we think user feedback is required to solidify an interface / experience?)
