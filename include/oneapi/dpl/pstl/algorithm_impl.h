@@ -4349,7 +4349,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                                               __tls.get_for_current_thread().begin(), _IsVector{});
             });
         // now accumulate temporary storage into output global histogram
-        const std::uint32_t __num_temporary_copies = __tls.size();
+        const std::size_t __num_temporary_copies = __tls.size();
         __par_backend::__parallel_for(
             __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
             [__num_temporary_copies, __histogram_first, &__tls](auto __global_histogram_first, auto __global_histogram_last) {
@@ -4359,7 +4359,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                 __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __range_begin_id, __local_n,
                                             __global_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
                                             _IsVector{});
-                for (std::uint32_t __i = 1; __i < __num_temporary_copies; ++__i)
+                for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
                 {
                     //accumulate into output global histogram with other local histogram via += operator
                     __internal::__brick_walk2_n(

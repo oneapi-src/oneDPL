@@ -50,10 +50,10 @@ struct __thread_enumerable_storage
     {
     }
 
-    std::uint32_t
+    std::size_t
     size() const
     {
-        return std::uint32_t{1};
+        return std::size_t{1};
     }
 
     _StorageType&
@@ -63,7 +63,7 @@ struct __thread_enumerable_storage
     }
 
     _StorageType&
-    get_with_id(std::uint32_t /*__i*/)
+    get_with_id(std::size_t /*__i*/)
     {
         return get_for_current_thread();
     }

@@ -1315,7 +1315,7 @@ struct __thread_enumerable_storage
     {
     }
 
-    std::uint32_t
+    std::size_t
     size() const
     {
         return __thread_specific_storage.size();
@@ -1328,7 +1328,7 @@ struct __thread_enumerable_storage
     }
 
     _StorageType&
-    get_with_id(std::uint32_t __i)
+    get_with_id(std::size_t __i)
     {
         return __thread_specific_storage.begin()[__i];
     }

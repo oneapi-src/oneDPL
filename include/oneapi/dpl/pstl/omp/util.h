@@ -195,7 +195,7 @@ struct __thread_enumerable_storage
     // Note: Size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
     // not return an accurate count of instantiated storage objects in lockstep with the number allocated and stored.
     // This is because the count is not atomic with the allocation and storage of the storage objects.
-    std::uint32_t
+    std::size_t
     size() const
     {
         // only count storage which has been instantiated
@@ -203,18 +203,18 @@ struct __thread_enumerable_storage
     }
 
     _StorageType&
-    get_with_id(std::uint32_t __i)
+    get_with_id(std::size_t __i)
     {
         assert(__i < size());
 
-        std::uint32_t __j = 0;
+        std::size_t __j = 0;
 
         if (size() == __thread_specific_storage.size())
         {
             return *__thread_specific_storage[__i];
         }
 
-        for (std::uint32_t __count = 0; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
+        for (std::size_t __count = 0; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
         {
             // Only include storage from threads which have instantiated a storage object
             if (__thread_specific_storage[__j])
@@ -229,7 +229,7 @@ struct __thread_enumerable_storage
     _StorageType&
     get_for_current_thread()
     {
-        std::uint32_t __i = omp_get_thread_num();
+        std::size_t __i = omp_get_thread_num();
         if (!__thread_specific_storage[__i])
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
@@ -240,7 +240,7 @@ struct __thread_enumerable_storage
     }
 
     std::vector<std::unique_ptr<_StorageType>> __thread_specific_storage;
-    std::atomic<std::uint32_t> __num_elements;
+    std::atomic_size_t __num_elements;
     std::unique_ptr<__construct_by_args_base<_StorageType>> __storage_factory;
 };
 
