@@ -166,3 +166,16 @@ With this new structure we will use the following algorithm:
    divided on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the
    output histogram.
 
+### Temporary Memory Requirements
+Both algorithms should have temporary memory complexity of `O(num_bins)`, and specifically will allocate `num_bins`
+output histogram typed elements for each thread used. Depending on the number of input elements, all available threads
+may not be used.
+
+### Computational Complexity
+#### Even Bin API
+The proposed algorithm should have `O(N) + O(num_bins)` operations where `N` is the number of input elements, and
+`num_bins` is the number of histogram bins.
+
+#### Custom Range Bin API
+The proposed algorithm should have `O(N * log(num_bins)) + O(num_bins)` operations where `N` is the number of input
+elements, and `num_bins` is the number of histogram bins.
