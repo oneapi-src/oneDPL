@@ -155,7 +155,7 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
-// abstract class to allow inclusion in __thread_enumerable_storage as member without requiring explicit template
+// abstract class to allow inclusion in __enumerable_thread_local_storage as member without requiring explicit template
 // instantiation of param types
 template <typename _StorageType>
 class __construct_by_args_base
@@ -182,10 +182,10 @@ class __construct_by_args : public __construct_by_args_base<_StorageType>
 };
 
 template <typename _StorageType>
-struct __thread_enumerable_storage
+struct __enumerable_thread_local_storage
 {
     template <typename... Args>
-    __thread_enumerable_storage(Args&&... __args) : __num_elements(0)
+    __enumerable_thread_local_storage(Args&&... __args) : __num_elements(0)
     {
         __storage_factory = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
         _PSTL_PRAGMA(omp parallel)

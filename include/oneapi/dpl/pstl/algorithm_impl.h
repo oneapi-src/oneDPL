@@ -4333,12 +4333,12 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     {
         // when n <= 0, we must fill the output histogram with zeros
         __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
-                __histogram_first + __num_bins, _HistogramValueT{0});
+                       __histogram_first + __num_bins, _HistogramValueT{0});
     }
     else
     {
-        __par_backend::__thread_enumerable_storage<std::vector<_HistogramValueT>> __tls{__num_bins,
-                                                                                        _HistogramValueT{0}};
+        __par_backend::__enumerable_thread_local_storage<std::vector<_HistogramValueT>> __tls{__num_bins,
+                                                                                              _HistogramValueT{0}};
 
         //main histogram loop
         //TODO: add defaulted grain-size option for __parallel_for and use larger one here to account for overhead
@@ -4352,7 +4352,8 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
         const std::size_t __num_temporary_copies = __tls.size();
         __par_backend::__parallel_for(
             __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
-            [__num_temporary_copies, __histogram_first, &__tls](auto __global_histogram_first, auto __global_histogram_last) {
+            [__num_temporary_copies, __histogram_first, &__tls](auto __global_histogram_first,
+                                                                auto __global_histogram_last) {
                 const _DiffType __local_n = __global_histogram_last - __global_histogram_first;
                 const _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
                 //initialize output global histogram with first local histogram via assign

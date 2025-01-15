@@ -1308,10 +1308,10 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
 }
 
 template <typename _StorageType>
-struct __thread_enumerable_storage
+struct __enumerable_thread_local_storage
 {
     template <typename... Args>
-    __thread_enumerable_storage(Args&&... __args) : __thread_specific_storage(std::forward<Args>(__args)...)
+    __enumerable_thread_local_storage(Args&&... __args) : __thread_specific_storage(std::forward<Args>(__args)...)
     {
     }
 
