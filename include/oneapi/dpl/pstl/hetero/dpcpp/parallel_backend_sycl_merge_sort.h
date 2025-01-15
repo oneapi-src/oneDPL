@@ -339,8 +339,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // Multiply work per item by a power of 2 to reach the desired number of iterations.
         // __dpl_bit_ceil rounds the ratio up to the next power of 2.
-        const std::size_t __k =
-            oneapi::dpl::__internal::__dpl_bit_ceil((std::size_t)std::ceil(256 * 1024 * 1024 / __n_sorted));
+        const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
+            oneapi::dpl::__internal::__dpl_ceiling_div(256 * 1024 * 1024, __n_sorted));
 
         return oneapi::dpl::__internal::__dpl_ceiling_div(__base_diag_count, __k);
     }
