@@ -23,16 +23,16 @@ details which are not part of oneDPL's specified interface.
 
 ## Proposal
 
-Create a customization point `oneapi::dpl::is_passed_directly_in_onedpl_device_policies` which allows users to mark
+Create a customization point `is_passed_directly_in_onedpl_device_policies` which allows users to mark
 their types as "passed directly" by returning either `std::true_type{}` or as "non passed directly" by returning
-`std::false_type{}`. Also create also a helper `oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>`
-which is an `inline constexpr bool` indicating the passed directly status of the templated type `T`.`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>` is very useful in `std::enable_if` and other SFINAE
+`std::false_type{}`. Also create also a public trait `oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>`
+which is an `inline constexpr bool` indicating the "passed directly" status of the template type `T`.`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>` is very useful in `std::enable_if` and other SFINAE
 contexts, since we only require the typename rather than a named instance of the type to determine if the type is passed
 directly. It is also useful in the context of defining customizations for user types which are conditionally passed
 directly, as shown in an example below.
 
-The default implementation will defer to the existing `oneapi::dpl::__ranges::is_passed_directly<T>` structure, which is
-already used internally to oneDPL.
+The default implementation of the customization point `is_passed_directly_in_onedpl_device_policies` will defer to the
+existing `oneapi::dpl::__ranges::is_passed_directly<T>` structure as shown, which is already used internally to oneDPL.
 
 ```
 template <typename T>
@@ -44,17 +44,32 @@ is_passed_directly_in_onedpl_device_policies(const T&)
 }
 ```
 
+User who want to customize this function for their own type must override it in the same namespace as their defined
+type.
+
 `oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>` will rely upon the customization point
 `is_passed_directly_in_onedpl_device_policies`, as well as `std::declval<T>()` and `decltype` to determine the passed
 directly status of a type. oneDPL will use this customization point internally when determining how to handle incoming
 data, picking up any user defined customizations.
 
 When using device policies, oneDPL will run compile time checks on argument iterator types by calling
-`is_passed_directly_in_onedpl_device_policies` as a `constexpr`. If `std::true_type` is returned, oneDPL will pass the
-iterator directly to sycl kernels rather than copying the data into sycl buffers and using accessors to those buffers in
-the kernel. Users may also call `oneapi::dpl::is_passed_directly_in_onedpl_device_policies[_v]` themselves to check how
-the oneDPL internals will treat any iterator types. This may be useful to ensure that no extra overhead occurs in device
-policy calls.
+`is_passed_directly_in_onedpl_device_policies`. If `std::true_type{}` is returned, oneDPL will pass the iterator
+directly to sycl kernels rather than copying the data into `sycl::buffers` and using those buffers to transfer data to
+sycl kernels. Users may also use `oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v<T>` themselves to check
+how the oneDPL internals will treat any iterator types. This may be useful to ensure that no extra overhead occurs in
+device policy calls of oneDPL APIs.
+
+This option can exist in concert with existing methods, the legacy `is_passed_directly` typedef in types, the internal
+`oneapi::dpl::__ranges::is_passed_directly` trait specializations. It would be possible to simplify the internal
+implementation away from explicit specializations and instead using the customization point, but that is not required
+at first implementation.
+
+`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v` will be defined in `oneapi/dpl/execution`.
+
+The specification and implementation will be prepared once this RFC is accepted as "proposed", we do not intend to offer
+this first as experimental. This RFC will target "Supported" once we have implementation solidified its details.
+
+### Examples
 
 Below is a simple example of a type and customization point definition which is always passed directly.
 
@@ -76,9 +91,9 @@ namespace user
 } //namespace user
 ```
 
-Users can use any constexpr logic based on their type to determine if the type can be passed directly into a SYCL kernel
-without any processing. Below is an example of a type which contains a pair of iterators, and should be treated as
-passed directly if and only if both base iterators are also passed directly. 
+Users can use any `constexpr` logic based on their type to determine if the type can be passed directly into a SYCL
+kernel without any processing. Below is an example of a type which contains a pair of iterators, and should be treated
+as passed directly if and only if both base iterators are also passed directly. 
 
 ```
 namespace user
@@ -102,27 +117,6 @@ namespace user
     }
 } //namespace user
 ```
-
-This allows the user to provide rules for their types next to their implementation, without cluttering the
-implementation of the type itself with extra typedefs, etc.
-
-This option can exist in concert with existing methods, the legacy `is_passed_directly` typedef in types, the internal
-`oneapi::dpl::__ranges::is_passed_directly` trait specializations. It would be possible to simplify the internal
-implementation away from explicit specializations of the trait to the customization point, but that is not required
-at first implementation.
-
-`oneapi::dpl::is_passed_directly_in_onedpl_device_policies[_v]` will be defined in `oneapi/dpl/execution` which must be
-included prior to calling or overriding `oneapi::dpl::is_passed_directly_in_onedpl_device_policies()` with
-customizations.
-
-### Implementation Details
-We will follow a C++17 updated version of what is discussed in
-[Eric Niebler's Post](https://ericniebler.com/2014/10/21/customization-point-design-in-c11-and-beyond/). Using his
-proposed method will allow unqualified calls to `is_passed_directly_in_onedpl_device_policies()` after a
-`using oneapi::dpl::is_passed_directly_in_onedpl_device_policies;` statement, as well as qualified calls to
-`oneapi::dpl::is_passed_directly_in_onedpl_device_policies()` to find the default implementation provided by oneDPL.
-Both options will also have access to any user defined customizations defined in the same namespace of the type.
-With access to c++17, we will use `inline constexpr` to avoid issues with ODR, rather than his described method.
 
 ## Alternatives Considered
 ### Public Trait Struct Explicit Specialization
@@ -166,12 +160,10 @@ more opportunity to cause problems.
 
 ## Testing
 We will need a detailed test checking both positive and negative responses to
-`is_passed_directly_in_onedpl_device_policies` have the expected result, with custom types and combinations of
-iterators, usm pointers etc.
+`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v` have the expected result, with custom types and
+combinations of iterators, usm pointers etc.
 
 ## Open Questions
 
 * Is there a better, more concise name than `is_passed_directly_in_onedpl_device_policies` that properly conveys the
 meaning to the users?
-* Should we be targeting Experimental or fully Supported with this proposal?
-(Do we think user feedback is required to solidify an interface / experience?)
