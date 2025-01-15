@@ -1776,12 +1776,12 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
 };
 #endif // !_ONEDPL_FPGA_EMU
 
-template <typename KernelName, bool __or_tag_check>
+template <bool __or_tag_check, typename KernelName>
 struct __parallel_find_or_impl_one_wg;
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename... KernelName, bool __or_tag_check>
-struct __parallel_find_or_impl_one_wg<__internal::__optional_kernel_name<KernelName...>, __or_tag_check>
+template <bool __or_tag_check, typename... KernelName>
+struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_kernel_name<KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType, typename _Predicate,
               typename... _Ranges>
@@ -1841,12 +1841,12 @@ struct __parallel_find_or_impl_one_wg<__internal::__optional_kernel_name<KernelN
     }
 };
 
-template <typename KernelName, bool __or_tag_check>
+template <bool __or_tag_check, typename KernelName>
 struct __parallel_find_or_impl_multiple_wgs;
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename... KernelName, bool __or_tag_check>
-struct __parallel_find_or_impl_multiple_wgs<__internal::__optional_kernel_name<KernelName...>, __or_tag_check>
+template <bool __or_tag_check, typename... KernelName>
+struct __parallel_find_or_impl_multiple_wgs<__or_tag_check, __internal::__optional_kernel_name<KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType, typename _Predicate,
               typename... _Ranges>
@@ -1949,7 +1949,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel_one_wg<_CustomName>>;
 
         // Single WG implementation
-        __result = __parallel_find_or_impl_one_wg<_KernelName, __or_tag_check>()(
+        __result = __parallel_find_or_impl_one_wg<__or_tag_check, _KernelName>()(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
             __rng_n, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
@@ -1962,7 +1962,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel<_CustomName>>;
 
         // Multiple WG implementation
-        __result = __parallel_find_or_impl_multiple_wgs<_KernelName, __or_tag_check>()(
+        __result = __parallel_find_or_impl_multiple_wgs<__or_tag_check, _KernelName>()(
             oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __brick_tag,
             __rng_n, __n_groups, __wgroup_size, __init_value, __pred, std::forward<_Ranges>(__rngs)...);
     }
