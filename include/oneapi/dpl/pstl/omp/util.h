@@ -192,7 +192,7 @@ struct __thread_enumerable_storage
         _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
     }
 
-    // Note: Size should not be used concurrantly with parallel loops which may instantiate storage objects, as it may
+    // Note: Size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
     // not return an accurate count of instantiated storage objects in lockstep with the number allocated and stored.
     // This is because the count is not atomic with the allocation and storage of the storage objects.
     std::uint32_t

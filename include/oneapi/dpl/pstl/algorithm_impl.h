@@ -4329,7 +4329,13 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     using _DiffType = typename std::iterator_traits<_RandomAccessIterator2>::difference_type;
 
     _DiffType __n = __last - __first;
-    if (__n > 0)
+    if (__n <= 0)
+    {
+        // when n <= 0, we must fill the output histogram with zeros
+        __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
+                __histogram_first + __num_bins, _HistogramValueT{0});
+    }
+    else
     {
         __par_backend::__thread_enumerable_storage<std::vector<_HistogramValueT>> __tls{__num_bins,
                                                                                         _HistogramValueT{0}};
@@ -4343,11 +4349,11 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                                               __tls.get_for_current_thread().begin(), _IsVector{});
             });
         // now accumulate temporary storage into output global histogram
+        const std::uint32_t __num_temporary_copies = __tls.size();
         __par_backend::__parallel_for(
             __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
-            [__histogram_first, &__tls](auto __global_histogram_first, auto __global_histogram_last) {
+            [__num_temporary_copies, __histogram_first, &__tls](auto __global_histogram_first, auto __global_histogram_last) {
                 const _DiffType __local_n = __global_histogram_last - __global_histogram_first;
-                const std::uint32_t __num_temporary_copies = __tls.size();
                 const _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
                 //initialize output global histogram with first local histogram via assign
                 __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __range_begin_id, __local_n,
@@ -4361,11 +4367,6 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                         [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
                 }
             });
-    }
-    else
-    {
-        __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
-                       __histogram_first + __num_bins, _HistogramValueT{0});
     }
 }
 
