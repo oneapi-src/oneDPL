@@ -39,8 +39,7 @@ backends, and instead rely upon `__parallel_for`.
 
 ### SIMD/openMP SIMD Implementation
 Currently oneDPL relies upon openMP SIMD to provide its vectorization, which is designed to provide vectorization across
-loop iterations. OneDPL does not directly use any intrinsics which may offer more complex functionality than what is
-provided by OpenMP.
+loop iterations, oneDPL does not directly use any intrinsics.
 
 There are a few parts of the histogram algorithm to consider. For the calculation to determine which bin to increment
 there are two APIs, even and custom range which have significantly different methods to determine the bin to
