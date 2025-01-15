@@ -112,7 +112,7 @@ the number of bins was very large (~1 Million), and even for this subset signifi
 with a small number for input elements relative to number of bins. This makes sense because the atomic implementation
 is able to avoid the overhead of allocating and initializing temporary histogram copies, which is largest when
 the number of bins is large compared to the number of input elements. With many bins, contention on atomics is also
-limited as compared to the embarassingly parallel proposal which does experience this contention.
+limited as compared to the embarrassingly parallel proposal which does experience this contention.
 
 When we examine the real world utility of these cases, we find that they are uncommon and unlikely to be the important
 use cases. Histograms generally are used to categorize large images or arrays into a smaller number of bins to
