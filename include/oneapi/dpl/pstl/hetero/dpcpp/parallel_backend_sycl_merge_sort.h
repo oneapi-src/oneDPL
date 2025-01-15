@@ -469,8 +469,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
-        assert(__diagonal_idx < __nd_range_params.base_diag_count);
-
         const _merge_split_point_t __sp_left =
             __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
