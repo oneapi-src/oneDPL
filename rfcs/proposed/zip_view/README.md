@@ -35,6 +35,7 @@ This class encapsulates a tuple-like type to keep a combination of two or more r
 
 ### Test coverage
 
-- `oneapi::dpl::ranges::zip_view` is tested itself, base functionality.
+- `oneapi::dpl::ranges::zip_view` is tested itself, base functionality (the API that is used for a range in the oneDPL algorithm implementtaions)
+- the base functionality test coverage may be extended by the adapted LLVM `std::ranges::zip_view` tests.
 - should be tested with at least one oneDPL range based algorithm.
 - should be tested with at least one oneDPL iterator based algorithm.
