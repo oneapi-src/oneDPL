@@ -76,7 +76,8 @@ algorithm to use the global histogram directly.
 sequence. `count_if` relies upon the `transform_reduce` pattern internally, and returns a scalar-typed value and doesn't
 provide any function to modify the variable being incremented. Using `count_if` without significant modification would
 require us to loop through the entire sequence for each output bin in the histogram. From a memory bandwidth
-perspective, this is untenable. Similarly, using a `histogram` pattern to implement `count_if` is unlikely to provide a well-performing result in the end, as contention should be far higher, and `transform_reduce` is a very well-matched
+perspective, this is untenable. Similarly, using a `histogram` pattern to implement `count_if` is unlikely to provide a
+well-performing result in the end, as contention should be far higher, and `transform_reduce` is a very well-matched
 pattern performance-wise.
 
 ### parallel_for
@@ -141,8 +142,8 @@ This method uses temporary storage and a pair of calls to backend specific `para
 `histogram`. These calls will use the existing infrastructure to provide properly composable parallelism, without extra
 histogram-specific patterns in the implementation of a backend.
 
-This algorithm does however require that each parallel backend will add a  `__thread_enumerable_storage<_StoredType>`
-struct which provides the following:
+This algorithm does however require that each parallel backend will add a
+`__enumerable_thread_local_storage<_StoredType>` struct which provides the following:
 * constructor which takes a variadic list of args to pass to the constructor of each thread's object
 * `get_for_current_thread()` returns reference to the current thread's stored object
 * `get_with_id(int i)` returns reference to the stored object for an index
@@ -158,10 +159,10 @@ implementation and the original, which directly accumulated to the output histog
 With this new structure we will use the following algorithm:
 
 1) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
-   its own temporary histogram returned by `__thread_enumerable_storage`. The parallelism is divided on the input
+   its own temporary histogram returned by `__enumerable_thread_local_storage`. The parallelism is divided on the input
    element axis, and we rely upon existing `parallel_for` to implement chunksize and thread composability.
 2) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
-   histogram created within `__thread_enumerable_storage` into the output histogram sequence. The parallelism is divided
-   on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the output
-   histogram.
+   histogram created within `__enumerable_thread_local_storage` into the output histogram sequence. The parallelism is
+   divided on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the
+   output histogram.
 
