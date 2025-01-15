@@ -4346,9 +4346,9 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
         __par_backend::__parallel_for(
             __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
             [__histogram_first, &__tls](auto __global_histogram_first, auto __global_histogram_last) {
-                _DiffType __local_n = __global_histogram_last - __global_histogram_first;
-                std::uint32_t __num_temporary_copies = __tls.size();
-                _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
+                const _DiffType __local_n = __global_histogram_last - __global_histogram_first;
+                const std::uint32_t __num_temporary_copies = __tls.size();
+                const _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
                 //initialize output global histogram with first local histogram via assign
                 __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __range_begin_id, __local_n,
                                             __global_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
