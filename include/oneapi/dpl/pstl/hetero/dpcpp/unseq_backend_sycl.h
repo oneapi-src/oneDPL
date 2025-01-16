@@ -1169,16 +1169,17 @@ struct __reverse_functor : public walk_vector_or_scalar_base<_Range>
 
     template <typename _IsFull, typename _Idx>
     void
-    __vector_path_impl(_IsFull __is_full, const _Idx __left_start_idx, _Range __rng) const
+    __vector_path_impl(_IsFull, const _Idx __left_start_idx, _Range __rng) const
     {
         std::size_t __n = __size;
         std::size_t __midpoint = __size / 2;
-        // If our start is passed the midpoint, then immediately leave as it is guaranteed to be processed by another
-        // work-item. There may be some double processing (< 4 elements) between left and right vectors at the
-        // "crossover" point within a work item, but allowing this is to happen is likely more performant than
-        // additional branching for each work item (see reverse_copy).
-        if (__left_start_idx >= __midpoint)
-            return;
+
+        // In the below implementation, we see that _IsFull is ignored in favor of std::true_type{} in all cases.
+        // This relaxation is due to the fact that in-place reverse launches work only over the first half of the
+        // buffer. As long as __size >= __vec_size there is no risk of an OOB accesses or a race condition. There may
+        // exist a  single point of double processing between left and right vectors in the last work-item which
+        // reverses middle elements. This extra processing of elements <= __vec_size is more performant than applying
+        // additional branching (such as in reverse_copy).
 
         // 1. Load two vectors that we want to swap: one from the left half of the buffer and one from the right
         const _Idx __right_start_idx = __size - __left_start_idx - __base_t::__preferred_vector_size;
@@ -1187,30 +1188,32 @@ struct __reverse_functor : public walk_vector_or_scalar_base<_Range>
         oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType> __rng_right_vector[__base_t::__preferred_vector_size];
 
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __left_start_idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng, __rng_left_vector);
+            std::true_type{}, __left_start_idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng,
+            __rng_left_vector);
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __right_start_idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng,
+            std::true_type{}, __right_start_idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng,
             __rng_right_vector);
-        // 2. Reverse vectors in registers. Note that due to indices we have chosen, there will always be a full vector of elements to load
+        // 2. Reverse vectors in registers. Note that due to indices we have chosen, there will always be a full
+        // vector of elements to load
         oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
             std::true_type{}, __left_start_idx, __rng_left_vector);
         oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
             std::true_type{}, __right_start_idx, __rng_right_vector);
         // 3. Store the left-half vector to the corresponding right-half indices and vice versa
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __right_start_idx,
+            std::true_type{}, __right_start_idx,
             oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<oneapi::dpl::__internal::__pstl_assign>{},
             __rng_left_vector, __rng);
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __left_start_idx,
+            std::true_type{}, __left_start_idx,
             oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<oneapi::dpl::__internal::__pstl_assign>{},
             __rng_right_vector, __rng);
         // 4. Call destructors of temporary storage
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            std::true_type{}, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
             __rng_left_vector);
         oneapi::dpl::__par_backend_hetero::__vector_walk<__base_t::__preferred_vector_size>{__n}(
-            __is_full, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
+            std::true_type{}, 0, oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType>::__get_callable_deleter(),
             __rng_right_vector);
     }
     template <typename _IsFull, typename _Idx>
