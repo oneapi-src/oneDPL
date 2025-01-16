@@ -164,6 +164,12 @@ histogram created within `__enumerable_thread_local_storage` into the output his
 divided on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the
 output histogram.
 
+With the overhead associated with this algorithm, the implementation of each `parallel_for` may fallback to a serial
+implementation. It makes sense to include this as part of a future improvement of `parallel_for`, where a user could
+provide extra information in the call to influence details of the backend implementation from the non-background
+specific implementation code.  Details which may be included could include grain size or a functor to determine fallback
+to serial implementation.
+
 ### Temporary Memory Requirements
 Both algorithms should have temporary memory complexity of `O(num_bins)`, and specifically will allocate `num_bins`
 output histogram typed elements for each thread used. Depending on the number of input elements, all available threads
