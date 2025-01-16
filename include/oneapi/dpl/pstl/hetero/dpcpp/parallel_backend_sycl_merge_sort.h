@@ -384,7 +384,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     if (__is_cpu)
     {
         const auto __sg_sizes = __device.template get_info<sycl::info::device::sub_group_sizes>();
-        __max_sg_size = *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
+        __max_sg_size = std::max<uint32_t>(*std::max_element(__sg_sizes.begin(), __sg_sizes.end()), 4);
     }
     // Assume CPUs handle one sub-group (SIMD) per CU;
     // Assume GPUs handle multiple sub-groups per CU,
