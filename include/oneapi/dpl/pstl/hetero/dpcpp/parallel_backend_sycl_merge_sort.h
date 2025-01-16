@@ -478,10 +478,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         if (__sp_right.first + __sp_right.second > 0)
         {
-            if (!__is_base_diagonal)
-                return __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                          __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
-            return __sp_left;
+            return __is_base_diagonal
+                       ? __sp_left
+                       : __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                            __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
         }
 
         return __find_start_point_w(__data_area, __views, __comp);
