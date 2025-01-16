@@ -31,7 +31,6 @@
 #include "parallel_backend.h"
 #include "parallel_impl.h"
 #include "iterator_impl.h"
-#include "../functional"
 
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_impl_hetero.h" // for __pattern_fill_n, __pattern_generate_n
@@ -2977,7 +2976,6 @@ __brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_o
     }
     else
     {
-        //assert(__it_2 == __it_2_e);
         for(; __it_1 != __it_1_e && __it_out != __it_out_e; ++__it_1, ++__it_out)
             *__it_out = *__it_1;
     }
