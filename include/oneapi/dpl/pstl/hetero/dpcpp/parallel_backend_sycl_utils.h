@@ -901,14 +901,13 @@ __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
         throw;
 }
 
-// For use with __lazy_ctor_storage
-struct __lazy_load_op
+struct __scalar_load_op
 {
     template <typename _IdxType1, typename _IdxType2, typename _SourceAcc, typename _DestAcc>
     void
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
     {
-        __dest_acc[__idx_dest].__setup(__source_acc[__idx_source]);
+        __dest_acc[__idx_dest] = __source_acc[__idx_source];
     }
 };
 
@@ -936,9 +935,8 @@ struct __vector_load
     }
 };
 
-// For use with __lazy_ctor_storage
 template <typename _TransformOp>
-struct __lazy_store_transform_op
+struct __scalar_store_transform_op
 {
     _TransformOp __transform;
     // Unary transformations into an output buffer
@@ -946,7 +944,7 @@ struct __lazy_store_transform_op
     void
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
     {
-        __transform(__source_acc[__idx_source].__v, __dest_acc[__idx_dest]);
+        __transform(__source_acc[__idx_source], __dest_acc[__idx_dest]);
     }
     // Binary transformations into an output buffer
     template <typename _IdxType1, typename _IdxType2, typename _Source1Acc, typename _Source2Acc, typename _DestAcc>
@@ -954,7 +952,7 @@ struct __lazy_store_transform_op
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _Source1Acc __source1_acc, _Source2Acc __source2_acc,
                _DestAcc __dest_acc) const
     {
-        __transform(__source1_acc[__idx_source].__v, __source2_acc[__idx_source].__v, __dest_acc[__idx_dest]);
+        __transform(__source1_acc[__idx_source], __source2_acc[__idx_source], __dest_acc[__idx_dest]);
     }
 };
 
@@ -1022,14 +1020,14 @@ struct __vector_reverse
     {
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint8_t __i = 0; __i < __vec_size / 2; ++__i)
-            std::swap(__array[__i].__v, __array[__vec_size - __i - 1].__v);
+            std::swap(__array[__i], __array[__vec_size - __i - 1]);
     }
     template <typename _Idx, typename _Array>
     void
     operator()(/*__is_full*/ std::false_type, const _Idx __elements_to_process, _Array __array) const
     {
         for (std::uint8_t __i = 0; __i < __elements_to_process / 2; ++__i)
-            std::swap(__array[__i].__v, __array[__elements_to_process - __i - 1].__v);
+            std::swap(__array[__i], __array[__elements_to_process - __i - 1]);
     }
 };
 
