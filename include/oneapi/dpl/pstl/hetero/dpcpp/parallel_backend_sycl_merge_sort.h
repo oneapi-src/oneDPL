@@ -604,14 +604,11 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         // std::log2 may be prone to rounding errors on some architectures
         const std::int64_t __n_iter = sycl::ctz(__n_power2) - sycl::ctz(__leaf_size);
 
-        // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __n_iter, __n, __n_sorted);
-        auto __p_base_diagonals_sp_global_storage =
-            new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+        // Storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+        __base_diagonals_sp_storage_t* __p_base_diagonals_sp_global_storage = nullptr;
 
-        // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
-        std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
-            static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
+        // shared_ptr instance to return it in __future and extend the lifetime of the storage.
+        std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
@@ -623,6 +620,19 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             }
             else
             {
+                if (nullptr == __p_base_diagonals_sp_global_storage)
+                {
+                    // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+                    const std::size_t __max_base_diags_count =
+                        get_max_base_diags_count(__exec, __n_iter, __n, __n_sorted);
+                    __p_base_diagonals_sp_global_storage =
+                        new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+
+                    // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
+                    __p_result_and_scratch_storage_base.reset(
+                        static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
+                }
+
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
                 const nd_range_params __nd_range_params_this =
                     eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions);
