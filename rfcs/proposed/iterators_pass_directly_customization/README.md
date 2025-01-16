@@ -64,7 +64,7 @@ This option can exist in concert with existing methods, the legacy `is_passed_di
 implementation away from explicit specializations and instead using the customization point, but that is not required
 at first implementation.
 
-`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v` will be defined in `oneapi/dpl/execution`.
+`oneapi::dpl::is_passed_directly_in_onedpl_device_policies_v` will be defined in `oneapi/dpl/type_traits`.
 
 The specification and implementation will be prepared once this RFC is accepted as "proposed", we do not intend to offer
 this first as experimental. This RFC will target "Supported" once we have implementation solidified its details.
