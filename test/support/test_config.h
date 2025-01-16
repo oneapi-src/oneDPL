@@ -258,7 +258,7 @@
 // building for an FPGA device.  This prevents fpga compilation of usm-allocated std vector wrapped in zip, transform,
 // and permutation iterators (as a map).
 #if (TEST_DPCPP_BACKEND_PRESENT && defined(ONEDPL_FPGA_DEVICE) && defined(__INTEL_LLVM_COMPILER) &&                   \
-        __INTEL_LLVM_COMPILER <= _PSTL_TEST_LATEST_INTEL_LLVM_COMPILE)
+        __INTEL_LLVM_COMPILER < 20250100)
 #    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 1
 #else
 #    define _PSTL_ICPX_FPGA_TEST_USM_VECTOR_ITERATOR_BROKEN 0
