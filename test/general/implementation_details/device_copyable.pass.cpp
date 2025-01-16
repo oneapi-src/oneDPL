@@ -45,12 +45,12 @@ test_device_copyable()
     static_assert(sycl::is_device_copyable_v<constant_iterator_device_copyable>,
                   "constant_iterator_device_copyable is not device copyable");
 
-    //custom_brick
+    //__custom_brick
     static_assert(
         sycl::is_device_copyable_v<
-            oneapi::dpl::internal::custom_brick<noop_device_copyable, int_device_copyable, range_device_copyable,
-                                                oneapi::dpl::internal::search_algorithm::lower_bound>>,
-        "custom_brick is not device copyable with device copyable types");
+            oneapi::dpl::internal::__custom_brick<noop_device_copyable, int_device_copyable, range_device_copyable,
+                                                  oneapi::dpl::internal::search_algorithm::lower_bound>>,
+        "__custom_brick is not device copyable with device copyable types");
     //replace_if_fun
     static_assert(
         sycl::is_device_copyable_v<oneapi::dpl::internal::replace_if_fun<int_device_copyable, noop_device_copyable>>,
@@ -324,11 +324,11 @@ test_non_device_copyable()
     static_assert(!sycl::is_device_copyable_v<constant_iterator_non_device_copyable>, "iterator is device copyable");
     static_assert(!sycl::is_device_copyable_v<range_non_device_copyable>, "range_non_device_copyable is device copyable");
 
-    //custom_brick
-    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::internal::custom_brick<
+    //__custom_brick
+    static_assert(!sycl::is_device_copyable_v<oneapi::dpl::internal::__custom_brick<
                       noop_device_copyable, int_non_device_copyable, range_non_device_copyable,
                       oneapi::dpl::internal::search_algorithm::lower_bound>>,
-                  "custom_brick is device copyable with non device copyable types");
+                  "__custom_brick is device copyable with non device copyable types");
     //replace_if_fun
     static_assert(!sycl::is_device_copyable_v<
                       oneapi::dpl::internal::replace_if_fun<int_device_copyable, noop_non_device_copyable>>,

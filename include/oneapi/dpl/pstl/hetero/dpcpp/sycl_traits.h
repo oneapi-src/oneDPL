@@ -586,7 +586,7 @@ namespace oneapi::dpl::internal
 enum class search_algorithm;
 
 template <typename Comp, typename T, typename _Range, search_algorithm func>
-struct custom_brick;
+struct __custom_brick;
 
 template <typename T, typename Predicate>
 struct replace_if_fun;
@@ -606,7 +606,7 @@ class transform_if_stencil_fun;
 } // namespace oneapi::dpl::internal
 
 template <typename Comp, typename T, typename _Range, oneapi::dpl::internal::search_algorithm func>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::internal::custom_brick, Comp, T, _Range, func)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::internal::__custom_brick, Comp, T, _Range, func)>
     : oneapi::dpl::__internal::__are_all_device_copyable<Comp, T>
 {
 };

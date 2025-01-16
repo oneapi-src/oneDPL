@@ -39,13 +39,13 @@ enum class search_algorithm
 
 #if _ONEDPL_BACKEND_SYCL
 template <typename Comp, typename T, typename _Range, search_algorithm func>
-struct custom_brick : oneapi::dpl::unseq_backend::walk_scalar_base<_Range>
+struct __custom_brick : oneapi::dpl::unseq_backend::walk_scalar_base<_Range>
 {
     Comp comp;
     T size;
     bool use_32bit_indexing;
 
-    custom_brick(Comp comp, T size, bool use_32bit_indexing)
+    __custom_brick(Comp comp, T size, bool use_32bit_indexing)
         : comp(comp), size(size), use_32bit_indexing(use_32bit_indexing)
     {
     }
@@ -167,7 +167,7 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
     __bknd::__parallel_for(
         _BackendTag{}, ::std::forward<decltype(policy)>(policy),
-        custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::lower_bound>{
+        __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::lower_bound>{
             comp, size, use_32bit_indexing},
         value_size, zip_vw)
         .__deferrable_wait();
@@ -200,7 +200,7 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
     __bknd::__parallel_for(
         _BackendTag{}, std::forward<decltype(policy)>(policy),
-        custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::upper_bound>{
+        __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::upper_bound>{
             comp, size, use_32bit_indexing},
         value_size, zip_vw)
         .__deferrable_wait();
@@ -233,7 +233,7 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
     __bknd::__parallel_for(
         _BackendTag{}, std::forward<decltype(policy)>(policy),
-        custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::binary_search>{
+        __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::binary_search>{
             comp, size, use_32bit_indexing},
         value_size, zip_vw)
         .__deferrable_wait();
