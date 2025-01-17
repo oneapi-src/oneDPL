@@ -218,7 +218,8 @@ struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::
 };
 
 template <typename _Predicate, typename _ValueType>
-struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__create_mask_unique_copy, _Predicate)>
+struct sycl::is_device_copyable<_ONEDPL_SPECIALIZE_FOR(oneapi::dpl::__internal::__create_mask_unique_copy, _Predicate,
+                                                       _ValueType)>
     : oneapi::dpl::__internal::__are_all_device_copyable<_Predicate>
 {
 };
