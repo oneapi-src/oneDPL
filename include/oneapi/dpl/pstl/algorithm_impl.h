@@ -3085,7 +3085,7 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                             }
 
                                             //serial merge n elements, starting from input x and y, to [i, j) output range
-                                            auto __res = __brick_merge_2(__it_1 + __r, __it_1 + __n_1,
+                                            const auto __res = __brick_merge_2(__it_1 + __r, __it_1 + __n_1,
                                                                          __it_2 + __c, __it_2 + __n_2,
                                                                          __it_out + __i, __it_out + __j, __comp, _IsVector{});
 

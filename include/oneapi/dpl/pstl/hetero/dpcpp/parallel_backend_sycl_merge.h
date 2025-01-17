@@ -151,7 +151,8 @@ constexpr static bool __can_use_ternary_op_v = __can_use_ternary_op<_Rng1DataTyp
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
 std::pair<oneapi::dpl::__internal::__difference_t<_Rng1>, oneapi::dpl::__internal::__difference_t<_Rng2>>
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _Index __start1, const _Index __start2,
-               const _Index __start3, const _Index __chunk, const _Index __n1, const _Index __n2, _Compare __comp, _Index __n3 = 0)
+               const _Index __start3, const _Index __chunk, const _Index __n1, const _Index __n2, _Compare __comp,
+               const _Index __n3 = 0)
 {
     const _Index __rng1_size = std::min<_Index>(__n1 > __start1 ? __n1 - __start1 : _Index{0}, __chunk);
     const _Index __rng2_size = std::min<_Index>(__n2 > __start2 ? __n2 - __start2 : _Index{0}, __chunk);
