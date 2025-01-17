@@ -3072,7 +3072,7 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
 
                                                         oneapi::dpl::__internal::__compare<_Comp, oneapi::dpl::identity>
                                                             __cmp{__comp, oneapi::dpl::identity{}};
-                                                        const auto __res = (__cmp(__it_1[__r], __it_2[__c]) ? 1 : 0);
+                                                        const auto __res = __cmp(__it_1[__r], __it_2[__c]) ? 1 : 0;
 
                                                         return __res < __val;
                                                     }

@@ -247,6 +247,8 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
                 }
             });
         });
+        // We should return the same thing in the second param of __future for compatibility
+        // with the returning value in __parallel_merge_submitter_large::operator()
         return __future(std::move(__event), std::move(__p_result_base));
     }
 };
@@ -366,7 +368,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                         __start = __base_diagonals_sp_global_ptr[__diagonal_idx];
                     }
 
-                    auto __ends = __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
+                    const auto __ends = __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
                                    __nd_range_params.chunk, __n1, __n2, __comp, __n);
                     if(__global_idx == __nd_range_params.steps - 1)
                     {
@@ -446,7 +448,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
 
     using __value_type = oneapi::dpl::__internal::__value_t<_Range3>;
 
-    const std::uint64_t __n = std::min<std::uint64_t>(__rng1.size() + __rng2.size(), __rng3.size());
+    const std::size_t __n = std::min<std::size_t>(__rng1.size() + __rng2.size(), __rng3.size());
     if (__n < __get_starting_size_limit_for_large_submitter<__value_type>())
     {
         using _WiIndex = std::uint32_t;
