@@ -29,6 +29,21 @@
 #include "../../utils_ranges.h"          // __difference_t
 #include "parallel_backend_sycl_merge.h" // __find_start_point, __serial_merge
 
+// TODO remove before merge into main branch
+#define TRACE_BASE_DIAGS 0
+
+#if TRACE_BASE_DIAGS
+#    ifdef __SYCL_DEVICE_ONLY__
+#        define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#    else
+#        define __SYCL_CONSTANT_AS
+#    endif
+
+const __SYCL_CONSTANT_AS char fmt_create_diags_storage[] = "Create base diagonals storage: __n_sorted = %8d, storage size = [%8d]\n";
+const __SYCL_CONSTANT_AS char fmt_eval_base_diag[] = "Evaluate base diag: __n_sorted = %8d, __data_in_temp = %s, sp[%8d] = (%8d, %8d)\n";
+const __SYCL_CONSTANT_AS char fmt_lookup_sp[] = "Lookup sp: __linear_id = %8d, sp_left[%8d] = (%8d, %8d), sp_right[%8d] = (%8d, %8d)\n";
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -404,12 +419,18 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                                    __nd_range_params.chunk *
                                                        __nd_range_params.steps_between_two_base_diags);
 
-                    __base_diagonals_sp_global_ptr[__linear_id] =
+                    const auto __sp = 
                         __data_area.is_i_elem_local_inside_merge_matrix()
                             ? (__data_in_temp
                                    ? __find_start_point_w(__data_area, DropViews(__dst, __data_area), __comp)
                                    : __find_start_point_w(__data_area, DropViews(__rng, __data_area), __comp))
                             : _merge_split_point_t{__data_area.n1, __data_area.n2};
+
+#if TRACE_BASE_DIAGS
+                    sycl::ext::oneapi::experimental::printf(fmt_eval_base_diag, __n_sorted, __data_in_temp ? "T" : "F", __linear_id, __sp.first, __sp.second);
+#endif
+
+                    __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
         });
     }
@@ -435,11 +456,14 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         //   |                                                                                                       __linear_id_in_steps_range
         //  We don't save the first diagonal into base diagonal's SP storage !!!
 
-        std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
+        const std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
-        const _merge_split_point_t __sp_left =
-            __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
+        const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
         const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
+
+#if TRACE_BASE_DIAGS
+        sycl::ext::oneapi::experimental::printf(fmt_lookup_sp, __linear_id_in_steps_range, __diagonal_idx - 1, __sp_left.first, __sp_left.second, __diagonal_idx, __sp_right.first, __sp_right.second);
+#endif
 
         const bool __is_base_diagonal =
             __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
@@ -614,6 +638,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                     // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
                     const std::size_t __max_base_diags_count = fnc_max_base_diags_count(__exec, __n, __n_sorted, __i, __n_iter);
                     __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+
+#if TRACE_BASE_DIAGS
+                    sycl::ext::oneapi::experimental::printf(fmt_create_diags_storage, __n_sorted, __max_base_diags_count);
+#endif
 
                     // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
                     __p_result_and_scratch_storage_base.reset(
