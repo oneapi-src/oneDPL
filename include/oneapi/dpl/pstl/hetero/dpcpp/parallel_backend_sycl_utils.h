@@ -916,7 +916,7 @@ template <std::uint8_t __vec_size>
 struct __vector_load
 {
     static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
-    std::size_t __n;
+    std::size_t __full_range_size;
     template <typename _IdxType, typename _LoadOp, typename... _Rngs>
     void
     operator()(/*__is_full*/ std::true_type, _IdxType __start_idx, _LoadOp __load_op, _Rngs&&... __rngs) const
@@ -930,7 +930,7 @@ struct __vector_load
     void
     operator()(/*__is_full*/ std::false_type, _IdxType __start_idx, _LoadOp __load_op, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __start_idx});
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
             __load_op(__start_idx + __i, __i, __rngs...);
     }
@@ -962,7 +962,7 @@ template <std::uint8_t __vec_size>
 struct __vector_walk
 {
     static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
-    std::size_t __n;
+    std::size_t __full_range_size;
 
     template <typename _IdxType, typename _WalkFunction, typename... _Rngs>
     void
@@ -980,7 +980,7 @@ struct __vector_walk
     void
     operator()(std::false_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __idx});
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
         {
             __f(__rngs[__idx + __i]...);
@@ -992,7 +992,7 @@ template <std::uint8_t __vec_size>
 struct __vector_store
 {
     static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
-    std::size_t __n;
+    std::size_t __full_range_size;
 
     template <typename _IdxType, typename _StoreOp, typename... _Rngs>
     void
@@ -1006,7 +1006,7 @@ struct __vector_store
     void
     operator()(std::false_type, _IdxType __start_idx, _StoreOp __store_op, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__n - __start_idx});
+        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
             __store_op(__i, __start_idx + __i, __rngs...);
     }
@@ -1018,7 +1018,7 @@ struct __vector_reverse
     static_assert(__vec_size <= 4, "Only vector sizes of 4 or less are supported");
     template <typename _Idx, typename _Array>
     void
-    operator()(/*__is_full*/ std::true_type, const _Idx __elements_to_process, _Array __array) const
+    operator()(/*__is_full*/ std::true_type, const _Idx /*__elements_to_process*/, _Array __array) const
     {
         _ONEDPL_PRAGMA_UNROLL
         for (std::uint8_t __i = 0; __i < __vec_size / 2; ++__i)
@@ -1038,7 +1038,7 @@ struct __vector_reverse
 template <std::uint8_t __num_strides>
 struct __strided_loop
 {
-    std::size_t __n;
+    std::size_t __full_range_size;
     template <typename _IdxType, typename _LoopBodyOp, typename... _Ranges>
     void
     operator()(/*__is_full*/ std::true_type, _IdxType __idx, std::uint16_t __stride, _LoopBodyOp __loop_body_op,
@@ -1058,7 +1058,7 @@ struct __strided_loop
     {
         // Constrain the number of iterations as much as possible and then pass the knowledge that we are not a full loop to the body operation
         const std::uint8_t __adjusted_iters_per_work_item =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__n - __idx, __stride);
+            oneapi::dpl::__internal::__dpl_ceiling_div(__full_range_size - __idx, __stride);
         for (std::uint8_t __i = 0; __i < __adjusted_iters_per_work_item; ++__i)
         {
             __loop_body_op(std::false_type{}, __idx, __rngs...);
