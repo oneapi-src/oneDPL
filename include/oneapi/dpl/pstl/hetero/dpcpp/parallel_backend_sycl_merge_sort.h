@@ -44,6 +44,13 @@ const __SYCL_CONSTANT_AS char fmt_eval_base_diag[] = "Evaluate base diag: __n_so
 const __SYCL_CONSTANT_AS char fmt_lookup_sp[] = "Lookup sp: __linear_id = %8d, sp_left[%8d] = (%8d, %8d), sp_right[%8d] = (%8d, %8d)\n";
 #endif
 
+#define MERGE_SORT_DISPLAY_STATISTIC 1
+#define MERGE_SORT_EXCLUDE_NEW_IMPL  0
+
+#if MERGE_SORT_DISPLAY_STATISTIC
+#include <chrono>
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -625,14 +632,26 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
+#if MERGE_SORT_DISPLAY_STATISTIC
+            const auto __start_time = std::chrono::high_resolution_clock::now();
+            bool __new_impl_ran = false;
+#endif
+
+#if !MERGE_SORT_EXCLUDE_NEW_IMPL
             if (2 * __n_sorted < __get_starting_size_limit_for_large_submitter<__value_type>())
+#endif
             {
                 // Process parallel merge
                 __event_chain = run_parallel_merge(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
                                                    __comp, __nd_range_params);
             }
+#if !MERGE_SORT_EXCLUDE_NEW_IMPL
             else
             {
+#if MERGE_SORT_DISPLAY_STATISTIC                
+                __new_impl_ran = true;
+#endif                
+
                 if (nullptr == __p_base_diagonals_sp_global_storage)
                 {
                     // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
@@ -660,6 +679,16 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                                                                   __rng, __temp_buf, __comp, __nd_range_params_this,
                                                                   *__p_base_diagonals_sp_global_storage);
             }
+#endif
+
+#if MERGE_SORT_DISPLAY_STATISTIC
+            __event_chain.wait_and_throw();
+            const auto __stop_time = std::chrono::high_resolution_clock::now();
+            const auto __elapsed = __stop_time - __start_time;
+            if (__new_impl_ran)
+                std::cout << "(N) ";
+            std::cout << "iteration: " << __i << " __n_sorted = " << __n_sorted << ", time = " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+#endif
 
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
@@ -732,8 +761,19 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
 
     sycl::queue __q = __exec.queue();
 
+#if MERGE_SORT_DISPLAY_STATISTIC
+    const auto __start_time = std::chrono::high_resolution_clock::now();
+#endif
+
     // 1. Perform sorting of the leaves of the merge sort tree
     sycl::event __event_leaf_sort = __merge_sort_leaf_submitter<_LeafSortKernel>()(__q, __rng, __comp, __leaf_sorter);
+
+#if MERGE_SORT_DISPLAY_STATISTIC
+    __event_leaf_sort.wait_and_throw();
+    const auto __stop_time = std::chrono::high_resolution_clock::now();
+    const auto __elapsed = __stop_time - __start_time;
+    std::cout << "leaf sorter: time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+#endif
 
     // 2. Merge sorting
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp(__exec, __rng.size());
