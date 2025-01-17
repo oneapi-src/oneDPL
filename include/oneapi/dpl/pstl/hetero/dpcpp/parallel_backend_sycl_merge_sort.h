@@ -242,7 +242,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
         const bool __is_cpu = __q.get_device().is_cpu();
-        const _IndexT __chunk = __is_cpu ? 32 : 4;
+        // The chunk size must not exceed two sorted sub-sequences to be merged,
+        // ensuring that at least one work-item processes them.
+        const _IndexT __chunk = std::min<_IndexT>(__is_cpu ? 32 : 4, __n_sorted * 2);
         const std::size_t __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         bool __data_in_temp = false;
 
@@ -384,7 +386,7 @@ __submit_selecting_leaf(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __co
     if (__is_cpu)
     {
         const auto __sg_sizes = __device.template get_info<sycl::info::device::sub_group_sizes>();
-        __max_sg_size = std::max<uint32_t>(*std::max_element(__sg_sizes.begin(), __sg_sizes.end()), 4);
+        __max_sg_size = *std::max_element(__sg_sizes.begin(), __sg_sizes.end());
     }
     // Assume CPUs handle one sub-group (SIMD) per CU;
     // Assume GPUs handle multiple sub-groups per CU,
