@@ -21,7 +21,7 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
 
   int main()
   {
-      sycl::queue queue{};
+      sycl::queue queue;
       constexpr std::uint32_t size = 2;
       std::uint32_t data[size] = {4, 5};
       std::cout << "Initial data: " << data[0] << ", " << data[1] << std::endl;
