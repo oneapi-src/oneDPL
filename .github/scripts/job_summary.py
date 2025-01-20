@@ -46,6 +46,8 @@ def generate_warning_table(build_log_content):
         for match in warning_regex.finditer(build_log_content)
     )
     warning_histogram = Counter(warnings)
+
+    # The slowest part: optimize if needed (takes ~3sec for 100K lines)
     warning_examples = {
         w: re.search(rf".*{w}.*", build_log_content).group(0)
         for w in warning_histogram
