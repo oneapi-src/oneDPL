@@ -1177,7 +1177,7 @@ merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& _
     oneapi::dpl::__internal::__ranges::__pattern_merge(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_read(::std::forward<_Range2>(__rng2)), __view_res, __comp);
-        
+
     return __view_res.size();
 }
 

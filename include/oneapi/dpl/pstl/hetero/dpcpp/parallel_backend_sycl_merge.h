@@ -224,24 +224,27 @@ struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_N
         using __val_t = _split_point_t<_IdType>;
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __val_t>;
         auto __p_res_storage = new __result_and_scratch_storage_t(__exec, 1, 0);
-                
+
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_base(__p_res_storage);
 
-        auto __event = __exec.queue().submit(
-            [&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n, __n1, __n2](sycl::handler& __cgh) {
+        auto __event = __exec.queue().submit([&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n,
+                                              __n1, __n2](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-            auto __result_acc = __p_res_storage->template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
+            auto __result_acc =
+                __p_res_storage->template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
 
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 auto __id = __item_id.get_linear_id();
                 const _IdType __i_elem = __id * __chunk;
 
                 const auto __n_merge = std::min<_IdType>(__chunk, __n - __i_elem);
-                const auto __start = __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
-                auto __ends = __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __n_merge, __n1, __n2, __comp, __n);
+                const auto __start =
+                    __find_start_point(__rng1, _IdType{0}, __n1, __rng2, _IdType{0}, __n2, __i_elem, __comp);
+                auto __ends = __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __n_merge,
+                                             __n1, __n2, __comp, __n);
 
-                if(__id == __steps - 1) //the last WI does additional work
+                if (__id == __steps - 1) //the last WI does additional work
                 {
                     auto __res_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
                     *__res_ptr = __ends;
@@ -274,7 +277,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     // Calculate nd-range parameters
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const _Range1& __rng1, const _Range2& __rng2, const std::size_t __n) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const _Range1& __rng1, const _Range2& __rng2,
+                         const std::size_t __n) const
     {
         // Empirical number of values to process per work-item
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
@@ -291,8 +295,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
     // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Compare, typename _Storage>
     sycl::event
-    eval_split_points_for_groups(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _IdType __n, _Compare __comp,
-                                 const nd_range_params& __nd_range_params,
+    eval_split_points_for_groups(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _IdType __n,
+                                 _Compare __comp, const nd_range_params& __nd_range_params,
                                  _Storage& __base_diagonals_sp_global_storage) const
     {
         const _IdType __n1 = __rng1.size();
@@ -342,7 +346,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
             auto __base_diagonals_sp_global_acc =
                 __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
 
-            auto __result_acc = __base_diagonals_sp_global_storage.template __get_result_acc<sycl::access_mode::write>(__cgh, __dpl_sycl::__no_init{});
+            auto __result_acc = __base_diagonals_sp_global_storage.template __get_result_acc<sycl::access_mode::write>(
+                __cgh, __dpl_sycl::__no_init{});
 
             __cgh.depends_on(__event);
 
@@ -370,8 +375,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
                     }
 
                     const auto __ends = __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem,
-                                   __nd_range_params.chunk, __n1, __n2, __comp, __n);
-                    if(__global_idx == __nd_range_params.steps - 1)
+                                                       __nd_range_params.chunk, __n1, __n2, __comp, __n);
+                    if (__global_idx == __nd_range_params.steps - 1)
                     {
                         auto __res_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__result_acc);
                         *__res_ptr = __ends;
@@ -398,8 +403,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         using __val_t = _split_point_t<_IdType>;
-        auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(__exec,
-            1, __nd_range_params.base_diag_count + 1);
+        auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(
+            __exec, 1, __nd_range_params.base_diag_count + 1);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(

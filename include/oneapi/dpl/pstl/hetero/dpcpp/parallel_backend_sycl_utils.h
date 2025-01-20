@@ -524,7 +524,8 @@ struct __usm_or_buffer_accessor
 struct __result_and_scratch_storage_base
 {
     virtual ~__result_and_scratch_storage_base() = default;
-    virtual std::size_t __get_data(sycl::event, std::size_t* __p_buf) const = 0;
+    virtual std::size_t
+    __get_data(sycl::event, std::size_t* __p_buf) const = 0;
 };
 
 template <typename _ExecutionPolicy, typename _T>
@@ -666,7 +667,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         return __get_value();
     }
 
-private:
+  private:
     bool
     is_USM() const
     {
@@ -678,7 +679,7 @@ private:
     _T
     __get_value() const
     {
-        assert( __result_n == 1);
+        assert(__result_n == 1);
         if (__use_USM_host && __supports_USM_device)
         {
             return *(__result_buf.get());
@@ -695,7 +696,7 @@ private:
         }
     }
 
-    template<typename _Type>
+    template <typename _Type>
     std::size_t
     __fill_data(std::pair<_Type, _Type>&& __p, std::size_t* __p_buf) const
     {
@@ -704,7 +705,7 @@ private:
         return 2;
     }
 
-    template<typename _Args>
+    template <typename _Args>
     std::size_t
     __fill_data(_Args&&...) const
     {
@@ -712,7 +713,8 @@ private:
         return 0;
     }
 
-    virtual std::size_t __get_data(sycl::event __event, std::size_t* __p_buf) const override
+    virtual std::size_t
+    __get_data(sycl::event __event, std::size_t* __p_buf) const override
     {
         if (is_USM())
             __event.wait_and_throw();
@@ -761,7 +763,7 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base>& __p_storage)
     {
         std::size_t __buf[2] = {0, 0};
-        auto __n =  __p_storage->__get_data(__my_event, __buf);
+        auto __n = __p_storage->__get_data(__my_event, __buf);
         assert(__n == 2);
 
         return {__buf[0], __buf[1]};

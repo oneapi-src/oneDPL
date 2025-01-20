@@ -700,7 +700,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
                 ::std::forward<_ExecutionPolicy>(__exec)),
             oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{},
             ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3));
-       return {0, __res};
+        return {0, __res};
     }
 
     if (__n2 == 0)
@@ -714,9 +714,9 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
         return {__res, 0};
     }
 
-    auto __res = __par_backend_hetero::__parallel_merge(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                           ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-                                           ::std::forward<_Range3>(__rng3), __comp);
+    auto __res = __par_backend_hetero::__parallel_merge(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+        ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp);
 
     auto __val = __res.get();
     return {__val.first, __val.second};
@@ -748,7 +748,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&
     using __return_t = std::ranges::merge_result<std::ranges::borrowed_iterator_t<_R1>, std::ranges::borrowed_iterator_t<_R2>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{std::ranges::begin(__r1) + __res.first, std::ranges::begin(__r2) +  __res.second,
+    return __return_t{std::ranges::begin(__r1) + __res.first, std::ranges::begin(__r2) + __res.second,
                       std::ranges::begin(__out_r) + __n_out};
 }
 #endif //_ONEDPL_CPP20_RANGES_PRESENT

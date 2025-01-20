@@ -97,7 +97,8 @@ __parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _
                std::size_t __grainsize = 1)
 {
     tbb::this_task_arena::isolate([=]() {
-        tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last, __grainsize), __parallel_for_body<_Index, _Fp>(__f));
+        tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last, __grainsize),
+                          __parallel_for_body<_Index, _Fp>(__f));
     });
 }
 

@@ -63,7 +63,10 @@ __parallel_for(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _
         // in any case (nested or non-nested) one parallel region is created and
         // only one thread creates a set of tasks
         _PSTL_PRAGMA(omp parallel)
-        _PSTL_PRAGMA(omp single nowait) { oneapi::dpl::__omp_backend::__parallel_for_body(__first, __last, __f, __grainsize); }
+        _PSTL_PRAGMA(omp single nowait)
+        {
+            oneapi::dpl::__omp_backend::__parallel_for_body(__first, __last, __f, __grainsize);
+        }
     }
 }
 
