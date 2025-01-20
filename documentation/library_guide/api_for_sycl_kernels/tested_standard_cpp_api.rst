@@ -18,7 +18,6 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
   #include <sycl/sycl.hpp>
   #include <iostream>
   #include <cstdint>
-
   int main()
   {
       sycl::queue queue;
@@ -27,15 +26,16 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
       std::cout << "Initial data: " << data[0] << ", " << data[1] << std::endl;
       sycl::buffer<std::uint32_t> buffer(data, size);
       queue.submit([&](sycl::handler& cgh) {
-          auto access = buffer.template get_access<sycl::access::mode::read_write>(cgh);
+          auto access = buffer.get_access(cgh, sycl::read_write);
           cgh.single_task<class KernelSwap>([=]() {
               oneapi::dpl::swap(access[0], access[1]);
           });
       }).wait();
-      auto host_access = buffer.template get_access<sycl::access::mode::read>();
+      auto host_access = buffer.get_host_access(sycl::read_only);
       std::cout << "After swap: " << host_access[0] << ", " << host_access[1] << std::endl;
       return 0;
   }
+
 
 Use the following command to build and run the program (assuming it resides in the ``kernel_swap.cpp file``):
 
