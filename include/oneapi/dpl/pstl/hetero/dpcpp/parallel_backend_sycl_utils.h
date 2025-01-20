@@ -743,7 +743,7 @@ class __future : private std::tuple<_Args...>
     _Event __my_event;
 
     template <typename _T>
-    constexpr auto
+    constexpr _T
     __wait_and_get_value(const sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
@@ -757,18 +757,18 @@ class __future : private std::tuple<_Args...>
         return __storage.__wait_and_get_value(__my_event);
     }
 
-    constexpr auto
+    constexpr std::pair<std::size_t, std::size_t>
     __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base>& __p_storage)
     {
         std::size_t __buf[2] = {0, 0};
         auto __n =  __p_storage->__get_data(__my_event, __buf);
         assert(__n == 2);
 
-        return std::pair<std::size_t, std::size_t>{__buf[0], __buf[1]};
+        return {__buf[0], __buf[1]};
     }
 
     template <typename _T>
-    constexpr auto
+    constexpr _T
     __wait_and_get_value(const _T& __val)
     {
         wait();
