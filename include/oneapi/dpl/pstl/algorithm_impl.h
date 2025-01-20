@@ -3094,7 +3094,7 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                                                 __it_res_1 = __res.first;
                                                 __it_res_2 = __res.second;
                                             }
-                                      }, _ONEDPL_MERGE_CUT_OFF); //grainsize
+                                      }, oneapi::dpl::__utils::__merge_algo_cut_off); //grainsize
     });
 
     return {__it_res_1, __it_res_2};
@@ -3103,7 +3103,7 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Compare>
 _RandomAccessIterator3
-__pattern_merge(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                 _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                 _RandomAccessIterator3 __d_first, _Compare __comp)
 {
