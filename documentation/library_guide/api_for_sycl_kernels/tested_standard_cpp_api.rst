@@ -36,7 +36,6 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
       return 0;
   }
 
-
 Use the following command to build and run the program (assuming it resides in the ``kernel_swap.cpp file``):
 
 .. code:: cpp
