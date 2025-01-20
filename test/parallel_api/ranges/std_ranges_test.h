@@ -38,7 +38,12 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 namespace test_std_ranges
 {
 
-inline constexpr std::size_t big_sz = (1<<25) + 10; //32M
+inline constexpr std::size_t big_sz =
+#if PSTL_USE_DEBUG
+    (1<<18) + 10; //256K
+#else
+    (1<<25) + 10; //32M
+#endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -176,7 +181,7 @@ struct test
         static_assert(std::is_same_v<decltype(res), decltype(checker(r_in, args...))>, "Wrong return type");
 
         auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, r_in.begin());
-        EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
+        EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() +
                 typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
 
         //check result
@@ -284,7 +289,7 @@ private:
         assert(n_in1 <= max_n);
         assert(n_in2 <= max_n);
         assert(n_out <= max_n_out);
-        
+
         auto src_view1 = tr_in(std::views::all(cont_in1()));
         auto src_view2 = tr_in(std::views::all(cont_in2()));
         auto expected_view = tr_out(std::views::all(cont_exp()));
@@ -362,7 +367,7 @@ private:
 template<typename T, typename ViewType>
 struct host_subrange_impl
 {
-    static_assert(std::is_trivially_copyable_v<T>, 
+    static_assert(std::is_trivially_copyable_v<T>,
         "Memory initialization within the class relies on trivially copyability of the type T");
 
     using type = ViewType;
@@ -410,9 +415,9 @@ struct host_vector
 
     template<typename Policy>
     host_vector(Policy&&, T* data, int n): vec(data, data + n), p(data) {}
-    
+
     template<typename Policy, typename DataGen>
-    host_vector(Policy&&, int n, DataGen gen): vec(n) 
+    host_vector(Policy&&, int n, DataGen gen): vec(n)
     {
         for(int i = 0; i < n; ++i)
             vec[i] = gen(i);
