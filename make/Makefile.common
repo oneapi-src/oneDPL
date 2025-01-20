@@ -49,7 +49,7 @@ endif # !os_name
 
 cfg ?= release
 
-device_type ?= level_zero:gpu
+device_type ?= GPU
 use_unnamed_lambda ?= 0
 ranges_api ?= 0
 
