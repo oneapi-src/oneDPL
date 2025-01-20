@@ -32,43 +32,30 @@ def generate_environment_table(os_info, compiler_version, cmake_version, cpu_mod
 
 
 def generate_warning_table(build_log_content):
-    # Match : Description
-    warning_types = {
-        r"-Wpass-failed=transform-warning": "Loop not vectorized (-Wpass-failed=transform-warning)",
-        r"-Wrecommended-option": "Use of opiton <B> recommended over <A> (-Wrecommended-option)",
-        r"-Wdeprecated-declarations": "-Wdeprecated-declarations",
-        r"-Wsign-compare": "Comparison of integer expressions of different signedness (-Wsign-compare)",
-        r"-Wunused-variable": "-Wunused-variable",
-        r"-Wunused-but-set-variable": "-Wunused-but-set-variable",
-        r"-Wunused-local-typedef": "-Wunused-local-typedef",
-        r"-Wmacro-redefined": "-Wmacro-redefined",
-        r"-Wmissing-field-initializers": "-Wmissing-field-initializers",
-        r"-Wdeprecated-copy-with-user-provided-copy": "-Wdeprecated-copy-with-user-provided-copy",
-        r"-Wunused-parameter": "-Wunused-parameter",
-        r"C4244|C4267": "Conversion, possible data loss (C4244, C4267)",
-        r"C4018": "Signed/unsigned mismatch (C4018)",
-        r"STL4038": "Functionality from newer standards (STL4038)",
-        r"STL4008": "Deprecated functionality (STL4008)",
-        r"C4127": "Conditional expression is constant, use if constexpr instead (C4127)",
-        r"C4100": "Unreferenced formal parameter (C4100)",
-        r"C4189": "Local variable is initialized but not referenced (C4189)",
-        "Other": "Other"
-    }
-    # MSVC warning format: ": warning"
-    # GCC/Clang warning format: "warning:"
-    warnings = re.findall(r": warning|warning:", build_log_content)
+    warning_regex = re.compile(
+        r"""
+            \[(\-W[a-zA-Z0-9\-]+)\] |  # GCC/Clang warnings: "[-W<some-flag>]"
+            ((?:STL|C|D|LNK)\d{4})     # MSVC warnings: "<STL|C|D|LNK>xxxx"
+        """,
+        re.VERBOSE
+    )
+    warnings = tuple(
+        match.group(1) or match.group(2)
+        for match in warning_regex.finditer(build_log_content)
+    )
 
-    warning_histogram = {warning: 0 for warning in warning_types.keys()}
-    for warning in warning_types.keys():
-        warning_histogram[warning] = len(re.findall(warning, build_log_content))
-    warning_histogram["Other"] = len(warnings) - sum(warning_histogram.values())
+    warning_histogram = {}
+    for w in warnings:
+        if w in warning_histogram:
+            warning_histogram[w] += 1
+        else:
+            warning_histogram[w] = 1
 
     table = []
     table.append("| Warning Type   | Count |")
     table.append("|----------------|-------|")
     for warning, count in warning_histogram.items():
-        if count > 0:
-            table.append(f"| {warning_types[warning]} | {count} |")
+        table.append(f"| {warning} | {count} |")
     return "\n".join(table)
 
 
