@@ -31,8 +31,7 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
           cgh.single_task<class KernelSwap>([=]() {
               oneapi::dpl::swap(access[0], access[1]);
           });
-      });
-      queue.wait();
+      }).wait();
       auto host_access = buffer.template get_access<sycl::access::mode::read>();
       std::cout << "After swap: " << host_access[0] << ", " << host_access[1] << std::endl;
       return 0;
