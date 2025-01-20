@@ -1,6 +1,8 @@
 import argparse
 import re
 
+from collections import Counter
+
 
 def parse_arguments():
     na_value = "N/A"
@@ -43,19 +45,18 @@ def generate_warning_table(build_log_content):
         match.group(1) or match.group(2)
         for match in warning_regex.finditer(build_log_content)
     )
-
-    warning_histogram = {}
-    for w in warnings:
-        if w in warning_histogram:
-            warning_histogram[w] += 1
-        else:
-            warning_histogram[w] = 1
+    warning_histogram = Counter(warnings)
+    warning_examples = {
+        w: re.search(rf".*{w}.*", build_log_content).group(0)
+        for w in warning_histogram
+    }
 
     table = []
-    table.append("| Warning Type   | Count |")
-    table.append("|----------------|-------|")
+    table.append("| Warning Type   | Count | Message example |")
+    table.append("|----------------|-------|-----------------|")
     for warning, count in warning_histogram.items():
-        table.append(f"| {warning} | {count} |")
+        example = warning_examples[warning]
+        table.append(f"| {warning} | {count} | {example} |")
     return "\n".join(table)
 
 
