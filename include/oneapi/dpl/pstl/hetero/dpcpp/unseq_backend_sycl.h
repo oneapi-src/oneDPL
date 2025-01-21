@@ -1267,13 +1267,13 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType> __rng1_vector[__base_t::__preferred_vector_size];
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
             __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng1, __rng1_vector);
+        oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
+            __is_full, __elements_to_process, __rng1_vector);
         // 2, 3. Reverse in registers and flip the location of the vector in the output buffer
-        if (__elements_to_process == __base_t::__preferred_vector_size)
+        if constexpr (_IsFull::value)
         {
-            oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
-                __is_full, __elements_to_process, __rng1_vector);
             oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
-                __is_full, __output_start,
+                std::true_type{}, __output_start,
                 oneapi::dpl::__par_backend_hetero::__lazy_store_transform_op<oneapi::dpl::__internal::__pstl_assign>{},
                 __rng1_vector, __rng2);
         }
@@ -1283,8 +1283,6 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
             // The last few elements in the buffer are reversed into the beginning of the buffer. However,
             // __vector_store would believe that we always have a full vector length of elements due to the starting
             // index having greater than __preferred_vector_size elements until the end of the buffer.
-            oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
-                std::false_type{}, __elements_to_process, __rng1_vector);
             for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
                 __rng2[__output_start + __i] = __rng1_vector[__i].__v;
         }
