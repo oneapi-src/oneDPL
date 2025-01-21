@@ -42,11 +42,11 @@ __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
-template <typename _ValueType>
+template <typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage
 {
-    template <typename... Args>
-    __enumerable_thread_local_storage(Args&&... __args) : __storage(std::forward<Args>(__args)...)
+    template <typename... _LocalArgs>
+    __enumerable_thread_local_storage(_LocalArgs&&... __args) : __storage(std::forward<_LocalArgs>(__args)...)
     {
     }
 

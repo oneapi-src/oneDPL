@@ -43,6 +43,13 @@ namespace dpl
 namespace __internal
 {
 
+template <typename _ValueType, typename... Args>
+__par_backend::__enumerable_thread_local_storage<_ValueType, Args...>
+__make_etls(Args&&... __args)
+{
+    return __par_backend::__enumerable_thread_local_storage<_ValueType, Args...>(std::forward<Args>(__args)...);
+}
+
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------
@@ -4337,8 +4344,8 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     }
     else
     {
-        __par_backend::__enumerable_thread_local_storage<std::vector<_HistogramValueT>> __tls{__num_bins,
-                                                                                              _HistogramValueT{0}};
+        auto __tls =
+            oneapi::dpl::_internal::__make_etls<std::vector<_HistogramValueT>>(__num_bins, _HistogramValueT{0});
 
         //main histogram loop
         //TODO: add defaulted grain-size option for __parallel_for and use larger one here to account for overhead

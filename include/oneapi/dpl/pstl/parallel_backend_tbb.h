@@ -1307,11 +1307,12 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
-template <typename _ValueType>
+template <typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage
 {
-    template <typename... Args>
-    __enumerable_thread_local_storage(Args&&... __args) : __thread_specific_storage(std::forward<Args>(__args)...)
+    template <typename... _LocalArgs>
+    __enumerable_thread_local_storage(_LocalArgs&&... __args)
+        : __thread_specific_storage(std::forward<_LocalArgs>(__args)...)
     {
     }
 
