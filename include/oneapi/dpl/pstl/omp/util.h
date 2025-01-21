@@ -157,23 +157,23 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 
 // abstract class to allow inclusion in __enumerable_thread_local_storage as member without requiring explicit template
 // instantiation of param types
-template <typename _StorageType>
+template <typename _ValueType>
 class __construct_by_args_base
 {
   public:
     virtual ~__construct_by_args_base() = default;
-    virtual std::unique_ptr<_StorageType> construct() = 0;
+    virtual std::unique_ptr<_ValueType> construct() = 0;
 };
 
-// Helper class to allow construction of _StorageType from a stored argument pack
-template <typename _StorageType, typename... _P>
-class __construct_by_args : public __construct_by_args_base<_StorageType>
+// Helper class to allow construction of _ValueType from a stored argument pack
+template <typename _ValueType, typename... _P>
+class __construct_by_args : public __construct_by_args_base<_ValueType>
 {
   public:
-    std::unique_ptr<_StorageType>
+    std::unique_ptr<_ValueType>
     construct() override
     {
-        return std::apply([](_P... __arg_pack) { return std::make_unique<_StorageType>(__arg_pack...); }, __pack);
+        return std::apply([](_P... __arg_pack) { return std::make_unique<_ValueType>(__arg_pack...); }, __pack);
     }
     __construct_by_args(_P&&... __args) : __pack(std::forward<_P>(__args)...) {}
 
@@ -181,15 +181,15 @@ class __construct_by_args : public __construct_by_args_base<_StorageType>
     const std::tuple<_P...> __pack;
 };
 
-template <typename _StorageType>
+template <typename _ValueType>
 struct __enumerable_thread_local_storage
 {
     template <typename... Args>
     __enumerable_thread_local_storage(Args&&... __args) : __num_elements(0)
     {
-        __storage_factory = std::make_unique<__construct_by_args<_StorageType, Args...>>(std::forward<Args>(__args)...);
-        _PSTL_PRAGMA(omp parallel)
-        _PSTL_PRAGMA(omp single) { __thread_specific_storage.resize(omp_get_num_threads()); }
+        __storage_factory = std::make_unique<__construct_by_args<_ValueType, Args...>>(std::forward<Args>(__args)...);
+        std::size_t __num_threads = omp_in_parallel() ? omp_get_num_threads() : omp_get_max_threads();
+        __thread_specific_storage.resize(__num_threads);
     }
 
     // Note: Size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
@@ -202,7 +202,7 @@ struct __enumerable_thread_local_storage
         return __num_elements.load();
     }
 
-    _StorageType&
+    _ValueType&
     get_with_id(std::size_t __i)
     {
         assert(__i < size());
@@ -226,7 +226,7 @@ struct __enumerable_thread_local_storage
         return *__thread_specific_storage[__j - 1];
     }
 
-    _StorageType&
+    _ValueType&
     get_for_current_thread()
     {
         std::size_t __i = omp_get_thread_num();
@@ -239,9 +239,9 @@ struct __enumerable_thread_local_storage
         return *__thread_specific_storage[__i];
     }
 
-    std::vector<std::unique_ptr<_StorageType>> __thread_specific_storage;
+    std::vector<std::unique_ptr<_ValueType>> __thread_specific_storage;
     std::atomic_size_t __num_elements;
-    std::unique_ptr<__construct_by_args_base<_StorageType>> __storage_factory;
+    std::unique_ptr<__construct_by_args_base<_ValueType>> __storage_factory;
 };
 
 } // namespace __omp_backend

@@ -42,7 +42,7 @@ __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
-template <typename _StorageType>
+template <typename _ValueType>
 struct __enumerable_thread_local_storage
 {
     template <typename... Args>
@@ -56,19 +56,19 @@ struct __enumerable_thread_local_storage
         return std::size_t{1};
     }
 
-    _StorageType&
+    _ValueType&
     get_for_current_thread()
     {
         return __storage;
     }
 
-    _StorageType&
+    _ValueType&
     get_with_id(std::size_t /*__i*/)
     {
         return get_for_current_thread();
     }
 
-    _StorageType __storage;
+    _ValueType __storage;
 };
 
 template <class _ExecutionPolicy, class _Index, class _Fp>

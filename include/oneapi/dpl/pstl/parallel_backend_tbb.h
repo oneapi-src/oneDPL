@@ -1307,7 +1307,7 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
-template <typename _StorageType>
+template <typename _ValueType>
 struct __enumerable_thread_local_storage
 {
     template <typename... Args>
@@ -1321,19 +1321,19 @@ struct __enumerable_thread_local_storage
         return __thread_specific_storage.size();
     }
 
-    _StorageType&
+    _ValueType&
     get_for_current_thread()
     {
         return __thread_specific_storage.local();
     }
 
-    _StorageType&
+    _ValueType&
     get_with_id(std::size_t __i)
     {
         return __thread_specific_storage.begin()[__i];
     }
 
-    tbb::enumerable_thread_specific<_StorageType> __thread_specific_storage;
+    tbb::enumerable_thread_specific<_ValueType> __thread_specific_storage;
 };
 
 } // namespace __tbb_backend
