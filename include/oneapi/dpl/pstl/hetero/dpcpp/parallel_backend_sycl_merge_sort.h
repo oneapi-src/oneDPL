@@ -377,10 +377,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, _IndexT __n_sorted) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
-        const _IndexT __chunk = __is_cpu ? 32 : 4;
+        // The chunk size must not exceed two sorted sub-sequences to be merged,
+        // ensuring that at least one work-item processes them.
+        const _IndexT __chunk = std::min<_IndexT>(__is_cpu ? 32 : 4, __n_sorted * 2);
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
         _IndexT __base_diag_count = get_max_base_diags_count(__rng_size);
@@ -614,7 +616,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         using __value_type = oneapi::dpl::__internal::__value_t<_Range>;
 
         // Calculate nd-range params
-        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n);
+        const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, __n_sorted);
 
         using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
 
@@ -671,7 +673,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
                 }
 
-                nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
+                nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
 #if MERGE_SORT_DISPLAY_STATISTIC
                 __base_diags_count_evaluated_for_each_2_n_sorted = __nd_range_params_this.base_diag_count;
 #endif
