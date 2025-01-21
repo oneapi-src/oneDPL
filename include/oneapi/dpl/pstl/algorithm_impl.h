@@ -4329,9 +4329,9 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     using _DiffType = typename std::iterator_traits<_RandomAccessIterator2>::difference_type;
 
     _DiffType __n = __last - __first;
-    if (__n <= 0)
+    if (__n == 0)
     {
-        // when n <= 0, we must fill the output histogram with zeros
+        // when n == 0, we must fill the output histogram with zeros
         __pattern_fill(__parallel_tag<_IsVector>{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first,
                        __histogram_first + __num_bins, _HistogramValueT{0});
     }
