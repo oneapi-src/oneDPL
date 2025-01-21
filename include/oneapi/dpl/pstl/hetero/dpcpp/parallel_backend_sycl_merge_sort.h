@@ -354,8 +354,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     };
 
     // Return max number of base diagonals:
-    //   32 Kb of base diagonals for 256 Mb of source data
-    //   32 Kb / (256 Mb / __n) - for __n elements of source data
+    //  - we empirically found that 32 Kb of base diagonals well fit for 256 Mb of source data
     std::size_t
     get_max_base_diags_count(std::size_t __n) const
     {
