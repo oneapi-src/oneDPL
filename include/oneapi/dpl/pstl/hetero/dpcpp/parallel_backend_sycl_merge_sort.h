@@ -477,10 +477,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         //                  ^              ^              ^              ^              ^              ^              ^         |    ^              ^              ^              ^              ^
         //  ---             0              1              2              3              4              5              6         |    7              8              9              10             11                              < Indexes in the base diagonal's SP storage
         //   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14  15   16    17   18   19   20   20   21   |    23   24   25   26   27   28   29   30   31   32   33   34   35    36                        < Linear IDs: __linear_id_in_steps_range
-        //   ^                                                                                                         |         |    |
-        //   |                                                                                                       __sp_left   |  __sp_right
-        //   |                                                                                                                   |
-        //   |                                                                                                       __linear_id_in_steps_range
+        //   ^                                                                                                        |         |    |
+        //   |                                                                                                      __sp_left   |  __sp_right
+        //   |                                                                                                                  |
+        //   |                                                                                                      __linear_id_in_steps_range
         //  We don't save the first diagonal into base diagonal's SP storage !!!
 
         const std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
