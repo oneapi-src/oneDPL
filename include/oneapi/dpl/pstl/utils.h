@@ -783,11 +783,6 @@ union __lazy_ctor_storage
     {
         __v.~_Tp();
     }
-    static auto
-    __get_callable_deleter()
-    {
-        return [](__lazy_ctor_storage& __storage) { __storage.__destroy(); };
-    }
 };
 
 // To implement __min_nested_type_size, a general utility with an internal tuple
