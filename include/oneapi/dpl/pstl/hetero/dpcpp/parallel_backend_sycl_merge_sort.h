@@ -377,7 +377,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, _IndexT __n_sorted) const
+    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, const _IndexT __n_sorted) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
         // The chunk size must not exceed two sorted sub-sequences to be merged,
