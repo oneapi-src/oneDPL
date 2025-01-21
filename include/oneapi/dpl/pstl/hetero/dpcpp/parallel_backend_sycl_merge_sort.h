@@ -637,6 +637,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 #if MERGE_SORT_DISPLAY_STATISTIC
             const auto __start_time = std::chrono::high_resolution_clock::now();
             bool __new_impl_ran = false;
+            std::size_t __base_diags_count_evaluated = 0;
+            std::size_t __base_diags_count_evaluated_for_each_2_n_sorted = 0;
 #endif
 
 #if !MERGE_SORT_EXCLUDE_NEW_IMPL
@@ -650,7 +652,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 #if !MERGE_SORT_EXCLUDE_NEW_IMPL
             else
             {
-#if MERGE_SORT_DISPLAY_STATISTIC                
+#if MERGE_SORT_DISPLAY_STATISTIC
                 __new_impl_ran = true;
 #endif                
 
@@ -670,11 +672,18 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 }
 
                 nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted));
+#if MERGE_SORT_DISPLAY_STATISTIC
+                __base_diags_count_evaluated_for_each_2_n_sorted = __nd_range_params_this.base_diag_count;
+#endif
 
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
                 __nd_range_params_this.base_diag_count *= __portions;
                 __nd_range_params_this.steps *= __portions;
                 assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
+
+#if MERGE_SORT_DISPLAY_STATISTIC
+                __base_diags_count_evaluated = __nd_range_params_this.base_diag_count;
+#endif
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
@@ -694,7 +703,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             const auto __elapsed = __stop_time - __start_time;
             if (__new_impl_ran)
                 std::cout << "(N) ";
-            std::cout << "iteration: " << __i << " __n_sorted = " << __n_sorted << ", time = " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+            std::cout << "iteration: " << __i << " __n_sorted = " << __n_sorted << ", time = " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) ";
+            if (__new_impl_ran)
+                std::cout << "base diags for every merge matrix: " << __base_diags_count_evaluated_for_each_2_n_sorted << ", all base_diags = " << __base_diags_count_evaluated;
+            std::cout << std::endl;
 #endif
 
             __n_sorted *= 2;
