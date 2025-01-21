@@ -383,7 +383,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __chunk = __is_cpu ? 32 : 4;
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        _IndexT __base_diag_count = tune_amount_of_base_diagonals(__rng_size);
+        _IndexT __base_diag_count = get_max_base_diags_count(__rng_size);
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
