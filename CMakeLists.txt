@@ -173,7 +173,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
     if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
-        find_package(TBB 2021 REQUIRED tbb tbbmalloc)
+        find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
         message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
         target_link_libraries(oneDPL INTERFACE TBB::tbb)
     endif()
