@@ -423,7 +423,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         __f.wait();
         const auto __stop_time = std::chrono::high_resolution_clock::now();
         const auto __elapsed = __stop_time - __start_time;
-        std::cout << "__parallel_merge_submitter : merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+        std::cout << "__parallel_merge_submitter : __n = " << __n << ", merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
 #endif
 
         return __f;
@@ -450,7 +450,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             __f.wait();
             const auto __stop_time = std::chrono::high_resolution_clock::now();
             const auto __elapsed = __stop_time - __start_time;
-            std::cout << "__parallel_merge_submitter_large(std::uint32_t) : merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+            std::cout << "__parallel_merge_submitter_large(std::uint32_t) : __n = " << __n << ", merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
 #endif
 
             return __f;
@@ -474,7 +474,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             __f.wait();
             const auto __stop_time = std::chrono::high_resolution_clock::now();
             const auto __elapsed = __stop_time - __start_time;
-            std::cout << "__parallel_merge_submitter_large(std::uint64_t) : merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
+            std::cout << "__parallel_merge_submitter_large(std::uint64_t) : __n = " << __n << ", merge time =  " << std::chrono::duration_cast<std::chrono::microseconds>(__elapsed).count() << " (mcs) " << std::endl;
 #endif
 
             return __f;
