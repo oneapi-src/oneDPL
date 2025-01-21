@@ -615,6 +615,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         using __value_type = oneapi::dpl::__internal::__value_t<_Range>;
 
+#if MERGE_SORT_DISPLAY_STATISTIC
+        std::cout << "__merge_sort_global_submitter::operator() : __n_sorted = " << __n_sorted << std::endl;
+#endif
+
         // Calculate nd-range params
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, __n_sorted);
 
