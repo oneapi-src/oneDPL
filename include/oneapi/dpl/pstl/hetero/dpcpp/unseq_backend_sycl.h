@@ -1267,9 +1267,10 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         oneapi::dpl::__internal::__lazy_ctor_storage<_ValueType> __rng1_vector[__base_t::__preferred_vector_size];
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
             __is_full, __idx, oneapi::dpl::__par_backend_hetero::__lazy_load_op{}, __rng1, __rng1_vector);
+        // 2. Reverse in registers
         oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
             __is_full, __elements_to_process, __rng1_vector);
-        // 2, 3. Reverse in registers and flip the location of the vector in the output buffer
+        // 3. Flip the location of the vector in the output buffer
         if constexpr (_IsFull::value)
         {
             oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
