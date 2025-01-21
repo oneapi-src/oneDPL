@@ -1279,6 +1279,10 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         }
         else
         {
+            // The non-full case is processed manually here due to the translation of indices in the reverse operation.
+            // The last few elements in the buffer are reversed into the beginning of the buffer. However,
+            // __vector_store would believe that we always have a full vector length of elements due to the starting
+            // index having greater than __preferred_vector_size elements until the end of the buffer.
             oneapi::dpl::__par_backend_hetero::__vector_reverse<__base_t::__preferred_vector_size>{}(
                 std::false_type{}, __elements_to_process, __rng1_vector);
             for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
@@ -1331,10 +1335,12 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         }
         else
         {
-            std::size_t __remaining_elements = __idx >= __n ? 0 : __n - __idx;
-            std::size_t __elements_to_process =
-                std::min(static_cast<std::size_t>(__base_t::__preferred_vector_size), __remaining_elements);
-            for (std::uint16_t __i = 0; __i != __elements_to_process; ++__i)
+            // A single point of non-contiguity within the rotation operation. Manually process the loop here as the
+            // access pattern becomes non-vectorizable.
+            std::size_t __remaining_elements = __n - __idx;
+            std::uint8_t __elements_to_process =
+                std::min(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
+            for (std::uint8_t __i = 0; __i != __elements_to_process; ++__i)
                 __rng1_vector[__i].__setup(__rng1[(__shifted_idx + __i) % __size]);
         }
         // 2. Store the rotation
