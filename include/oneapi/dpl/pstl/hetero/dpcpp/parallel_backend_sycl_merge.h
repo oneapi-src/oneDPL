@@ -25,7 +25,7 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 
-#define MERGE_DISPLAY_STATISTIC 1
+//#define MERGE_DISPLAY_STATISTIC 1
 #define MERGE_EXCLUDE_NEW_IMPL  0
 
 #if MERGE_DISPLAY_STATISTIC

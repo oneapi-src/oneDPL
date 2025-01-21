@@ -44,7 +44,7 @@ const __SYCL_CONSTANT_AS char fmt_eval_base_diag[] = "Evaluate base diag: __n_so
 const __SYCL_CONSTANT_AS char fmt_lookup_sp[] = "Lookup sp: __linear_id = %8d, sp_left[%8d] = (%8d, %8d), sp_right[%8d] = (%8d, %8d)\n";
 #endif
 
-#define MERGE_SORT_DISPLAY_STATISTIC 1
+//#define MERGE_SORT_DISPLAY_STATISTIC 1
 #define MERGE_SORT_EXCLUDE_NEW_IMPL  0
 
 #if MERGE_SORT_DISPLAY_STATISTIC
