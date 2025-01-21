@@ -1511,9 +1511,9 @@ struct __brick_swap : public walk_vector_or_scalar_base<_Range1, _Range2>
   public:
     __brick_swap(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
 
-    template <typename _IsFull, typename _ItemId>
+    template <typename _IsFull>
     void
-    __vector_path_impl(_IsFull __is_full, const _ItemId __idx, _Range1 __rng1, _Range2 __rng2) const
+    __vector_path_impl(_IsFull __is_full, const std::size_t __idx, _Range1 __rng1, _Range2 __rng2) const
     {
         using _ValueType1 = oneapi::dpl::__internal::__value_t<_Range1>;
         using _ValueType2 = oneapi::dpl::__internal::__value_t<_Range2>;
