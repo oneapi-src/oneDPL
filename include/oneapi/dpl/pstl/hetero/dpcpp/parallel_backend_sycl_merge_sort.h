@@ -353,6 +353,20 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         }
     };
 
+    std::size_t
+    tune_amount_of_base_diagonals(std::size_t __n_sorted) const
+    {
+        // TODO required to evaluate this value based on available SLM size for each work-group.
+        const std::size_t __base_diag_count = 32 * 1'024;
+
+        // Multiply work per item by a power of 2 to reach the desired number of iterations.
+        // __dpl_bit_ceil rounds the ratio up to the next power of 2.
+        const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
+            oneapi::dpl::__internal::__dpl_ceiling_div(256 * 1024 * 1024, __n_sorted));
+
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__base_diag_count, __k);
+    }
+
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
@@ -362,11 +376,29 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __chunk = __is_cpu ? 32 : 4;
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        // TODO required to evaluate this value based on available SLM size for each work-group.
-        _IndexT __base_diag_count = 32 * 1'024;
+        _IndexT __base_diag_count = tune_amount_of_base_diagonals(__rng_size);
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count * __portions, __steps_between_two_base_diags, __chunk, __steps * __portions};
+    }
+
+    template <typename _ExecutionPolicy>
+    std::size_t
+    get_max_base_diags_count(_ExecutionPolicy&& __exec, const std::int64_t __n_iter, const _IndexT __n,
+                             _IndexT __n_sorted) const
+    {
+        std::size_t __max_base_diags_count = 0;
+
+        if (__n_iter > 0)
+        {
+            __n_sorted = __n_sorted << (__n_iter - 1);
+
+            const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
+            __max_base_diags_count =
+                eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions).base_diag_count;
+        }
+
+        return __max_base_diags_count;
     }
 
     template <typename DropViews, typename _Compare>
@@ -609,27 +641,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         // shared_ptr instance to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
-        // To calculate nd_range_params for specified iteration
-        auto fnc_eval_nd_range = [this](_ExecutionPolicy& __exec, const _IndexT __n, _IndexT __n_sorted)
-            {
-                const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-                return eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions);
-            };
-
-        // To calculate maximal amount of base diagonals from specified iteration till the end iteration
-        auto fnc_max_base_diags_count = [fnc_eval_nd_range](_ExecutionPolicy& __exec, const _IndexT __n,
-                                                            _IndexT __n_sorted, std::int64_t __i,
-                                                            std::int64_t __n_iter) {
-            std::size_t __max_base_diags_count = 0;
-            for (; __i < __n_iter; ++__i)
-            {
-                __max_base_diags_count =
-                    std::max(__max_base_diags_count, fnc_eval_nd_range(__exec, __n, __n_sorted).base_diag_count);
-                __n_sorted *= 2;
-            }
-            return __max_base_diags_count;
-        };
-
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
 #if MERGE_SORT_DISPLAY_STATISTIC
@@ -655,8 +666,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 if (nullptr == __p_base_diagonals_sp_global_storage)
                 {
                     // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-                    const std::size_t __max_base_diags_count = fnc_max_base_diags_count(__exec, __n, __n_sorted, __i, __n_iter);
-                    __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+                    __p_base_diagonals_sp_global_storage = new __base_diagonals_sp_storage_t(
+                        __exec, 0, get_max_base_diags_count(__exec, __n_iter, __n, __n_sorted));
 
 #if TRACE_BASE_DIAGS
                     sycl::ext::oneapi::experimental::printf(fmt_create_diags_storage, __n_sorted, __max_base_diags_count);
@@ -667,7 +678,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
                 }
 
-                const nd_range_params __nd_range_params_this = fnc_eval_nd_range(__exec, __n, __n_sorted);
+                const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
+                const nd_range_params __nd_range_params_this =
+                    eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __portions);
 
                 // Calculation of split-points on each base diagonal
                 __event_chain =
