@@ -4345,7 +4345,7 @@ __pattern_histogram(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     else
     {
         auto __tls =
-            oneapi::dpl::_internal::__make_etls<std::vector<_HistogramValueT>>(__num_bins, _HistogramValueT{0});
+            oneapi::dpl::__internal::__make_etls<std::vector<_HistogramValueT>>(__num_bins, _HistogramValueT{0});
 
         //main histogram loop
         //TODO: add defaulted grain-size option for __parallel_for and use larger one here to account for overhead
