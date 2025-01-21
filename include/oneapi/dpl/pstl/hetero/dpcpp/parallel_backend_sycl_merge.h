@@ -419,7 +419,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             std::forward<_Range3>(__rng3), __comp);
 
-#if MERGE_SORT_DISPLAY_STATISTIC
+#if MERGE_DISPLAY_STATISTIC
         __f.wait();
         const auto __stop_time = std::chrono::high_resolution_clock::now();
         const auto __elapsed = __stop_time - __start_time;
@@ -446,7 +446,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
 
-#if MERGE_SORT_DISPLAY_STATISTIC
+#if MERGE_DISPLAY_STATISTIC
             __f.wait();
             const auto __stop_time = std::chrono::high_resolution_clock::now();
             const auto __elapsed = __stop_time - __start_time;
@@ -470,7 +470,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                 std::forward<_Range3>(__rng3), __comp);
 
-#if MERGE_SORT_DISPLAY_STATISTIC
+#if MERGE_DISPLAY_STATISTIC
             __f.wait();
             const auto __stop_time = std::chrono::high_resolution_clock::now();
             const auto __elapsed = __stop_time - __start_time;
