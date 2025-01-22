@@ -148,10 +148,9 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
     _Index __rng1_idx = __start1;
     _Index __rng2_idx = __start2;
 
-    using _Rng3ValueType = std::decay_t<decltype(__rng3[__start3])>;
-
     bool __rng1_idx_less_n1 = false;
     bool __rng2_idx_less_n2 = false;
+    bool __condition_state = false;
 
     for (_Index __rng3_idx = __start3; __rng3_idx < __rng3_idx_end; ++__rng3_idx)
     {
@@ -161,11 +160,16 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
         // One of __rng1_idx_less_n1 and __rng2_idx_less_n2 should be true here
         // because 1) we should fill output data with elements from one of the input ranges
         // 2) we calculate __rng3_idx_end as std::min<_Index>(__rng1_size + __rng2_size, __chunk).
-        __rng3[__rng3_idx] =
+        __condition_state =
             ((__rng1_idx_less_n1 && __rng2_idx_less_n2 && __comp(__rng2[__rng2_idx], __rng1[__rng1_idx])) ||
-             !__rng1_idx_less_n1)
-                ? static_cast<_Rng3ValueType>(__rng2[__rng2_idx++])
-                : static_cast<_Rng3ValueType>(__rng1[__rng1_idx++]);
+             !__rng1_idx_less_n1);
+
+        if constexpr (std::is_same_v<decltype(__rng2[__rng2_idx++]), decltype(__rng1[__rng1_idx++]))>)
+            __rng3[__rng3_idx] = __condition_state ? __rng2[__rng2_idx++] : __rng1[__rng1_idx++];
+        else if (__condition_state)
+            __rng3[__rng3_idx] = __rng2[__rng2_idx++];
+        else
+            __rng3[__rng3_idx] = __rng1[__rng1_idx++];
     }
 }
 
