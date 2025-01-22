@@ -155,6 +155,9 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
+namespace __detail
+{
+
 template <typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage
 {
@@ -218,6 +221,16 @@ struct __enumerable_thread_local_storage
     std::atomic_size_t __num_elements;
     std::tuple<_Args...> __args;
 };
+
+}// namespace __detail
+
+// enumerable thread local storage should only be created from make function
+template <typename _ValueType, typename... Args>
+__detail::__enumerable_thread_local_storage<_ValueType, Args...>
+__make_etls(Args&&... __args)
+{
+    return __detail::__enumerable_thread_local_storage<_ValueType, Args...>(std::forward<Args>(__args)...);
+}
 
 } // namespace __omp_backend
 } // namespace dpl

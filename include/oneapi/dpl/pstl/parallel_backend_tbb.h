@@ -1307,7 +1307,10 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
-template <typename _ValueType, typename... _Args>
+namespace __detail
+{
+
+template <typename _ValueType>
 struct __enumerable_thread_local_storage
 {
     template <typename... _LocalArgs>
@@ -1336,6 +1339,16 @@ struct __enumerable_thread_local_storage
 
     tbb::enumerable_thread_specific<_ValueType> __thread_specific_storage;
 };
+
+} // namespace __detail
+
+// enumerable thread local storage should only be created from make function
+template <typename _ValueType, typename... Args>
+__detail::__enumerable_thread_local_storage<_ValueType>
+__make_etls(Args&&... __args)
+{
+    return __detail::__enumerable_thread_local_storage<_ValueType>(std::forward<Args>(__args)...);
+}
 
 } // namespace __tbb_backend
 } // namespace dpl

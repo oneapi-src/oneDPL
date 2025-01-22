@@ -34,15 +34,10 @@ namespace dpl
 namespace __serial_backend
 {
 
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
-
-inline void
-__cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
+namespace __detail
 {
-}
 
-template <typename _ValueType, typename... _Args>
+template <typename _ValueType>
 struct __enumerable_thread_local_storage
 {
     template <typename... _LocalArgs>
@@ -70,6 +65,25 @@ struct __enumerable_thread_local_storage
 
     _ValueType __storage;
 };
+
+} //namespace __detail
+
+// enumerable thread local storage should only be created from make function
+template <typename _ValueType, typename... Args>
+__detail::__enumerable_thread_local_storage<_ValueType>
+__make_etls(Args&&... __args)
+{
+    return __detail::__enumerable_thread_local_storage<_ValueType>(std::forward<Args>(__args)...);
+}
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
+
+inline void
+__cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
+{
+}
+
 
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void

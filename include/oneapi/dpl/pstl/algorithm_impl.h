@@ -43,13 +43,6 @@ namespace dpl
 namespace __internal
 {
 
-template <typename _ValueType, typename... Args>
-__par_backend::__enumerable_thread_local_storage<_ValueType, Args...>
-__make_etls(Args&&... __args)
-{
-    return __par_backend::__enumerable_thread_local_storage<_ValueType, Args...>(std::forward<Args>(__args)...);
-}
-
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------
