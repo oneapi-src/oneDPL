@@ -317,6 +317,7 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
     using __base_t = walk_vector_or_scalar_base<_Range1, _Range2>;
     _F __f;
     std::size_t __n;
+    oneapi::dpl::__internal::__pstl_assign __assigner;
 
   public:
     walk_adjacent_difference(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
@@ -327,7 +328,7 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
     {
         // just copy an element if it is the first one
         if (__idx == 0)
-            __rng2[__idx] = __rng1[__idx];
+            __assigner(__rng1[__idx], __rng2[__idx]);
         else
             __f(__rng1[__idx + (-1)], __rng1[__idx], __rng2[__idx]);
     }
@@ -340,9 +341,9 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
         // 1. Establish a vector of __preferred_vector_size + 1 where a scalar load is performed on the first element
         // followed by a vector load of the specified length.
         if (__idx != 0)
-            __rng1_vector[0] = __rng1[__idx - 1];
+            __assigner(__rng1[__idx - 1], __rng1_vector[0]);
         else
-            __rng1_vector[0] = __rng1[0];
+            __assigner(__rng1[0], __rng1_vector[0]);
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
             __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng1, &__rng1_vector[1]);
         // 2. Perform a vector store of __preferred_vector_size adjacent differences.
@@ -352,7 +353,7 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
         // A dummy value is first written to global memory followed by an overwrite for the first index. Pulling the vector loads / stores into an if branch
         // to better handle this results in performance degradation.
         if (__idx == 0)
-            __rng2[0] = __rng1_vector[0];
+            __assigner(__rng1_vector[0], __rng2[0]);
     }
     template <typename _IsFull, typename _ItemId>
     void
@@ -1222,6 +1223,7 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     using __base_t = walk_vector_or_scalar_base<_Range1, _Range2>;
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
     _Size __size;
+    oneapi::dpl::__internal::__pstl_assign __assigner;
 
   public:
     __reverse_copy(_Size __size) : __size(__size) {}
@@ -1264,7 +1266,7 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
             // __vector_store would believe that we always have a full vector length of elements due to the starting
             // index having greater than __preferred_vector_size elements until the end of the buffer.
             for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
-                __rng2[__output_start + __i] = __rng1_vector[__i];
+                __assigner(__rng1_vector[__i], __rng2[__output_start + __i]);
         }
     }
     template <typename _IsFull>
@@ -1289,6 +1291,7 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
     _Size __size;
     _Size __shift;
+    oneapi::dpl::__internal::__pstl_assign __assigner;
 
   public:
     __rotate_copy(_Size __size, _Size __shift) : __size(__size), __shift(__shift) {}
@@ -1311,10 +1314,11 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         {
             // A single point of non-contiguity within the rotation operation. Manually process the loop here as the
             // access pattern becomes non-vectorizable.
-            std::uint8_t __remaining_elements = __n - __idx;
-            std::uint8_t __elements_to_process = std::min(__base_t::__preferred_vector_size, __remaining_elements);
+            std::size_t __remaining_elements = __n - __idx;
+            std::uint8_t __elements_to_process =
+                std::min(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
             for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
-                __rng1_vector[__i] = __rng1[(__shifted_idx + __i) % __size];
+                __assigner(__rng1[(__shifted_idx + __i) % __size], __rng1_vector[__i]);
         }
         // 2. Store the rotation
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(

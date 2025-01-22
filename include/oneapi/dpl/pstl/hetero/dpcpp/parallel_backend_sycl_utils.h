@@ -903,11 +903,12 @@ __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
 
 struct __scalar_load_op
 {
+    oneapi::dpl::__internal::__pstl_assign __assigner;
     template <typename _IdxType1, typename _IdxType2, typename _SourceAcc, typename _DestAcc>
     void
     operator()(_IdxType1 __idx_source, _IdxType2 __idx_dest, _SourceAcc __source_acc, _DestAcc __dest_acc) const
     {
-        __dest_acc[__idx_dest] = __source_acc[__idx_source];
+        __assigner(__source_acc[__idx_source], __dest_acc[__idx_dest]);
     }
 };
 
