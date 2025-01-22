@@ -93,23 +93,23 @@ __pattern_histogram(oneapi::dpl::__internal::__parallel_tag<_IsVector>, _Executi
                 __internal::__brick_histogram(__first_local, __last_local, __func,
                                               __tls.get_for_current_thread().begin(), _IsVector{});
             });
-        // now accumulate temporary storage into output global histogram
+        // now accumulate temporary storage into output histogram
         const std::size_t __num_temporary_copies = __tls.size();
         __par_backend::__parallel_for(
             __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
-            [__num_temporary_copies, __histogram_first, &__tls](auto __global_histogram_first,
-                                                                auto __global_histogram_last) {
-                const _DiffType __local_n = __global_histogram_last - __global_histogram_first;
-                const _DiffType __range_begin_id = __global_histogram_first - __histogram_first;
-                //initialize output global histogram with first local histogram via assign
+            [__num_temporary_copies, __histogram_first, &__tls](auto __output_histogram_first,
+                                                                auto __output_histogram_last) {
+                const _DiffType __local_n = __output_histogram_last - __output_histogram_first;
+                const _DiffType __range_begin_id = __output_histogram_first - __histogram_first;
+                //initialize output histogram with first local histogram via assign
                 __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __range_begin_id, __local_n,
-                                            __global_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
+                                            __output_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
                                             _IsVector{});
                 for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
                 {
-                    //accumulate into output global histogram with other local histogram via += operator
+                    //accumulate into output histogram with other local histogram via += operator
                     __internal::__brick_walk2_n(
-                        __tls.get_with_id(__i).begin() + __range_begin_id, __local_n, __global_histogram_first,
+                        __tls.get_with_id(__i).begin() + __range_begin_id, __local_n, __output_histogram_first,
                         [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
                 }
             });
