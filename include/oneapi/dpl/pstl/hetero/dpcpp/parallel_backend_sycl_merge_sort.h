@@ -353,24 +353,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         }
     };
 
-    // Return max number of base diagonals:
-    //  - we empirically found that 32 Kb of base diagonals well fit for 256 Mb of source data
+    template <typename _ExecutionPolicy>
     std::size_t
-    get_max_base_diags_count(std::size_t __n) const
+    get_max_base_diags_count(_ExecutionPolicy&& __exec, const _IndexT __chunk, std::size_t __n) const
     {
-        constexpr std::size_t __max_data_size = 256 * 1024 * 1024;      // 256 Mb
-
-        assert(__n <= __max_data_size);
-
-        // TODO required to evaluate this value based on available SLM size for each work-group.
-        const std::size_t __base_diag_count = 32 * 1'024;
-
-        // Multiply work per item by a power of 2 to reach the desired number of iterations.
-        // __dpl_bit_ceil rounds the ratio up to the next power of 2.
-        const std::size_t __k = oneapi::dpl::__internal::__dpl_bit_ceil(
-            oneapi::dpl::__internal::__dpl_ceiling_div(__max_data_size, __n));
-
-        return oneapi::dpl::__internal::__dpl_ceiling_div(__base_diag_count, __k);
+        const std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __max_wg_size);
     }
 
     // Calculate nd-range params
@@ -384,7 +372,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __chunk = std::min<_IndexT>(__is_cpu ? 32 : 4, __n_sorted * 2);
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        _IndexT __base_diag_count = get_max_base_diags_count(__rng_size);
+        _IndexT __base_diag_count = get_max_base_diags_count(__exec, __chunk, __n_sorted);
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
@@ -635,7 +623,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
         // Max amount of base diagonals
-        const std::size_t __max_base_diags_count = get_max_base_diags_count(__n);
+        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __nd_range_params.chunk, __n);
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
