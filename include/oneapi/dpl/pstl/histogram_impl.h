@@ -97,20 +97,19 @@ __pattern_histogram(oneapi::dpl::__internal::__parallel_tag<_IsVector>, _Executi
         // now accumulate temporary storage into output histogram
         const std::size_t __num_temporary_copies = __tls.size();
         __par_backend::__parallel_for(
-            __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __histogram_first, __histogram_first + __num_bins,
-            [__num_temporary_copies, __histogram_first, &__tls](auto __output_histogram_first,
-                                                                auto __output_histogram_last) {
-                const _DiffType __local_n = __output_histogram_last - __output_histogram_first;
-                const _DiffType __range_begin_id = __output_histogram_first - __histogram_first;
+            __backend_tag{}, std::forward<_ExecutionPolicy>(__exec), _Size{0}, __num_bins,
+            [__num_temporary_copies, __histogram_first, &__tls](auto __hist_start_id, auto __hist_end_id) {
+                const _DiffType __local_n = __hist_end_id - __hist_start_id;
                 //initialize output histogram with first local histogram via assign
-                __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __range_begin_id, __local_n,
-                                            __output_histogram_first, oneapi::dpl::__internal::__pstl_assign(),
-                                            _IsVector{});
+                __internal::__brick_walk2_n(__tls.get_with_id(0).begin() + __hist_start_id, __local_n,
+                                            __histogram_first + __hist_start_id,
+                                            oneapi::dpl::__internal::__pstl_assign(), _IsVector{});
                 for (std::size_t __i = 1; __i < __num_temporary_copies; ++__i)
                 {
                     //accumulate into output histogram with other local histogram via += operator
                     __internal::__brick_walk2_n(
-                        __tls.get_with_id(__i).begin() + __range_begin_id, __local_n, __output_histogram_first,
+                        __tls.get_with_id(__i).begin() + __hist_start_id, __local_n,
+                        __histogram_first + __hist_start_id,
                         [](_HistogramValueT __x, _HistogramValueT& __y) { __y += __x; }, _IsVector{});
                 }
             });
