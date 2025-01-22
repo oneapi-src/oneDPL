@@ -193,7 +193,7 @@ struct __enumerable_thread_local_storage
             // Only include storage from threads which have instantiated a storage object
             if (__thread_specific_storage[__j])
             {
-                __count++;
+                ++__count;
             }
         }
         // Need to back up one once we have found a valid storage object
