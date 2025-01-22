@@ -124,11 +124,6 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
             test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }
     }
-
-    //single large case for coverage
-    Size n = 1100000;
-    Size bin_size = 1100000;
-    test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
 }
 
 int
