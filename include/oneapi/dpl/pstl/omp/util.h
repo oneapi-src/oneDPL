@@ -169,7 +169,7 @@ struct __enumerable_thread_local_storage
         __thread_specific_storage.resize(__num_threads);
     }
 
-    // Note: Size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
+    // Note: size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
     // not return an accurate count of instantiated storage objects in lockstep with the number allocated and stored.
     // This is because the count is not atomic with the allocation and storage of the storage objects.
     std::size_t
@@ -179,6 +179,10 @@ struct __enumerable_thread_local_storage
         return __num_elements.load();
     }
 
+    // Note: get_with_id should not be used concurrently with parallel loops which may instantiate storage objects,
+    // as its operation may provide an out of date view of the stored objects based on the timing new object creation
+    // and incrementing of the size.
+    // TODO: Consider replacing this access with a visitor pattern.
     _ValueType&
     get_with_id(std::size_t __i)
     {
