@@ -20,8 +20,7 @@
 #include "histogram_binhash_utils.h"
 #include "execution_impl.h"
 #include "iterator_impl.h"
-#include "algorithm_impl.h"
-#include "parallel_backend_utils.h"
+#include "algorithm_fwd.h"
 
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/histogram_impl_hetero.h"
