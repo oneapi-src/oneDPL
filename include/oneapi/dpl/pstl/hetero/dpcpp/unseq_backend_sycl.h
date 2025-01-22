@@ -1311,10 +1311,9 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         {
             // A single point of non-contiguity within the rotation operation. Manually process the loop here as the
             // access pattern becomes non-vectorizable.
-            std::size_t __remaining_elements = __n - __idx;
-            std::uint8_t __elements_to_process =
-                std::min(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
-            for (std::uint8_t __i = 0; __i != __elements_to_process; ++__i)
+            std::uint8_t __remaining_elements = __n - __idx;
+            std::uint8_t __elements_to_process = std::min(__base_t::__preferred_vector_size, __remaining_elements);
+            for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
                 __rng1_vector[__i] = __rng1[(__shifted_idx + __i) % __size];
         }
         // 2. Store the rotation
