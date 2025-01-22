@@ -146,14 +146,15 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
         auto __event = __exec.queue().submit([__rngs..., __brick, __work_group_size, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-            constexpr static std::uint16_t __iters_per_work_item = _Fp::__preferred_iters_per_item;
+            constexpr std::uint8_t __iters_per_work_item = _Fp::__preferred_iters_per_item;
+            constexpr std::uint8_t __vector_size = _Fp::__preferred_vector_size;
             const std::size_t __num_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
-                __count, (__work_group_size * _Fp::__preferred_vector_size * __iters_per_work_item));
+                __count, (__work_group_size * __vector_size * __iters_per_work_item));
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __item) {
-                    auto [__idx, __stride, __is_full] = __stride_recommender(
-                        __item, __count, __iters_per_work_item, _Fp::__preferred_vector_size, __work_group_size);
+                    auto [__idx, __stride, __is_full] =
+                        __stride_recommender(__item, __count, __iters_per_work_item, __vector_size, __work_group_size);
                     __strided_loop<__iters_per_work_item> __execute_loop{static_cast<std::size_t>(__count)};
                     if (__is_full)
                     {
