@@ -46,7 +46,7 @@ struct __custom_brick : oneapi::dpl::unseq_backend::walk_scalar_base<_Range>
     bool use_32bit_indexing;
 
     __custom_brick(Comp comp, T size, bool use_32bit_indexing)
-        : comp(comp), size(size), use_32bit_indexing(use_32bit_indexing)
+        : comp(std::move(comp)), size(size), use_32bit_indexing(use_32bit_indexing)
     {
     }
 

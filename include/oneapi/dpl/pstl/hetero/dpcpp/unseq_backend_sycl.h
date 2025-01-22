@@ -164,7 +164,7 @@ struct walk1_vector_or_scalar : public walk_vector_or_scalar_base<_Range>
     std::size_t __n;
 
   public:
-    walk1_vector_or_scalar(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
+    walk1_vector_or_scalar(_F __f, std::size_t __n) : __f(std::move(__f)), __n(__n) {}
 
     template <typename _IsFull>
     void
@@ -202,7 +202,7 @@ struct walk2_vectors_or_scalars : public walk_vector_or_scalar_base<_Range1, _Ra
     std::size_t __n;
 
   public:
-    walk2_vectors_or_scalars(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
+    walk2_vectors_or_scalars(_F __f, std::size_t __n) : __f(std::move(__f)), __n(__n) {}
 
     template <typename _IsFull>
     void
@@ -248,7 +248,7 @@ struct walk3_vectors_or_scalars : public walk_vector_or_scalar_base<_Range1, _Ra
     std::size_t __n;
 
   public:
-    walk3_vectors_or_scalars(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
+    walk3_vectors_or_scalars(_F __f, std::size_t __n) : __f(std::move(__f)), __n(__n) {}
 
     template <typename _IsFull, typename _ItemId>
     void
@@ -320,7 +320,7 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
     oneapi::dpl::__internal::__pstl_assign __assigner;
 
   public:
-    walk_adjacent_difference(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
+    walk_adjacent_difference(_F __f, std::size_t __n) : __f(std::move(__f)), __n(__n) {}
 
     template <typename _IsFull, typename _ItemId>
     void
@@ -1305,20 +1305,27 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         std::size_t __n = __size;
         _ValueType __rng1_vector[__base_t::__preferred_vector_size];
         //1. Vectorize loads only if we know the wrap around point is beyond the current vector elements to process
-        if (__wrapped_idx + __base_t::__preferred_vector_size <= __size)
+        if (__wrapped_idx + __base_t::__preferred_vector_size <= __n)
         {
             oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
                 __is_full, __wrapped_idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng1, __rng1_vector);
         }
         else
         {
-            // A single point of non-contiguity within the rotation operation. Manually process the loop here as the
-            // access pattern becomes non-vectorizable.
-            std::size_t __remaining_elements = __n - __idx;
-            std::uint8_t __elements_to_process =
+            // A single point of non-contiguity within the rotation operation. Manually process two loops here:
+            // the first before the wraparound point and the second after.
+            const std::size_t __remaining_elements = __n - __idx;
+            const std::uint8_t __elements_to_process =
                 std::min(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
-            for (std::uint8_t __i = 0; __i < __elements_to_process; ++__i)
-                __assigner(__rng1[(__shifted_idx + __i) % __size], __rng1_vector[__i]);
+            // __n - __wrapped_idx can safely fit into a uint8_t due to the condition check above.
+            const std::uint8_t __loop1_elements =
+                std::min(__elements_to_process, static_cast<std::uint8_t>(__n - __wrapped_idx));
+            const std::uint8_t __loop2_elements = __elements_to_process - __loop1_elements;
+            std::uint8_t __i = 0;
+            for (__i = 0; __i < __loop1_elements; ++__i)
+                __assigner(__rng1[__wrapped_idx + __i], __rng1_vector[__i]);
+            for (std::uint8_t __j = 0; __j < __loop2_elements; ++__j)
+                __assigner(__rng1[__j], __rng1_vector[__i + __j]);
         }
         // 2. Store the rotation
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
@@ -1512,7 +1519,7 @@ struct __brick_swap : public walk_vector_or_scalar_base<_Range1, _Range2>
     std::size_t __n;
 
   public:
-    __brick_swap(_F __f, std::size_t __n) : __f(__f), __n(__n) {}
+    __brick_swap(_F __f, std::size_t __n) : __f(std::move(__f)), __n(__n) {}
 
     template <typename _IsFull>
     void
