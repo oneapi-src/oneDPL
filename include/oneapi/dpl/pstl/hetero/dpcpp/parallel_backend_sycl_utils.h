@@ -855,7 +855,7 @@ struct __bypass_sycl_kernel_not_supported
         // and rethrow the encountered exception if the two do not compare equal. However, the icpx compiler currently
         // returns a generic error code in violation of the SYCL spec which has a value of 7. If we are using the Intel
         // compiler, then compare the value of the error code. Otherwise, assume the implementation is spec compliant.
-#ifdef _ONEDPL_LIBSYCL_VERSION // Detects either icpx or the open-source intel/llvm compiler
+#if _ONEDPL_ICPX_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN
         if (__e.code().value() != 7)
             throw;
 #else // Generic SYCL compiler. Assume it is spec compliant.
