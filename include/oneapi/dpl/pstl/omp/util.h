@@ -226,7 +226,7 @@ struct __enumerable_thread_local_storage
     std::tuple<_Args...> __args;
 };
 
-}// namespace __detail
+} // namespace __detail
 
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
