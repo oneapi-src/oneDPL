@@ -148,7 +148,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
     _Index __rng1_idx = __start1;
     _Index __rng2_idx = __start2;
 
-    using _Rng3ValueType = decltype(__rng3[__start3]);
+    using _Rng3ValueType = std::decay_t<decltype(__rng3[__start3])>;
 
     for (_Index __rng3_idx = __start3; __rng3_idx < __rng3_idx_end; ++__rng3_idx)
     {
