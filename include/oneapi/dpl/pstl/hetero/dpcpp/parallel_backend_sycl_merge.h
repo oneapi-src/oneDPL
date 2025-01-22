@@ -148,7 +148,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
     _Index __rng1_idx = __start1;
     _Index __rng2_idx = __start2;
 
-    constexpr bool __is_the_same_types = std::is_same_v<decltype(__rng2[__rng2_idx]), decltype(__rng1[__rng1_idx]))>;
+    constexpr bool __is_the_same_types = std::is_same_v<decltype(__rng2[__rng2_idx]), decltype(__rng1[__rng1_idx])>;
 
     bool __rng1_idx_less_n1 = false;
     bool __rng2_idx_less_n2 = false;
