@@ -151,7 +151,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
     using _Rng3ValueType = std::decay_t<decltype(__rng3[__start3])>;
 
     bool __rng1_idx_less_n1 = false;
-    bool __rng1_idx_less_n2 = false;
+    bool __rng2_idx_less_n2 = false;
 
     for (_Index __rng3_idx = __start3; __rng3_idx < __rng3_idx_end; ++__rng3_idx)
     {
