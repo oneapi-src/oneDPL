@@ -71,7 +71,7 @@ struct __enumerable_thread_local_storage
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
 __detail::__enumerable_thread_local_storage<_ValueType>
-__make_etls(Args&&... __args)
+__make_enumerable_tls(Args&&... __args)
 {
     return __detail::__enumerable_thread_local_storage<_ValueType>(std::forward<Args>(__args)...);
 }
