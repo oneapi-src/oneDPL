@@ -135,7 +135,7 @@ _ForwardIterator2
 __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
 {
-    auto __n = __last1 - __first1;
+    const auto __n = __last1 - __first1;
     if (__n == 0)
         return __first2;
 

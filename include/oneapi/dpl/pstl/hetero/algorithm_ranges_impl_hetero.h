@@ -174,7 +174,7 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Rang
 {
     if (__rng1.size() <= __rng2.size())
     {
-        std::size_t __n = __rng1.size();
+        const std::size_t __n = __rng1.size();
         auto __exec1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
             std::forward<_ExecutionPolicy>(__exec));
         auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
@@ -185,7 +185,7 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Rang
         __future.wait(__par_backend_hetero::__deferrable_mode{});
         return __n;
     }
-    std::size_t __n = __rng2.size();
+    const std::size_t __n = __rng2.size();
     auto __exec2 =
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(std::forward<_ExecutionPolicy>(__exec));
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(

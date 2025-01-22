@@ -1157,8 +1157,8 @@ struct __reverse_functor : public walk_vector_or_scalar_base<_Range>
     void
     __vector_path_impl(_IsFull, const std::size_t __left_start_idx, _Range __rng) const
     {
-        std::size_t __n = __size;
-        std::size_t __midpoint = __size / 2;
+        const std::size_t __n = __size;
+        const std::size_t __midpoint = __size / 2;
 
         // In the below implementation, we see that _IsFull is ignored in favor of std::true_type{} in all cases.
         // This relaxation is due to the fact that in-place reverse launches work only over the first half of the
@@ -1238,9 +1238,9 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     void
     __vector_path_impl(_IsFull __is_full, const std::size_t __idx, const _Range1 __rng1, _Range2 __rng2) const
     {
-        std::size_t __n = __size;
-        std::size_t __remaining_elements = __n - __idx;
-        std::uint8_t __elements_to_process =
+        const std::size_t __n = __size;
+        const std::size_t __remaining_elements = __n - __idx;
+        const std::uint8_t __elements_to_process =
             std::min(static_cast<std::size_t>(__base_t::__preferred_vector_size), __remaining_elements);
         const std::size_t __output_start = __size - __idx - __elements_to_process;
         // 1. Load vector to reverse
@@ -1300,9 +1300,9 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
     void
     __vector_path_impl(_IsFull __is_full, const std::size_t __idx, const _Range1 __rng1, _Range2 __rng2) const
     {
-        std::size_t __shifted_idx = __shift + __idx;
-        std::size_t __wrapped_idx = __shifted_idx % __size;
-        std::size_t __n = __size;
+        const std::size_t __shifted_idx = __shift + __idx;
+        const std::size_t __wrapped_idx = __shifted_idx % __size;
+        const std::size_t __n = __size;
         _ValueType __rng1_vector[__base_t::__preferred_vector_size];
         //1. Vectorize loads only if we know the wrap around point is beyond the current vector elements to process
         if (__wrapped_idx + __base_t::__preferred_vector_size <= __n)

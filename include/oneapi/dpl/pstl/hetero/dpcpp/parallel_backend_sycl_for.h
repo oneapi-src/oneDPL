@@ -66,7 +66,7 @@ struct __parallel_for_small_submitter<__internal::__optional_kernel_name<_Name..
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
-                auto __idx = __item_id.get_linear_id();
+                const std::size_t __idx = __item_id.get_linear_id();
                 // For small inputs, do not vectorize or perform multiple iterations per work item. Spread input evenly
                 // across compute units.
                 __brick.__scalar_path_impl(std::true_type{}, __idx, __rngs...);
@@ -153,7 +153,7 @@ struct __parallel_for_large_submitter<__internal::__optional_kernel_name<_Name..
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range(sycl::range<1>(__num_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item</*dim=*/1> __item) {
-                    auto [__idx, __stride, __is_full] =
+                    const auto [__idx, __stride, __is_full] =
                         __stride_recommender(__item, __count, __iters_per_work_item, __vector_size, __work_group_size);
                     __strided_loop<__iters_per_work_item> __execute_loop{static_cast<std::size_t>(__count)};
                     if (__is_full)
@@ -193,7 +193,6 @@ __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&&
     {
         if (__count >= __large_submitter::__estimate_best_start_size(__exec, __brick))
         {
-
             return __large_submitter{}(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
                                        std::forward<_Ranges>(__rngs)...);
         }
