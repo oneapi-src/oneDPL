@@ -2951,12 +2951,12 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 
 template <typename It1, typename It2, typename ItOut, typename _Comp>
 std::pair<It1, It2>
-__brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
-                /* __is_vector = */ std::false_type)
+__brick_merge_out_lim(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e,
+                      _Comp __comp, /* __is_vector = */ std::false_type)
 {
     while (__it_1 != __it_1_e && __it_2 != __it_2_e)
     {
-        if (__comp(*__it_1, *__it_2))
+        if (std::invoke(__comp, *__it_1, *__it_2))
         {
             *__it_out = *__it_1;
             ++__it_out, ++__it_1;
@@ -2985,8 +2985,8 @@ __brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_o
 
 template <typename It1, typename It2, typename ItOut, typename _Comp>
 std::pair<It1, It2>
-__brick_merge_2(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e, _Comp __comp,
-                /* __is_vector = */ std::true_type)
+__brick_merge_out_lim(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e,
+                      _Comp __comp, /* __is_vector = */ std::true_type)
 {
     return __unseq_backend::__simd_merge(__it_1, __it_1_e, __it_2, __it_2_e, __it_out, __it_out_e, __comp);
 }
@@ -3023,21 +3023,21 @@ __pattern_merge(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIt
                                      typename _Tag::__is_vector{});
 }
 
-template <class _Tag, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2, typename _Index2,
+template <typename _Tag, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2, typename _Index2,
           typename _OutIt, typename _Index3, typename _Comp>
 std::pair<_It1, _It2>
-__pattern_merge_2(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2, _Index2 __n_2,
-                  _OutIt __it_out, _Index3 __n_out, _Comp __comp)
+__pattern_merge_path(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2, _Index2 __n_2,
+                     _OutIt __it_out, _Index3 __n_out, _Comp __comp)
 {
-    return __brick_merge_2(__it_1, __it_1 + __n_1, __it_2, __it_2 + __n_2, __it_out, __it_out + __n_out, __comp,
-                           typename _Tag::__is_vector{});
+    return __brick_merge_out_lim(__it_1, __it_1 + __n_1, __it_2, __it_2 + __n_2, __it_out, __it_out + __n_out, __comp,
+                                 typename _Tag::__is_vector{});
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
           typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
 std::pair<_It1, _It2>
-__pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2,
-                  _Index2 __n_2, _OutIt __it_out, _Index3 __n_out, _Comp __comp)
+__pattern_merge_path(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2,
+                     _Index2 __n_2, _OutIt __it_out, _Index3 __n_out, _Comp __comp)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
@@ -3083,8 +3083,8 @@ __pattern_merge_2(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 __i
                 }
 
                 //serial merge n elements, starting from input x and y, to [i, j) output range
-                const auto __res = __brick_merge_2(__it_1 + __r, __it_1 + __n_1, __it_2 + __c, __it_2 + __n_2,
-                                                   __it_out + __i, __it_out + __j, __comp, _IsVector{});
+                const auto __res = __brick_merge_out_lim(__it_1 + __r, __it_1 + __n_1, __it_2 + __c, __it_2 + __n_2,
+                                                         __it_out + __i, __it_out + __j, __comp, _IsVector{});
 
                 if (__j == __n_out)
                 {

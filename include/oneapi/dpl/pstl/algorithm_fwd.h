@@ -941,6 +941,17 @@ _RandomAccessIterator3
 __pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
                 _RandomAccessIterator2, _RandomAccessIterator2, _RandomAccessIterator3, _Compare);
 
+template <typename _Tag, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2, typename _Index2,
+          typename _OutIt, typename _Index3, typename _Comp>
+std::pair<_It1, _It2>
+__pattern_merge_path(_Tag, _ExecutionPolicy&&, _It1, _Index1, _It2, _Index2, _OutIt, _Index3, _Comp);
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
+          typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
+std::pair<_It1, _It2>
+__pattern_merge_path(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _It1, _Index1, _It2, _Index2, _OutIt, _Index3,
+                     _Comp);
+
 //------------------------------------------------------------------------
 // inplace_merge
 //------------------------------------------------------------------------
