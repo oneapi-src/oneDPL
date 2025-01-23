@@ -136,13 +136,12 @@ Macro                                Description
                                         application to run on a FPGA emulation device.
                                         Define only the ``ONEDPL_FPGA_DEVICE`` macro to run on a FPGA hardware device.
 ------------------------------------ ------------------------------
-``ONEDPL_USE_SYCL121_GROUP_BARRIER`` Enable this macro to utilize SYCL 1.2.1 group barriers instead of those from SYCL 2020.
-                                     It affects algorithms using device execution policies,
-                                     and is recommended for better performance on Intel GPUs.
+``ONEDPL_USE_SYCL121_GROUP_BARRIER`` The macro controls the use of SYCL 1.2.1 group barriers over those from SYCL 2020.
+                                     It affects algorithms that use device execution policies
+                                     and can improve performance on Intel GPUs.
 
-                                     When not explicitly defined,
-                                     the macro defaults to 1 with a oneAPI DPC++ compiler and 0 otherwise.
-                                     Setting it to a non-zero value enables SYCL 1.2.1 group barriers.
+                                     Set this macro to a non-zero value to use SYCL 1.2.1 group barriers.
+                                     The default value is 1 when using the oneAPI DPC++ Compiler and 0 otherwise.
 
                                      .. Note:: This macro may be removed in the future.
 ==================================== ==============================
