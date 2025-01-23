@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cassert>
 #include <type_traits>
 #include <tuple>
 

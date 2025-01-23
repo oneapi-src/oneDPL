@@ -1704,7 +1704,7 @@ __pattern_rotate_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Bid
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::__rotate_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type,
+        unseq_backend::__rotate_copy<typename std::iterator_traits<_BidirectionalIterator>::difference_type,
                                      decltype(__buf1.all_view()), decltype(__buf2.all_view())>{__n, __shift},
         __n, __buf1.all_view(), __buf2.all_view())
         .__deferrable_wait();

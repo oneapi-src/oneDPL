@@ -777,7 +777,8 @@ struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>> : s
 };
 // If all_view is passed, then we are processing a sycl::buffer directly which is contiguous and can
 // be used.
-template <typename _T, sycl::access::mode _AccMode, __dpl_sycl::__target _Target, sycl::access::placeholder _Placeholder>
+template <typename _T, sycl::access::mode _AccMode, __dpl_sycl::__target _Target,
+          sycl::access::placeholder _Placeholder>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::all_view<_T, _AccMode, _Target, _Placeholder>> : std::true_type
 {
 };
