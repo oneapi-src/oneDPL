@@ -210,19 +210,25 @@ __get_accessor_size(const _Accessor& __accessor)
 #endif
 }
 
+// TODO: switch to SYCL 2020 with DPC++ compiler.
+// SYCL 1.2.1 version is used due to better performance on Intel GPUs.
+// The performance gap is negligible since
+// https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
+// But the fix is not a part of the LTS GPU drivers (Linux) yet.
+#if !defined(ONEDPL_USE_SYCL121_GROUP_BARRIER) && _ONEDPL_LIBSYCL_VERSION
+#    define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+#else
+#    define ONEDPL_USE_SYCL121_GROUP_BARRIER 0
+#endif
+
 template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-    // TODO: switch to SYCL 2020 with DPC++ compiler.
-    // SYCL 1.2.1 version is used due to better performance on Intel GPUs.
-    // The performance gap is negligible since
-    // https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
-    // But the fix is not a part of the LTS GPU drivers (Linux) yet.
-#if _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT && !defined(_ONEDPL_LIBSYCL_VERSION)
+#if _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT && !ONEDPL_USE_SYCL121_GROUP_BARRIER
     // SYCL 2020 barrier: applies to local and global memory within a work-group
     sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
-#elif defined(_ONEDPL_LIBSYCL_VERSION)
+#elif ONEDPL_USE_SYCL121_GROUP_BARRIER
     // SYCL 1.2.1 barrier: applies to local memory within a work-group
     __item.barrier(sycl::access::fence_space::local_space);
 #else

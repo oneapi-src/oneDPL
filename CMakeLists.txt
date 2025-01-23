@@ -303,6 +303,13 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             endif()
         endif()
 
+        if (DEFINED ONEDPL_USE_SYCL121_GROUP_BARRIER)
+            if(ONEDPL_USE_SYCL121_GROUP_BARRIER)
+                message(STATUS "Adding -DONEDPL_USE_SYCL121_GROUP_BARRIER=1 option")
+                target_compile_options(oneDPL INTERFACE "-DONEDPL_USE_SYCL121_GROUP_BARRIER=1")
+            endif()
+        endif()
+
         # DPC++ specific macro
         target_compile_definitions(oneDPL INTERFACE
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
