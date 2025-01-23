@@ -613,7 +613,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
 
                 // Check that each base diagonal started from beginning of merge matrix
-                assert(0 == (2 * __n_sorted) % (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chink);
+                assert(0 == (2 * __n_sorted) % (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chink));
 
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
                 __nd_range_params_this.base_diag_count *= __portions;
