@@ -1429,7 +1429,7 @@ struct __brick_shift_left
     constexpr static std::uint8_t __max_vector_size = 4;
 
   public:
-    // We cannot process multiple iterations per work-item without leading to race conditions
+    // Multiple iterations per item are manually procssed in the brick with a nd-range strided approach.
     constexpr static std::uint8_t __preferred_iters_per_item = 1;
     constexpr static bool __can_vectorize =
         oneapi::dpl::__ranges::__is_vectorizable_range<std::decay_t<_Range>>::value &&
