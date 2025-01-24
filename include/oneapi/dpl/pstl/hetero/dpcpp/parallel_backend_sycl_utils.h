@@ -957,6 +957,8 @@ struct __scalar_store_transform_op
     }
 };
 
+// TODO: Consider unifying the implementations of __vector_walk, __vector_load, __vector_store, and potentially
+// __strided_loop with some common, generic utility
 template <std::uint8_t __vec_size>
 struct __vector_walk
 {
