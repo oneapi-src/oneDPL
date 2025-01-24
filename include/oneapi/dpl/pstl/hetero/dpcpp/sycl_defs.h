@@ -215,10 +215,12 @@ __get_accessor_size(const _Accessor& __accessor)
 // The performance gap is negligible since
 // https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
 // But the fix is not a part of the LTS GPU drivers (Linux) yet.
-#if !defined(ONEDPL_USE_SYCL121_GROUP_BARRIER) && _ONEDPL_LIBSYCL_VERSION
-#    define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
-#else
-#    define ONEDPL_USE_SYCL121_GROUP_BARRIER 0
+#if !defined(ONEDPL_USE_SYCL121_GROUP_BARRIER)
+#    if _ONEDPL_LIBSYCL_VERSION
+#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+#    else
+#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 0
+#    endif
 #endif
 
 template <typename _Item>
