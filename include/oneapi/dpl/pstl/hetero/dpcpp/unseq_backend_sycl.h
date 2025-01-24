@@ -1525,22 +1525,22 @@ struct __brick_swap : public walk_vector_or_scalar_base<_Range1, _Range2>
     void
     __vector_path_impl(_IsFull __is_full, const std::size_t __idx, _Range1 __rng1, _Range2 __rng2) const
     {
-        using _ValueType1 = oneapi::dpl::__internal::__value_t<_Range1>;
-        using _ValueType2 = oneapi::dpl::__internal::__value_t<_Range2>;
-        _ValueType1 __rng1_vector[__base_t::__preferred_vector_size];
-        _ValueType1 __rng2_vector[__base_t::__preferred_vector_size];
-        // 1. Load inputs into vectors
+        // Copies are used in the vector path of swap due to the restriction to fundamental types.
+        using _ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
+        _ValueType __rng_vector[__base_t::__preferred_vector_size];
+        // 1. Load elements from __rng1.
         oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng1, __rng1_vector);
-        oneapi::dpl::__par_backend_hetero::__vector_load<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng2, __rng2_vector);
-        // 2. Swap the two ranges
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng1, __rng_vector);
+        // 2. Swap the __rng1 elements in the vector with __rng2 elements from global memory. Note the store operation
+        // updates __rng_vector due to the swap functor.
         oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_store_transform_op<_F>{__f}, __rng2_vector,
-            __rng1);
-        oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
-            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_store_transform_op<_F>{__f}, __rng1_vector,
+            __is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_store_transform_op<_F>{__f}, __rng_vector,
             __rng2);
+        // 3. Store __rng2 elements in the vector into __rng1.
+        oneapi::dpl::__par_backend_hetero::__vector_store<__base_t::__preferred_vector_size>{__n}(
+            __is_full, __idx,
+            oneapi::dpl::__par_backend_hetero::__scalar_store_transform_op<oneapi::dpl::__internal::__pstl_assign>{},
+            __rng_vector, __rng1);
     }
 
     template <typename _IsFull>
