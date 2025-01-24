@@ -360,8 +360,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     inline static _merge_split_point_t
     __find_start_point_w(const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp)
     {
-        return __find_start_point(__views.rng1, decltype(__data_area.n1){0}, __data_area.n1, __views.rng2,
-                                  decltype(__data_area.n2){0}, __data_area.n2, __data_area.i_elem_local, __comp);
+        return __find_start_point(__views.rng1, _IndexT{0}, __data_area.n1, __views.rng2, _IndexT{0}, __data_area.n2,
+                                  __data_area.i_elem_local, __comp);
     }
 
     template <typename DropViews, typename _Rng, typename _Compare>
