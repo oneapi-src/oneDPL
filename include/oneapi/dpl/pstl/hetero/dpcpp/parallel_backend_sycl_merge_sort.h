@@ -396,6 +396,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
+            const std::size_t __chunk = __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags;
+
             __cgh.parallel_for<_DiagonalsKernelName...>(
                 // +1 is not required here, because we need to calculate split points for each base diagonal
                 // and for the right base diagonal in the last work-group but we can keep it one position to the left
@@ -409,9 +411,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
                     // Please see additional explanations in the __lookup_sp function below.
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1,
-                                                   __nd_range_params.chunk *
-                                                       __nd_range_params.steps_between_two_base_diags);
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1, __chunk);
 
                     const auto __sp = 
                         __data_area.is_i_elem_local_inside_merge_matrix()
