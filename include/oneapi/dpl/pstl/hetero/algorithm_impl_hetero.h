@@ -1079,8 +1079,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore
     // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
-    // Note that we specify a read_write access mode on the input sequence due to data dependencies.
-    // We never actually read from the sequence, so there is no risk when ran with the vectorized path of
+    // We never actually write to the sequence, so there is no risk when ran with the vectorized path of
     // walk2_vector_or_scalars. For more info, please see the comment above __pattern_walk2 and
     // https://github.com/uxlfoundation/oneDPL/issues/1272.
     return __pattern_walk2</*_WaitMode*/ __par_backend_hetero::__deferrable_mode,
