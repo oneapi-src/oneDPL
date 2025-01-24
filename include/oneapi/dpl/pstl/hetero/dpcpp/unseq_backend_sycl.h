@@ -1429,7 +1429,7 @@ struct __brick_shift_left
     constexpr static std::uint8_t __max_vector_size = 4;
 
   public:
-    // Multiple iterations per item are manually procssed in the brick with a nd-range strided approach.
+    // Multiple iterations per item are manually processed in the brick with a nd-range strided approach.
     constexpr static std::uint8_t __preferred_iters_per_item = 1;
     constexpr static bool __can_vectorize =
         oneapi::dpl::__ranges::__is_vectorizable_range<std::decay_t<_Range>>::value &&
@@ -1473,8 +1473,11 @@ struct __brick_shift_left
             }
             else
             {
-                // The last sub-group should process its elements serially even with a full vector to minimize branch
-                // divergence.
+                // Some items within a sub-group may still have a full vector length to process even if _IsFull is
+                // false by intentional design of __stride_recommender. While these are vectorizable, this will result
+                // in branch divergence and masked execution of both vectorized and serial paths for all items in the
+                // sub-group which may worsen performance. Instead, have each item in the sub-group process its work
+                // serially.
                 for (_DiffType __j = 0; __j < std::min(std::size_t{__preferred_vector_size}, __n - __idx); ++__j)
                     if (__read_offset + __j < __size)
                         __rng[__write_offset + __j] = __rng[__read_offset + __j];
