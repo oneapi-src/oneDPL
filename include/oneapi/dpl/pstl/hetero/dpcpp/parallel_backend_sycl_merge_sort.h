@@ -333,7 +333,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
     template <typename _ExecutionPolicy>
     std::size_t
-    get_max_base_diags_count(_ExecutionPolicy&& __exec, const _IndexT __chunk, std::size_t __n) const
+    get_max_base_diags_count(const _ExecutionPolicy& __exec, const _IndexT __chunk, std::size_t __n) const
     {
         const std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __max_wg_size);
@@ -342,7 +342,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
-    eval_nd_range_params(_ExecutionPolicy&& __exec, const std::size_t __rng_size, const _IndexT __n_sorted) const
+    eval_nd_range_params(const _ExecutionPolicy& __exec, const std::size_t __rng_size, const _IndexT __n_sorted) const
     {
         const bool __is_cpu = __exec.queue().get_device().is_cpu();
         // The chunk size must not exceed two sorted sub-sequences to be merged,
@@ -378,8 +378,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
     eval_split_points_for_groups(const sycl::event& __event_chain, const _IndexT __n_sorted, const bool __data_in_temp,
-                                 _ExecutionPolicy&& __exec, _Range&& __rng, _TempBuf& __temp_buf, _Compare __comp,
-                                 const nd_range_params& __nd_range_params,
+                                 const _ExecutionPolicy& __exec, const _Range& __rng, _TempBuf& __temp_buf,
+                                 _Compare __comp, const nd_range_params& __nd_range_params,
                                  _Storage& __base_diagonals_sp_global_storage) const
     {
         const _IndexT __n = __rng.size();
@@ -467,7 +467,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare>
     sycl::event
     run_parallel_merge(const sycl::event& __event_chain, const _IndexT __n_sorted, const bool __data_in_temp,
-                       _ExecutionPolicy&& __exec, _Range&& __rng, _TempBuf& __temp_buf, _Compare __comp,
+                       const _ExecutionPolicy& __exec, _Range& __rng, _TempBuf& __temp_buf, _Compare __comp,
                        const nd_range_params& __nd_range_params) const
     {
         const _IndexT __n = __rng.size();
@@ -508,7 +508,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
     run_parallel_merge_from_diagonals(const sycl::event& __event_chain, const _IndexT __n_sorted,
-                                      const bool __data_in_temp, _ExecutionPolicy&& __exec, _Range&& __rng,
+                                      const bool __data_in_temp, const _ExecutionPolicy& __exec, _Range& __rng,
                                       _TempBuf& __temp_buf, _Compare __comp, const nd_range_params& __nd_range_params,
                                       _Storage& __base_diagonals_sp_global_storage) const
     {
