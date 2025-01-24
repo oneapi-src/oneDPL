@@ -122,6 +122,70 @@ template <bool call_select_before_submit, typename Policy, typename UniverseCont
 int
 test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
 {
+   /// constexpr size_t N = 50; // Number of vectors
+    constexpr size_t N = 1000; // Number of vectors
+    constexpr size_t D = 100;  // Dimension of each vector
+   /// constexpr size_t D = 5;  // Dimension of each vector
+
+    std::array<std::array<int, D>, N> a;
+    std::array<std::array<int, D>, N> b;
+    std::array<std::array<int, N>, N> resultMatrix;
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distribution(1, 10);
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        for (size_t j = 0; j < D; ++j)
+        {
+            a[i][j] = distribution(generator);
+            b[i][j] = distribution(generator);
+            //resultMatrix[i][j] = distribution(generator);
+        }
+    }
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        for (size_t j = 0; j < N; ++j)
+        {
+           // a[i][j] = distribution(generator);
+            //b[i][j] = distribution(generator);
+            resultMatrix[i][j] = distribution(generator);
+        }
+    }
+  
+//    std::array<std::array<int, N>, N> resultMatrix;
+    sycl::buffer<std::array<int, D>, 1> bufferA(a.data(), sycl::range<1>(N));
+    sycl::buffer<std::array<int, D>, 1> bufferB(b.data(), sycl::range<1>(N));
+    sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
+   
+                   sycl::queue e;
+                     e.submit([&](sycl::handler& cgh) {
+                        auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
+                        auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
+                        auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
+                        cgh.parallel_for<TestUtils::unique_kernel_name<class load2, 0>>(
+                            sycl::range<1>(N), [=](sycl::item<1> item) {
+                                for (size_t j = 0; j < N; ++j)
+                                {
+                                    int dotProduct = 0;
+                                    for (size_t i = 0; i < D; ++i)
+                                    {
+                                        dotProduct += accessorA[item][i] * accessorB[item][i];
+                                    }
+                                    accessorResultMatrix[item][j] = dotProduct;
+                                }
+                            });
+                    });
+                    e.wait();
+    
+     std::cout << "submit and wait on group: OK\n";
+
+    return 0;
+}
+/*
+test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
+{
     using my_policy_t = Policy;
     my_policy_t p{u};
 
@@ -249,7 +313,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
     std::cout << "submit and wait on group: OK\n";
     return 0;
 }
-
+*/
 template <bool call_select_before_submit, typename Policy, typename UniverseContainer, typename ResourceFunction>
 int
 test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f)
