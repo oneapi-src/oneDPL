@@ -397,7 +397,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
-                // +1 doesn't required here, because we need to calculate split points for each base diagonal
+                // +1 is not required here, because we need to calculate split points for each base diagonal
                 // and for the right base diagonal in the last work-group but we can keep it one position to the left
                 // because we know that for 0-diagonal the split point is { 0, 0 }.
                 sycl::range</*dim=*/1>(__nd_range_params.base_diag_count /*+ 1*/),
