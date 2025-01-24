@@ -233,6 +233,16 @@ main()
     {
        test_shift_by_type<ValueType>(m, n);
     }
+#if TEST_DPCPP_BACKEND_PRESENT
+    // Test both paths of the vectorized implementation in the SYCL backend. Use shift factors that will not divide
+    // into the vector size to assess edge case handling.
+    const std::size_t large_n = 1000000;
+    const std::size_t quarter_shift = 250111;
+    const std::size_t three_quarters_shift = 750203;
+    test_shift_by_type<std::uint8_t>(large_n, quarter_shift);
+    test_shift_by_type<std::uint16_t>(large_n, quarter_shift);
+    test_shift_by_type<std::uint8_t>(three_quarters_shift, large_n);
+#endif
 
     return TestUtils::done();
 }

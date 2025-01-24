@@ -1420,24 +1420,71 @@ class __brick_set_op
     }
 };
 
-// TODO: The implementation of shift left is reliant on exactly n (shift factor)
-// work items being launched by the parallel_for pattern, so it cannot be vectorized
-// or process multiple iterations per work items as is. For now, we must ensure that our
-// small submitter is launched in the SYCL backend's __parallel_for
 template <typename _ExecutionPolicy, typename _DiffType, typename _Range>
 struct __brick_shift_left
 {
-    using __base_t = walk_vector_or_scalar_base<_Range>;
+  private:
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
-    constexpr static bool __can_vectorize = false;
-    constexpr static std::uint16_t __preferred_vector_size = 1;
-    constexpr static std::uint16_t __preferred_iters_per_item = 1;
+    // Maximum size supported by compilers to generate vector instructions
+    constexpr static std::uint8_t __max_vector_size = 4;
+
+  public:
+    // We cannot process multiple iterations per work-item without leading to race conditions
+    constexpr static std::uint8_t __preferred_iters_per_item = 1;
+    constexpr static bool __can_vectorize =
+        oneapi::dpl::__ranges::__is_vectorizable_range<std::decay_t<_Range>>::value &&
+        std::is_fundamental_v<_ValueType> && sizeof(_ValueType) < 4;
+    constexpr static std::uint8_t __preferred_vector_size =
+        __can_vectorize ? oneapi::dpl::__internal::__dpl_ceiling_div(__max_vector_size, sizeof(_ValueType)) : 1;
+
     _DiffType __size;
     _DiffType __n;
 
     template <typename _IsFull, typename _ItemId>
     void
-    __scalar_path_impl(_IsFull __is_full, const _ItemId __idx, _Range __rng) const
+    __vector_path_impl(_IsFull __is_full, const _ItemId __idx, _Range __rng) const
+    {
+        const std::size_t __unsigned_size = __size;
+        const _DiffType __i = __idx - __n;
+        for (_DiffType __k = __n; __k < __size; __k += __n)
+        {
+            const _DiffType __read_offset = __k + __idx;
+            const _DiffType __write_offset = __k + __i;
+            if constexpr (_IsFull::value)
+            {
+                if (__k + __idx + __preferred_vector_size <= __size)
+                {
+                    _ValueType __rng_vector[__preferred_vector_size];
+                    oneapi::dpl::__par_backend_hetero::__vector_load<__preferred_vector_size>{__unsigned_size}(
+                        std::true_type{}, __read_offset, oneapi::dpl::__par_backend_hetero::__scalar_load_op{}, __rng,
+                        __rng_vector);
+                    oneapi::dpl::__par_backend_hetero::__vector_store<__preferred_vector_size>{__unsigned_size}(
+                        std::true_type{}, __write_offset,
+                        oneapi::dpl::__par_backend_hetero::__scalar_store_transform_op<
+                            oneapi::dpl::__internal::__pstl_assign>{},
+                        __rng_vector, __rng);
+                }
+                else if (__k + __idx < __size)
+                {
+                    const std::size_t __num_remaining = __size - __read_offset;
+                    for (_DiffType __j = 0; __j < __num_remaining; ++__j)
+                        __rng[__write_offset + __j] = __rng[__read_offset + __j];
+                }
+            }
+            else
+            {
+                // The last sub-group should process its elements serially even with a full vector to minimize branch
+                // divergence.
+                for (_DiffType __j = 0; __j < std::min(std::size_t{__preferred_vector_size}, __n - __idx); ++__j)
+                    if (__read_offset + __j < __size)
+                        __rng[__write_offset + __j] = __rng[__read_offset + __j];
+            }
+        }
+    }
+
+    template <typename _IsFull, typename _ItemId>
+    void
+    __scalar_path_impl(_IsFull, const _ItemId __idx, _Range __rng) const
     {
         const _DiffType __i = __idx - __n; //loop invariant
         for (_DiffType __k = __n; __k < __size; __k += __n)
@@ -1451,7 +1498,10 @@ struct __brick_shift_left
     void
     operator()(_IsFull __is_full, const _ItemId __idx, _Range __rng) const
     {
-        __scalar_path_impl(__is_full, __idx, __rng);
+        if constexpr (__can_vectorize)
+            __vector_path_impl(__is_full, __idx, __rng);
+        else
+            __scalar_path_impl(__is_full, __idx, __rng);
     }
 };
 
