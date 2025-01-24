@@ -85,6 +85,14 @@ __pattern_walk1_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _F
 // TODO: A tag _WaitMode is used for provide a patterns call pipeline, where the last one should be synchronous
 // Probably it should be re-designed by a pipeline approach, when a pattern returns some sync objects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
+//
+// A note on access mode types below: the __vector_path_impl in unseq_backend::walk2_vectors_or_scalars only respects
+// the default template arguments:
+// __acc_mode1 = __par_backend_hetero::access_mode::read
+// __acc_mode2 = __par_backend_hetero::access_mode::write
+// For any provided _Function object, the default access modes should be respected even if other access modes are
+// required due to dependency / synchronization issues. For a detailed explanation, see:
+// https://github.com/uxlfoundation/oneDPL/issues/1272
 template <typename _WaitMode = __par_backend_hetero::__deferrable_mode,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
@@ -160,6 +168,14 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Forw
 // walk3
 //------------------------------------------------------------------------
 
+// A note on access mode types below: the __vector_path_impl in unseq_backend::walk3_vectors_or_scalars only respects
+// the default template arguments:
+// __acc_mode1 = __par_backend_hetero::access_mode::read
+// __acc_mode2 = __par_backend_hetero::access_mode::read
+// __acc_mode3 __par_backend_hetero::access_mode::write
+// For any provided _Function object, the default access modes should be respected even if other access modes are
+// required due to dependency / synchronization issues. For a detailed explanation, see:
+// https://github.com/uxlfoundation/oneDPL/issues/1272
 template <typename _BackendTag, __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode3 = __par_backend_hetero::access_mode::write,
@@ -276,7 +292,9 @@ __pattern_walk2_transform_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&&
                              _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __func)
 {
     // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
-    // values of the output sequence for elements where the predicate is false.
+    // values of the output sequence for elements where the predicate is false. We never actually read from the output
+    // sequence, so there is no risk when ran with the vectorized path of walk2_vector_or_scalars. For more info,
+    // please see the comment above __pattern_walk2 and https://github.com/uxlfoundation/oneDPL/issues/1272.
     return __pattern_walk2</*_WaitMode*/ __par_backend_hetero::__deferrable_mode,
                            __par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read_write>(
         __tag,
@@ -296,7 +314,9 @@ __pattern_walk3_transform_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&&
                              _Function __func)
 {
     // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
-    // values of the output sequence for elements where the predicate is false.
+    // values of the output sequence for elements where the predicate is false. We never actually read from the output
+    // sequence, so there is no risk when ran with the vectorized path of walk3_vector_or_scalars. For more info,
+    // please see the comment above __pattern_walk3 and https://github.com/uxlfoundation/oneDPL/issues/1272.
     return __pattern_walk3<_BackendTag, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read_write>(
         __tag,
@@ -1059,6 +1079,10 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     // The temporary buffer is constructed from a range, therefore it's destructor will not block, therefore
     // we must call __pattern_walk2 in a way which provides blocking synchronization for this pattern.
+    // Note that we specify a read_write access mode on the input sequence due to data dependencies.
+    // We never actually read from the sequence, so there is no risk when ran with the vectorized path of
+    // walk2_vector_or_scalars. For more info, please see the comment above __pattern_walk2 and
+    // https://github.com/uxlfoundation/oneDPL/issues/1272.
     return __pattern_walk2</*_WaitMode*/ __par_backend_hetero::__deferrable_mode,
                            __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
