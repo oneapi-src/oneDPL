@@ -111,7 +111,7 @@
 // Macro to check if the exception thrown when a kernel cannot be ran on a device does not align with
 // sycl::errc::kernel_not_supported as required by the SYCL spec. Detects the Intel DPC++ and open-source intel/llvm
 // compilers.
-#ifdef _ONEDPL_LIBSYCL_VERSION
+#if defined(_ONEDPL_LIBSYCL_VERSION) && (!defined(__INTEL_LLVM_COMPILER) || __INTEL_LLVM_COMPILER < 20250200)
 #    define _ONEDPL_ICPX_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN 1
 #else
 #    define _ONEDPL_ICPX_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN 0
