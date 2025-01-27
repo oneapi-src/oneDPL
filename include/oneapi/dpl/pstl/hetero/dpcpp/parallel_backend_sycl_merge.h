@@ -139,12 +139,15 @@ __can_use_ternary_op(int) -> decltype(true ? std::declval<_value_t_rng1>() : std
     return {};
 }
 
-template <typename _T1, typename _T2>
+template <typename _Rng1, typename _Rng2>
 constexpr auto
 __can_use_ternary_op(...) -> std::false_type
 {
     return {};
 }
+
+template <typename _Rng1, typename _Rng2>
+constexpr static bool __can_use_ternary_op_v = decltype(__can_use_ternary_op<_Rng1, _Rng2>(0))::value;
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
@@ -172,7 +175,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
         // One of __rng1_idx_less_n1 and __rng2_idx_less_n2 should be true here
         // because 1) we should fill output data with elements from one of the input ranges
         // 2) we calculate __rng3_idx_end as std::min<_Index>(__rng1_size + __rng2_size, __chunk).
-        if constexpr (__can_use_ternary_op<_Rng1, _Rng2>(0).value)
+        if constexpr (__can_use_ternary_op_v<_Rng1, _Rng2>)
         {
             // This implementation is required for performance optimization
             __rng3[__rng3_idx] = (!__rng1_idx_less_n1 || __rng1_idx_less_n1 && __rng2_idx_less_n2 &&
