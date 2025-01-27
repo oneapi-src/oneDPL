@@ -151,7 +151,7 @@ __can_use_ternary_op(...) -> std::false_type
 }
 
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
-std::enable_if_t<__can_use_ternary_op<_Rng1, _Rng2>().value, void>
+std::enable_if_t<__can_use_ternary_op<_Rng1, _Rng2, _Rng3>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
               const _Index __rng3_idx, const bool __use_rng2_val)
 {
@@ -159,7 +159,7 @@ __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& _
 }
 
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
-std::enable_if_t<!__can_use_ternary_op<_Rng1, _Rng2>().value, void>
+std::enable_if_t<!__can_use_ternary_op<_Rng1, _Rng2, _Rng3>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
               const _Index __rng3_idx, const bool __use_rng2_val)
 {
