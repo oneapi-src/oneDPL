@@ -240,6 +240,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
   private:
     using _merge_split_point_t = _split_point_t<_IndexT>;
 
+    // 1 final base diagonal for save final sp(0,0)
+    static constexpr std::size_t __1_final_base_diag = 1;
+
     struct nd_range_params
     {
         std::size_t base_diag_count = 0;
@@ -399,19 +402,14 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             const std::size_t __chunk = __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags;
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
-                // +1 is not required here, because we need to calculate split points for each base diagonal
-                // and for the right base diagonal in the last work-group but we can keep it one position to the left
-                // because we know that for 0-diagonal the split point is { 0, 0 }.
-                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count /*+ 1*/),
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count),
                 [=](sycl::item</*dim=*/1> __item_id) {
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
                     auto __base_diagonals_sp_global_ptr =
                         _Storage::__get_usm_or_buffer_accessor_ptr(__base_diagonals_sp_global_acc);
 
-                    // We should add `1` to __linear_id here to avoid calculation of split-point for 0-diagonal
-                    // Please see additional explanations in the __lookup_sp function below.
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id + 1, __chunk);
+                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __chunk);
 
                     const auto __sp = 
                         __data_area.is_i_elem_local_inside_merge_matrix()
@@ -437,29 +435,35 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         //   |              |              |              |              |              |              |              |         |    |              |              |              |              |
         // bd00           bd01           bd02           bd10           bd11           bd12           bd20           bd21        |  bd22           bd30           bd31           bd32           bd40                              < Base diagonals
         //                  ^              ^              ^              ^              ^              ^              ^         |    ^              ^              ^              ^              ^
-        //  ---             0              1              2              3              4              5              6         |    7              8              9              10             11                              < Indexes in the base diagonal's SP storage
+        //   0              1              2              3              4              5              6         |    7              8              9              10             11             12                   xIdx       < Indexes in the base diagonal's SP storage
         //   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14  15   16    17   18   19   20   20   21   |    23   24   25   26   27   28   29   30   31   32   33   34   35    36                        < Linear IDs: __linear_id_in_steps_range
-        //   ^                                                                                                        |         |    |
-        //   |                                                                                                      __sp_left   |  __sp_right
-        //   |                                                                                                                  |
-        //   |                                                                                                      __linear_id_in_steps_range
-        //  We don't save the first diagonal into base diagonal's SP storage !!!
+        //   ^                                            ^                                            ^              |         |    |              ^                                            ^                    ^
+        //   (0,0)                                        (0,0)                                        (0,0)        __sp_left   |  __sp_right       (0,0)                                        (0,0)                (0,0)      < Every first base diagonal of sub-task is (0,0)
+        //                                                                                                                      |                                                                                     final additional split-point
+        //                                                                                                          __linear_id_in_steps_range
 
         const std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
-        const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
-        const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
-        const bool __is_base_diagonal =
-            __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
-
-        if (__sp_right.first + __sp_right.second > 0)
+        if (__linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags != 0)
         {
-            return __is_base_diagonal
-                       ? __sp_left
-                       : __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                            __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
+            const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
+            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+
+            // We should check this condition because the first diagonal for every next sub-task
+            // and additional final diagonal has split-points equal (0, 0) and we can't use them in calculations.
+            if (__sp_right.first + __sp_right.second > 0)
+            {
+                return __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                          __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
+            }
+        }
+        else
+        {
+            return __base_diagonals_sp_global_ptr[__diagonal_idx];
         }
 
+        // Find split-points on final diagonals of every sub-task: their length is too short so we
+        // find split-points without any limitations by base diagonals.
         return __find_start_point_w(__data_area, __views, __comp);
     }
 
@@ -587,7 +591,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
         // Max amount of base diagonals
-        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __nd_range_params.chunk, __n);
+        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __nd_range_params.chunk, __n) + __1_final_base_diag;
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
@@ -616,7 +620,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 assert(0 == (2 * __n_sorted) % (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chunk));
 
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-                __nd_range_params_this.base_diag_count *= __portions;
+                __nd_range_params_this.base_diag_count = __nd_range_params_this.base_diag_count * __portions + __1_final_base_diag;
                 __nd_range_params_this.steps *= __portions;
                 assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
 
