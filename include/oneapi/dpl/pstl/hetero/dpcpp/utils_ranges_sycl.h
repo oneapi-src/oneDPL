@@ -23,6 +23,7 @@
 #endif
 
 #include "../../utils_ranges.h"
+#include "../../ranges_defs.h" // contiguous_range and contiguous_iterator from nanorange
 #include "../../iterator_impl.h"
 #include "sycl_iterator.h"
 #include "sycl_defs.h"
@@ -765,13 +766,12 @@ struct __is_vectorizable_range
 {
     constexpr static bool value =
 #if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
-        std::ranges::contiguous_range<_Rng>;
-#else
-        false;
+        std::ranges::contiguous_range<_Rng> ||
 #endif
+        __nanorange::nano::ranges::contiguous_range<_Rng>;
 };
 
-// Guard View specializations
+// Guard view specializations
 template <typename _Type>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Type*>> : std::true_type
 {
@@ -789,17 +789,17 @@ struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::di
 {
 };
 
-// For any other iterator over a guard_view, use contiguous iterator concepts if present or check
-// if it is a known USM vector iterator.
+// For any other iterator over a guard_view, use contiguous iterator concepts
 template <typename _Iterator>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>> : std::true_type
 {
     constexpr static bool value =
 #if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
-        std::contiguous_iterator<_Iterator>;
-#else
-        oneapi::dpl::__internal::__is_known_usm_vector_iter_v<_Iterator>;
+        std::contiguous_iterator<_Iterator> ||
 #endif
+        // std::vector iterators are not contiguous with nanorange so a separate check is necessary
+        __nanorange::nano::contiguous_iterator<_Iterator> ||
+        oneapi::dpl::__internal::__is_known_usm_vector_iter_v<_Iterator>;
 };
 
 // If all_view is passed, then we are processing a sycl::buffer directly which is contiguous and can
