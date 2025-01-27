@@ -132,12 +132,17 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
 }
 
 template <typename _Rng1, typename _Rng2, typename = void>
-struct __can_use_ternary_op : std::false_type {};
+struct __can_use_ternary_op : std::false_type
+{
+};
 
 template <typename _Rng1, typename _Rng2>
-struct __can_use_ternary_op<_Rng1, _Rng2, std::void_t<
-    decltype(true ? std::declval<oneapi::dpl::__internal::__value_t<_Rng1>>() :
-                    std::declval<oneapi::dpl::__internal::__value_t<_Rng2>>())>> : std::true_type {};
+struct __can_use_ternary_op<_Rng1, _Rng2,
+                            std::void_t<decltype(true ? std::declval<oneapi::dpl::__internal::__value_t<_Rng1>>()
+                                                      : std::declval<oneapi::dpl::__internal::__value_t<_Rng2>>())>>
+    : std::true_type
+{
+};
 
 template <typename _Rng1, typename _Rng2>
 constexpr static bool __can_use_ternary_op_v = __can_use_ternary_op<_Rng1, _Rng2>::value;
