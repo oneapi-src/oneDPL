@@ -680,6 +680,8 @@ struct __copy1_wrapper;
 template <typename _Name>
 struct __copy2_wrapper;
 
+struct __out_size_limit: public std::true_type {};
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Compare>
 std::pair<oneapi::dpl::__internal::__difference_t<_Range1>, oneapi::dpl::__internal::__difference_t<_Range2>>
@@ -716,7 +718,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
 
     auto __res = __par_backend_hetero::__parallel_merge(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-        ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp);
+        ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp, __out_size_limit{});
 
     auto __val = __res.get();
     return {__val.first, __val.second};
