@@ -459,7 +459,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
             // Find split-points on final diagonals of every sub-task: their length is too short so we
             // find split-points without any limitations by base diagonals.
-            return __find_start_point(__data_area, __views, __comp);
+            //  - we use here (__data_area.n1, __data_area.m2) instead of __sp_right
+            return oneapi::dpl::__par_backend_hetero::__find_start_point(__views.rng1, __sp_left.first, __data_area.n1,
+                                                                         __views.rng2, __sp_left.second, __data_area.n2,
+                                                                         __data_area.i_elem_local, __comp);
         }
 
         // We are on base diagonal so just simple return split-point from them
