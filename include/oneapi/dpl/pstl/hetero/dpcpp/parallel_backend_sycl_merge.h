@@ -130,15 +130,11 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
 
-template <typename _Rng1, typename _Rng2, typename _Rng3,
-          typename _value_t_rng1 = oneapi::dpl::__internal::__value_t<_Rng1>,
-          typename _value_t_rng2 = oneapi::dpl::__internal::__value_t<_Rng2>,
-          typename _value_t_rng3 = oneapi::dpl::__internal::__value_t<_Rng3>>
+template <typename _Rng1, typename _Rng2, typename _value_t_rng1 = oneapi::dpl::__internal::__value_t<_Rng1>,
+          typename _value_t_rng2 = oneapi::dpl::__internal::__value_t<_Rng2>>
 constexpr auto
 __can_use_ternary_op(int)
-    -> decltype(std::declval<std::reference_wrapper<_value_t_rng3>>() ? std::declval<_value_t_rng1>()
-                                                                      : std::declval<_value_t_rng2>(),
-                std::true_type{})
+    -> decltype(true ? std::declval<_value_t_rng1>() : std::declval<_value_t_rng2>(), std::true_type{})
 {
     return {};
 }
@@ -151,7 +147,7 @@ __can_use_ternary_op(...) -> std::false_type
 }
 
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
-std::enable_if_t<__can_use_ternary_op<_Rng1, _Rng2, _Rng3>().value, void>
+std::enable_if_t<__can_use_ternary_op<_Rng1, _Rng2>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
               const _Index __rng3_idx, const bool __use_rng2_val)
 {
@@ -159,7 +155,7 @@ __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& _
 }
 
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
-std::enable_if_t<!__can_use_ternary_op<_Rng1, _Rng2, _Rng3>().value, void>
+std::enable_if_t<!__can_use_ternary_op<_Rng1, _Rng2>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
               const _Index __rng3_idx, const bool __use_rng2_val)
 {
