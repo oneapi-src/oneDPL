@@ -141,13 +141,13 @@ __can_use_ternary_op(int) -> decltype(true ? std::declval<_value_t_rng1>() : std
 
 template <typename _Rng1, typename _Rng2>
 constexpr auto
-__can_use_ternary_op(...) -> std::false_type
+__can_use_ternary_op(long) -> std::false_type
 {
     return {};
 }
 
 template <typename _Rng1, typename _Rng2>
-constexpr static bool __can_use_ternary_op_v = decltype(__can_use_ternary_op<_Rng1, _Rng2>(0))::value;
+constexpr static bool __can_use_ternary_op_v = decltype(__can_use_ternary_op<_Rng1, _Rng2>(int{0}))::value;
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
