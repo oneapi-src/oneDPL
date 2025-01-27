@@ -84,7 +84,7 @@ struct test_shift
 
         auto ptr = dt_helper.get_data();
         auto het_res =
-            algo(TestUtils::make_device_policy<USMKernelName<Algo, _ValueType>>(::std::forward<Policy>(exec)), ptr,
+            algo(TestUtils::make_device_policy<USMKernelName<Algo, _ValueType>>(std::forward<Policy>(exec)), ptr,
                  ptr + m, n);
         _DiffType res_idx = het_res - ptr;
 
@@ -100,8 +100,8 @@ struct test_shift
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
         It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
-        using _ValueType = typename ::std::iterator_traits<It>::value_type;
-        using _DiffType = typename ::std::iterator_traits<It>::difference_type;
+        using _ValueType = typename std::iterator_traits<It>::value_type;
+        using _DiffType = typename std::iterator_traits<It>::difference_type;
         auto buffer_policy = TestUtils::make_device_policy<BufferKernelName<_ValueType, Algo>>(exec);
         //1.1 run a test with hetero policy and host itertors
         auto res = algo(buffer_policy, first, first + m, n);
