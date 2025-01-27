@@ -131,15 +131,15 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
 
-template <typename _Rng1, typename _Rng2, typename = void>
+template <typename _Rng1DataType, typename _Rng2DataType, typename = void>
 struct __can_use_ternary_op : std::false_type
 {
 };
 
-template <typename _Rng1, typename _Rng2>
-struct __can_use_ternary_op<_Rng1, _Rng2,
-                            std::void_t<decltype(true ? std::declval<oneapi::dpl::__internal::__value_t<_Rng1>>()
-                                                      : std::declval<oneapi::dpl::__internal::__value_t<_Rng2>>())>>
+template <typename _Rng1DataType, typename _Rng2DataType>
+struct __can_use_ternary_op<_Rng1DataType, _Rng2DataType,
+                            std::void_t<decltype(true ? std::declval<_Rng1DataType>()
+                                                      : std::declval<_Rng2DataType>())>>
     : std::true_type
 {
 };
