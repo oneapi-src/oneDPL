@@ -1158,7 +1158,6 @@ struct __reverse_functor : public walk_vector_or_scalar_base<_Range>
     __vector_path_impl(_IsFull, const std::size_t __left_start_idx, _Range __rng) const
     {
         const std::size_t __n = __size;
-        const std::size_t __midpoint = __size / 2;
 
         // In the below implementation, we see that _IsFull is ignored in favor of std::true_type{} in all cases.
         // This relaxation is due to the fact that in-place reverse launches work only over the first half of the
