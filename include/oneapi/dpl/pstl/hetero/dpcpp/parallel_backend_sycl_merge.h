@@ -138,8 +138,7 @@ struct __can_use_ternary_op : std::false_type
 
 template <typename _Rng1DataType, typename _Rng2DataType>
 struct __can_use_ternary_op<_Rng1DataType, _Rng2DataType,
-                            std::void_t<decltype(true ? std::declval<_Rng1DataType>()
-                                                      : std::declval<_Rng2DataType>())>>
+                            std::void_t<decltype(true ? std::declval<_Rng1DataType>() : std::declval<_Rng2DataType>())>>
     : std::true_type
 {
 };
