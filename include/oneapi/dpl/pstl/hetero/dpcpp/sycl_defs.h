@@ -110,12 +110,9 @@
 
 // Macro to check if the exception thrown when a kernel cannot be ran on a device does not align with
 // sycl::errc::kernel_not_supported as required by the SYCL spec. Detects the Intel DPC++ and open-source intel/llvm
-// compilers.
-#if defined(_ONEDPL_LIBSYCL_VERSION) && (!defined(__INTEL_LLVM_COMPILER) || __INTEL_LLVM_COMPILER < 20250200)
-#    define _ONEDPL_ICPX_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN 1
-#else
-#    define _ONEDPL_ICPX_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN 0
-#endif
+// compilers. No fix has been provided yet, but when the LIBSYCL major version is updated we can re-evaluate if we need
+// to extend it to future versions.
+#define _ONEDPL_SYCL_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN (_ONEDPL_LIBSYCL_VERSION_LESS_THAN(90000))
 
 // Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
 // SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
