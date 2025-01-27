@@ -430,8 +430,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                 const WorkDataArea& __data_area, const DropViews& __views, _Compare __comp,
                 _BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr)
     {
-        constexpr _merge_split_point_t __sp_zero(0, 0);
-
         //   |                  subrange 0                |                subrange 1                  |                subrange 2                  |                subrange 3                  | subrange 4
         //   |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    |        contains (2 * __n_sorted values)    | contains the rest of data...  < Data parts
         //   |----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/----/----/----/----/----/----/----/----|----/---                       < Steps
@@ -450,15 +448,19 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const std::size_t __diagonal_idx = __linear_id_in_steps_range / __nd_range_params.steps_between_two_base_diags;
 
         const _merge_split_point_t __sp_left  = __diagonal_idx > 0 ? __base_diagonals_sp_global_ptr[__diagonal_idx - 1] : _merge_split_point_t{0, 0};
-        _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
-        __sp_right = __sp_right != __sp_zero ? __sp_right : _merge_split_point_t{__data_area.n1, __data_area.n2};
+        const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx];
         const bool __is_base_diagonal =
             __linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags == 0;
 
-        return __is_base_diagonal
-                    ? __sp_left
-                    : __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
-                                        __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
+        if (__sp_right.first + __sp_right.second > 0)
+        {
+            return __is_base_diagonal
+                       ? __sp_left
+                       : __find_start_point(__views.rng1, __sp_left.first, __sp_right.first, __views.rng2,
+                                            __sp_left.second, __sp_right.second, __data_area.i_elem_local, __comp);
+        }
+
+        return __find_start_point_w(__data_area, __views, __comp);
     }
 
     // Process parallel merge
