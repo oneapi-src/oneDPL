@@ -133,8 +133,8 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
 template <typename _Rng1, typename _Rng2, typename _value_t_rng1 = oneapi::dpl::__internal::__value_t<_Rng1>,
           typename _value_t_rng2 = oneapi::dpl::__internal::__value_t<_Rng2>>
 constexpr auto
-__can_use_ternary_op(int)
-    -> decltype(true ? std::declval<_value_t_rng1>() : std::declval<_value_t_rng2>(), std::true_type{})
+__can_use_ternary_op(int) -> decltype(true ? std::declval<_value_t_rng1>() : std::declval<_value_t_rng2>(),
+                                      std::true_type{})
 {
     return {};
 }
@@ -175,11 +175,10 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
         if constexpr (__can_use_ternary_op<_Rng1, _Rng2>(0).value)
         {
             // This implementation is required for performance optimisation
-            __rng3[__rng3_idx] =
-                (!__rng1_idx_less_n1 ||
-                __rng1_idx_less_n1 && __rng2_idx_less_n2 && __comp(__rng2[__rng2_idx], __rng1[__rng1_idx]))
-                    ? __rng2[__rng2_idx++]
-                    : __rng1[__rng1_idx++];
+            __rng3[__rng3_idx] = (!__rng1_idx_less_n1 || __rng1_idx_less_n1 && __rng2_idx_less_n2 &&
+                                                             __comp(__rng2[__rng2_idx], __rng1[__rng1_idx]))
+                                     ? __rng2[__rng2_idx++]
+                                     : __rng1[__rng1_idx++];
         }
         else
         {
