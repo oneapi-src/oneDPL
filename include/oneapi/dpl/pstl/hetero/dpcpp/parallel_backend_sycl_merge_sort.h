@@ -240,9 +240,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
   private:
     using _merge_split_point_t = _split_point_t<_IndexT>;
 
-    // 1 final base diagonal for save final sp(0,0)
-    static constexpr std::size_t __1_final_base_diag = 1;
-
     struct nd_range_params
     {
         std::size_t base_diag_count = 0;
@@ -569,6 +566,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
     operator()(_ExecutionPolicy&& __exec, _Range& __rng, _Compare __comp, _LeafSizeT __leaf_size, _TempBuf& __temp_buf,
                sycl::event __event_chain) const
     {
+        // 1 final base diagonal for save final sp(0,0)
+        constexpr std::size_t __1_final_base_diag = 1;
+
         const _IndexT __n = __rng.size();
         _IndexT __n_sorted = __leaf_size;
 
