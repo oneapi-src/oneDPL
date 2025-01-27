@@ -144,8 +144,8 @@ struct __can_use_ternary_op<_Rng1DataType, _Rng2DataType,
 {
 };
 
-template <typename _Rng1, typename _Rng2>
-constexpr static bool __can_use_ternary_op_v = __can_use_ternary_op<_Rng1, _Rng2>::value;
+template <typename _Rng1DataType, typename _Rng2DataType>
+constexpr static bool __can_use_ternary_op_v = __can_use_ternary_op<_Rng1DataType, _Rng2DataType>::value;
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
