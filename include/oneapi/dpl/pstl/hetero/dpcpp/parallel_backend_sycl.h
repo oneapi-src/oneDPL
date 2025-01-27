@@ -1534,7 +1534,7 @@ __parallel_set_op(oneapi::dpl::__internal::__device_backend_tag __backend_tag, c
                   _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp,
                   _IsOpDifference __is_op_difference)
 {
-#if _ONEDPL_COMPILER_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
         auto __opt_return = __handle_sync_sycl_exception(
