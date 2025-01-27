@@ -600,6 +600,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
+            // TODO required to re-check threshold data size
             if (2 * __n_sorted < __get_starting_size_limit_for_large_submitter<__value_type>())
             {
                 // Process parallel merge
