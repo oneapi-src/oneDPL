@@ -458,15 +458,13 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                     __views.rng1, __sp_left.first, __sp_right.first, __views.rng2, __sp_left.second, __sp_right.second,
                     __data_area.i_elem_local, __comp);
             }
-        }
-        else
-        {
-            return __base_diagonals_sp_global_ptr[__diagonal_idx];
+
+            // Find split-points on final diagonals of every sub-task: their length is too short so we
+            // find split-points without any limitations by base diagonals.
+            return __find_start_point(__data_area, __views, __comp);
         }
 
-        // Find split-points on final diagonals of every sub-task: their length is too short so we
-        // find split-points without any limitations by base diagonals.
-        return __find_start_point(__data_area, __views, __comp);
+        return __base_diagonals_sp_global_ptr[__diagonal_idx];
     }
 
     // Process parallel merge
