@@ -770,16 +770,59 @@ struct __is_vectorizable_range
         false;
 #endif
 };
-// If the outer view is a guard view, then the input is passed directly as a pointer and we can use.
+
+// Guard View specializations
+template <typename _Type>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Type*>> : std::true_type
+{
+};
+
+// Counting iterator does not go through global memory but does not disable vectorization elsewhere.
+template <typename _Ip>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::counting_iterator<_Ip>>> : std::true_type
+{
+};
+
+// Discard iterator does not go through global memory but does not disable vectorization elsewhere.
+template <>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::discard_iterator>> : std::true_type
+{
+};
+
+// For any other iterator over a guard_view, use contiguous iterator concepts if present or check
+// if it is a known USM vector iterator.
 template <typename _Iterator>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>> : std::true_type
 {
+    constexpr static bool value =
+#if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
+        std::contiguous_iterator<_Iterator>;
+#else
+        oneapi::dpl::__internal::__is_known_usm_vector_iter_v<_Iterator>;
+#endif
 };
+
 // If all_view is passed, then we are processing a sycl::buffer directly which is contiguous and can
 // be used.
 template <typename _T, sycl::access::mode _AccMode, __dpl_sycl::__target _Target,
           sycl::access::placeholder _Placeholder>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::all_view<_T, _AccMode, _Target, _Placeholder>> : std::true_type
+{
+};
+
+// Recursive view specializations - views which we need to search inwards to identify if it is vectorizable
+template <typename _Rng, typename _F>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::transform_view_simple<_Rng, _F>> : __is_vectorizable_range<_Rng>
+{
+};
+
+template <typename _Rng, typename _Size>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::drop_view_simple<_Rng, _Size>> : __is_vectorizable_range<_Rng>
+{
+};
+
+template <typename _Rng, typename _F>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::take_view_simple<_Rng, _F>> : __is_vectorizable_range<_Rng>
 {
 };
 
