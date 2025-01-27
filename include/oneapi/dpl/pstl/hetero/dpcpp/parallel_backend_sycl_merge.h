@@ -19,8 +19,9 @@
 #include <limits>    // std::numeric_limits
 #include <cassert>   // assert
 #include <cstdint>   // std::uint8_t, ...
-#include <utility>   // std::make_pair, std::forward
+#include <utility>   // std::make_pair, std::forward, std::declval
 #include <algorithm> // std::min, std::lower_bound
+#include <type_traits> // std::void_t, std::true_type, std::false_type
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
@@ -130,24 +131,16 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
 
-template <typename _Rng1, typename _Rng2, typename _value_t_rng1 = oneapi::dpl::__internal::__value_t<_Rng1>,
-          typename _value_t_rng2 = oneapi::dpl::__internal::__value_t<_Rng2>>
-constexpr auto
-__can_use_ternary_op(int) -> decltype(true ? std::declval<_value_t_rng1>() : std::declval<_value_t_rng2>(),
-                                      std::true_type{})
-{
-    return {};
-}
+template <typename _Rng1, typename _Rng2, typename = void>
+struct __can_use_ternary_op : std::false_type {};
 
 template <typename _Rng1, typename _Rng2>
-constexpr auto
-__can_use_ternary_op(long) -> std::false_type
-{
-    return {};
-}
+struct __can_use_ternary_op<_Rng1, _Rng2, std::void_t<
+    decltype(true ? std::declval<oneapi::dpl::__internal::__value_t<_Rng1>>() :
+                    std::declval<oneapi::dpl::__internal::__value_t<_Rng2>>())>> : std::true_type {};
 
 template <typename _Rng1, typename _Rng2>
-constexpr static bool __can_use_ternary_op_v = decltype(__can_use_ternary_op<_Rng1, _Rng2>(int{0}))::value;
+constexpr static bool __can_use_ternary_op_v = __can_use_ternary_op<_Rng1, _Rng2>::value;
 
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
