@@ -130,6 +130,36 @@ __find_start_point(const _Rng1& __rng1, const _Index __rng1_from, _Index __rng1_
     return _split_point_t<_Index>{*__res, __index_sum - *__res + 1};
 }
 
+template <typename _Rng1, typename _Rng2,
+          typename _value_t_rng1 = oneapi::dpl::__internal::__value_t<_Rng1>,
+          typename _value_t_rng2 = oneapi::dpl::__internal::__value_t<_Rng2>>
+using __may_use_ternary_op = 
+    typename std::disjunction<
+        typename std::is_same<_value_t_rng1, _value_t_rng2>::type,
+        typename std::conjunction<
+            typename std::is_arithmetic<_value_t_rng1>::type,
+            typename std::is_arithmetic<_value_t_rng2>::type>::type
+    >::type;
+
+template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
+std::enable_if_t<__may_use_ternary_op<_Rng1, _Rng2>::value, void>
+__assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
+              const _Index __rng3_idx, const bool __use_rng2_val)
+{
+    __rng3[__rng3_idx] = __use_rng2_val ? __rng2[__rng2_idx++] : __rng1[__rng1_idx++];
+}
+
+template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
+std::enable_if_t<!__may_use_ternary_op<_Rng1, _Rng2>::value, void>
+__assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
+              const _Index __rng3_idx, const bool __use_rng2_val)
+{
+    if (__use_rng2_val)
+        __rng3[__rng3_idx] = __rng2[__rng2_idx++];
+    else
+        __rng3[__rng3_idx] = __rng1[__rng1_idx++];
+}
+
 // Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
 // to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index, typename _Compare>
@@ -156,11 +186,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
         // One of __rng1_idx_less_n1 and __rng2_idx_less_n2 should be true here
         // because 1) we should fill output data with elements from one of the input ranges
         // 2) we calculate __rng3_idx_end as std::min<_Index>(__rng1_size + __rng2_size, __chunk).
-        if (__rng1_idx_less_n1 && __rng2_idx_less_n2 && __comp(__rng2[__rng2_idx], __rng1[__rng1_idx]) ||
-            !__rng1_idx_less_n1)
-            __rng3[__rng3_idx] = __rng2[__rng2_idx++];
-        else
-            __rng3[__rng3_idx] = __rng1[__rng1_idx++];
+        __assing_impl(__rng1, __rng2, __rng3, __rng1_idx, __rng2_idx, __rng3_idx,
+                      !__rng1_idx_less_n1 || (__rng2_idx_less_n2 && __comp(__rng2[__rng2_idx], __rng1[__rng1_idx])));
     }
 }
 
