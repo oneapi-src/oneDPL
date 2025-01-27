@@ -391,7 +391,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __base_diagonals_sp_global_acc =
-                __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::read_write>(
+                __base_diagonals_sp_global_storage.template __get_scratch_acc<sycl::access_mode::write>(
                     __cgh, __dpl_sycl::__no_init{});
 
             sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
