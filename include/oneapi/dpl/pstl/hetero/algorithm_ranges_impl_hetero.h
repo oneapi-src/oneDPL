@@ -680,7 +680,9 @@ struct __copy1_wrapper;
 template <typename _Name>
 struct __copy2_wrapper;
 
-struct __out_size_limit: public std::true_type {};
+struct __out_size_limit : public std::true_type
+{
+};
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Compare>
