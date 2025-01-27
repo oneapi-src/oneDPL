@@ -464,6 +464,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             return __find_start_point(__data_area, __views, __comp);
         }
 
+        // We are on base diagonal so just simple return split-point from them
         return __base_diagonals_sp_global_ptr[__diagonal_idx];
     }
 
