@@ -576,7 +576,7 @@ main()
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 1);
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 2);
         actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u1, 3);
-    /*
+   
         
         // Use event profiling
         actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u2, 0);
@@ -591,6 +591,7 @@ main()
         actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 1);
         actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 2);
         actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u2, 3);
+ /*
         // now select then submits
         actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 0);
         actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u2, 1);
