@@ -146,6 +146,7 @@ __can_use_ternary_op(...) -> std::false_type
     return {};
 }
 
+// This implementation of __assing_impl is required for performance optimisation
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
 std::enable_if_t<__can_use_ternary_op<_Rng1, _Rng2>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
@@ -154,6 +155,7 @@ __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& _
     __rng3[__rng3_idx] = __use_rng2_val ? __rng2[__rng2_idx++] : __rng1[__rng1_idx++];
 }
 
+// TODO required to understand why the usual if-else is slower then ternary operator
 template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index>
 std::enable_if_t<!__can_use_ternary_op<_Rng1, _Rng2>().value, void>
 __assing_impl(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index& __rng1_idx, _Index& __rng2_idx,
