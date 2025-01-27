@@ -420,6 +420,18 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         });
     }
 
+    template <typename _BaseDiagonalsSPStorage>
+    inline static _merge_split_point_t
+    __get_right_sp(_BaseDiagonalsSPStorage __base_diagonals_sp_global_ptr, const std::size_t __diagonal_idx,
+                   const WorkDataArea& __data_area)
+    {
+        _merge_split_point_t __result = __base_diagonals_sp_global_ptr[__diagonal_idx];
+        __result =
+            __result.first + __result.second > 0 ? __result : _merge_split_point_t{__data_area.n1, __data_area.n2};
+
+        return __result;
+    }
+
     template <typename DropViews, typename _Compare, typename _BaseDiagonalsSPStorage>
     inline static _merge_split_point_t
     __lookup_sp(const std::size_t __linear_id_in_steps_range, const nd_range_params& __nd_range_params,
@@ -446,23 +458,11 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         {
             // We are between two base diagonals (__sp_left, __sp_right)
             const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
-            const _merge_split_point_t __sp_right = __base_diagonals_sp_global_ptr[__diagonal_idx + 1];
+            const _merge_split_point_t __sp_right = __get_right_sp(__base_diagonals_sp_global_ptr, __diagonal_idx + 1, __data_area);
 
-            // We should check this condition because the first diagonal for every next sub-task
-            // and additional final diagonal has split-points equal (0, 0) and we can't use them in calculations.
-            if (__sp_right.first + __sp_right.second > 0)
-            {
-                return oneapi::dpl::__par_backend_hetero::__find_start_point(
-                    __views.rng1, __sp_left.first, __sp_right.first, __views.rng2, __sp_left.second, __sp_right.second,
-                    __data_area.i_elem_local, __comp);
-            }
-
-            // Find split-points on final diagonals of every sub-task: their length is too short so we
-            // find split-points without any limitations by base diagonals.
-            //  - we use here (__data_area.n1, __data_area.m2) instead of __sp_right
-            return oneapi::dpl::__par_backend_hetero::__find_start_point(__views.rng1, __sp_left.first, __data_area.n1,
-                                                                         __views.rng2, __sp_left.second, __data_area.n2,
-                                                                         __data_area.i_elem_local, __comp);
+            return oneapi::dpl::__par_backend_hetero::__find_start_point(
+                __views.rng1, __sp_left.first, __sp_right.first, __views.rng2, __sp_left.second, __sp_right.second,
+                __data_area.i_elem_local, __comp);
         }
 
         // We are on base diagonal so just simple return split-point from them
