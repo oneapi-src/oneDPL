@@ -877,5 +877,5 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 } // namespace dpl
 } // namespace oneapi
 
-#endif
+#endif // _ONEDPL_COMPILE_KERNEL
 #endif // _ONEDPL_PARALLEL_BACKEND_SYCL_REDUCE_THEN_SCAN_H
