@@ -287,7 +287,7 @@ struct __parallel_reduce_then_scan_reduce_submitter
     operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng,
                _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
-               const std::size_t __block_num, sycl::kernel& __reduce_kernel) const
+               const std::size_t __block_num, const sycl::kernel& __reduce_kernel) const
     {
         using _InitValueType = typename _InitType::__value_type;
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
@@ -437,7 +437,7 @@ struct __parallel_reduce_then_scan_scan_submitter
     operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng,
                _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
-               const std::size_t __block_num, sycl::kernel& __scan_kernel) const
+               const std::size_t __block_num, const sycl::kernel& __scan_kernel) const
     {
         std::uint32_t __inputs_in_block = std::min(__n - __block_num * __max_block_size, std::size_t{__max_block_size});
         std::uint32_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
@@ -769,8 +769,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         __reduce_then_scan_scan_kernel, _CustomName, _InRng, _OutRng, _GenScanInput, _ReduceOp, _ScanInputTransform,
         _WriteOp, _InitType, _Inclusive, _IsUniquePattern>;
     static auto __kernels = __internal::__kernel_compiler<_ReduceKernel, _ScanKernel>::__compile(__exec);
-    sycl::kernel& __reduce_kernel = __kernels[0];
-    sycl::kernel& __scan_kernel = __kernels[1];
+    const sycl::kernel& __reduce_kernel = __kernels[0];
+    const sycl::kernel& __scan_kernel = __kernels[1];
 
     constexpr std::uint8_t __sub_group_size = 32;
     constexpr std::uint8_t __block_size_scale = std::max(std::size_t{1}, sizeof(double) / sizeof(_ValueType));
