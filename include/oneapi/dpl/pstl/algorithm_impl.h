@@ -2949,38 +2949,37 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 // merge
 //------------------------------------------------------------------------
 
-template <typename It1, typename It2, typename ItOut, typename _Comp>
-std::pair<It1, It2>
-__brick_merge_out_lim(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e,
+template <typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Comp>
+std::pair<_Iterator1, _Iterator2>
+__brick_merge_out_lim(_Iterator1 __x, _Iterator1 __x_e, _Iterator2 __y, _Iterator2 __y_e, _Iterator3 __i, _Iterator3 __j,
                       _Comp __comp, /* __is_vector = */ std::false_type)
 {
-    while (__it_1 != __it_1_e && __it_2 != __it_2_e)
+    for (_Iterator3 __k = __i; __k < __j; ++__k)
     {
-        if (std::invoke(__comp, *__it_1, *__it_2))
+        if (__x == __x_e)
         {
-            *__it_out = *__it_1;
-            ++__it_out, ++__it_1;
+            assert(__y != __y_e);
+            *__k = *__y;
+            ++__y;
+        }
+        else if (__y == __y_e)
+        {
+            assert(__x != __x_e);
+            *__k = *__x;
+            ++__x;
+        }
+        else if (std::invoke(__comp, *__x, *__y))
+        {
+            *__k = *__x;
+            ++__x;
         }
         else
         {
-            *__it_out = *__it_2;
-            ++__it_out, ++__it_2;
+            *__k = *__y;
+            ++__y;
         }
-        if (__it_out == __it_out_e)
-            return {__it_1, __it_2};
     }
-
-    if (__it_1 == __it_1_e)
-    {
-        for (; __it_2 != __it_2_e && __it_out != __it_out_e; ++__it_2, ++__it_out)
-            *__it_out = *__it_2;
-    }
-    else
-    {
-        for (; __it_1 != __it_1_e && __it_out != __it_out_e; ++__it_1, ++__it_out)
-            *__it_out = *__it_1;
-    }
-    return {__it_1, __it_2};
+    return {__x, __y};
 }
 
 template <typename It1, typename It2, typename ItOut, typename _Comp>

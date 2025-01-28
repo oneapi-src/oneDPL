@@ -713,6 +713,8 @@ class __root_task : public __task
 };
 #endif // TBB_INTERFACE_VERSION <= 12000
 
+inline constexpr _SizeType __merge_cut_off = 2000;
+
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _Cleanup,
           typename _LeafMerge>
 class __merge_func
@@ -731,8 +733,6 @@ class __merge_func
     _Compare _M_comp;
     _LeafMerge _M_leaf_merge;
     _SizeType _M_nsort; //number of elements to be sorted for partial_sort algorithm
-
-    static const _SizeType __merge_cut_off = 2000;
 
     bool _root;   //means a task is merging root task
     bool _x_orig; //"true" means X(or left ) subrange is in the original container; false - in the buffer
