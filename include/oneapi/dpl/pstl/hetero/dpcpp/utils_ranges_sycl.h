@@ -761,7 +761,7 @@ __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _Ranges&&.
 // Check the outer view type type to see if we can vectorize. Any non-contiguous inputs (e.g. reverse
 // views, permutation views, etc.) cannot be vectorized. If C++20 ranges are present, then we can
 // use the std::ranges::contiguous_range concept.
-template <typename _Rng>
+template <typename _Rng, typename = void>
 struct __is_vectorizable_range
 {
     constexpr static bool value =
@@ -772,11 +772,6 @@ struct __is_vectorizable_range
 };
 
 // Guard view specializations
-template <typename _Type>
-struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Type*>> : std::true_type
-{
-};
-
 // Counting iterator does not go through global memory but does not disable vectorization elsewhere.
 template <typename _Ip>
 struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::counting_iterator<_Ip>>> : std::true_type
@@ -789,9 +784,16 @@ struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::di
 {
 };
 
-// For any other iterator over a guard_view, use contiguous iterator concepts
+template <typename _Pointer>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Pointer>,
+                               std::enable_if_t<std::is_pointer_v<_Pointer>>> : std::true_type
+{
+};
+
+// For any non-pointer iterator over a guard_view, use contiguous iterator concepts
 template <typename _Iterator>
-struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>>
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>,
+                               std::enable_if_t<!std::is_pointer_v<_Iterator>>>
 {
     constexpr static bool value =
 #if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
