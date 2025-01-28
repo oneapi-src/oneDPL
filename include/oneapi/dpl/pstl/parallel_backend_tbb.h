@@ -732,7 +732,7 @@ class __merge_func
     _LeafMerge _M_leaf_merge;
     _SizeType _M_nsort; //number of elements to be sorted for partial_sort algorithm
 
-    static const _SizeType __merge_cut_off = oneapi::dpl::__utils::__merge_algo_cut_off;
+    static const _SizeType __merge_cut_off = 2000;
 
     bool _root;   //means a task is merging root task
     bool _x_orig; //"true" means X(or left ) subrange is in the original container; false - in the buffer
@@ -1224,7 +1224,7 @@ operator()(__task* __self)
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
-    if (__n <= oneapi::dpl::__utils::__merge_algo_cut_off)
+    if (__n <= __merge_cut_off)
     {
         _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
         return nullptr;
@@ -1264,7 +1264,7 @@ __parallel_merge(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&,
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
-    if (__n <= oneapi::dpl::__utils::__merge_algo_cut_off)
+    if (__n <= __merge_cut_off)
     {
         // Fall back on serial merge
         __leaf_merge(__xs, __xe, __ys, __ye, __zs, __comp);

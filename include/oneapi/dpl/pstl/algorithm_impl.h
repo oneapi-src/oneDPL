@@ -3033,6 +3033,8 @@ __pattern_merge_path(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1
                                  typename _Tag::__is_vector{});
 }
 
+inline constexpr std::size_t __merge_path_cut_off = 2000;
+
 template <typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
           typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
 std::pair<_It1, _It2>
@@ -3092,7 +3094,7 @@ __pattern_merge_path(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1 
                     __it_res_2 = __res.second;
                 }
             },
-            oneapi::dpl::__utils::__merge_algo_cut_off); //grainsize
+            __merge_path_cut_off); //grainsize
     });
 
     return {__it_res_1, __it_res_2};

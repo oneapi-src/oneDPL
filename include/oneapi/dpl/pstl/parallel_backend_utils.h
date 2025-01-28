@@ -29,8 +29,6 @@ namespace dpl
 namespace __utils
 {
 
-inline constexpr auto __merge_algo_cut_off = 2000;
-
 //------------------------------------------------------------------------
 // raw buffer (with specified _TAllocator)
 //------------------------------------------------------------------------
