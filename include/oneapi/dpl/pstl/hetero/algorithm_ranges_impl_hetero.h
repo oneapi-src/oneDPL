@@ -690,10 +690,11 @@ std::pair<oneapi::dpl::__internal::__difference_t<_Range1>, oneapi::dpl::__inter
 __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
                 _Range3&& __rng3, _Compare __comp)
 {
-    const auto __n1 = __rng1.size();
-    const auto __n2 = __rng2.size();
     if (__rng3.empty())
         return {0, 0};
+
+    const auto __n1 = __rng1.size();
+    const auto __n2 = __rng2.size();
 
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
