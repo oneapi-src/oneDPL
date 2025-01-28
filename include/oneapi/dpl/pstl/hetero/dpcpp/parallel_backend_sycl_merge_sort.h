@@ -367,8 +367,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
     template <typename DropViews, typename _Rng, typename _Compare>
     inline static void
-    __serial_merge(const nd_range_params& __nd_range_params, const WorkDataArea& __data_area,
-                   const DropViews& __views, _Rng& __rng, const _merge_split_point_t& __sp, _Compare __comp)
+    __serial_merge(const nd_range_params& __nd_range_params, const WorkDataArea& __data_area, const DropViews& __views,
+                   _Rng& __rng, const _merge_split_point_t& __sp, _Compare __comp)
     {
         oneapi::dpl::__par_backend_hetero::__serial_merge(
             __views.rng1, __views.rng2, __rng /* rng3 */, __sp.first /* start1 */, __sp.second /* start2 */,
@@ -400,8 +400,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
             const std::size_t __chunk = __nd_range_params.chunk * __nd_range_params.steps_between_two_base_diags;
 
             __cgh.parallel_for<_DiagonalsKernelName...>(
-                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count),
-                [=](sycl::item</*dim=*/1> __item_id) {
+                sycl::range</*dim=*/1>(__nd_range_params.base_diag_count), [=](sycl::item</*dim=*/1> __item_id) {
                     const std::size_t __linear_id = __item_id.get_linear_id();
 
                     auto __base_diagonals_sp_global_ptr =
@@ -409,11 +408,10 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
                     const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __chunk);
 
-                    const auto __sp = 
+                    const auto __sp =
                         __data_area.is_i_elem_local_inside_merge_matrix()
-                            ? (__data_in_temp
-                                   ? __find_start_point(__data_area, DropViews(__dst, __data_area), __comp)
-                                   : __find_start_point(__data_area, DropViews(__rng, __data_area), __comp))
+                            ? (__data_in_temp ? __find_start_point(__data_area, DropViews(__dst, __data_area), __comp)
+                                              : __find_start_point(__data_area, DropViews(__rng, __data_area), __comp))
                             : _merge_split_point_t{__data_area.n1, __data_area.n2};
                     __base_diagonals_sp_global_ptr[__linear_id] = __sp;
                 });
@@ -457,8 +455,9 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         if (__linear_id_in_steps_range % __nd_range_params.steps_between_two_base_diags != 0)
         {
             // We are between two base diagonals (__sp_left, __sp_right)
-            const _merge_split_point_t __sp_left  = __base_diagonals_sp_global_ptr[__diagonal_idx];
-            const _merge_split_point_t __sp_right = __get_right_sp(__base_diagonals_sp_global_ptr, __diagonal_idx + 1, __data_area);
+            const _merge_split_point_t __sp_left = __base_diagonals_sp_global_ptr[__diagonal_idx];
+            const _merge_split_point_t __sp_right =
+                __get_right_sp(__base_diagonals_sp_global_ptr, __diagonal_idx + 1, __data_area);
 
             return oneapi::dpl::__par_backend_hetero::__find_start_point(
                 __views.rng1, __sp_left.first, __sp_right.first, __views.rng2, __sp_left.second, __sp_right.second,
@@ -596,7 +595,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
         // Max amount of base diagonals
-        const std::size_t __max_base_diags_count = get_max_base_diags_count(__exec, __nd_range_params.chunk, __n) + __1_final_base_diag;
+        const std::size_t __max_base_diags_count =
+            get_max_base_diags_count(__exec, __nd_range_params.chunk, __n) + __1_final_base_diag;
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
@@ -620,13 +620,16 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
                         static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
                 }
 
-                nd_range_params __nd_range_params_this = eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
+                nd_range_params __nd_range_params_this =
+                    eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
 
                 // Check that each base diagonal started from beginning of merge matrix
-                assert(0 == (2 * __n_sorted) % (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chunk));
+                assert(0 == (2 * __n_sorted) %
+                                (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chunk));
 
                 const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-                __nd_range_params_this.base_diag_count = __nd_range_params_this.base_diag_count * __portions + __1_final_base_diag;
+                __nd_range_params_this.base_diag_count =
+                    __nd_range_params_this.base_diag_count * __portions + __1_final_base_diag;
                 __nd_range_params_this.steps *= __portions;
                 assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
 
