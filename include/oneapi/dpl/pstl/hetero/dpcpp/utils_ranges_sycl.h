@@ -791,7 +791,7 @@ struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<oneapi::dpl::di
 
 // For any other iterator over a guard_view, use contiguous iterator concepts
 template <typename _Iterator>
-struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>> : std::true_type
+struct __is_vectorizable_range<oneapi::dpl::__ranges::guard_view<_Iterator>>
 {
     constexpr static bool value =
 #if _ONEDPL_CPP20_RANGES_PRESENT && _ONEDPL_CPP20_CONCEPTS_PRESENT
