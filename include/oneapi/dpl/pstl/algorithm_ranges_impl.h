@@ -471,7 +471,7 @@ __pattern_merge(_Tag __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _
     if (__n_out == 0)
         return __return_type{__it_1, __it_2, __it_out};
 
-    std::pair __res = __pattern_merge_path(__tag, std::forward<_ExecutionPolicy>(__exec), __it_2, __n_2, __it_1, __n_1,
+    std::pair __res = ___merge_path_out_lim(__tag, std::forward<_ExecutionPolicy>(__exec), __it_2, __n_2, __it_1, __n_1,
                                       __it_out, __n_out, __comp_2);
 
     return __return_type{__res.second, __res.first, __it_out + __n_out};
