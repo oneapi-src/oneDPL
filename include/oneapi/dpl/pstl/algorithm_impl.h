@@ -2951,10 +2951,10 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 
 template <typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Comp>
 std::pair<_Iterator1, _Iterator2>
-__brick_merge_out_lim(_Iterator1 __x, _Iterator1 __x_e, _Iterator2 __y, _Iterator2 __y_e, _Iterator3 __i, _Iterator3 __j,
-                      _Comp __comp, /* __is_vector = */ std::false_type)
+__serial_merge_out_lim(_Iterator1 __x, _Iterator1 __x_e, _Iterator2 __y, _Iterator2 __y_e, _Iterator3 __i,
+                       _Iterator3 __j, _Comp __comp)
 {
-    for (_Iterator3 __k = __i; __k < __j; ++__k)
+    for (_Iterator3 __k = __i; __k != __j; ++__k)
     {
         if (__x == __x_e)
         {
@@ -2980,14 +2980,6 @@ __brick_merge_out_lim(_Iterator1 __x, _Iterator1 __x_e, _Iterator2 __y, _Iterato
         }
     }
     return {__x, __y};
-}
-
-template <typename It1, typename It2, typename ItOut, typename _Comp>
-std::pair<It1, It2>
-__brick_merge_out_lim(It1 __it_1, It1 __it_1_e, It2 __it_2, It2 __it_2_e, ItOut __it_out, ItOut __it_out_e,
-                      _Comp __comp, /* __is_vector = */ std::true_type)
-{
-    return __unseq_backend::__simd_merge(__it_1, __it_1_e, __it_2, __it_2_e, __it_out, __it_out_e, __comp);
 }
 
 template <class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator, class _Compare>
@@ -3028,8 +3020,7 @@ std::pair<_It1, _It2>
 ___merge_path_out_lim(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_1, _It2 __it_2, _Index2 __n_2,
                      _OutIt __it_out, _Index3 __n_out, _Comp __comp)
 {
-    return __brick_merge_out_lim(__it_1, __it_1 + __n_1, __it_2, __it_2 + __n_2, __it_out, __it_out + __n_out, __comp,
-                                 typename _Tag::__is_vector{});
+    return __serial_merge_out_lim(__it_1, __it_1 + __n_1, __it_2, __it_2 + __n_2, __it_out, __it_out + __n_out, __comp);
 }
 
 inline constexpr std::size_t __merge_path_cut_off = 2000;
@@ -3084,8 +3075,8 @@ ___merge_path_out_lim(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1
                 }
 
                 //serial merge n elements, starting from input x and y, to [i, j) output range
-                const auto __res = __brick_merge_out_lim(__it_1 + __r, __it_1 + __n_1, __it_2 + __c, __it_2 + __n_2,
-                                                         __it_out + __i, __it_out + __j, __comp, _IsVector{});
+                const auto __res = __serial_merge_out_lim(__it_1 + __r, __it_1 + __n_1, __it_2 + __c, __it_2 + __n_2,
+                                                          __it_out + __i, __it_out + __j, __comp);
 
                 if (__j == __n_out)
                 {
