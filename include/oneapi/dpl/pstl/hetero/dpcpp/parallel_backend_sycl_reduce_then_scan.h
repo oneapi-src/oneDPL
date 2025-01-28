@@ -758,6 +758,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 {
     using _ValueType = typename _InitType::__value_type;
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    // Note that __sub_group_size and __max_inputs_per_item are not included in kernel names. __sub_group_size
+    // is always constant (32) and __max_inputs_per_item is directly tied to the input type so these are not
+    // necessary to obtain a unique kernel name. However, if these compile time variables are adjusted in the
+    // future, then we need to be careful here to ensure unique kernel naming.
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         __reduce_then_scan_reduce_kernel, _CustomName, _InRng, _OutRng, _GenReduceInput, _ReduceOp, _InitType,
         _Inclusive, _IsUniquePattern>;
