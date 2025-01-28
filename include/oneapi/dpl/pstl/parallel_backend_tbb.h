@@ -94,7 +94,8 @@ class __parallel_for_body
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
 __parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f,
-               std::size_t __grainsize = 1)
+               std::size_t __grainsize = 1 /*matches the default grainsize value of tbb::blocked_range according to
+               the specification*/)
 {
     tbb::this_task_arena::isolate([=]() {
         tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last, __grainsize),
