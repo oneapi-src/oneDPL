@@ -300,7 +300,7 @@ struct __parallel_reduce_then_scan_reduce_submitter
             __cgh.use_kernel_bundle(__reduce_kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_KernelName>(
-#if !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT && _ONEDPL_LIBSYCL_PROGRAM_PRESENT
                     __reduce_kernel,
 #endif
                     __nd_range, [=, *this](sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
@@ -456,7 +456,7 @@ struct __parallel_reduce_then_scan_scan_submitter
             __cgh.use_kernel_bundle(__scan_kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_KernelName>(
-#if !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT
+#if !_ONEDPL_SYCL2020_KERNEL_BUNDLE_PRESENT && _ONEDPL_LIBSYCL_PROGRAM_PRESENT
                     __scan_kernel,
 #endif
                     __nd_range, [=, *this] (sycl::nd_item<1> __ndi) [[sycl::reqd_sub_group_size(__sub_group_size)]] {
