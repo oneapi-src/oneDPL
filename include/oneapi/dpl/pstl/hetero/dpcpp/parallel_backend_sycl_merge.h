@@ -223,14 +223,14 @@ struct __parallel_merge_submitter<_OutSizeLimit, _IdType, __internal::__optional
 
         using __val_t = _split_point_t<_IdType>;
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __val_t>;
-        __result_and_scratch_storage_t* __p_res_storage = NULL;
+        __result_and_scratch_storage_t* __p_res_storage = nullptr;
 
         if constexpr (_OutSizeLimit{})
             __p_res_storage = new __result_and_scratch_storage_t(__exec, 1, 0);
         else
         {
             assert(__rng3.size() >= __n1 + __n2);
-            __p_res_storage = NULL;
+            __p_res_storage = nullptr;
         }
 
         auto __event = __exec.queue().submit([&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n,
@@ -433,13 +433,9 @@ struct __parallel_merge_submitter_large<_OutSizeLimit, _IdType, _CustomName,
 
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         using __val_t = _split_point_t<_IdType>;
-        __result_and_scratch_storage<_ExecutionPolicy, __val_t>* __p_base_diagonals_sp_global_storage = NULL;
-        if constexpr (_OutSizeLimit{})
-            __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(
-                __exec, 1, __nd_range_params.base_diag_count + 1);
-        else
-            __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(
-                __exec, 0, __nd_range_params.base_diag_count + 1);
+        __result_and_scratch_storage<_ExecutionPolicy, __val_t>* __p_base_diagonals_sp_global_storage = nullptr;
+        auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(
+            __exec, _OutSizeLimit{} ? 1 : 0, __nd_range_params.base_diag_count + 1);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
