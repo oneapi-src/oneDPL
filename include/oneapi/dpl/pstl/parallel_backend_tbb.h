@@ -713,7 +713,7 @@ class __root_task : public __task
 };
 #endif // TBB_INTERFACE_VERSION <= 12000
 
-inline constexpr _SizeType __merge_cut_off = 2000;
+inline constexpr std::size_t __merge_cut_off = 2000;
 
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _Cleanup,
           typename _LeafMerge>
