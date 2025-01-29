@@ -347,10 +347,7 @@ struct walk_adjacent_difference : public walk_vector_or_scalar_base<_Range1, _Ra
         _ValueType __rng1_vector[__base_t::__preferred_vector_size + 1];
         // 1. Establish a vector of __preferred_vector_size + 1 where a scalar load is performed on the first element
         // followed by a vector load of the specified length.
-        if (__idx != 0)
-            __assigner(__rng1[__idx - 1], __rng1_vector[0]);
-        else
-            __assigner(__rng1[0], __rng1_vector[0]);
+        __assigner(__idx != 0 ? __rng1[__idx - 1] : __rng1[0], __rng1_vector[0]);
         typename __base_t::__vec_load_t{__n}(__is_full, __idx, oneapi::dpl::__par_backend_hetero::__scalar_load_op{},
                                              __rng1, &__rng1_vector[1]);
         // 2. Perform a vector store of __preferred_vector_size adjacent differences.
