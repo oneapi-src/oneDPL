@@ -1134,17 +1134,18 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             using _ScanInputTransform = oneapi::dpl::__internal::__no_op;
             using _WriteOp = oneapi::dpl::__par_backend_hetero::__simple_write_to_id;
 
-            auto __opt_return = __handle_sync_sycl_exception(
-                [=, &__exec] {
-                    _GenInput __gen_transform{__unary_op};
-                    return __parallel_transform_reduce_then_scan(
-                        __backend_tag, __exec, std::move(__in_rng), std::move(__out_rng), __gen_transform, __binary_op,
-                        __gen_transform, _ScanInputTransform{}, _WriteOp{}, __init, _Inclusive{},
-                        /*_IsUniquePattern=*/std::false_type{});
-                },
-                __bypass_sycl_kernel_not_supported{});
-            if (__opt_return)
-                return __opt_return.value();
+            try
+            {
+                _GenInput __gen_transform{__unary_op};
+                return __parallel_transform_reduce_then_scan(__backend_tag, __exec, __in_rng, __out_rng,
+                                                             __gen_transform, __binary_op, __gen_transform,
+                                                             _ScanInputTransform{}, _WriteOp{}, __init, _Inclusive{},
+                                                             /*_IsUniquePattern=*/std::false_type{});
+            }
+            catch (const sycl::exception& e)
+            {
+                __bypass_sycl_kernel_not_supported(e);
+            }
         }
 #endif
     }
@@ -1295,17 +1296,18 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
 #if _ONEDPL_COMPILE_KERNEL
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
-        auto __opt_return = __handle_sync_sycl_exception(
-            [=, &__exec] {
-                using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
-                using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<1, _Assign>;
-                return __parallel_reduce_then_scan_copy(__backend_tag, __exec, std::move(__rng), std::move(__result),
-                                                        __n, _GenMask{__pred}, _WriteOp{_Assign{}},
-                                                        /*_IsUniquePattern=*/std::true_type{});
-            },
-            __bypass_sycl_kernel_not_supported{});
-        if (__opt_return)
-            return __opt_return.value();
+        try
+        {
+            using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_unique_mask<_BinaryPredicate>;
+            using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<1, _Assign>;
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __rng, __result, __n, _GenMask{__pred},
+                                                    _WriteOp{_Assign{}},
+                                                    /*_IsUniquePattern=*/std::true_type{});
+        }
+        catch (const sycl::exception& e)
+        {
+            __bypass_sycl_kernel_not_supported(e);
+        }
     }
 #endif
     using _ReduceOp = std::plus<decltype(__n)>;
@@ -1344,8 +1346,8 @@ __parallel_reduce_by_segment_reduce_then_scan(oneapi::dpl::__internal::__device_
     assert(__n > 1);
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
-        oneapi::dpl::__ranges::make_zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
+        oneapi::dpl::__ranges::zip_view(std::forward<_Range1>(__keys), std::forward<_Range2>(__values)),
+        oneapi::dpl::__ranges::zip_view(std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values)),
         _GenReduceInput{__binary_pred}, _ReduceOp{__binary_op}, _GenScanInput{__binary_pred, __n},
         _ScanInputTransform{}, _WriteOp{__binary_pred, __n},
         oneapi::dpl::unseq_backend::__no_init_value<oneapi::dpl::__internal::tuple<std::size_t, _ValueType>>{},
@@ -1362,18 +1364,19 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
 #if _ONEDPL_COMPILE_KERNEL
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
-        auto __opt_return = __handle_sync_sycl_exception(
-            [=, &__exec] {
-                using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
-                using _WriteOp =
-                    oneapi::dpl::__par_backend_hetero::__write_to_id_if_else<oneapi::dpl::__internal::__pstl_assign>;
-                return __parallel_reduce_then_scan_copy(__backend_tag, __exec, std::move(__rng), std::move(__result),
-                                                        __n, _GenMask{__pred}, _WriteOp{},
-                                                        /*_IsUniquePattern=*/std::false_type{});
-            },
-            __bypass_sycl_kernel_not_supported{});
-        if (__opt_return)
-            return __opt_return.value();
+        try
+        {
+            using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_UnaryPredicate>;
+            using _WriteOp =
+                oneapi::dpl::__par_backend_hetero::__write_to_id_if_else<oneapi::dpl::__internal::__pstl_assign>;
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __rng, __result, __n, _GenMask{__pred},
+                                                    _WriteOp{},
+                                                    /*_IsUniquePattern=*/std::false_type{});
+        }
+        catch (const sycl::exception& e)
+        {
+            __bypass_sycl_kernel_not_supported(e);
+        }
     }
 #endif
     using _ReduceOp = std::plus<decltype(__n)>;
@@ -1418,17 +1421,18 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
 #if _ONEDPL_COMPILE_KERNEL
     else if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
-        auto __opt_return = __handle_sync_sycl_exception(
-            [=, &__exec] {
-                using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
-                using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
-                return __parallel_reduce_then_scan_copy(__backend_tag, __exec, std::move(__in_rng),
-                                                        std::move(__out_rng), __n, _GenMask{__pred}, _WriteOp{__assign},
-                                                        /*_IsUniquePattern=*/std::false_type{});
-            },
-            __bypass_sycl_kernel_not_supported{});
-        if (__opt_return)
-            return __opt_return.value();
+        try
+        {
+            using _GenMask = oneapi::dpl::__par_backend_hetero::__gen_mask<_Pred>;
+            using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __in_rng, __out_rng, __n, _GenMask{__pred},
+                                                    _WriteOp{__assign},
+                                                    /*_IsUniquePattern=*/std::false_type{});
+        }
+        catch (const sycl::exception& e)
+        {
+            __bypass_sycl_kernel_not_supported(e);
+        }
     }
 #endif
     using _ReduceOp = std::plus<_Size>;
@@ -1466,7 +1470,7 @@ __parallel_set_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag __
 
     return __parallel_transform_reduce_then_scan(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::make_zip_view(
+        oneapi::dpl::__ranges::zip_view(
             std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
             oneapi::dpl::__ranges::all_view<std::int32_t, __par_backend_hetero::access_mode::read_write>(
                 __mask_buf.get_buffer())),
@@ -1537,14 +1541,15 @@ __parallel_set_op(oneapi::dpl::__internal::__device_backend_tag __backend_tag, c
 #if _ONEDPL_COMPILE_KERNEL
     if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
     {
-        auto __opt_return = __handle_sync_sycl_exception(
-            [=, &__exec] {
-                return __parallel_set_reduce_then_scan(__backend_tag, __exec, std::move(__rng1), std::move(__rng2),
-                                                       std::move(__result), __comp, __is_op_difference);
-            },
-            __bypass_sycl_kernel_not_supported{});
-        if (__opt_return)
-            return __opt_return.value();
+        try
+        {
+            return __parallel_set_reduce_then_scan(__backend_tag, __exec, __rng1, __rng2, __result, __comp,
+                                                   __is_op_difference);
+        }
+        catch (const sycl::exception& e)
+        {
+            __bypass_sycl_kernel_not_supported(e);
+        }
     }
 #endif
     return __parallel_set_scan(__backend_tag, __exec, std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
@@ -2481,19 +2486,20 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag, cons
     {
         if (oneapi::dpl::__par_backend_hetero::__is_gpu_with_sg_32(__exec))
         {
-            auto __opt_return = __handle_sync_sycl_exception(
-                [=, &__exec] {
-                    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
-                        oneapi::dpl::__internal::__device_backend_tag{}, __exec, std::move(__keys), std::move(__values),
-                        std::move(__out_keys), std::move(__out_values), __binary_pred, __binary_op);
-                    __res.wait();
-                    // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
-                    // past-the-end iterator pair of segmented reduction.
-                    return std::get<0>(__res.get()) + 1;
-                },
-                __bypass_sycl_kernel_not_supported{});
-            if (__opt_return)
-                return __opt_return.value();
+            try
+            {
+                auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
+                    oneapi::dpl::__internal::__device_backend_tag{}, __exec, __keys, __values, __out_keys, __out_values,
+                    __binary_pred, __binary_op);
+                __res.wait();
+                // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
+                // past-the-end iterator pair of segmented reduction.
+                return std::get<0>(__res.get()) + 1;
+            }
+            catch (const sycl::exception& e)
+            {
+                __bypass_sycl_kernel_not_supported(e);
+            }
         }
     }
 #endif
