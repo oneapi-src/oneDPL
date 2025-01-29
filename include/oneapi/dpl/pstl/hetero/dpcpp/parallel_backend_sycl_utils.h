@@ -667,17 +667,10 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         return __get_value();
     }
 
-  private:
-    bool
-    is_USM() const
-    {
-        return __supports_USM_device;
-    }
-
     // Note: this member function assumes the result is *ready*, since the __future has already
     // waited on the relevant event.
     _T
-    __get_value() const
+    __get_value(size_t idx = 0) const
     {
         assert(__result_n == 1);
         if (__use_USM_host && __supports_USM_device)
@@ -694,6 +687,13 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
         {
             return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n];
         }
+    }
+
+  private:
+    bool
+    is_USM() const
+    {
+        return __supports_USM_device;
     }
 
     template <typename _Type>
