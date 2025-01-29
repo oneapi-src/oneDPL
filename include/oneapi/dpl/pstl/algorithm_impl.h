@@ -3075,8 +3075,8 @@ ___merge_path_out_lim(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _It1
                 }
 
                 //serial merge n elements, starting from input x and y, to [i, j) output range
-                const auto __res = __serial_merge_out_lim(__it_1 + __r, __it_1 + __n_1, __it_2 + __c, __it_2 + __n_2,
-                                                          __it_out + __i, __it_out + __j, __comp);
+                const std::pair __res = __serial_merge_out_lim(__it_1 + __r, __it_1 + __n_1, __it_2 + __c,
+                                                               __it_2 + __n_2, __it_out + __i, __it_out + __j, __comp);
 
                 if (__j == __n_out)
                 {
