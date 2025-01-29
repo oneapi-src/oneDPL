@@ -228,9 +228,7 @@ struct __parallel_merge_submitter<_OutSizeLimit, _IdType, __internal::__optional
         if constexpr (_OutSizeLimit{})
             __p_res_storage = new __result_and_scratch_storage_t(__exec, 1, 0);
         else
-        {
             assert(__rng3.size() >= __n1 + __n2);
-        }
 
         auto __event = __exec.queue().submit([&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n,
                                               __n1, __n2](sycl::handler& __cgh) {

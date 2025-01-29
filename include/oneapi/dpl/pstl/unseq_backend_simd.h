@@ -879,7 +879,6 @@ __simd_remove_if(_RandomAccessIterator __first, _DifferenceType __n, _UnaryPredi
     }
     return __current + __cnt;
 }
-
 } // namespace __unseq_backend
 } // namespace dpl
 } // namespace oneapi
