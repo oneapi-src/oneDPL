@@ -2948,7 +2948,8 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 //------------------------------------------------------------------------
 // merge
 //------------------------------------------------------------------------
-
+//Serial version of ___merge_path_out_lim merges 1st sequience and 2nd sequience in "revert maner":
+//the identical elements from 2nd sequience are being merged first.
 template <typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Comp>
 std::pair<_Iterator1, _Iterator2>
 __serial_merge_out_lim(_Iterator1 __x, _Iterator1 __x_e, _Iterator2 __y, _Iterator2 __y_e, _Iterator3 __i,
@@ -3025,6 +3026,8 @@ ___merge_path_out_lim(_Tag, _ExecutionPolicy&& __exec, _It1 __it_1, _Index1 __n_
 
 inline constexpr std::size_t __merge_path_cut_off = 2000;
 
+//Parallel version of ___merge_path_out_lim merges 1st sequience and 2nd sequience in "revert maner":
+//the identical elements from 2nd sequience are being merged first.
 template <typename _IsVector, typename _ExecutionPolicy, typename _It1, typename _Index1, typename _It2,
           typename _Index2, typename _OutIt, typename _Index3, typename _Comp>
 std::pair<_It1, _It2>
