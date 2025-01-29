@@ -845,7 +845,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 // This exception handler is intended to handle a software workaround by IGC for a hardware bug that
 // causes IGC to throw an exception for certain integrated graphics devices with -O0 compilation and
 // a required sub-group size of 32.
-void
+inline void
 __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
 {
     // The SYCL spec compliant solution would be to compare __e.code() and sycl::errc::kernel_not_supported
