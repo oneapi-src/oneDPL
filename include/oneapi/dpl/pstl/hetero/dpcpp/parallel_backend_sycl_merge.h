@@ -273,7 +273,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
         std::size_t __base_diag_count = __get_max_base_diags_count(__exec, __chunk, __n);
-        std::size_t __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+        std::size_t __steps_between_two_base_diags =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
     }
