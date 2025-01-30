@@ -468,54 +468,12 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         return __base_diagonals_sp_global_ptr[__diagonal_idx];
     }
 
-    // Process parallel merge
-    template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare>
-    sycl::event
-    run_parallel_merge(const sycl::event& __event_chain, const _IndexT __n_sorted, const bool __data_in_temp,
-                       const _ExecutionPolicy& __exec, _Range& __rng, _TempBuf& __temp_buf, _Compare __comp,
-                       const nd_range_params& __nd_range_params) const
-    {
-        const _IndexT __n = __rng.size();
-
-        return __exec.queue().submit([&__event_chain, __n_sorted, __data_in_temp, &__rng, &__temp_buf, __comp,
-                                      __nd_range_params, __n](sycl::handler& __cgh) {
-            __cgh.depends_on(__event_chain);
-
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            sycl::accessor __dst(__temp_buf, __cgh, sycl::read_write, sycl::no_init);
-
-            __cgh.parallel_for<_GlobalSortName1...>(
-                sycl::range</*dim=*/1>(__nd_range_params.steps), [=](sycl::item</*dim=*/1> __item_id) {
-                    const std::size_t __linear_id = __item_id.get_linear_id();
-
-                    const WorkDataArea __data_area(__n, __n_sorted, __linear_id, __nd_range_params.chunk);
-
-                    if (__data_area.is_i_elem_local_inside_merge_matrix())
-                    {
-                        if (__data_in_temp)
-                        {
-                            DropViews __views(__dst, __data_area);
-                            __serial_merge(__nd_range_params, __data_area, __views, __rng,
-                                           __find_start_point(__data_area, __views, __comp), __comp);
-                        }
-                        else
-                        {
-                            DropViews __views(__rng, __data_area);
-                            __serial_merge(__nd_range_params, __data_area, __views, __dst,
-                                           __find_start_point(__data_area, __views, __comp), __comp);
-                        }
-                    }
-                });
-        });
-    }
-
     // Process parallel merge with usage of split-points on base diagonals
     template <typename _ExecutionPolicy, typename _Range, typename _TempBuf, typename _Compare, typename _Storage>
     sycl::event
-    run_parallel_merge_from_diagonals(const sycl::event& __event_chain, const _IndexT __n_sorted,
-                                      const bool __data_in_temp, const _ExecutionPolicy& __exec, _Range& __rng,
-                                      _TempBuf& __temp_buf, _Compare __comp, const nd_range_params& __nd_range_params,
-                                      _Storage& __base_diagonals_sp_global_storage) const
+    run_parallel_merge(const sycl::event& __event_chain, const _IndexT __n_sorted, const bool __data_in_temp,
+                       const _ExecutionPolicy& __exec, _Range& __rng, _TempBuf& __temp_buf, _Compare __comp,
+                       const nd_range_params& __nd_range_params, _Storage& __base_diagonals_sp_global_storage) const
     {
         const _IndexT __n = __rng.size();
 
@@ -600,49 +558,38 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-            // TODO required to re-check threshold data size
-            if (2 * __n_sorted < __get_starting_size_limit_for_large_submitter<__value_type>())
+            if (nullptr == __p_base_diagonals_sp_global_storage)
             {
-                // Process parallel merge
-                __event_chain = run_parallel_merge(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
-                                                   __comp, __nd_range_params);
+                // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
+                __p_base_diagonals_sp_global_storage =
+                    new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
+
+                // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
+                __p_result_and_scratch_storage_base.reset(
+                    static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
             }
-            else
-            {
-                if (nullptr == __p_base_diagonals_sp_global_storage)
-                {
-                    // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
-                    __p_base_diagonals_sp_global_storage =
-                        new __base_diagonals_sp_storage_t(__exec, 0, __max_base_diags_count);
 
-                    // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
-                    __p_result_and_scratch_storage_base.reset(
-                        static_cast<__result_and_scratch_storage_base*>(__p_base_diagonals_sp_global_storage));
-                }
+            nd_range_params __nd_range_params_this =
+                eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
 
-                nd_range_params __nd_range_params_this =
-                    eval_nd_range_params(__exec, std::size_t(2 * __n_sorted), __n_sorted);
+            // Check that each base diagonal started from beginning of merge matrix
+            assert(0 == (2 * __n_sorted) %
+                            (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chunk));
 
-                // Check that each base diagonal started from beginning of merge matrix
-                assert(0 == (2 * __n_sorted) %
-                                (__nd_range_params_this.steps_between_two_base_diags * __nd_range_params_this.chunk));
+            const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
+            __nd_range_params_this.base_diag_count =
+                __nd_range_params_this.base_diag_count * __portions + __1_final_base_diag;
+            __nd_range_params_this.steps *= __portions;
+            assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
 
-                const auto __portions = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 2 * __n_sorted);
-                __nd_range_params_this.base_diag_count =
-                    __nd_range_params_this.base_diag_count * __portions + __1_final_base_diag;
-                __nd_range_params_this.steps *= __portions;
-                assert(__nd_range_params_this.base_diag_count <= __max_base_diags_count);
+            // Calculation of split-points on each base diagonal
+            __event_chain =
+                eval_split_points_for_groups(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
+                                             __comp, __nd_range_params_this, *__p_base_diagonals_sp_global_storage);
 
-                // Calculation of split-points on each base diagonal
-                __event_chain =
-                    eval_split_points_for_groups(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
-                                                 __comp, __nd_range_params_this, *__p_base_diagonals_sp_global_storage);
-
-                // Process parallel merge with usage of split-points on base diagonals
-                __event_chain = run_parallel_merge_from_diagonals(__event_chain, __n_sorted, __data_in_temp, __exec,
-                                                                  __rng, __temp_buf, __comp, __nd_range_params_this,
-                                                                  *__p_base_diagonals_sp_global_storage);
-            }
+            // Process parallel merge with usage of split-points on base diagonals
+            __event_chain = run_parallel_merge(__event_chain, __n_sorted, __data_in_temp, __exec, __rng, __temp_buf,
+                                               __comp, __nd_range_params_this, *__p_base_diagonals_sp_global_storage);
 
             __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
