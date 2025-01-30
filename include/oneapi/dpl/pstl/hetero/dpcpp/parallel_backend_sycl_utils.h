@@ -672,20 +672,20 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
     _T
     __get_value(size_t idx = 0) const
     {
-        assert(__result_n == 1);
+        assert(idx < __result_n);
         if (__use_USM_host && __supports_USM_device)
         {
-            return *(__result_buf.get());
+            return *(__result_buf.get() + idx);
         }
         else if (__supports_USM_device)
         {
             _T __tmp;
-            __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n, 1 * sizeof(_T)).wait();
+            __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n + idx, 1 * sizeof(_T)).wait();
             return __tmp;
         }
         else
         {
-            return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n];
+            return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n + idx];
         }
     }
 
