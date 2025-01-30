@@ -331,14 +331,6 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         }
     };
 
-    template <typename _ExecutionPolicy>
-    std::size_t
-    get_max_base_diags_count(const _ExecutionPolicy& __exec, const _IndexT __chunk, std::size_t __n) const
-    {
-        const std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __max_wg_size);
-    }
-
     // Calculate nd-range params
     template <typename _ExecutionPolicy>
     nd_range_params
@@ -350,7 +342,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         const _IndexT __chunk = std::min<_IndexT>(__is_cpu ? 32 : 4, __n_sorted * 2);
         const _IndexT __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_size, __chunk);
 
-        _IndexT __base_diag_count = get_max_base_diags_count(__exec, __chunk, __n_sorted);
+        _IndexT __base_diag_count = __get_max_base_diags_count(__exec, __chunk, __n_sorted);
         _IndexT __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
@@ -554,7 +546,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
 
         // Max amount of base diagonals
         const std::size_t __max_base_diags_count =
-            get_max_base_diags_count(__exec, __nd_range_params.chunk, __n) + __1_final_base_diag;
+            __get_max_base_diags_count(__exec, __nd_range_params.chunk, __n) + __1_final_base_diag;
 
         for (std::int64_t __i = 0; __i < __n_iter; ++__i)
         {

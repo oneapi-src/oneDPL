@@ -195,6 +195,14 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, const _I
     }
 }
 
+template <typename _ExecutionPolicy, typename _IndexT>
+std::size_t
+__get_max_base_diags_count(const _ExecutionPolicy& __exec, const _IndexT __chunk, std::size_t __n)
+{
+    const std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk * __max_wg_size);
+}
+
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
@@ -264,10 +272,8 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
         const std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
 
         const _IdType __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
-        // TODO required to evaluate this value based on available SLM size for each work-group.
-        const _IdType __base_diag_count = 32 * 1'024;
-        const _IdType __steps_between_two_base_diags =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
+        std::size_t __base_diag_count = __get_max_base_diags_count(__exec, __chunk, __n);
+        std::size_t __steps_between_two_base_diags = oneapi::dpl::__internal::__dpl_ceiling_div(__steps, __base_diag_count);
 
         return {__base_diag_count, __steps_between_two_base_diags, __chunk, __steps};
     }
