@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <tuple>
 #include <algorithm>
+#include <system_error>
 
 #include "../../iterator_impl.h"
 
