@@ -581,7 +581,7 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         // Calculate nd-range params
         const nd_range_params __nd_range_params = eval_nd_range_params(__exec, __n, __n_sorted);
 
-        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _merge_split_point_t>;
+        using __base_diagonals_sp_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _merge_split_point_t>;
 
         const std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
         // ctz precisely calculates log2 of an integral value which is a power of 2, while

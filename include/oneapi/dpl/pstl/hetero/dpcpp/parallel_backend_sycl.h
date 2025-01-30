@@ -315,7 +315,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_wg);
         // Storage for the results of scan for each workgroup
 
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _Type>;
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _Type>;
         __result_and_scratch_storage_t __result_and_scratch{__exec, 1, __n_groups + 1};
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
@@ -539,7 +539,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                                                                  std::decay_t<decltype(__out_rng[0])>>::__type;
 
         constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<_Policy, _Size>;
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_Policy>, _Size>;
         __result_and_scratch_storage_t __result{__policy, 1, 0};
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
@@ -615,7 +615,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 
     // Although we do not actually need result storage in this case, we need to construct
     // a placeholder here to match the return type of the non-single-work-group implementation
-    using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _ValueType>;
+    using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _ValueType>;
     __result_and_scratch_storage_t __dummy_result_and_scratch{__exec, 0, 0};
 
     if (__max_wg_size >= __targeted_wg_size)
@@ -1822,7 +1822,7 @@ struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_ker
                const std::size_t __rng_n, const std::size_t __wgroup_size, const __FoundStateType __init_value,
                _Predicate __pred, _Ranges&&... __rngs)
     {
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __FoundStateType>;
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, __FoundStateType>;
         __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
 
         // Calculate the number of elements to be processed by each work-item.
