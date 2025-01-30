@@ -20,6 +20,7 @@
 #include <type_traits>
 #include <functional>
 #include <algorithm>
+#include <cassert>
 
 #include "algorithm_fwd.h"
 
