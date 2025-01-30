@@ -850,15 +850,16 @@ __bypass_sycl_kernel_not_supported(const sycl::exception& __e)
 {
     // The SYCL spec compliant solution would be to compare __e.code() and sycl::errc::kernel_not_supported
     // and rethrow the encountered exception if the two do not compare equal. However, the icpx compiler currently
-    // returns a generic error code in violation of the SYCL spec which has a value of 7. If we are using the Intel
-    // compiler, then compare the value of the error code. Otherwise, assume the implementation is spec compliant.
+    // returns a sycl::errc::build in violation of the SYCL spec. If we are using the Intel compiler, then compare
+    // to this error code. Otherwise, assume the implementation is spec compliant.
+    const std::error_code __kernel_not_supported_ec =
 #if _ONEDPL_SYCL_KERNEL_NOT_SUPPORTED_EXCEPTION_BROKEN
-    if (__e.code().value() != 7)
-        throw;
+        sycl::errc::build;
 #else // Generic SYCL compiler. Assume it is spec compliant.
-    if (__e.code() != sycl::errc::kernel_not_supported)
-        throw;
+        sycl::errc::kernel_not_supported;
 #endif
+    if (__e.code() != __kernel_not_supported_ec)
+        throw;
 }
 
 } // namespace __par_backend_hetero
