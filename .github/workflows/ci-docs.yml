@@ -33,6 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
+          # Set the python version to 3.12 to keep imghdr for sphinx. Could upgrade sphinx to 6.2 to use 3.x version.
           python-version: '3.12'
       - name: Install prerequisites
         run: |
