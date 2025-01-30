@@ -1822,7 +1822,8 @@ struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_ker
                const std::size_t __rng_n, const std::size_t __wgroup_size, const __FoundStateType __init_value,
                _Predicate __pred, _Ranges&&... __rngs)
     {
-        using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, __FoundStateType>;
+        using __result_and_scratch_storage_t =
+            __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, __FoundStateType>;
         __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
 
         // Calculate the number of elements to be processed by each work-item.
