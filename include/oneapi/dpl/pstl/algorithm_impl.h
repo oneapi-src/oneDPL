@@ -21,6 +21,7 @@
 #include <functional>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 #include "algorithm_fwd.h"
 
