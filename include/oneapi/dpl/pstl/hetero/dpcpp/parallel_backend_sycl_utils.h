@@ -528,7 +528,7 @@ struct __result_and_scratch_storage_base
 };
 
 template <typename _ExecutionPolicy, typename _T>
-struct __result_and_scratch_storage : __result_and_scratch_storage_base
+struct __result_and_scratch_storage_impl : __result_and_scratch_storage_base
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
@@ -576,7 +576,7 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
     }
 
   public:
-    __result_and_scratch_storage(const _ExecutionPolicy& __exec_, std::size_t __result_n, std::size_t __scratch_n)
+    __result_and_scratch_storage_impl(const _ExecutionPolicy& __exec_, std::size_t __result_n, std::size_t __scratch_n)
         : __exec{__exec_}, __result_n{__result_n}, __scratch_n{__scratch_n},
           __use_USM_host{__use_USM_host_allocations(__exec.queue())}, __supports_USM_device{
                                                                           __use_USM_allocations(__exec.queue())}
