@@ -224,11 +224,17 @@ struct __parallel_merge_submitter<_OutSizeLimit, _IdType, __internal::__optional
         using __val_t = _split_point_t<_IdType>;
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __val_t>;
         __result_and_scratch_storage_t* __p_res_storage = nullptr;
+        std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base;
 
         if constexpr (_OutSizeLimit{})
-            __p_res_storage = new __result_and_scratch_storage_t(__exec, 1, 0);
+        {
+            __p_res_storage = new __result_and_scratch_storage_t(__exec, 2, 0);
+            __p_result_and_scratch_storage_base.reset(__p_res_storage);
+        }
         else
+        {
             assert(__rng3.size() >= __n1 + __n2);
+        }
 
         auto __event = __exec.queue().submit([&__rng1, &__rng2, &__rng3, __p_res_storage, __comp, __chunk, __steps, __n,
                                               __n1, __n2](sycl::handler& __cgh) {
@@ -251,14 +257,15 @@ struct __parallel_merge_submitter<_OutSizeLimit, _IdType, __internal::__optional
                     if (__id == __steps - 1) //the last WI does additional work
                     {
                         auto __res_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc);
-                        *__res_ptr = __ends;
+                        *__res_ptr = {__ends.first, __ends.second};
                     }
             });
         });
+
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         // We should return the same thing in the second param of __future for compatibility
         // with the returning value in __parallel_merge_submitter_large::operator()
-        return __future(__event, std::shared_ptr<__result_and_scratch_storage_base>{__p_res_storage});
+        return __future(__event, __p_result_and_scratch_storage_base);
     }
 
   private:
@@ -399,7 +406,7 @@ struct __parallel_merge_submitter_large<_OutSizeLimit, _IdType, _CustomName,
                         if (__global_idx == __nd_range_params.steps - 1)
                         {
                             auto __res_ptr = _Storage::__get_usm_or_buffer_accessor_ptr(__result_acc);
-                            *__res_ptr = __ends;
+                            *__res_ptr = {__ends.first, __ends.second};
                         }
                 });
         });
@@ -435,7 +442,7 @@ struct __parallel_merge_submitter_large<_OutSizeLimit, _IdType, _CustomName,
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         using __val_t = _split_point_t<_IdType>;
         auto __p_base_diagonals_sp_global_storage = new __result_and_scratch_storage<_ExecutionPolicy, __val_t>(
-            __exec, _OutSizeLimit{} ? 1 : 0, __nd_range_params.base_diag_count + 1);
+            __exec, _OutSizeLimit{} ? 2 : 0, __nd_range_params.base_diag_count + 1);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
         std::shared_ptr<__result_and_scratch_storage_base> __p_result_and_scratch_storage_base(
