@@ -124,7 +124,7 @@ void test_edges()
 
 ONEDPL_TEST_NUM_MAIN
 {
-    IF_DOUBLE_SUPPORT(test<float>())
+    test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
     IF_DOUBLE_SUPPORT(test_edges())
