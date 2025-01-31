@@ -696,6 +696,9 @@ struct __result_and_scratch_storage : __result_and_scratch_storage_base
     }
 };
 
+template <typename _ExecutionPolicy, typename _T>
+using __result_and_scratch_storage_t = __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _T>; 
+
 // Tag __async_mode describe a pattern call mode which should be executed asynchronously
 struct __async_mode
 {
@@ -725,9 +728,9 @@ class __future : private std::tuple<_Args...>
         return __buf.get_host_access(sycl::read_only)[0];
     }
 
-    template <typename _ExecutionPolicy, typename _T>
+    template <typename _DecayedExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(const __result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
+    __wait_and_get_value(const __result_and_scratch_storage<_DecayedExecutionPolicy, _T>& __storage)
     {
         return __storage.__wait_and_get_value(__my_event);
     }

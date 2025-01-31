@@ -371,7 +371,7 @@ struct __parallel_merge_submitter_large<_IdType, _CustomName,
 
         // Create storage to save split-points on each base diagonal + 1 (for the right base diagonal in the last work-group)
         auto __p_base_diagonals_sp_global_storage =
-            new __result_and_scratch_storage<std::decay_t<_ExecutionPolicy>, _split_point_t<_IdType>>(
+            new __result_and_scratch_storage_t<_ExecutionPolicy, _split_point_t<_IdType>>(
                 __exec, 0, __nd_range_params.base_diag_count + 1);
 
         // Save the raw pointer into a shared_ptr to return it in __future and extend the lifetime of the storage.
