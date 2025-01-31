@@ -772,13 +772,12 @@ class __future : private std::tuple<_Args...>
 #endif
     }
 
-    template <std::size_t I = 0>
     auto
     get()
     {
         if constexpr (sizeof...(_Args) > 0)
         {
-            auto& __val = std::get<I>(*this);
+            auto& __val = std::get<0>(*this);
             return __wait_and_get_value(__val);
         }
         else
