@@ -1137,10 +1137,10 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag __backen
             _GenInput __gen_transform{__unary_op};
             try
             {
-                return __parallel_transform_reduce_then_scan(
-                    __backend_tag, std::forward<_ExecutionPolicy>(__exec), __in_rng, __out_rng, __gen_transform,
-                    __binary_op, __gen_transform, _ScanInputTransform{}, _WriteOp{}, __init, _Inclusive{},
-                    /*_IsUniquePattern=*/std::false_type{});
+                return __parallel_transform_reduce_then_scan(__backend_tag, __exec, __in_rng, __out_rng,
+                                                             __gen_transform, __binary_op, __gen_transform,
+                                                             _ScanInputTransform{}, _WriteOp{}, __init, _Inclusive{},
+                                                             /*_IsUniquePattern=*/std::false_type{});
             }
             catch (const sycl::exception& __e)
             {
@@ -1301,8 +1301,8 @@ __parallel_unique_copy(oneapi::dpl::__internal::__device_backend_tag __backend_t
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<1, _Assign>;
         try
         {
-            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), __rng,
-                                                    __result, __n, _GenMask{__pred}, _WriteOp{_Assign{}},
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __rng, __result, __n, _GenMask{__pred},
+                                                    _WriteOp{_Assign{}},
                                                     /*_IsUniquePattern=*/std::true_type{});
         }
         catch (const sycl::exception& __e)
@@ -1371,8 +1371,8 @@ __parallel_partition_copy(oneapi::dpl::__internal::__device_backend_tag __backen
             oneapi::dpl::__par_backend_hetero::__write_to_id_if_else<oneapi::dpl::__internal::__pstl_assign>;
         try
         {
-            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), __rng,
-                                                    __result, __n, _GenMask{__pred}, _WriteOp{},
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __rng, __result, __n, _GenMask{__pred},
+                                                    _WriteOp{},
                                                     /*_IsUniquePattern=*/std::false_type{});
         }
         catch (const sycl::exception& __e)
@@ -1427,8 +1427,8 @@ __parallel_copy_if(oneapi::dpl::__internal::__device_backend_tag __backend_tag, 
         using _WriteOp = oneapi::dpl::__par_backend_hetero::__write_to_id_if<0, _Assign>;
         try
         {
-            return __parallel_reduce_then_scan_copy(__backend_tag, std::forward<_ExecutionPolicy>(__exec), __in_rng,
-                                                    __out_rng, __n, _GenMask{__pred}, _WriteOp{__assign},
+            return __parallel_reduce_then_scan_copy(__backend_tag, __exec, __in_rng, __out_rng, __n, _GenMask{__pred},
+                                                    _WriteOp{__assign},
                                                     /*_IsUniquePattern=*/std::false_type{});
         }
         catch (const sycl::exception& __e)
@@ -1546,8 +1546,8 @@ __parallel_set_op(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _
     {
         try
         {
-            return __parallel_set_reduce_then_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec), __rng1,
-                                                   __rng2, __result, __comp, __is_op_difference);
+            return __parallel_set_reduce_then_scan(__backend_tag, __exec, __rng1, __rng2, __result, __comp,
+                                                   __is_op_difference);
         }
         catch (const sycl::exception& __e)
         {
@@ -2497,8 +2497,8 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag, _Exe
             try
             {
                 auto __res = oneapi::dpl::__par_backend_hetero::__parallel_reduce_by_segment_reduce_then_scan(
-                    oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec), __keys,
-                    __values, __out_keys, __out_values, __binary_pred, __binary_op);
+                    oneapi::dpl::__internal::__device_backend_tag{}, __exec, __keys, __values, __out_keys, __out_values,
+                    __binary_pred, __binary_op);
                 // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
                 // past-the-end iterator pair of segmented reduction.
                 return std::get<0>(__res.get()) + 1;
