@@ -315,8 +315,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_wg);
         // Storage for the results of scan for each workgroup
 
-        using __result_scratch_t = __result_and_scratch_storage_t<_ExecutionPolicy, _Type>;
-        __result_scratch_t __result_and_scratch{__exec, 1, __n_groups + 1};
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _Type>;
+        __result_and_scratch_storage_t __result_and_scratch{__exec, 1, __n_groups + 1};
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
@@ -334,7 +334,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 __kernel_1,
 #endif
                 sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
-                    auto __temp_ptr = __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+                    auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                     __local_scan(__item, __n, __local_acc, __rng1, __rng2, __temp_ptr, __size_per_wg, __wgroup_size,
                                  __iters_per_witem, __init);
                 });
@@ -356,7 +356,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
 #endif
                     // TODO: try to balance work between several workgroups instead of one
                     sycl::nd_range<1>(__wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
-                        auto __temp_ptr = __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+                        auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                         __group_scan(__item, __n_groups, __local_acc, __temp_ptr, __temp_ptr,
                                      /*dummy*/ __temp_ptr, __n_groups, __wgroup_size, __iters_per_single_wg);
                     });
@@ -371,9 +371,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             auto __res_acc = __result_and_scratch.template __get_result_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
             __cgh.parallel_for<_PropagateScanName...>(sycl::range<1>(__n_groups * __size_per_wg), [=](auto __item) {
-                auto __temp_ptr = __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
+                auto __temp_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__temp_acc);
                 auto __res_ptr =
-                    __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__res_acc, __n_groups + 1);
+                    __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__res_acc, __n_groups + 1);
                 __global_scan(__item, __rng2, __rng1, __temp_ptr, __res_ptr, __n, __size_per_wg);
             });
         });
@@ -539,8 +539,8 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                                                                  std::decay_t<decltype(__out_rng[0])>>::__type;
 
         constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
-        using __result_scratch_t = __result_and_scratch_storage_t<_Policy, _Size>;
-        __result_scratch_t __result{__policy, 1, 0};
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<_Policy, _Size>;
+        __result_and_scratch_storage_t __result{__policy, 1, 0};
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
@@ -554,7 +554,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
             __hdl.parallel_for<_ScanKernelName...>(
                 sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
-                    auto __res_ptr = __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__res_acc);
+                    auto __res_ptr = __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__res_acc);
                     const auto& __group = __self_item.get_group();
                     // This kernel is only launched for sizes less than 2^16
                     const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
@@ -615,7 +615,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 
     // Although we do not actually need result storage in this case, we need to construct
     // a placeholder here to match the return type of the non-single-work-group implementation
-    __result_and_scratch_storage_t<_ExecutionPolicy, _ValueType> __dummy_result_and_scratch{__exec, 0, 0};
+    __result_and_scratch_storage<_ExecutionPolicy, _ValueType> __dummy_result_and_scratch{__exec, 0, 0};
 
     if (__max_wg_size >= __targeted_wg_size)
     {
@@ -1825,8 +1825,8 @@ struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_ker
                const std::size_t __rng_n, const std::size_t __wgroup_size, const __FoundStateType __init_value,
                _Predicate __pred, _Ranges&&... __rngs)
     {
-        using __result_scratch_t = __result_and_scratch_storage_t<_ExecutionPolicy, __FoundStateType>;
-        __result_scratch_t __result_storage{__exec, 1, 0};
+        using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, __FoundStateType>;
+        __result_and_scratch_storage_t __result_storage{__exec, 1, 0};
 
         // Calculate the number of elements to be processed by each work-item.
         const auto __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__rng_n, __wgroup_size);
@@ -1865,7 +1865,7 @@ struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_ker
                     // Set local found state value value to global state to have correct result
                     if (__local_idx == 0)
                     {
-                        __result_scratch_t::__get_usm_or_buffer_accessor_ptr(__result_acc)[0] =
+                        __result_and_scratch_storage_t::__get_usm_or_buffer_accessor_ptr(__result_acc)[0] =
                             __found_local;
                     }
                 });
