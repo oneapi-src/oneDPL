@@ -1453,13 +1453,13 @@ struct __brick_shift_left
             const _DiffType __write_offset = __k + __i;
             if constexpr (_IsFull::value)
             {
-                if (__k + __idx + __preferred_vector_size <= __size)
+                if (__read_offset + __preferred_vector_size <= __size)
                 {
                     _ValueType __rng_vector[__preferred_vector_size];
                     __vec_load(std::true_type{}, __read_offset, __load_op, __rng, __rng_vector);
                     __vec_store(std::true_type{}, __write_offset, __store_op, __rng_vector, __rng);
                 }
-                else if (__k + __idx < __size)
+                else if (__read_offset < __size)
                 {
                     const std::size_t __num_remaining = __size - __read_offset;
                     for (_DiffType __j = 0; __j < __num_remaining; ++__j)
