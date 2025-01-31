@@ -15,6 +15,9 @@
 #define ONEDPL_VERSION_MINOR 8
 #define ONEDPL_VERSION_PATCH 0
 
+// The oneAPI Specification version this implementation is compliant with
+#define ONEDPL_SPEC_VERSION 104
+
 #if _ONEDPL___cplusplus >= 202002L && __has_include(<version>)
 #    include <version> // The standard C++20 header
 #    define _ONEDPL_STD_FEATURE_MACROS_PRESENT 1
