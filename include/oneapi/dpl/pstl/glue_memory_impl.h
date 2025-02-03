@@ -47,7 +47,7 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     if constexpr (std::is_trivially_default_constructible_v<_ValueType> &&
-                  std::is_trivially_assignable_v<_ValueType, std::iterator_traits<_InputIterator>::reference>)
+                  std::is_trivially_assignable_v<_ValueType, typename std::iterator_traits<_InputIterator>::reference>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
             __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
@@ -71,7 +71,7 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     if constexpr (std::is_trivially_default_constructible_v<_ValueType> &&
-                  std::is_trivially_assignable_v<_ValueType, std::iterator_traits<_InputIterator>::reference>)
+                  std::is_trivially_assignable_v<_ValueType, typename std::iterator_traits<_InputIterator>::reference>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
             __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
@@ -97,7 +97,7 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     if constexpr (std::is_trivially_default_constructible_v<_ValueType> &&
-                  std::is_trivially_assignable_v<_ValueType, std::iterator_traits<_InputIterator>::reference>)
+                  std::is_trivially_assignable_v<_ValueType, typename std::iterator_traits<_InputIterator>::reference>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
             __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
@@ -121,7 +121,7 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     if constexpr (std::is_trivially_default_constructible_v<_ValueType> &&
-                  std::is_trivially_assignable_v<_ValueType, std::iterator_traits<_InputIterator>::reference>)
+                  std::is_trivially_assignable_v<_ValueType, typename std::iterator_traits<_InputIterator>::reference>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
             __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
