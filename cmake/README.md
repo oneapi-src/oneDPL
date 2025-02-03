@@ -123,7 +123,10 @@ set(ONEDPL_BACKEND tbb)
 add_subdirectory(/path/to/oneDPL build_oneDPL)
 ```
 
-Finally, the supported generator in the Windows environment is Ninja, we recommend using `-GNinja` in your cmake configuration.
+The supported generator in the Windows environment is Ninja, we recommend using `-GNinja` in your cmake configuration.
+
+To avoid definition of macros for min and max if and when windows.h is included, oneDPL's cmake defines `NOMINMAX`.
+These macros conflict with standard library functions and oneDPL internal functions, and cause compiler problems.
 
 ### oneDPLConfig files generation
 

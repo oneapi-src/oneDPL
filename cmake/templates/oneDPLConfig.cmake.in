@@ -49,6 +49,11 @@ if (EXISTS "${_onedpl_headers}")
         include(CheckCXXCompilerFlag)
         include(CheckIncludeFileCXX)
 
+        if (CMAKE_HOST_WIN32)
+            # oneDPL is incompatible with min/max macros defined in windows.h, NOMINMAX must be defined to avoid them
+            set_target_properties(oneDPL PROPERTIES INTERFACE_COMPILE_OPTIONS /DNOMINMAX)
+        endif()
+
         add_library(oneDPL INTERFACE IMPORTED)
         set_target_properties(oneDPL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_onedpl_headers}")
 

@@ -82,6 +82,12 @@
 #    define _ONEDPL_PRAGMA(x) _Pragma(#    x)
 #endif
 
+// For Windows, define NOMINMAX to avoid definition of min and max macros inside of windows.h which clash with STL
+#ifdef _MSC_VER && !defined(NOMINMAX)
+#    define NOMINMAX
+#    define _ONEDPL_DEFINED_NOMINMAX 1
+#endif
+
 #define _ONEDPL_STRING_AUX(x) #x
 #define _ONEDPL_STRING(x) _ONEDPL_STRING_AUX(x)
 #define _ONEDPL_STRING_CONCAT(x, y) x #y

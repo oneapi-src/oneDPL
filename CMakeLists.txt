@@ -129,7 +129,7 @@ else()
 endif()
 
 if (MSVC)
-    target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
+    target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc /DNOMINMAX)
 else()
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()

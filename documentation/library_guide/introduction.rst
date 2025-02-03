@@ -162,4 +162,9 @@ Known Limitations
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
   iterators should be ``MoveConstructible``.
 
+Windows Specific Information
+****************************
+* When compiling on windows, add /DNOMINMAX to the compilation command to avoid conflicts with the min and max macros
+  defined in the Windows.h header file.
+
 .. _`SYCL Specification`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html
