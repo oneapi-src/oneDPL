@@ -282,15 +282,15 @@ struct __parallel_reduce_then_scan_reduce_submitter
 {
     // Step 1 - SubGroupReduce is expected to perform sub-group reductions to global memory
     // input buffer
-    template <typename _InRng, typename _TmpStorageAcc>
+    template <typename _ExecutionPolicy, typename _InRng, typename _TmpStorageAcc>
     sycl::event
-    operator()(sycl::queue __q, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng,
+    operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng,
                _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
                const std::size_t __block_num, const sycl::kernel& __reduce_kernel) const
     {
         using _InitValueType = typename _InitType::__value_type;
-        return __q.submit([&, this](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, this](sycl::handler& __cgh) {
             __dpl_sycl::__local_accessor<_InitValueType> __sub_group_partials(__num_sub_groups_local, __cgh);
             __cgh.depends_on(__prior_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __in_rng);
@@ -432,9 +432,9 @@ struct __parallel_reduce_then_scan_scan_submitter
         __tmp_ptr[__num_sub_groups_global + 1 - (__block_num % 2)] = __block_carry_out;
     }
 
-    template <typename _InRng, typename _OutRng, typename _TmpStorageAcc>
+    template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _TmpStorageAcc>
     sycl::event
-    operator()(sycl::queue __q, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng,
+    operator()(_ExecutionPolicy&& __exec, const sycl::nd_range<1> __nd_range, _InRng&& __in_rng, _OutRng&& __out_rng,
                _TmpStorageAcc& __scratch_container, const sycl::event& __prior_event,
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
                const std::size_t __block_num, const sycl::kernel& __scan_kernel) const
@@ -442,7 +442,7 @@ struct __parallel_reduce_then_scan_scan_submitter
         std::uint32_t __inputs_in_block = std::min(__n - __block_num * __max_block_size, std::size_t{__max_block_size});
         std::uint32_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
             __inputs_in_block, __inputs_per_sub_group * __num_sub_groups_local);
-        return __q.submit([&, this](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, this](sycl::handler& __cgh) {
             // We need __num_sub_groups_local + 1 temporary SLM locations to store intermediate results:
             //   __num_sub_groups_local for each sub-group partial from the reduce kernel +
             //   1 element for the accumulated block-local carry-in from previous groups in the block
@@ -845,7 +845,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                                     __write_op,
                                     __init};
     sycl::event __event;
-    sycl::queue __q = __exec.queue();
     // Data is processed in 2-kernel blocks to allow contiguous input segment to persist in LLC between the first and second kernel for accelerators
     // with sufficiently large L2 / L3 caches.
     for (std::size_t __b = 0; __b < __num_blocks; ++__b)
@@ -858,10 +857,10 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         auto __local_range = sycl::range<1>(__work_group_size);
         auto __kernel_nd_range = sycl::nd_range<1>(__global_range, __local_range);
         // 1. Reduce step - Reduce assigned input per sub-group, compute and apply intra-wg carries, and write to global memory.
-        __event = __reduce_submitter(__q, __kernel_nd_range, __in_rng, __result_and_scratch, __event,
+        __event = __reduce_submitter(__exec, __kernel_nd_range, __in_rng, __result_and_scratch, __event,
                                      __inputs_per_sub_group, __inputs_per_item, __b, __reduce_kernel);
         // 2. Scan step - Compute intra-wg carries, determine sub-group carry-ins, and perform full input block scan.
-        __event = __scan_submitter(__q, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event,
+        __event = __scan_submitter(__exec, __kernel_nd_range, __in_rng, __out_rng, __result_and_scratch, __event,
                                    __inputs_per_sub_group, __inputs_per_item, __b, __scan_kernel);
         __inputs_remaining -= std::min(__inputs_remaining, __block_size);
         // We only need to resize these parameters prior to the last block as it is the only non-full case.
