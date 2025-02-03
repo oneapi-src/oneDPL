@@ -26,9 +26,9 @@
 #include "execution_impl.h"
 
 #if _WIN32 || _WIN64
-// For windows, TBB prior to version 2021.12 requires NOMINMAX to be defined before including
-// tbb/enumerable_thread_specific.h, which includes windows.h. This is not required for TBB 2021.12 and later due
-// to an TBB fix.
+// Prior to version 2021.12, TBB requires NOMINMAX to be defined before including
+// tbb/enumerable_thread_specific.h, which includes windows.h.
+// This is no more required since TBB 2021.12 due to a TBB fix.
 #    if TBB_INTERFACE_VERSION < 12120
 #        ifndef NOMINMAX
 #            define NOMINMAX
