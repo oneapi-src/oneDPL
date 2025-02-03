@@ -48,14 +48,14 @@
 #include <tbb/tbb_allocator.h>
 #include <tbb/enumerable_thread_specific.h>
 
+#if TBB_INTERFACE_VERSION > 12000
+#    include <tbb/task.h>
+#endif
+
 #if __ONEDPL_DEFINED_NOMINMAX
 // Avoid affecting outside code with NOMINMAX
 #    undef NOMINMAX
 #    undef __ONEDPL_DEFINED_NOMINMAX
-#endif
-
-#if TBB_INTERFACE_VERSION > 12000
-#    include <tbb/task.h>
 #endif
 
 #if TBB_INTERFACE_VERSION < 10000
