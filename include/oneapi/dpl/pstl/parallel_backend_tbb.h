@@ -25,6 +25,18 @@
 #include "parallel_backend_utils.h"
 #include "execution_impl.h"
 
+#if _WIN32 || _WIN64
+// For windows, TBB prior to version 2021.12 requires NOMINMAX to be defined before including
+// tbb/enumerable_thread_specific.h, which includes windows.h. This is not required for TBB 2021.12 and later due
+// to an TBB fix.
+#    if TBB_INTERFACE_VERSION < 12120
+#        ifndef NOMINMAX
+#            define NOMINMAX
+#            define __ONEDPL_DEFINED_NOMINMAX 1
+#        endif
+#    endif
+#endif
+
 // Bring in minimal required subset of Intel(R) Threading Building Blocks (Intel(R) TBB)
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -34,19 +46,6 @@
 #include <tbb/parallel_invoke.h>
 #include <tbb/task_arena.h>
 #include <tbb/tbb_allocator.h>
-
-#if _WIN32 || _WIN64
-// For windows, TBB prior to version 2021.12 requires NOMINMAX to be defined before including
-// tbb/enumerable_thread_specific.h, which includes windows.h. This is not required for TBB 2021.12 and later due
-// to an TBB fix.
-#    if TBB_VERSION_MAJOR < 2021 || (TBB_VERSION_MAJOR == 2021 && TBB_VERSION_MINOR < 12)
-#        ifndef NOMINMAX
-#            define NOMINMAX
-#            define __ONEDPL_DEFINED_NOMINMAX 1
-#        endif
-#    endif
-#endif
-
 #include <tbb/enumerable_thread_specific.h>
 
 #if __ONEDPL_DEFINED_NOMINMAX
