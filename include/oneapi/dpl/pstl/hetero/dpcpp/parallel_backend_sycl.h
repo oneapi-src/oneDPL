@@ -2416,7 +2416,6 @@ __parallel_reduce_by_segment(oneapi::dpl::__internal::__device_backend_tag, _Exe
                 oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
                 std::forward<_Range1>(__keys), std::forward<_Range2>(__values), std::forward<_Range3>(__out_keys),
                 std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
-            __res.wait();
             // Because our init type ends up being tuple<std::size_t, ValType>, return the first component which is the write index. Add 1 to return the
             // past-the-end iterator pair of segmented reduction.
             return std::get<0>(__res.get()) + 1;
