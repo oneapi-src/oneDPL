@@ -2,7 +2,7 @@
 
 ## Introduction
 Based on statistics (observing C++ code within github.com) for the usage of popular algorithms, the following
-range-based APIs are supposed to be implemented in oneDPL.
+range-based APIs are suggested to be implemented next in oneDPL.
 `fill`, `generate`, `move`, `replace`, `replace_if`, `remove`, `remove_if`, `mismatch`, `minmax_element`, `minmax`,
 `min`, `max`, `find_first_of`, `find_end`, `is_sorted_until`
 
@@ -11,7 +11,7 @@ The feature is proposed as the next step of range-based API support for oneDPL.
 
 ### Key Requirements
 - The range-based signatures for the mentioned API should correspond to the proposal for C++ parallel range algorithms, P3179.
-(https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3179r4.html)
+(https://wg21.link/p3179)
 - The proposed implementation should support all oneDPL execution policies: `seq`, `unseq`, `par`, `par_unseq` and `a device policy`.
 
 ### Implementation proposal
