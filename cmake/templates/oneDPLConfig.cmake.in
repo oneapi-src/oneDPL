@@ -49,7 +49,6 @@ if (EXISTS "${_onedpl_headers}")
         include(CheckCXXCompilerFlag)
         include(CheckIncludeFileCXX)
 
-
         add_library(oneDPL INTERFACE IMPORTED)
         set_target_properties(oneDPL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_onedpl_headers}")
 
