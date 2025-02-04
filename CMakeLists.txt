@@ -128,8 +128,13 @@ else()
     message(STATUS "Build type is not set")
 endif()
 
+if (WIN32)
+    # oneDPL is incompatible with min/max macros defined in windows.h, NOMINMAX must be defined to avoid them
+    target_compile_options(oneDPL INTERFACE -DNOMINMAX)
+endif()
+
 if (MSVC)
-    target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc /DNOMINMAX)
+    target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
 else()
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
