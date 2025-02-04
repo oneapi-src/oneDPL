@@ -354,8 +354,8 @@ struct __parallel_reduce_then_scan_reduce_submitter
                     if (__iters == 1)
                     {
                         // fill with unused dummy values to avoid overruning input
-                        std::uint32_t __load_id = (std::min)(std::uint32_t{__sub_group_local_id},
-                                                             __active_subgroups - 1);
+                        std::uint32_t __load_id =
+                            (std::min)(std::uint32_t{__sub_group_local_id}, __active_subgroups - 1);
                         _InitValueType __v = __sub_group_partials[__load_id];
                         __sub_group_scan_partial<__sub_group_size, /*__is_inclusive=*/true, /*__init_present=*/false>(
                             __sub_group, __v, __reduce_op, __sub_group_carry, __active_subgroups);
@@ -440,8 +440,8 @@ struct __parallel_reduce_then_scan_scan_submitter
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
                const std::size_t __block_num, const sycl::kernel& __scan_kernel) const
     {
-        std::uint32_t __inputs_in_block = (std::min)(__n - __block_num * __max_block_size,
-                                                     std::size_t{__max_block_size});
+        std::uint32_t __inputs_in_block = 
+            (std::min)(__n - __block_num * __max_block_size, std::size_t{__max_block_size});
         std::uint32_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
             __inputs_in_block, __inputs_per_sub_group * __num_sub_groups_local);
         return __exec.queue().submit([&, this](sycl::handler& __cgh) {
@@ -805,7 +805,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
     const std::uint32_t __max_inputs_per_subgroup = __max_inputs_per_block / __num_sub_groups_global;
     std::uint32_t __evenly_divided_remaining_inputs =
         (std::max)(std::size_t{__sub_group_size},
-                 oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
+                   oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
     std::uint32_t __inputs_per_sub_group =
         __inputs_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup : __evenly_divided_remaining_inputs;
     std::uint32_t __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
@@ -870,7 +870,7 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         {
             __evenly_divided_remaining_inputs =
                 (std::max)(std::size_t{__sub_group_size},
-                         oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
+                           oneapi::dpl::__internal::__dpl_bit_ceil(__inputs_remaining) / __num_sub_groups_global);
             __inputs_per_sub_group = __inputs_remaining >= __max_inputs_per_block ? __max_inputs_per_subgroup
                                                                                   : __evenly_divided_remaining_inputs;
             __inputs_per_item = __inputs_per_sub_group / __sub_group_size;
