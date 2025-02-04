@@ -160,7 +160,7 @@
 // In the SYCL backend reduce-then-scan path, we need to be able to differentiate between when a compiler enables
 // optimizations and when it does not. With GCC and clang-based compilers, we can detect this with the __OPTIMIZE__
 // flag.
-#if defined(_ONEDPL_GCC_VERSION) || defined(_ONEDPL_CLANG_VERSION)
+#if _ONEDPL_GCC_VERSION > 0 || defined(_ONEDPL_CLANG_VERSION)
 #    define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED __OPTIMIZE__
 #else
 #    define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED 0
