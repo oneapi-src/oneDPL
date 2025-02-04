@@ -41,6 +41,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+#if defined(_MSC_VER)
+// Include windows.h to check that our code and tests are resiliant to min and max macros defined in windows.h
+#    include <Windows.h>
+#endif
+
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
