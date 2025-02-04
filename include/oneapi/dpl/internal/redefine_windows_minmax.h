@@ -22,15 +22,15 @@
 // This header must be included last by public headers.
 
 #if (_MSC_VER)
-#if defined(_ONEDPL_UNDEFINED_MIN)
-#undef _ONEDPL_UNDEFINED_MIN
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif // defined(_ONEDPL_UNDEFINED_MIN)
+#    if defined(_ONEDPL_UNDEFINED_MIN)
+#        undef _ONEDPL_UNDEFINED_MIN
+#        define min(a, b) (((a) < (b)) ? (a) : (b))
+#    endif // defined(_ONEDPL_UNDEFINED_MIN)
 
-#if defined(max)
-#undef _ONEDPL_UNDEFINED_MAX
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif // defined(_ONEDPL_UNDEFINED_MAX)
+#    if defined(max)
+#        undef _ONEDPL_UNDEFINED_MAX
+#        define max(a, b) (((a) > (b)) ? (a) : (b))
+#    endif // defined(_ONEDPL_UNDEFINED_MAX)
 #endif
 
 #endif // _ONEDPL_REDEFINE_WINDOWS_MINMAX_H

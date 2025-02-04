@@ -46,7 +46,6 @@
 //tbb headers may have included windows.h, which defines min and max macros
 #include "oneapi/dpl/internal/undefine_windows_minmax.h"
 
-
 namespace oneapi
 {
 namespace dpl

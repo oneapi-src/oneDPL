@@ -22,15 +22,15 @@
 // This header must be included first by public headers, or after windows.h inclusion.
 
 #if (_MSC_VER)
-#if defined(min)
-#define _ONEDPL_UNDEFINED_MIN 1
-#undef min
-#endif // defined(min)
+#    if defined(min)
+#        define _ONEDPL_UNDEFINED_MIN 1
+#        undef min
+#    endif // defined(min)
 
-#if defined(max)
-#define _ONEDPL_UNDEFINED_MAX 1
-#undef max
-#endif // defined(max)
+#    if defined(max)
+#        define _ONEDPL_UNDEFINED_MAX 1
+#        undef max
+#    endif // defined(max)
 
 #endif
 
