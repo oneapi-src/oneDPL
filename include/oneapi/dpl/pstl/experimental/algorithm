@@ -50,4 +50,6 @@ using oneapi::dpl::experimental::reduction_plus;
 } // namespace experimental
 } // namespace std
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_EXPERIMENTAL_ALGORITHM

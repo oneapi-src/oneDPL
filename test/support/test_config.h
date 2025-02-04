@@ -50,6 +50,10 @@
 #define _SCL_SECURE_NO_WARNINGS //to prevent the compilation warning. Microsoft STL implementation has specific checking of an iterator range in DEBUG mode for the containers from the standard library.
 #endif
 
+#if defined(_MSC_VER)
+#define NOMINMAX // to prevent windows.h defined min and max macro substitutions in test code
+#endif
+
 // ICC 18 (Windows) has encountered an unexpected problem on some tests
 #define _PSTL_ICC_18_VC141_TEST_SIMD_LAMBDA_RELEASE_BROKEN                                                            \
     (!_DEBUG && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900 && _MSC_VER == 1910)

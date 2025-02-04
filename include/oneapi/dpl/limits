@@ -30,4 +30,6 @@ using numeric_limits = ::std::numeric_limits<T>;
 
 namespace dpl = oneapi::dpl;
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_LIMITS

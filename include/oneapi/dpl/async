@@ -35,4 +35,6 @@
 
 namespace dpl = oneapi::dpl;
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_ASYNC

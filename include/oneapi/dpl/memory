@@ -59,4 +59,6 @@ using oneapi::dpl::uninitialized_value_construct;
 using oneapi::dpl::uninitialized_value_construct_n;
 } // namespace std
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_MEMORY

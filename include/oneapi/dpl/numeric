@@ -59,4 +59,6 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_NUMERIC

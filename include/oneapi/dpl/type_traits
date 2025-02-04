@@ -220,4 +220,6 @@ using ::std::result_of_t;       // Deprecated in C++17, removed in C++20
 
 namespace dpl = oneapi::dpl;
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_TYPE_TRAITS

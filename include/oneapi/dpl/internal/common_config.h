@@ -68,4 +68,6 @@
 #    endif
 #endif // __cplusplus >= 201703L
 
+#include "oneapi/dpl/internal/undefine_windows_minmax.h"
+
 #endif // _ONEDPL_COMMON_CONFIG_H

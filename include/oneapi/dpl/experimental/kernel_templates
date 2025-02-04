@@ -20,4 +20,6 @@
 
 #include "kt/single_pass_scan.h"
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_KERNEL_TEMPLATES

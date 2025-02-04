@@ -92,4 +92,6 @@ using philox4x64_vec = philox_engine<sycl::vec<uint_fast64_t, _N>, 64, 4, 10, 0x
 
 namespace dpl = oneapi::dpl;
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_RANDOM

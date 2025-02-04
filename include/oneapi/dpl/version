@@ -13,4 +13,6 @@
 #include "internal/common_config.h"
 #include "internal/version_impl.h"
 
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif // _ONEDPL_VERSION

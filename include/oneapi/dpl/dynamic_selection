@@ -25,4 +25,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy.h"
+
+#include "oneapi/dpl/internal/redefine_windows_minmax.h"
+
 #endif /* ONEDPL_DYNAMIC_SELECTION */
