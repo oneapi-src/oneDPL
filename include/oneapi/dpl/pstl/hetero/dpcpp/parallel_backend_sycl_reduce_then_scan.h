@@ -742,7 +742,8 @@ template <typename _ExecutionPolicy>
 bool
 __is_gpu_with_reduce_then_scan_sg_sz(const _ExecutionPolicy& __exec)
 {
-    const bool __dev_supports_sg_sz = oneapi::dpl::__internal::__supports_sub_group_size(__exec, __reduce_then_scan_sg_sz);
+    const bool __dev_supports_sg_sz =
+        oneapi::dpl::__internal::__supports_sub_group_size(__exec, __reduce_then_scan_sg_sz);
     return (__exec.queue().get_device().is_gpu() && __dev_supports_sg_sz);
 }
 
@@ -783,7 +784,8 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
 
     const std::uint32_t __max_work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec, 8192);
     // Round down to nearest multiple of the subgroup size
-    const std::uint32_t __work_group_size = (__max_work_group_size / __reduce_then_scan_sg_sz) * __reduce_then_scan_sg_sz;
+    const std::uint32_t __work_group_size =
+        (__max_work_group_size / __reduce_then_scan_sg_sz) * __reduce_then_scan_sg_sz;
 
     // TODO: Investigate potentially basing this on some scale of the number of compute units. 128 work-groups has been
     // found to be reasonable number for most devices.

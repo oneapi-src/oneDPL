@@ -161,9 +161,9 @@
 // optimizations and when it does not. With GCC and clang-based compilers, we can detect this with the __OPTIMIZE__
 // flag.
 #if defined(_ONEDPL_GCC_VERSION) || defined(_ONEDPL_CLANG_VERSION)
-#   define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED __OPTIMIZE__
+#    define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED __OPTIMIZE__
 #else
-#   define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED 0
+#    define _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED 0
 #endif
 
 #define _ONEDPL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
