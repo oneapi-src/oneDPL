@@ -43,7 +43,7 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
                                 ::std::experimental::reduction(var2, T(var2_init), oneapi::dpl::__internal::__pstl_min{}),
                                 [](Iterator iter, T& acc1, T& acc2) {
                                     acc1 += *iter;
-                                    acc2 = ::std::min(acc2, *iter);
+                                    acc2 = (std::min)(acc2, *iter);
                                 });
 
     T var1_exp = var1_init;
@@ -52,7 +52,7 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
     for (auto iter = first; iter != last; ++iter)
     {
         var1_exp += *iter;
-        var2_exp = ::std::min(var2_exp, *iter);
+        var2_exp = (std::min)(var2_exp, *iter);
     }
 
     EXPECT_TRUE(var1 == var1_exp, "wrong result of reduction 1");
@@ -107,16 +107,16 @@ struct test_body_predefined
             [](Iterator iter, T& plus_acc, T& mult_acc, T& min_acc, T& max_acc) {
                 plus_acc += *iter;
                 mult_acc *= *iter;
-                min_acc = ::std::min(min_acc, *iter);
-                max_acc = ::std::max(max_acc, *iter);
+                min_acc = (std::min)(min_acc, *iter);
+                max_acc = (std::max)(max_acc, *iter);
             });
 
         for (auto iter = first; iter != last; ++iter)
         {
             plus_exp += *iter;
             mult_exp *= *iter;
-            min_exp = ::std::min(min_exp, *iter);
-            max_exp = ::std::max(max_exp, *iter);
+            min_exp = (std::min)(min_exp, *iter);
+            max_exp = (std::max)(max_exp, *iter);
         }
 
         EXPECT_TRUE(plus_var == plus_exp, "wrong result of reduction_plus");

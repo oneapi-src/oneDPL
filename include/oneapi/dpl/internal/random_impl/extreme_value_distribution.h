@@ -101,15 +101,15 @@ class extreme_value_distribution
     }
 
     scalar_type
-    min() const
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return std::numeric_limits<scalar_type>::lowest();
     }
 
     scalar_type
-    max() const
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
-        return std::numeric_limits<scalar_type>::max();
+        return (std::numeric_limits<scalar_type>::max)();
     }
 
     // Generate functions

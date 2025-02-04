@@ -42,7 +42,7 @@ main()
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
 
-    int64_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2L;
+    int64_t max_int32p2 = (size_t)(std::numeric_limits<int32_t>::max)() + 2L;
 
     auto base_view = views::iota(::std::int64_t(0), max_int32p2);
 

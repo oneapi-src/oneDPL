@@ -913,7 +913,7 @@ template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, 
 __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
                    _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
 {
-    auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+    auto __n = (std::min)(__last1 - __first1, __last2 - __first2);
     if (__n <= 0)
         return ::std::make_pair(__first1, __first2);
 
@@ -1407,7 +1407,7 @@ __pattern_lexicographical_compare(__hetero_tag<_BackendTag>, _ExecutionPolicy&& 
         return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
     };
 
-    auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
+    auto __shared_size = (std::min)(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first1, __first1 + __shared_size);

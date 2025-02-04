@@ -805,13 +805,13 @@ struct __min_nested_type_size
 template <typename... _Ts>
 struct __min_nested_type_size<std::tuple<_Ts...>>
 {
-    constexpr static std::size_t value = std::min({__min_nested_type_size<_Ts>::value...});
+    constexpr static std::size_t value = (std::min)({__min_nested_type_size<_Ts>::value...});
 };
 
 template <typename... _Ts>
 struct __min_nested_type_size<oneapi::dpl::__internal::tuple<_Ts...>>
 {
-    constexpr static std::size_t value = std::min({__min_nested_type_size<_Ts>::value...});
+    constexpr static std::size_t value = (std::min)({__min_nested_type_size<_Ts>::value...});
 };
 
 } // namespace __internal

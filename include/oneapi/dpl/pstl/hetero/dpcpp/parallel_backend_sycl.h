@@ -252,7 +252,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
         // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
         // This value matches the current practical limit for GPUs, but may need to be re-evaluated in the future.
-        __wgroup_size = std::min(__wgroup_size, (std::size_t)1024);
+        __wgroup_size = (std::min)(__wgroup_size, (std::size_t)1024);
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
@@ -261,7 +261,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __kernel_2 = __kernels[1];
         auto __wgroup_size_kernel_1 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_1);
         auto __wgroup_size_kernel_2 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_2);
-        __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
+        __wgroup_size = (std::min)({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
         // Practically this is the better value that was found
@@ -576,7 +576,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     {
         auto __single_group_scan_f = [&](auto __size_constant) {
             constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
-            constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
+            constexpr ::std::uint16_t __wg_size = (std::min)(__size, __targeted_wg_size);
             constexpr ::std::uint16_t __num_elems_per_item =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
@@ -1141,7 +1141,7 @@ struct __invoke_single_group_copy_if
     operator()(_ExecutionPolicy&& __exec, std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred __pred,
                _Assign __assign)
     {
-        constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
+        constexpr ::std::uint16_t __wg_size = (std::min)(_Size, __targeted_wg_size);
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
         const bool __is_full_group = __n == __wg_size;
 
@@ -1553,7 +1553,7 @@ struct __parallel_find_forward_tag
     static void
     __save_state_to(_TFoundState& __found, _AtomicType __new_state)
     {
-        __found = std::min(__found, __new_state);
+        __found = (std::min)(__found, __new_state);
     }
 };
 
@@ -1591,7 +1591,7 @@ struct __parallel_find_backward_tag
     static void
     __save_state_to(_TFoundState& __found, _AtomicType __new_state)
     {
-        __found = std::max(__found, __new_state);
+        __found = (std::max)(__found, __new_state);
     }
 };
 
@@ -1746,7 +1746,7 @@ struct __parallel_find_or_nd_range_tuner<oneapi::dpl::__internal::__device_backe
                 // Empirically found formula for GPU devices.
                 // TODO : need to re-evaluate this formula.
                 const float __rng_x = (float)__rng_n / 4096.f;
-                const float __desired_iters_per_work_item = std::max(std::sqrt(__rng_x), 1.f);
+                const float __desired_iters_per_work_item = (std::max)(std::sqrt(__rng_x), 1.f);
 
                 if (__iters_per_work_item < __desired_iters_per_work_item)
                 {
@@ -2085,8 +2085,8 @@ struct __partial_merge_kernel
     operator()(_Idx __global_idx, const _Acc1& __in_acc1, _Size1 __start_1, _Size1 __end_1, const _Acc2& __in_acc2,
                _Size2 __start_2, _Size2 __end_2, const _Acc3& __out_acc, _Size3 __out_shift, _Compare __comp) const
     {
-        const auto __part_end_1 = sycl::min(__start_1 + __k, __end_1);
-        const auto __part_end_2 = sycl::min(__start_2 + __k, __end_2);
+        const auto __part_end_1 = (sycl::min)(__start_1 + __k, __end_1);
+        const auto __part_end_2 = (sycl::min)(__start_2 + __k, __end_2);
 
         // Handle elements from p1
         if (__global_idx >= __start_1 && __global_idx < __part_end_1)
@@ -2165,8 +2165,8 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
                         auto __global_idx = __item_id.get_linear_id();
 
                         _Size __start = 2 * __k * (__global_idx / (2 * __k));
-                        _Size __end_1 = sycl::min(__start + __k, __n);
-                        _Size __end_2 = sycl::min(__start + 2 * __k, __n);
+                        _Size __end_1 = (sycl::min)(__start + __k, __n);
+                        _Size __end_2 = (sycl::min)(__start + 2 * __k, __n);
 
                         if (!__data_in_temp)
                         {

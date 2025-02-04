@@ -337,4 +337,11 @@
 #    define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 #endif // _ONEDPL_BACKEND_SYCL
 
+// _ONEDPL_PREVENT_MACRO_SUBSTITUTION is provided to avoid substitution of min and max macros in the code on windows.
+// When defining a function
+// ret_type max();
+// to avoid macro substitution, insert this macro in function definition as follows
+// ret_type max _ONEDPL_PREVENT_MACRO_SUBSTITUTION ();
+#define _ONEDPL_PREVENT_MACRO_SUBSTITUTION
+
 #endif // _ONEDPL_CONFIG_H

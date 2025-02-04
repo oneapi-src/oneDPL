@@ -98,7 +98,7 @@ DEFINE_TEST(test_merge)
         auto host_first1 = host_keys.get();
         auto host_first3 = host_res_merge.get();
 
-        for (size_t i = 0; i < std::min(res_size, exp_size) && is_correct; ++i)
+        for (size_t i = 0; i < (std::min)(res_size, exp_size) && is_correct; ++i)
             if ((i < size2 * 2 && *(host_first3 + i) != i) ||
                 (i >= size2 * 2 && *(host_first3 + i) != *(host_first1 + i - size2)))
                 is_correct = false;

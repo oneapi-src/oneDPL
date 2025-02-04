@@ -332,7 +332,7 @@ struct __parallel_transform_reduce_impl
 #if _ONEDPL_COMPILE_KERNEL
         auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(__exec);
         _Size __adjusted_work_group_size = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel);
-        __work_group_size = std::min(__work_group_size, __adjusted_work_group_size);
+        __work_group_size = (std::min)(__work_group_size, __adjusted_work_group_size);
 #endif
 
         const _Size __size_per_work_group =
@@ -450,7 +450,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     // Empirically found tuning parameters for typical devices.
     constexpr _Size __max_iters_per_work_item = 32;
     constexpr std::size_t __max_work_group_size = 256;
-    static_assert(__max_work_group_size * __max_iters_per_work_item <= std::numeric_limits<std::uint16_t>::max(),
+    static_assert(__max_work_group_size * __max_iters_per_work_item <= (std::numeric_limits<std::uint16_t>::max)(),
                   "Out of 16-bit addressing range");
     constexpr std::uint8_t __vector_size = 4;
     constexpr std::uint32_t __oversubscription = 2;
@@ -462,7 +462,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
         oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, static_cast<std::size_t>(sizeof(_Tp) * 2));
 
     // Limit work-group size to __max_work_group_size for performance on GPUs. Empirically tested.
-    __work_group_size = std::min(__work_group_size, __max_work_group_size);
+    __work_group_size = (std::min)(__work_group_size, __max_work_group_size);
     const _Size __max_elements_per_wg = __work_group_size * __max_iters_per_work_item;
 
     // Use single work group implementation if less than __max_iters_per_work_item elements per work-group.

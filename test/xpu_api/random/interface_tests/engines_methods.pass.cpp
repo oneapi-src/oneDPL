@@ -52,8 +52,8 @@ std::int32_t
 check_params(oneapi::dpl::minstd_rand& engine)
 {
     return ((oneapi::dpl::minstd_rand::multiplier != MINSTD_A) || (oneapi::dpl::minstd_rand::increment != MINSTD_C) ||
-            (oneapi::dpl::minstd_rand::modulus != MINSTD_M) || (engine.min() != MINSTD_MIN) ||
-            (engine.max() != MINSTD_MAX));
+            (oneapi::dpl::minstd_rand::modulus != MINSTD_M) || ((engine.min)() != MINSTD_MIN) ||
+            ((engine.max)() != MINSTD_MAX));
 }
 
 template <int N>
@@ -62,8 +62,8 @@ check_params(oneapi::dpl::minstd_rand_vec<N>& engine)
 {
     return ((oneapi::dpl::minstd_rand_vec<N>::multiplier != MINSTD_A) ||
             (oneapi::dpl::minstd_rand_vec<N>::increment != MINSTD_C) ||
-            (oneapi::dpl::minstd_rand_vec<N>::modulus != MINSTD_M) || (engine.min() != MINSTD_MIN) ||
-            (engine.max() != MINSTD_MAX));
+            (oneapi::dpl::minstd_rand_vec<N>::modulus != MINSTD_M) || ((engine.min)() != MINSTD_MIN) ||
+            ((engine.max)() != MINSTD_MAX));
 }
 
 std::int32_t
@@ -71,8 +71,8 @@ check_params(oneapi::dpl::ranlux24_base& engine)
 {
     return ((oneapi::dpl::ranlux24_base::word_size != RANLUX24_BASE_W) ||
             (oneapi::dpl::ranlux24_base::short_lag != RANLUX24_BASE_S) ||
-            (oneapi::dpl::ranlux24_base::long_lag != RANLUX24_BASE_R) || (engine.min() != RANLUX24_BASE_MIN) ||
-            (engine.max() != RANLUX24_BASE_MAX));
+            (oneapi::dpl::ranlux24_base::long_lag != RANLUX24_BASE_R) || ((engine.min)() != RANLUX24_BASE_MIN) ||
+            ((engine.max)() != RANLUX24_BASE_MAX));
 }
 
 template <int N>
@@ -81,15 +81,15 @@ check_params(oneapi::dpl::ranlux24_base_vec<N>& engine)
 {
     return ((oneapi::dpl::ranlux24_base_vec<N>::word_size != RANLUX24_BASE_W) ||
             (oneapi::dpl::ranlux24_base_vec<N>::short_lag != RANLUX24_BASE_S) ||
-            (oneapi::dpl::ranlux24_base_vec<N>::long_lag != RANLUX24_BASE_R) || (engine.min() != RANLUX24_BASE_MIN) ||
-            (engine.max() != RANLUX24_BASE_MAX));
+            (oneapi::dpl::ranlux24_base_vec<N>::long_lag != RANLUX24_BASE_R) || ((engine.min)() != RANLUX24_BASE_MIN) ||
+            ((engine.max)() != RANLUX24_BASE_MAX));
 }
 
 std::int32_t
 check_params(oneapi::dpl::ranlux24& engine)
 {
     return ((oneapi::dpl::ranlux24::block_size != RANLUX24_P) || (oneapi::dpl::ranlux24::used_block != RANLUX24_R) ||
-            (engine.min() != RANLUX24_BASE_MIN) || (engine.max() != RANLUX24_BASE_MAX));
+            ((engine.min)() != RANLUX24_BASE_MIN) || ((engine.max)() != RANLUX24_BASE_MAX));
 }
 
 template <int N>
@@ -97,8 +97,8 @@ std::int32_t
 check_params(oneapi::dpl::ranlux24_vec<N>& engine)
 {
     return ((oneapi::dpl::ranlux24_vec<N>::block_size != RANLUX24_P) ||
-            (oneapi::dpl::ranlux24_vec<N>::used_block != RANLUX24_R) || (engine.min() != RANLUX24_BASE_MIN) ||
-            (engine.max() != RANLUX24_BASE_MAX));
+            (oneapi::dpl::ranlux24_vec<N>::used_block != RANLUX24_R) || ((engine.min)() != RANLUX24_BASE_MIN) ||
+            ((engine.max)() != RANLUX24_BASE_MAX));
 }
 
 std::int32_t
@@ -108,7 +108,7 @@ check_params(ex::philox4x32& engine)
             (ex::philox4x32::word_count   != PHILOX4x32_N) ||
             (ex::philox4x32::round_count  != PHILOX4x32_R) ||
             (ex::philox4x32::default_seed != PHILOX_SEED)  ||
-            (engine.min() != PHILOX4x32_MIN) || (engine.max() != PHILOX4x32_MAX));
+            ((engine.min)() != PHILOX4x32_MIN) || ((engine.max)() != PHILOX4x32_MAX));
 }
 template <int N>
 std::int32_t
@@ -118,7 +118,7 @@ check_params(ex::philox4x32_vec<N>& engine)
             (ex::philox4x32_vec<N>::word_count   != PHILOX4x32_N) ||
             (ex::philox4x32_vec<N>::round_count  != PHILOX4x32_R) ||
             (ex::philox4x32_vec<N>::default_seed != PHILOX_SEED)  ||
-            (engine.min() != PHILOX4x32_MIN) || (engine.max() != PHILOX4x32_MAX));
+            ((engine.min)() != PHILOX4x32_MIN) || ((engine.max)() != PHILOX4x32_MAX));
 }
 
 std::int32_t
@@ -128,7 +128,7 @@ check_params(ex::philox4x64& engine)
             (ex::philox4x64::word_count   != PHILOX4x64_N) ||
             (ex::philox4x64::round_count  != PHILOX4x64_R) ||
             (ex::philox4x64::default_seed != PHILOX_SEED)  ||
-            (engine.min() != PHILOX4x64_MIN) || (engine.max() != PHILOX4x64_MAX));
+            ((engine.min)() != PHILOX4x64_MIN) || ((engine.max)() != PHILOX4x64_MAX));
 }
 template <int N>
 std::int32_t
@@ -138,7 +138,7 @@ check_params(ex::philox4x64_vec<N>& engine)
             (ex::philox4x64_vec<N>::word_count   != PHILOX4x64_N) ||
             (ex::philox4x64_vec<N>::round_count  != PHILOX4x64_R) ||
             (ex::philox4x64_vec<N>::default_seed != PHILOX_SEED)  ||
-            (engine.min() != PHILOX4x64_MIN) || (engine.max() != PHILOX4x64_MAX));
+            ((engine.min)() != PHILOX4x64_MIN) || ((engine.max)() != PHILOX4x64_MAX));
 }
 
 template <class Engine>
@@ -251,7 +251,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
                         oneapi::dpl::ranlux24_vec<N> engine(engine1);
-                        auto eng = engine.base().min();
+                        auto eng = (engine.base().min)();
                         res0 = engine() + eng;
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
                         std::int32_t is_inequal = 0;
@@ -461,7 +461,7 @@ public:
                         }
                         result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
-                        auto eng = engine.base().min();
+                        auto eng = (engine.base().min)();
                         res0 = engine() + eng;
                         result_type res1 = engine1();
                         if (res0 != res1 + eng)

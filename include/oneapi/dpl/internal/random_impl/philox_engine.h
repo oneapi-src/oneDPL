@@ -99,13 +99,13 @@ class philox_engine
         get_odd_element_array(std::array{_consts...}, std::make_index_sequence<__array_size>{});
 
     static constexpr scalar_type
-    min()
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         return 0;
     }
 
     static constexpr scalar_type
-    max()
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         // equals to 2^w - 1
         return in_mask;

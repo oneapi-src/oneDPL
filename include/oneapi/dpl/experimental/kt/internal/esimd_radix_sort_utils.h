@@ -92,7 +92,7 @@ constexpr _T
 __sort_identity()
 {
     if constexpr (__is_ascending)
-        return ::std::numeric_limits<_T>::max();
+        return (std::numeric_limits<_T>::max)();
     else
         return ::std::numeric_limits<_T>::lowest();
 }
@@ -152,7 +152,7 @@ __order_preserving_cast(__dpl_esimd::__ns::simd<_Int, _N> __src)
     using _UInt = ::std::make_unsigned_t<_Int>;
     // __mask: 100..0 for ascending, 011..1 for descending
     constexpr _UInt __mask =
-        (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits : ::std::numeric_limits<_UInt>::max() >> 1;
+        (__is_ascending) ? _UInt(1) << (std::numeric_limits<_Int>::digits : ::std::numeric_limits<_UInt>::max)() >> 1;
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
 

@@ -53,12 +53,12 @@ class subtract_with_carry_engine
     static constexpr size_t short_lag = _S;
     static constexpr size_t long_lag = _R;
     static constexpr scalar_type
-    min()
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         return 0u;
     }
     static constexpr scalar_type
-    max()
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         return (static_cast<scalar_type>(1u) << word_size) - static_cast<scalar_type>(1u);
     }
@@ -118,7 +118,7 @@ class subtract_with_carry_engine
             return std::equal(__x.x_, __x.x_ + _R, __y.x_);
         if (__x.i_ == 0 || __y.i_ == 0)
         {
-            size_t __j = std::min(_R - __x.i_, _R - __y.i_);
+            size_t __j = (std::min)(_R - __x.i_, _R - __y.i_);
             if (!std::equal(__x.x_ + __x.i_, __x.x_ + __x.i_ + __j, __y.x_ + __y.i_))
                 return false;
             if (__x.i_ == 0)
@@ -174,7 +174,7 @@ class subtract_with_carry_engine
 
         for (size_t __i = 0; __i < long_lag; ++__i)
         {
-            x_[__i] = static_cast<scalar_type>(__engine() & max());
+            x_[__i] = static_cast<scalar_type>(__engine() & (max)());
 
             if (word_size > 32)
             {
@@ -182,7 +182,7 @@ class subtract_with_carry_engine
                 x_[__i] = x_[__i] + __tmp;
             }
 
-            x_[__i] &= max();
+            x_[__i] &= (max)();
         }
         c_ = x_[long_lag - 1] == 0;
     }
@@ -194,7 +194,7 @@ class subtract_with_carry_engine
         const scalar_type& __xs = x_[(i_ + (long_lag - short_lag)) % long_lag];
         scalar_type& __xr = x_[i_];
         scalar_type __new_c = c_ == 0 ? __xs < __xr : __xs != 0 ? __xs <= __xr : 1;
-        x_[i_] = __xr = (__xs - __xr - c_) & max();
+        x_[i_] = __xr = (__xs - __xr - c_) & (max)();
         c_ = __new_c;
         i_ = (i_ + 1) % long_lag;
         return __xr;

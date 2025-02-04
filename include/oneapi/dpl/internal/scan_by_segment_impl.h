@@ -142,7 +142,7 @@ struct __sycl_scan_by_segment_impl
         auto __seg_scan_prefix_kernel =
             __par_backend_hetero::__internal::__kernel_compiler<_SegScanPrefixKernel>::__compile(__exec);
         __wgroup_size =
-            ::std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_scan_wg_kernel),
+            (std::min)({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_scan_wg_kernel),
                         oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_scan_prefix_kernel)});
 #endif
 
@@ -223,7 +223,7 @@ struct __sycl_scan_by_segment_impl
                     bool __group_has_segment_break = (__closest_seg_id != __no_segment_break);
 
                     //get rid of no segment end found flag
-                    __closest_seg_id = ::std::max(::std::int32_t(0), __closest_seg_id);
+                    __closest_seg_id = (std::max)(::std::int32_t(0), __closest_seg_id);
                     __val_type __carry_in =
                         __wg_segmented_scan(__item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator,
                                             __identity, __binary_op, __wgroup_size); // need to use exclusive scan delta

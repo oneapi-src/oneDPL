@@ -65,7 +65,7 @@ __max_work_group_size(const _ExecutionPolicy& __policy, std::size_t __wg_size_li
     // Limit the maximum work-group size supported by the device to optimize the throughput or minimize communication
     // costs. This is limited to 8192 which is the highest current limit of the tested hardware (opencl:cpu devices) to
     // prevent huge work-group sizes returned on some devices (e.g., FPGU emulation).
-    return std::min(__wg_size, __wg_size_limit);
+    return (std::min)(__wg_size, __wg_size_limit);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
@@ -863,7 +863,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     using _Head = typename ::std::conditional_t<
         sizeof...(_Vals) != 0,
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
-        ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
+        ::std::integral_constant<::std::uint32_t, (std::numeric_limits<::std::uint32_t>::max)()>>::type;
 
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
 
@@ -936,7 +936,7 @@ struct __vector_load
     void
     operator()(/*__is_full*/ std::false_type, _IdxType __start_idx, _LoadOp __load_op, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
+        std::uint8_t __elements = (std::min)(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
             __load_op(__start_idx + __i, __i, __rngs...);
     }
@@ -987,7 +987,7 @@ struct __vector_walk
     void
     operator()(std::false_type, _IdxType __idx, _WalkFunction __f, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __idx});
+        std::uint8_t __elements = (std::min)(std::size_t{__vec_size}, std::size_t{__full_range_size - __idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
         {
             __f(__rngs[__idx + __i]...);
@@ -1013,7 +1013,7 @@ struct __vector_store
     void
     operator()(std::false_type, _IdxType __start_idx, _StoreOp __store_op, _Rngs&&... __rngs) const
     {
-        std::uint8_t __elements = std::min(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
+        std::uint8_t __elements = (std::min)(std::size_t{__vec_size}, std::size_t{__full_range_size - __start_idx});
         for (std::uint8_t __i = 0; __i < __elements; ++__i)
             __store_op(__i, __start_idx + __i, __rngs...);
     }

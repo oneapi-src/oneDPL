@@ -1469,10 +1469,10 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
                 {
                     return __local_min;
                 }
-                return ::std::min(__local_min, _DifferenceType(__result - __mask));
+                return (std::min)(__local_min, _DifferenceType(__result - __mask));
             },
             [](_DifferenceType __local_min1, _DifferenceType __local_min2) -> _DifferenceType {
-                return ::std::min(__local_min1, __local_min2);
+                return (std::min)(__local_min1, __local_min2);
             });
 
         // No elements to remove - exit
@@ -3615,7 +3615,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
         return __internal::__except_handler([&]() {
             return __internal::__parallel_set_op(
                 __tag, ::std::forward<_ExecutionPolicy>(__exec), __left_bound_seq_1, __last1, __first2, __last2,
-                __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return ::std::min(__n, __m); },
+                __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return (std::min)(__n, __m); },
                 [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
                    _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
                     return oneapi::dpl::__utils::__set_intersection_construct(
@@ -3633,7 +3633,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
         return __internal::__except_handler([&]() {
             __result = __internal::__parallel_set_op(
                 __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __left_bound_seq_2, __last2,
-                __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return ::std::min(__n, __m); },
+                __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return (std::min)(__n, __m); },
                 [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
                    _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
                     return oneapi::dpl::__utils::__set_intersection_construct(
@@ -4102,7 +4102,7 @@ template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _Pre
 __brick_mismatch(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
                  _RandomAccessIterator2 __last2, _Predicate __pred, /* __is_vector = */ ::std::true_type) noexcept
 {
-    auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+    auto __n = (std::min)(__last1 - __first1, __last2 - __first2);
     return __unseq_backend::__simd_first(__first1, __n, __first2, __not_pred<_Predicate&>(__pred));
 }
 
@@ -4124,7 +4124,7 @@ __pattern_mismatch(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                    _Predicate __pred)
 {
     return __internal::__except_handler([&]() {
-        auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+        auto __n = (std::min)(__last1 - __first1, __last2 - __first2);
         auto __result = __internal::__parallel_find(
             __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
             [__first1, __first2, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -4170,7 +4170,7 @@ __brick_lexicographical_compare(_RandomAccessIterator1 __first1, _RandomAccessIt
         typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference ref_type2;
         --__last1;
         --__last2;
-        auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+        auto __n = (std::min)(__last1 - __first1, __last2 - __first2);
         ::std::pair<_RandomAccessIterator1, _RandomAccessIterator2> __result = __unseq_backend::__simd_first(
             __first1, __n, __first2, [__comp](const ref_type1 __x, const ref_type2 __y) mutable {
                 return __comp(__x, __y) || __comp(__y, __x);
@@ -4222,7 +4222,7 @@ __pattern_lexicographical_compare(__parallel_tag<_IsVector> __tag, _ExecutionPol
         return __internal::__except_handler([&]() {
             --__last1;
             --__last2;
-            auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+            auto __n = (std::min)(__last1 - __first1, __last2 - __first2);
             auto __result = __internal::__parallel_find(
                 __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
                 [__first1, __first2, &__comp](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -4321,7 +4321,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
     {
         for (auto __k = __n; __k < __size; __k += __n)
         {
-            auto __end = ::std::min(__k + __n, __size);
+            auto __end = (std::min)(__k + __n, __size);
             __unseq_backend::__simd_walk_2(__first + __k, __end - __k, __first + __k - __n,
                                            [](_ReferenceType __x, _ReferenceType __y) { __y = ::std::move(__x); });
         }
@@ -4375,7 +4375,7 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rand
             //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
             for (auto __k = __n; __k < __size; __k += __n)
             {
-                auto __end = ::std::min(__k + __n, __size);
+                auto __end = (std::min)(__k + __n, __size);
                 __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
                                               [__first, __n](_DiffType __i, _DiffType __j) {
                                                   __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(

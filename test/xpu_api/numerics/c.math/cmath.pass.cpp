@@ -260,8 +260,8 @@ void test_isinf()
     assert(dpl::isinf(0) == false);
     assert(dpl::isinf(1) == false);
     assert(dpl::isinf(-1) == false);
-    assert(dpl::isinf(std::numeric_limits<int>::max()) == false);
-    assert(dpl::isinf(std::numeric_limits<int>::min()) == false);
+    assert(dpl::isinf((std::numeric_limits<int>::max)()) == false);
+    assert(dpl::isinf((std::numeric_limits<int>::min)()) == false);
 #endif // !_PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN
 
 #ifdef __clang__
@@ -347,8 +347,8 @@ void test_isnan()
     assert(dpl::isnan(0) == false);
     assert(dpl::isnan(1) == false);
     assert(dpl::isnan(-1) == false);
-    assert(dpl::isnan(std::numeric_limits<int>::max()) == false);
-    assert(dpl::isnan(std::numeric_limits<int>::min()) == false);
+    assert(dpl::isnan((std::numeric_limits<int>::max)()) == false);
+    assert(dpl::isnan((std::numeric_limits<int>::min)()) == false);
 #endif // !_PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN
 
 #ifdef __clang__

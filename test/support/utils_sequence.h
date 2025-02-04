@@ -200,7 +200,7 @@ Sequence<T>::print() const
 #if PRINT_FULL_SEQUENCE_CONTENT
     ::std::copy(begin(), end(), ::std::ostream_iterator<T>(::std::cout, " "));
 #else
-    const auto printable_size = ::std::min(max_print_count, size());
+    const auto printable_size = (std::min)(max_print_count, size());
     ::std::copy(begin(), begin() + printable_size, ::std::ostream_iterator<T>(::std::cout, " "));
 #endif // PRINT_FULL_SEQUENCE_CONTENT
     ::std::cout << " } " << ::std::endl;

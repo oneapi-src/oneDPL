@@ -79,10 +79,10 @@ struct __group_merge_path_sorter
         {
             const std::uint32_t __id_local = __id % __next_sorted;
             // Borders of the ranges to be merged
-            const std::uint32_t __start1 = std::min(__id - __id_local, __end);
-            const std::uint32_t __end1 = std::min(__start1 + __sorted, __end);
+            const std::uint32_t __start1 = (std::min)(__id - __id_local, __end);
+            const std::uint32_t __end1 = (std::min)(__start1 + __sorted, __end);
             const std::uint32_t __start2 = __end1;
-            const std::uint32_t __end2 = std::min(__start2 + __sorted, __end);
+            const std::uint32_t __end2 = (std::min)(__start2 + __sorted, __end);
             const std::uint32_t __n1 = __end1 - __start1;
             const std::uint32_t __n2 = __end2 - __start2;
 
@@ -171,8 +171,8 @@ struct __leaf_sorter
         // TODO: set a threshold for bubble sorter (likely 4 items)
         std::uint32_t __item_start = __sg_start + __sg_local_id * __data_per_workitem;
         std::uint32_t __item_end = __item_start + __data_per_workitem;
-        __item_start = std::min(__item_start, __adjusted_process_size);
-        __item_end = std::min(__item_end, __adjusted_process_size);
+        __item_start = (std::min)(__item_start, __adjusted_process_size);
+        __item_end = (std::min)(__item_end, __adjusted_process_size);
         __sub_group_sorter.sort(__storage_acc, __comp, __item_start, __item_end);
         __dpl_sycl::__group_barrier(__item);
 
@@ -791,7 +791,7 @@ auto
 __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                      _Compare __comp)
 {
-    if (__rng.size() <= std::numeric_limits<std::uint32_t>::max())
+    if (__rng.size() <= (std::numeric_limits<std::uint32_t>::max)())
     {
         return __submit_selecting_leaf<std::uint32_t>(std::forward<_ExecutionPolicy>(__exec),
                                                       std::forward<_Range>(__rng), __comp);

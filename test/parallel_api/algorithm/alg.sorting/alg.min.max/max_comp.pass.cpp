@@ -31,7 +31,7 @@ template <class T, class C>
 void
 test(const T& a, const T& b, C c, const T& x)
 {
-    assert(&dpl::max(a, b, c) == &x);
+    assert(&(dpl::max)(a, b, c) == &x);
 }
 
 ONEDPL_TEST_NUM_MAIN
@@ -58,8 +58,8 @@ ONEDPL_TEST_NUM_MAIN
     {
     constexpr int x = 1;
     constexpr int y = 0;
-    static_assert(dpl::max(x, y, dpl::greater<int>()) == y);
-    static_assert(dpl::max(y, x, dpl::greater<int>()) == y);
+    static_assert((dpl::max)(x, y, dpl::greater<int>()) == y);
+    static_assert((dpl::max)(y, x, dpl::greater<int>()) == y);
     }
 #endif
 

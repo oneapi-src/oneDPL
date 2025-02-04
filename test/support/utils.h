@@ -990,7 +990,7 @@ generate_arithmetic_data(T* input, std::size_t size, std::uint32_t seed)
     {
         // no uniform_int_distribution for chars
         using GenT = std::conditional_t<sizeof(T) < sizeof(short), int, T>;
-        std::uniform_int_distribution<GenT> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        std::uniform_int_distribution<GenT> dist(std::numeric_limits<T>::lowest(), (std::numeric_limits<T>::max)());
         std::generate(input, input + unique_threshold, [&] { return T(dist(gen)); });
     }
     else
@@ -998,7 +998,7 @@ generate_arithmetic_data(T* input, std::size_t size, std::uint32_t seed)
         // log2 - exp2 transformation allows generating floating point values,
         // which distribution resembles uniform distribution of their bit representation
         // This is useful for checking different cases of radix sort
-        std::uniform_real_distribution<T> dist_real(std::numeric_limits<T>::min(), log2(std::numeric_limits<T>::max()));
+        std::uniform_real_distribution<T> dist_real((std::numeric_limits<T>::min)(), log2((std::numeric_limits<T>::max)()));
         std::uniform_int_distribution<int> dist_binary(0, 1);
         auto randomly_signed_real = [&dist_real, &dist_binary, &gen]()
         {
@@ -1029,7 +1029,7 @@ get_pattern_for_max_n()
     constexpr std::size_t max_work_group_size = 512;
     std::size_t __max_n = multiplier * max_iters_per_item * max_work_group_size *
                           d.get_info<sycl::info::device::max_compute_units>();
-    __max_n = std::min(std::size_t{10000000}, __max_n);
+    __max_n = (std::min)(std::size_t{10000000}, __max_n);
     return __max_n;
 #else
     return TestUtils::max_n;

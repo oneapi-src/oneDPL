@@ -8821,7 +8821,7 @@ struct inplace_merge_fn
             ++dist2;
         }
 
-        const auto sz = nano::min(dist1, dist2);
+        const auto sz = (nano::min)(dist1, dist2);
         auto buf = detail::temporary_vector<iter_value_t<I>>(sz);
 
         if (buf.capacity() >= static_cast<::std::size_t>(sz))
@@ -12467,8 +12467,8 @@ struct uniform_random_bit_generator_concept
 
     template <typename G>
     auto
-    requires_() -> decltype(requires_expr<same_as<decltype(G::min()), invoke_result_t<G&>>>{},
-                            requires_expr<same_as<decltype(G::max()), invoke_result_t<G&>>>{});
+    requires_() -> decltype(requires_expr<same_as<decltype((G::min)()), invoke_result_t<G&>>>{},
+                            requires_expr<same_as<decltype((G::max)()), invoke_result_t<G&>>>{});
 };
 
 } // namespace detail
@@ -12502,7 +12502,7 @@ struct sample_fn
 
         auto unsampled_size = nano::distance(first, last);
 
-        for (n = nano::min(n, unsampled_size); n != 0; ++first)
+        for (n = (nano::min)(n, unsampled_size); n != 0; ++first)
         {
             if (D(g, param_t(0, --unsampled_size)) < n)
             {
@@ -12539,7 +12539,7 @@ struct sample_fn
             }
         }
 
-        return out + nano::min(n, k);
+        return out + (nano::min)(n, k);
     }
 
     template <typename I, typename S, typename O, typename Gen>
@@ -13705,7 +13705,7 @@ struct stable_sort_fn
                     .out;
             first += two_step;
         }
-        step_size = nano::min(iter_difference_t<I>(last - first), step_size);
+        step_size = (nano::min)(iter_difference_t<I>(last - first), step_size);
         nano::merge(nano::make_move_iterator(first), nano::make_move_iterator(first + step_size),
                     nano::make_move_iterator(first + step_size), nano::make_move_iterator(last), result,
                     ::std::ref(comp), ::std::ref(proj), ::std::ref(proj));
@@ -18711,7 +18711,7 @@ struct take_view : view_interface<take_view<V>>
     size()
     {
         auto n = ranges::size(base_);
-        return ranges::min(n, static_cast<decltype(n)>(count_));
+        return (ranges::min)(n, static_cast<decltype(n)>(count_));
     }
 
     template <typename VV = V, ::std::enable_if_t<sized_range<const VV>, int> = 0>
@@ -18719,7 +18719,7 @@ struct take_view : view_interface<take_view<V>>
     size() const
     {
         auto n = ranges::size(base_);
-        return ranges::min(n, static_cast<decltype(n)>(count_));
+        return (ranges::min)(n, static_cast<decltype(n)>(count_));
     }
 };
 

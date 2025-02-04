@@ -865,8 +865,8 @@ class __merge_func
         assert(__nx > 0 && __ny > 0);
         assert(_M_nsort > 0);
 
-        auto __kx = ::std::min(_M_nsort, __nx);
-        auto __ky = ::std::min(_M_nsort, __ny);
+        auto __kx = (std::min)(_M_nsort, __nx);
+        auto __ky = (std::min)(_M_nsort, __ny);
 
         assert(_x_orig == _y_orig);
 
@@ -1136,7 +1136,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
     assert(_M_nsort > 0);
 
     const _SizeType __n = _M_xe - _M_xs;
-    const _SizeType __nmerge = ::std::min(_M_nsort, __n);
+    const _SizeType __nmerge = (std::min)(_M_nsort, __n);
     const _SizeType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
     if (__n <= __sort_cut_off)
     {

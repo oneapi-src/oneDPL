@@ -164,7 +164,7 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    const bool use_32bit_indexing = size <= (std::numeric_limits<std::uint32_t>::max)();
     __bknd::__parallel_for(
         _BackendTag{}, ::std::forward<decltype(policy)>(policy),
         __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::lower_bound>{
@@ -197,7 +197,7 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    const bool use_32bit_indexing = size <= (std::numeric_limits<std::uint32_t>::max)();
     __bknd::__parallel_for(
         _BackendTag{}, std::forward<decltype(policy)>(policy),
         __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::upper_bound>{
@@ -230,7 +230,7 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    const bool use_32bit_indexing = size <= std::numeric_limits<std::uint32_t>::max();
+    const bool use_32bit_indexing = size <= (std::numeric_limits<std::uint32_t>::max)();
     __bknd::__parallel_for(
         _BackendTag{}, std::forward<decltype(policy)>(policy),
         __custom_brick<StrictWeakOrdering, decltype(size), decltype(zip_vw), search_algorithm::binary_search>{

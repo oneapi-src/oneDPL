@@ -44,7 +44,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack1&& __rng_p
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  __data_per_work_item = 256, __bin_count = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
-    __dpl_esimd::__ns::slm_init<::std::max(__reorder_slm_size, __bin_hist_slm_size + __incoming_offset_slm_size)>();
+    __dpl_esimd::__ns::slm_init<(std::max)(__reorder_slm_size, __bin_hist_slm_size + __incoming_offset_slm_size)>();
 
     const ::std::uint32_t __local_tid = __idx.get_local_linear_id();
 
@@ -401,7 +401,7 @@ struct __radix_sort_onesweep_kernel
             __work_item_all_hists_size + __group_hist_size + __global_hist_size;
         constexpr ::std::uint32_t __reorder_substage_slm = __reorder_size + __global_hist_size;
 
-        constexpr ::std::uint32_t __slm_size = ::std::max(__offset_calc_substage_slm, __reorder_substage_slm);
+        constexpr ::std::uint32_t __slm_size = (std::max)(__offset_calc_substage_slm, __reorder_substage_slm);
         // Workaround: Align SLM allocation at 2048 byte border to avoid internal compiler error.
         // The error happens when allocating 65 * 1024 bytes, when e.g. T=int, DataPerWorkItem=256, WorkGroupSize=64
         // TODO: use __slm_size once the issue with SLM allocation has been fixed

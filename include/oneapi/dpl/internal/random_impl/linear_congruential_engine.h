@@ -58,13 +58,13 @@ class linear_congruential_engine
     static constexpr scalar_type increment = _C;
     static constexpr scalar_type modulus = _M;
     static constexpr scalar_type
-    min()
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         return (increment == static_cast<scalar_type>(0u)) ? static_cast<scalar_type>(1u)
                                                            : static_cast<scalar_type>(0u);
     }
     static constexpr scalar_type
-    max()
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
         return modulus - static_cast<scalar_type>(1u);
     }
@@ -94,8 +94,8 @@ class linear_congruential_engine
         // Skipping sequence
         if (__num_to_skip == 0)
             return;
-        constexpr bool __flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
-                                (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
+        constexpr bool __flag = (increment == 0) && (modulus < (std::numeric_limits<::std::uint32_t>::max)()) &&
+                                (multiplier < (std::numeric_limits<::std::uint32_t>::max)());
         skip_seq<internal::type_traits_t<result_type>::num_elems, __flag>(__num_to_skip);
     }
 

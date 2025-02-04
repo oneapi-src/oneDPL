@@ -30,23 +30,23 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    int i = dpl::max({2, 3, 1}, dpl::greater<int>());
+    int i = (dpl::max)({2, 3, 1}, dpl::greater<int>());
     assert(i == 1);
-    i = dpl::max({2, 1, 3}, dpl::greater<int>());
+    i = (dpl::max)({2, 1, 3}, dpl::greater<int>());
     assert(i == 1);
-    i = dpl::max({3, 1, 2}, dpl::greater<int>());
+    i = (dpl::max)({3, 1, 2}, dpl::greater<int>());
     assert(i == 1);
-    i = dpl::max({3, 2, 1}, dpl::greater<int>());
+    i = (dpl::max)({3, 2, 1}, dpl::greater<int>());
     assert(i == 1);
-    i = dpl::max({1, 2, 3}, dpl::greater<int>());
+    i = (dpl::max)({1, 2, 3}, dpl::greater<int>());
     assert(i == 1);
-    i = dpl::max({1, 3, 2}, dpl::greater<int>());
+    i = (dpl::max)({1, 3, 2}, dpl::greater<int>());
     assert(i == 1);
 #if TEST_STD_VER >= 14
     {
-    static_assert(dpl::max({1, 3, 2}, dpl::greater<int>()) == 1);
-    static_assert(dpl::max({2, 1, 3}, dpl::greater<int>()) == 1);
-    static_assert(dpl::max({3, 2, 1}, dpl::greater<int>()) == 1);
+    static_assert((dpl::max)({1, 3, 2}, dpl::greater<int>()) == 1);
+    static_assert((dpl::max)({2, 1, 3}, dpl::greater<int>()) == 1);
+    static_assert((dpl::max)({3, 2, 1}, dpl::greater<int>()) == 1);
     }
 #endif
 

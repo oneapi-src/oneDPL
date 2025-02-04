@@ -120,13 +120,13 @@ class normal_distribution
     }
 
     scalar_type
-    min() const
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return -(::std::numeric_limits<scalar_type>::infinity());
     }
 
     scalar_type
-    max() const
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return ::std::numeric_limits<scalar_type>::infinity();
     }

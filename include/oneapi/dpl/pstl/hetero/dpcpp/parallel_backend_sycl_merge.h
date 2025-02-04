@@ -491,7 +491,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     {
         using _WiIndex = std::uint32_t;
         static_assert(__get_starting_size_limit_for_large_submitter<__value_type>() <=
-                      std::numeric_limits<_WiIndex>::max());
+                      (std::numeric_limits<_WiIndex>::max)());
         using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __merge_kernel_name<_CustomName, _WiIndex>>;
         return __parallel_merge_submitter<_OutSizeLimit, _WiIndex, _MergeKernelName>()(
@@ -500,7 +500,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
     }
     else
     {
-        if (__n <= std::numeric_limits<std::uint32_t>::max())
+        if (__n <= (std::numeric_limits<std::uint32_t>::max)())
         {
             using _WiIndex = std::uint32_t;
             using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<

@@ -241,12 +241,12 @@ test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last *
 
     // Test negative stride value with non-forward iterators on range (first - 1, first)
     auto new_first = first;
-    ::std::advance(new_first, ::std::max(Ssize(0), Ssize(n) - 1));
+    ::std::advance(new_first, (std::max)(Ssize(0), Ssize(n) - 1));
 
     auto new_last = first;
 
     auto new_expected_first = expected_first;
-    ::std::advance(new_expected_first, ::std::max(Ssize(0), Ssize(n) - 1));
+    ::std::advance(new_expected_first, (std::max)(Ssize(0), Ssize(n) - 1));
 
     auto new_expected_last = expected_first;
 

@@ -107,7 +107,7 @@ DEFINE_TEST(test_unique)
 
         bool is_correct = (tuple_lastnew - tuple_first1) == expected_size;
         host_keys.retrieve_data();
-        for (int i = 0; i < std::min(tuple_lastnew - tuple_first1, expected_size) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(tuple_lastnew - tuple_first1, expected_size) && is_correct; ++i)
             if ((*host_keys.get() + i) != i + 1)
                 is_correct = false;
 
@@ -156,7 +156,7 @@ DEFINE_TEST(test_unique_copy)
 
         bool is_correct = (tuple_last2 - tuple_first2) == expected_size;
         host_vals.retrieve_data();
-        for (int i = 0; i < std::min(tuple_last2 - tuple_first2, expected_size) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(tuple_last2 - tuple_first2, expected_size) && is_correct; ++i)
             if ((*host_vals.get() + i) != i + 1)
                 is_correct = false;
 

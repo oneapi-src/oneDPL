@@ -103,15 +103,15 @@ class lognormal_distribution
     }
 
     scalar_type
-    min() const
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return scalar_type{};
     }
 
     scalar_type
-    max() const
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
-        return std::numeric_limits<scalar_type>::max();
+        return (std::numeric_limits<scalar_type>::max)();
     }
 
     // Generate functions

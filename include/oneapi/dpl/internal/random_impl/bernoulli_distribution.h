@@ -88,13 +88,13 @@ class bernoulli_distribution
     }
 
     scalar_type
-    min() const
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return false;
     }
 
     scalar_type
-    max() const
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return true;
     }

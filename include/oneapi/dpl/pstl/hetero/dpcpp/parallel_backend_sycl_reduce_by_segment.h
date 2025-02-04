@@ -138,7 +138,7 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
     auto __seg_reduce_prefix_kernel =
         __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(__exec);
     __wgroup_size =
-        std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
+        (std::min)({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
                   oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_offset_kernel),
                   oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_wg_kernel),
                   oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_prefix_kernel)});

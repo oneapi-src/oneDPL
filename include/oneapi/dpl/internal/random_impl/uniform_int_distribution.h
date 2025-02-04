@@ -37,7 +37,7 @@ class uniform_int_distribution
       public:
         using distribution_type = uniform_int_distribution<result_type>;
         param_type() : param_type(scalar_type{0}) {}
-        explicit param_type(scalar_type a, scalar_type b = ::std::numeric_limits<scalar_type>::max()) : a_(a), b_(b) {}
+        explicit param_type(scalar_type a, scalar_type b = (std::numeric_limits<scalar_type>::max)()) : a_(a), b_(b) {}
         scalar_type
         a() const
         {
@@ -66,7 +66,7 @@ class uniform_int_distribution
 
     // Constructors
     uniform_int_distribution() : uniform_int_distribution(scalar_type{0}) {}
-    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = ::std::numeric_limits<scalar_type>::max())
+    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = (std::numeric_limits<scalar_type>::max)())
         : a_(__a), b_(__b)
     {
     }
@@ -105,13 +105,13 @@ class uniform_int_distribution
     }
 
     scalar_type
-    min() const
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return a();
     }
 
     scalar_type
-    max() const
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION () const
     {
         return b();
     }

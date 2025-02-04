@@ -73,7 +73,7 @@ class auto_tune_policy
 
         report_clock_type::time_point t0_;
 
-        timing_t best_timing_ = std::numeric_limits<timing_t>::max();
+        timing_t best_timing_ = (std::numeric_limits<timing_t>::max)();
         resource_with_index_t best_resource_;
 
         const size_type max_resource_to_profile_;
@@ -130,7 +130,7 @@ class auto_tune_policy
             std::lock_guard<std::mutex> l(m_);
 
             // ignore the 1st timing to cover for JIT compilation
-            auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, std::numeric_limits<timing_t>::max()});
+            auto emplace_res = time_by_index_.try_emplace(index, time_data_t{0, (std::numeric_limits<timing_t>::max)()});
 
             // emplace_res is std::pair<time_by_index_t::iterator, bool> where
             //  - emplace_res.first iterate inserted or existing element;

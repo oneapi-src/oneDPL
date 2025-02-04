@@ -420,7 +420,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
 
         auto __global_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::global_mem_size>();
         const ::std::size_t __max_segments =
-            ::std::min(__global_mem_size / (__num_bins * sizeof(_bin_type)),
+            (std::min)(__global_mem_size / (__num_bins * sizeof(_bin_type)),
                        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __min_iters_per_work_item));
         const ::std::size_t __iters_per_work_item =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, __max_segments * __work_group_size);

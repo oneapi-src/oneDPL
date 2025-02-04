@@ -91,7 +91,7 @@ struct __transform_fn
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
 
         using _Size = std::common_type_t<std::ranges::range_size_t<_R>, std::ranges::range_size_t<_OutRange>>;
-        const _Size __size = std::ranges::min((_Size)std::ranges::size(__r), (_Size)std::ranges::size(__out_r));
+        const _Size __size = (std::ranges::min)((_Size)std::ranges::size(__r), (_Size)std::ranges::size(__out_r));
 
         oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
             std::ranges::take_view(__r, __size), std::ranges::take_view(__out_r, __size), __op, __proj);
@@ -119,9 +119,9 @@ struct __transform_fn
             oneapi::dpl::__internal::__range_size_t<_R2>, std::ranges::range_size_t<_OutRange>>;
         _Size __size = std::ranges::size(__out_r);
         if constexpr(std::ranges::sized_range<_R1>)
-            __size = std::ranges::min(__size, (_Size)std::ranges::size(__r1));
+            __size = (std::ranges::min)(__size, (_Size)std::ranges::size(__r1));
         if constexpr(std::ranges::sized_range<_R2>)
-            __size = std::ranges::min(__size, (_Size)std::ranges::size(__r2));
+            __size = (std::ranges::min)(__size, (_Size)std::ranges::size(__r2));
 
         //take_view doesn't make unsized range sized, so subrange is used below
         oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
@@ -508,7 +508,7 @@ struct __copy_fn
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec);
 
         using _Size = std::common_type_t<std::ranges::range_size_t<_InRange>, std::ranges::range_size_t<_OutRange>>;
-        const _Size __size = std::ranges::min((_Size)std::ranges::size(__in_r), (_Size)std::ranges::size(__out_r));
+        const _Size __size = (std::ranges::min)((_Size)std::ranges::size(__in_r), (_Size)std::ranges::size(__out_r));
 
         oneapi::dpl::__internal::__ranges::__pattern_copy(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
             std::ranges::take_view(__in_r, __size), std::ranges::take_view(__out_r, __size));

@@ -298,7 +298,7 @@ struct test_permutation_iterator
     void
     operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2)
     {
-        T1 iota_max = ::std::numeric_limits<T1>::max() < in1.size() ? ::std::numeric_limits<T1>::max() : in1.size();
+        T1 iota_max = ((std::numeric_limits<T1>::max)() < in1.size() ? ::std::numeric_limits<T1>::max)() : in1.size();
         ::std::iota(in1.begin(), in1.begin() + iota_max, T1(0));
         ::std::reverse_copy(in1.begin(), in1.begin() + iota_max, in2.begin());
 

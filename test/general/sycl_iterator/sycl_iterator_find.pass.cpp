@@ -471,7 +471,7 @@ DEFINE_TEST(test_search_n)
 
             // Search for sequence of lesser size
             res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last,
-                                ::std::max(end - start - 1, (size_t)1), T(22));
+                                (std::max)(end - start - 1, (size_t)1), T(22));
             wait_and_throw(exec);
 
             EXPECT_TRUE(res - first == start, "wrong effect from search_21");
@@ -533,7 +533,7 @@ DEFINE_TEST(test_search_n)
             host_keys.update_data();
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 8>>(exec), first, last,
-                                     ::std::min(end1 - start1, end2 - start2), T(66));
+                                     (std::min)(end1 - start1, end2 - start2), T(66));
             wait_and_throw(exec);
 
             EXPECT_TRUE(res - first == start1, "wrong effect from search_7");

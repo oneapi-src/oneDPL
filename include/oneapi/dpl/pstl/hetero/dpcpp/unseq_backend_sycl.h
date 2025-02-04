@@ -559,7 +559,7 @@ struct transform_reduce
             _Size __last_wg_remainder = __n % __items_per_work_group;
             // Adjust remainder and wg size for vector size
             _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, _VecSize);
-            _Size __last_wg_contrib = std::min(__last_wg_vec, __work_group_size);
+            _Size __last_wg_contrib = (std::min)(__last_wg_vec, __work_group_size);
             return __full_group_contrib + __last_wg_contrib;
         }
         // else (if not commutative)
@@ -1239,7 +1239,7 @@ struct __reverse_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
         const std::size_t __n = __size;
         const std::size_t __remaining_elements = __n - __idx;
         const std::uint8_t __elements_to_process =
-            std::min(static_cast<std::size_t>(__base_t::__preferred_vector_size), __remaining_elements);
+            (std::min)(static_cast<std::size_t>(__base_t::__preferred_vector_size), __remaining_elements);
         const std::size_t __output_start = __size - __idx - __elements_to_process;
         // 1. Load vector to reverse
         _ValueType __rng1_vector[__base_t::__preferred_vector_size];
@@ -1312,10 +1312,10 @@ struct __rotate_copy : public walk_vector_or_scalar_base<_Range1, _Range2>
             // the first before the wraparound point and the second after.
             const std::size_t __remaining_elements = __n - __idx;
             const std::uint8_t __elements_to_process =
-                std::min(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
+                (std::min)(std::size_t{__base_t::__preferred_vector_size}, __remaining_elements);
             // __n - __wrapped_idx can safely fit into a uint8_t due to the condition check above.
             const std::uint8_t __loop1_elements =
-                std::min(__elements_to_process, static_cast<std::uint8_t>(__n - __wrapped_idx));
+                (std::min)(__elements_to_process, static_cast<std::uint8_t>(__n - __wrapped_idx));
             const std::uint8_t __loop2_elements = __elements_to_process - __loop1_elements;
             std::uint8_t __i = 0;
             for (__i = 0; __i < __loop1_elements; ++__i)
@@ -1473,7 +1473,7 @@ struct __brick_shift_left
                 // in branch divergence and masked execution of both vectorized and serial paths for all items in the
                 // sub-group which may worsen performance. Instead, have each item in the sub-group process its work
                 // serially.
-                for (_DiffType __j = 0; __j < std::min(std::size_t{__preferred_vector_size}, __n - __idx); ++__j)
+                for (_DiffType __j = 0; __j < (std::min)(std::size_t{__preferred_vector_size}, __n - __idx); ++__j)
                     if (__read_offset + __j < __size)
                         __rng[__write_offset + __j] = __rng[__read_offset + __j];
             }

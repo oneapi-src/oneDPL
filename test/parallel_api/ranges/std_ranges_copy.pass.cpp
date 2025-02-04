@@ -25,7 +25,7 @@ main()
     auto copy_checker = [](std::ranges::random_access_range auto&& r_in,
                            std::ranges::random_access_range auto&& r_out)
     {
-        const auto size = std::ranges::min(std::ranges::size(r_in), std::ranges::size(r_out));
+        const auto size = (std::ranges::min)(std::ranges::size(r_in), std::ranges::size(r_out));
 
         auto res = std::ranges::copy(std::ranges::take_view(r_in, size), std::ranges::take_view(r_out, size).begin());
 

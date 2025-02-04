@@ -56,9 +56,9 @@ kernel_test1()
                             for (int j = 6; j < 12; ++j)
                             {
                                 ret &= (equal_range(&access[0] + i, &access[0] + j, 1).first ==
-                                        &access[0] + std::max(i, 4));
+                                        &access[0] + (std::max)(i, 4));
                                 ret &= (equal_range(&access[0] + i, &access[0] + j, 1).second ==
-                                        &access[0] + std::min(j, 8));
+                                        &access[0] + (std::min)(j, 8));
                             }
                         }
                         ret_access[0] = ret;

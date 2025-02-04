@@ -58,14 +58,14 @@ class discard_block_engine
     static constexpr ::std::size_t block_size = _P;
     static constexpr ::std::size_t used_block = _R;
     static constexpr scalar_type
-    min()
+    min _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
-        return _Engine::min();
+        return (_Engine::min)();
     }
     static constexpr scalar_type
-    max()
+    max _ONEDPL_PREVENT_MACRO_SUBSTITUTION ()
     {
-        return _Engine::max();
+        return (_Engine::max)();
     }
 
     // Constructors

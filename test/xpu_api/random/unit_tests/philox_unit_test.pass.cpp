@@ -443,7 +443,7 @@ counter_overflow_test()
     std::array<T, Engine::word_count> counter;
     for (int i = 0; i < Engine::word_count; i++)
     {
-        counter[i] = std::numeric_limits<T>::max();
+        counter[i] = (std::numeric_limits<T>::max)();
     }
 
     engine1.set_counter(counter);
@@ -496,7 +496,7 @@ discard_overflow_test()
         std::array<T, Engine::word_count> counter2 = {0};
         for (int i = Engine::word_count - overflown_position - 1; i < Engine::word_count - 1; ++i)
         {
-            counter2[i] = std::numeric_limits<T>::max();
+            counter2[i] = (std::numeric_limits<T>::max)();
         }
 
         engine2.set_counter(counter2);
@@ -508,7 +508,7 @@ discard_overflow_test()
 
         for (int i = 0; i < Engine::word_count; i++)
         {
-            engine2.discard(engine2.max());
+            engine2.discard((engine2.max)());
         }
 
         if (engine1() == engine2())
@@ -543,7 +543,7 @@ counter_management_test()
     Engine referenceEngine;
 
     // set the counter which value is 2-chunk bitsize
-    unsigned long long increment = ((unsigned long long)testedEngine.max() << Engine::word_size) | testedEngine.max();
+    unsigned long long increment = ((unsigned long long)(testedEngine.max)() << Engine::word_size) | (testedEngine.max)();
     unsigned long long counter_increment = increment / Engine::word_count;
 
     std::array<T, Engine::word_count> expected_counter = {0};

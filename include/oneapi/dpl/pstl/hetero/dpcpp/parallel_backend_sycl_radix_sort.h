@@ -72,7 +72,7 @@ __order_preserving_cast(_Int __val)
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
     constexpr _UInt __mask =
-        (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits : ::std::numeric_limits<_UInt>::max() >> 1;
+        (__is_ascending) ? _UInt(1) << (std::numeric_limits<_Int>::digits : ::std::numeric_limits<_UInt>::max)() >> 1;
     return __val ^ __mask;
 }
 
@@ -214,7 +214,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
-                const ::std::size_t __seg_end = sycl::min(__seg_start + __elem_per_segment, __n);
+                const ::std::size_t __seg_end = (sycl::min)(__seg_start + __elem_per_segment, __n);
                 for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end;
                      __val_idx += __wg_size)
                 {
@@ -289,7 +289,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
     // There are no local offsets for the first segment, but the rest segments should be scanned
     // with respect to the count value in the first segment what requires n + 1 positions
     const ::std::size_t __scan_size = __segments + 1;
-    __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
+    __scan_wg_size = (std::min)(__scan_size, __scan_wg_size);
 
     const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
@@ -481,7 +481,7 @@ __copy_kernel_for_radix_sort(::std::size_t __segments, const ::std::size_t __ele
     const ::std::size_t __seg_start = __elem_per_segment * __wgroup_idx;
     const ::std::size_t __n = __output_rng.size();
 
-    ::std::size_t __seg_end = sycl::min(__seg_start + __elem_per_segment, __n);
+    ::std::size_t __seg_end = (sycl::min)(__seg_start + __elem_per_segment, __n);
     // ensure that each work item in a subgroup does the same number of loop iterations
     const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
     __seg_end -= __residual;
@@ -587,8 +587,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     __offset_arr[__radix_state_idx] = __scanned_bin + __offset_rng[__local_offset_idx];
                 }
 
-                ::std::size_t __seg_end =
-                    sycl::min(__seg_start + __elem_per_segment, __n);
+                std::size_t __seg_end = (sycl::min)(__seg_start + __elem_per_segment, __n);
                 // ensure that each work item in a subgroup does the same number of loop iterations
                 const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
                 __seg_end -= __residual;
@@ -687,8 +686,8 @@ struct __parallel_radix_sort_iteration
         ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
         __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
         __scan_wg_size =
-            sycl::min(__scan_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __local_scan_kernel));
-        __count_wg_size = sycl::max(__count_sg_size, __reorder_sg_size);
+            (sycl::min)(__scan_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __local_scan_kernel));
+        __count_wg_size = (sycl::max)(__count_sg_size, __reorder_sg_size);
 #endif
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
@@ -701,7 +700,7 @@ struct __parallel_radix_sort_iteration
         // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
         __count_wg_size =
-            sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
+            (sycl::max)(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;

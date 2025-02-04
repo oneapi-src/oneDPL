@@ -140,7 +140,7 @@ DEFINE_TEST(test_unique)
 
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
-        for (int i = 0; i < ::std::min(result_size, expected_size) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(result_size, expected_size) && is_correct; ++i)
         {
             if (*(host_first1 + i) != i + 1)
             {
@@ -389,7 +389,7 @@ DEFINE_TEST(test_unique_copy)
 
         host_vals.retrieve_data();
         auto host_first2 = host_vals.get();
-        for (int i = 0; i < ::std::min(result_size, expected_size) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(result_size, expected_size) && is_correct; ++i)
         {
             if (*(host_first2 + i) != i + 1)
             {
@@ -452,7 +452,7 @@ DEFINE_TEST(test_partition_copy)
                       << exp.first - exp_true_first << "," << exp.second - exp_false_first << "}" << ::std::endl;
 #endif // _ONEDPL_DEBUG_SYCL
 
-        for (int i = 0; i < ::std::min(exp.first - exp_true_first, res.first - first2) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(exp.first - exp_true_first, res.first - first2) && is_correct; ++i)
         {
             if (*(exp_true_first + i) != *(host_vals.get() + i))
             {
@@ -464,7 +464,7 @@ DEFINE_TEST(test_partition_copy)
             }
         }
 
-        for (int i = 0; i < ::std::min(exp.second - exp_false_first, res.second - first3) && is_correct; ++i)
+        for (int i = 0; i < (std::min)(exp.second - exp_false_first, res.second - first3) && is_correct; ++i)
         {
             if (*(exp_false_first + i) != *(host_res.get() + i))
             {

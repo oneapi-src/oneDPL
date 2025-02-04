@@ -33,7 +33,7 @@ __abs_impl(_Source __t, ::std::true_type)
 {
     if (__t >= 0)
         return __t;
-    if (__t == ::std::numeric_limits<_Source>::min())
+    if (__t == (std::numeric_limits<_Source>::min)())
         return -static_cast<_Result>(__t);
     return -__t;
 };

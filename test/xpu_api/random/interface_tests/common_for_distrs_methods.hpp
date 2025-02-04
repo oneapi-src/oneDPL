@@ -27,8 +27,8 @@ std::int32_t
 check_params(oneapi::dpl::uniform_int_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{0};
-    Element_type<T> b = std::numeric_limits<Element_type<T>>::max();
-    return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
+    Element_type<T> b = (std::numeric_limits<Element_type<T>>::max)();
+    return ((distr.a() != a) || (distr.b() != b) || ((distr.min)() != a) || ((distr.max)() != b) ||
             (distr.param().a() != a) || (distr.param().b() != b));
 }
 
@@ -38,7 +38,7 @@ check_params(oneapi::dpl::uniform_real_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
-    return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
+    return ((distr.a() != a) || (distr.b() != b) || ((distr.min)() != a) || ((distr.max)() != b) ||
             (distr.param().a() != a) || (distr.param().b() != b));
 }
 
@@ -49,8 +49,8 @@ check_params(oneapi::dpl::normal_distribution<T>& distr)
     Element_type<T> mean = Element_type<T>{0.0};
     Element_type<T> stddev = Element_type<T>{1.0};
     return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
-            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) ||
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().mean() != mean) ||
+            ((distr.min)() > -(std::numeric_limits<Element_type<T>>::max)()) ||
+            ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) || (distr.param().mean() != mean) ||
             (distr.param().stddev() != stddev));
 }
 
@@ -59,8 +59,8 @@ std::int32_t
 check_params(oneapi::dpl::exponential_distribution<T>& distr)
 {
     Element_type<T> lambda = Element_type<T>{1.0};
-    return ((distr.lambda() != lambda) || (distr.min() != 0) ||
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+    return ((distr.lambda() != lambda) || ((distr.min)() != 0) ||
+            ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) || 
             (distr.param().lambda() != lambda));
 }
 
@@ -69,8 +69,8 @@ std::int32_t
 check_params(oneapi::dpl::bernoulli_distribution<T>& distr)
 {
     double p = 0.5;
-    return ((distr.p() != p) || (distr.min() != false) ||
-            (distr.max() != true) || (distr.param().p() != p));
+    return ((distr.p() != p) || ((distr.min)() != false) ||
+            ((distr.max)() != true) || (distr.param().p() != p));
 }
 
 template <class T>
@@ -78,8 +78,8 @@ std::int32_t
 check_params(oneapi::dpl::geometric_distribution<T>& distr)
 {
     double p = 0.5;
-    return ((distr.p() != p) || (distr.min() != 0) ||
-            (distr.max()  < std::numeric_limits<Element_type<T>>::max()) || 
+    return ((distr.p() != p) || ((distr.min)() != 0) ||
+            ((distr.max)()  < (std::numeric_limits<Element_type<T>>::max)()) || 
             (distr.param().p() != p));
 }
 
@@ -89,8 +89,8 @@ check_params(oneapi::dpl::weibull_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{1.0};
     Element_type<T> b = Element_type<T>{1.0};
-    return ((distr.a() != a) || (distr.b() != b) || (distr.min() != 0) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
+    return ((distr.a() != a) || (distr.b() != b) || ((distr.min)() != 0) || 
+            ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) ||
             (distr.param().a() != a) || (distr.param().b() != b));
 }
 
@@ -101,7 +101,7 @@ check_params(oneapi::dpl::lognormal_distribution<T>& distr)
     Element_type<T> m = Element_type<T>{0.0};
     Element_type<T> s = Element_type<T>{1.0};
     return ((distr.m() != m) || (distr.s() != s) ||
-            (distr.min() != 0) || (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            ((distr.min)() != 0) || ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) || 
             (distr.param().m() != m) || (distr.param().s() != s));
 }
 
@@ -112,8 +112,8 @@ check_params(oneapi::dpl::cauchy_distribution<T>& distr)
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            ((distr.min)() > std::numeric_limits<Element_type<T>>::lowest()) || 
+            ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) || 
             (distr.param().a() != a) || (distr.param().b() != b));
 }
 
@@ -124,8 +124,8 @@ check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            ((distr.min)() > std::numeric_limits<Element_type<T>>::lowest()) || 
+            ((distr.max)() < (std::numeric_limits<Element_type<T>>::max)()) || 
             (distr.param().a() != a) || (distr.param().b() != b));
 }
 
@@ -303,7 +303,7 @@ check_input_output(Distr& distr)
     }
     else if constexpr (std::is_same_v<Distr, oneapi::dpl::uniform_int_distribution<result_type>>) {
         params_type a{0};
-        params_type b = std::numeric_limits<params_type>::max();
+        params_type b = (std::numeric_limits<params_type>::max)();
 
         std::stringstream s;
         s << a << ' ' << b;

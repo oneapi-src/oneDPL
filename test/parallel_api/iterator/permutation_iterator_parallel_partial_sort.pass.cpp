@@ -56,7 +56,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
                 {
                     const auto testing_n = permItEnd - permItBegin;
                     // run at most 3 iters per n, 0 elements should be noop / cheap
-                    const auto partial_sorting_step = std::max(testing_n / 2, decltype(testing_n){1});
+                    const auto partial_sorting_step = (std::max)(testing_n / 2, decltype(testing_n){1});
                     for (::std::size_t p = 0; p <= testing_n; p += partial_sorting_step)
                     {
                         dpl::partial_sort(exec, permItBegin, permItBegin + p, permItEnd);
