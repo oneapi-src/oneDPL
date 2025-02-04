@@ -440,7 +440,7 @@ struct __parallel_reduce_then_scan_scan_submitter
                const std::uint32_t __inputs_per_sub_group, const std::uint32_t __inputs_per_item,
                const std::size_t __block_num, const sycl::kernel& __scan_kernel) const
     {
-        std::uint32_t __inputs_in_block = 
+        std::uint32_t __inputs_in_block =
             (std::min)(__n - __block_num * __max_block_size, std::size_t{__max_block_size});
         std::uint32_t __active_groups = oneapi::dpl::__internal::__dpl_ceiling_div(
             __inputs_in_block, __inputs_per_sub_group * __num_sub_groups_local);
