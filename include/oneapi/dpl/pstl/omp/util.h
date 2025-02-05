@@ -16,17 +16,12 @@
 #ifndef _ONEDPL_INTERNAL_OMP_UTIL_H
 #define _ONEDPL_INTERNAL_OMP_UTIL_H
 
-#include <algorithm>
-#include <atomic>
-#include <iterator>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <memory>
-#include <vector>
-#include <type_traits>
+#include <iterator> //std::iterator_traits, std::distance
+#include <cstddef> //std::size_t
+#include <memory> //std::allocator
+#include <type_traits> // std::decay, is_integral_v, enable_if_t
+#include <utility> // std::forward
 #include <omp.h>
-#include <tuple>
 
 #include "../parallel_backend_utils.h"
 #include "../unseq_backend_simd.h"
