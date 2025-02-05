@@ -309,15 +309,13 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 namespace __detail
 {
 
-template <template <typename, typename...> typename _Concrete, typename _ValueType, typename... _Args>
-struct __enumerable_thread_local_storage_base
+template <typename _ValueType, typename _GetNumThreads, typename _GetThreadNum, typename... _Args>
+struct __enumerable_thread_local_storage
 {
-    using derived_type = _Concrete<_ValueType, _Args...>;
 
     template <typename... _LocalArgs>
-    __enumerable_thread_local_storage_base(_LocalArgs&&... __args)
-        : __thread_specific_storage(derived_type::get_num_threads()), __num_elements(0),
-          __args(std::forward<_LocalArgs>(__args)...)
+    __enumerable_thread_local_storage(_LocalArgs&&... __args)
+        : __thread_specific_storage(_GetNumThreads{}()), __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
     {
     }
 
@@ -361,7 +359,7 @@ struct __enumerable_thread_local_storage_base
     _ValueType&
     get_for_current_thread()
     {
-        const std::size_t __i = derived_type::get_thread_num();
+        const std::size_t __i = _GetThreadNum{}();
         std::unique_ptr<_ValueType>& __thread_local_storage = __thread_specific_storage[__i];
         if (!__thread_local_storage)
         {
