@@ -153,13 +153,14 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 namespace __detail
 {
 
-template <typename _ValueType, typename... Args>
+template <typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage
-    : public oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
-          _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>
+    : public oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage,
+                                                                                    _ValueType, _Args...>
 {
-    using base_type = oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
-        _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>;
+    using base_type =
+        oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage,
+                                                                               _ValueType, _Args...>;
 
     template <typename... _LocalArgs>
     __enumerable_thread_local_storage(_LocalArgs&&... __args) : base_type(std::forward<_LocalArgs>(__args)...)
@@ -182,12 +183,12 @@ struct __enumerable_thread_local_storage
 } // namespace __detail
 
 // enumerable thread local storage should only be created from make function
-template <typename _ValueType, typename... Args>
-oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>
-__make_enumerable_tls(Args&&... __args)
+template <typename _ValueType, typename... _Args>
+oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, _Args...>
+__make_enumerable_tls(_Args&&... __args)
 {
-    return oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>(
-        std::forward<Args>(__args)...);
+    return oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, _Args...>(
+        std::forward<_Args>(__args)...);
 }
 } // namespace __omp_backend
 } // namespace dpl
