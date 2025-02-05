@@ -440,9 +440,7 @@ Known Issues and Limitations
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
 - Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
-- Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float (including: ``std::ldexp``, ``std::frexp``, ``std::acosh(std::complex<float>)``,``std::asin(std::complex<float>)``,
-``std::asinh(std::complex<float>)``, ``std::asoc(std::complex<float>)``, ``std::log(std::complex<float>)``, ``std::log10(std::complex<float>)``, ``std::pow(std::complex<float>, std::complex<float>)``,
-``std::sqrt(std::complex<float>)``) require device support for double precision.
+- Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support for double precision.
 - There is a known issue on Windows platform with trying to use clGetPlatformInfo and ClGetDeviceInfo when using a graphics driver older than 27.20.100.8280.
   If you run into this issue, please upgrade to the latest driver of at least version 27.20.100.8280 from the `Download Center <https://downloadcenter.intel.com/product/80939/Graphics>`_.
 
