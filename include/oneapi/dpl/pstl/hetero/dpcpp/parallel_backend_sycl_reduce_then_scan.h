@@ -731,11 +731,10 @@ struct __parallel_reduce_then_scan_scan_submitter<
 constexpr inline std::uint8_t
 __get_reduce_then_scan_sg_sz()
 {
-    return
 #if _ONEDPL_DETECT_COMPILER_OPTIMIZATIONS_ENABLED
-        std::uint8_t{32};
+    return 32;
 #else
-        std::uint8_t{16};
+    return 16;
 #endif
 }
 
