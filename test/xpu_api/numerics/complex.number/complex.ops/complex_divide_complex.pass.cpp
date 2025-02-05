@@ -12,6 +12,8 @@
 //   complex<T>
 //   operator/(const complex<T>& lhs, const complex<T>& rhs);
 
+#define INVESTIGATE_COMPLEX_BROKEN_TEST 1
+
 #include "support/test_complex.h"
 
 #include "../cases.h"
