@@ -132,7 +132,7 @@ __parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPol
 struct __get_num_threads
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return 1;
     }
@@ -141,7 +141,7 @@ struct __get_num_threads
 struct __get_thread_num
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return 0;
     }

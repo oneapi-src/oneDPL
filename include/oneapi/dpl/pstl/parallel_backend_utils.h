@@ -313,7 +313,7 @@ struct __enumerable_thread_local_storage
     __enumerable_thread_local_storage(_LocalArgs&&... __args)
         : __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
     {
-        std::size_t __num_threads = _GetNumThreads{}();
+        const std::size_t __num_threads = _GetNumThreads{}();
         __thread_specific_storage.resize(__num_threads);
     }
 
@@ -358,7 +358,7 @@ struct __enumerable_thread_local_storage
     _ValueType&
     get_for_current_thread()
     {
-        std::size_t __i = _GetThreadNum{}();
+        const std::size_t __i = _GetThreadNum{}();
         if (!__thread_specific_storage[__i])
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation

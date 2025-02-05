@@ -1309,7 +1309,7 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
 struct __get_num_threads
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return tbb::this_task_arena::max_concurrency();
     }
@@ -1318,7 +1318,7 @@ struct __get_num_threads
 struct __get_thread_num
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return tbb::this_task_arena::current_thread_index();
     }

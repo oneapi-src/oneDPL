@@ -158,7 +158,7 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 struct __get_num_threads
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return omp_in_parallel() ? omp_get_num_threads() : omp_get_max_threads();
     }
@@ -167,7 +167,7 @@ struct __get_num_threads
 struct __get_thread_num
 {
     std::size_t
-    operator()()
+    operator()() const
     {
         return omp_get_thread_num();
     }
