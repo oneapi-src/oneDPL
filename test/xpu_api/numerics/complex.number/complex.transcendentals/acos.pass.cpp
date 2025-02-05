@@ -1,149 +1,88 @@
-//===----------------------------------------------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#include <iostream>
+#include <limits>
+#include <complex>
 
-// XFAIL: LIBCXX-AIX-FIXME
+#include <sycl/sycl.hpp>
 
-// <complex>
+#define CALL_STD_ACOS 1
 
-// template<class T>
-//   complex<T>
-//   acos(const complex<T>& x);
-
-#include "support/test_complex.h"
-
-#include "../cases.h"
-
-template <class T>
-void
-test(const dpl::complex<T>& c, dpl::complex<T> x)
+constexpr bool
+is_fast_math_switched_on()
 {
-    assert(dpl::acos(c) == x);
-}
-
-template <class T>
-void
-test()
-{
-    test(dpl::complex<T>(TestUtils::infinity_val<T>, 1), dpl::complex<T>(0, -TestUtils::infinity_val<T>));
-}
-
-void test_edges()
-{
-    const double pi = std::atan2(+0., -0.);
-    const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
-    for (unsigned i = 0; i < N; ++i)
-    {
-        dpl::complex<double> r = dpl::acos(testcases[i]);
-        if (testcases[i].real() == 0 && testcases[i].imag() == 0)
-        {
-            assert(is_about(r.real(), pi/2));
-            assert(r.imag() == 0);
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (testcases[i].real() == 0 && std::isnan(testcases[i].imag()))
-        {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN                         // testcases[37]
-            assert(is_about(r.real(), pi/2));
-            assert(std::isnan(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
-        }
-        else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
-        {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN_IN_KERNEL
-            assert(is_about(r.real(), pi/2));
-            assert(std::isinf(r.imag()));
+#if defined(__FAST_MATH__)
+    return true;
+#else
+    return false;
 #endif
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (std::isfinite(testcases[i].real()) && testcases[i].real() != 0 && std::isnan(testcases[i].imag()))
-        {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
-        }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isfinite(testcases[i].imag()))
-        {
-            assert(is_about(r.real(), pi));
-            assert(std::isinf(r.imag()));
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isfinite(testcases[i].imag()))
-        {
-            assert(r.real() == 0);
-            assert(!std::signbit(r.real()));
-            assert(std::isinf(r.imag()));
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isinf(testcases[i].imag()))
-        {
-            assert(is_about(r.real(), 0.75 * pi));
-            assert(std::isinf(r.imag()));
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isinf(testcases[i].imag()))
-        {
-            assert(is_about(r.real(), 0.25 * pi));
-            assert(std::isinf(r.imag()));
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-        }
-        else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
-        {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
-            assert(std::isnan(r.real()));
-            assert(std::isinf(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
-        }
-        else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
-        {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
-        }
-        else if (std::isnan(testcases[i].real()) && std::isinf(testcases[i].imag()))
-        {
-#if !_PSTL_TEST_COMPLEX_ACOS_BROKEN
-            assert(std::isnan(r.real()));
-            assert(std::isinf(r.imag()));
-            assert(std::signbit(testcases[i].imag()) != std::signbit(r.imag()));
-#endif // _PSTL_TEST_COMPLEX_ACOS_BROKEN
-        }
-        else if (std::isnan(testcases[i].real()) && std::isnan(testcases[i].imag()))
-        {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
-        }
-        else if (!std::signbit(testcases[i].real()) && !std::signbit(testcases[i].imag()))
-        {
-            assert(!std::signbit(r.real()));
-            assert( std::signbit(r.imag()));
-        }
-        else if (std::signbit(testcases[i].real()) && !std::signbit(testcases[i].imag()))
-        {
-            assert(!std::signbit(r.real()));
-            assert( std::signbit(r.imag()));
-        }
-        else if (std::signbit(testcases[i].real()) && std::signbit(testcases[i].imag()))
-        {
-            assert(!std::signbit(r.real()));
-            assert(!std::signbit(r.imag()));
-        }
-        else if (!std::signbit(testcases[i].real()) && std::signbit(testcases[i].imag()))
-        {
-            assert(!std::signbit(r.real()));
-            assert(!std::signbit(r.imag()));
-        }
-    }
 }
 
-ONEDPL_TEST_NUM_MAIN
-{
-    test<float>();
-    IF_DOUBLE_SUPPORT(test<double>())
-    IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+template <typename T>
+int
+run_test();
 
-  return 0;
+template <typename T>
+static constexpr float infinity_val = std::numeric_limits<T>::infinity();
+
+int
+main()
+{
+    static_assert(!is_fast_math_switched_on(),
+                  "Tests of std::complex are not compatible with -ffast-math compiler option.");
+
+    std::cout << "Run test on host...";
+    run_test<float>();
+    std::cout << "done." << std::endl;
+
+    try
+    {
+        sycl::queue deviceQueue;
+
+        if (deviceQueue.get_device().has(sycl::aspect::fp64))
+        {
+            std::cout << "Run test on device with double support...";
+            deviceQueue.submit([&](sycl::handler& cgh) {
+                cgh.single_task<class Kernel0>([&]() {
+
+                    // !!!!! ATTENTION: no Kernel code in the case if fp64 is supported !!!!!
+
+                    //run_test<float>();
+                    //run_test<double>();
+                });
+            });
+        }
+        else
+        {
+            std::cout << "Run test on device without double support...";
+            deviceQueue.submit([&](sycl::handler& cgh) {
+                cgh.single_task<class Kernel1>([&]() [[sycl::device_has()]] {
+                    run_test<float>();
+                });
+            });
+        }
+        deviceQueue.wait_and_throw();
+
+        std::cout << "done." << std::endl;
+    }
+    catch (const std::exception& exc)
+    {
+        std::cerr << "Exception occurred: " << exc.what() <<  std::endl;
+        return 1;
+    }
+
+    return 0;
+}
+
+template <typename T>
+int
+run_test()
+{
+    std::complex<T> val_c(T{-2.0}, T{0.0});
+
+    auto res = val_c + val_c;
+
+#if CALL_STD_ACOS
+    res = std::acos(val_c);
+#endif
+
+    return 0;
 }
