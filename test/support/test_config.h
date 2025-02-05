@@ -210,6 +210,7 @@
 #define _PSTL_TEST_COMPLEX_OP_ACOS_USING_DOUBLE               _PSTL_TEST_COMPLEX_OP_USING_DOUBLE
 #define _PSTL_TEST_COMPLEX_OP_ACOSH_USING_DOUBLE              _PSTL_TEST_COMPLEX_OP_USING_DOUBLE
 #define _PSTL_TEST_COMPLEX_OP_ASIN_USING_DOUBLE               _PSTL_TEST_COMPLEX_OP_USING_DOUBLE
+#define _PSTL_TEST_COMPLEX_OP_ASINH_USING_DOUBLE              _PSTL_TEST_COMPLEX_OP_USING_DOUBLE
 
 // oneAPI DPC++ compiler 2025.0.0 and earlier is unable to eliminate a "dead" function call to an undefined function
 // within a sycl kernel which MSVC uses to allow comparisons with literal zero without warning
