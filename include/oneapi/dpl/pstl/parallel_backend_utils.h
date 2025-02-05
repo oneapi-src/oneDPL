@@ -323,7 +323,7 @@ struct __enumerable_thread_local_storage_base
     // not return an accurate count of instantiated storage objects in lockstep with the number allocated and stored.
     // This is because the count is not atomic with the allocation and storage of the storage objects.
     std::size_t
-    size() const noexcept
+    size() const
     {
         // only count storage which has been instantiated
         return __num_elements.load(std::memory_order_relaxed);

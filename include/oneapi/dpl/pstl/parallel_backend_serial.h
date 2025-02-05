@@ -46,7 +46,7 @@ struct __enumerable_thread_local_storage
     }
 
     std::size_t
-    size() const noexcept
+    size() const
     {
         return std::size_t{1};
     }
