@@ -171,24 +171,6 @@ __parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPol
         __f(*__iter);
 }
 
-struct __get_num_threads
-{
-    std::size_t
-    operator()() const
-    {
-        return 1;
-    }
-};
-
-struct __get_thread_num
-{
-    std::size_t
-    operator()() const
-    {
-        return 0;
-    }
-};
-
 } // namespace __serial_backend
 } // namespace dpl
 } // namespace oneapi
