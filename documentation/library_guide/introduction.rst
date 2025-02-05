@@ -143,7 +143,8 @@ Known Limitations
   use ``std::array::operator[]`` instead.
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including: ``std::ldexp``, ``std::frexp``, and the following functions when used with ``std::complex<float>`` as argument(s): 
- ``std::acosh``, ``std::asin``, ``std::asinh``, ``std::asoc``, ``std::log``, ``std::log10``, ``std::pow``, ``std::sqrt``) which require device support for double precision.
+ ``std::acosh``, ``std::asin``, ``std::asinh``, ``std::asoc``, ``std::log``, ``std::log10``, ``std::pow``, ``std::sqrt``)
+ require device support for double precision.
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
   when used with C++ standard aligned policies, impose limitations on the initial value type if an
