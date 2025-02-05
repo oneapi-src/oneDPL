@@ -311,7 +311,7 @@ struct __enumerable_thread_local_storage
 {
     template <typename... _LocalArgs>
     __enumerable_thread_local_storage(_LocalArgs&&... __args)
-        : __num_elements(0), __args(std::forward<_LocalArgs>(__args)...), __thread_specific_storage(_GetNumThreads{}())
+        : __thread_specific_storage(_GetNumThreads{}()), __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
     {
     }
 
