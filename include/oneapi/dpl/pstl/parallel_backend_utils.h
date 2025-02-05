@@ -322,10 +322,10 @@ struct __enumerable_thread_local_storage
     // not return an accurate count of instantiated storage objects in lockstep with the number allocated and stored.
     // This is because the count is not atomic with the allocation and storage of the storage objects.
     std::size_t
-    size() const
+    size() const noexcept
     {
         // only count storage which has been instantiated
-        return __num_elements.load();
+        return __num_elements.load(std::memory_order_relaxed);
     }
 
     // Note: get_with_id should not be used concurrently with parallel loops which may instantiate storage objects,
@@ -337,13 +337,12 @@ struct __enumerable_thread_local_storage
     {
         assert(__i < size());
 
-        std::size_t __j = 0;
-
         if (size() == __thread_specific_storage.size())
         {
             return *__thread_specific_storage[__i];
         }
 
+        std::size_t __j = 0;
         for (std::size_t __count = 0; __j < __thread_specific_storage.size() && __count <= __i; ++__j)
         {
             // Only include storage from threads which have instantiated a storage object
@@ -360,19 +359,20 @@ struct __enumerable_thread_local_storage
     get_for_current_thread()
     {
         const std::size_t __i = _GetThreadNum{}();
-        if (!__thread_specific_storage[__i])
+        std::unique_ptr<_ValueType>& __thread_local_storage = __thread_specific_storage[__i];
+        if (!__thread_local_storage)
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
-            __thread_specific_storage[__i] =
+            __thread_local_storage =
                 std::apply([](_Args... __arg_pack) { return std::make_unique<_ValueType>(__arg_pack...); }, __args);
             __num_elements.fetch_add(1);
         }
-        return *__thread_specific_storage[__i];
+        return *__thread_local_storage;
     }
 
     std::vector<std::unique_ptr<_ValueType>> __thread_specific_storage;
     std::atomic_size_t __num_elements;
-    std::tuple<_Args...> __args;
+    const std::tuple<_Args...> __args;
 };
 
 } // namespace __detail
