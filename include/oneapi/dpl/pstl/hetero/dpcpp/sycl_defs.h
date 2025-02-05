@@ -227,12 +227,12 @@ template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-#if _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT && !ONEDPL_USE_SYCL121_GROUP_BARRIER
-    // SYCL 2020 barrier: applies to local and global memory within a work-group
-    sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
-#elif ONEDPL_USE_SYCL121_GROUP_BARRIER
+#if ONEDPL_USE_SYCL121_GROUP_BARRIER
     // SYCL 1.2.1 barrier: applies to local memory within a work-group
     __item.barrier(sycl::access::fence_space::local_space);
+#elif _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT
+    // SYCL 2020 barrier: applies to local and global memory within a work-group
+    sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 #else
 #    error "sycl::group_barrier is not supported, and no alternative is available"
 #endif
