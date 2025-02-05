@@ -311,10 +311,8 @@ struct __enumerable_thread_local_storage
 {
     template <typename... _LocalArgs>
     __enumerable_thread_local_storage(_LocalArgs&&... __args)
-        : __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
+        : __num_elements(0), __args(std::forward<_LocalArgs>(__args)...), __thread_specific_storage(_GetNumThreads{}())
     {
-        const std::size_t __num_threads = _GetNumThreads{}();
-        __thread_specific_storage.resize(__num_threads);
     }
 
     // Note: size should not be used concurrently with parallel loops which may instantiate storage objects, as it may
