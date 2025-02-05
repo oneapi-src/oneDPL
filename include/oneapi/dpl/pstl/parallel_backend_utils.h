@@ -309,7 +309,7 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 namespace __detail
 {
 
-template <template <typename...> typename _Concrete, typename _ValueType, typename... _Args>
+template <template <typename, typename...> typename _Concrete, typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage_base
 {
     using derived_type = _Concrete<_ValueType, _Args...>;
