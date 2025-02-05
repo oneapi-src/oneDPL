@@ -130,6 +130,7 @@ endif()
 
 if (WIN32)
     # oneDPL is incompatible with min/max macros defined in windows.h, NOMINMAX must be defined to avoid them
+    message(STATUS "Defining NOMINMAX to avoid collisions with windows macros")
     target_compile_options(oneDPL INTERFACE -DNOMINMAX)
 endif()
 

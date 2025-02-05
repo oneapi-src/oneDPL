@@ -54,6 +54,7 @@ if (EXISTS "${_onedpl_headers}")
 
         if (WIN32)
             # oneDPL is incompatible with min/max macros defined in windows.h, NOMINMAX must be defined to avoid them
+            message(STATUS "oneDPL: Defining NOMINMAX to avoid collisions with windows macros")
             set_target_properties(oneDPL PROPERTIES INTERFACE_COMPILE_OPTIONS -DNOMINMAX)
         endif()
 
