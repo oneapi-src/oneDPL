@@ -309,12 +309,12 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 namespace __detail
 {
 
-template <typename _ValueType, typename _GetNumThreads, typename _GetThreadNum, typename... _Args>
-struct __enumerable_thread_local_storage
+template <typename _ValueType, typename _Concrete, typename... _Args>
+struct __enumerable_thread_local_storage_base
 {
     template <typename... _LocalArgs>
-    __enumerable_thread_local_storage(_LocalArgs&&... __args)
-        : __thread_specific_storage(_GetNumThreads{}()), __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
+    __enumerable_thread_local_storage_base(_LocalArgs&&... __args)
+        : __thread_specific_storage(_Concrete::get_num_threads()), __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
     {
     }
 
@@ -358,14 +358,14 @@ struct __enumerable_thread_local_storage
     _ValueType&
     get_for_current_thread()
     {
-        const std::size_t __i = _GetThreadNum{}();
+        const std::size_t __i = _Concrete::get_thread_num();
         std::unique_ptr<_ValueType>& __thread_local_storage = __thread_specific_storage[__i];
         if (!__thread_local_storage)
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
             __thread_local_storage =
                 std::apply([](_Args... __arg_pack) { return std::make_unique<_ValueType>(__arg_pack...); }, __args);
-            __num_elements.fetch_add(1);
+            __num_elements.fetch_add(1, std::memory_order_relaxed);
         }
         return *__thread_local_storage;
     }
