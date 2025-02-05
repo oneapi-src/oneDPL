@@ -315,7 +315,8 @@ struct __enumerable_thread_local_storage_base
 
     template <typename... _LocalArgs>
     __enumerable_thread_local_storage_base(_LocalArgs&&... __args)
-        : __thread_specific_storage(_Concrete::get_num_threads()), __num_elements(0), __args(std::forward<_LocalArgs>(__args)...)
+        : __thread_specific_storage(_Concrete::get_num_threads()), __num_elements(0),
+          __args(std::forward<_LocalArgs>(__args)...)
     {
     }
 
