@@ -31,7 +31,7 @@
 #ifdef _MSC_VER
 #    define _PSTL_PRAGMA(x) __pragma(x)
 #else
-# define _PSTL_PRAGMA(x) _Pragma(# x)
+#    define _PSTL_PRAGMA(x) _Pragma(#    x)
 #endif
 
 namespace oneapi
