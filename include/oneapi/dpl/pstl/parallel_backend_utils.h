@@ -306,6 +306,9 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
     return __cc_range(__first2, __last2, __result);
 }
 
+namespace __detail
+{
+
 template <typename _ValueType, typename _GetNumThreads, typename _GetThreadNum, typename... _Args>
 struct __enumerable_thread_local_storage
 {
@@ -372,6 +375,7 @@ struct __enumerable_thread_local_storage
     std::tuple<_Args...> __args;
 };
 
+} // namespace __detail
 } // namespace __utils
 } // namespace dpl
 } // namespace oneapi

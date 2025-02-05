@@ -16,11 +16,11 @@
 #ifndef _ONEDPL_INTERNAL_OMP_UTIL_H
 #define _ONEDPL_INTERNAL_OMP_UTIL_H
 
-#include <iterator> //std::iterator_traits, std::distance
-#include <cstddef> //std::size_t
-#include <memory> //std::allocator
+#include <iterator>    //std::iterator_traits, std::distance
+#include <cstddef>     //std::size_t
+#include <memory>      //std::allocator
 #include <type_traits> // std::decay, is_integral_v, enable_if_t
-#include <utility> // std::forward
+#include <utility>     // std::forward
 #include <omp.h>
 
 #include "../parallel_backend_utils.h"
@@ -150,6 +150,8 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
     __f(__first, __last);
 }
 
+namespace __detail
+{
 struct __get_num_threads
 {
     std::size_t
@@ -167,15 +169,19 @@ struct __get_thread_num
         return omp_get_thread_num();
     }
 };
+
+} // namespace __detail
+
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
-oneapi::dpl::__utils::__enumerable_thread_local_storage<_ValueType, oneapi::dpl::__omp_backend::__get_num_threads,
-                                                        oneapi::dpl::__omp_backend::__get_thread_num, Args...>
+oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
+    _ValueType, oneapi::dpl::__omp_backend::__detail::__get_num_threads,
+    oneapi::dpl::__omp_backend::__detail::__get_thread_num, Args...>
 __make_enumerable_tls(Args&&... __args)
 {
-    return oneapi::dpl::__utils::__enumerable_thread_local_storage<
-        _ValueType, oneapi::dpl::__omp_backend::__get_num_threads, oneapi::dpl::__omp_backend::__get_thread_num,
-        Args...>(std::forward<Args>(__args)...);
+    return oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
+        _ValueType, oneapi::dpl::__omp_backend::__detail::__get_num_threads,
+        oneapi::dpl::__omp_backend::__detail::__get_thread_num, Args...>(std::forward<Args>(__args)...);
 }
 } // namespace __omp_backend
 } // namespace dpl

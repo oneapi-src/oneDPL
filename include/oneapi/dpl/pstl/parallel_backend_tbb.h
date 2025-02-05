@@ -1306,6 +1306,8 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
+namespace __detail
+{
 struct __get_num_threads
 {
     std::size_t
@@ -1323,16 +1325,18 @@ struct __get_thread_num
         return tbb::this_task_arena::current_thread_index();
     }
 };
+} //namespace __detail
 
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
-oneapi::dpl::__utils::__enumerable_thread_local_storage<_ValueType, oneapi::dpl::__tbb_backend::__get_num_threads,
-                                                        oneapi::dpl::__tbb_backend::__get_thread_num, Args...>
+oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
+    _ValueType, oneapi::dpl::__tbb_backend::__detail::__get_num_threads,
+    oneapi::dpl::__tbb_backend::__detail::__get_thread_num, Args...>
 __make_enumerable_tls(Args&&... __args)
 {
-    return oneapi::dpl::__utils::__enumerable_thread_local_storage<
-        _ValueType, oneapi::dpl::__tbb_backend::__get_num_threads, oneapi::dpl::__tbb_backend::__get_thread_num,
-        Args...>(std::forward<Args>(__args)...);
+    return oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
+        _ValueType, oneapi::dpl::__tbb_backend::__detail::__get_num_threads,
+        oneapi::dpl::__tbb_backend::__detail::__get_thread_num, Args...>(std::forward<Args>(__args)...);
 }
 
 } // namespace __tbb_backend
