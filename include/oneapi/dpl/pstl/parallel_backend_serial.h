@@ -34,48 +34,6 @@ namespace dpl
 namespace __serial_backend
 {
 
-namespace __detail
-{
-
-template <typename _ValueType>
-struct __enumerable_thread_local_storage
-{
-    template <typename... _LocalArgs>
-    __enumerable_thread_local_storage(_LocalArgs&&... __args) : __storage(std::forward<_LocalArgs>(__args)...)
-    {
-    }
-
-    std::size_t
-    size() const
-    {
-        return std::size_t{1};
-    }
-
-    _ValueType&
-    get_for_current_thread()
-    {
-        return __storage;
-    }
-
-    _ValueType&
-    get_with_id(std::size_t /*__i*/)
-    {
-        return get_for_current_thread();
-    }
-
-    _ValueType __storage;
-};
-
-} //namespace __detail
-
-// enumerable thread local storage should only be created from make function
-template <typename _ValueType, typename... Args>
-__detail::__enumerable_thread_local_storage<_ValueType>
-__make_enumerable_tls(Args&&... __args)
-{
-    return __detail::__enumerable_thread_local_storage<_ValueType>(std::forward<Args>(__args)...);
-}
-
 template <typename _ExecutionPolicy, typename _Tp>
 using __buffer = oneapi::dpl::__utils::__buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp, std::allocator>;
 
@@ -169,6 +127,35 @@ __parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPol
 {
     for (auto __iter = __begin; __iter != __end; ++__iter)
         __f(*__iter);
+}
+
+struct __get_num_threads
+{
+    std::size_t
+    operator()()
+    {
+        return 1;
+    }
+};
+
+struct __get_thread_num
+{
+    std::size_t
+    operator()()
+    {
+        return 0;
+    }
+};
+
+// enumerable thread local storage should only be created from make function
+template <typename _ValueType, typename... Args>
+oneapi::dpl::__utils::__enumerable_thread_local_storage<_ValueType, oneapi::dpl::__serial_backend::__get_num_threads,
+                                                        oneapi::dpl::__serial_backend::__get_thread_num, Args...>
+__make_enumerable_tls(Args&&... __args)
+{
+    return oneapi::dpl::__utils::__enumerable_thread_local_storage<
+        _ValueType, oneapi::dpl::__serial_backend::__get_num_threads, oneapi::dpl::__serial_backend::__get_thread_num,
+        Args...>(std::forward<Args>(__args)...);
 }
 
 } // namespace __serial_backend
