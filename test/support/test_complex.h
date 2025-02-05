@@ -156,11 +156,7 @@ namespace TestUtils
                 deviceQueue.submit(
                     [&](sycl::handler& cgh) {
                         cgh.single_task<TestUtils::new_kernel_name<class TestType, 1>>(
-                            [fncDoubleHasntSupportInRuntime]()
-#if INVESTIGATE_COMPLEX_BROKEN_TEST
-                            [[sycl::device_has()]]
-#endif
-                            { fncDoubleHasntSupportInRuntime(); });
+                            [fncDoubleHasntSupportInRuntime]() { fncDoubleHasntSupportInRuntime(); });
                     });
             }
             deviceQueue.wait_and_throw();

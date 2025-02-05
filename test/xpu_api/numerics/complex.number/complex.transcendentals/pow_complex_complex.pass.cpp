@@ -14,8 +14,6 @@
 //   complex<T>
 //   pow(const complex<T>& x, const complex<T>& y);
 
-#define INVESTIGATE_COMPLEX_BROKEN_TEST 1
-
 #include "support/test_complex.h"
 
 #include "../cases.h"

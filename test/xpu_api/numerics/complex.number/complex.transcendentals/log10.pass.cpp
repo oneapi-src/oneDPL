@@ -14,8 +14,6 @@
 //   complex<T>
 //   log10(const complex<T>& x);
 
-#define INVESTIGATE_COMPLEX_BROKEN_TEST 1
-
 #include "support/test_complex.h"
 
 #include "../cases.h"
