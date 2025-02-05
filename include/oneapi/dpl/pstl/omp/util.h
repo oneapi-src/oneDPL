@@ -31,7 +31,7 @@
 #ifdef _MSC_VER
 #    define _PSTL_PRAGMA(x) __pragma(x)
 #else
-#    define _PSTL_PRAGMA(x) _Pragma(#    x)
+#    define _PSTL_PRAGMA(x) _Pragma(#x)
 #endif
 
 namespace oneapi
@@ -152,19 +152,28 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 
 namespace __detail
 {
-struct __get_num_threads
+
+template <typename _ValueType, typename... Args>
+struct __enumerable_thread_local_storage
+    : public oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
+          _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>
 {
-    std::size_t
-    operator()() const
+    using base_type = oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
+        _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>;
+
+    template <typename... _LocalArgs>
+    __enumerable_thread_local_storage(_LocalArgs&&... __args) : base_type(std::forward<_LocalArgs>(__args)...)
+    {
+    }
+
+    static std::size_t
+    get_num_threads()
     {
         return omp_in_parallel() ? omp_get_num_threads() : omp_get_max_threads();
     }
-};
 
-struct __get_thread_num
-{
-    std::size_t
-    operator()() const
+    static std::size_t
+    get_thread_num()
     {
         return omp_get_thread_num();
     }
@@ -174,14 +183,11 @@ struct __get_thread_num
 
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
-oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
-    _ValueType, oneapi::dpl::__omp_backend::__detail::__get_num_threads,
-    oneapi::dpl::__omp_backend::__detail::__get_thread_num, Args...>
+oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>
 __make_enumerable_tls(Args&&... __args)
 {
-    return oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
-        _ValueType, oneapi::dpl::__omp_backend::__detail::__get_num_threads,
-        oneapi::dpl::__omp_backend::__detail::__get_thread_num, Args...>(std::forward<Args>(__args)...);
+    return oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>(
+        std::forward<Args>(__args)...);
 }
 
 } // namespace __omp_backend

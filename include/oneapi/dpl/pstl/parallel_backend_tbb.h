@@ -504,7 +504,7 @@ class __root_task
   public:
     template <typename... Args>
     __root_task(Args&&... args)
-        : _M_task{new (tbb::task::allocate_root()) __func_task<_Func>{_Func(::std::forward<Args>(args)...)}}
+        : _M_task{new(tbb::task::allocate_root()) __func_task<_Func>{_Func(::std::forward<Args>(args)...)}}
     {
     }
 
@@ -1053,8 +1053,8 @@ class __merge_func
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename __M_Compare, typename _Cleanup,
           typename _LeafMerge>
 __task*
-__merge_func<_RandomAccessIterator1, _RandomAccessIterator2, __M_Compare, _Cleanup, _LeafMerge>::
-operator()(__task* __self)
+__merge_func<_RandomAccessIterator1, _RandomAccessIterator2, __M_Compare, _Cleanup, _LeafMerge>::operator()(
+    __task* __self)
 {
     //a. split merge task into 2 of the same level; the special logic,
     //without processing(process_ranges) adjacent sub-ranges x and y
@@ -1217,8 +1217,8 @@ class __merge_func_static
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3,
           typename __M_Compare, typename _LeafMerge>
 __task*
-__merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _LeafMerge>::
-operator()(__task* __self)
+__merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare,
+                    _LeafMerge>::operator()(__task* __self)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
@@ -1308,35 +1308,42 @@ __parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy
 
 namespace __detail
 {
-struct __get_num_threads
+
+template <typename _ValueType, typename... Args>
+struct __enumerable_thread_local_storage
+    : public oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
+          _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>
 {
-    std::size_t
-    operator()() const
+    using base_type = oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<
+        _ValueType, __enumerable_thread_local_storage<_ValueType, Args...>, Args...>;
+
+    template <typename... _LocalArgs>
+    __enumerable_thread_local_storage(_LocalArgs&&... __args) : base_type(std::forward<_LocalArgs>(__args)...)
+    {
+    }
+
+    static std::size_t
+    get_num_threads()
     {
         return tbb::this_task_arena::max_concurrency();
     }
-};
 
-struct __get_thread_num
-{
-    std::size_t
-    operator()() const
+    static std::size_t
+    get_thread_num()
     {
         return tbb::this_task_arena::current_thread_index();
     }
 };
-} //namespace __detail
+
+} // namespace __detail
 
 // enumerable thread local storage should only be created from make function
 template <typename _ValueType, typename... Args>
-oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
-    _ValueType, oneapi::dpl::__tbb_backend::__detail::__get_num_threads,
-    oneapi::dpl::__tbb_backend::__detail::__get_thread_num, Args...>
+oneapi::dpl::__tbb_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>
 __make_enumerable_tls(Args&&... __args)
 {
-    return oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage<
-        _ValueType, oneapi::dpl::__tbb_backend::__detail::__get_num_threads,
-        oneapi::dpl::__tbb_backend::__detail::__get_thread_num, Args...>(std::forward<Args>(__args)...);
+    return oneapi::dpl::__tbb_backend::__detail::__enumerable_thread_local_storage<_ValueType, Args...>(
+        std::forward<Args>(__args)...);
 }
 
 } // namespace __tbb_backend
