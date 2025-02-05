@@ -504,7 +504,7 @@ class __root_task
   public:
     template <typename... Args>
     __root_task(Args&&... args)
-        : _M_task{new(tbb::task::allocate_root()) __func_task<_Func>{_Func(::std::forward<Args>(args)...)}}
+        : _M_task{new (tbb::task::allocate_root()) __func_task<_Func>{_Func(::std::forward<Args>(args)...)}}
     {
     }
 
@@ -1053,8 +1053,8 @@ class __merge_func
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename __M_Compare, typename _Cleanup,
           typename _LeafMerge>
 __task*
-__merge_func<_RandomAccessIterator1, _RandomAccessIterator2, __M_Compare, _Cleanup, _LeafMerge>::operator()(
-    __task* __self)
+__merge_func<_RandomAccessIterator1, _RandomAccessIterator2, __M_Compare, _Cleanup, _LeafMerge>::
+operator()(__task* __self)
 {
     //a. split merge task into 2 of the same level; the special logic,
     //without processing(process_ranges) adjacent sub-ranges x and y
@@ -1217,8 +1217,8 @@ class __merge_func_static
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3,
           typename __M_Compare, typename _LeafMerge>
 __task*
-__merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare,
-                    _LeafMerge>::operator()(__task* __self)
+__merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _LeafMerge>::
+operator()(__task* __self)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
