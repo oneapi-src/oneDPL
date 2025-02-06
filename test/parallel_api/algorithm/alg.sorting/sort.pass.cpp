@@ -19,13 +19,11 @@
 #include _PSTL_TEST_HEADER(algorithm)
 
 #if !defined(_PSTL_TEST_SORT) && !defined(_PSTL_TEST_STABLE_SORT)
-#define _PSTL_TEST_SORT
 #define _PSTL_TEST_STABLE_SORT
 #endif // !defined(_PSTL_TEST_SORT) && !defined(_PSTL_TEST_STABLE_SORT)
 
 // Testing with and without predicate may be useful due to different implementations, e.g. merge-sort and radix-sort
 #if !defined(_PSTL_TEST_WITH_PREDICATE) && !defined(_PSTL_TEST_WITHOUT_PREDICATE)
-#define _PSTL_TEST_WITH_PREDICATE
 #define _PSTL_TEST_WITHOUT_PREDICATE
 #endif // !defined(_PSTL_TEST_WITH_PREDICATE) && !defined(_PSTL_TEST_WITHOUT_PREDICATE)
 
@@ -366,6 +364,7 @@ test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, 
 {
     for (size_t n = start_size; n <= max_size; n = fstep(n))
     {
+        std::cout << "n = " << n << std::endl;
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
         // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
