@@ -152,7 +152,7 @@ ONEDPL_VERSION_PATCH=0
 ONEDPL_SPEC_VERSION=104
 ```
 
-Histogram APIs are supported for device execution policies as of version 2022.5.0.  It was first specifed in oneDPL
+Histogram APIs are supported for device execution policies as of version 2022.5.0.  It was first specified in oneDPL
 specification version 1.4. However, this was released before `ONEDPL_SPEC_VERSION` was defined within our implementation
 of oneDPL.
 ```
@@ -197,8 +197,8 @@ must provide the following interfaces:
 
 A unified implementation of `__enumerable_thread_local_storage` is provided with these features in
 `include/oneapi/dpl/pstl/parallel_backend_utils.h` for use as a base implementation in a Curiously Recurring Template
-Pattern (CRTP) for individual parallel backends to derive from. When using this base struct, individual paralle backends
-must provide the following methods. 
+Pattern (CRTP) for individual parallel backends to derive from. When using this base struct, individual parallel
+backends must provide the following methods.
 
 * `static std::size_t get_num_threads()`
 
@@ -218,7 +218,7 @@ We decided to avoid using the class provided by TBB, `enumerable_thread_specific
 includes "windows.h".  The baggage associated with "windows.h" is not worth the benefit of using the existing type.
 
 #### Algorithm
-1) Call exsiting `parallel_for` pattern which performs a `histogram` on the input sequence, each thread accumulating
+1) Call existing `parallel_for` pattern which performs a `histogram` on the input sequence, each thread accumulating
 into its own temporary histogram provided by `__enumerable_thread_local_storage`. We rely upon `parallel_for` pattern to
 implement chunksize and thread composability.
 1) Call a second `parallel_for` pattern over the `histogram` output sequence which accumulates all temporary copies of
