@@ -25,8 +25,8 @@ they can select from when using oneDPL. It is important that all combinations of
 `histogram` APIs.
 
 ### Performance
-Histogram algorithms typically involve minimal computation and are likely to be memory-bound. So, the implementation prioritizes
-reducing memory accesses and minimizing temporary memory traffic.
+Histogram algorithms typically involve minimal computation and are likely to be memory-bound. So, the implementation
+prioritizes reducing memory accesses and minimizing temporary memory traffic.
 
 For CPU backends, we will focus on input sizes ranging from 32K to 4M elements and 32 - 4k histogram bins. Smaller sizes
 of input may best be suited for serial histogram implementation, and very large sizes may be better suited for GPU
