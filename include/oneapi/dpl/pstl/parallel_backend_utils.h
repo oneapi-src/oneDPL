@@ -331,7 +331,7 @@ struct __enumerable_thread_local_storage_base
     // and incrementing of the size.
     // TODO: Consider replacing this access with a visitor pattern.
     _ValueType&
-    get_with_id(std::size_t __i) const
+    get_with_id(std::size_t __i)
     {
         assert(__i < size());
 
