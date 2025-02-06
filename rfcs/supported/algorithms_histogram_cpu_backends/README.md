@@ -142,6 +142,25 @@ provide a good fallback.
 After exploring the above implementation for `histogram`, the following method better represents the use cases which
 are important, and provides reasonable performance for most cases.
 
+### Version Information
+Histogram APIs are supported for host execution policies as of version 2022.8.0 of oneDPL, specification version 1.4.
+```
+ONEDPL_VERSION_MAJOR=2022
+ONEDPL_VERSION_MINOR=8
+ONEDPL_VERSION_PATCH=0
+
+ONEDPL_SPEC_VERSION=104
+```
+
+Histogram APIs are supported for device execution policies as of version 2022.5.0.  It was first specifed in oneDPL
+specification version 1.4. However, this was released before `ONEDPL_SPEC_VERSION` was defined within our implementation
+of oneDPL.
+```
+ONEDPL_VERSION_MAJOR=2022
+ONEDPL_VERSION_MINOR=5
+ONEDPL_VERSION_PATCH=0
+```
+
 ### Embarrassingly Parallel Via Temporary Histograms
 This method uses temporary storage and a pair of calls to backend specific `parallel_for` functions to accomplish the
 `histogram`. These calls will use the existing infrastructure to provide properly composable parallelism, without extra
