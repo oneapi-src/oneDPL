@@ -181,9 +181,9 @@ struct __subgroup_radix_sort
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
 
-                        auto sg = __it.get_sub_group();
-                        auto __sg_local_range = sg.get_local_linear_range();
-                        sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
+                        // auto sg = __it.get_sub_group();
+                        // auto __sg_local_range = sg.get_local_linear_range();
+                        // sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
