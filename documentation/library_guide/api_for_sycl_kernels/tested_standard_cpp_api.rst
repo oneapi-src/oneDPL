@@ -457,7 +457,6 @@ libstdc++ (GNU)                               Provided with GCC*-7.5.0, GCC*-9.3
 --------------------------------------------- ---------------------------------------------
 libc++ (LLVM)                                 Provided with Clang*-11.0
 --------------------------------------------- ---------------------------------------------
-Microsoft Visual C++* (MSVC) Standard Library Provided with Microsoft Visual Studio* 2017;
-                                              Microsoft Visual Studio 2019; and Microsoft
-                                              Visual Studio 2022, version 17.0, preview 4.1.
+Microsoft Visual C++* (MSVC) Standard Library Provided with Microsoft Visual Studio 2019
+                                              and Microsoft Visual Studio 2022, version 17.0, preview 4.1.
 ============================================= =============================================
