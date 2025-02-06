@@ -141,6 +141,9 @@ macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_itera
                 set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
             endif()
         elseif (DEFINED DEVICE_SELECTION_LINE)
+            if (MSVC)
+                add_link_options(/F 8388608) #increasing the stack size to prevent failures on Windows
+            endif()
             file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
             if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
                 set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
