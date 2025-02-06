@@ -364,7 +364,7 @@ test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, 
 {
     // for (size_t n = start_size; n <= max_size; n = fstep(n))
     {
-        size_t n = 3000;
+        size_t n = 5139;
         std::cout << "n = " << n << std::endl;
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
