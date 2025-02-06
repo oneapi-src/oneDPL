@@ -2204,7 +2204,7 @@ struct __is_radix_sort_usable_for_type
 
 #if _ONEDPL_USE_RADIX_SORT
 
-#define _ENABLE_RADIX_SORT_IN_ONE_WG 1
+#define _ENABLE_RADIX_SORT_IN_ONE_WG 0
 
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
