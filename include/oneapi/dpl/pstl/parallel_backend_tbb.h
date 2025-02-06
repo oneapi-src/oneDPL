@@ -1313,7 +1313,7 @@ namespace __detail
 template <typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage;
 
-template<typename... _Ts>
+template <typename... _Ts>
 using __etls_base = __utils::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage, _Ts...>;
 
 template <typename _ValueType, typename... _Args>
@@ -1322,7 +1322,7 @@ struct __enumerable_thread_local_storage : public __etls_base<_ValueType, _Args.
 
     template <typename... _LocalArgs>
     __enumerable_thread_local_storage(_LocalArgs&&... __args)
-    : __etls_base<_ValueType, _Args...>({std::forward<_LocalArgs>(__args)...})
+        : __etls_base<_ValueType, _Args...>({std::forward<_LocalArgs>(__args)...})
     {
     }
 

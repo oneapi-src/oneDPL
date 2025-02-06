@@ -361,7 +361,7 @@ struct __enumerable_thread_local_storage_base
         if (!__local)
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
-            std::apply([&__local](_Args... __arg_pack){ __local.emplace(__arg_pack...); }, __args);
+            std::apply([&__local](_Args... __arg_pack) { __local.emplace(__arg_pack...); }, __args);
             __num_elements.fetch_add(1, std::memory_order_relaxed);
         }
         return *__local;
