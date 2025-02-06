@@ -393,7 +393,7 @@ test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, 
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
         // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
-        TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return n - T(k); });
+        TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return -T(k); });
         TestUtils::Sequence<T> expected(in);
         TestUtils::Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
