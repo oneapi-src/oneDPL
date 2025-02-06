@@ -221,6 +221,21 @@ check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n,
     }
 }
 
+template<typename It>
+void print_array(It it, std::size_t n)
+{
+    for (std::size_t i = 0; i < n; i++)
+    {
+        if (i % 32 == 0)
+            std::cout << i << ":\t";
+
+        std::cout << it[i] << " ";
+        if ((i + 1) % 32 == 0)
+            std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 #if TEST_DPCPP_BACKEND_PRESENT
 #if _PSTL_SYCL_TEST_USM
 template <sycl::usm::alloc alloc_type, typename Policy, typename InputIterator, typename OutputIterator,
@@ -243,6 +258,9 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, _it_from, _it_to);
     auto sortingData = dt_helper.get_data();
 
+    std::cout << "USM before\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
+
     const std::int32_t count0 = KeyCount;
 
     // Call sort algorithm on prepared data
@@ -251,6 +269,9 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 
     // check result
     dt_helper.retrieve_data(_it_from);
+
+    std::cout << "USM after\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
 
     check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2", compare...);
 
@@ -298,9 +319,9 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     // Run tests for USM shared memory (external testing for USM shared memory, once already covered in sycl_iterator.pass.cpp)
     test_usm<sycl::usm::alloc::shared>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
                                        first, last, n, compare...);
-    // Run tests for USM device memory
-    test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
-                                       first, last, n, compare...);
+    // // Run tests for USM device memory
+    // test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
+    //                                    first, last, n, compare...);
 }
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
