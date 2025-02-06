@@ -386,7 +386,7 @@ template <::std::size_t CallNumber, typename T, typename Compare, typename Conve
 void
 test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, FStep fstep)
 {
-    for (size_t n = 10; n <= 5139; n = fstep(n))
+    for (size_t n = 10; n <= 5139; ++n)
     {
         // size_t n = 5139;
         std::cout << "n = " << n << std::endl;
