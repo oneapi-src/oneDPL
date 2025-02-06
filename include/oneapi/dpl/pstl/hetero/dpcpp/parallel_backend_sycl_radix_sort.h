@@ -766,10 +766,12 @@ struct __parallel_radix_sort_iteration
 // radix sort: main function
 //-----------------------------------------------------------------------
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
-auto
+__future<sycl::event>
 __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __in_rng,
-                      _Proj __proj)
+                      _Proj __proj, const bool __enable_sort_in_one_wg, bool& __sorted)
 {
+    __sorted = true;
+
     const ::std::size_t __n = __in_rng.size();
     assert(__n > 1);
 
@@ -795,38 +797,90 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
     using _RadixSortKernel = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
+    auto __fnc_enable_sort_in_one_wg = [__enable_sort_in_one_wg, &__sorted]() -> bool {
+        if (!__enable_sort_in_one_wg)
+            __sorted = false;
+        return __sorted;
+    };
+
     if (__n <= 64 && __wg_size <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+                return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 128 && __wg_size * 2 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 1, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 256 && __wg_size * 2 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 2, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+   
+    }
     else if (__n <= 512 && __wg_size * 2 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 4, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 1024 && __wg_size * 2 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 8, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 2048 && __wg_size * 4 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 8, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 4096 && __wg_size * 4 <= __max_wg_size)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     // In __subgroup_radix_sort, we request a sub-group size of 16 via _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED
     // for compilation targets that support this option. For the below cases, register spills that result in
     // runtime exceptions have been observed on accelerators that do not support the requested sub-group size of 16.
     // For the above cases that request but may not receive a sub-group size of 16, inputs are small enough to avoid
     // register spills on assessed hardware.
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size && __dev_has_sg16)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size && __dev_has_sg16)
+    {
+        if (!__fnc_enable_sort_in_one_wg())
+            return __future(__event);
+
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+    }
     else
     {
         constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_KeyT>(__radix_bits);

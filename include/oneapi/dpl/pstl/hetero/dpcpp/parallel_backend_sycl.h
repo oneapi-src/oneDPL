@@ -2203,16 +2203,37 @@ struct __is_radix_sort_usable_for_type
 };
 
 #if _ONEDPL_USE_RADIX_SORT
+
+#define _ENABLE_RADIX_SORT_IN_ONE_WG 1
+
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
     ::std::enable_if_t<
         __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                       _Range&& __rng, _Compare, _Proj __proj)
+                       _Range&& __rng, _Compare __comp, _Proj __proj)
 {
+    bool __sorted = false;
+
+#if _ENABLE_RADIX_SORT_IN_ONE_WG
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
-        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj,
+        /* __enable_sort_in_one_wg*/ true, __sorted);
+#else
+    __future<sycl::event> __result = __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
+        __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj,
+        /* __enable_sort_in_one_wg*/ false, __sorted);
+
+    if (__sorted)
+    {
+        // for compliance with __parallel_sort_impl return type
+        return __result.__make_future(std::shared_ptr<__result_and_scratch_storage_base>());
+    }
+
+    return __parallel_sort_impl(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                                oneapi::dpl::__internal::__compare<_Compare, _Proj>{__comp, __proj});
+#endif // _ENABLE_RADIX_SORT_IN_ONE_WG
 }
 #endif // _ONEDPL_USE_RADIX_SORT
 
