@@ -365,7 +365,7 @@ test_default_name_gen(Convert convert, size_t n)
     LastIndex = n + 2;
     // The rand()%(2*n+1) encourages generation of some duplicates.
     // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
-    TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
+    TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return T(k); });
     TestUtils::Sequence<T> expected(in);
     TestUtils::Sequence<T> tmp(in);
     auto my_policy = TestUtils::make_device_policy(TestUtils::get_test_queue());
@@ -393,7 +393,7 @@ test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, 
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
         // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
-        TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return n - k; });
+        TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
         TestUtils::Sequence<T> expected(in);
         TestUtils::Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
@@ -458,9 +458,9 @@ test_sort(size_t start_size, size_t max_size, FStep fstep)
         //                                           start_size, max_size, fstep);
 
 // #endif // !ONEDPL_FPGA_DEVICE
-        test_sort<CallNumber + 40, std::uint32_t>([](std::uint32_t x, std::uint32_t y)
+        test_sort<CallNumber + 40, std::int32_t>([](std::int32_t x, std::int32_t y)
                                                  { return x > y; }, // Reversed so accidental use of < will be detected.
-                                                 [](size_t k, size_t val) { return std::uint32_t(val); },
+                                                 [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); },
                                                  start_size, max_size, fstep);
 
 //         test_sort<CallNumber + 50, std::int16_t>(
