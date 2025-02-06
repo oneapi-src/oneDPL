@@ -338,11 +338,21 @@ struct __subgroup_radix_sort
                             auto shift = (__begin_bit / __radix) * __n;
                             if (__begin_bit / __radix % 2 == 0) // in exchange buffer
                             {
-                                tmp[i] = __exchange_lacc[i];
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                {
+                                    const uint16_t __idx = __wi * __block_size + __i;
+                                    if (__idx < __n)
+                                        tmp[__idx + shift] = __exchange_lacc[__idx];
+                                }
                             }
                             else
                             {
-                                tmp[i] = __values.__v[i];
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                {
+                                    const uint16_t __idx = __wi * __block_size + __i;
+                                    if (__idx < __n)
+                                        tmp[__idx + shift] = __values.__v[__i];
+                                }
                             }
                         }
                     }));
