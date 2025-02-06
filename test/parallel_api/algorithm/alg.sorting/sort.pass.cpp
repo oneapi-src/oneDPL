@@ -258,8 +258,8 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, _it_from, _it_to);
     auto sortingData = dt_helper.get_data();
 
-    // std::cout << "USM before\n";
-    // print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
+    std::cout << "USM before\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
 
     const std::int32_t count0 = KeyCount;
 
@@ -270,11 +270,11 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     // check result
     dt_helper.retrieve_data(_it_from);
 
-    // std::cout << "USM after\n";
-    // print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
+    std::cout << "USM after\n";
+    print_array(tmp_first + 1, (tmp_last - tmp_first - 2));
 
-    // std::cout << "Expected\n";
-    // print_array(expected_first + 1, (expected_last - expected_first - 2));
+    std::cout << "Expected\n";
+    print_array(expected_first + 1, (expected_last - expected_first - 2));
 
     check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2", compare...);
 
