@@ -26,6 +26,14 @@
 //namespace __par_backend_hetero
 //{
 
+#ifdef __SYCL_DEVICE_ONLY__
+#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#define __SYCL_CONSTANT_AS
+#endif
+
+const __SYCL_CONSTANT_AS char fmt[] = "%f\n";
+
 template <typename... _Name>
 class __radix_sort_one_wg_kernel;
 
@@ -172,6 +180,10 @@ struct __subgroup_radix_sort
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
+
+                        auto sg = __it.get_sub_group();
+                        auto __sg_local_id = sg.get_local_linear_id();
+                        sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_id));
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
