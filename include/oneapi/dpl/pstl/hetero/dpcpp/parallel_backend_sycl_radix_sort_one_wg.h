@@ -181,7 +181,7 @@ struct __subgroup_radix_sort
             _ValT* tmp = sycl::malloc_shared<_ValT>(__n * 8, __q);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
-            return __q.submit([&](sycl::handler& __cgh) {
+            auto __event __q.submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
@@ -201,9 +201,9 @@ struct __subgroup_radix_sort
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
 
-                        auto sg = __it.get_sub_group();
-                        auto __sg_local_range = sg.get_local_linear_range();
-                        sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
+                        // auto sg = __it.get_sub_group();
+                        // auto __sg_local_range = sg.get_local_linear_range();
+                        // sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
 
                         __dpl_sycl::__group_barrier(__it);
                         while (true)
@@ -357,7 +357,7 @@ struct __subgroup_radix_sort
                         }
                     }));
             });
-            __q.wait_and_throw();
+            __event.wait();
             for (std::size_t i = 0; i < 8; i++)
             {
                 std::cout << "Iteration " << i << std::endl;
@@ -365,6 +365,7 @@ struct __subgroup_radix_sort
                 std::cout << std::endl;
             }
             sycl::free(tmp, __q);
+            return __event;
         }
     };
 };
