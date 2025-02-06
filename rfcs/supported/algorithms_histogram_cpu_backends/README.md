@@ -177,16 +177,17 @@ oneapi::dpl::__par_backend::__make_enumerable_tls(_Args&&)
 returning an object which represents an enumerable thread local storage. The enumerable thread local storage object
 must provide the following interfaces:
 
-* `__ValueType& get_for_current_thread()` - returns reference to the current thread's stored object. This function is
+* `__ValueType& get_for_current_thread()` 
+  Returns reference to the current thread's stored object. This function is
  meant to be used within a parallel context, where each thread can access storage exclusive to its thread index. The
  thread local storage should be created on first call of this function per thread. This avoids unnecessary overhead
  for loops with fewer threads used than maximum.
-
-* `__ValueType& get_with_id(std::size_t __i)` - returns reference to the stored object for an index of the list of
+* `__ValueType& get_with_id(std::size_t __i)` 
+  Returns reference to the stored object for an index of the list of
  already created elements, skipping any empty elements. This function must not be called within concurrently with
  `get_for_current_thread()`, which may create new thread local storage elements.
-
-* `std::size_t size() const` - returns number of already created elements. Similar to `get_with_id()`, this must not be 
+* `std::size_t size() const`
+  Returns number of already created elements. Similar to `get_with_id()`, this must not be 
  called concurrently with `get_for_current_thread()`, which may change the number of created elements.
 
 A unified implementation of `__enumerable_thread_local_storage` is provided with these features in
