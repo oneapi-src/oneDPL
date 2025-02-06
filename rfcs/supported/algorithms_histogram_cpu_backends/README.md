@@ -138,8 +138,8 @@ percentage of the output histogram may be occupied, even when considering dividi
 This could be explored if we find temporary storage is too large for some cases and the atomic approach does not
 provide a good fallback.
 
-## Proposal
-After exploring the above implementation for `histogram`, the following proposal better represents the use cases which
+## Supported Implementation
+After exploring the above implementation for `histogram`, the following method better represents the use cases which
 are important, and provides reasonable performance for most cases.
 
 ### Embarrassingly Parallel Via Temporary Histograms
@@ -147,29 +147,57 @@ This method uses temporary storage and a pair of calls to backend specific `para
 `histogram`. These calls will use the existing infrastructure to provide properly composable parallelism, without extra
 histogram-specific patterns in the implementation of a backend.
 
-This algorithm does however require that each parallel backend will add a
-`__enumerable_thread_local_storage<_StoredType>` struct which provides the following:
-* constructor which takes a variadic list of args to pass to the constructor of each thread's object
-* `get_for_current_thread()` returns reference to the current thread's stored object
-* `get_with_id(int i)` returns reference to the stored object for an index
-* `size()` returns number of stored objects
 
-In the TBB backend, this will use `enumerable_thread_specific` internally. For OpenMP, we implement our own similar
-thread local storage which will allocate and initialize the thread local storage at the first usage for each active
-thread, similar to TBB. The serial backend will merely create a single copy of the temporary object for use. The serial
-backend does not technically need any thread specific storage, but to avoid special casing for this serial backend, we
-use a single copy of histogram. In practice, our benchmarking reports little difference in performance between this
-implementation and the original, which directly accumulated to the output histogram.
+#### Enumerable Thread Local Storage feature
+This algorithm requires that each parallel backend add a "make" function with the following signature:
+```
+template <typename _ValueType, typename... _Args>
+/* unspecified enumerable thread local storage type */
+oneapi::dpl::__par_backend::__make_enumerable_tls(_Args&&)
+```
+returning an object which represents an enumerable thread local storage. The enumerable thread local storage object
+must provide the following interfaces:
 
-With this new structure we will use the following algorithm:
+* `__ValueType& get_for_current_thread()` - returns reference to the current thread's stored object. This function is
+ meant to be used within a parallel context, where each thread can access storage exclusive to its thread index. The
+ thread local storage should be created on first call of this function per thread. This avoids unnecessary overhead
+ for loops with fewer threads used than maximum.
 
-1) Run a `parallel_for` pattern which performs a `histogram` on the input sequence where each thread accumulates into
-its own temporary histogram returned by `__enumerable_thread_local_storage`. The parallelism is divided on the input
-element axis, and we rely upon existing `parallel_for` to implement chunksize and thread composability.
-2) Run a second `parallel_for` over the `histogram` output sequence which accumulates all temporary copies of the
-histogram created within `__enumerable_thread_local_storage` into the output histogram sequence. The parallelism is
-divided on the histogram bin axis, and each chunk loops through all temporary histograms to accumulate into the
-output histogram.
+* `__ValueType& get_with_id(std::size_t __i)` - returns reference to the stored object for an index of the list of
+ already created elements, skipping any empty elements. This function must not be called within concurrently with
+ `get_for_current_thread()`, which may create new thread local storage elements.
+
+* `std::size_t size() const` - returns number of already created elements. Similar to `get_with_id()`, this must not be 
+ called concurrently with `get_for_current_thread()`, which may change the number of created elements.
+
+A unified implementation of `__enumerable_thread_local_storage` is provided with these features in
+`include/oneapi/dpl/pstl/parallel_backend_utils.h` for use as a base implementation in a Curiously Recurring Template
+Pattern (CRTP) for individual parallel backends to derive from. When using this base struct, individual paralle backends
+must provide the following methods. 
+
+* `static std::size_t get_num_threads()` - returns the number of threads available in the current parallel backend and
+ context
+* `static std::size_t get_thread_num()` - returns the index of the current thread from within a parallel section
+
+When these two functions are provided by the derived structure, the base implementation provides the functionality
+specified above. An example of this is found in both `include/oneapi/dpl/pstl/omp/util.h` and
+`include/oneapi/dpl/pstl/parallel_backend_tbb.h`. The serial backend instead defines its own specific
+`__enumerable_thread_local_storage` type in `include/oneapi/dpl/pstl/parallel_backend_serial.h`.
+
+We decided to avoid using the class provided by TBB, `enumerable_thread_specific`, because on windows it indirectly
+includes "windows.h".  The baggage associated with "windows.h" is not worth the benefit of using the existing type.
+
+#### Algorithm
+1) Call exsiting `parallel_for` pattern which performs a `histogram` on the input sequence, each thread accumulating
+into its own temporary histogram provided by `__enumerable_thread_local_storage`. We rely upon `parallel_for` pattern to
+implement chunksize and thread composability.
+1) Call a second `parallel_for` pattern over the `histogram` output sequence which accumulates all temporary copies of
+the histogram created within `__enumerable_thread_local_storage` into the output histogram sequence. Threads divide the
+histogram bin axis, where each chunk loops through all temporary histograms to accumulate into the section of output
+histogram. In this parallel section, the inner loop for each thread iterates over individual histogram bins within the
+same temporary histogram copy, accumulating into the corresponding global output bins. This operates on chunks of
+contiguous elements in memory, and is a better access pattern taking advantage of cachelines, vectorization, and memory
+prefetching.
 
 With the overhead associated with this algorithm, the implementation of each `parallel_for` may fallback to a serial
 implementation. It makes sense to include this as part of a future improvement of `parallel_for`, where a user could
