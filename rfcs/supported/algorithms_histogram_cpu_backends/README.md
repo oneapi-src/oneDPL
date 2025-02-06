@@ -174,8 +174,9 @@ template <typename _ValueType, typename... _Args>
 auto /* or unspecified enumerable thread local storage type */
 oneapi::dpl::__par_backend::__make_enumerable_tls(_Args&&)
 ```
-returning an object which represents an enumerable thread local storage. The enumerable thread local storage object
-must provide the following member functions:
+returning an object which represents an enumerable thread local storage where `_ValueType` represents the type of stored
+per-thread objects, and `_Args...` are the types of the arguments to send to the constructor of type `_ValueType` upon
+each creation. The enumerable thread local storage object must provide the following member functions:
 
 * `__ValueType& get_for_current_thread()`
 
