@@ -37,6 +37,21 @@ const __SYCL_CONSTANT_AS char fmt[] = "%f\n";
 template <typename... _Name>
 class __radix_sort_one_wg_kernel;
 
+template<typename It>
+void print_array(It it, std::size_t n)
+{
+    for (std::size_t i = 0; i < n; i++)
+    {
+        if (i % 16 == 0)
+            std::cout << i << ":\t";
+
+        std::cout << it[i] << " ";
+        if ((i + 1) % 16 == 0)
+            std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
           std::uint32_t __radix = 4, bool __is_asc = true>
 struct __subgroup_radix_sort
@@ -163,6 +178,8 @@ struct __subgroup_radix_sort
             _TempBuf<_ValT, _SLM_tag_val> __buf_val(__block_size * __wg_size);
             _TempBuf<uint32_t, _SLM_counter> __buf_count(__counter_buf_sz);
 
+            ValT* tmp = sycl::malloc_shared<ValT>(__n * 8, __q);
+
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
@@ -181,12 +198,12 @@ struct __subgroup_radix_sort
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
 
-                        // auto sg = __it.get_sub_group();
-                        // auto __sg_local_range = sg.get_local_linear_range();
-                        // sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
-
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
+
+                        auto sg = __it.get_sub_group();
+                        auto __sg_local_range = sg.get_local_linear_range();
+                        sycl::ext::oneapi::experimental::printf(fmt, static_cast<float>(__sg_local_range));
 
                         __dpl_sycl::__group_barrier(__it);
                         while (true)
@@ -317,9 +334,27 @@ struct __subgroup_radix_sort
                             }
 
                             __dpl_sycl::__group_barrier(__it);
+
+                            auto shift = (__begin_bit / __radix) * __n;
+                            if (__begin_bit / __radix % 2 == 0) // in exchange buffer
+                            {
+                                tmp[i] = __exchange_lacc[i];
+                            }
+                            else
+                            {
+                                tmp[i] = __values.__v[i];
+                            }
                         }
                     }));
             });
+            __q.wait_and_throw();
+            for (std::size_t i = 0; i < 8; i++)
+            {
+                std::cout << "Iteration " << i << std::endl;
+                print_array(tmp + i * __n, __n);
+                std::cout << std::endl;
+            }
+            sycl::free(tmp, __q);
         }
     };
 };

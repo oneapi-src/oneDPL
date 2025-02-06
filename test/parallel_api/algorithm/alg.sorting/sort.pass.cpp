@@ -226,11 +226,11 @@ void print_array(It it, std::size_t n)
 {
     for (std::size_t i = 0; i < n; i++)
     {
-        if (i % 32 == 0)
+        if (i % 16 == 0)
             std::cout << i << ":\t";
 
         std::cout << it[i] << " ";
-        if ((i + 1) % 32 == 0)
+        if ((i + 1) % 16 == 0)
             std::cout << std::endl;
     }
     std::cout << std::endl;
