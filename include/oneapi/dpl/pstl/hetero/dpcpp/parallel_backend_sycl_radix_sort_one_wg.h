@@ -181,7 +181,7 @@ struct __subgroup_radix_sort
             _ValT* tmp = sycl::malloc_shared<_ValT>(__n * 8, __q);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
-            auto __event __q.submit([&](sycl::handler& __cgh) {
+            auto __event  = __q.submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
