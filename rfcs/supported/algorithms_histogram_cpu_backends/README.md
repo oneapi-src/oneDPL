@@ -171,51 +171,48 @@ histogram-specific patterns in the implementation of a backend.
 This algorithm requires that each parallel backend add a "make" function with the following signature:
 ```
 template <typename _ValueType, typename... _Args>
-/* unspecified enumerable thread local storage type */
+auto /* or unspecified enumerable thread local storage type */
 oneapi::dpl::__par_backend::__make_enumerable_tls(_Args&&)
 ```
 returning an object which represents an enumerable thread local storage. The enumerable thread local storage object
-must provide the following interfaces:
+must provide the following member functions:
 
 * `__ValueType& get_for_current_thread()`
 
- Returns reference to the current thread's stored object. This function is
- meant to be used within a parallel context, where each thread can access storage exclusive to its thread index. The
- thread local storage should be created on first call of this function per thread. This avoids unnecessary overhead
- for loops with fewer threads used than maximum.
+ Returns reference to the current thread's stored object. This function is meant to be used within a parallel context,
+ with each thread exclusively accessing its part of the storage.
 
 * `__ValueType& get_with_id(std::size_t __i)` 
 
- Returns reference to the stored object for an index of the list of
- already created elements, skipping any empty elements. This function must not be called within concurrently with
- `get_for_current_thread()`, which may create new thread local storage elements.
+ Returns reference to the stored object at a given index to the list of already created elements, up to `size()`.
+ This function must not be called concurrently with `get_for_current_thread()`, as that may create new
+ elements in the storage.
 
 * `std::size_t size() const`
 
- Returns number of already created elements. Similar to `get_with_id()`, this must not be 
- called concurrently with `get_for_current_thread()`, which may change the number of created elements.
+ Returns the number of already created elements. Similar to `get_with_id()`, this must not be 
+ called concurrently with `get_for_current_thread()`.
 
-A unified implementation of `__enumerable_thread_local_storage` is provided with these features in
+A unified implementation of `__enumerable_thread_local_storage_base` is provided with these features in
 `include/oneapi/dpl/pstl/parallel_backend_utils.h` for use as a base implementation in a Curiously Recurring Template
-Pattern (CRTP) for individual parallel backends to derive from. When using this base struct, individual parallel
-backends must provide the following methods.
+Pattern (CRTP) for individual parallel backends to derive from. When using this base struct, derived classes
+in specific parallel backends must provide the following methods.
 
 * `static std::size_t get_num_threads()`
 
- Returns the number of threads available in the current parallel backend and
- context
+ Returns the maximal number of threads possible in the current parallel execution context.
 
 * `static std::size_t get_thread_num()`
 
- Returns the index of the current thread from within a parallel section
+ Returns the index of the calling thread in the current parallel execution context.
 
 When these two functions are provided by the derived structure, the base implementation provides the functionality
 specified above. An example of this is found in both `include/oneapi/dpl/pstl/omp/util.h` and
 `include/oneapi/dpl/pstl/parallel_backend_tbb.h`. The serial backend instead defines its own specific
 `__enumerable_thread_local_storage` type in `include/oneapi/dpl/pstl/parallel_backend_serial.h`.
 
-We decided to avoid using the class provided by TBB, `enumerable_thread_specific`, because on windows it indirectly
-includes "windows.h".  The baggage associated with "windows.h" is not worth the benefit of using the existing type.
+We decided to avoid using the `enumerable_thread_specific` class provided by TBB, because on Windows it includes
+"windows.h".  The baggage associated with "windows.h" is not worth the benefit of using the existing type.
 
 #### Algorithm
 1) Call existing `parallel_for` pattern which performs a `histogram` on the input sequence, each thread accumulating
