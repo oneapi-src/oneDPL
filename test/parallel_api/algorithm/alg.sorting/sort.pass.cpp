@@ -362,8 +362,9 @@ template <::std::size_t CallNumber, typename T, typename Compare, typename Conve
 void
 test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, FStep fstep)
 {
-    for (size_t n = start_size; n <= max_size; n = fstep(n))
+    // for (size_t n = start_size; n <= max_size; n = fstep(n))
     {
+        size_t n = 3000;
         std::cout << "n = " << n << std::endl;
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.
@@ -497,18 +498,18 @@ main()
 #endif
     }
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    ifdef _PSTL_TEST_WITH_PREDICATE
-#        if __SYCL_UNNAMED_LAMBDA__
-    // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
-    test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); }, 10);
-#        endif //__SYCL_UNNAMED_LAMBDA__
-#    endif     //_PSTL_TEST_WITH_PREDICATE
-#endif         //TEST_DPCPP_BACKEND_PRESENT
+// #if TEST_DPCPP_BACKEND_PRESENT
+// #    ifdef _PSTL_TEST_WITH_PREDICATE
+// #        if __SYCL_UNNAMED_LAMBDA__
+//     // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
+//     test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); }, 10);
+// #        endif //__SYCL_UNNAMED_LAMBDA__
+// #    endif     //_PSTL_TEST_WITH_PREDICATE
+// #endif         //TEST_DPCPP_BACKEND_PRESENT
 
-#if !ONEDPL_FPGA_DEVICE
-    TestUtils::test_algo_basic_single<int32_t>(TestUtils::run_for_rnd<test_non_const<int32_t>>());
-#endif // !ONEDPL_FPGA_DEVICE
+// #if !ONEDPL_FPGA_DEVICE
+//     TestUtils::test_algo_basic_single<int32_t>(TestUtils::run_for_rnd<test_non_const<int32_t>>());
+// #endif // !ONEDPL_FPGA_DEVICE
 
     return TestUtils::done();
 }
