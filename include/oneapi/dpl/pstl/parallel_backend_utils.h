@@ -19,7 +19,7 @@
 #include <atomic>
 #include <cstddef>
 #include <iterator>
-#include <memory>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -306,18 +306,13 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
     return __cc_range(__first2, __last2, __result);
 }
 
-namespace __detail
-{
-
 template <template <typename, typename...> typename _Concrete, typename _ValueType, typename... _Args>
 struct __enumerable_thread_local_storage_base
 {
-    using derived_type = _Concrete<_ValueType, _Args...>;
+    using _Derived = _Concrete<_ValueType, _Args...>;
 
-    template <typename... _LocalArgs>
-    __enumerable_thread_local_storage_base(_LocalArgs&&... __args)
-        : __thread_specific_storage(derived_type::get_num_threads()), __num_elements(0),
-          __args(std::forward<_LocalArgs>(__args)...)
+    __enumerable_thread_local_storage_base(std::tuple<_Args...> __tp)
+        : __thread_specific_storage(_Derived::get_num_threads()), __num_elements(0), __args(__tp)
     {
     }
 
@@ -336,7 +331,7 @@ struct __enumerable_thread_local_storage_base
     // and incrementing of the size.
     // TODO: Consider replacing this access with a visitor pattern.
     _ValueType&
-    get_with_id(std::size_t __i)
+    get_with_id(std::size_t __i) const
     {
         assert(__i < size());
 
@@ -361,24 +356,22 @@ struct __enumerable_thread_local_storage_base
     _ValueType&
     get_for_current_thread()
     {
-        const std::size_t __i = derived_type::get_thread_num();
-        std::unique_ptr<_ValueType>& __thread_local_storage = __thread_specific_storage[__i];
-        if (!__thread_local_storage)
+        const std::size_t __i = _Derived::get_thread_num();
+        std::optional<_ValueType>& __local = __thread_specific_storage[__i];
+        if (!__local)
         {
             // create temporary storage on first usage to avoid extra parallel region and unnecessary instantiation
-            __thread_local_storage =
-                std::apply([](_Args... __arg_pack) { return std::make_unique<_ValueType>(__arg_pack...); }, __args);
+            std::apply([&__local](_Args... __arg_pack){ __local.emplace(__arg_pack...); }, __args);
             __num_elements.fetch_add(1, std::memory_order_relaxed);
         }
-        return *__thread_local_storage;
+        return *__local;
     }
 
-    std::vector<std::unique_ptr<_ValueType>> __thread_specific_storage;
+    std::vector<std::optional<_ValueType>> __thread_specific_storage;
     std::atomic_size_t __num_elements;
     const std::tuple<_Args...> __args;
 };
 
-} // namespace __detail
 } // namespace __utils
 } // namespace dpl
 } // namespace oneapi

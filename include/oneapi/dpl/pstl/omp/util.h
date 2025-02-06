@@ -153,17 +153,20 @@ __process_chunk(const __chunk_metrics& __metrics, _Iterator __base, _Index __chu
 namespace __detail
 {
 
+// Workaround for VS 2017: declare an alias to the CRTP base template
 template <typename _ValueType, typename... _Args>
-struct __enumerable_thread_local_storage
-    : public oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage,
-                                                                                    _ValueType, _Args...>
+struct __enumerable_thread_local_storage;
+
+template<typename... _Ts>
+using __etls_base = __utils::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage, _Ts...>;
+
+template <typename _ValueType, typename... _Args>
+struct __enumerable_thread_local_storage : public __etls_base<_ValueType, _Args...>
 {
-    using base_type =
-        oneapi::dpl::__utils::__detail::__enumerable_thread_local_storage_base<__enumerable_thread_local_storage,
-                                                                               _ValueType, _Args...>;
 
     template <typename... _LocalArgs>
-    __enumerable_thread_local_storage(_LocalArgs&&... __args) : base_type(std::forward<_LocalArgs>(__args)...)
+    __enumerable_thread_local_storage(_LocalArgs&&... __args)
+    : __etls_base<_ValueType, _Args...>({std::forward<_LocalArgs>(__args)...})
     {
     }
 
@@ -182,12 +185,12 @@ struct __enumerable_thread_local_storage
 
 } // namespace __detail
 
-// enumerable thread local storage should only be created from make function
+// enumerable thread local storage should only be created with this make function
 template <typename _ValueType, typename... _Args>
-oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, _Args...>
+__detail::__enumerable_thread_local_storage<_ValueType, std::remove_reference_t<_Args>...>
 __make_enumerable_tls(_Args&&... __args)
 {
-    return oneapi::dpl::__omp_backend::__detail::__enumerable_thread_local_storage<_ValueType, _Args...>(
+    return __detail::__enumerable_thread_local_storage<_ValueType, std::remove_reference_t<_Args>...>(
         std::forward<_Args>(__args)...);
 }
 
