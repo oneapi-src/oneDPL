@@ -218,3 +218,9 @@ The proposed algorithm should have `O(N) + O(num_bins)` operations where `N` is 
 #### Custom Range Bin API
 The proposed algorithm should have `O(N * log(num_bins)) + O(num_bins)` operations where `N` is the number of input
 elements, and `num_bins` is the number of histogram bins.
+
+### Future work
+* Improve parallel_for pattern to allow generic implementation level to specify chunksize and serial cutoff thresholds.
+* Explore options for some partial vectorization of the first parallel_for loop
+* Explore improvements to `__enumerable_thread_local_storage` API for enumerating through created elements. Consider
+ switching to a visitor pattern, and better protecting against improper usage.
