@@ -178,7 +178,7 @@ struct __subgroup_radix_sort
             _TempBuf<_ValT, _SLM_tag_val> __buf_val(__block_size * __wg_size);
             _TempBuf<uint32_t, _SLM_counter> __buf_count(__counter_buf_sz);
 
-            ValT* tmp = sycl::malloc_shared<ValT>(__n * 8, __q);
+            _ValT* tmp = sycl::malloc_shared<ValT>(__n * 8, __q);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
