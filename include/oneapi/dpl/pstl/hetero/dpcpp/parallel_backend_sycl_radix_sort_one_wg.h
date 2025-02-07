@@ -301,7 +301,7 @@ struct __subgroup_radix_sort
                             }
 
                             // __dpl_sycl::__group_barrier(__it);
-                            sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
+                            __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local);
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
@@ -312,7 +312,8 @@ struct __subgroup_radix_sort
                             }
 
                             // __dpl_sycl::__group_barrier(__it);
-                            sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
+                            __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local);
+                            // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
                         }
                     }));
             });

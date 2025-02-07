@@ -69,6 +69,7 @@
 #define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT               (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT           (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
 #define _ONEDPL_SYCL2020_REQD_SUB_GROUP_SIZE_PRESENT          (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
+#define _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT                (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50300))
 #define _ONEDPL_SYCL2020_TARGET_PRESENT                       (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
 #define _ONEDPL_SYCL2020_TARGET_DEVICE_PRESENT                (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50400))
 #define _ONEDPL_SYCL2020_ATOMIC_REF_PRESENT                   (!_ONEDPL_LIBSYCL_VERSION_LESS_THAN(50500))
@@ -225,17 +226,37 @@ __get_accessor_size(const _Accessor& __accessor)
 #endif
 }
 
-template <typename _Item>
-constexpr void
-__group_barrier(_Item __item)
+// TODO: switch to SYCL 2020 with DPC++ compiler.
+// SYCL 1.2.1 version is used due to better performance on Intel GPUs.
+// The performance gap is negligible since
+// https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
+// But the fix is not a part of the LTS GPU drivers (Linux) yet.
+#define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+
+#if ONEDPL_USE_SYCL121_GROUP_BARRIER
+template <sycl::access::fence_space _Space>
+struct __fence_space
 {
-#if 0 // !defined(_ONEDPL_LIBSYCL_VERSION) || _ONEDPL_LIBSYCL_VERSION >= 50300
-    //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
-    // 1) sycl::group_barrier() implementation is not ready
-    // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
+    static constexpr sycl::access::fence_space __value = _Space;
+};
+using __fence_space_local = __fence_space<sycl::access::fence_space::local_space>;
+using __fence_space_global = __fence_space<sycl::access::fence_space::global_space>;
+using __fence_space_global_and_local = __fence_space<sycl::access::fence_space::global_and_local>;
+#else
+struct __fence_space_local {};
+struct __fence_space_global {};
+struct __fence_space_global_and_local {};
+#endif // ONEDPL_USE_SYCL121_GROUP_BARRIER
+
+template <typename _Item, typename _Space = __fence_space_local>
+void __group_barrier(_Item __item, [[maybe_unused]] _Space __space = {})
+{
+#if ONEDPL_USE_SYCL121_GROUP_BARRIER
+    __item.barrier(_Space::__value);
+#elif _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT
     sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 #else
-    __item.barrier(sycl::access::fence_space::local_space);
+#    error "sycl::group_barrier is not supported, and no alternative is available"
 #endif
 }
 
