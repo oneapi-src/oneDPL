@@ -177,7 +177,7 @@ struct __subgroup_radix_sort
                             if constexpr (decltype(__is_slm)::value)
                                 __dpl_sycl::__group_barrier(__it);
                             else
-                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global{});
+                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global);
                         };
 
                         //copy(move) values construction
