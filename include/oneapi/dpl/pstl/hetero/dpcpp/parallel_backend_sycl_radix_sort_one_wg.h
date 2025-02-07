@@ -74,7 +74,6 @@ struct __subgroup_radix_sort
         uint16_t __buf_size;
 
       public:
-
         static constexpr sycl::access::fence_space _space = sycl::access::fence_space::local_space;
 
         _TempBuf(uint16_t __n) : __buf_size(__n) {}
@@ -91,7 +90,6 @@ struct __subgroup_radix_sort
         sycl::buffer<_KeyT> __buf;
 
       public:
-
         static constexpr sycl::access::fence_space _space = sycl::access::fence_space::global_space;
 
         _TempBuf(uint16_t __n) : __buf(__n) {}
@@ -183,7 +181,7 @@ struct __subgroup_radix_sort
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
                 // Get accessors to sycl::buffer (global memory) or sycl::local_accessor (local memory)
-                auto __exchange_lacc = __buf_val.get_acc  (__cgh);
+                auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
                 const auto __fence_exchange = __buf_val._space;
