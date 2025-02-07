@@ -188,7 +188,7 @@ struct __subgroup_radix_sort
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        __val_mem_adjusted_barrier();
+                        __val_mem_adjusted_barrier(); // TODO: check if the barrier can be removed
 
                         while (true)
                         {

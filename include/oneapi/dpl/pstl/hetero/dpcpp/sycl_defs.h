@@ -232,15 +232,15 @@ __get_accessor_size(const _Accessor& __accessor)
 // The performance gap is negligible since
 // https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
 // But the fix is not a part of the LTS GPU drivers (Linux) yet.
-#if !defined(ONEDPL_USE_SYCL121_GROUP_BARRIER)
+#if !defined(ONEDPL_SYCL121_GROUP_BARRIER)
 #    if _ONEDPL_LIBSYCL_VERSION
-#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+#        define ONEDPL_SYCL121_GROUP_BARRIER 1
 #    else
-#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 0
+#        define ONEDPL_SYCL121_GROUP_BARRIER 0
 #    endif
 #endif
 
-#if ONEDPL_USE_SYCL121_GROUP_BARRIER
+#if ONEDPL_SYCL121_GROUP_BARRIER
 template <sycl::access::fence_space _Space>
 struct __fence_space
 {
@@ -253,12 +253,12 @@ using __fence_space_global_and_local = __fence_space<sycl::access::fence_space::
 struct __fence_space_local {};
 struct __fence_space_global {};
 struct __fence_space_global_and_local {};
-#endif // ONEDPL_USE_SYCL121_GROUP_BARRIER
+#endif // ONEDPL_SYCL121_GROUP_BARRIER
 
 template <typename _Item, typename _Space = __fence_space_local>
 void __group_barrier(_Item __item, [[maybe_unused]] _Space __space = {})
 {
-#if ONEDPL_USE_SYCL121_GROUP_BARRIER
+#if ONEDPL_SYCL121_GROUP_BARRIER
     __item.barrier(_Space::__value);
 #elif _ONEDPL_SYCL2020_GROUP_BARRIER_PRESENT
     sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
