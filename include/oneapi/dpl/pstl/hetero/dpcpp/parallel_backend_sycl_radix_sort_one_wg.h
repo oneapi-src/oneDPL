@@ -183,8 +183,8 @@ struct __subgroup_radix_sort
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
                 // Get accessors to sycl::buffer (global memory) or sycl::local_accessor (local memory)
-                auto __acc_buf_val   = __buf_val.get_acc  (__cgh);
-                auto __acc_buf_count = __buf_count.get_acc(__cgh);
+                auto __exchange_lacc = __buf_val.get_acc  (__cgh);
+                auto __counter_lacc = __buf_count.get_acc(__cgh);
 
                 const auto __fence_buf_val   = __buf_val._space;
                 const auto __fence_buf_count = __buf_count._space;
@@ -215,7 +215,7 @@ struct __subgroup_radix_sort
 
                                 //1. "counting" phase
                                 //counter initialization
-                                _CounterT* __pcounter = __dpl_sycl::__get_accessor_ptr(__acc_buf_count) + __wi;
+                                _CounterT* __pcounter = __dpl_sycl::__get_accessor_ptr(__counter_lacc) + __wi;
 
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
@@ -245,11 +245,11 @@ struct __subgroup_radix_sort
 
                                     //scan contiguous numbers
                                     uint16_t __bin_sum[__bin_count];
-                                    __bin_sum[0] = __acc_buf_count[__wi * __bin_count];
+                                    __bin_sum[0] = __counter_lacc[__wi * __bin_count];
 
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 1; __i < __bin_count; ++__i)
-                                        __bin_sum[__i] = __bin_sum[__i - 1] + __acc_buf_count[__wi * __bin_count + __i];
+                                        __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
 
                                     __dpl_sycl::__group_barrier(__it /*, sycl::access::fence_space::local_space */);
                                     //exclusive scan local sum
@@ -258,10 +258,10 @@ struct __subgroup_radix_sort
                                     //add to local sum, generate exclusive scan result
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                                        __acc_buf_count[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
+                                        __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
 
                                     if (__wi == 0)
-                                        __acc_buf_count[0] = 0;
+                                        __counter_lacc[0] = 0;
                                     __dpl_sycl::__group_barrier(__it, __fence_buf_count);
                                 }
 
@@ -298,7 +298,7 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __idx = __wi * __block_size + __i;
                                     if (__idx < __n)
-                                        __acc_buf_val[__idx].~_ValT();
+                                        __exchange_lacc[__idx].~_ValT();
                                 }
 
                                 return;
@@ -312,7 +312,7 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        new (&__acc_buf_val[__r]) _ValT(::std::move(__values.__v[__i]));
+                                        new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
                                 }
                             }
                             else
@@ -322,7 +322,7 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        __acc_buf_val[__r] = ::std::move(__values.__v[__i]);
+                                        __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
                             __dpl_sycl::__group_barrier(__it, __fence_buf_val);
@@ -332,7 +332,7 @@ struct __subgroup_radix_sort
                             {
                                 const uint16_t __idx = __wi * __block_size + __i;
                                 if (__idx < __n)
-                                    __values.__v[__i] = ::std::move(__acc_buf_val[__idx]);
+                                    __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
                             }
                             __dpl_sycl::__group_barrier(__it /*, sycl::access::fence_space::local_space */);
                         }
