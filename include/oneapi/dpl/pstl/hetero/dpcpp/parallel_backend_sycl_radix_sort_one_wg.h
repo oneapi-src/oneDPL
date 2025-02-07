@@ -181,6 +181,8 @@ struct __subgroup_radix_sort
             _ValT* tmp = sycl::malloc_shared<_ValT>(__n * 8, __q);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
+            std::cout << "WG size: " << __wg_size << std::endl;
+
             auto __event  = __q.submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
@@ -354,6 +356,7 @@ struct __subgroup_radix_sort
                                         tmp[__idx + shift] = __values.__v[__i];
                                 }
                             }
+                            __dpl_sycl::__group_barrier(__it);
                         }
                     }));
             });
