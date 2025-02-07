@@ -77,12 +77,19 @@ struct __subgroup_radix_sort
         //check SLM size
         const auto __SLM_available = __check_slm_size<_KeyT>(__q, __src.size());
         if (__SLM_available.first && __SLM_available.second)
+        {
+            std::cout << "SLM is available for both values and counters" << std::endl;
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                            ::std::true_type{} /*SLM*/, ::std::true_type{} /*SLM*/);
+        }
         if (__SLM_available.second)
+        {
+            std::cout << "SLM is available for counters" << std::endl;
             return __one_group_submitter<_SortKernelPartGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                                 ::std::false_type{} /*No SLM*/,
                                                                 ::std::true_type{} /*SLM*/);
+        }
+        std::cout << "SLM is not available" << std::endl;
         return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                             ::std::false_type{} /*No SLM*/, ::std::false_type{} /*No SLM*/);
     }
