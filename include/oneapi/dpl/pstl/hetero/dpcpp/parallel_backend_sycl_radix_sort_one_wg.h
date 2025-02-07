@@ -173,8 +173,14 @@ struct __subgroup_radix_sort
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
 
-                        auto __val_mem_adjusted_barrier = []() {
+                        auto __val_mem_adjusted_barrier = [__it]() {
                             if constexpr (_SLM_tag_val::value)
+                                __dpl_sycl::__group_barrier(__it);
+                            else
+                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local{});
+                        };
+                        auto __count_mem_adjusted_barrier = [__it]() {
+                            if constexpr (_SLM_counter::value)
                                 __dpl_sycl::__group_barrier(__it);
                             else
                                 __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local{});
@@ -182,7 +188,7 @@ struct __subgroup_radix_sort
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        __dpl_sycl::__group_barrier(__it);
+                        __val_mem_adjusted_barrier();
 
                         while (true)
                         {
@@ -212,7 +218,7 @@ struct __subgroup_radix_sort
                                     __indices[__i] = *__counters[__i];
                                     *__counters[__i] = __indices[__i] + 1;
                                 }
-                                __dpl_sycl::__group_barrier(__it);
+                                __count_mem_adjusted_barrier();
 
                                 //2. scan phase
                                 {
@@ -225,8 +231,7 @@ struct __subgroup_radix_sort
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 1; __i < __bin_count; ++__i)
                                         __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-
-                                    __dpl_sycl::__group_barrier(__it);
+                                    __count_mem_adjusted_barrier();
 
                                     //exclusive scan local sum
                                     uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
@@ -238,7 +243,7 @@ struct __subgroup_radix_sort
 
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
-                                    __dpl_sycl::__group_barrier(__it);
+                                    __count_mem_adjusted_barrier();
                                 }
 
                                 _ONEDPL_PRAGMA_UNROLL
@@ -309,7 +314,7 @@ struct __subgroup_radix_sort
                                 if (__idx < __n)
                                     __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
                             }
-                            __dpl_sycl::__group_barrier(__it);
+                            __val_mem_adjusted_barrier();
                         }
                     }));
             });
