@@ -175,7 +175,7 @@ struct __subgroup_radix_sort
             using _ValBufT = _TempBuf<_ValT, _SLM_tag_val>;
             using _CounterBufT = _TempBuf<_CounterT, _SLM_counter>;
 
-            _ValBufT     __buf_val  (__block_size * __wg_size);
+            _ValBufT __buf_val(__block_size * __wg_size);
             _CounterBufT __buf_count(__counter_buf_sz);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
