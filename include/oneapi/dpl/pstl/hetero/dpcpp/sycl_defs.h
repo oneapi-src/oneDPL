@@ -227,11 +227,18 @@ __get_accessor_size(const _Accessor& __accessor)
 }
 
 // TODO: switch to SYCL 2020 with DPC++ compiler.
-// SYCL 1.2.1 version is used due to better performance on Intel GPUs.
+// SYCL 1.2.1 version is used due to having an API with a local memory fence,
+// which gives better performance on Intel GPUs.
 // The performance gap is negligible since
 // https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
 // But the fix is not a part of the LTS GPU drivers (Linux) yet.
-#define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+#if !defined(ONEDPL_USE_SYCL121_GROUP_BARRIER)
+#    if _ONEDPL_LIBSYCL_VERSION
+#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 1
+#    else
+#        define ONEDPL_USE_SYCL121_GROUP_BARRIER 0
+#    endif
+#endif
 
 #if ONEDPL_USE_SYCL121_GROUP_BARRIER
 template <sycl::access::fence_space _Space>
