@@ -160,9 +160,9 @@ struct __subgroup_radix_sort
                               : sycl::access::fence_space::global_and_local);
         }
 
-        template <typename _RangeIn, typename _Proj, typename _SLM_tag_val, typename _SLM_tag_counter>
+        template <typename _RangeIn, typename _Proj, typename _SLM_tag_val, typename _SLM_counter>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_tag_counter)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_counter)
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
@@ -173,7 +173,7 @@ struct __subgroup_radix_sort
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
 
             using _ValBufT = _TempBuf<_ValT, _SLM_tag_val>;
-            using _CounterBufT = _TempBuf<_CounterT, _SLM_tag_counter>;
+            using _CounterBufT = _TempBuf<_CounterT, _SLM_counter>;
 
             _ValBufT     __buf_val  (__block_size * __wg_size);
             _CounterBufT __buf_count(__counter_buf_sz);
