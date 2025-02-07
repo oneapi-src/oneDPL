@@ -227,7 +227,7 @@ __get_accessor_size(const _Accessor& __accessor)
 
 template <typename _Item>
 constexpr void
-__group_barrier(_Item __item)
+__group_barrier(_Item __item, sycl::access::fence_space __space = sycl::access::fence_space::local_space)
 {
 #if 0 // !defined(_ONEDPL_LIBSYCL_VERSION) || _ONEDPL_LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
@@ -235,7 +235,7 @@ __group_barrier(_Item __item)
     // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
     sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 #else
-    __item.barrier(sycl::access::fence_space::local_space);
+    __item.barrier(__space);
 #endif
 }
 
