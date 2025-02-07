@@ -334,7 +334,8 @@ struct __subgroup_radix_sort
                                 if (__idx < __n)
                                     __values.__v[__i] = ::std::move(__acc_buf_val[__idx]);
                             }
-                            __dpl_sycl::__group_barrier(__it, sycl::access::fence_space::global_and_local);  // TODO is it correct to use here global_and_local or enough to use local_space ?
+                            // __dpl_sycl::__group_barrier(__it, sycl::access::fence_space::global_and_local);  // TODO is it correct to use here global_and_local or enough to use local_space ?
+                            __dpl_sycl::__group_barrier(__it);
                         }
                     }));
             });
