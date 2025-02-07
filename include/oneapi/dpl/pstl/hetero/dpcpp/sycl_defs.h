@@ -256,7 +256,8 @@ struct __fence_space_global_and_local {};
 #endif // ONEDPL_SYCL121_GROUP_BARRIER
 
 template <typename _Item, typename _Space = __fence_space_local>
-void __group_barrier(_Item __item, [[maybe_unused]] _Space __space = {})
+void
+__group_barrier(_Item __item, [[maybe_unused]] _Space __space = {})
 {
 #if ONEDPL_SYCL121_GROUP_BARRIER
     __item.barrier(_Space::__value);
