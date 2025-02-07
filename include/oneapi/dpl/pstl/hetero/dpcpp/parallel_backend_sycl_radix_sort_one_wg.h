@@ -186,9 +186,9 @@ struct __subgroup_radix_sort
                 auto __exchange_lacc = __buf_val.get_acc  (__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-                const auto __fence_buf_val   = __buf_val._space;
-                const auto __fence_buf_count = __buf_count._space;
-                const auto __fence_common = __get_fence_common(__fence_buf_val, __fence_buf_count);
+                const auto __fence_exchange = __buf_val._space;
+                const auto __fence_counter = __buf_count._space;
+                const auto __fence_common = __get_fence_common(__fence_exchange, __fence_counter);
 
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it) [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(16)]] {
@@ -262,7 +262,7 @@ struct __subgroup_radix_sort
 
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
-                                    __dpl_sycl::__group_barrier(__it, __fence_buf_count);
+                                    __dpl_sycl::__group_barrier(__it, __fence_counter);
                                 }
 
                                 _ONEDPL_PRAGMA_UNROLL
@@ -325,7 +325,7 @@ struct __subgroup_radix_sort
                                         __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
-                            __dpl_sycl::__group_barrier(__it, __fence_buf_val);
+                            __dpl_sycl::__group_barrier(__it, __fence_exchange);
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
