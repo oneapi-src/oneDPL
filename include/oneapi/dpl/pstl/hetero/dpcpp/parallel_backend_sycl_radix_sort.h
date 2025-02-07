@@ -785,9 +785,7 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
 
     //TODO: 1.to reduce number of the kernels; 2.to define work group size in runtime, depending on number of elements
     constexpr std::size_t __wg_size = 64;
-    const auto __subgroup_sizes = __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-    const bool __dev_has_sg16 = std::find(__subgroup_sizes.begin(), __subgroup_sizes.end(),
-                                          static_cast<std::size_t>(16)) != __subgroup_sizes.end();
+    const bool __dev_has_sg16 = oneapi::dpl::__internal::__supports_sub_group_size(__exec, 16);
 
     if (__n <= 64 && __wg_size <= __max_wg_size
         || __n <= 128 && __wg_size * 2 <= __max_wg_size
