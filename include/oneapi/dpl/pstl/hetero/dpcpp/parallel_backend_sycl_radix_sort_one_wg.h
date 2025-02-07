@@ -368,12 +368,12 @@ struct __subgroup_radix_sort
                     }));
             });
             __event.wait();
-            for (std::size_t i = 0; i < 8; i++)
-            {
-                std::cout << "Iteration " << i << std::endl;
-                print_array(tmp + i * __n, __n);
-                std::cout << std::endl;
-            }
+            // for (std::size_t i = 0; i < 8; i++)
+            // {
+            //     std::cout << "Iteration " << i << std::endl;
+            //     print_array(tmp + i * __n, __n);
+            //     std::cout << std::endl;
+            // }
             sycl::free(tmp, __q);
             return __event;
         }
