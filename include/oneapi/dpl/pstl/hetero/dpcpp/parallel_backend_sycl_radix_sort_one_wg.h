@@ -149,6 +149,9 @@ struct __subgroup_radix_sort
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
 
+            constexpr bool __is_val_in_slm = _SLM_tag_val::value;
+            constexpr bool __is_count_in_slm = _SLM_counter::value;
+
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
 
@@ -175,8 +178,7 @@ struct __subgroup_radix_sort
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        // __dpl_sycl::__group_barrier(__it);
-                        sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
+                        __dpl_sycl::__group_barrier(__it);
 
                         while (true)
                         {
@@ -207,7 +209,6 @@ struct __subgroup_radix_sort
                                     *__counters[__i] = __indices[__i] + 1;
                                 }
                                 __dpl_sycl::__group_barrier(__it);
-                                // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
 
                                 //2. scan phase
                                 {
@@ -222,7 +223,6 @@ struct __subgroup_radix_sort
                                         __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
 
                                     __dpl_sycl::__group_barrier(__it);
-                                    // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
 
                                     //exclusive scan local sum
                                     uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
@@ -235,7 +235,6 @@ struct __subgroup_radix_sort
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
                                     __dpl_sycl::__group_barrier(__it);
-                                    // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
                                 }
 
                                 _ONEDPL_PRAGMA_UNROLL
@@ -250,7 +249,6 @@ struct __subgroup_radix_sort
 
                             //3. "re-order" phase
                             __dpl_sycl::__group_barrier(__it);
-                            // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
                             if (__begin_bit >= __end_bit)
                             {
                                 // the last iteration - writing out the result
@@ -274,7 +272,6 @@ struct __subgroup_radix_sort
                                     if (__idx < __n)
                                         __exchange_lacc[__idx].~_ValT();
                                 }
-
                                 return;
                             }
 
@@ -299,9 +296,10 @@ struct __subgroup_radix_sort
                                         __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
-
-                            // __dpl_sycl::__group_barrier(__it);
-                            __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local);
+                            if constexpr (__is_val_in_slm)
+                                __dpl_sycl::__group_barrier(__it);
+                            else
+                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local{});
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
@@ -310,10 +308,7 @@ struct __subgroup_radix_sort
                                 if (__idx < __n)
                                     __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
                             }
-
-                            // __dpl_sycl::__group_barrier(__it);
-                            __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local);
-                            // sycl::group_barrier(__it.get_group(), sycl::memory_scope::work_group);
+                            __dpl_sycl::__group_barrier(__it);
                         }
                     }));
             });
