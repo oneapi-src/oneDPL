@@ -224,16 +224,16 @@ check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n,
 template<typename It>
 void print_array(It it, std::size_t n)
 {
-    for (std::size_t i = 0; i < n; i++)
-    {
-        if (i % 16 == 0)
-            std::cout << i << ":\t";
+    // for (std::size_t i = 0; i < n; i++)
+    // {
+    //     if (i % 16 == 0)
+    //         std::cout << i << ":\t";
 
-        std::cout << it[i] << " ";
-        if ((i + 1) % 16 == 0)
-            std::cout << std::endl;
-    }
-    std::cout << std::endl;
+    //     std::cout << it[i] << " ";
+    //     if ((i + 1) % 16 == 0)
+    //         std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -386,9 +386,9 @@ template <::std::size_t CallNumber, typename T, typename Compare, typename Conve
 void
 test_sort(Compare compare, Convert convert, size_t start_size, size_t max_size, FStep fstep)
 {
-    // for (size_t n = 10; n <= 5139; ++n)
+    for (size_t n = 10; n <= 5139; ++n)
     {
-        size_t n = 4097;
+        // size_t n = 4097;
         std::cout << "n = " << n << std::endl;
         LastIndex = n + 2;
         // The rand()%(2*n+1) encourages generation of some duplicates.

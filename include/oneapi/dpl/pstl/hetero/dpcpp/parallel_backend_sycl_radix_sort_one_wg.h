@@ -159,6 +159,10 @@ struct __subgroup_radix_sort
         const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
 
+        std::cout << "Max SLM size: " << __max_slm_size << std::endl;
+        std::cout << "SLM size for values: " << __req_slm_size_val << std::endl;
+        std::cout << "SLM size for counters: " << __req_slm_size_counters << std::endl;
+
         if (__req_slm_size_val + __req_slm_size_counters <= __max_slm_size)
             return ::std::make_pair(true, true);  //the values and the counters are placed in SLM
         if (__req_slm_size_counters <= __max_slm_size)
