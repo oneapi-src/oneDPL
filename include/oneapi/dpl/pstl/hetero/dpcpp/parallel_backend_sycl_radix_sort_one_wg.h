@@ -149,9 +149,6 @@ struct __subgroup_radix_sort
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
 
-            constexpr bool __is_val_in_slm = _SLM_tag_val::value;
-            constexpr bool __is_count_in_slm = _SLM_counter::value;
-
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
 
@@ -175,6 +172,13 @@ struct __subgroup_radix_sort
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
+
+                        auto __val_mem_adjusted_barrier = []() {
+                            if constexpr (_SLM_tag_val::value)
+                                __dpl_sycl::__group_barrier(__it);
+                            else
+                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local{});
+                        };
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
@@ -296,10 +300,7 @@ struct __subgroup_radix_sort
                                         __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
-                            if constexpr (__is_val_in_slm)
-                                __dpl_sycl::__group_barrier(__it);
-                            else
-                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global_and_local{});
+                            __val_mem_adjusted_barrier();
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
