@@ -235,7 +235,7 @@ template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-#if 0 // !defined(_ONEDPL_LIBSYCL_VERSION) || _ONEDPL_LIBSYCL_VERSION >= 50300
+#if 1 // !defined(_ONEDPL_LIBSYCL_VERSION) || _ONEDPL_LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
     // 1) sycl::group_barrier() implementation is not ready
     // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
