@@ -66,7 +66,7 @@ inline constexpr bool lazy_report_v = lazy_report_value<S>::value;
 template <typename S>
 struct get_resources_value
 {
-    static constexpr bool value = ::oneapi::dpl::experimental::internal::get_resources_report<S>::value;
+    static constexpr bool value = ::oneapi::dpl::experimental::internal::has_get_resources<S>::value;
 };
 template <typename S>
 inline constexpr get_resources_report_v = get_resources_value<S>::value;
