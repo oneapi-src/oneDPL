@@ -69,7 +69,7 @@ struct get_resources_value
     static constexpr bool value = ::oneapi::dpl::experimental::internal::has_get_resources<S>::value;
 };
 template <typename S>
-inline constexpr get_resources_report_v = get_resources_value<S>::value;
+inline constexpr get_resources_v = get_resources_value<S>::value;
 } //namespace backend_traits
 
 } // namespace experimental
