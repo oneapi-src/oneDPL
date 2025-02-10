@@ -1027,10 +1027,18 @@ get_pattern_for_max_n()
     constexpr std::size_t max_iters_per_item = 16;
     constexpr std::size_t multiplier = 4;
     constexpr std::size_t max_work_group_size = 512;
-    std::size_t __max_n = multiplier * max_iters_per_item * max_work_group_size *
-                          d.get_info<sycl::info::device::max_compute_units>();
-    __max_n = std::min(std::size_t{10000000}, __max_n);
-    return __max_n;
+    // Cap testing to prevent excessive runtimes on devices with many compute units. Lower this
+    // threshold for Debug (-O0 + -g) builds where runtimes are significantly longer.
+    std::size_t cap =
+#if PSTL_USE_DEBUG
+        500000;
+#else
+        10000000;
+#endif
+    std::size_t max_n = multiplier * max_iters_per_item * max_work_group_size *
+                        d.get_info<sycl::info::device::max_compute_units>();
+    max_n = std::min(cap, max_n);
+    return max_n;
 #else
     return TestUtils::max_n;
 #endif
