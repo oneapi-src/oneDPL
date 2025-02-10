@@ -187,7 +187,8 @@ struct __subgroup_radix_sort
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence()); // TODO: check if the barrier can be removed
+                        // TODO: check if the barrier can be removed
+                        __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
 
                         while (true)
                         {
