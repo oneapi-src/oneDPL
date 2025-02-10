@@ -81,8 +81,8 @@ struct __subgroup_radix_sort
             return __dpl_sycl::__local_accessor<_KeyT>(__buf_size, __cgh);
         }
 
-        inline auto
-        get_fence() const
+        inline static auto
+        get_fence()
         {
             return __dpl_sycl::__fence_space_local;
         }
@@ -101,8 +101,8 @@ struct __subgroup_radix_sort
             return sycl::accessor(__buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
         }
 
-        inline auto
-        get_fence() const
+        inline static auto
+        get_fence()
         {
             return __dpl_sycl::__fence_space_global;
         }
@@ -187,7 +187,7 @@ struct __subgroup_radix_sort
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        __dpl_sycl::__group_barrier(__it, __buf_val.get_fence()); // TODO: check if the barrier can be removed
+                        __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence()); // TODO: check if the barrier can be removed
 
                         while (true)
                         {
@@ -217,7 +217,7 @@ struct __subgroup_radix_sort
                                     __indices[__i] = *__counters[__i];
                                     *__counters[__i] = __indices[__i] + 1;
                                 }
-                                __dpl_sycl::__group_barrier(__it, __buf_count.get_fence());
+                                __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
 
                                 //2. scan phase
                                 {
@@ -230,7 +230,7 @@ struct __subgroup_radix_sort
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 1; __i < __bin_count; ++__i)
                                         __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-                                    __dpl_sycl::__group_barrier(__it, __buf_count.get_fence());
+                                    __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
 
                                     //exclusive scan local sum
                                     uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
@@ -242,7 +242,7 @@ struct __subgroup_radix_sort
 
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
-                                    __dpl_sycl::__group_barrier(__it, __buf_count.get_fence());
+                                    __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
                                 }
 
                                 _ONEDPL_PRAGMA_UNROLL
@@ -256,7 +256,7 @@ struct __subgroup_radix_sort
                             __begin_bit += __radix;
 
                             //3. "re-order" phase
-                            __dpl_sycl::__group_barrier(__it, __buf_val.get_fence());
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
                             if (__begin_bit >= __end_bit)
                             {
                                 // the last iteration - writing out the result
@@ -304,7 +304,7 @@ struct __subgroup_radix_sort
                                         __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
-                            __dpl_sycl::__group_barrier(__it, __buf_val.get_fence());
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
@@ -313,7 +313,7 @@ struct __subgroup_radix_sort
                                 if (__idx < __n)
                                     __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
                             }
-                            __dpl_sycl::__group_barrier(__it, __buf_val.get_fence());
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
                         }
                     }));
             });
