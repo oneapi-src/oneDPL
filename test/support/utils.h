@@ -1031,7 +1031,7 @@ get_pattern_for_max_n()
     // threshold for Debug (-O0 + -g) builds where runtimes are significantly longer.
     std::size_t cap =
 #if PSTL_USE_DEBUG
-        2000000;
+        500000;
 #else
         10000000;
 #endif
