@@ -81,7 +81,7 @@ struct __subgroup_radix_sort
             return __dpl_sycl::__local_accessor<_KeyT>(__buf_size, __cgh);
         }
 
-        inline static auto
+        inline static constexpr auto
         get_fence()
         {
             return __dpl_sycl::__fence_space_local;
