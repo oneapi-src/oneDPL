@@ -255,9 +255,9 @@ inline constexpr __fence_space_t __fence_space_local{};
 inline constexpr __fence_space_t __fence_space_global{};
 #endif // _ONEDPL_SYCL121_GROUP_BARRIER
 
-template <typename _Item, typename _Space = __dpl_sycl::__fence_space_t>
+template <typename _Item>
 void
-__group_barrier(_Item __item, [[maybe_unused]] _Space __space = __fence_space_local)
+__group_barrier(_Item __item, [[maybe_unused]] __dpl_sycl::__fence_space_t __space = __fence_space_local)
 {
 #if _ONEDPL_SYCL121_GROUP_BARRIER
     __item.barrier(__space);

@@ -127,12 +127,11 @@ class __histo_kernel_local_atomics;
 template <typename... _Name>
 class __histo_kernel_private_glocal_atomics;
 
-template <typename _HistAccessor, typename _OffsetT, typename _Size,
-          typename _FenceSpace = __dpl_sycl::__fence_space_t>
+template <typename _HistAccessor, typename _OffsetT, typename _Size>
 void
 __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, _Size __num_bins,
                            const sycl::nd_item<1>& __self_item,
-                           _FenceSpace __fence_space = __dpl_sycl::__fence_space_local)
+                           __dpl_sycl::__fence_space_t __fence_space = __dpl_sycl::__fence_space_local)
 {
     using _BinUint_t =
         ::std::conditional_t<(sizeof(_Size) >= sizeof(::std::uint32_t)), ::std::uint64_t, ::std::uint32_t>;
