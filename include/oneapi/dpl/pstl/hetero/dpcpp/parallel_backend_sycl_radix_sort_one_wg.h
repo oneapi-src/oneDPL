@@ -80,6 +80,12 @@ struct __subgroup_radix_sort
         {
             return __dpl_sycl::__local_accessor<_KeyT>(__buf_size, __cgh);
         }
+
+        inline static constexpr auto
+        get_fence()
+        {
+            return __dpl_sycl::__fence_space_local;
+        }
     };
 
     template <typename _KeyT>
@@ -93,6 +99,12 @@ struct __subgroup_radix_sort
         get_acc(sycl::handler& __cgh)
         {
             return sycl::accessor(__buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+        }
+
+        inline constexpr static auto
+        get_fence()
+        {
+            return __dpl_sycl::__fence_space_global;
         }
     };
 
@@ -173,16 +185,9 @@ struct __subgroup_radix_sort
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
 
-                        auto __mem_adjusted_barrier = [__it](auto __is_slm) {
-                            if constexpr (decltype(__is_slm)::value)
-                                __dpl_sycl::__group_barrier(__it);
-                            else
-                                __dpl_sycl::__group_barrier(__it, __dpl_sycl::__fence_space_global);
-                        };
-
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
-                        __mem_adjusted_barrier(_SLM_tag_val{}); // TODO: check if the barrier can be removed
+                        __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence()); // TODO: check if the barrier can be removed
 
                         while (true)
                         {
@@ -212,7 +217,7 @@ struct __subgroup_radix_sort
                                     __indices[__i] = *__counters[__i];
                                     *__counters[__i] = __indices[__i] + 1;
                                 }
-                                __mem_adjusted_barrier(_SLM_counter{});
+                                __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
 
                                 //2. scan phase
                                 {
@@ -225,7 +230,7 @@ struct __subgroup_radix_sort
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 1; __i < __bin_count; ++__i)
                                         __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-                                    __mem_adjusted_barrier(_SLM_counter{});
+                                    __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
 
                                     //exclusive scan local sum
                                     uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
@@ -237,7 +242,7 @@ struct __subgroup_radix_sort
 
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
-                                    __mem_adjusted_barrier(_SLM_counter{});
+                                    __dpl_sycl::__group_barrier(__it, decltype(__buf_count)::get_fence());
                                 }
 
                                 _ONEDPL_PRAGMA_UNROLL
@@ -251,7 +256,7 @@ struct __subgroup_radix_sort
                             __begin_bit += __radix;
 
                             //3. "re-order" phase
-                            __mem_adjusted_barrier(_SLM_tag_val{});
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
                             if (__begin_bit >= __end_bit)
                             {
                                 // the last iteration - writing out the result
@@ -299,7 +304,7 @@ struct __subgroup_radix_sort
                                         __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
                                 }
                             }
-                            __mem_adjusted_barrier(_SLM_tag_val{});
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
 
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
@@ -308,7 +313,7 @@ struct __subgroup_radix_sort
                                 if (__idx < __n)
                                     __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
                             }
-                            __mem_adjusted_barrier(_SLM_tag_val{});
+                            __dpl_sycl::__group_barrier(__it, decltype(__buf_val)::get_fence());
                         }
                     }));
             });
