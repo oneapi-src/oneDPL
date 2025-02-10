@@ -128,7 +128,7 @@ template <typename... _Name>
 class __histo_kernel_private_glocal_atomics;
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size,
-          typename _FenceSpace = decltype(__dpl_sycl::__fence_space_local)>
+          typename _FenceSpace = __dpl_sycl::__fence_space_t>
 void
 __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, _Size __num_bins,
                            const sycl::nd_item<1>& __self_item,

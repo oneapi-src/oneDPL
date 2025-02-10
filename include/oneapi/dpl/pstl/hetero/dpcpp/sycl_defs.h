@@ -245,15 +245,17 @@ __get_accessor_size(const _Accessor& __accessor)
 #endif
 
 #if _ONEDPL_SYCL121_GROUP_BARRIER
-inline constexpr sycl::access::fence_space __fence_space_local = sycl::access::fence_space::local_space;
-inline constexpr sycl::access::fence_space __fence_space_global = sycl::access::fence_space::global_space;
+using __fence_space_t = sycl::access::fence_space;
+inline constexpr __fence_space_t __fence_space_local = sycl::access::fence_space::local_space;
+inline constexpr __fence_space_t __fence_space_global = sycl::access::fence_space::global_space;
 #else
 struct __fence_space_dummy{}; // No-op dummy type since SYCL 2020 does not specify memory fence spaces in group barriers
-inline constexpr __fence_space_dummy __fence_space_local{};
-inline constexpr __fence_space_dummy __fence_space_global{};
+using __fence_space_t = __fence_space_dummy;
+inline constexpr __fence_space_t __fence_space_local{};
+inline constexpr __fence_space_t __fence_space_global{};
 #endif // _ONEDPL_SYCL121_GROUP_BARRIER
 
-template <typename _Item, typename _Space = decltype(__fence_space_local)>
+template <typename _Item, typename _Space = __dpl_sycl::__fence_space_t>
 void
 __group_barrier(_Item __item, [[maybe_unused]] _Space __space = __fence_space_local)
 {
