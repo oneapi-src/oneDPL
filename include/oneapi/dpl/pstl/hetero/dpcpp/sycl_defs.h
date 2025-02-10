@@ -232,10 +232,14 @@ __get_accessor_size(const _Accessor& __accessor)
 // The performance gap is negligible since
 // https://github.com/intel/intel-graphics-compiler/commit/ed639f68d142bc963a7b626badc207a42fb281cb (Aug 20, 2024)
 // But the fix is not a part of the LTS GPU drivers (Linux) yet.
+//
+// This macro may also serve as a temporary workaround to strengthen the barriers
+// if there are cases where the memory ordering is not strong enough.
 #if !defined(_ONEDPL_SYCL121_GROUP_BARRIER)
 #    if _ONEDPL_LIBSYCL_VERSION
 #        define _ONEDPL_SYCL121_GROUP_BARRIER 1
 #    else
+// For safety, assume that other SYCL implementations comply with SYCL 2020, which is a oneDPL requirement.
 #        define _ONEDPL_SYCL121_GROUP_BARRIER 0
 #    endif
 #endif
