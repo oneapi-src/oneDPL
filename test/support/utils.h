@@ -1028,12 +1028,12 @@ get_pattern_for_test_sizes()
     constexpr std::size_t max_iters_per_item = 16;
     constexpr std::size_t multiplier = 4;
     constexpr std::size_t max_work_group_size = 512;
-    const std::size_t large_submitter_ub =
+    const std::size_t large_submitter_limit =
         max_iters_per_item * max_work_group_size * d.get_info<sycl::info::device::max_compute_units>();
 #endif
 #if TEST_DPCPP_BACKEND_PRESENT && !PSTL_USE_DEBUG && !ONEDPL_FPGA_DEVICE
     std::size_t cap = 10000000;
-    max_n = multiplier * large_submitter_ub;
+    max_n = multiplier * large_submitter_limit;
     max_n = std::min(cap, max_n);
 #else
     max_n = TestUtils::max_n;
@@ -1043,8 +1043,8 @@ get_pattern_for_test_sizes()
     for (std::size_t n = 0; n <= max_n; n = n <= 16 ? n + 1 : std::size_t(3.1415 * n))
         sizes.push_back(n);
 #if TEST_DPCPP_BACKEND_PRESENT && PSTL_USE_DEBUG && !ONEDPL_FPGA_DEVICE
-    if (max_n < large_submitter_ub)
-        sizes.push_back(large_submitter_ub);
+    if (max_n < large_submitter_limit)
+        sizes.push_back(large_submitter_limit);
 #endif
     return sizes;
 }
