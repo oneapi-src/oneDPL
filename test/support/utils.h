@@ -1022,6 +1022,9 @@ inline std::vector<std::size_t>
 get_pattern_for_test_sizes()
 {
     std::size_t max_n = 0;
+    // We do not enable large input size testing for FPGA devices as __parallel_for_submitter_fpga only has a single
+    // implementation with the standard input sizes providing full coverage, and testing large inputs is slow with the
+    // FPGA emulator.
 #if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
     sycl::queue q = TestUtils::get_test_queue();
     sycl::device d = q.get_device();
@@ -1034,7 +1037,8 @@ get_pattern_for_test_sizes()
 #if TEST_DPCPP_BACKEND_PRESENT && !PSTL_USE_DEBUG && !ONEDPL_FPGA_DEVICE
     std::size_t cap = 10000000;
     max_n = multiplier * large_submitter_limit;
-    max_n = std::min(cap, max_n);
+    // Ensure that TestUtils::max_n <= max_n <= cap
+    max_n = std::max(TestUtils::max_n, std::min(cap, max_n));
 #else
     max_n = TestUtils::max_n;
 #endif
