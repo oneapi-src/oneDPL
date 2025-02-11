@@ -140,7 +140,7 @@ void
 test(Pred pred)
 {
     const auto test_sizes = TestUtils::get_pattern_for_test_sizes();
-    const std::size_t max_len = test_sizes.size();
+    const std::size_t max_len = test_sizes.back();
 
     const T2 value = T2(77);
     const T1 trash = T1(31);
