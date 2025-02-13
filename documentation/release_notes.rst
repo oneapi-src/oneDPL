@@ -13,9 +13,38 @@ New in 2022.8.0
 
 New Features
 ------------
+- Added support of host policies for ``histogram`` algorithms.
+- Added support for specification of a size limit for the output range in the range-based ``merge`` algorithm.
+- Improved performance of the ``merge`` and ``merge_sort`` algorithms with device policies for large data sizes. 
+- Improved performance of ``set_intersection``, ``set_union``, ``set_difference``, ``set_symmetric_difference``
+  algorithms with device policies.
+- Improved performance of ``reduce_by_segment`` with device policies for GPUs with sub-group sizes of 32.
+- Improved performance of ``adjacent_difference``, ``binary_search``, ``copy``, ``copy_n``, ``fill``, ``fill_n``,
+  ``for_each``, ``for_each_n``, ``generate``, ``generate_n``, ``lower_bound``, ``move``, ``replace``, ``replace_copy``,
+  ``replace_copy_if``, ``replace_if``, ``reverse``, ``reverse_copy``, ``rotate``, ``rotate_copy``, ``shift_left``,
+  ``shift_right``, ``swap_ranges``, ``transform``, ``transform_if``, and ``upper_bound`` with device policies along with
+  the analogous uninitialized memory operations.
+- Updated oneDPL use of SYCL to ensure the library is SYCL 2020 compliant.
 
 Fixed Issues
 ------------
+- Fixed an issue with ``drop_view`` in the experimental range-based API.
+- Fixed an issue with range-based ``sort`` and ``stable_sort`` algorithms on Windows
+- Fixed compilation errors in ``find_if`` and ``find_if_not`` with device policies where the user provided predicate is
+  device copyable but not trivially copyable.
+- Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with -O0 and
+  executed on a GPU device: ``copy_if``, ``exclusive_scan``, ``inclusive_scan``, ``partition``, ``partition_copy``,
+  ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
+  ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
+- Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
+- Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
+  sizes smaller than 4.
+- Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
+  ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
+- Fixed an issue in the sort, stable_sort, sort_by_key and stable_sort_by_key algorithms that prevented the use of non-trivially-copyable comparators.
+- Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
+  algorithms.
+
 
 Known Issues and Limitations
 ----------------------------
