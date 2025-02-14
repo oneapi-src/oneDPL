@@ -31,7 +31,6 @@ New Features
 Fixed Issues
 ------------
 - Fixed an issue with ``drop_view`` in the experimental range-based API.
-- Fixed an issue with range-based ``sort`` and ``stable_sort`` algorithms on Windows
 - Fixed compilation errors in ``find_if`` and ``find_if_not`` with device policies where the user provided predicate is
   device copyable but not trivially copyable.
 - Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with -O0 and
@@ -39,14 +38,15 @@ Fixed Issues
   ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
   ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
 - Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
-- Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
-  sizes smaller than 4.
-- Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
-  ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
+- Fixed an issue with range-based ``sort`` and ``stable_sort`` algorithms on Windows
 - Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
   that prevented the use of non-trivially-copyable comparators.
 - Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
   algorithms.
+- Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
+  sizes smaller than 4.
+- Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
+  ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
 - Fixed segmentation faults and incorrect results in ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``,
   and ``partial_sort_copy`` when used with a device policy on a CPU device and compiled with -O0 -g.
 
