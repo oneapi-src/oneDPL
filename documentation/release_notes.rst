@@ -20,7 +20,7 @@ New Features
   with device policies for large data sizes.
 - Improved performance of ``set_intersection``, ``set_union``, ``set_difference``, ``set_symmetric_difference``
   algorithms with device policies.
-- Improved performance of ``reduce_by_segment`` with device policies for GPUs with sub-group sizes of 32.
+- Improved performance of ``reduce_by_segment`` with device policies and executed on a GPU.
 - Improved performance of ``adjacent_difference``, ``binary_search``, ``copy``, ``copy_n``, ``fill``, ``fill_n``,
   ``for_each``, ``for_each_n``, ``generate``, ``generate_n``, ``lower_bound``, ``move``, ``replace``, ``replace_copy``,
   ``replace_copy_if``, ``replace_if``, ``reverse``, ``reverse_copy``, ``rotate``, ``rotate_copy``, ``shift_left``,
