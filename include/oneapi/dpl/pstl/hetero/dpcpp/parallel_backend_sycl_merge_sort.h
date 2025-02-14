@@ -330,6 +330,8 @@ struct __merge_sort_global_submitter<_IndexT, __internal::__optional_kernel_name
         {
         }
     };
+    template <typename Rng>
+    DropViews(Rng&, const WorkDataArea&) -> DropViews<Rng>;
 
     template <typename _ExecutionPolicy>
     std::size_t
