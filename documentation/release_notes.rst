@@ -55,6 +55,8 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
+- Incorrect results may be observed when calling ``sort`` with a device policy on Intel® Arc™ Graphics 140V integrated
+  graphics with a data sizes of 4-8 million elements.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
