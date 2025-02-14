@@ -8,6 +8,84 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.8.0
+===============
+
+New Features
+------------
+- Added support of host policies for ``histogram`` algorithms.
+- Added support for specification of a size limit for the output range in the range-based ``merge`` algorithm.
+- Improved performance of the ``merge`` and sorting algorithms
+  (``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``) that rely on Merge sort [#fnote1]_,
+  with device policies for large data sizes.
+- Improved performance of ``set_intersection``, ``set_union``, ``set_difference``, ``set_symmetric_difference``
+  algorithms with device policies.
+- Improved performance of ``reduce_by_segment`` with device policies for GPUs with sub-group sizes of 32.
+- Improved performance of ``adjacent_difference``, ``binary_search``, ``copy``, ``copy_n``, ``fill``, ``fill_n``,
+  ``for_each``, ``for_each_n``, ``generate``, ``generate_n``, ``lower_bound``, ``move``, ``replace``, ``replace_copy``,
+  ``replace_copy_if``, ``replace_if``, ``reverse``, ``reverse_copy``, ``rotate``, ``rotate_copy``, ``shift_left``,
+  ``shift_right``, ``swap_ranges``, ``transform``, ``transform_if``, and ``upper_bound`` with device policies along with
+  the analogous uninitialized memory operations.
+- Updated oneDPL use of SYCL to ensure the library is SYCL 2020 compliant.
+
+Fixed Issues
+------------
+- Fixed an issue with ``drop_view`` in the experimental range-based API.
+- Fixed compilation errors in ``find_if`` and ``find_if_not`` with device policies where the user provided predicate is
+  device copyable but not trivially copyable.
+- Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with -O0 and
+  executed on a GPU device: ``copy_if``, ``exclusive_scan``, ``inclusive_scan``, ``partition``, ``partition_copy``,
+  ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
+  ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
+- Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
+- Fixed an issue with range-based ``sort`` and ``stable_sort`` algorithms on Windows
+- Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
+  that prevented the use of non-trivially-copyable comparators.
+- Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
+  algorithms.
+- Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
+  sizes smaller than 4.
+- Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
+  ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
+- Fixed segmentation faults and incorrect results in ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``,
+  and ``partial_sort_copy`` when used with a device policy on a CPU device and compiled with -O0 -g.
+
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- Incorrect results may be observed when calling ``sort`` with a device policy on Intel® Arc™ Graphics 140V integrated
+  graphics with a data sizes of 4-8 million elements.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
+  when used with an FPGA policy.
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows. 
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
+- Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
+  with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
+  with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
+  To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
+- Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
+  with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
+  and executed on a GPU device. For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION``
+  macro to ``1`` before including oneDPL header files.
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
 New in 2022.7.0
 ===============
 
