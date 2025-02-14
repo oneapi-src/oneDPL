@@ -48,8 +48,6 @@ Fixed Issues
   sizes smaller than 4.
 - Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
   ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
-- Fixed segmentation faults and incorrect results in ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``,
-  and ``partial_sort_copy`` when used with a device policy on a CPU device and compiled with -O0 -g.
 
 Known Issues and Limitations
 ----------------------------
