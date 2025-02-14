@@ -15,7 +15,9 @@ New Features
 ------------
 - Added support of host policies for ``histogram`` algorithms.
 - Added support for specification of a size limit for the output range in the range-based ``merge`` algorithm.
-- Improved performance of the ``merge`` and ``merge_sort`` algorithms with device policies for large data sizes. 
+- Improved performance of the ``merge`` and sorting algorithms
+  (``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``) that rely on Merge sort [#fnote1]_,
+  with device policies for large data sizes.
 - Improved performance of ``set_intersection``, ``set_union``, ``set_difference``, ``set_symmetric_difference``
   algorithms with device policies.
 - Improved performance of ``reduce_by_segment`` with device policies for GPUs with sub-group sizes of 32.
