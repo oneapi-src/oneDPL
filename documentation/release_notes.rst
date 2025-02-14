@@ -28,6 +28,7 @@ New Features
   the analogous uninitialized memory operations.
 - Updated oneDPL use of SYCL to ensure the library is SYCL 2020 compliant.
 
+
 Fixed Issues
 ------------
 - Fixed an issue with ``drop_view`` in the experimental range-based API.
@@ -50,7 +51,6 @@ Fixed Issues
 - Fixed segmentation faults and incorrect results in ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``,
   and ``partial_sort_copy`` when used with a device policy on a CPU device and compiled with -O0 -g.
 
-
 Known Issues and Limitations
 ----------------------------
 New in This Release
@@ -64,6 +64,7 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 
 - ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
   when used with an FPGA policy.
+- ``histogram`` may provide incorrect results with device policies in a program built with -O0 option.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows. 
 - For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
