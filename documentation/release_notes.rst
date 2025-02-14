@@ -43,7 +43,8 @@ Fixed Issues
   sizes smaller than 4.
 - Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
   ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
-- Fixed an issue in the sort, stable_sort, sort_by_key and stable_sort_by_key algorithms that prevented the use of non-trivially-copyable comparators.
+- Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
+  that prevented the use of non-trivially-copyable comparators.
 - Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
   algorithms.
 
