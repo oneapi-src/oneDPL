@@ -620,7 +620,7 @@ struct __result_and_scratch_storage_impl : __result_and_scratch_storage_base
 
     template <typename _Acc>
     static auto
-    __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, std::size_t __scratch_n = 0)
+    __get_usm_or_buffer_accessor_ptr(const _Acc& __acc, [[maybe_unused]] std::size_t __scratch_n = 0)
     {
 #if _ONEDPL_SYCL2020_DEFAULT_ACCESSOR_CONSTRUCTOR_PRESENT
         return __acc.__get_pointer();
