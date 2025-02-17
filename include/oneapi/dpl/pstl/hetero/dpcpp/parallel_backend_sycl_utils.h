@@ -769,8 +769,7 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(const std::shared_ptr<__result_and_scratch_storage_base>& __p_storage)
     {
         std::size_t __buf[2] = {0, 0};
-        auto __n = __p_storage->__get_data(__my_event, __buf);
-        assert(__n == 2);
+        assert(__p_storage->__get_data(__my_event, __buf) == 2);
 
         return {__buf[0], __buf[1]};
     }
