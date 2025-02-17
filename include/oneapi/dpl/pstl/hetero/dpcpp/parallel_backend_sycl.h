@@ -1167,7 +1167,7 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
           typename _WriteOp, typename _IsUniquePattern>
 auto
 __parallel_reduce_then_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                                 _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _GenMask __generate_mask,
+                                 _InRng&& __in_rng, _OutRng&& __out_rng, _Size, _GenMask __generate_mask,
                                  _WriteOp __write_op, _IsUniquePattern __is_unique_pattern)
 {
     using _GenReduceInput = oneapi::dpl::__par_backend_hetero::__gen_count_mask<_GenMask>;
