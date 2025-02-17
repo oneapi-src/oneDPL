@@ -17,7 +17,18 @@
 #define _ONEDPL_FUNCTIONAL
 
 #include "oneapi/dpl/internal/common_config.h"
+
+// Silence the deprecation warnings of the negators injected from <functional>
+// The macro definition is contained in this header to avoid redefinition errors on the user side
+#if _ONEDPL___cplusplus < 202002L && defined(_MSC_VER) && !defined(_SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING)
+#    define _SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
+#    define _ONEDPL_SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
+#endif
 #include <functional>
+#if defined(_ONEDPL_SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING)
+#   undef _SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
+#   undef _ONEDPL_SILENCE_CXX17_NEGATORS_DEPRECATION_WARNING
+#endif
 
 #include "oneapi/dpl/utility"
 
