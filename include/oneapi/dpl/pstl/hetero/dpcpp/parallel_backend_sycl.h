@@ -1411,7 +1411,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _IsOpDifference>
 auto
 __parallel_set_scan(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec,
-                    _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp)
+                    _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _Compare __comp, _IsOpDifference)
 {
     using _Size1 = oneapi::dpl::__internal::__difference_t<_Range1>;
     using _Size2 = oneapi::dpl::__internal::__difference_t<_Range2>;
@@ -1472,7 +1472,8 @@ __parallel_set_op(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _
     else
     {
         return __parallel_set_scan(__backend_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1),
-                                   std::forward<_Range2>(__rng2), std::forward<_Range3>(__result), __comp);
+                                   std::forward<_Range2>(__rng2), std::forward<_Range3>(__result), __comp,
+                                   __is_op_difference);
     }
 }
 
