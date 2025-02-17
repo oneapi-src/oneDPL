@@ -319,7 +319,7 @@ __print_device_debug_info(const _Policy& __policy, size_t __wg_size = 0, size_t 
 #else
 template <typename _Policy>
 inline void
-__print_device_debug_info(const _Policy& __policy, size_t = 0, size_t = 0)
+__print_device_debug_info(const _Policy&, size_t = 0, size_t = 0)
 {
 }
 #endif
@@ -501,11 +501,11 @@ struct __usm_or_buffer_accessor
     }
 
     // USM pointer
-    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, const sycl::property_list&)
+    __usm_or_buffer_accessor(sycl::handler&, _T* __usm_buf, const sycl::property_list&)
         : __ptr(__usm_buf), __usm(true)
     {
     }
-    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset, const sycl::property_list&)
+    __usm_or_buffer_accessor(sycl::handler&, _T* __usm_buf, size_t __ptr_offset, const sycl::property_list&)
         : __ptr(__usm_buf), __usm(true), __offset(__ptr_offset)
     {
     }
