@@ -884,7 +884,7 @@ class __merge_func
     move_x_range()
     {
         const auto __nx = (_M_xe - _M_xs);
-        const auto __ny = (_M_ye - _M_ys);
+        [[maybe_unused]] const auto __ny = (_M_ye - _M_ys);
         assert(__nx > 0 && __ny > 0);
 
         if (_x_orig)
@@ -902,7 +902,7 @@ class __merge_func
     move_y_range()
     {
         const auto __nx = (_M_xe - _M_xs);
-        const auto __ny = (_M_ye - _M_ys);
+        [[maybe_unused]] const auto __ny = (_M_ye - _M_ys);
 
         if (_y_orig)
             __move_range_construct()(_M_x_beg + _M_ys, _M_x_beg + _M_ye, _M_z_beg + _M_zs + __nx);
