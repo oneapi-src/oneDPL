@@ -859,7 +859,7 @@ class __merge_func
     x_less_y()
     {
         auto __nx = (_M_xe - _M_xs);
-        auto __ny = (_M_ye - _M_ys);
+        [[maybe_unused]] auto __ny = (_M_ye - _M_ys);
 
         assert(__nx > 0 && __ny > 0);
         assert(_M_nsort > 0);
