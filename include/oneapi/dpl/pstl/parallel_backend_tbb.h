@@ -864,8 +864,8 @@ class __merge_func
         assert(__nx > 0 && __ny > 0);
         assert(_M_nsort > 0);
 
-        auto __kx = ::std::min(_M_nsort, __nx);
-        auto __ky = ::std::min(_M_nsort, __ny);
+        auto __kx = std::min(_M_nsort, __nx);
+        [[maybe_unused]] auto __ky = std::min(_M_nsort, __ny);
 
         assert(_x_orig == _y_orig);
 
