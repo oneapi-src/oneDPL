@@ -48,10 +48,13 @@ def generate_warning_table(build_log_content):
     warning_histogram = Counter(warnings)
 
     # The slowest part: optimize if needed (takes ~3sec for 100K lines)
-    warning_examples = {
-        w: re.search(rf".*{w}.*", build_log_content).group(0)
-        for w in warning_histogram
-    }
+    warning_examples = {}
+    for w in warning_histogram:
+        # Prioritize the warnings in the core library by searching for "include" keyword
+        example = re.search(rf".*include.*{w}.*", build_log_content)
+        if example is None:
+            example = re.search(rf".*{w}.*", build_log_content)
+        warning_examples[w] = example.group(0) if example else "No example found"
 
     table = []
     table.append("| Warning Type   | Count | Message example |")
