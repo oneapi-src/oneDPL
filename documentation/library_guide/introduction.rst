@@ -167,7 +167,7 @@ Known Limitations
   is built on Linux with the Intel® oneAPI DPC++/C++ Compiler version 2025.0 or earlier, and with the -O0 -g compiler
   options. To avoid this issue, pass the ``-fsycl-device-code-split=per_kernel`` option to the compiler.
 * ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` kernel templates fail to compile when a program
-  is built with -g, -O0, -O1 compiler options and a compiler older than
-  https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-07-12 is used.
+  is built with -g, -O0, -O1 compiler options and a driver older than
+  `Rolling 2423.32 <https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-07-12>`_ is used.
 
 .. _`SYCL Specification`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html
