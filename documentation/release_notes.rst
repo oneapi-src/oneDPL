@@ -28,10 +28,8 @@ Fixed Issues
 - Fixed an issue with ``drop_view`` in the experimental range-based API.
 - Fixed compilation errors in ``find_if`` and ``find_if_not`` with device policies where the user provided predicate is
   device copyable but not trivially copyable.
-- Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with ``-O0`` and
-  executed on a GPU device: ``copy_if``, ``exclusive_scan``, ``inclusive_scan``, ``partition``, ``partition_copy``,
-  ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
-  ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
+- Fixed incorrect results or synchronous SYCL exceptions for several algorithms when compiled with ``-O0`` and executed
+  on a GPU device.
 - Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
 - Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
   that prevented the use of non-trivially-copyable comparators.
