@@ -18,15 +18,9 @@ New Features
 - Improved performance of the ``merge`` and sorting algorithms
   (``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``) that rely on Merge sort [#fnote1]_,
   with device policies for large data sizes.
-- Improved performance of ``set_intersection``, ``set_union``, ``set_difference``, and ``set_symmetric_difference``
-  algorithms with device policies.
-- Improved performance of ``reduce_by_segment`` with device policies on GPUs.
-- Improved performance of ``adjacent_difference``, ``binary_search``, ``copy``, ``copy_n``, ``fill``, ``fill_n``,
-  ``for_each``, ``for_each_n``, ``generate``, ``generate_n``, ``lower_bound``, ``move``, ``replace``, ``replace_copy``,
-  ``replace_copy_if``, ``replace_if``, ``reverse``, ``reverse_copy``, ``rotate``, ``rotate_copy``, ``shift_left``,
-  ``shift_right``, ``swap_ranges``, ``transform``, ``transform_if``, and ``upper_bound`` with device policies along with
-  the analogous uninitialized memory operations.
-- Updated oneDPL use of SYCL to ensure the library is SYCL 2020 compliant.
+- Improved performance of ``copy``, ``fill``, ``for_each``, ``replace``, ``reverse``, ``rotate``, ``transform`` and 30+
+  other algorithms with device policies on GPUs.
+- Improved oneDPL use with SYCL implementations other than Intel oneDPI DPC++/C++ compiler.
 
 
 Fixed Issues
