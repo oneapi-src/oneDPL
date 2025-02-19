@@ -32,10 +32,11 @@ Fixed Issues
   on a GPU device.
 - Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
 - Fixed several issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms that:
-  * Allows the use of non-trivially-copyable comparators.
-  * Eliminates duplicate kernel names
-  * Resolves incorrect results on devices with sub-group sizes smaller than four.
-  * Resolved synchronization errors that were seen on Intel® Arc™ B-series GPUs.
+
+   * Allows the use of non-trivially-copyable comparators.
+   * Eliminates duplicate kernel names
+   * Resolves incorrect results on devices with sub-group sizes smaller than four.
+   * Resolved synchronization errors that were seen on Intel® Arc™ B-series GPUs.
 
 Known Issues and Limitations
 ----------------------------
