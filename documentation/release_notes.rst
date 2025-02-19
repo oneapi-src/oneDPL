@@ -31,14 +31,11 @@ Fixed Issues
 - Fixed incorrect results or synchronous SYCL exceptions for several algorithms when compiled with ``-O0`` and executed
   on a GPU device.
 - Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
-- Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
-  that prevented the use of non-trivially-copyable comparators.
-- Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
-  algorithms.
-- Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
-  sizes smaller than four.
-- Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
-  ``histogram`` algorithms. These issues were known to affect Intel® Arc™ B-series GPU.
+- Fixed several issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms that:
+  * Allows the use of non-trivially-copyable comparators.
+  * Eliminates duplicate kernel names
+  * Resolves incorrect results on devices with sub-group sizes smaller than four.
+  * Resolved synchronization errors that were seen on Intel® Arc™ B-series GPUs.
 
 Known Issues and Limitations
 ----------------------------
