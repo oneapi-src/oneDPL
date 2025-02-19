@@ -39,7 +39,6 @@ Fixed Issues
   ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
   ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
 - Fixed an issue preventing inclusion of the ``<numeric>`` header after ``<execution>`` and ``<algorithm>`` headers.
-- Fixed an issue with range-based ``sort`` and ``stable_sort`` algorithms on Windows
 - Fixed an issue in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms
   that prevented the use of non-trivially-copyable comparators.
 - Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
