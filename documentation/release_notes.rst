@@ -34,7 +34,7 @@ Fixed Issues
 - Fixed an issue with ``drop_view`` in the experimental range-based API.
 - Fixed compilation errors in ``find_if`` and ``find_if_not`` with device policies where the user provided predicate is
   device copyable but not trivially copyable.
-- Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with -O0 and
+- Fixed incorrect results or synchronous SYCL exceptions when the following algorithms are compiled with ``-O0`` and
   executed on a GPU device: ``copy_if``, ``exclusive_scan``, ``inclusive_scan``, ``partition``, ``partition_copy``,
   ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``sort``, ``stable_partition``,
   ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``unique``, and ``unique_copy``.
@@ -45,15 +45,15 @@ Fixed Issues
 - Fixed kernel name duplication issues in the ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key``
   algorithms.
 - Fixed the ``sort``, ``stable_sort``, ``sort_by_key``, and ``stable_sort_by_key`` algorithms on devices with sub-group
-  sizes smaller than 4.
+  sizes smaller than four.
 - Fixed synchronization issues in the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key`` and
-  ``histogram`` algorithms. These issues were known to affect Intel Arc B-Series GPUs.
+  ``histogram`` algorithms. These issues were known to affect Intel® Arc™ B-series GPU.
 
 Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- Incorrect results may be observed when calling ``sort`` with a device policy on Intel® Arc™ Graphics 140V integrated
+- Incorrect results may be observed when calling ``sort`` with a device policy on Intel® Arc™ graphics 140V integrated
   graphics with data sizes of 4-8 million elements.
 - ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms fail to compile
   when using Clang 17 and earlier versions, as well as compilers based on these versions,
@@ -63,9 +63,9 @@ Existing Issues
 ^^^^^^^^^^^^^^^
 See oneDPL Guide for other `restrictions and known limitations`_.
 
-- ``histogram`` algorithm requires the output value type to be an integral type no larger than 4 bytes
+- ``histogram`` algorithm requires the output value type to be an integral type no larger than four bytes
   when used with an FPGA policy.
-- ``histogram`` may provide incorrect results with device policies in a program built with -O0 option.
+- ``histogram`` may provide incorrect results with device policies in a program built with ``-O0`` option.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows. 
 - For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
