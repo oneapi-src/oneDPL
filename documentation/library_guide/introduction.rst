@@ -164,10 +164,11 @@ Known Limitations
   the dereferenced value type of the provided iterators should satisfy the ``DefaultConstructible`` requirements.
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
   iterators should be ``MoveConstructible``.
-* ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``, and ``partial_sort_copy`` may work incorrectly or
-  cause a segmentation fault when used with a device execution policy on a CPU device. This issue occurs when the code
-  is built on Linux with the Intel® oneAPI DPC++/C++ Compiler version 2025.0 or earlier, and with the -O0 -g compiler
-  options. To avoid this issue, pass the ``-fsycl-device-code-split=per_kernel`` option to the compiler.
+* When compiling with ``-O0 -g`` options on Linux with the Intel® oneAPI DPC++/C++ Compiler version 2025.0 or earlier
+  the ``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``, and ``partial_sort_copy`` may work incorrectly
+  or cause a segmentation fault when used with a device execution policy on a CPU device. To avoid this issue, pass the
+  ``-fsycl-device-code-split=per_kernel`` option to the compiler or use Intel® oneAPI DPC++/C++ Compiler version 2025.1
+  or newer.
 * ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` kernel templates fail to compile when a program
   is built with ``-g``, ``-O0``, ``-O1`` compiler options and a driver older than
   ``2423.32`` (Rolling) and ``2350.61`` (LTS) is used.
