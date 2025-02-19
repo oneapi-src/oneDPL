@@ -145,6 +145,8 @@ Known Limitations
   (including: ``std::ldexp``, ``std::frexp``), and the following functions when used with ``std::complex<float>``
   as argument(s):  ``std::acosh``, ``std::asin``, ``std::asinh``, ``std::asoc``, ``std::log10``, ``std::log``, ``std::pow``,
   ``std::sqrt`` require device support for double precision.
+* STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
   when used with C++ standard aligned policies, impose limitations on the initial value type if an
