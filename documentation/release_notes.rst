@@ -47,7 +47,7 @@ New in This Release
 - ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms fail to compile
   when using Clang 17 and earlier versions, as well as compilers based on these versions,
   such as Intel(R) oneAPI DPC++/C++ Compiler 2023.2.0.
-- When compiling code that uses device execution policies with the open source oneAPI DPC++ Compiler (clang++ driver),
+- When compiling code that uses device policies with the open source oneAPI DPC++ Compiler (clang++ driver),
   synchronous SYCL runtime exceptions regarding unfound kernels may be encountered unless an optimization flag is
   specified (e.g. ``-O1``) as opposed to relying on the compiler's default optimization level.
 
