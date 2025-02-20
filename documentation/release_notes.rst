@@ -66,10 +66,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
   with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
-- Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
-  with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
-  and executed on a GPU device. For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION``
-  macro to ``1`` before including oneDPL header files.
 
 New in 2022.7.0
 ===============
