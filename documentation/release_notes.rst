@@ -47,14 +47,9 @@ New in This Release
 - ``sort``, ``stable_sort``, ``sort_by_key`` and ``stable_sort_by_key`` algorithms fail to compile
   when using Clang 17 and earlier versions, as well as compilers based on these versions,
   such as Intel(R) oneAPI DPC++/C++ Compiler 2023.2.0.
-- When compiling several algorithms with device execution policies, both the host and device compilation passes must be
-  compiled with optimizations enabled (``-O1`` or higher) or be compiled with optimizations disabled (``-O0``).
-  Otherwise, synchronous SYCL runtime exceptions regarding unfound kernels may be encountered. This issue occurs when
-  using the open source oneAPI DPC++ Compiler (clang++ driver) and may be resolved by explicitly passing an optimization
-  level of choice instead of relying on the compiler's default. The following algorithms are affected by this issue:
-  ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``copy_if``,
-  ``reduce_by_segment``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``partition``,
-  ``partition_copy``, ``stable_partition``, ``unique``, and ``unique_copy``.
+- When compiling code that uses device execution policies with the open source oneAPI DPC++ Compiler (clang++ driver),
+  synchronous SYCL runtime exceptions regarding unfound kernels may be encountered unless an optimization flag is
+  specified (e.g. ``-O1``) as opposed to relying on the compiler's default optimization level.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
