@@ -36,7 +36,7 @@ Fixed Issues
    * Allows the use of non-trivially-copyable comparators.
    * Eliminates duplicate kernel names
    * Resolves incorrect results on devices with sub-group sizes smaller than four.
-   * Resolved synchronization errors that were seen on Intel® Arc™ B-series GPUs.
+   * Resolved synchronization errors that were seen on Intel® Arc™ B-series GPU devices.
 
 Known Issues and Limitations
 ----------------------------
