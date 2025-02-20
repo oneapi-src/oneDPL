@@ -14,7 +14,7 @@ New in 2022.8.0
 New Features
 ------------
 - Added support of host policies for ``histogram`` algorithms.
-- Added support for specification of a size limit for the output range in the range-based ``merge`` algorithm.
+- Added support for an undersized output range in the range-based ``merge`` algorithm.
 - Improved performance of the ``merge`` and sorting algorithms
   (``sort``, ``stable_sort``, ``sort_by_key``, ``stable_sort_by_key``) that rely on Merge sort [#fnote1]_,
   with device policies for large data sizes.
