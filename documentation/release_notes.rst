@@ -20,7 +20,7 @@ New Features
   with device policies for large data sizes.
 - Improved performance of ``copy``, ``fill``, ``for_each``, ``replace``, ``reverse``, ``rotate``, ``transform`` and 30+
   other algorithms with device policies on GPUs.
-- Improved oneDPL use with SYCL implementations other than Intel® oneAPI DPC++/C++ compiler.
+- Improved oneDPL use with SYCL implementations other than Intel® oneAPI DPC++/C++ Compiler.
 
 
 Fixed Issues
