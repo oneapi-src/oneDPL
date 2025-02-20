@@ -146,7 +146,10 @@ Known Limitations
   as argument(s):  ``std::acosh``, ``std::asin``, ``std::asinh``, ``std::asoc``, ``std::log10``, ``std::log``, ``std::pow``,
   ``std::sqrt`` require device support for double precision.
 * STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
-  the Microsoft* Visual C++ standard library.
+  the Microsoft Visual C++ standard library.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft Visual C++ standard library. For a workaround, define the
+  ``_USE_STD_VECTOR_ALGORITHMS`` macro to `` 0`` to the source file before including any headers.
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
   when used with C++ standard aligned policies, impose limitations on the initial value type if an

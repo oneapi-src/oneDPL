@@ -70,10 +70,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
   with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
   and executed on a GPU device. For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION``
   macro to ``1`` before including oneDPL header files.
-- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
-- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
-  in the Microsoft* Visual C++ standard library.
-- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 
 New in 2022.7.0
 ===============
