@@ -170,8 +170,8 @@ Known Limitations
   ``-fsycl-device-code-split=per_kernel`` option to the compiler or use Intel® oneAPI DPC++/C++ Compiler version 2025.1
   or newer.
 * ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` kernel templates fail to compile when a program
-  is built with ``-g``, ``-O0``, ``-O1`` compiler options and a driver older than
-  ``2423.32`` (Rolling) and ``2350.61`` (LTS) is used.
+  is built with ``-g``, ``-O0``, ``-O1`` compiler options and a Linux General Purpose Intel GPUs Driver version older
+  than ``2423.32`` (Rolling) and ``2350.61`` (LTS) is used.
   See the `Release Types <https://dgpu-docs.intel.com/releases/releases.html>`_
   to find information about the relevant Rolling and LTS releases.
 
