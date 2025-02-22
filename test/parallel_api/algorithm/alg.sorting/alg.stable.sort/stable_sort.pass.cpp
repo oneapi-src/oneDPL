@@ -13,15 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/test_config.h"
-#include _PSTL_TEST_HEADER(execution)
-#include _PSTL_TEST_HEADER(algorithm)
-
-#include <vector>
-#include <cstdint>
-
-#include "support/utils.h"
-#include "support/utils_sort.h"
+#include "support/utils_sort.h" // Umbrella for all needed headers
 
 int main()
 {

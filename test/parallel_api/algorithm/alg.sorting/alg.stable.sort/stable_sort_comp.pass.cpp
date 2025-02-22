@@ -13,16 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/test_config.h"
-#include _PSTL_TEST_HEADER(execution)
-#include _PSTL_TEST_HEADER(algorithm)
-
-#include <utility>
-#include <vector>
-#include <cstdint>
-
-#include "support/utils.h"
-#include "support/utils_sort.h"
+#include "support/utils_sort.h" // Umbrella for all needed headers
 
 template <typename T>
 struct test_non_const
