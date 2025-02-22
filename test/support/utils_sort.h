@@ -78,8 +78,10 @@ struct Converter
 };
 
 using Host = TestUtils::invoke_on_all_host_policies;
+#if TEST_DPCPP_BACKEND_PRESENT
 template <std::size_t CallNumber>
 using Device = TestUtils::invoke_on_all_hetero_policies<CallNumber>;
+#endif
 
 // Checks that an operator() can be without const qualifier
 struct NonConstLess
