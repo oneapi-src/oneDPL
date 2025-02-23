@@ -53,7 +53,7 @@ int main()
                              Converter<std::uint16_t>{}, NonConstLess{});
 
     // Check radix-sort with to have a higher chance to hit synchronization issues if any
-    sizes.push_back(6'000'000);
+    sizes.push_back(8'000'000);
     test_sort<std::int32_t>(cfg.msg("int32_t, device, std::less"), sizes, Device<2>{},
                             Converter<std::int32_t>{}, std::less{});
 #endif // TEST_DPCPP_BACKEND_PRESENT

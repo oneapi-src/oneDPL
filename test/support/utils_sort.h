@@ -37,6 +37,8 @@
 #    include "support/sycl_alloc_utils.h"
 #endif
 
+// The struct allows filtering configurations to avoid exponential growth of test cases
+// and to pass an error message prefix for better diagnostics
 struct SortTestConfig
 {
     bool is_stable;
