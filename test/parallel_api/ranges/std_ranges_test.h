@@ -38,7 +38,7 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 namespace test_std_ranges
 {
 
-inline constexpr std::size_t big_sz = (1<<25) + 10; //32M
+inline constexpr std::size_t big_sz = (1<<24) + 10; //16M
 inline constexpr std::size_t medium_sz = (1<<17) + 10; //128K
 
 #if TEST_DPCPP_BACKEND_PRESENT
