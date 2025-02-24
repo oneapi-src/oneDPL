@@ -51,8 +51,6 @@ auto dpcpp_policy()
 }
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
-auto host_policies() { return std::true_type{};}
-
 enum TestDataMode
 {
     data_in,
