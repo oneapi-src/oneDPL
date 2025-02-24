@@ -23,7 +23,7 @@ with the same API and functionality as `std::ranges::zip_view`.
 - value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
 - able to be used with the non-range algorithms
 
-### Discreapences with std::zip_view C++23
+### Discrepancies with std::zip_view C++23
 - oneapi::dpl::ranges::zip_view is based on oneDPL tuple-like type oneapi::dpl::__internal::tuple instead of std::tuple.
 
 ### Implementation proposal
