@@ -16,12 +16,15 @@ with the same API and functionality as `std::ranges::zip_view`.
 - compilable with C++20 version (minimum)
 - API-compliant with `std::ranges::zip_view`
 - random accessible view; the "underlying" views also should be random accessible
-- in case of a device usage: a device copyable view if the all "underlying" views are device copyable views. To provide a transitive device copyability oneapi::dpl::__internal::tuple is proposed as tuple-like type underhood.
-
+- in case of a device usage: a device copyable view if the all "underlying" views are device copyable views.
+- To provide a transitive device copyability oneapi::dpl::__internal::tuple is proposed as tuple-like type underhood.
   
 `oneapi::dpl::ranges::zip_view::iterator` should be:
 - value-swappable (https://en.cppreference.com/w/cpp/named_req/ValueSwappable)
 - able to be used with the non-range algorithms
+
+### Discreapences with std::zip_view C++23
+- oneapi::dpl::ranges::zip_view is based on oneDPL tuple-like type oneapi::dpl::__internal::tuple instead of std::tuple.
 
 ### Implementation proposal
 - `oneapi::dpl::ranges::zip_view` is designed as a C++ class which represents a range adaptor (see C++ Range Library).
