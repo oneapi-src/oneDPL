@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <limits>
 #include <utility>
+#include <any>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
@@ -52,6 +53,7 @@ struct round_robin_policy
 
   private:
     std::shared_ptr<backend_t> backend_;
+    std::any any_resources_;
 
     struct state_t
     {
@@ -61,6 +63,18 @@ struct round_robin_policy
     };
 
     std::shared_ptr<state_t> state_;
+
+    template<typename T>
+    struct any_state_t  //TODO: Can the two states be combined using SFINAE?
+    {
+	      std::vector<T> resources_;
+	      typename std::vector<T>::size_type num_contexts_; //TODO: use typedefs
+        std::atomic<typename std::vector<T>::size_type> next_context_;
+    };
+
+    template<typename T>
+    using any_state_ptr = std::shared_ptr<any_state_t<T>>;
+
 
   public:
     auto
@@ -102,11 +116,28 @@ struct round_robin_policy
         }
     }
 
+
+    template<typename T>
+    void
+    initialize(const std::vector<T>& u)
+    {
+     ///   if (!any_state_)   //TODO: Can we use some flag here?
+        {
+	          any_state_ptr any_state_ = std::make_shared<any_state_t<T>>();
+            any_state_->resources_ = std::any_cast<T>(any_resources_); //TODO: Are you casting T or vector of T
+            any_state_->num_contexts_ = any_state_->resources_.size();
+            any_state_->next_context_ = 0;
+        }
+    }
+
     round_robin_policy() { initialize(); }
 
     round_robin_policy(deferred_initialization_t) {}
 
     round_robin_policy(const std::vector<resource_type>& u) { initialize(u); }
+
+    template<typename T>
+    round_robin_policy(T resources):any_resources_(resources) { } 
 
     template <typename... Args>
     selection_type
