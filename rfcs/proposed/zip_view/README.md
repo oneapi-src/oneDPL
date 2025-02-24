@@ -24,7 +24,8 @@ with the same API and functionality as `std::ranges::zip_view`.
 - able to be used with the non-range algorithms
 
 ### Discrepancies with std::zip_view C++23
-- oneapi::dpl::ranges::zip_view is based on oneDPL tuple-like type oneapi::dpl::__internal::tuple instead of std::tuple.
+- `oneapi::dpl::ranges::zip_view` is based on oneDPL tuple-like type oneapi::dpl::__internal::tuple instead of std::tuple.
+- `oneapi::dpl::ranges::zip_view::iterator::value_type` is oneDPL tuple-like type oneapi::dpl::__internal::tuple instead of std::tuple.
 
 ### Implementation proposal
 - `oneapi::dpl::ranges::zip_view` is designed as a C++ class which represents a range adaptor (see C++ Range Library).
