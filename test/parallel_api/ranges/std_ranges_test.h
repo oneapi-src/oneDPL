@@ -39,6 +39,7 @@ namespace test_std_ranges
 {
 
 inline constexpr std::size_t big_sz = (1<<25) + 10; //32M
+inline constexpr std::size_t medium_sz = (1<<17) + 10; //128K
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -144,22 +145,34 @@ template<typename T>
 static constexpr
 bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 
+using AllHostPolicies = std::integral_constant<int, 0>;
+using ParHostPolicies = std::integral_constant<int, 1>;
+using SkipHostPolicies = std::integral_constant<int, 2>;
+
 template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
 {
     const int max_n = 10;
-    template<typename Policy>
-    std::enable_if_t<std::is_same_v<Policy, std::true_type>>
-    operator()(Policy, auto algo, auto& checker, auto... args)
+    void operator()(AllHostPolicies, auto algo, auto& checker, auto... args)
     {
         operator()(oneapi::dpl::execution::seq, algo, checker, args...);
         operator()(oneapi::dpl::execution::unseq, algo, checker, args...);
         operator()(oneapi::dpl::execution::par, algo, checker,  args...);
         operator()(oneapi::dpl::execution::par_unseq, algo, checker, args...);
     }
+    void
+    operator()(ParHostPolicies, auto algo, auto& checker, auto... args)
+    {
+        operator()(oneapi::dpl::execution::par, algo, checker,  args...);
+        operator()(oneapi::dpl::execution::par_unseq, algo, checker, args...);
+    }
+    void
+    operator()(SkipHostPolicies, auto algo, auto& checker, auto... args) {}
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in>
+    std::enable_if_t<mode == data_in && !std::is_same_v<Policy, AllHostPolicies> &&
+                                        !std::is_same_v<Policy, ParHostPolicies> &&
+                                        !std::is_same_v<Policy, SkipHostPolicies>>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         Container cont_in(exec, max_n, [](auto i) { return i;});
@@ -176,7 +189,7 @@ struct test
         static_assert(std::is_same_v<decltype(res), decltype(checker(r_in, args...))>, "Wrong return type");
 
         auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, r_in.begin());
-        EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() + 
+        EXPECT_TRUE(bres, (std::string("wrong return value from algo with ranges: ") + typeid(Algo).name() +
                 typeid(decltype(tr_in(std::declval<Container&>()()))).name()).c_str());
 
         //check result
@@ -225,7 +238,9 @@ private:
 
 public:
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out>
+    std::enable_if_t<mode == data_in_out && !std::is_same_v<Policy, AllHostPolicies> &&
+                                            !std::is_same_v<Policy, ParHostPolicies> &&
+                                            !std::is_same_v<Policy, SkipHostPolicies>>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
@@ -233,7 +248,9 @@ public:
     }
 
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_out_lim>
+    std::enable_if_t<mode == data_in_out_lim && !std::is_same_v<Policy, AllHostPolicies> &&
+                                                !std::is_same_v<Policy, ParHostPolicies> &&
+                                                !std::is_same_v<Policy, SkipHostPolicies>>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
@@ -245,7 +262,9 @@ public:
     }
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in>
+    std::enable_if_t<mode == data_in_in && !std::is_same_v<Policy, AllHostPolicies> &&
+                                           !std::is_same_v<Policy, ParHostPolicies> &&
+                                           !std::is_same_v<Policy, SkipHostPolicies>>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         Container cont_in1(exec, max_n, [](auto i) { return i;});
@@ -307,7 +326,9 @@ private:
 
 public:
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out>
+    std::enable_if_t<mode == data_in_in_out && !std::is_same_v<Policy, AllHostPolicies> &&
+                                               !std::is_same_v<Policy, ParHostPolicies> &&
+                                               !std::is_same_v<Policy, SkipHostPolicies>>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
@@ -361,7 +382,7 @@ private:
 template<typename T, typename ViewType>
 struct host_subrange_impl
 {
-    static_assert(std::is_trivially_copyable_v<T>, 
+    static_assert(std::is_trivially_copyable_v<T>,
         "Memory initialization within the class relies on trivially copyability of the type T");
 
     using type = ViewType;
@@ -409,9 +430,9 @@ struct host_vector
 
     template<typename Policy>
     host_vector(Policy&&, T* data, int n): vec(data, data + n), p(data) {}
-    
+
     template<typename Policy, typename DataGen>
-    host_vector(Policy&&, int n, DataGen gen): vec(n) 
+    host_vector(Policy&&, int n, DataGen gen): vec(n)
     {
         for(int i = 0; i < n; ++i)
             vec[i] = gen(i);
@@ -511,13 +532,13 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
+template<int call_id = 0, typename T = int, TestDataMode mode = data_in, typename HostPolicySelector = AllHostPolicies>
 struct test_range_algo
 {
     const int max_n = 10;
     void test_view(auto view, auto algo, auto& checker, auto... args)
     {
-        test<T, host_subrange<T>, mode>{max_n}(host_policies(), algo, checker, view, std::identity{}, args...);
+        test<T, host_subrange<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, view, std::identity{}, args...);
 #if TEST_DPCPP_BACKEND_PRESENT
         test<T, usm_subrange<T>, mode>{max_n}(dpcpp_policy<call_id>(), algo, checker, view, std::identity{}, args...);
 #endif //TEST_DPCPP_BACKEND_PRESENT
@@ -531,13 +552,13 @@ struct test_range_algo
         auto span_view = [](auto&& v) { return std::span(v); };
 #endif
 
-        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, std::identity{}, std::identity{}, args...);
-        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, subrange_view, std::identity{}, args...);
-        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
-        test<T, host_subrange<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, std::identity{}, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, subrange_view, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_subrange<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, std::views::all, std::identity{}, args...);
 #if TEST_CPP20_SPAN_PRESENT
-        test<T, host_vector<T>, mode>{max_n}(host_policies(), algo, checker,  span_view, std::identity{}, args...);
-        test<T, host_span<T>, mode>{max_n}(host_policies(), algo, checker, std::views::all, std::identity{}, args...);
+        test<T, host_vector<T>, mode>{max_n}(HostPolicySelector{}, algo, checker,  span_view, std::identity{}, args...);
+        test<T, host_span<T>, mode>{max_n}(HostPolicySelector{}, algo, checker, std::views::all, std::identity{}, args...);
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
