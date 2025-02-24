@@ -42,8 +42,10 @@
 struct SortTestConfig
 {
     bool is_stable = false;
+    // Ignored with host policies
     bool test_usm_device = false;
     bool test_usm_shared = false;
+
     std::string err_msg_prefix = "";
 
     SortTestConfig() = default;
