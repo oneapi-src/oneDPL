@@ -28,18 +28,18 @@ struct test_non_const
 
 int main()
 {
-    constexpr bool Stable = false;
-    SortTestConfig cfg{Stable};
+    SortTestConfig cfg;
+    cfg.is_stable = false;
     cfg.test_usm_shared = true;
     std::vector<std::size_t> sizes = test_sizes(TestUtils::max_n);
 
 #if !TEST_ONLY_HETERO_POLICIES
-    test_sort<TestUtils::float32_t>(cfg.msg("float, host, custom greater"), sizes, Host{},
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, host, custom greater"}, sizes, Host{},
                                     Converter<TestUtils::float32_t>{}, ConstGreater{});
-    test_sort<std::uint16_t>(cfg.msg("uint16_t, host, non-const custom less"), sizes, Host{},
+    test_sort<std::uint16_t>(SortTestConfig{cfg, "uint16_t, host, non-const custom less"}, sizes, Host{},
                                      Converter<std::uint16_t>{}, NonConstLess{});
 
-    test_sort<ParanoidKey>(cfg.msg("ParanoidKey, host"), sizes, Host{},
+    test_sort<ParanoidKey>(SortTestConfig{cfg, "ParanoidKey, host"}, sizes, Host{},
                            [](size_t k, size_t val) { return ParanoidKey(k, val, TestUtils::OddTag()); },
                            KeyCompare(TestUtils::OddTag()));
 
@@ -47,14 +47,14 @@ int main()
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_sort<TestUtils::float32_t>(cfg.msg("float, device, custom greater"), sizes, Device<0>{},
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, device, custom greater"}, sizes, Device<0>{},
                                     Converter<TestUtils::float32_t>{}, ConstGreater{});
-    test_sort<std::uint16_t>(cfg.msg("uint16_t, device, non-const custom less"), sizes, Device<1>{},
+    test_sort<std::uint16_t>(SortTestConfig{cfg, "uint16_t, device, non-const custom less"}, sizes, Device<1>{},
                              Converter<std::uint16_t>{}, NonConstLess{});
 
     // Check radix-sort with to have a higher chance to hit synchronization issues if any
     sizes.push_back(8'000'000);
-    test_sort<std::int32_t>(cfg.msg("int32_t, device, std::less"), sizes, Device<2>{},
+    test_sort<std::int32_t>(SortTestConfig{cfg, "int32_t, device, std::less"}, sizes, Device<2>{},
                             Converter<std::int32_t>{}, std::less{});
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

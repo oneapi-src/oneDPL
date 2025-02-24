@@ -41,20 +41,16 @@
 // and to pass an error message prefix for better diagnostics
 struct SortTestConfig
 {
-    bool is_stable;
-    // Ignored for host policies
-    bool test_usm_device;
-    bool test_usm_shared;
+    bool is_stable = false;
+    bool test_usm_device = false;
+    bool test_usm_shared = false;
+    std::string err_msg_prefix = "";
 
-    std::string err_msg_prefix;
+    SortTestConfig() = default;
 
-    SortTestConfig(bool is_stable, bool usm_device = false, bool usm_shared = false, const std::string& msg = "")
-        : is_stable(is_stable), test_usm_device(usm_device), test_usm_shared(usm_shared), err_msg_prefix(msg) {}
-
-    SortTestConfig msg(const std::string& msg) const
-    {
-        return SortTestConfig(is_stable, test_usm_device, test_usm_shared, msg);
-    }
+    SortTestConfig(const SortTestConfig& cfg, const std::string& err_msg_prefix)
+        : is_stable(cfg.is_stable), test_usm_device(cfg.test_usm_device),
+          test_usm_shared(cfg.test_usm_shared), err_msg_prefix(err_msg_prefix) {}
 };
 
 inline std::vector<std::size_t>
@@ -435,7 +431,7 @@ struct test_sort_op
 
 template <typename T, typename Invoker, typename Converter, typename... Compare>
 void
-test_sort(SortTestConfig config, const std::vector<std::size_t> sizes, Invoker invoker, Converter converter,
+test_sort(SortTestConfig config, const std::vector<std::size_t>& sizes, Invoker invoker, Converter converter,
           Compare... compare)
 {
     std::srand(42);

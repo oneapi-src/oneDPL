@@ -17,20 +17,22 @@
 
 int main()
 {
-    constexpr bool Stable = true;
-    SortTestConfig cfg{Stable};
+    SortTestConfig cfg;
+    cfg.is_stable = true;
     cfg.test_usm_shared = true;
     std::vector<std::size_t> sizes = test_sizes(TestUtils::max_n);
 
 #if !TEST_ONLY_HETERO_POLICIES
-    test_sort<TestUtils::float32_t>(cfg.msg("float, host"), sizes, Host{}, Converter<TestUtils::float32_t>{});
-    test_sort<std::int64_t>(cfg.msg("int64_t, host"), sizes, Host{}, Converter<std::int64_t>{});
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, host"}, sizes, Host{},
+                                    Converter<TestUtils::float32_t>{});
+    test_sort<std::int64_t>(SortTestConfig{cfg, "int64_t, host"}, sizes, Host{}, Converter<std::int64_t>{});
     // TODO: add a test for stability
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_sort<TestUtils::float32_t>(cfg.msg("float, device"), sizes, Device<0>{}, Converter<TestUtils::float32_t>{});
-    test_sort<std::int64_t>(cfg.msg("int64_t, device"), sizes, Device<1>{}, Converter<std::int64_t>{});
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, device"}, sizes, Device<0>{},
+                                    Converter<TestUtils::float32_t>{});
+    test_sort<std::int64_t>(SortTestConfig{cfg, "int64_t, device"}, sizes, Device<1>{}, Converter<std::int64_t>{});
     // TODO: add a test for stability
 #endif
 

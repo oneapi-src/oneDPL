@@ -17,19 +17,22 @@
 
 int main()
 {
-    constexpr bool Stable = false;
-    SortTestConfig cfg{Stable};
+    SortTestConfig cfg;
+    cfg.is_stable = false;
     cfg.test_usm_device = true;
     const std::vector<std::size_t> sizes = test_sizes(TestUtils::max_n);
     const std::vector<std::size_t> small_sizes = test_sizes(10'000);
 
 #if !TEST_ONLY_HETERO_POLICIES
-    test_sort<TestUtils::float32_t>(cfg.msg("float, host"), sizes, Host{}, Converter<TestUtils::float32_t>{});
-    test_sort<unsigned char>(cfg.msg("unsigned char, host"), sizes, Host{}, Converter<unsigned char>{});
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, host"}, sizes, Host{},
+                                    Converter<TestUtils::float32_t>{});
+    test_sort<unsigned char>(SortTestConfig{cfg, "unsigned char, host"}, sizes, Host{},
+                             Converter<unsigned char>{});
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_sort<TestUtils::float32_t>(cfg.msg("float, device"), sizes, Device<0>{}, Converter<TestUtils::float32_t>{});
+    test_sort<TestUtils::float32_t>(SortTestConfig{cfg, "float, device"}, sizes, Device<0>{},
+                                    Converter<TestUtils::float32_t>{});
 
     auto sycl_half_convert = [](size_t k, size_t val) {
         constexpr std::uint16_t mask = 0xFFFFu;
@@ -47,13 +50,17 @@ int main()
     };
 
     // Test radix-sort bit conversions
-    test_sort<std::uint8_t>(cfg.msg("uint8_t, device"), small_sizes, Device<1>{}, Converter<std::uint8_t>{});
-    test_sort<std::int16_t>(cfg.msg("int16_t, device"), small_sizes, Device<2>{}, Converter<std::int16_t>{});
-    test_sort<std::uint32_t>(cfg.msg("uint32_t, device"), small_sizes, Device<3>{}, Converter<std::uint32_t>{});
-    test_sort<std::int64_t>(cfg.msg("int64_t, device"), small_sizes, Device<4>{}, Converter<std::int64_t>{});
-    test_sort<TestUtils::float64_t>(cfg.msg("float64_t, device"), small_sizes, Device<5>{},
-        Converter<TestUtils::float64_t>{});
-    test_sort<sycl::half>(cfg.msg("sycl::half, device"), small_sizes, Device<6>{}, sycl_half_convert);
+    test_sort<std::uint8_t>(SortTestConfig{cfg, "uint8_t, device"}, small_sizes, Device<1>{},
+                            Converter<std::uint8_t>{});
+    test_sort<std::int16_t>(SortTestConfig{cfg, "int16_t, device"}, small_sizes, Device<2>{},
+                            Converter<std::int16_t>{});
+    test_sort<std::uint32_t>(SortTestConfig{cfg, "uint32_t, device"}, small_sizes, Device<3>{},
+                             Converter<std::uint32_t>{});
+    test_sort<std::int64_t>(SortTestConfig{cfg, "int64_t, device"}, small_sizes, Device<4>{},
+                            Converter<std::int64_t>{});
+    test_sort<TestUtils::float64_t>(SortTestConfig{cfg, "float64_t, device"}, small_sizes, Device<5>{},
+                                    Converter<TestUtils::float64_t>{});
+    test_sort<sycl::half>(SortTestConfig{cfg, "sycl::half, device"}, small_sizes, Device<6>{}, sycl_half_convert);
     // TODO: add a test for a MoveConstructible only type
 #endif
 
