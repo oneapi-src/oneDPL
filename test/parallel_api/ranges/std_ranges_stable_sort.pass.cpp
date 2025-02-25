@@ -24,10 +24,8 @@ main()
 
     auto sort_stable_checker = TEST_PREPARE_CALLABLE(std::ranges::stable_sort);
 
-    test_range_algo<0, int, data_in, DevicePolicy>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
-
-    test_range_algo<1, int, data_in, DeviceAndParPolicies>{medium_sz}(dpl_ranges::stable_sort, sort_stable_checker,
-                                                                      std::ranges::less{});
+    test_range_algo<0>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
+    test_range_algo<1>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{});
 
     test_range_algo<2>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{}, proj);
     test_range_algo<3>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::greater{}, proj);
@@ -37,6 +35,11 @@ main()
 
     test_range_algo<6, P2>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{}, &P2::proj);
     test_range_algo<7, P2>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::greater{}, &P2::proj);
+
+    // Check larger specializations, use default comparator for a non-comparison-based sort (e.g. radix-sort) if exists
+    test_range_algo<8, int, data_in, DeviceAndParPolicies>{medium_sz}(dpl_ranges::stable_sort, sort_stable_checker);
+    test_range_algo<9, std::uint16_t, data_in, DevicePolicy>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
+
 #endif //_ENABLE_STD_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_STD_RANGES_TESTING);
