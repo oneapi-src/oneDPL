@@ -53,7 +53,7 @@ main()
             if(it_out == it_out_e)
                 return ret_type{it_1, it_2, it_out};
         }
-    
+
         if(it_1 == it_1_e)
         {
             for(; it_2 != it_2_e && it_out != it_out_e; ++it_2, ++it_out)
@@ -68,7 +68,8 @@ main()
         return ret_type{it_1, it_2, it_out};
     };
 
-    test_range_algo<0, int, data_in_in_out_lim>{big_sz}(dpl_ranges::merge, merge_checker, std::ranges::less{}, std::identity{}, std::identity{});
+    test_range_algo<0, int, data_in_in_out_lim>{policy_scaled_sizes}
+        (dpl_ranges::merge, merge_checker, std::ranges::less{}, std::identity{}, std::identity{});
 
     test_range_algo<1, int, data_in_in_out_lim>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, proj, proj);
     test_range_algo<2, P2, data_in_in_out_lim>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, &P2::x, &P2::x);
