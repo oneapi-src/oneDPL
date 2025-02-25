@@ -24,7 +24,7 @@ main()
 
     auto sort_stable_checker = TEST_PREPARE_CALLABLE(std::ranges::stable_sort);
 
-    test_range_algo<0>{big_sz}(dpl_ranges::stable_sort, sort_stable_checker);
+    test_range_algo<0>{}(dpl_ranges::stable_sort, sort_stable_checker);
     test_range_algo<1>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{});
 
     test_range_algo<2>{}(dpl_ranges::stable_sort, sort_stable_checker, std::ranges::less{}, proj);
