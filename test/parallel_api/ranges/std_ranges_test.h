@@ -40,6 +40,7 @@ namespace test_std_ranges
 
 inline constexpr std::size_t big_sz = (1<<24) + 10; //16M
 inline constexpr std::size_t medium_sz = (1<<17) + 10; //128K
+inline constexpr std::size_t small_sz = 2025;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -157,7 +158,7 @@ bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
 {
-    const int max_n = 10;
+    const int max_n = small_sz;
 
     template<typename PolicySelector>
     std::enable_if_t<is_host_policy_selector_v<PolicySelector>>
@@ -532,7 +533,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in, typename PolicySelector = AllPolicies>
 struct test_range_algo
 {
-    const int max_n = 2000;
+    const int max_n = small_sz;
     void test_view(auto view, auto algo, auto& checker, auto... args)
     {
         test<T, host_subrange<T>, mode>{max_n}(PolicySelector{}, algo, checker, view, std::identity{}, args...);
