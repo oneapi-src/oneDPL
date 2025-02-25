@@ -146,6 +146,12 @@ bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 using AllHostPolicies = std::integral_constant<int, 0>;
 using ParHostPolicies = std::integral_constant<int, 1>;
 using SkipHostPolicies = std::integral_constant<int, 2>;
+template <typename T>
+struct is_host_policy_selector: std::bool_constant<std::is_same_v<T, AllHostPolicies> ||
+                                                   std::is_same_v<T, ParHostPolicies> ||
+                                                   std::is_same_v<T, SkipHostPolicies>> {};
+template <typename T>
+inline constexpr bool is_host_policy_selector_v = is_host_policy_selector<T>::value;
 
 template<typename DataType, typename Container, TestDataMode test_mode = data_in>
 struct test
@@ -168,9 +174,7 @@ struct test
     operator()(SkipHostPolicies, auto algo, auto& checker, auto... args) {}
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
-    std::enable_if_t<mode == data_in && !std::is_same_v<Policy, AllHostPolicies> &&
-                                        !std::is_same_v<Policy, ParHostPolicies> &&
-                                        !std::is_same_v<Policy, SkipHostPolicies>>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         Container cont_in(exec, max_n, [](auto i) { return i;});
@@ -236,9 +240,7 @@ private:
 
 public:
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<mode == data_in_out && !std::is_same_v<Policy, AllHostPolicies> &&
-                                            !std::is_same_v<Policy, ParHostPolicies> &&
-                                            !std::is_same_v<Policy, SkipHostPolicies>>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
@@ -246,9 +248,7 @@ public:
     }
 
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<mode == data_in_out_lim && !std::is_same_v<Policy, AllHostPolicies> &&
-                                                !std::is_same_v<Policy, ParHostPolicies> &&
-                                                !std::is_same_v<Policy, SkipHostPolicies>>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
@@ -260,9 +260,7 @@ public:
     }
 
     template<typename Policy, typename Algo, typename Checker, typename TransIn, typename TransOut, TestDataMode mode = test_mode>
-    std::enable_if_t<mode == data_in_in && !std::is_same_v<Policy, AllHostPolicies> &&
-                                           !std::is_same_v<Policy, ParHostPolicies> &&
-                                           !std::is_same_v<Policy, SkipHostPolicies>>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in_in>
     operator()(Policy&& exec, Algo algo, Checker& checker, TransIn tr_in, TransOut, auto... args)
     {
         Container cont_in1(exec, max_n, [](auto i) { return i;});
@@ -324,9 +322,7 @@ private:
 
 public:
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<mode == data_in_in_out && !std::is_same_v<Policy, AllHostPolicies> &&
-                                               !std::is_same_v<Policy, ParHostPolicies> &&
-                                               !std::is_same_v<Policy, SkipHostPolicies>>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in_in_out>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
