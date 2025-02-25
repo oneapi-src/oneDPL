@@ -333,7 +333,7 @@ public:
     }
 
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
-    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && mode == data_in_in_out_lim>
+    std::enable_if_t<!is_host_policy_selector_v<Policy> && mode == data_in_in_out_lim>
     operator()(Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
