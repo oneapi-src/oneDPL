@@ -24,9 +24,9 @@ main()
 
     auto sort_checker = TEST_PREPARE_CALLABLE(std::ranges::sort);
 
-    test_range_algo<0, int, data_in, SkipHostPolicies>{big_sz}(dpl_ranges::sort, sort_checker);
+    test_range_algo<0, int, data_in, DevicePolicy>{big_sz}(dpl_ranges::sort, sort_checker);
 
-    test_range_algo<1, int, data_in, ParHostPolicies>{medium_sz}(dpl_ranges::sort, sort_checker, std::ranges::less{});
+    test_range_algo<1, int, data_in, DeviceAndParPolicies>{medium_sz}(dpl_ranges::sort, sort_checker, std::ranges::less{});
 
     test_range_algo<2>{}(dpl_ranges::sort, sort_checker, std::ranges::less{}, proj);
     test_range_algo<3>{}(dpl_ranges::sort, sort_checker, std::ranges::greater{}, proj);
