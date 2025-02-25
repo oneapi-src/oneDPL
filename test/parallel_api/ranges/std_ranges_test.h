@@ -229,7 +229,7 @@ public:
     operator()(int max_n, Policy&& exec, Algo algo, Checker& checker, auto... args)
     {
         const int r_size = max_n;
-        process_data_in_out(r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
+        process_data_in_out(max_n, r_size, r_size, std::forward<Policy>(exec), algo, checker, args...);
     }
 
     template<typename Policy, typename Algo, typename Checker, TestDataMode mode = test_mode>
