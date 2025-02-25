@@ -157,7 +157,8 @@ template<typename DataType, typename Container, TestDataMode test_mode = data_in
 struct test
 {
     const int max_n = 10;
-    void operator()(AllHostPolicies, auto algo, auto& checker, auto... args)
+    void
+    operator()(AllHostPolicies, auto algo, auto& checker, auto... args)
     {
         operator()(oneapi::dpl::execution::seq, algo, checker, args...);
         operator()(oneapi::dpl::execution::unseq, algo, checker, args...);
