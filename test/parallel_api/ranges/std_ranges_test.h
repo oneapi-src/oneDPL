@@ -532,7 +532,7 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in, typename PolicySelector = AllPolicies>
 struct test_range_algo
 {
-    const int max_n = 10;
+    const int max_n = 2000;
     void test_view(auto view, auto algo, auto& checker, auto... args)
     {
         test<T, host_subrange<T>, mode>{max_n}(PolicySelector{}, algo, checker, view, std::identity{}, args...);
