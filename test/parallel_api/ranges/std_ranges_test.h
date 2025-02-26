@@ -39,15 +39,15 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 namespace test_std_ranges
 {
 
-// The largest specializations handle 16M+ elements
+// The largest specializations of algorithms with device policies handle 16M+ elements.
 inline constexpr int big_sz = (1<<24) + 10; //16M
 
-// 128K is a conventional limit for host policies, especially the parallel ones,
-// it also usually results in using multiple-work-group specializations for device policies
+// ~100K is sufficient for parallel policies.
+// It also usually results in using multiple-work-group specializations for device policies.
 inline constexpr int medium_sz = (1<<17) + 10; //128K
 
-// It is a sufficient size for sequential policies
-// it also usually results in using sing-work-group specializations for device policies
+// It is a sufficient size for sequential policies.
+// It also usually results in using sing-work-group specializations for device policies.
 inline constexpr int small_sz = 2025;
 
 #if TEST_DPCPP_BACKEND_PRESENT
