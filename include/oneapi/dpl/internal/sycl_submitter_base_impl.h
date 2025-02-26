@@ -60,6 +60,14 @@ struct __sycl_submitter_base
         : __exec(std::forward<_ExecutionPolicyCtor>(__exec))
     {
     }
+
+public:
+
+   inline const _ExecutionPolicy&
+   get_execution_policy() const
+   {
+       return __exec;
+   }
 };
 
 } // namespace internal

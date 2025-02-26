@@ -119,17 +119,23 @@ struct __sycl_scan_by_segment_submitter : protected __sycl_submitter_base<_Execu
 {
     friend __sycl_scan_by_segment_submitter_factory;
 
+    using _submitter_base = __sycl_submitter_base<_ExecutionPolicy>;
+
+  protected:
+    template <typename _ExecutionPolicyCtor>
+    __sycl_scan_by_segment_submitter(_ExecutionPolicyCtor&& __exec)
+        : __sycl_submitter_base<_ExecutionPolicy>(std::forward<_ExecutionPolicyCtor>(__exec))
+    {
+    }
+
+  public:
+
     template <typename... _Name>
     using _SegScanWgPhase = __seg_scan_wg_kernel<__is_inclusive, _Name...>;
 
     template <typename... _Name>
     using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
 
-    template <typename _ExecutionPolicyCtor>
-    __sycl_scan_by_segment_submitter(_ExecutionPolicyCtor&& __exec)
-        : __sycl_submitter_base<_ExecutionPolicy>(std::forward<_ExecutionPolicyCtor>(__exec))
-    {
-    }
 
     template <typename _BackendTag, typename _Range1, typename _Range2, typename _Range3, typename _BinaryPredicate,
               typename _BinaryOperator, typename _T>
@@ -153,34 +159,34 @@ struct __sycl_scan_by_segment_submitter : protected __sycl_submitter_base<_Execu
 
         // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
         // This value exceeds the current practical limit for GPUs, but may need to be re-evaluated in the future.
-        std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec, (std::size_t)2048);
+        std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(_submitter_base::__exec, (std::size_t)2048);
 
         // We require 2 * sizeof(__val_type) * __wgroup_size of SLM for the work group segmented scan. We add
         // an additional sizeof(__val_type) * __wgroup_size requirement to ensure sufficient SLM for the group algorithms.
         __wgroup_size =
-            oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, 3 * sizeof(__val_type), __wgroup_size);
+            oneapi::dpl::__internal::__slm_adjusted_work_group_size(_submitter_base::__exec, 3 * sizeof(__val_type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
         auto __seg_scan_wg_kernel =
-            __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(__exec);
+            __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(_submitter_base::__exec);
         auto __seg_scan_prefix_kernel =
-            __par_backend_hetero::__internal::__kernel_compiler<_SegScanPrefixKernel>::__compile(__exec);
+            __par_backend_hetero::__internal::__kernel_compiler<_SegScanPrefixKernel>::__compile(_submitter_base::__exec);
         __wgroup_size =
-            ::std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_scan_wg_kernel),
-                        oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_scan_prefix_kernel)});
+            ::std::min({__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(_submitter_base::__exec, __seg_scan_wg_kernel),
+                        oneapi::dpl::__internal::__kernel_work_group_size(_submitter_base::__exec, __seg_scan_prefix_kernel)});
 #endif
 
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(_submitter_base::__exec, __n_groups).get_buffer();
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, bool>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, bool>(_submitter_base::__exec, __n_groups).get_buffer();
 
         // 1. Work group reduction
-        auto __wg_scan = __exec.queue().submit([&](sycl::handler& __cgh) {
+        auto __wg_scan = _submitter_base::__exec.queue().submit([&](sycl::handler& __cgh) {
             auto __partials_acc = __partials.template get_access<sycl::access_mode::write>(__cgh);
             auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
 
@@ -280,7 +286,7 @@ struct __sycl_scan_by_segment_submitter : protected __sycl_submitter_base<_Execu
         });
 
         // 2. Apply work group carry outs, calculate output indices, and load results into correct indices.
-        __exec.queue()
+        _submitter_base::__exec.queue()
             .submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_values);
 
