@@ -97,16 +97,16 @@ __parallel_reduce_by_segment_fallback(oneapi::dpl::__internal::__device_backend_
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-    using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+    using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<               // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_reduce_by_segment_fallback
         _SegReduceCountPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,
         _BinaryOperator>;
-    using _SegReduceOffsetKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+    using _SegReduceOffsetKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<              // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_reduce_by_segment_fallback
         _SegReduceOffsetPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,
         _BinaryOperator>;
-    using _SegReduceWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+    using _SegReduceWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<                  // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_reduce_by_segment_fallback
         _SegReduceWgPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,
         _BinaryOperator>;
-    using _SegReducePrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+    using _SegReducePrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<              // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_reduce_by_segment_fallback
         _SegReducePrefixPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,
         _BinaryOperator>;
 

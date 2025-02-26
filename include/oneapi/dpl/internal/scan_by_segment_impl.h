@@ -113,10 +113,10 @@ struct __sycl_scan_by_segment_impl
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-        using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl
             _SegScanWgPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _BinaryPredicate,
             _BinaryOperator>;
-        using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<    // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl
             _SegScanPrefixPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _BinaryPredicate,
             _BinaryOperator>;
 
