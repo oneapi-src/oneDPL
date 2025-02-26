@@ -96,27 +96,60 @@ class __seg_scan_wg_kernel;
 template <bool __is_inclusive, typename... Name>
 class __seg_scan_prefix_kernel;
 
-template <bool __is_inclusive>
-struct __sycl_scan_by_segment_impl
+template <bool __is_inclusive, typename _ExecutionPolicy>
+struct __sycl_scan_by_segment_submitter;
+
+struct __sycl_scan_by_segment_submitter_factory
 {
+    template <bool __is_inclusive, typename _ExecutionPolicy>
+    static auto
+    create(_ExecutionPolicy&& __exec)
+    {
+        using _ExecutionPolicyCtor = std::decay_t<_ExecutionPolicy>;
+        static_assert(std::is_same_v<_ExecutionPolicyCtor, std::remove_cv_t<std::remove_reference_t<std::decay_t<_ExecutionPolicy>>>>);
+
+        return __sycl_scan_by_segment_submitter<__is_inclusive, _ExecutionPolicyCtor>{std::forward<_ExecutionPolicy>(__exec)};
+    }
+};
+
+template <bool __is_inclusive, typename _ExecutionPolicy>
+struct __sycl_scan_by_segment_submitter
+{
+    // We should instantiate this submitter only for cleared _ExecutionPolicy type
+    static_assert(std::is_same_v<_ExecutionPolicy, std::decay_t<_ExecutionPolicy>>);
+
+    friend __sycl_scan_by_segment_submitter_factory;
+
+  protected:
+
+    _ExecutionPolicy __exec;
+
+    template <typename _ExecutionPolicyCtor>
+    __sycl_scan_by_segment_submitter(_ExecutionPolicyCtor&& __exec)
+    {
+        __exec = std::forward<_ExecutionPolicyCtor>(__exec);
+    }
+
+  public:
+
     template <typename... _Name>
     using _SegScanWgPhase = __seg_scan_wg_kernel<__is_inclusive, _Name...>;
 
     template <typename... _Name>
     using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
 
-    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
-              typename _BinaryPredicate, typename _BinaryOperator, typename _T>
+    template <typename _BackendTag, typename _Range1, typename _Range2, typename _Range3, typename _BinaryPredicate,
+              typename _BinaryOperator, typename _T>
     void
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+    operator()(_BackendTag, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
-        using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl
+        using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl, __sycl_scan_by_segment_submitter
             _SegScanWgPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _BinaryPredicate,
             _BinaryOperator>;
-        using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<    // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl
+        using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<    // KSATODO: __kernel_name_generator with _ExecutionPolicy - __sycl_scan_by_segment_impl, __sycl_scan_by_segment_submitter
             _SegScanPrefixPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _BinaryPredicate,
             _BinaryOperator>;
 
@@ -394,9 +427,11 @@ __scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& po
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    __sycl_scan_by_segment_impl<Inclusive::value>()(_BackendTag{}, ::std::forward<Policy>(policy), key_buf.all_view(),
-                                                    value_buf.all_view(), value_output_buf.all_view(), binary_pred,
-                                                    binary_op, init, identity);
+    // TODO spezialisation of Policy type in template params is not required here
+    __sycl_scan_by_segment_submitter_factory::create<Inclusive::value/*, Policy*/>(policy)(
+        _BackendTag{}, key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op,
+        init, identity);
+
     return result + n;
 }
 
