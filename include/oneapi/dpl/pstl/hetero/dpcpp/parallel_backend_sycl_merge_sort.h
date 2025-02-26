@@ -213,7 +213,7 @@ struct __merge_sort_leaf_submitter<__internal::__optional_kernel_name<_LeafSortN
 {
     template <typename _Range, typename _LeafSorter>
     sycl::event
-    operator()(sycl::queue& __q, _Range& __rng, _LeafSorter& __leaf_sorter) const
+    operator()(sycl::queue& __q, _Range& __rng, _LeafSorter& __leaf_sorter) const           // KSATODO sycl::queue passed
     {
         return __q.submit([&__rng, &__leaf_sorter](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
@@ -665,7 +665,7 @@ struct __merge_sort_copy_back_submitter<__internal::__optional_kernel_name<_Copy
 {
     template <typename _Range, typename _TempBuf>
     sycl::event
-    operator()(sycl::queue& __q, _Range& __rng, _TempBuf& __temp_buf, sycl::event __event_chain) const
+    operator()(sycl::queue& __q, _Range& __rng, _TempBuf& __temp_buf, sycl::event __event_chain) const      // KSATODO sycl::queue passed
     {
         return __q.submit([&__rng, &__temp_buf, &__event_chain](sycl::handler& __cgh) {
             __cgh.depends_on(__event_chain);

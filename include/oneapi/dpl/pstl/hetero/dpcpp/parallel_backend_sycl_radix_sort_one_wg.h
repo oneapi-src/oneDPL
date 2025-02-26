@@ -35,7 +35,7 @@ struct __subgroup_radix_sort
 {
     template <typename _RangeIn, typename _Proj>
     auto
-    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)
+    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)     // KSATODO sycl::queue passed
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
@@ -156,7 +156,7 @@ struct __subgroup_radix_sort
     {
         template <typename _RangeIn, typename _Proj, typename _SLM_tag_val, typename _SLM_counter>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_counter)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_counter)         // KSATODO sycl::queue passed
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
