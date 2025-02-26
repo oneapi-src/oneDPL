@@ -534,9 +534,9 @@ struct test_range_algo
     // Mode with a uniform number of elements for each policy type
     test_range_algo(int n) : n_serial(n), n_parallel(n), n_device(n) {}
 
-    // Mode that tests different policy types with sizes specific to their specializations.
+    // Mode that tests different policy types with different sizes.
     // Serial (seq/unseq), parallel (par/par_unseq), and device policies
-    // have specialized implementations that use different sizes.
+    // specialize algorithms for different number of elements, which this mode covers.
 #if TEST_DPCPP_BACKEND_PRESENT
     test_range_algo(std::array<int, 3> sizes) : n_serial(sizes[0]), n_parallel(sizes[1]), n_device(sizes[2]) {}
 #else
