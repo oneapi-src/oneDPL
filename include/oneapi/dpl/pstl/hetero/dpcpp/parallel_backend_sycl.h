@@ -46,6 +46,7 @@
 #include "sycl_iterator.h"
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
+#include "../../../internal/sycl_submitter_base_impl.h"
 
 #define _ONEDPL_USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
 
@@ -230,13 +231,38 @@ struct __parallel_scan_submitter;
 // Even if this class submits three kernel optional name is allowed to be only for one of them
 // because for two others we have to provide the name to get the reliable work group size
 template <typename... _PropagateScanName>
-struct __parallel_scan_submitter<__internal::__optional_kernel_name<_PropagateScanName...>>
+struct __parallel_scan_submitter<__internal::__optional_kernel_name<_PropagateScanName...>>;
+
+struct __parallel_scan_submitter_factory
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
+    template <typename _ExecutionPolicy, typename... _PropagateScanName>
+    static auto
+    create(_ExecutionPolicy&& __exec)
+    {
+        using _ExecutionPolicyCtor = std::decay_t<_ExecutionPolicy>;
+        static_assert(std::is_same_v<_ExecutionPolicyCtor, std::remove_cv_t<std::remove_reference_t<std::decay_t<_ExecutionPolicy>>>>);
+
+        return __parallel_scan_submitter<_ExecutionPolicyCtor, _PropagateScanName...>{std::forward<_ExecutionPolicy>(__exec)};
+    }
+};
+
+// Even if this class submits three kernel optional name is allowed to be only for one of them
+// because for two others we have to provide the name to get the reliable work group size
+template <typename _ExecutionPolicy, typename... _PropagateScanName>
+struct __parallel_scan_submitter<__internal::__optional_kernel_name<_PropagateScanName...>>
+    : protected __sycl_submitter_base<_ExecutionPolicy>
+{
+    template <typename _ExecutionPolicyCtor>
+    __parallel_scan_submitter(_ExecutionPolicyCtor&& __exec)
+        : __sycl_submitter_base<_ExecutionPolicy>(std::forward<_ExecutionPolicyCtor>(__exec))
+    {
+    }
+
+    template <typename _Range1, typename _Range2, typename _InitType,
               typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
-               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
+    operator()(_Range1&& __rng1, _Range2&& __rng2, _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan,
+               _GlobalScan __global_scan) const
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _Type = typename _InitType::__value_type;
@@ -653,9 +679,9 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
     using _PropagateKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_submitter<_PropagateKernel>()(
-        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
-        __init, __local_scan, __group_scan, __global_scan);
+    return __parallel_scan_submitter_factory::create<_ExecutionPolicy, _PropagateKernel>(
+        std::forward<_ExecutionPolicy>(__exec))(std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
+                                                __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _Type>
