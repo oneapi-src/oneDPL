@@ -648,9 +648,9 @@ struct __parallel_radix_sort_iteration
     using __reorder_phase = __radix_sort_reorder_kernel<__radix_bits, __is_ascending, __even, _Name...>;
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf, typename _Proj>
-    static sycl::event
-    submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
-           _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
+               _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj) const
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
@@ -858,10 +858,10 @@ __parallel_radix_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionP
         {
             // TODO: convert to ordered type once at the first iteration and convert back at the last one
             if (__radix_iter % 2 == 0)
-                __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
+                __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>{}(
                     __exec, __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf, __event, __proj);
             else //swap __in_rng and __out_rng
-                __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
+                __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>{}(
                     __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __event, __proj);
         }
     }
