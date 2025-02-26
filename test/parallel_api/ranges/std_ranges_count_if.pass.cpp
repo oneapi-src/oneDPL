@@ -24,7 +24,7 @@ main()
 
     auto count_if_checker = TEST_PREPARE_CALLABLE(std::ranges::count_if);
 
-    test_range_algo<0>{big_sizes_per_policy}(dpl_ranges::count_if, count_if_checker, pred);
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::count_if, count_if_checker, pred);
     test_range_algo<1>{}(dpl_ranges::count_if, count_if_checker, pred, proj);
     test_range_algo<2, P2>{}(dpl_ranges::count_if, count_if_checker, pred, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::count_if, count_if_checker, pred, &P2::proj);

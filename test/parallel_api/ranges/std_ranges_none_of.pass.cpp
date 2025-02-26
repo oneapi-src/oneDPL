@@ -24,7 +24,7 @@ main()
 
     auto none_of_checker = TEST_PREPARE_CALLABLE(std::ranges::none_of);
 
-    test_range_algo<0>{big_sizes_per_policy}(dpl_ranges::none_of, none_of_checker, pred3);
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::none_of, none_of_checker, pred3);
     test_range_algo<1>{}(dpl_ranges::none_of, none_of_checker, pred2, proj);
     test_range_algo<2, P2>{}(dpl_ranges::none_of, none_of_checker, pred3, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::none_of, none_of_checker, pred3, &P2::proj);

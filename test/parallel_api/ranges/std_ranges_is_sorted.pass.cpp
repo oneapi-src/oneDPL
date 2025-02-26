@@ -24,7 +24,7 @@ main()
 
     auto is_sorted_checker = TEST_PREPARE_CALLABLE(std::ranges::is_sorted);
 
-    test_range_algo<0>{big_sizes_per_policy}(dpl_ranges::is_sorted, is_sorted_checker, std::ranges::less{});
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::is_sorted, is_sorted_checker, std::ranges::less{});
 
     test_range_algo<1>{}(dpl_ranges::is_sorted, is_sorted_checker, std::ranges::less{}, proj);
     test_range_algo<2, P2>{}(dpl_ranges::is_sorted, is_sorted_checker, std::ranges::less{}, &P2::x);
