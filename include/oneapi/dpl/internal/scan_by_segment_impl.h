@@ -98,23 +98,23 @@ class __seg_scan_wg_kernel;
 template <bool __is_inclusive, typename... Name>
 class __seg_scan_prefix_kernel;
 
-template <bool __is_inclusive, typename _ExecutionPolicy>
+template <typename _ExecutionPolicy, bool __is_inclusive>
 struct __sycl_scan_by_segment_submitter;
 
 struct __sycl_scan_by_segment_submitter_factory
 {
-    template <bool __is_inclusive, typename _ExecutionPolicy>
+    template <typename _ExecutionPolicy, bool __is_inclusive>
     static auto
     create(_ExecutionPolicy&& __exec)
     {
         using _ExecutionPolicyCtor = std::decay_t<_ExecutionPolicy>;
         static_assert(std::is_same_v<_ExecutionPolicyCtor, std::remove_cv_t<std::remove_reference_t<std::decay_t<_ExecutionPolicy>>>>);
 
-        return __sycl_scan_by_segment_submitter<__is_inclusive, _ExecutionPolicyCtor>{std::forward<_ExecutionPolicy>(__exec)};
+        return __sycl_scan_by_segment_submitter<_ExecutionPolicyCtor, __is_inclusive>{std::forward<_ExecutionPolicy>(__exec)};
     }
 };
 
-template <bool __is_inclusive, typename _ExecutionPolicy>
+template <typename _ExecutionPolicy, bool __is_inclusive>
 struct __sycl_scan_by_segment_submitter : protected __sycl_submitter_base<_ExecutionPolicy>
 {
     friend __sycl_scan_by_segment_submitter_factory;
@@ -418,8 +418,7 @@ __scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& po
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    // TODO spezialisation of Policy type in template params is not required here
-    __sycl_scan_by_segment_submitter_factory::create<Inclusive::value/*, Policy*/>(policy)(
+    __sycl_scan_by_segment_submitter_factory::create<Policy, Inclusive::value>(std::forward<Policy>(policy))(
         _BackendTag{}, key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op,
         init, identity);
 
