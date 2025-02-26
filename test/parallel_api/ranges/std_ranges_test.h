@@ -42,7 +42,7 @@ namespace test_std_ranges
 // The largest specializations handle 16M+ elements
 inline constexpr int big_sz = (1<<24) + 10; //16M
 
-// 128K is a conventional limit for host policies, expecially the parallel ones,
+// 128K is a conventional limit for host policies, especially the parallel ones,
 // it also usually results in using multiple-work-group specializations for device policies
 inline constexpr int medium_sz = (1<<17) + 10; //128K
 
@@ -50,7 +50,7 @@ inline constexpr int medium_sz = (1<<17) + 10; //128K
 // it also usually results in using sing-work-group specializations for device policies
 inline constexpr int small_sz = 2025;
 
-inline constexpr std::array<int, 3> default_sizes_per_policy = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_sz};
+inline constexpr std::array<int, 3> big_sizes_per_policy = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_sz};
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>

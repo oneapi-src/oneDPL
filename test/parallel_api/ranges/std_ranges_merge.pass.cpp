@@ -68,7 +68,7 @@ main()
         return ret_type{it_1, it_2, it_out};
     };
 
-    test_range_algo<0, int, data_in_in_out_lim>{default_sizes_per_policy}
+    test_range_algo<0, int, data_in_in_out_lim>{big_sizes_per_policy}
         (dpl_ranges::merge, merge_checker, std::ranges::less{}, std::identity{}, std::identity{});
 
     test_range_algo<1, int, data_in_in_out_lim>{}(dpl_ranges::merge, merge_checker, std::ranges::less{}, proj, proj);

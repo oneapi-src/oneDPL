@@ -24,7 +24,7 @@ main()
 
     auto sort_checker = TEST_PREPARE_CALLABLE(std::ranges::sort);
 
-    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::sort, sort_checker);
+    test_range_algo<0>{big_sizes_per_policy}(dpl_ranges::sort, sort_checker);
     test_range_algo<1>{}(dpl_ranges::sort, sort_checker, std::ranges::less{});
 
     test_range_algo<2>{}(dpl_ranges::sort, sort_checker, std::ranges::less{}, proj);
