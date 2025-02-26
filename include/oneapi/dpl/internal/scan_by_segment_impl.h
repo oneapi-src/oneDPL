@@ -48,6 +48,8 @@
 
 #include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
+#include "sycl_submitter_base_impl.h"         // Base sycl submitter class
+
 namespace oneapi
 {
 namespace dpl
@@ -113,30 +115,21 @@ struct __sycl_scan_by_segment_submitter_factory
 };
 
 template <bool __is_inclusive, typename _ExecutionPolicy>
-struct __sycl_scan_by_segment_submitter
+struct __sycl_scan_by_segment_submitter : protected __sycl_submitter_base<_ExecutionPolicy>
 {
-    // We should instantiate this submitter only for cleared _ExecutionPolicy type
-    static_assert(std::is_same_v<_ExecutionPolicy, std::decay_t<_ExecutionPolicy>>);
-
     friend __sycl_scan_by_segment_submitter_factory;
-
-  protected:
-
-    _ExecutionPolicy __exec;
-
-    template <typename _ExecutionPolicyCtor>
-    __sycl_scan_by_segment_submitter(_ExecutionPolicyCtor&& __exec)
-    {
-        __exec = std::forward<_ExecutionPolicyCtor>(__exec);
-    }
-
-  public:
 
     template <typename... _Name>
     using _SegScanWgPhase = __seg_scan_wg_kernel<__is_inclusive, _Name...>;
 
     template <typename... _Name>
     using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
+
+    template <typename _ExecutionPolicyCtor>
+    __sycl_scan_by_segment_submitter(_ExecutionPolicyCtor&& __exec)
+        : __sycl_submitter_base<_ExecutionPolicy>(std::forward<_ExecutionPolicyCtor>(__exec))
+    {
+    }
 
     template <typename _BackendTag, typename _Range1, typename _Range2, typename _Range3, typename _BinaryPredicate,
               typename _BinaryOperator, typename _T>
