@@ -50,7 +50,11 @@ inline constexpr int medium_sz = (1<<17) + 10; //128K
 // it also usually results in using sing-work-group specializations for device policies
 inline constexpr int small_sz = 2025;
 
+#if TEST_DPCPP_BACKEND_PRESENT
 inline constexpr std::array<int, 3> big_sizes_per_policy = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_sz};
+#else
+inline constexpr std::array<int, 2> big_sizes_per_policy = {/*serial*/ small_sz, /*par*/ medium_sz};
+#endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -532,7 +536,11 @@ struct test_range_algo
     test_range_algo() = default;
 
     // Mode with a uniform number of elements for each policy type
+#if TEST_DPCPP_BACKEND_PRESENT
     test_range_algo(int n) : n_serial(n), n_parallel(n), n_device(n) {}
+#else
+    test_range_algo(int n) : n_serial(n), n_parallel(n) {}
+#endif
 
     // Mode that tests different policy types with different sizes.
     // Serial (seq/unseq), parallel (par/par_unseq), and device policies
