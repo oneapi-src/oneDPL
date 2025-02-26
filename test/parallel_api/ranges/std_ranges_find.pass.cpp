@@ -24,7 +24,7 @@ main()
 
     auto find_checker = TEST_PREPARE_CALLABLE(std::ranges::find);
 
-    test_range_algo<0>{policy_scaled_sizes}(dpl_ranges::find, find_checker, 4);  //found case
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::find, find_checker, 4);  //found case
     test_range_algo<1>{}(dpl_ranges::find, find_checker, -1); //not found case
     test_range_algo<2>{}(dpl_ranges::find, find_checker, 4, proj);
     test_range_algo<3, P2>{}(dpl_ranges::find, find_checker, 4, &P2::x);

@@ -24,7 +24,7 @@ main()
 
     auto min_element_checker = TEST_PREPARE_CALLABLE(std::ranges::min_element);
 
-    test_range_algo<0>{policy_scaled_sizes}(dpl_ranges::min_element, min_element_checker, std::ranges::less{});
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::min_element, min_element_checker, std::ranges::less{});
 
     test_range_algo<1>{}(dpl_ranges::min_element, min_element_checker, std::ranges::less{}, proj);
     test_range_algo<2, P2>{}(dpl_ranges::min_element, min_element_checker, std::ranges::less{}, &P2::x);

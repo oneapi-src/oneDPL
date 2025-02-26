@@ -24,7 +24,7 @@ main()
 
     auto adj_find_checker = TEST_PREPARE_CALLABLE(std::ranges::adjacent_find);
 
-    test_range_algo<0>{policy_scaled_sizes}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred);
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred);
     test_range_algo<1>{}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred, proj);
     test_range_algo<2, P2>{}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::adjacent_find, adj_find_checker, binary_pred, &P2::proj);

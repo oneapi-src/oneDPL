@@ -39,10 +39,18 @@ static_assert(ONEDPL_HAS_RANGE_ALGORITHMS >= 202409L);
 namespace test_std_ranges
 {
 
+// The largest specializations handle 16M+ elements
 inline constexpr int big_sz = (1<<24) + 10; //16M
+
+// 128K is a conventional limit for host policies, expecially the parallel ones,
+// it also usually results in using multiple-work-group specializations for device policies
 inline constexpr int medium_sz = (1<<17) + 10; //128K
+
+// It is a sufficient size for sequential policies
+// it also usually results in using sing-work-group specializations for device policies
 inline constexpr int small_sz = 2025;
-inline constexpr std::array<int, 3> policy_scaled_sizes = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_sz};
+
+inline constexpr std::array<int, 3> default_sizes_per_policy = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_sz};
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template<int call_id = 0>
@@ -517,11 +525,23 @@ struct test_range_algo
 {
     const int n_serial = small_sz;
     const int n_parallel = small_sz;
+#if TEST_DPCPP_BACKEND_PRESENT
     const int n_device = small_sz;
+#endif
 
     test_range_algo() = default;
+
+    // Mode with a uniform number of elements for each policy type
     test_range_algo(int n) : n_serial(n), n_parallel(n), n_device(n) {}
+
+    // Mode that tests different policy types with sizes specific to their specializations.
+    // Serial (seq/unseq), parallel (par/par_unseq), and device policies
+    // have specialized implementations that use different sizes.
+#if TEST_DPCPP_BACKEND_PRESENT
     test_range_algo(std::array<int, 3> sizes) : n_serial(sizes[0]), n_parallel(sizes[1]), n_device(sizes[2]) {}
+#else
+    test_range_algo(std::array<int, 2> sizes) : n_serial(sizes[0]), n_parallel(sizes[1]) {}
+#endif
 
     void test_view(auto view, auto algo, auto& checker, auto... args)
     {

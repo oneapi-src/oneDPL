@@ -24,7 +24,7 @@ main()
 
     auto find_if_not_checker = TEST_PREPARE_CALLABLE(std::ranges::find_if_not);
 
-    test_range_algo<0>{policy_scaled_sizes}(dpl_ranges::find_if_not, find_if_not_checker, pred1);
+    test_range_algo<0>{default_sizes_per_policy}(dpl_ranges::find_if_not, find_if_not_checker, pred1);
     test_range_algo<1>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, proj);
     test_range_algo<2, P2>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, &P2::x);
     test_range_algo<3, P2>{}(dpl_ranges::find_if_not, find_if_not_checker, pred, &P2::proj);
