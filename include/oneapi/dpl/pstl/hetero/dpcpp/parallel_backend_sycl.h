@@ -224,13 +224,13 @@ class __scan_copy_single_wg_kernel;
 //------------------------------------------------------------------------
 
 // Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
-template <typename _CustomName, typename _PropagateScanName>
+template <typename _PropagateScanName>
 struct __parallel_scan_submitter;
 
 // Even if this class submits three kernel optional name is allowed to be only for one of them
 // because for two others we have to provide the name to get the reliable work group size
-template <typename _CustomName, typename... _PropagateScanName>
-struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
+template <typename... _PropagateScanName>
+struct __parallel_scan_submitter<__internal::__optional_kernel_name<_PropagateScanName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
               typename _LocalScan, typename _GroupScan, typename _GlobalScan>
@@ -238,6 +238,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
                _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _Type = typename _InitType::__value_type;
         using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_scan_submitter
             __scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
@@ -652,7 +653,7 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
     using _PropagateKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
+    return __parallel_scan_submitter<_PropagateKernel>()(
         std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
         __init, __local_scan, __group_scan, __global_scan);
 }
