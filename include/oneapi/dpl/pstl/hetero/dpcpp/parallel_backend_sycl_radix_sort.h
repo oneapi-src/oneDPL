@@ -654,15 +654,15 @@ struct __parallel_radix_sort_iteration
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
-            __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
+            __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,     // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_radix_sort_iteration
                                                 ::std::decay_t<_TmpBuf>, _Proj>;
-        using _RadixLocalScanKernel = __internal::__kernel_name_generator<__local_scan_phase, _CustomName,
+        using _RadixLocalScanKernel = __internal::__kernel_name_generator<__local_scan_phase, _CustomName,                  // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_radix_sort_iteration
                                                                           _ExecutionPolicy, ::std::decay_t<_TmpBuf>>;
         using _RadixReorderPeerKernel =
-            __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName, _ExecutionPolicy,
+            __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName, _ExecutionPolicy,                        // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_radix_sort_iteration
                                                 ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>, _Proj>;
         using _RadixReorderKernel =
-            __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,
+            __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,                             // KSATODO: __kernel_name_generator with _ExecutionPolicy - __parallel_radix_sort_iteration
                                                 ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>, _Proj>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);

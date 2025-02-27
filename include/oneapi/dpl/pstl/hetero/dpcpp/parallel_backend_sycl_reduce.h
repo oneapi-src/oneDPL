@@ -318,7 +318,7 @@ struct __parallel_transform_reduce_impl
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<           // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_transform_reduce_impl
             __reduce_kernel, _CustomName, _ReduceOp, _TransformOp, _NoOpFunctor, _Ranges...>;
 
         auto __transform_pattern1 =

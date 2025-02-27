@@ -239,9 +239,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
         using _Type = typename _InitType::__value_type;
-        using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_scan_submitter
             __scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
-        using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_scan_submitter
             __scan_group_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
         auto __n = __rng1.size();
         assert(__n > 0);
@@ -654,7 +654,7 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
-        __init, __local_scan, __group_scan, __global_scan);
+                                                __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _Type>
