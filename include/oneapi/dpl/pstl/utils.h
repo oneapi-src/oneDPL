@@ -268,7 +268,7 @@ class __transform_functor
     mutable _Pred _M_pred;
 
   public:
-    explicit __transform_functor(_Pred __pred) : _M_pred(::std::move(__pred)) {}
+    explicit __transform_functor(_Pred&& __pred) : _M_pred(::std::move(__pred)) {}
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
