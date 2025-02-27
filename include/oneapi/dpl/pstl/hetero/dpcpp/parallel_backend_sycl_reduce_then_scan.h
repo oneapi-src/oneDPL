@@ -771,9 +771,9 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
                                       _Inclusive, _IsUniquePattern)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<            // KSATODO __kernel_name_provider w/o _ExecutionPolicy
         __reduce_then_scan_reduce_kernel<_CustomName>>;
-    using _ScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _ScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<              // KSATODO __kernel_name_provider w/o _ExecutionPolicy
         __reduce_then_scan_scan_kernel<_CustomName>>;
     using _ValueType = typename _InitType::__value_type;
 

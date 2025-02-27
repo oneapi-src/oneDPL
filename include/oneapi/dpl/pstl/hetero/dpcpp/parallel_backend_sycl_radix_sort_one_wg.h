@@ -43,11 +43,11 @@ struct __subgroup_radix_sort
         using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
         using __call_2_t = ::std::integral_constant<::std::uint16_t, 2>;
 
-        using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<           // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
-        using _SortKernelPartGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _SortKernelPartGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t>>;
-        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<          // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_2_t>>;
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;

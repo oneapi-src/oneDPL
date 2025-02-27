@@ -586,7 +586,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                 __event = __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ true,
-                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                         ::std::integral_constant<::std::uint16_t, __wg_size>,
                         ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
                         /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
@@ -596,7 +596,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
                 __event = __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ false,
-                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                         ::std::integral_constant<::std::uint16_t, __wg_size>,
                         ::std::integral_constant<::std::uint16_t, __num_elems_per_item>, _BinaryOperation,
                         /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
@@ -629,7 +629,7 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
     }
     else
     {
-        using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             __par_backend_hetero::__scan_single_wg_dynamic_kernel<_BinaryOperation, _CustomName>>;
 
         auto __event =
@@ -650,7 +650,7 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _PropagateKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;          // KSATODO __kernel_name_provider w/o _ExecutionPolicy
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
@@ -1141,7 +1141,7 @@ struct __invoke_single_group_copy_if
                 __scan_copy_single_wg_kernel<std::integral_constant<std::uint16_t, __wg_size>,
                                              std::integral_constant<std::uint16_t, __num_elems_per_item>,
                                              /* _IsFullGroup= */ std::true_type, _CustomName>;
-            using _FullKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_FullKernel>;
+            using _FullKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_FullKernel>;      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true, _FullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
@@ -1154,7 +1154,7 @@ struct __invoke_single_group_copy_if
                                              std::integral_constant<std::uint16_t, __num_elems_per_item>,
                                              /* _IsFullGroup= */ std::false_type, _CustomName>;
             using _NonFullKernelName =
-                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_NonFullKernel>;
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_NonFullKernel>;                      // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false, _NonFullKernelName>()(
                 std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
@@ -1899,7 +1899,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         // because we have a single work-group and we don't need to use atomics for inter-work-group communication.
 
         using __find_or_one_wg_kernel_name =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel_one_wg<_CustomName>>;
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel_one_wg<_CustomName>>;          // KSATODO __kernel_name_provider w/o _ExecutionPolicy
 
         // Single WG implementation
         __result = __parallel_find_or_impl_one_wg<__or_tag_check, __find_or_one_wg_kernel_name>()(
@@ -1912,7 +1912,7 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
                (sizeof(_AtomicType) < 8 || __exec.queue().get_device().has(sycl::aspect::atomic64)));
 
         using __find_or_kernel_name =
-            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel<_CustomName>>;
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__find_or_kernel<_CustomName>>;               // KSATODO __kernel_name_provider w/o _ExecutionPolicy
 
         // Multiple WG implementation
         __result = __parallel_find_or_impl_multiple_wgs<__or_tag_check, __find_or_kernel_name>()(
@@ -2175,9 +2175,9 @@ __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _Exe
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;           // KSATODO __kernel_name_provider w/o _ExecutionPolicy
     using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;        // KSATODO __kernel_name_provider w/o _ExecutionPolicy
 
     return __parallel_partial_sort_submitter<_GlobalSortKernel, _CopyBackKernel>()(
         oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),

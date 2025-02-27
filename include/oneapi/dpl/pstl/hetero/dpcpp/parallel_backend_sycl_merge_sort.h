@@ -704,15 +704,15 @@ __merge_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _LeafSo
 
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _LeafSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
-    using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;         // KSATODO __kernel_name_provider w/o _ExecutionPolicy
+    using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<                 // KSATODO __kernel_name_provider w/o _ExecutionPolicy
         __diagonals_kernel_name_for_merge_sort<_CustomName, _IndexT>>;
-    using _GlobalSortKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _GlobalSortKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<                   // KSATODO __kernel_name_provider w/o _ExecutionPolicy
         __sort_global_kernel1<_CustomName, _IndexT>>;
-    using _GlobalSortKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _GlobalSortKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<                   // KSATODO __kernel_name_provider w/o _ExecutionPolicy
         __sort_global_kernel2<_CustomName, _IndexT>>;
     using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;    // KSATODO __kernel_name_provider w/o _ExecutionPolicy
 
     assert(__rng.size() > 1);
     assert((__leaf_sorter.__process_size & (__leaf_sorter.__process_size - 1)) == 0 &&

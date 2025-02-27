@@ -492,7 +492,7 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         using _WiIndex = std::uint32_t;
         static_assert(__get_starting_size_limit_for_large_submitter<__value_type>() <=
                       std::numeric_limits<_WiIndex>::max());
-        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<             // KSATODO __kernel_name_provider w/o _ExecutionPolicy
             __merge_kernel_name<_CustomName, _WiIndex>>;
         return __parallel_merge_submitter<_OutSizeLimit, _WiIndex, _MergeKernelName>()(
             std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
@@ -503,9 +503,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         if (__n <= std::numeric_limits<std::uint32_t>::max())
         {
             using _WiIndex = std::uint32_t;
-            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<     // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                 __diagonals_kernel_name<_CustomName, _WiIndex>>;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<         // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
             return __parallel_merge_submitter_large<_OutSizeLimit, _WiIndex, _CustomName, _DiagonalsKernelName,
                                                     _MergeKernelName>()(
@@ -515,9 +515,9 @@ __parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy
         else
         {
             using _WiIndex = std::uint64_t;
-            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _DiagonalsKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<     // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                 __diagonals_kernel_name<_CustomName, _WiIndex>>;
-            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            using _MergeKernelName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<         // KSATODO __kernel_name_provider w/o _ExecutionPolicy
                 __merge_kernel_name_large<_CustomName, _WiIndex>>;
             return __parallel_merge_submitter_large<_OutSizeLimit, _WiIndex, _CustomName, _DiagonalsKernelName,
                                                     _MergeKernelName>()(
