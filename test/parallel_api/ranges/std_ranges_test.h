@@ -44,16 +44,16 @@ inline constexpr int big_size = (1<<24) + 10; //16M
 
 // ~100K is sufficient for parallel policies.
 // It also usually results in using multiple-work-group specializations for device policies.
-inline constexpr int medium_sz = (1<<17) + 10; //128K
+inline constexpr int medium_size = (1<<17) + 10; //128K
 
 // It is a sufficient size for sequential policies.
-// It also usually results in using sing-work-group specializations for device policies.
-inline constexpr int small_sz = 2025;
+// It also usually results in using single-work-group specializations for device policies.
+inline constexpr int small_size = 2025;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-inline constexpr std::array<int, 3> big_sz = {/*serial*/ small_sz, /*par*/ medium_sz, /*device*/ big_size};
+inline constexpr std::array<int, 3> big_sz = {/*serial*/ small_size, /*par*/ medium_size, /*device*/ big_size};
 #else
-inline constexpr std::array<int, 2> big_sz = {/*serial*/ small_sz, /*par*/ medium_sz};
+inline constexpr std::array<int, 2> big_sz = {/*serial*/ small_size, /*par*/ medium_size};
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -527,10 +527,10 @@ using  usm_span = usm_subrange_impl<T, std::span<T>>;
 template<int call_id = 0, typename T = int, TestDataMode mode = data_in>
 struct test_range_algo
 {
-    const int n_serial = small_sz;
-    const int n_parallel = small_sz;
+    const int n_serial = small_size;
+    const int n_parallel = small_size;
 #if TEST_DPCPP_BACKEND_PRESENT
-    const int n_device = small_sz;
+    const int n_device = small_size;
 #endif
 
     test_range_algo() = default;
