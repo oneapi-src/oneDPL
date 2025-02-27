@@ -329,7 +329,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
 
     return oneapi::dpl::__internal::__pattern_walk2(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)});
+        oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)});              // KSATODO this std::move probably is not required
 }
 
 // we can't use non-const __op here
@@ -343,7 +343,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
 
     return oneapi::dpl::__internal::__pattern_walk3(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)));
+        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)));             // KSATODO this std::move probably is not required
 }
 
 // [alg.transform_if]

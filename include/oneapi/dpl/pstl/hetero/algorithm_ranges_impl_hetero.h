@@ -120,7 +120,7 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
         { return std::invoke(__op, std::invoke(__proj, std::forward<decltype(__val)>(__val)));};
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{std::move(__unary_op)},
+            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{std::move(__unary_op)},          // KSATODO this std::move probably is not required
             oneapi::dpl::__ranges::views::all_read(std::forward<_InRange>(__in_r)),
             oneapi::dpl::__ranges::views::all_write(std::forward<_OutRange>(__out_r)));
 }
@@ -136,7 +136,7 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
             std::invoke(__proj2, std::forward<decltype(__val2)>(__val2)));};
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::__internal::__transform_functor<decltype(__f)>{std::move(__f)},
+            oneapi::dpl::__internal::__transform_functor<decltype(__f)>{std::move(__f)},                        // KSATODO this std::move probably is not required
             oneapi::dpl::__ranges::views::all_read(std::forward<_InRange1>(__in_r1)),
             oneapi::dpl::__ranges::views::all_read(std::forward<_InRange2>(__in_r2)),
             oneapi::dpl::__ranges::views::all_write(std::forward<_OutRange>(__out_r)));
@@ -178,7 +178,7 @@ __pattern_swap(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& _
         auto __exec1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
             std::forward<_ExecutionPolicy>(__exec));
         oneapi::dpl::__par_backend_hetero::__parallel_for(
-            _BackendTag{}, std::move(__exec1),
+            _BackendTag{}, std::move(__exec1),                                                                          // KSATODO this std::move probably is not required
             unseq_backend::__brick_swap<decltype(__exec1), _Function, std::decay_t<_Range1>, std::decay_t<_Range2>>{
                 __f, __n},
             __n, __rng1, __rng2)
@@ -189,7 +189,7 @@ __pattern_swap(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& _
     auto __exec2 =
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(std::forward<_ExecutionPolicy>(__exec));
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, std::move(__exec2),
+        _BackendTag{}, std::move(__exec2),                                                                              // KSATODO this std::move probably is not required
         unseq_backend::__brick_swap<decltype(__exec2), _Function, std::decay_t<_Range2>, std::decay_t<_Range1>>{__f,
                                                                                                                 __n},
         __n, __rng2, __rng1)

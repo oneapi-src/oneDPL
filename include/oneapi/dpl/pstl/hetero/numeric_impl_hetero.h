@@ -176,7 +176,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
         // Move data from temporary buffer into results
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            __tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
+            __tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,                                // KSATODO this std::move probably is not required
             oneapi::dpl::__internal::__brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
