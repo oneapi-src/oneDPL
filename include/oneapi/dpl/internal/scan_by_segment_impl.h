@@ -108,7 +108,7 @@ struct __sycl_scan_by_segment_impl
     template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+    operator()(_BackendTag, const _ExecutionPolicy& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;

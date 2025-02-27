@@ -235,7 +235,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
               typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
+    operator()(const _ExecutionPolicy& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
                _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
         using _Type = typename _InitType::__value_type;
@@ -482,7 +482,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
               typename _UnaryOp, typename _Assign>
     auto
-    operator()(_Policy&& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
+    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
                _BinaryOperation __bin_op, _UnaryOp __unary_op, _Assign __assign)
     {
         using _ValueType = ::std::uint16_t;
@@ -1739,7 +1739,7 @@ struct __parallel_find_or_impl_one_wg<__or_tag_check, __internal::__optional_ker
     template <typename _ExecutionPolicy, typename _BrickTag, typename __FoundStateType, typename _Predicate,
               typename... _Ranges>
     __FoundStateType
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _BrickTag __brick_tag,
+    operator()(oneapi::dpl::__internal::__device_backend_tag, const _ExecutionPolicy& __exec, _BrickTag __brick_tag,
                const std::size_t __rng_n, const std::size_t __wgroup_size, const __FoundStateType __init_value,
                _Predicate __pred, _Ranges&&... __rngs)
     {
@@ -1804,7 +1804,7 @@ struct __parallel_find_or_impl_multiple_wgs<__or_tag_check, __internal::__option
     template <typename _ExecutionPolicy, typename _BrickTag, typename _AtomicType, typename _Predicate,
               typename... _Ranges>
     _AtomicType
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _BrickTag __brick_tag,
+    operator()(oneapi::dpl::__internal::__device_backend_tag, const _ExecutionPolicy& __exec, _BrickTag __brick_tag,
                const std::size_t __rng_n, const std::size_t __n_groups, const std::size_t __wgroup_size,
                const _AtomicType __init_value, _Predicate __pred, _Ranges&&... __rngs)
     {
@@ -2102,7 +2102,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
 {
     template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
     auto
-    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_BackendTag, const _ExecutionPolicy& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;

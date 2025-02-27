@@ -206,7 +206,7 @@ struct __parallel_merge_submitter<_OutSizeLimit, _IdType, __internal::__optional
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
+    operator()(const _ExecutionPolicy& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         const _IdType __n1 = __rng1.size();
         const _IdType __n2 = __rng2.size();
@@ -313,7 +313,7 @@ struct __parallel_merge_submitter_large<_OutSizeLimit, _IdType, _CustomName,
     // Calculation of split points on each base diagonal
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Compare, typename _Storage>
     sycl::event
-    eval_split_points_for_groups(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _IdType __n,
+    eval_split_points_for_groups(const _ExecutionPolicy& __exec, _Range1&& __rng1, _Range2&& __rng2, _IdType __n,
                                  _Compare __comp, const nd_range_params& __nd_range_params,
                                  _Storage& __base_diagonals_sp_global_storage) const
     {
@@ -350,7 +350,7 @@ struct __parallel_merge_submitter_large<_OutSizeLimit, _IdType, _CustomName,
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
               typename _Storage>
     sycl::event
-    run_parallel_merge(const sycl::event& __event, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+    run_parallel_merge(const sycl::event& __event, const _ExecutionPolicy& __exec, _Range1&& __rng1, _Range2&& __rng2,
                        _Range3&& __rng3, _Compare __comp, const nd_range_params& __nd_range_params,
                        const _Storage& __base_diagonals_sp_global_storage) const
     {
