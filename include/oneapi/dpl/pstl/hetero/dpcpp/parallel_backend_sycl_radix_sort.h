@@ -607,13 +607,13 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 if (__residual > 0)
                 {
                     //_ValueT may not have a default constructor, so we create just a storage via union type
-                    union __storage { _ValueT __v; __storage(){} } __in_val;
+                    oneapi::dpl::__internal::__lazy_ctor_storage<_ValueT> __in_val;
 
                     ::std::uint32_t __bucket = __radix_states; // greater than any actual radix state
                     if (__self_lidx < __residual)
                     {
                         //initialize the storage via move constructor for _ValueT type
-                        new (&__in_val.__v) _ValueT(std::move(__input_rng[__seg_end + __self_lidx]));
+                        __in_val.__setup(std::move(__input_rng[__seg_end + __self_lidx]));
 
                         __bucket = __get_bucket<(1 << __radix_bits) - 1>(
                             __order_preserving_cast<__is_ascending>(__proj(__in_val.__v)), __radix_offset);
@@ -622,7 +622,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     if (__self_lidx < __residual)
                     {
                         __output_rng[__new_offset_idx] = std::move(__in_val.__v);
-                        __in_val.__v.~_ValueT();
+                        __in_val.__destroy();
                     }
                 }
             });
