@@ -292,7 +292,7 @@ __histogram_general_registers_local_reduction(oneapi::dpl::__internal::__device_
                                               const sycl::event& __init_event, ::std::uint16_t __work_group_size,
                                               _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
-    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
@@ -387,7 +387,7 @@ __histogram_general_local_atomics(oneapi::dpl::__internal::__device_backend_tag,
                                   const sycl::event& __init_event, ::std::uint16_t __work_group_size, _Range1&& __input,
                                   _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
-    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
@@ -486,7 +486,7 @@ __histogram_general_private_global_atomics(oneapi::dpl::__internal::__device_bac
                                            ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                            const _BinHashMgr& __binhash_manager)
 {
-    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _global_atomics_name = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __histo_kernel_private_glocal_atomics<_kernel_base_name>>;
