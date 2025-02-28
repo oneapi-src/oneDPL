@@ -760,15 +760,15 @@ __is_gpu_with_reduce_then_scan_sg_sz(const _ExecutionPolicy& __exec)
 // _ReduceOp - a binary function which is used in the reduction and scan operations
 // _WriteOp - a function which accepts output range, index, and output of `_GenScanInput` applied to the input range
 //            and performs the final write to output operation
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _GenReduceInput, typename _ReduceOp,
-          typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
-          typename _Inclusive, typename _IsUniquePattern>
+template <std::uint8_t __sub_group_size, typename _ExecutionPolicy, typename _InRng, typename _OutRng,
+          typename _GenReduceInput, typename _ReduceOp, typename _GenScanInput, typename _ScanInputTransform,
+          typename _WriteOp, typename _InitType, typename _Inclusive, typename _IsUniquePattern>
 auto
-__parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
-                                      _InRng&& __in_rng, _OutRng&& __out_rng, _GenReduceInput __gen_reduce_input,
-                                      _ReduceOp __reduce_op, _GenScanInput __gen_scan_input,
-                                      _ScanInputTransform __scan_input_transform, _WriteOp __write_op, _InitType __init,
-                                      _Inclusive, _IsUniquePattern)
+__parallel_transform_reduce_then_scan_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                           _InRng&& __in_rng, _OutRng&& __out_rng, _GenReduceInput __gen_reduce_input,
+                                           _ReduceOp __reduce_op, _GenScanInput __gen_scan_input,
+                                           _ScanInputTransform __scan_input_transform, _WriteOp __write_op,
+                                           _InitType __init, _Inclusive, _IsUniquePattern)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
@@ -777,7 +777,6 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         __reduce_then_scan_scan_kernel<_CustomName>>;
     using _ValueType = typename _InitType::__value_type;
 
-    constexpr std::uint8_t __sub_group_size = __get_reduce_then_scan_sg_sz();
     constexpr std::uint8_t __block_size_scale = std::max(std::size_t{1}, sizeof(double) / sizeof(_ValueType));
     // Empirically determined maximum. May be less for non-full blocks.
     constexpr std::uint16_t __max_inputs_per_item = 64 * __block_size_scale;
@@ -880,6 +879,33 @@ __parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_
         }
     }
     return __future(__event, __result_and_scratch);
+}
+
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _GenReduceInput, typename _ReduceOp,
+          typename _GenScanInput, typename _ScanInputTransform, typename _WriteOp, typename _InitType,
+          typename _Inclusive, typename _IsUniquePattern>
+auto
+__parallel_transform_reduce_then_scan(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                      _InRng&& __in_rng, _OutRng&& __out_rng, _GenReduceInput __gen_reduce_input,
+                                      _ReduceOp __reduce_op, _GenScanInput __gen_scan_input,
+                                      _ScanInputTransform __scan_input_transform, _WriteOp __write_op, _InitType __init,
+                                      _Inclusive, _IsUniquePattern)
+{
+    auto __invoke_impl = [=, &__exec, &__in_rng, &__out_rng](const auto __sg_sz) {
+        constexpr std::uint8_t __sub_group_size = decltype(__sg_sz)::value;
+        return __parallel_transform_reduce_then_scan_impl<__sub_group_size>(
+            oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __gen_reduce_input, __reduce_op,
+            __gen_scan_input, __scan_input_transform, __write_op, __init, _Inclusive{}, _IsUniquePattern{});
+    };
+    if (__get_reduce_then_scan_sg_sz() == 16)
+    {
+        return __invoke_impl(std::integral_constant<std::uint8_t, 16>());
+    }
+    else
+    {
+        return __invoke_impl(std::integral_constant<std::uint8_t, 32>());
+    }
 }
 
 } // namespace __par_backend_hetero
