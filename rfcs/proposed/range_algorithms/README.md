@@ -20,9 +20,16 @@ implemented in oneDPL.
 - Several algorithms described in P3179 have slightly different semantics. To implement these, some existing algorithm patterns
 might require modifications or new versions.
 
-### Test coverage
+### Implementation limitation
+- In case of a device policy and `std::vector` with `USM` allocator, `std::vector` cannot be passed into algorithm directly by
+non device copyabiability reason. To support  `std::vector` with `USM` allocator `std::vector` should be wrapped into std::ranges::subrange.
 
-- It should be called with both small and large data sizes and with all the policies mentioned above.
+### Test coverage
+- The algorithms should be called with both small and large data sizes and with all the policies mentioned above.
 - Output data, return type, and value should be checked/compared with the reference result
 computed by the corresponding serial std::ranges algorithm or by a custom implemented serial version
 in case of different semantics.
+- The tests should also call the algorithms with following standard range adapters: `std::ranges::subrange`, `std::span`, `std::views::all`
+- The tests should also call the algorithms with non-trivial projections.
+- In case of a device policy and std::vector with USM allocator, 
+
