@@ -46,6 +46,7 @@
 #include "sycl_iterator.h"
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
+#include "../../../internal/sycl_submitter_base_impl.h"
 
 #define _ONEDPL_USE_RADIX_SORT (_ONEDPL_USE_SUB_GROUPS && _ONEDPL_USE_GROUP_ALGOS)
 
@@ -224,43 +225,75 @@ class __scan_copy_single_wg_kernel;
 //------------------------------------------------------------------------
 
 // Please see the comment above __parallel_for_small_submitter for optional kernel name explanation
-template <typename _CustomName, typename _PropagateScanName>
+template <typename _ExecutionPolicy, typename _PropagateScanName>
 struct __parallel_scan_submitter;
 
 // Even if this class submits three kernel optional name is allowed to be only for one of them
 // because for two others we have to provide the name to get the reliable work group size
-template <typename _CustomName, typename... _PropagateScanName>
-struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
+template <typename _ExecutionPolicy, typename... _PropagateScanName>
+struct __parallel_scan_submitter<_ExecutionPolicy, __internal::__optional_kernel_name<_PropagateScanName...>>;
+
+struct __parallel_scan_submitter_factory
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType,
+    template <typename _ExecutionPolicy, typename... _PropagateScanName>
+    static auto
+    create(_ExecutionPolicy&& __exec)
+    {
+        using _ExecutionPolicyCtor = std::decay_t<_ExecutionPolicy>;
+        static_assert(std::is_same_v<_ExecutionPolicyCtor, std::remove_cv_t<std::remove_reference_t<std::decay_t<_ExecutionPolicy>>>>);
+
+        return __parallel_scan_submitter<_ExecutionPolicyCtor, _PropagateScanName...>{std::forward<_ExecutionPolicy>(__exec)};
+    }
+};
+
+// Even if this class submits three kernel optional name is allowed to be only for one of them
+// because for two others we have to provide the name to get the reliable work group size
+template <typename _ExecutionPolicy, typename... _PropagateScanName>
+struct __parallel_scan_submitter<_ExecutionPolicy, __internal::__optional_kernel_name<_PropagateScanName...>>
+    : protected internal::__sycl_submitter_base<_ExecutionPolicy>
+{
+    friend __parallel_scan_submitter_factory;
+
+    using _submitter_base = internal::__sycl_submitter_base<_ExecutionPolicy>;
+
+  protected:
+    template <typename _ExecutionPolicyCtor>
+    __parallel_scan_submitter(_ExecutionPolicyCtor&& __exec)
+        : internal::__sycl_submitter_base<_ExecutionPolicy>(std::forward<_ExecutionPolicyCtor>(__exec))
+    {
+    }
+
+  public:
+    template <typename _Range1, typename _Range2, typename _InitType,
               typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
-               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
+    operator()(_Range1&& __rng1, _Range2&& __rng2, _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan,
+               _GlobalScan __global_scan) const
     {
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _Type = typename _InitType::__value_type;
-        using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_scan_submitter
             __scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
-        using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<        // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_scan_submitter
             __scan_group_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
         auto __n = __rng1.size();
         assert(__n > 0);
 
-        auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        auto __max_cu = oneapi::dpl::__internal::__max_compute_units(_submitter_base::__exec);
         // get the work group size adjusted to the local memory limit
         // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
+        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(_submitter_base::__exec, sizeof(_Type));
         // Limit the work-group size to prevent large sizes on CPUs. Empirically found value.
         // This value matches the current practical limit for GPUs, but may need to be re-evaluated in the future.
         __wgroup_size = std::min(__wgroup_size, (std::size_t)1024);
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
-        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(__exec);
+        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(_submitter_base::__exec);
         auto __kernel_1 = __kernels[0];
         auto __kernel_2 = __kernels[1];
-        auto __wgroup_size_kernel_1 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_1);
-        auto __wgroup_size_kernel_2 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_2);
+        auto __wgroup_size_kernel_1 = oneapi::dpl::__internal::__kernel_work_group_size(_submitter_base::__exec, __kernel_1);
+        auto __wgroup_size_kernel_2 = oneapi::dpl::__internal::__kernel_work_group_size(_submitter_base::__exec, __kernel_2);
         __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
@@ -271,12 +304,12 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Storage for the results of scan for each workgroup
 
         using __result_and_scratch_storage_t = __result_and_scratch_storage<_ExecutionPolicy, _Type>;
-        __result_and_scratch_storage_t __result_and_scratch{__exec, 1, __n_groups + 1};
+        __result_and_scratch_storage_t __result_and_scratch{_submitter_base::__exec, 1, __n_groups + 1};
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
+        _PRINT_INFO_IN_DEBUG_MODE(_submitter_base::__exec, __wgroup_size, __max_cu);
 
         // 1. Local scan on each workgroup
-        auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        auto __submit_event = _submitter_base::__exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __temp_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::write>(
                 __cgh, __dpl_sycl::__no_init{});
@@ -298,7 +331,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         if (__n_groups > 1)
         {
             auto __iters_per_single_wg = oneapi::dpl::__internal::__dpl_ceiling_div(__n_groups, __wgroup_size);
-            __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __submit_event = _submitter_base::__exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__submit_event);
                 auto __temp_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read_write>(__cgh);
                 __dpl_sycl::__local_accessor<_Type> __local_acc(__wgroup_size, __cgh);
@@ -319,7 +352,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         }
 
         // 3. Final scan for whole range
-        auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        auto __final_event = _submitter_base::__exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__submit_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __temp_acc = __result_and_scratch.template __get_scratch_acc<sycl::access_mode::read>(__cgh);
@@ -652,9 +685,9 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _E
     using _PropagateKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
-        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
-        __init, __local_scan, __group_scan, __global_scan);
+    return __parallel_scan_submitter_factory::create<_ExecutionPolicy, _PropagateKernel>(
+        std::forward<_ExecutionPolicy>(__exec))(std::forward<_Range1>(__in_rng), std::forward<_Range2>(__out_rng),
+                                                __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _Type>

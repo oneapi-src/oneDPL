@@ -311,14 +311,14 @@ struct __parallel_transform_reduce_impl
 {
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               typename... _Ranges>
-    static auto
-    submit(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n, _Size __work_group_size,
-           const _Size __iters_per_work_item, _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init,
-           _Ranges&&... __rngs)
+    auto
+    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Size __n,
+               _Size __work_group_size, const _Size __iters_per_work_item, _ReduceOp __reduce_op,
+               _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs) const
     {
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<           // KSATODO: __kernel_name_generator w/o _ExecutionPolicy - __parallel_transform_reduce_impl
             __reduce_kernel, _CustomName, _ReduceOp, _TransformOp, _NoOpFunctor, _Ranges...>;
 
         auto __transform_pattern1 =
@@ -515,7 +515,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     }
     // Otherwise use a recursive tree reduction with __max_iters_per_work_item __iters_per_work_item.
     const auto __work_group_size_long = static_cast<_Size>(__work_group_size);
-    return __parallel_transform_reduce_impl<_Tp, _Commutative, __vector_size>::submit(
+    return __parallel_transform_reduce_impl<_Tp, _Commutative, __vector_size>{}(
         __backend_tag, std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size_long, __max_iters_per_work_item,
         __reduce_op, __transform_op, __init, std::forward<_Ranges>(__rngs)...);
 }
