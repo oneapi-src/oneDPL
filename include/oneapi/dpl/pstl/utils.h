@@ -323,8 +323,8 @@ class __transform_if_binary_functor
     mutable _BinaryPred _M_pred;
 
   public:
-    explicit __transform_if_binary_functor(_BinaryOper&& __op, _BinaryPred&& __pred)
-        : _M_oper(::std::forward<_BinaryOper>(__op)), _M_pred(::std::forward<_BinaryPred>(__pred))
+    explicit __transform_if_binary_functor(_BinaryOper __op, _BinaryPred __pred)
+        : _M_oper(std::move(__op)), _M_pred(std::move(__pred))
     {
     }
 
